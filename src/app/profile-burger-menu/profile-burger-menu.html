@@ -1,0 +1,50 @@
+<div class="profile-burger-wrapper">
+  <a class="profile-burger" (click)="toggleMenu()">
+    <span class="avatar-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8E" stroke-width="2">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+    </span>
+    ☰
+  </a>
+
+  <div class="burger-menu" [class.open]="isOpen">
+    <div class="menu-profile">
+      <div class="avatar-lg">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+        </svg>
+      </div>
+      <div>
+        <div class="name">{{ user?.fullName || '&nbsp;' }}</div>
+        <div class="pin">{{ user?.pin || '&nbsp;' }}</div>
+      </div>
+    </div>
+    <div class="menu-divider"></div>
+
+    <ul class="menu-list">
+      <li *ngFor="let item of menuItems">
+        <a [routerLink]="item.route" (click)="closeMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <rect x="3" y="4" width="18" height="6" rx="1"/>
+            <rect x="3" y="14" width="18" height="6" rx="1"/>
+          </svg>
+          {{ item.label }}
+        </a>
+      </li>
+      <div class="sep"></div>
+      <li class="logout">
+        <a routerLink="/logout" (click)="closeMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <path d="M16 17l5-5-5-5"/>
+            <path d="M21 12H9"/>
+          </svg>
+          Log out
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,144 @@
+.profile-burger-wrapper{
+    position:relative;
+}
+
+.burger-menu{
+    position:absolute;
+    right:0;
+    top:58px;
+    width:310px;
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 15px 45px rgba(0,0,0,.12);
+    overflow:hidden;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(12px);
+    transition:.25s;
+    z-index:1000;
+}
+
+.burger-menu.open{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+}
+
+.menu-profile{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:22px;
+}
+
+.avatar-lg{
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    background:#f2f3f5;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.avatar-lg svg{
+    width:28px;
+    height:28px;
+    stroke:#9ca3af;
+}
+
+.name{
+    font-size:16px;
+    font-weight:700;
+    color:#222;
+}
+
+.pin{
+    font-size:13px;
+    color:#9ca3af;
+    margin-top:4px;
+}
+
+.menu-divider{
+    height:1px;
+    background:#ececec;
+}
+
+.menu-list{
+    list-style:none;
+    margin:0;
+    padding:12px;
+}
+
+.menu-list li{
+    margin-bottom:4px;
+}
+
+.menu-list a{
+    display:flex;
+    align-items:center;
+    gap:14px;
+
+    text-decoration:none;
+    color:#232323;
+
+    font-size:15px;
+    font-weight:500;
+
+    padding:12px 14px;
+    border-radius:12px;
+
+    transition:.2s;
+}
+
+.menu-list a:hover{
+    background:#f6f7fb;
+    color:#2563eb;
+}
+
+.menu-list svg{
+    width:22px;
+    height:22px;
+    stroke:#7b7b7b;
+    transition:.2s;
+}
+
+.menu-list a:hover svg{
+    stroke:#2563eb;
+}
+
+.divider{
+    list-style:none;
+    margin:12px 0;
+    border-top:1px solid #ececec;
+}
+
+.logout a{
+    color:#ef4444;
+}
+
+.logout svg{
+    stroke:#ef4444;
+}
+
+.logout a:hover{
+    background:#fff1f2;
+}
+
+.profile-burger{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    text-decoration:none;
+}
+
+.avatar-sm{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:#f2f3f5;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}

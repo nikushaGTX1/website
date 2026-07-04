@@ -6,4 +6,7 @@ import { Component } from '@angular/core';
   templateUrl: './navigation.html',
   styleUrl: './navigation.css',
 })
-export class Navigation {}
+export class Navigation {
+  
+  
+}

@@ -11,9 +11,20 @@ import { ExploreProperty } from './explore-property/explore-property';
 import { AgentProfile } from './agent-profile/agent-profile';
 import { Login } from './login/login';
 import { Blog } from './blog/blog';
+import { ProfileBurgerMenu } from './profile-burger-menu/profile-burger-menu';
 
 @NgModule({
-  declarations: [App, Main, Navigation, Footer, ExploreProperty, AgentProfile, Login, Blog],
+  declarations: [
+    App,
+    Main,
+    Navigation,
+    Footer,
+    ExploreProperty,
+    AgentProfile,
+    Login,
+    Blog,
+    ProfileBurgerMenu,
+  ],
   imports: [BrowserModule, AppRoutingModule, FormsModule],
   providers: [provideBrowserGlobalErrorListeners()],
   bootstrap: [App, ExploreProperty],
