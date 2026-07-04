@@ -1,0 +1,71 @@
+<div class="explore-wrapper">
+  
+  <header class="filter-panel">
+    
+    <div class="search-field">
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        placeholder="Enter an address, city, neighborhood or a ZIP code" 
+      />
+      <span class="search-icon-embedded">🔍</span>
+    </div>
+    
+    <div class="filter-dropdowns">
+      <select [(ngModel)]="selectedType">
+        <option value="For rent">For rent</option>
+        <option value="For sale">For sale</option>
+      </select>
+
+      <select [(ngModel)]="priceRange">
+        <option value="">Price</option>
+        <option value="0-1000">$0 - $1,000</option>
+        <option value="1000-2000">$1,000 - $2,000</option>
+        <option value="2000+">$2,000+</option>
+      </select>
+
+      <select [(ngModel)]="homeType">
+        <option value="">Home type</option>
+        <option value="apartment">Apartment</option>
+        <option value="house">House</option>
+      </select>
+
+      <select [(ngModel)]="location">
+        <option value="">Location</option>
+        <option value="tbilisi">Tbilisi</option>
+        <option value="kutaisi">Kutaisi</option>
+      </select>
+    </div>
+
+    <button class="btn-execute-search" (click)="onSearch()">Search</button>
+  </header>
+
+  <main class="split-viewport">
+    
+    <section class="map-view-container">
+      <iframe
+        src="https://maps.google.com/maps?q=Tbilisi,Georgia&t=&z=13&ie=UTF8&iwloc=&output=embed"
+        width="100%"
+        height="100%"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </section>
+
+    <section class="cards-grid-view">
+      <div *ngFor="let card of propertiesPlaceholder" class="empty-card-skeleton">
+        <div class="skeleton-image-area">
+          <span>Media Placement Node</span>
+        </div>
+        <div class="skeleton-text-block">
+          <div class="line title-bar"></div>
+          <div class="line text-bar"></div>
+          <div class="line label-bar"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>

@@ -1,0 +1,374 @@
+:host {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  display: block;
+  background-color: #ffffff;
+  padding: 24px;
+}
+
+.agents-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.agents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-input {
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  color: #4a5568;
+}
+
+.filter-input:focus {
+  border-color: #3b82f6;
+}
+
+.sort-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-filter {
+  width: 16px;
+  height: 16px;
+  color: #3b82f6;
+}
+
+.filter-select {
+  background: transparent;
+  border: none;
+  color: #4a5568;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  outline: none;
+  padding-right: 4px;
+}
+
+.agents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Base Card Styles */
+.agent-card {
+  display: grid;
+  grid-template-columns: 120px 180px 1fr auto;
+  gap: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  background-color: #fafafa;
+  align-items: start;
+}
+
+.card-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-container {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #e5e7eb;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rating-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icon-star {
+  width: 16px;
+  height: 16px;
+  color: #3b82f6;
+}
+
+.rating-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 4px 0;
+}
+
+.agent-role {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.agent-location {
+  font-size: 13px;
+  color: #d1d5db;
+  margin: 0 0 8px 0;
+}
+
+.agent-deals {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.card-bio {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a5568;
+}
+
+.card-bio p {
+  margin: 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  align-self: end;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.action-btn:hover {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+
+.skeleton {
+  background-color: #fcfcfc;
+  border-color: #f3f4f6;
+  pointer-events: none; 
+}
+
+.skeleton-blink {
+  background-color: #e5e7eb;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-blink-line {
+  height: 12px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-blink-line.title-line { height: 16px; width: 85%; margin-bottom: 6px; }
+.skeleton-blink-line.subtitle-line { width: 60%; }
+.skeleton-blink-line.info-line { width: 50%; margin-top: 10px; height: 14px;}
+.skeleton-blink-line.paragraph-line { width: 100%; margin-bottom: 8px; }
+.skeleton-blink-line.paragraph-line.partial { width: 75%; }
+.skeleton-blink-line.short { width: 40px; height: 14px; }
+
+.skeleton-btn {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+
+.career {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 380px; 
+    overflow: hidden;
+    border-radius: 24px; 
+
+    background: url("/Career.jpg") center/cover no-repeat;
+
+    display: flex;
+    align-items: center;
+}
+
+.career-overlay {
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+        90deg,
+        rgba(30, 45, 90, 0.65) 0%,
+        rgba(30, 45, 90, 0.45) 45%,
+        rgba(30, 45, 90, 0.20) 75%,
+        transparent 100%
+    );
+
+    z-index: 1;
+}
+
+.career-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    padding: 0 60px;
+}
+
+.career-content {
+    max-width: 550px;
+}
+
+.career h2 {
+    color: white;
+
+    font-size: 48px; /* Balanced sizing to match image proportion */
+    line-height: 1.15;
+    font-weight: 700;
+    font-family: sans-serif;
+
+    margin: 0 0 30px 0;
+}
+
+.career-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    min-width: 180px;
+    padding: 0 35px;
+    height: 52px;
+
+    background: #2b61ee; /* Precise bright blue color from button */
+    color: white;
+
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 16px; /* Pill-shaped curved button */
+
+    transition: background .25s, transform .25s;
+}
+
+.career-btn:hover {
+    background: #1a4fd6;
+    transform: translateY(-1px);
+}
+
+
+
+/* --- Responsive Media Queries --- */
+@media (max-width: 1200px) {
+    .career, .newsletter {
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 992px) {
+    .career h2 {
+        font-size: 38px;
+    }
+    .newsletter h2 {
+        font-size: 34px;
+    }
+}
+
+@media (max-width: 768px) {
+    .career {
+        height: auto;
+        padding: 60px 0;
+    }
+
+    .career h2 {
+        font-size: 32px;
+    }
+
+    .career-container {
+        padding: 0 30px;
+    }
+
+  
+}
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+
+
+@media (max-width: 768px) {
+  .agents-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .agent-card {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .card-left {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .card-actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+}

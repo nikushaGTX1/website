@@ -1,16 +1,19 @@
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
 import { Main } from './main/main';
 import { Navigation } from './navigation/navigation';
 import { Footer } from './footer/footer';
+import { ExploreProperty } from './explore-property/explore-property';
+import { AgentProfile } from './agent-profile/agent-profile';
 
 @NgModule({
-  declarations: [App, Main, Navigation, Footer],
-  imports: [BrowserModule, AppRoutingModule],
+  declarations: [App, Main, Navigation, Footer, ExploreProperty, AgentProfile],
+  imports: [BrowserModule, AppRoutingModule, FormsModule],
   providers: [provideBrowserGlobalErrorListeners()],
-  bootstrap: [App],
+  bootstrap: [App, ExploreProperty],
 })
 export class AppModule {}
