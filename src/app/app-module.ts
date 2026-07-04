@@ -9,6 +9,7 @@ import { Navigation } from './navigation/navigation';
 import { Footer } from './footer/footer';
 import { ExploreProperty } from './explore-property/explore-property';
 import { AgentProfile } from './agent-profile/agent-profile';
+<<<<<<< HEAD
 import { Login } from './login/login';
 import { Blog } from './blog/blog';
 import { ProfileBurgerMenu } from './profile-burger-menu/profile-burger-menu';
@@ -26,6 +27,13 @@ import { ProfileBurgerMenu } from './profile-burger-menu/profile-burger-menu';
     ProfileBurgerMenu,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule],
+=======
+import { HttpClientModule } from '@angular/common/http';
+
+@NgModule({
+  declarations: [App, Main, Navigation, Footer, ExploreProperty, AgentProfile],
+  imports: [BrowserModule, AppRoutingModule, FormsModule, HttpClientModule],
+>>>>>>> 5af1d6e2a9c331c71383b36a39929f54eba6ed48
   providers: [provideBrowserGlobalErrorListeners()],
   bootstrap: [App, ExploreProperty],
 })
