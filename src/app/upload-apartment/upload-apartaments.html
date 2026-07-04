@@ -1,0 +1,184 @@
+<section class="upload-page">
+  <div class="upload-layout">
+    <aside class="upload-sidebar" aria-label="Listing progress">
+      <div class="progress-card">
+        <button
+          *ngFor="let step of steps; let index = index"
+          class="step-item"
+          type="button"
+          [class.active]="index === 0"
+          [class.disabled]="index > 0"
+        >
+          <span class="step-dot"></span>
+          <span>{{ step }}</span>
+        </button>
+      </div>
+
+      <div class="preview-card">
+        <div class="preview-photo">
+          <img *ngIf="form.imageUrl" [src]="form.imageUrl" alt="Listing preview" />
+          <span *ngIf="!form.imageUrl" class="camera-icon"></span>
+        </div>
+        <div class="preview-lines">
+          <span></span>
+          <span class="short"></span>
+        </div>
+        <strong>{{ previewTitle }}</strong>
+        <small>{{ previewLocation }}</small>
+        <b>{{ previewPrice }}</b>
+      </div>
+    </aside>
+
+    <form class="upload-main" (ngSubmit)="publish()">
+      <section class="form-section">
+        <div class="field-group">
+          <label class="field-label">Real estate type <span class="req">*</span></label>
+          <div class="chip-grid">
+            <button
+              *ngFor="let option of realEstateTypes"
+              type="button"
+              class="chip"
+              [class.selected]="form.realEstateType === option"
+              (click)="select('realEstateType', option)"
+            >
+              {{ option }}
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Deal type <span class="req">*</span></label>
+          <div class="chip-grid">
+            <button
+              *ngFor="let option of dealTypes"
+              type="button"
+              class="chip"
+              [class.selected]="form.dealType === option"
+              (click)="select('dealType', option)"
+            >
+              {{ option }}
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Status <span class="req">*</span></label>
+          <div class="chip-grid">
+            <button
+              *ngFor="let option of buildingStatuses"
+              type="button"
+              class="chip"
+              [class.selected]="form.buildingStatus === option"
+              (click)="select('buildingStatus', option)"
+            >
+              {{ option }}
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Condition <span class="req">*</span></label>
+          <div class="chip-grid chip-grid-wide">
+            <button
+              *ngFor="let option of conditions"
+              type="button"
+              class="chip"
+              [class.selected]="form.condition === option"
+              (click)="select('condition', option)"
+            >
+              {{ option }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="field-group">
+          <label class="field-label">Location <span class="req">*</span></label>
+          <div class="input-row location-row">
+            <input type="text" name="location" placeholder="Location" [(ngModel)]="form.location" />
+            <input type="text" name="street" placeholder="Street" [(ngModel)]="form.street" />
+            <input type="text" name="streetNumber" placeholder="Street number" [(ngModel)]="form.streetNumber" />
+          </div>
+        </div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" name="hideAddress" [(ngModel)]="form.hideAddress" />
+          <span class="info-icon">i</span>
+        </label>
+      </section>
+
+      <section class="form-section">
+        <div class="field-group">
+          <label class="field-label">Price <span class="req">*</span></label>
+          <div class="price-table">
+            <input type="number" name="totalPrice" placeholder="Total price" [(ngModel)]="form.totalPrice" />
+            <input type="number" name="sqPrice" placeholder="Sq. price" [(ngModel)]="form.sqPrice" />
+            <div class="currency-toggle" aria-label="Currency">
+              <button type="button" [class.active]="form.currency === 'GEL'" (click)="setCurrency('GEL')">₾</button>
+              <button type="button" [class.active]="form.currency === '$'" (click)="setCurrency('$')">$</button>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="ai-box">
+          <span class="ai-icon">AI</span>
+          <div>
+            <strong>Price calculation with the help of AI</strong>
+            <p>The calculated price is approximate and may not be accurate</p>
+          </div>
+          <button class="ai-btn" type="button" disabled>AI Price Calculation</button>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="field-group">
+          <label class="field-label">Features</label>
+          <div class="input-row input-row-3">
+            <input type="number" name="area" placeholder="Area m2" [(ngModel)]="form.area" />
+            <input type="number" name="rooms" placeholder="Rooms" [(ngModel)]="form.rooms" />
+            <input type="number" name="bedrooms" placeholder="Bedrooms" [(ngModel)]="form.bedrooms" />
+            <input type="number" name="bathrooms" placeholder="Bathrooms" [(ngModel)]="form.bathrooms" />
+            <input type="number" name="floor" placeholder="Floor" [(ngModel)]="form.floor" />
+            <input type="number" name="totalFloors" placeholder="Total floors" [(ngModel)]="form.totalFloors" />
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="field-group">
+          <label class="field-label">Description / Photos</label>
+          <input type="text" name="title" placeholder="Listing title" [(ngModel)]="form.title" />
+        </div>
+        <div class="field-group">
+          <textarea name="description" rows="5" placeholder="Describe the apartment" [(ngModel)]="form.description"></textarea>
+        </div>
+        <div class="field-group">
+          <input type="url" name="imageUrl" placeholder="Photo URL" [(ngModel)]="form.imageUrl" />
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="field-group">
+          <label class="field-label">Contact Information</label>
+          <div class="input-row input-row-3">
+            <input type="text" name="contactName" placeholder="Name" [(ngModel)]="form.contactName" />
+            <input type="tel" name="contactPhone" placeholder="Phone" [(ngModel)]="form.contactPhone" />
+            <input type="email" name="contactEmail" placeholder="Email" [(ngModel)]="form.contactEmail" />
+          </div>
+        </div>
+      </section>
+
+      <p *ngIf="errorMessage" class="form-error">{{ errorMessage }}</p>
+      <p *ngIf="successMessage" class="form-success">{{ successMessage }}</p>
+
+      <div class="form-actions">
+        <button class="btn-back" type="button" routerLink="/main">Back</button>
+        <button class="btn-publish" type="submit" [disabled]="loading">
+          {{ loading ? 'Publishing...' : 'Publish Listing' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

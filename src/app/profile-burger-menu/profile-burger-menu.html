@@ -19,7 +19,7 @@
       </div>
       <div>
         <div class="name">{{ user?.fullName || '&nbsp;' }}</div>
-        <div class="pin">{{ user?.pin || '&nbsp;' }}</div>
+        <div class="pin">{{ userPinLabel || '&nbsp;' }}</div>
       </div>
     </div>
     <div class="menu-divider"></div>
@@ -36,7 +36,7 @@
       </li>
       <div class="sep"></div>
       <li class="logout">
-        <a routerLink="/logout" (click)="closeMenu()">
+        <a href="#" (click)="$event.preventDefault(); logout()">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <path d="M16 17l5-5-5-5"/>

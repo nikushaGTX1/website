@@ -1,14 +1,13 @@
-import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
-
-interface UserProfile {
-  fullName: string;
-  pin: string;
-}
+import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../services/auth.service';
+import { User } from '../models/user';
 
 interface MenuItem {
   label: string;
   route: string;
-  icon: string; // svg path key, used in the template
+  icon: string;
 }
 
 @Component({
@@ -17,25 +16,36 @@ interface MenuItem {
   templateUrl: './profile-burger-menu.html',
   styleUrl: './profile-burger-menu.css',
 })
-export class ProfileBurgerMenu implements OnInit { // Added 'implements OnInit'
-
+export class ProfileBurgerMenu implements OnInit, OnDestroy {
   isOpen = false;
-  user: UserProfile | null = null;
+  user: User | null = null;
 
   menuItems: MenuItem[] = [
-    { label: 'My Profile',      route: '/my-profile',       icon: 'profile' },
-    { label: 'My listings',      route: '/my-listings',      icon: 'listings' },
-    { label: 'Saved listings',    route: '/saved-listings',   icon: 'bookmark' },
-    { label: 'Premium',           route: '/premium',          icon: 'premium' },
-    { label: 'Balance',           route: '/balance',          icon: 'balance' },
-    { label: 'Payment methods',   route: '/payment-methods',  icon: 'card' },
-    { label: 'My business',       route: '/my-business',      icon: 'business' },
+    { label: 'My Profile', route: '/my-profile', icon: 'profile' },
+    { label: 'My listings', route: '/my-listings', icon: 'listings' },
+    { label: 'Saved listings', route: '/saved-listings', icon: 'bookmark' },
+    { label: 'Premium', route: '/premium', icon: 'premium' },
+    { label: 'Balance', route: '/balance', icon: 'balance' },
+    { label: 'Payment methods', route: '/payment-methods', icon: 'card' },
+    { label: 'My business', route: '/my-business', icon: 'business' },
   ];
 
-  constructor(private elementRef: ElementRef) {}
+  private subscription?: Subscription;
+
+  constructor(
+    private elementRef: ElementRef,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.loadUser();
+    this.subscription = this.authService.currentUser$.subscribe((user) => {
+      this.user = user;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
   }
 
   toggleMenu(): void {
@@ -46,7 +56,12 @@ export class ProfileBurgerMenu implements OnInit { // Added 'implements OnInit'
     this.isOpen = false;
   }
 
-  // Close the dropdown when clicking outside the component
+  logout(): void {
+    this.closeMenu();
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.elementRef.nativeElement.contains(event.target)) {
@@ -54,11 +69,11 @@ export class ProfileBurgerMenu implements OnInit { // Added 'implements OnInit'
     }
   }
 
-  // Replace this with a real call to your auth/user service
-  private loadUser(): void {
-    // Example:
-    // this.userService.getCurrentUser().subscribe(user => {
-    //   this.user = { fullName: user.fullName, pin: 'PIN: ' + user.pin };
-    // });
+  get userPinLabel(): string {
+    if (this.user?.pin) {
+      return `PIN: ${this.user.pin}`;
+    }
+
+    return this.user?.email || '';
   }
 }

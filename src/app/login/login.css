@@ -63,12 +63,12 @@
 }
 
 .form-group input:focus {
-    border-color: #007bff; /* Accent blue color */
+    border-color: #3569f5;
 }
 
 /* Primary Button */
 .submit-btn {
-    background-color: #007bff;
+    background-color: #3569f5;
     color: #ffffff;
     border: none;
     padding: 12px;
@@ -81,7 +81,12 @@
 }
 
 .submit-btn:hover {
-    background-color: #0056b3;
+    background-color: #2857d8;
+}
+
+.submit-btn:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
 }
 
 /* Bottom Toggle Navigation */
@@ -95,7 +100,7 @@
 .toggle-link-btn {
     background: none;
     border: none;
-    color: #007bff;
+    color: #3569f5;
     font-weight: 600;
     cursor: pointer;
     padding: 0;
@@ -104,5 +109,15 @@
 }
 
 .toggle-link-btn:hover {
-    color: #0056b3;
+    color: #2857d8;
+}
+
+.error {
+  color: #d93025;
+  margin-bottom: 12px;
+}
+
+.success {
+  color: #188038;
+  margin-bottom: 12px;
 }

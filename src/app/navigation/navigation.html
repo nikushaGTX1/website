@@ -8,7 +8,7 @@
 
         <div class="nav-right">
 
-            <a class="upload-btn">
+            <a class="upload-btn" routerLink="/upload-apartment">
                 List your property
                 <span>+</span>
             </a>
@@ -23,9 +23,9 @@
             </div>
 
 
-            <a class="icon" routerLink="/login">👤</a>
+            <a class="icon login-icon" routerLink="/login" *ngIf="!isLoggedIn">👤</a>
 
-            <app-profile-burger-menu></app-profile-burger-menu>
+            <app-profile-burger-menu *ngIf="isLoggedIn"></app-profile-burger-menu>
 
         </div>
 
