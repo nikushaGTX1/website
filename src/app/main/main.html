@@ -40,117 +40,44 @@
 
     </div>
 
-    <div class="apartment-grid">
+   <div class="apartment-grid">
 
-        <div class="apartment-card">
+    <div class="apartment-card" *ngFor="let apartment of apartments">
 
-            <div class="image">
+        <div class="image">
 
-                <img src="/banner.jpg" alt="Apartment">
+            <img
+                [src]="apartment.imageUrl || '/banner.jpg'"
+                [alt]="apartment.title">
 
-                <button class="favorite">♡</button>
-
-            </div>
-
-            <div class="card-info">
-
-                <div class="title-row">
-                    <h3>api</h3>
-                    <span>⭐ api</span>
-                </div>
-
-                <p>api</p>
-
-                <small>api</small>
-
-                <h4>$api<span>month</span></h4>
-
-            </div>
+            <button class="favorite">♡</button>
 
         </div>
 
-        <div class="apartment-card">
+        <div class="card-info">
 
-            <div class="image">
+            <div class="title-row">
+                <h3>{{ apartment.title }}</h3>
 
-                <img src="/banner.jpg" alt="Apartment">
-
-                <button class="favorite">♡</button>
-
+                <span>
+                    ⭐ 4.9
+                </span>
             </div>
 
-            <div class="card-info">
+            <p>{{ apartment.address }}</p>
 
-                <div class="title-row">
-                    <h3>api</h3>
-                    <span>⭐ api</span>
-                </div>
+            <small>{{ apartment.description }}</small>
 
-                <p>api</p>
-
-                <small>api</small>
-
-                <h4>$api <span>month</span></h4>
-
-            </div>
-
-        </div>
-
-        <div class="apartment-card">
-
-            <div class="image">
-
-                <img src="/banner.jpg" alt="Apartment">
-
-                <button class="favorite">♡</button>
-
-            </div>
-
-            <div class="card-info">
-
-                <div class="title-row">
-                    <h3>api</h3>
-                    <span>⭐ api</span>
-                </div>
-
-                <p>address</p>
-
-                <small>api</small>
-
-                <h4>$api <span>month</span></h4>
-
-            </div>
-
-        </div>
-
-        <div class="apartment-card">
-
-            <div class="image">
-
-                <img src="/banner.jpg" alt="Apartment">
-
-                <button class="favorite">♡</button>
-
-            </div>
-
-            <div class="card-info">
-
-                <div class="title-row">
-                    <h3>api</h3>
-                    <span>api</span>
-                </div>
-
-                <p>api</p>
-
-                <small>api</small>
-
-                <h4>$api <span>month</span></h4>
-
-            </div>
+            <h4>
+                ${{ apartment.price }}
+                <span>/month</span>
+            </h4>
 
         </div>
 
     </div>
+
+</div>
 
     <div class="see-all">
         <a href="#">See all</a>
