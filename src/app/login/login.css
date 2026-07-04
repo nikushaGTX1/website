@@ -1,0 +1,108 @@
+/* Centered layout container */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    background-color: #f8f9fa;
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+/* Card Styling */
+.auth-card {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+.auth-card h2 {
+    margin: 0 0 8px 0;
+    color: #333333;
+    font-size: 1.75rem;
+    text-align: center;
+}
+
+.subtitle {
+    margin: 0 0 24px 0;
+    color: #666666;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Form Layout */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #444444;
+}
+
+.form-group input {
+    padding: 10px 12px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #007bff; /* Accent blue color */
+}
+
+/* Primary Button */
+.submit-btn {
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Bottom Toggle Navigation */
+.auth-toggle-footer {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666666;
+}
+
+.toggle-link-btn {
+    background: none;
+    border: none;
+    color: #007bff;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 5px;
+    text-decoration: underline;
+}
+
+.toggle-link-btn:hover {
+    color: #0056b3;
+}

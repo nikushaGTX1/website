@@ -161,6 +161,15 @@
     align-items: center;
 }
 
+.profile-burger {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Adjust spacing between 👤 and ☰ */
+    text-decoration: none;
+    cursor: pointer;
+    color: inherit; /* Keeps the color consistent with your navbar */
+}
+
 .nav-menu {
     display: flex;
     gap: 70px;

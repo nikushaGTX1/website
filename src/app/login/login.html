@@ -1,0 +1,56 @@
+<div class="auth-container">
+
+  <div class="auth-card" *ngIf="isRegisterMode">
+    <h2>Create an Account</h2>
+    <p class="subtitle">Join us to explore properties and services</p>
+    
+    <form class="auth-form">
+      <div class="form-group">
+        <label for="reg-name">Full Name</label>
+        <input type="text" id="reg-name" placeholder="Random name">
+      </div>
+
+      <div class="form-group">
+        <label for="reg-email">Email Address</label>
+        <input type="email" id="reg-email" placeholder="name@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="reg-password">Password</label>
+        <input type="password" id="reg-password" placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="submit-btn">Register</button>
+    </form>
+
+    <div class="auth-toggle-footer">
+      <span>Already have an account?</span>
+      <button class="toggle-link-btn" (click)="toggleMode()">Login here</button>
+    </div>
+  </div>
+
+  <div class="auth-card" *ngIf="!isRegisterMode">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Sign in to your account</p>
+    
+    <form class="auth-form">
+      <div class="form-group">
+        <label for="login-email">Email Address</label>
+        <input type="email" id="login-email" placeholder="name@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="submit-btn">Log In</button>
+    </form>
+
+    <div class="auth-toggle-footer">
+      <span>Don't have an account?</span>
+      <button class="toggle-link-btn" (click)="toggleMode()">Register here</button>
+    </div>
+  </div>
+
+</div>

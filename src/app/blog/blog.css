@@ -1,0 +1,92 @@
+/* Container layout matching page padding */
+.blog-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: sans-serif;
+}
+
+.blog-heading {
+    font-size: 1.85rem;
+    color: #111111;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+/* Responsive responsive grid layout */
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 30px;
+}
+
+/* Rounded, shadowed card wrappers */
+.blog-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #eaeaea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.blog-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Image container with standard card gutters */
+.card-image-wrapper {
+    width: 100%;
+    padding: 16px 16px 0 16px;
+    box-sizing: border-box;
+}
+
+.card-image {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 4px; /* Slight edge rounding inside card */
+    display: block;
+}
+
+/* Card body typography spacing */
+.card-content {
+    padding: 20px 20px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.card-title {
+    margin: 0 0 10px 0;
+    font-size: 1.15rem;
+    color: #111111;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.card-excerpt {
+    margin: 0 0 24px 0;
+    font-size: 0.9rem;
+    color: #555555;
+    line-height: 1.6;
+    flex-grow: 1; /* Pushes the read-more button cleanly to bottom edge */
+}
+
+/* Aligning link to the lower right corner */
+.read-more-btn {
+    align-self: flex-end;
+    color: #3b82f6; /* Modern interactive blue color */
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: color 0.15s;
+}
+
+.read-more-btn:hover {
+    text-decoration: underline;
+    color: #1d4ed8;
+}

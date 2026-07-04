@@ -1,0 +1,22 @@
+<div class="blog-container">
+  <h1 class="blog-heading">Blog</h1>
+
+  <div class="blog-grid">
+    <div class="blog-card" *ngFor="let post of blogPosts">
+      
+      <div class="card-image-wrapper">
+        <img [src]="post.imageUrl" [alt]="post.title" class="card-image">
+      </div>
+
+      <div class="card-content">
+        <h3 class="card-title">{{ post.title }}</h3>
+        <p class="card-excerpt">{{ post.description }}</p>
+        
+        <a routerLink="['/blog', post.id || post.slug]" class="read-more-btn">
+          Read more
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -9,9 +9,11 @@ import { Navigation } from './navigation/navigation';
 import { Footer } from './footer/footer';
 import { ExploreProperty } from './explore-property/explore-property';
 import { AgentProfile } from './agent-profile/agent-profile';
+import { Login } from './login/login';
+import { Blog } from './blog/blog';
 
 @NgModule({
-  declarations: [App, Main, Navigation, Footer, ExploreProperty, AgentProfile],
+  declarations: [App, Main, Navigation, Footer, ExploreProperty, AgentProfile, Login, Blog],
   imports: [BrowserModule, AppRoutingModule, FormsModule],
   providers: [provideBrowserGlobalErrorListeners()],
   bootstrap: [App, ExploreProperty],
