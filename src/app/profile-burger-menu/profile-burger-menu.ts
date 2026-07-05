@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models/user';
+import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 
 interface MenuItem {
   label: string;
@@ -75,5 +76,13 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
     }
 
     return this.user?.email || '';
+  }
+
+  get profileImage(): string {
+    return toMediaUrl(this.user?.profilePictureUrl || this.user?.profilePicture);
+  }
+
+  fixProfileImage(event: Event): void {
+    tryNextProfileImageUrl(event);
   }
 }

@@ -1,22 +1,44 @@
-<div class="blog-container">
-  <h1 class="blog-heading">Blog</h1>
+<section class="blog-page">
+  <div class="blog-container">
+    <h1 class="blog-heading">Blog</h1>
 
-  <div class="blog-grid">
-    <div class="blog-card" *ngFor="let post of blogPosts">
-      
-      <div class="card-image-wrapper">
-        <img [src]="post.imageUrl" [alt]="post.title" class="card-image">
-      </div>
+    <p class="blog-message" *ngIf="loading">Loading blog posts...</p>
+    <p class="blog-message error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
+    <p class="blog-message" *ngIf="!loading && !errorMessage && blogPosts.length === 0">No blog posts yet.</p>
 
-      <div class="card-content">
-        <h3 class="card-title">{{ post.title }}</h3>
-        <p class="card-excerpt">{{ post.description }}</p>
-        
-        <a routerLink="['/blog', post.id || post.slug]" class="read-more-btn">
-          Read more
-        </a>
-      </div>
+    <div class="blog-grid">
+      <article class="blog-card" *ngFor="let post of pagedPosts">
+        <div class="card-image-wrapper">
+          <img [src]="post.imageUrl || '/banner.jpg'" [alt]="post.title" class="card-image" />
+        </div>
 
+        <div class="card-content">
+          <h3 class="card-title">{{ post.title }}</h3>
+          <p class="card-excerpt">{{ post.description }}</p>
+
+          <a href="#" class="read-more-btn" (click)="$event.preventDefault()">Read more</a>
+        </div>
+      </article>
     </div>
+
+    <nav class="blog-pagination" *ngIf="blogPosts.length > pageSize" aria-label="Blog pagination">
+      <button type="button" (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1">‹</button>
+      <button
+        type="button"
+        *ngFor="let page of pageNumbers"
+        [class.active]="page === currentPage"
+        (click)="setPage(page)"
+      >
+        {{ page }}
+      </button>
+      <button type="button" (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages">›</button>
+    </nav>
   </div>
-</div>
+
+  <section class="career-banner">
+    <div>
+      <h2>Start a career as<br />a real estate agent<br />with us.</h2>
+      <button type="button" routerLink="/agent-profile">Submit a form</button>
+    </div>
+  </section>
+</section>

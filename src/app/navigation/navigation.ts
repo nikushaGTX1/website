@@ -10,14 +10,17 @@ import { AuthService } from '../services/auth.service';
 })
 export class Navigation implements OnInit, OnDestroy {
   isLoggedIn = false;
+  canOpenAdmin = false;
   private subscription?: Subscription;
 
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
     this.isLoggedIn = this.authService.isLoggedIn;
+    this.canOpenAdmin = this.authService.isAgent;
     this.subscription = this.authService.currentUser$.subscribe(() => {
       this.isLoggedIn = this.authService.isLoggedIn;
+      this.canOpenAdmin = this.authService.isAgent;
     });
   }
 

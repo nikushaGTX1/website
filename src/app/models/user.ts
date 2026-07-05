@@ -4,6 +4,13 @@ export interface User {
   fullName: string;
   email: string;
   pin?: string;
+  bio?: string;
+  profilePicture?: string;
+  profilePictureUrl?: string;
+  role?: string;
+  roles?: string[];
+  isAgent?: boolean;
+  isAdmin?: boolean;
 }
 
 export interface AuthResponse {

@@ -1,0 +1,312 @@
+.my-listings-page {
+  min-height: calc(100vh - 80px);
+  padding: 42px 48px 64px;
+  background: #f5f6f8;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.listings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1180px;
+  margin: 0 auto 24px;
+}
+
+.listings-header span {
+  color: #3168f4;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.listings-header h1 {
+  margin: 8px 0 6px;
+  color: #050505;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.listings-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.listings-header button,
+.empty-state button,
+.primary {
+  border: 0;
+  border-radius: 8px;
+  background: #3168f4;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 13px 22px;
+}
+
+.success,
+.error {
+  max-width: 1180px;
+  margin: 0 auto 14px;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-weight: 700;
+}
+
+.success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.error {
+  background: #fff1f2;
+  color: #dc2626;
+}
+
+.panel {
+  max-width: 1180px;
+  margin: 0 auto 22px;
+  border: 1px solid #dde3ed;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 22px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panel-head h2 {
+  margin: 0;
+  color: #050505;
+  font-size: 24px;
+}
+
+.panel-head small {
+  color: #64748b;
+}
+
+.pending-grid,
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.pending-card,
+.listing-card {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.pending-card {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+}
+
+.pending-image,
+.listing-image {
+  background: #f1f5f9;
+}
+
+.pending-image {
+  display: grid;
+  min-height: 140px;
+  place-items: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.pending-image img,
+.listing-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pending-body,
+.listing-content,
+.edit-form {
+  padding: 16px;
+}
+
+.pending-title,
+.listing-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pending-title h3,
+.listing-top h3 {
+  margin: 0;
+  color: #050505;
+  font-size: 17px;
+}
+
+.pending-title span {
+  height: fit-content;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.pending {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.approved {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.declined {
+  background: #fff1f2;
+  color: #dc2626;
+}
+
+.pending-body p,
+.listing-top p,
+.description {
+  color: #64748b;
+}
+
+.pending-body p,
+.listing-top p {
+  margin: 7px 0;
+}
+
+.pending-body strong,
+.listing-top strong {
+  color: #050505;
+  white-space: nowrap;
+}
+
+.pending-body small,
+.description {
+  display: -webkit-box;
+  overflow: hidden;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.listing-image {
+  height: 230px;
+}
+
+.description {
+  margin: 14px 0 0;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.secondary,
+.danger {
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 11px 16px;
+}
+
+.secondary {
+  border: 1px solid #d9dee8;
+  background: #ffffff;
+  color: #334155;
+}
+
+.danger {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #dc2626;
+}
+
+.edit-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.edit-form label {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.edit-form input,
+.edit-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d9dee8;
+  border-radius: 8px;
+  color: #0f172a;
+  font: inherit;
+  padding: 12px;
+}
+
+.edit-form textarea {
+  resize: vertical;
+}
+
+.edit-form .full,
+.edit-form .card-actions {
+  grid-column: 1 / -1;
+}
+
+.loading,
+.empty-state {
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  color: #475569;
+  padding: 28px;
+  text-align: center;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px;
+  color: #0f172a;
+}
+
+.empty-state p {
+  margin: 0 0 18px;
+}
+
+@media (max-width: 850px) {
+  .my-listings-page {
+    padding: 28px 18px 44px;
+  }
+
+  .listings-header,
+  .pending-card {
+    display: block;
+  }
+
+  .listings-header button {
+    margin-top: 18px;
+  }
+
+  .pending-grid,
+  .listings-grid,
+  .edit-form {
+    grid-template-columns: 1fr;
+  }
+}

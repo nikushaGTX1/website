@@ -8,19 +8,26 @@ import { Login } from './login/login';
 import { Blog } from './blog/blog';
 import { MyProfile } from './my-profile/my-profile';
 import { authGuard } from './guards/auth.guard';
+import { agentGuard } from './guards/agent.guard';
 import { guestGuard } from './guards/guest.guard';
 import { UploadApartment } from './upload-apartment/upload-apartament';
+import { AdminPanel } from './admin-panel/admin-panel';
+import { MyListings } from './my-listings/my-listings';
+import { ApartmentDetail } from './apartment-detail/apartment-detail';
 
 const routes: Routes = [
   { path: '', redirectTo: 'main', pathMatch: 'full' },
   { path: 'main', component: Main },
   { path: 'ExploreProperty', component: ExploreProperty },
+  { path: 'apartments/:id', component: ApartmentDetail },
+  { path: 'apartment-detail', component: ApartmentDetail },
   { path: 'agent-profile', component: AgentProfile },
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'blog', component: Blog },
-  { path: 'upload-apartment', component: UploadApartment },
+  { path: 'upload-apartment', component: UploadApartment, canActivate: [authGuard] },
+  { path: 'admin', component: AdminPanel, canActivate: [authGuard, agentGuard] },
   { path: 'my-profile', component: MyProfile, canActivate: [authGuard] },
-  { path: 'my-listings', component: MyProfile, canActivate: [authGuard] },
+  { path: 'my-listings', component: MyListings, canActivate: [authGuard] },
   { path: 'saved-listings', component: MyProfile, canActivate: [authGuard] },
   { path: 'premium', component: MyProfile, canActivate: [authGuard] },
   { path: 'balance', component: MyProfile, canActivate: [authGuard] },

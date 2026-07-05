@@ -1,7 +1,8 @@
 <div class="profile-burger-wrapper">
   <a class="profile-burger" (click)="toggleMenu()">
     <span class="avatar-sm">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8E" stroke-width="2">
+      <img *ngIf="profileImage" [src]="profileImage" alt="Profile" (error)="fixProfileImage($event)" />
+      <svg *ngIf="!profileImage" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8E" stroke-width="2">
         <circle cx="12" cy="8" r="4"/>
         <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
       </svg>
@@ -12,7 +13,8 @@
   <div class="burger-menu" [class.open]="isOpen">
     <div class="menu-profile">
       <div class="avatar-lg">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+        <img *ngIf="profileImage" [src]="profileImage" alt="Profile" (error)="fixProfileImage($event)" />
+        <svg *ngIf="!profileImage" viewBox="0 0 24 24" fill="none" stroke-width="2">
           <circle cx="12" cy="8" r="4"/>
           <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
         </svg>

@@ -99,60 +99,6 @@
     flex-shrink: 0;
 }
 
-/* Add the banner image as a background on a pseudo element or separate div */
-
-
-.search-box {
-    max-width: 560px;
-    width: 100%;
-    height: 60px;
-
-    background: white;
-
-    border-radius: 18px;
-
-    display: flex;
-    align-items: center;
-
-    overflow: hidden;
-
-    box-shadow: 0 10px 30px rgba(0,0,0,.08);
-}
-
-.search-box input {
-    flex: 1;
-
-    height: 100%;
-
-    border: none;
-    outline: none;
-
-    padding: 0 28px;
-
-    font-size: 15px;
-    color: #444;
-}
-
-.search-box input::placeholder {
-    color: #bdbdbd;
-}
-
-.search-box button {
-    width: 70px;
-    height: 100%;
-
-    border: none;
-    background: white;
-
-    cursor: pointer;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-/* Rest of the CSS remains the same */
 .top-apartments {
     max-width: 1200px;
     width: 100%;
@@ -200,7 +146,6 @@
 
     font-size: 18px;
 
-    transition: .25s;
 }
 
 .slider-buttons button:hover {
@@ -316,11 +261,6 @@
     text-decoration: underline;
 }
 
-.apartment-card:hover img {
-    transform: scale(1.03);
-    transition: .3s;
-}
-
 .services {
     background: #3569F5;
     padding: 80px 20px;
@@ -351,16 +291,9 @@
     background: #fff;
     padding: 40px 35px;
     text-align: center;
-    box-shadow: 0 15px 40px rgba(0,0,0,.08);
-    transition: transform .3s;
-
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.service-card:hover {
-    transform: translateY(-8px);
 }
 
 .service-card img {
@@ -401,7 +334,6 @@
     text-decoration: none;
     font-weight: 600;
 
-    transition: .25s;
 }
 
 .service-btn:hover {
@@ -411,106 +343,139 @@
 .top-agents {
     max-width: 1200px;
     width: 100%;
-    margin: 90px auto;
+    margin: 90px auto 70px;
     padding: 0 20px;
+}
+
+.top-agents .section-header {
+    justify-content: flex-start;
+    margin-bottom: 34px;
+}
+
+.top-agents .section-header h2 {
+    font-size: 28px;
+}
+
+.top-agents .section-header p {
+    margin-top: 7px;
+    color: #7f7f7f;
+    font-size: 18px;
 }
 
 .agents-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 30px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
 }
 
 .agent-card {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    align-items: center;
+    gap: 34px;
+    min-height: 178px;
     background: #fff;
-    border: 1px solid #ececec;
-    border-radius: 24px;
-    padding: 35px 25px;
-
-    text-align: center;
-
-    transition: .3s;
-    box-shadow: 0 8px 25px rgba(0,0,0,.05);
+    border: 1px solid #cfcfcf;
+    border-radius: 20px;
+    padding: 26px 36px;
 }
 
-.agent-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 18px 45px rgba(0,0,0,.10);
+.agent-media {
+    display: grid;
+    justify-items: center;
+    gap: 16px;
 }
 
 .agent-card img {
-    width: 110px;
-    height: 110px;
+    width: 118px;
+    height: 118px;
 
     border-radius: 50%;
     object-fit: cover;
 
     display: block;
-    margin: 0 auto 20px;
+    background: #eef0f2;
+}
 
-    border: 4px solid #3569F5;
+.agent-photo-skeleton {
+    width: 118px;
+    height: 118px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #eef2f8, #f8fafc, #eef2f8);
+}
+
+.agent-rating {
+    color: #111;
+    font-size: 17px;
+}
+
+.agent-rating::first-letter {
+    color: #3569F5;
 }
 
 .agent-card h3 {
     margin: 0;
-    font-size: 23px;
+    color: #000;
+    font-size: 26px;
     font-weight: 700;
+    line-height: 1.15;
 }
 
 .job {
     display: block;
-    margin-top: 10px;
-
-    color: #777;
-    font-size: 15px;
+    margin-top: 17px;
+    color: #858585;
+    font-size: 21px;
+    line-height: 1;
 }
 
 .location {
     display: block;
-    color: #9d9d9d;
-    font-size: 14px;
-    margin-top: 5px;
-}
-
-.rating {
-    margin-top: 22px;
-    color: #3569F5;
-    font-weight: 700;
-    font-size: 18px;
+    color: #b0b0b0;
+    font-size: 17px;
+    margin-top: 2px;
 }
 
 .deals {
-    margin-top: 14px;
-    font-size: 16px;
+    margin-top: 28px;
+    font-size: 17px;
+    font-weight: 700;
     color: #333;
 }
 
 .agent-buttons {
     display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 28px;
+    gap: 22px;
+    margin-top: 31px;
 }
 
 .agent-buttons button {
-    width: 50px;
-    height: 50px;
+    width: 43px;
+    height: 43px;
 
     border: 2px solid #3569F5;
-    border-radius: 14px;
+    border-radius: 11px;
 
     background: white;
     color: #3569F5;
 
     cursor: pointer;
-    font-size: 20px;
 
-    transition: .25s;
+}
+
+.agent-buttons svg {
+    width: 23px;
+    height: 23px;
 }
 
 .agent-buttons button:hover {
     background: #3569F5;
     color: white;
+}
+
+.agent-buttons button:disabled {
+    opacity: .45;
+    cursor: default;
 }
 
 .career {
@@ -585,7 +550,6 @@
 
 .career-btn:hover {
     background: #2557e6;
-    transform: translateY(-2px);
 }
 
 .newsletter {
@@ -595,10 +559,6 @@
     margin: 0 auto;
     background: #3569F5;
     padding: 40px 70px;
-}
-
-.newsletter::before {
-    display: none;
 }
 
 .newsletter-container {
@@ -663,54 +623,12 @@
 
     cursor: pointer;
 
-    transition: .25s;
 }
 
 .newsletter-form button:hover {
     background: #f2f2f2;
 }
 
-@media (max-width: 768px) {
-    .career {
-        border-radius: 0;
-        height: 450px;
-    }
-
-    .career h2 {
-        font-size: 36px;
-    }
-
-    .career-container {
-        padding: 0 20px;
-    }
-
-    .newsletter {
-        border-radius: 0;
-        padding: 60px 20px;
-    }
-
-    .newsletter h2 {
-        font-size: 28px;
-    }
-
-    .newsletter p {
-        font-size: 16px;
-    }
-
-    .newsletter-form {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .newsletter-form input {
-        max-width: 100%;
-    }
-
-    .newsletter-form button {
-        width: 100%;
-        max-width: 300px;
-    }
-}
 @media (max-width: 1200px) {
     .hero {
         border-radius: 0;
@@ -735,7 +653,7 @@
     }
 
     .agents-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
     }
 
     .services-grid {
@@ -809,6 +727,17 @@
 
     .agents-grid {
         grid-template-columns: 1fr;
+    }
+
+    .agent-card {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 24px 20px;
+        text-align: center;
+    }
+
+    .agent-buttons {
+        justify-content: center;
     }
 
     .services-grid {

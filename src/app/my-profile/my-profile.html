@@ -2,31 +2,71 @@
   <div class="profile-card">
     <div class="profile-header">
       <div class="avatar">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-          <circle cx="12" cy="8" r="4"/>
-          <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+        <img
+          *ngIf="profilePreview || profileImage"
+          [src]="profilePreview || profileImage"
+          alt="Profile"
+          (error)="fixProfileImage($event)"
+        />
+
+        <svg *ngIf="!profilePreview && !profileImage" viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
         </svg>
       </div>
+
       <div>
         <h1>{{ user?.fullName || 'My Profile' }}</h1>
         <p class="username">@{{ user?.userName }}</p>
       </div>
     </div>
 
+    <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
     <div class="profile-details">
       <div class="detail-row">
         <span class="label">Full name</span>
         <span class="value">{{ user?.fullName }}</span>
       </div>
+
       <div class="detail-row">
         <span class="label">Email</span>
         <span class="value">{{ user?.email }}</span>
       </div>
-      <div class="detail-row" *ngIf="user?.pin">
-        <span class="label">PIN</span>
-        <span class="value">{{ user?.pin }}</span>
+
+      <div class="detail-row" *ngIf="user?.bio">
+        <span class="label">Bio</span>
+        <span class="value">{{ user?.bio }}</span>
       </div>
     </div>
+
+    <form class="settings-form" (ngSubmit)="saveSettings()">
+      <div class="form-group">
+        <label for="fullName">Full name</label>
+        <input id="fullName" type="text" name="fullName" [(ngModel)]="fullName" required />
+      </div>
+
+      <div class="form-group">
+        <label for="bio">Bio</label>
+        <textarea id="bio" name="bio" rows="4" [(ngModel)]="bio"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="profilePicture">Profile picture</label>
+        <input
+          id="profilePicture"
+          type="file"
+          name="profilePicture"
+          accept="image/*"
+          (change)="onProfilePictureSelected($event)"
+        />
+      </div>
+
+      <button type="submit" class="save-btn" [disabled]="saving || loading">
+        {{ saving ? 'Saving...' : 'Save settings' }}
+      </button>
+    </form>
 
     <div class="profile-actions">
       <button type="button" class="logout-btn" (click)="logout()">Log out</button>

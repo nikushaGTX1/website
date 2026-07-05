@@ -1,50 +1,50 @@
 <div class="explore-wrapper">
-  
   <header class="filter-panel">
-    
     <div class="search-field">
-      <input 
-        type="text" 
-        [(ngModel)]="searchQuery" 
-        placeholder="Enter an address, city, neighborhood or a ZIP code" 
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+        placeholder="Enter an address, city, neighborhood or a ZIP code"
       />
-      <span class="search-icon-embedded">🔍</span>
+      <button class="search-icon-embedded" type="button" (click)="onSearch()">Search</button>
     </div>
-    
+
     <div class="filter-dropdowns">
-      <select [(ngModel)]="selectedType">
-        <option value="For rent">For rent</option>
-        <option value="For sale">For sale</option>
+      <select [(ngModel)]="selectedType" (change)="onSearch()">
+        <option value="">For rent</option>
+        <option value="For Rent">For rent</option>
+        <option value="For Sale">For sale</option>
       </select>
 
-      <select [(ngModel)]="priceRange">
+      <select [(ngModel)]="priceRange" (change)="onSearch()">
         <option value="">Price</option>
         <option value="0-1000">$0 - $1,000</option>
         <option value="1000-2000">$1,000 - $2,000</option>
         <option value="2000+">$2,000+</option>
       </select>
 
-      <select [(ngModel)]="homeType">
+      <select [(ngModel)]="homeType" (change)="onSearch()">
         <option value="">Home type</option>
-        <option value="apartment">Apartment</option>
-        <option value="house">House</option>
+        <option value="Apartment">Apartment</option>
+        <option value="Private house">House</option>
       </select>
 
-      <select [(ngModel)]="location">
+      <select [(ngModel)]="location" (change)="onSearch()">
         <option value="">Location</option>
-        <option value="tbilisi">Tbilisi</option>
-        <option value="kutaisi">Kutaisi</option>
+        <option value="Tbilisi">Tbilisi</option>
+        <option value="Kutaisi">Kutaisi</option>
       </select>
     </div>
 
-    <button class="btn-execute-search" (click)="onSearch()">Search</button>
+    <button class="btn-execute-search" type="button" (click)="onSearch()">Search</button>
+    <button class="btn-clear-search" type="button" (click)="clearFilters()">Clear</button>
   </header>
 
-  <main class="split-viewport">
-    
+  <main class="explore-content">
     <section class="map-view-container">
       <iframe
-        src="https://maps.google.com/maps?q=Tbilisi,Georgia&t=&z=13&ie=UTF8&iwloc=&output=embed"
+        [src]="mapUrl"
         width="100%"
         height="100%"
         style="border:0;"
@@ -52,20 +52,66 @@
         loading="lazy"
         referrerpolicy="no-referrer-when-downgrade">
       </iframe>
-    </section>
 
-    <section class="cards-grid-view">
-      <div *ngFor="let card of propertiesPlaceholder" class="empty-card-skeleton">
-        <div class="skeleton-image-area">
-          <span>Media Placement Node</span>
-        </div>
-        <div class="skeleton-text-block">
-          <div class="line title-bar"></div>
-          <div class="line text-bar"></div>
-          <div class="line label-bar"></div>
-        </div>
+      <div class="map-controls" aria-hidden="true">
+        <span>+</span>
+        <span>-</span>
+      </div>
+
+      <div class="map-caption" *ngIf="selectedApartment">
+        <strong>{{ selectedApartment.title }}</strong>
+        <span>{{ getApartmentMapQuery(selectedApartment) }}</span>
       </div>
     </section>
 
+    <section class="cards-grid-view">
+      <ng-container *ngIf="loading">
+        <div *ngFor="let card of propertiesPlaceholder" class="empty-card-skeleton">
+          <div class="skeleton-image-area"></div>
+          <div class="skeleton-text-block">
+            <div class="line title-bar"></div>
+            <div class="line text-bar"></div>
+            <div class="line label-bar"></div>
+          </div>
+        </div>
+      </ng-container>
+
+      <p class="property-message error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
+      <p class="property-message" *ngIf="!loading && !errorMessage && filteredApartments.length === 0">
+        No apartments match your filters.
+      </p>
+
+      <article
+        class="property-card"
+        *ngFor="let apartment of filteredApartments"
+        [class.selected]="selectedApartment?.id === apartment.id"
+        (click)="selectApartment(apartment)"
+      >
+        <div class="property-image">
+          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/banner.jpg'" [alt]="apartment.title" />
+          <button class="favorite-btn" type="button" (click)="$event.stopPropagation()">♡</button>
+          <div class="image-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+        <div class="property-card-body">
+          <div class="property-title-row">
+            <h3>{{ getApartmentLocation(apartment) }}</h3>
+            <span class="rating">★ {{ getApartmentRating(apartment) }}</span>
+          </div>
+          <p class="property-address">{{ getApartmentStreet(apartment) }}</p>
+          <p class="property-distance">{{ getApartmentDistance(apartment) }}</p>
+          <strong class="property-price">
+            {{ apartment.price | currency:'USD':'symbol':'1.0-0' }}
+            <span>month</span>
+          </strong>
+          <a class="details-link" [routerLink]="['/apartments', apartment.id]" (click)="$event.stopPropagation()">View details</a>
+        </div>
+      </article>
+    </section>
   </main>
 </div>

@@ -1,0 +1,190 @@
+<section class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Admin panel</p>
+      <h1>Property approvals and system control</h1>
+    </div>
+    <button type="button" class="refresh-btn" (click)="loadDashboard()" [disabled]="loading">
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </header>
+
+  <div class="stats-grid">
+    <button type="button" class="stat" [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'">
+      <span>Pending</span>
+      <strong>{{ waitingCount }}</strong>
+    </button>
+    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">
+      <span>Users</span>
+      <strong>{{ users.length || userIds.length }}</strong>
+    </button>
+    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'agents'" (click)="activeTab = 'agents'">
+      <span>Agents</span>
+      <strong>{{ agents.length }}</strong>
+    </button>
+    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'apartments'" (click)="activeTab = 'apartments'">
+      <span>Apartments</span>
+      <strong>{{ apartments.length }}</strong>
+    </button>
+    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'blog'" (click)="activeTab = 'blog'">
+      <span>Blog</span>
+      <strong>{{ blogPosts.length }}</strong>
+    </button>
+  </div>
+
+  <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="message success">{{ successMessage }}</p>
+  <p *ngIf="!isAdmin" class="message info">Agent access: you can review pending posts only. User and agent management is admin-only.</p>
+  <p *ngIf="pendingDebug" class="message info">{{ pendingDebug }}</p>
+
+  <div class="admin-search">
+    <input
+      type="search"
+      [(ngModel)]="adminSearch"
+      [placeholder]="'Search ' + activeTab"
+    />
+    <button type="button" (click)="clearSearch()" [disabled]="!adminSearch">Clear</button>
+  </div>
+
+  <section class="admin-section" *ngIf="activeTab === 'pending'">
+    <div class="section-title">
+      <h2>Apartment review queue</h2>
+      <span>{{ waitingCount }} waiting / {{ pendingApartments.length }} total</span>
+    </div>
+
+    <div class="empty-state" *ngIf="filteredPendingApartments.length === 0">
+      No apartment requests found.
+    </div>
+
+    <article
+      class="review-row"
+      *ngFor="let item of filteredPendingApartments; trackBy: identifyPending"
+    >
+      <img *ngIf="item.apartment.imageUrls?.[0] || item.apartment.imageUrl" [src]="item.apartment.imageUrls?.[0] || item.apartment.imageUrl" alt="" />
+      <div class="review-body">
+        <div class="row-head">
+          <div>
+            <h3>{{ item.apartment.title }}</h3>
+            <p>{{ item.apartment.address || 'No address' }}</p>
+          </div>
+          <span class="status" [class.approved]="item.status === 'approved'" [class.declined]="item.status === 'declined'">
+            {{ item.status }}
+          </span>
+        </div>
+        <p class="description">{{ item.apartment.description }}</p>
+        <div class="meta">
+          <span>{{ item.apartment.price | currency:'USD':'symbol':'1.0-0' }}</span>
+          <span>{{ item.apartment.imageUrls?.length || (item.apartment.imageUrl ? 1 : 0) }} photos</span>
+          <span>{{ item.submittedByName }}</span>
+          <span>{{ item.submittedByEmail || 'No email' }}</span>
+        </div>
+      </div>
+      <div class="row-actions" *ngIf="item.status === 'pending'">
+        <button type="button" class="approve" (click)="approve(item)" [disabled]="actionId === item.id || !isAdmin">
+          Confirm
+        </button>
+        <button type="button" class="decline" (click)="decline(item)" [disabled]="!!actionId">
+          Decline
+        </button>
+      </div>
+      <div class="row-actions" *ngIf="item.status !== 'pending'">
+        <button type="button" class="approve" (click)="moveToPending(item)">
+          Move to pending
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <section class="admin-section" *ngIf="activeTab === 'users' && isAdmin">
+    <div class="section-title">
+      <h2>Users</h2>
+      <span>{{ filteredUsers.length }} loaded</span>
+    </div>
+    <div class="empty-state" *ngIf="filteredUsers.length === 0">No users found.</div>
+    <div class="data-row" *ngFor="let user of filteredUsers; trackBy: identifyUser">
+      <div>
+        <strong>{{ user.fullName || user.userName }}</strong>
+        <span>{{ user.email }}</span>
+      </div>
+      <button type="button" (click)="makeAgent(user)" [disabled]="!user.id || actionId === user.id">Make agent</button>
+    </div>
+  </section>
+
+  <section class="admin-section" *ngIf="activeTab === 'agents' && isAdmin">
+    <div class="section-title">
+      <h2>Agents</h2>
+      <span>{{ filteredAgents.length }} active</span>
+    </div>
+    <div class="empty-state" *ngIf="filteredAgents.length === 0">No agents found.</div>
+    <div class="data-row" *ngFor="let agent of filteredAgents; trackBy: identifyAgent">
+      <div>
+        <strong>{{ agent.fullName || agent.userName || agent.email || agent.id }}</strong>
+        <span>{{ agent.email || agent.userId || 'Agent' }}</span>
+      </div>
+      <button type="button" class="danger" (click)="removeAgent(agent)" [disabled]="actionId === (agent.userId || agent.id)">
+        Remove agent
+      </button>
+    </div>
+  </section>
+
+  <section class="admin-section" *ngIf="activeTab === 'apartments' && isAdmin">
+    <div class="section-title">
+      <h2>Published apartments</h2>
+      <span>{{ filteredApartments.length }} live</span>
+    </div>
+    <div class="empty-state" *ngIf="filteredApartments.length === 0">No apartments found.</div>
+    <div class="data-row apartment-row" *ngFor="let apartment of filteredApartments; trackBy: identifyApartment">
+      <div>
+        <strong>{{ apartment.title }}</strong>
+        <span>{{ apartment.address || apartment.createdAt }}</span>
+      </div>
+      <b>{{ apartment.price | currency:'USD':'symbol':'1.0-0' }}</b>
+      <button type="button" class="danger" (click)="deleteApartment(apartment)" [disabled]="actionId === ('' + apartment.id)">
+        Delete
+      </button>
+    </div>
+  </section>
+
+  <section class="admin-section" *ngIf="activeTab === 'blog' && isAdmin">
+    <div class="section-title">
+      <h2>Blog posts</h2>
+      <span>{{ filteredBlogPosts.length }} published</span>
+    </div>
+
+    <form class="blog-admin-form" (ngSubmit)="createBlogPost()">
+      <div class="form-row">
+        <label>
+          Title
+          <input type="text" name="blogTitle" [(ngModel)]="blogForm.title" placeholder="Blog title" />
+        </label>
+        <label>
+          Image URL
+          <input type="url" name="blogImageUrl" [(ngModel)]="blogForm.imageUrl" placeholder="/banner.jpg" />
+        </label>
+      </div>
+
+      <label>
+        Description
+        <textarea
+          name="blogDescription"
+          rows="4"
+          [(ngModel)]="blogForm.description"
+          placeholder="Short article preview"
+        ></textarea>
+      </label>
+
+      <button type="submit" class="publish-blog-btn">Publish blog post</button>
+    </form>
+
+    <div class="empty-state" *ngIf="filteredBlogPosts.length === 0">No blog posts found.</div>
+
+    <article class="blog-admin-row" *ngFor="let post of filteredBlogPosts; trackBy: identifyBlogPost">
+      <img [src]="post.imageUrl || '/banner.jpg'" [alt]="post.title" />
+      <div>
+        <strong>{{ post.title }}</strong>
+        <span>{{ post.description }}</span>
+      </div>
+      <button type="button" class="danger" (click)="deleteBlogPost(post)">Delete</button>
+    </article>
+  </section>
+</section>

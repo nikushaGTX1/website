@@ -1,0 +1,678 @@
+.detail-page {
+  width: min(100%, 1200px);
+  margin: 34px auto 72px;
+  padding: 0 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #0f172a;
+}
+
+.detail-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.detail-heading > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 38px;
+  min-width: 0;
+}
+
+.detail-heading h1 {
+  margin: 0;
+  font-size: 25px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.rating-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #111827;
+  font-size: 17px;
+  white-space: nowrap;
+}
+
+.rating-mark svg,
+.heading-actions svg,
+.pin-line svg,
+.contact-row svg,
+.about-card svg,
+.type-block svg,
+.benefits svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.rating-mark svg {
+  fill: #3569f5;
+  stroke: #3569f5;
+}
+
+.heading-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.heading-actions button,
+.contact-row button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #d8e2ff;
+  border-radius: 12px;
+  background: #fff;
+  color: #3569f5;
+  cursor: pointer;
+}
+
+.gallery {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: repeat(2, 175px);
+  gap: 14px;
+  margin-bottom: 34px;
+}
+
+.gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 14px;
+  background: #edf1f7;
+}
+
+.gallery-main {
+  grid-row: 1 / 3;
+}
+
+.photo-count {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, .76);
+  color: #fff;
+}
+
+.photo-strip {
+  display: flex;
+  gap: 10px;
+  margin: -18px 0 34px;
+  overflow-x: auto;
+}
+
+.photo-strip img {
+  width: 110px;
+  height: 82px;
+  flex: 0 0 auto;
+  object-fit: cover;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.location-card,
+.price-card,
+.feature-panel,
+.about-card,
+.agent-wide-card {
+  border: 1px solid #d6d6d6;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.location-card {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 320px;
+  overflow: hidden;
+  min-height: 218px;
+}
+
+.location-info {
+  padding: 26px;
+}
+
+.location-info h2,
+.about-card h2,
+.reviews-section h2,
+.agent-section h2,
+.similar-section h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.pin-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 30px 0 8px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.pin-line svg,
+.about-card svg,
+.type-block svg,
+.benefits svg {
+  color: #3569f5;
+}
+
+.location-info > span {
+  color: #a1a1aa;
+  font-size: 13px;
+}
+
+.mini-agent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.mini-agent img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.mini-agent strong,
+.agent-profile strong {
+  display: block;
+  font-size: 14px;
+}
+
+.mini-agent span,
+.agent-profile span {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.map-panel {
+  min-height: 218px;
+  background: #f3f4f6;
+}
+
+.map-panel iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 218px;
+  border: 0;
+}
+
+.price-card {
+  padding: 24px;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.price-row strong {
+  font-size: 29px;
+}
+
+.price-row strong span,
+.similar-info b span {
+  color: #52525b;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.price-row p {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 3px 0 0;
+  color: #7c86a0;
+  font-size: 12px;
+}
+
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px 22px;
+  margin-bottom: 24px;
+  color: #334155;
+  font-size: 15px;
+}
+
+.contact-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.contact-row button {
+  width: 52px;
+  height: 52px;
+  border: 2px solid #3569f5;
+}
+
+.loan-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.loan-row button,
+.request-actions button {
+  height: 50px;
+  border: 0;
+  border-radius: 12px;
+  background: #65cdf3;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.loan-row button:last-child {
+  background: #ff9f2a;
+}
+
+.feature-panel {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 270px;
+  align-items: center;
+  gap: 32px;
+  padding: 34px 42px;
+  margin-bottom: 30px;
+}
+
+.type-block {
+  display: grid;
+  justify-items: center;
+  gap: 13px;
+  padding-right: 34px;
+  border-right: 1px solid #d6d6d6;
+  text-align: center;
+}
+
+.type-block svg {
+  width: 34px;
+  height: 34px;
+}
+
+.type-block h2 {
+  margin: 8px 0 4px;
+  font-size: 24px;
+}
+
+.type-block strong {
+  font-size: 18px;
+}
+
+.amenities {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 48px;
+  font-size: 15px;
+}
+
+.amenities span::before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  vertical-align: middle;
+  border: 2px solid #3569f5;
+  border-radius: 5px;
+}
+
+.request-actions {
+  display: grid;
+  gap: 28px;
+  padding-left: 42px;
+  border-left: 1px solid #d6d6d6;
+}
+
+.request-actions button {
+  background: #3569f5;
+}
+
+.about-card {
+  padding: 34px 42px;
+  margin-bottom: 58px;
+}
+
+.about-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.about-card p {
+  margin: 0 0 18px;
+  color: #111827;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.about-card p:last-child {
+  margin-bottom: 0;
+}
+
+.benefits {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 46px;
+  width: min(960px, 100%);
+  margin: 0 auto 62px;
+}
+
+.benefits article {
+  display: grid;
+  place-items: center;
+  gap: 14px;
+  min-height: 174px;
+  border: 7px solid #3569f5;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.benefits svg {
+  width: 74px;
+  height: 74px;
+}
+
+.benefits img {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.reviews-section,
+.agent-section,
+.similar-section {
+  margin-top: 54px;
+}
+
+.reviews-section h2,
+.agent-section h2,
+.similar-section h2 {
+  margin-bottom: 24px;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.review-card {
+  min-height: 390px;
+  padding: 36px 42px;
+  border: 1px solid #111827;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.review-person {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 24px;
+}
+
+.review-person > span {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+
+.review-person small {
+  display: block;
+  color: #3569f5;
+  letter-spacing: 1px;
+}
+
+.review-card p {
+  min-height: 170px;
+  margin: 0 0 26px;
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.28;
+}
+
+.review-card button {
+  display: block;
+  width: 136px;
+  height: 42px;
+  margin: 0 auto;
+  border: 2px solid #3569f5;
+  border-radius: 8px;
+  background: #fff;
+  color: #3569f5;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.agent-wide-card {
+  display: grid;
+  grid-template-columns: 350px 1fr 1fr;
+  align-items: center;
+  gap: 28px;
+  padding: 32px;
+}
+
+.agent-profile {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.agent-profile img {
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.agent-profile small {
+  display: block;
+  margin-top: 16px;
+  color: #111827;
+}
+
+.agent-wide-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.similar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.similar-image {
+  position: relative;
+  aspect-ratio: 1.12;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.similar-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.similar-image button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .82);
+  color: #fff;
+  cursor: pointer;
+}
+
+.dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .9);
+}
+
+.similar-info {
+  padding-top: 14px;
+}
+
+.similar-info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.similar-info div span {
+  color: #3569f5;
+  white-space: nowrap;
+}
+
+.similar-info p,
+.similar-info small {
+  display: block;
+  margin: 8px 0 0;
+  color: #8a8f98;
+  font-size: 13px;
+}
+
+.similar-info b {
+  display: block;
+  margin-top: 18px;
+  font-size: 14px;
+}
+
+@media (max-width: 1050px) {
+  .gallery {
+    grid-template-rows: repeat(2, 140px);
+  }
+
+  .summary-grid,
+  .feature-panel,
+  .agent-wide-card {
+    grid-template-columns: 1fr;
+  }
+
+  .location-card {
+    grid-template-columns: 1fr;
+  }
+
+  .type-block,
+  .request-actions {
+    padding: 0;
+    border: 0;
+  }
+
+  .reviews-grid,
+  .similar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .benefits {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (max-width: 680px) {
+  .detail-page {
+    margin-top: 22px;
+    padding: 0 14px;
+  }
+
+  .detail-heading,
+  .detail-heading > div:first-child,
+  .price-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .detail-heading h1 {
+    font-size: 21px;
+  }
+
+  .gallery {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 240px 120px 120px;
+  }
+
+  .gallery-main {
+    grid-column: 1 / 3;
+    grid-row: auto;
+  }
+
+  .location-info,
+  .price-card,
+  .feature-panel,
+  .about-card,
+  .agent-wide-card,
+  .review-card {
+    padding: 22px;
+  }
+
+  .facts-grid,
+  .amenities,
+  .loan-row,
+  .reviews-grid,
+  .similar-grid,
+  .benefits {
+    grid-template-columns: 1fr;
+  }
+
+  .benefits article {
+    min-height: 150px;
+  }
+
+  .agent-profile {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+}

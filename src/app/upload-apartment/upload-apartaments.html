@@ -16,8 +16,8 @@
 
       <div class="preview-card">
         <div class="preview-photo">
-          <img *ngIf="form.imageUrl" [src]="form.imageUrl" alt="Listing preview" />
-          <span *ngIf="!form.imageUrl" class="camera-icon"></span>
+          <img *ngIf="primaryImage" [src]="primaryImage" alt="Listing preview" />
+          <span *ngIf="!primaryImage" class="camera-icon"></span>
         </div>
         <div class="preview-lines">
           <span></span>
@@ -26,10 +26,15 @@
         <strong>{{ previewTitle }}</strong>
         <small>{{ previewLocation }}</small>
         <b>{{ previewPrice }}</b>
+        <em *ngIf="uploadedImageCount">{{ uploadedImageCount }} / {{ maxImages }} photos</em>
       </div>
     </aside>
 
     <form class="upload-main" (ngSubmit)="publish()">
+      <div class="review-message" *ngFor="let message of userMessages">
+        {{ message.message || 'Your post was declined.' }}
+      </div>
+
       <section class="form-section">
         <div class="field-group">
           <label class="field-label">Real estate type <span class="req">*</span></label>
@@ -155,7 +160,32 @@
           <textarea name="description" rows="5" placeholder="Describe the apartment" [(ngModel)]="form.description"></textarea>
         </div>
         <div class="field-group">
-          <input type="url" name="imageUrl" placeholder="Photo URL" [(ngModel)]="form.imageUrl" />
+          <div class="photo-upload-head">
+            <label class="field-label">Photos</label>
+            <span>{{ uploadedImageCount }} / {{ maxImages }} uploaded</span>
+          </div>
+
+          <label class="photo-dropzone" [class.disabled]="uploadedImageCount >= maxImages">
+            <input
+              type="file"
+              name="apartmentImages"
+              accept="image/*"
+              multiple
+              [disabled]="uploadedImageCount >= maxImages"
+              (change)="onImagesSelected($event)"
+            />
+            <strong>Upload apartment photos</strong>
+            <span>Select up to 15 images from your computer.</span>
+          </label>
+
+          <p *ngIf="imageUploadMessage" class="image-upload-message">{{ imageUploadMessage }}</p>
+
+          <div class="uploaded-image-grid" *ngIf="uploadedImageCount">
+            <article *ngFor="let image of form.imageUrls; let index = index" class="uploaded-image">
+              <img [src]="image" [alt]="'Uploaded apartment photo ' + (index + 1)" />
+              <button type="button" (click)="removeImage(index)" aria-label="Remove image">×</button>
+            </article>
+          </div>
         </div>
       </section>
 
@@ -172,11 +202,12 @@
 
       <p *ngIf="errorMessage" class="form-error">{{ errorMessage }}</p>
       <p *ngIf="successMessage" class="form-success">{{ successMessage }}</p>
+      <p *ngIf="pendingDebug" class="form-debug">{{ pendingDebug }}</p>
 
       <div class="form-actions">
         <button class="btn-back" type="button" routerLink="/main">Back</button>
         <button class="btn-publish" type="submit" [disabled]="loading">
-          {{ loading ? 'Publishing...' : 'Publish Listing' }}
+          {{ loading ? 'Submitting...' : 'Submit Listing' }}
         </button>
       </div>
     </form>

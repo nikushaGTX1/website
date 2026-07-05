@@ -1,0 +1,115 @@
+<section class="my-listings-page">
+  <div class="listings-header">
+    <div>
+      <span>MY LISTINGS</span>
+      <h1>Your apartments</h1>
+      <p>Manage published listings and track posts waiting for agent approval.</p>
+    </div>
+
+    <button type="button" routerLink="/upload-apartment">Add listing</button>
+  </div>
+
+  <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <section class="panel" *ngIf="pendingListings.length > 0">
+    <div class="panel-head">
+      <h2>Approval requests</h2>
+      <small>{{ pendingListings.length }} request(s)</small>
+    </div>
+
+    <div class="pending-grid">
+      <article class="pending-card" *ngFor="let request of pendingListings">
+        <div class="pending-image">
+          <img *ngIf="request.apartment.imageUrls?.[0] || request.apartment.imageUrl" [src]="request.apartment.imageUrls?.[0] || request.apartment.imageUrl" [alt]="request.apartment.title" />
+          <span *ngIf="!(request.apartment.imageUrls?.[0] || request.apartment.imageUrl)">No photo</span>
+        </div>
+
+        <div class="pending-body">
+          <div class="pending-title">
+            <h3>{{ request.apartment.title }}</h3>
+            <span [class]="request.status">{{ getStatusLabel(request.status) }}</span>
+          </div>
+          <p>{{ request.apartment.address || 'No address' }}</p>
+          <strong>{{ request.apartment.price | currency:'USD':'symbol':'1.0-0' }}</strong>
+          <small>{{ request.apartment.imageUrls?.length || (request.apartment.imageUrl ? 1 : 0) }} photos</small>
+          <small *ngIf="request.message">{{ request.message }}</small>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Published listings</h2>
+      <small>{{ listings.length }} active</small>
+    </div>
+
+    <div class="loading" *ngIf="loading">Loading your listings...</div>
+
+    <div class="empty-state" *ngIf="!loading && listings.length === 0">
+      <h3>No published listings found for your account.</h3>
+      <p>When an approved apartment is connected to your user, it will show here.</p>
+      <button type="button" routerLink="/upload-apartment">Create listing</button>
+    </div>
+
+    <div class="listings-grid" *ngIf="!loading && listings.length > 0">
+      <article class="listing-card" *ngFor="let apartment of listings">
+        <div class="listing-image">
+          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/banner.jpg'" [alt]="apartment.title" />
+        </div>
+
+        <div class="listing-content" *ngIf="editingId !== apartment.id">
+          <div class="listing-top">
+            <div>
+              <h3>{{ apartment.title }}</h3>
+              <p>{{ apartment.address || 'No address' }}</p>
+            </div>
+            <strong>{{ apartment.price | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </div>
+
+          <p class="description">{{ apartment.description }}</p>
+
+          <div class="card-actions">
+            <button type="button" class="secondary" (click)="startEdit(apartment)">Edit</button>
+            <button type="button" class="danger" (click)="deleteListing(apartment)">Delete</button>
+          </div>
+        </div>
+
+        <form class="edit-form" *ngIf="editingId === apartment.id" (ngSubmit)="saveEdit(apartment)">
+          <label>
+            Title
+            <input type="text" name="title-{{ apartment.id }}" [(ngModel)]="editForm.title" required />
+          </label>
+
+          <label>
+            Price
+            <input type="number" name="price-{{ apartment.id }}" [(ngModel)]="editForm.price" required />
+          </label>
+
+          <label>
+            Address
+            <input type="text" name="address-{{ apartment.id }}" [(ngModel)]="editForm.address" />
+          </label>
+
+          <label>
+            Image URL
+            <input type="url" name="image-{{ apartment.id }}" [(ngModel)]="editForm.imageUrl" />
+          </label>
+
+          <label class="full">
+            Description
+            <textarea name="description-{{ apartment.id }}" rows="4" [(ngModel)]="editForm.description"></textarea>
+          </label>
+
+          <div class="card-actions">
+            <button type="submit" class="primary" [disabled]="saving">
+              {{ saving ? 'Saving...' : 'Save changes' }}
+            </button>
+            <button type="button" class="secondary" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </article>
+    </div>
+  </section>
+</section>

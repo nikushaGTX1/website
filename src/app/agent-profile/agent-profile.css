@@ -74,6 +74,22 @@
   gap: 20px;
 }
 
+.agents-message {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+  color: #4a5568;
+  font-weight: 600;
+}
+
+.agents-message.error {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #dc2626;
+}
+
 /* Base Card Styles */
 .agent-card {
   display: grid;

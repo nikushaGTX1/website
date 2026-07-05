@@ -16,6 +16,9 @@ import { ProfileBurgerMenu } from './profile-burger-menu/profile-burger-menu';
 import { MyProfile } from './my-profile/my-profile';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { UploadApartment } from './upload-apartment/upload-apartament';
+import { AdminPanel } from './admin-panel/admin-panel';
+import { MyListings } from './my-listings/my-listings';
+import { ApartmentDetail } from './apartment-detail/apartment-detail';
 
 @NgModule({
   declarations: [
@@ -30,6 +33,9 @@ import { UploadApartment } from './upload-apartment/upload-apartament';
     ProfileBurgerMenu,
     MyProfile,
     UploadApartment,
+    AdminPanel,
+    MyListings,
+    ApartmentDetail,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule],
   providers: [

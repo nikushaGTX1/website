@@ -66,6 +66,23 @@
     background: #2857d8;
 }
 
+.admin-link {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid #d9e2ff;
+    border-radius: 10px;
+    color: #3569f5;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.admin-link:hover {
+    background: #f4f7ff;
+}
+
 /* Small Circle */
 
 .upload-btn span {

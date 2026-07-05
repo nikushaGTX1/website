@@ -1,92 +1,195 @@
-/* Container layout matching page padding */
+:host {
+  display: block;
+  background: #ffffff;
+}
+
+.blog-page {
+  min-height: 100vh;
+  color: #050505;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 .blog-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    font-family: sans-serif;
+  max-width: 1210px;
+  margin: 0 auto;
+  padding: 58px 28px 88px;
 }
 
 .blog-heading {
-    font-size: 1.85rem;
-    color: #111111;
-    margin-bottom: 30px;
-    font-weight: 600;
+  margin: 0 0 42px;
+  font-size: 18px;
+  font-weight: 500;
 }
 
-/* Responsive responsive grid layout */
+.blog-message {
+  margin: 0 0 24px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.blog-message.error {
+  color: #dc2626;
+}
+
 .blog-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 46px 54px;
 }
 
-/* Rounded, shadowed card wrappers */
 .blog-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #eaeaea;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-height: 484px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 38px 42px 24px;
 }
 
-.blog-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-/* Image container with standard card gutters */
 .card-image-wrapper {
-    width: 100%;
-    padding: 16px 16px 0 16px;
-    box-sizing: border-box;
+  height: 286px;
+  margin-bottom: 17px;
+  overflow: hidden;
+  background: #f1f5f9;
 }
 
 .card-image {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    border-radius: 4px; /* Slight edge rounding inside card */
-    display: block;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Card body typography spacing */
 .card-content {
-    padding: 20px 20px 24px 20px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .card-title {
-    margin: 0 0 10px 0;
-    font-size: 1.15rem;
-    color: #111111;
-    line-height: 1.4;
-    font-weight: 700;
+  max-width: 360px;
+  margin: 0 0 8px;
+  color: #050505;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.1;
 }
 
 .card-excerpt {
-    margin: 0 0 24px 0;
-    font-size: 0.9rem;
-    color: #555555;
-    line-height: 1.6;
-    flex-grow: 1; /* Pushes the read-more button cleanly to bottom edge */
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #222222;
+  font-size: 13px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
-/* Aligning link to the lower right corner */
 .read-more-btn {
-    align-self: flex-end;
-    color: #3b82f6; /* Modern interactive blue color */
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 600;
-    transition: color 0.15s;
+  align-self: flex-end;
+  margin-top: auto;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: underline;
 }
 
-.read-more-btn:hover {
-    text-decoration: underline;
-    color: #1d4ed8;
+.blog-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 110px;
+}
+
+.blog-pagination button {
+  min-width: 18px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: #050505;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0;
+}
+
+.blog-pagination button.active {
+  color: #2563eb;
+}
+
+.blog-pagination button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.career-banner {
+  min-height: 282px;
+  background:
+    linear-gradient(90deg, rgba(61, 39, 52, 0.78), rgba(61, 39, 52, 0.2)),
+    url('/Career.jpg') center / cover;
+}
+
+.career-banner > div {
+  max-width: 1210px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.career-banner h2 {
+  margin: 0 0 24px;
+  color: #ffffff;
+  font-size: 44px;
+  line-height: 1.08;
+}
+
+.career-banner button {
+  min-width: 235px;
+  border: 0;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 17px 38px;
+}
+
+@media (max-width: 900px) {
+  .blog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-card {
+    min-height: auto;
+  }
+
+  .blog-pagination {
+    margin-top: 54px;
+  }
+}
+
+@media (max-width: 560px) {
+  .blog-container {
+    padding: 34px 18px 56px;
+  }
+
+  .blog-card {
+    padding: 22px;
+  }
+
+  .card-image-wrapper {
+    height: 220px;
+  }
+
+  .career-banner h2 {
+    font-size: 30px;
+  }
+
+  .career-banner button {
+    min-width: 0;
+    width: 100%;
+  }
 }

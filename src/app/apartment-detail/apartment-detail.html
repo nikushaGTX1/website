@@ -1,0 +1,237 @@
+<section class="detail-page">
+  <p class="status-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <header class="detail-heading">
+    <div>
+      <h1>{{ title }}</h1>
+      <span class="rating-mark">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.9 6.1 6.7.9-4.8 4.7 1.2 6.6-6-3.2-6 3.2 1.2-6.6L2.4 9l6.7-.9L12 2z"/></svg>
+        {{ rating }}
+      </span>
+    </div>
+
+    <div class="heading-actions">
+      <button type="button" aria-label="Share apartment">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 12v7h16v-7M12 16V3m0 0 5 5m-5-5-5 5"/>
+        </svg>
+      </button>
+      <button type="button" aria-label="Save apartment">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.7 0L12 5.7l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.7z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="gallery" aria-label="Apartment photos">
+    <img class="gallery-main" [src]="galleryImages[0]" [alt]="title" />
+    <img [src]="galleryImages[1]" alt="Apartment bathroom" />
+    <img [src]="galleryImages[2]" alt="Apartment entrance" />
+    <img [src]="galleryImages[3]" alt="Apartment dining area" />
+    <img [src]="galleryImages[4]" alt="Apartment bedroom" />
+    <span class="photo-count">{{ photoCount }} photos</span>
+  </section>
+
+  <section class="photo-strip" *ngIf="photoCount > 5" aria-label="All uploaded apartment photos">
+    <img
+      *ngFor="let image of galleryImages; let index = index"
+      [src]="image"
+      [alt]="'Apartment uploaded photo ' + (index + 1)"
+    />
+  </section>
+
+  <section class="summary-grid">
+    <article class="location-card">
+      <div class="location-info">
+        <h2>{{ title }}</h2>
+        <p class="pin-line">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-5.4 7-12a7 7 0 1 0-14 0c0 6.6 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          {{ address }}
+        </p>
+        <span>{{ distance }}</span>
+        <div class="mini-agent">
+          <img src="/agent1.jpg" alt="Giorgi Metreveli" />
+          <div>
+            <strong>Giorgi Metreveli</strong>
+            <span>Agent</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-panel">
+        <iframe
+          [src]="mapUrl"
+          title="Apartment map"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+    </article>
+
+    <aside class="price-card">
+      <div class="price-row">
+        <strong>{{ price | currency:'USD':'symbol':'1.0-0' }} <span>month</span></strong>
+        <p>
+          <span>3 days ago</span>
+          <span>760 views</span>
+          <span>57 saves</span>
+        </p>
+      </div>
+
+      <div class="facts-grid">
+        <span>Area: <strong>55 m2</strong></span>
+        <span>Bedroom: <strong>1</strong></span>
+        <span>Floor: <strong>2</strong></span>
+        <span>Rooms: <strong>2</strong></span>
+      </div>
+
+      <div class="contact-row">
+        <button type="button" aria-label="Call agent">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7A2 2 0 0 1 22 16.9z"/></svg>
+        </button>
+        <button type="button" aria-label="Message agent">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5a8.5 8.5 0 0 1 17 0z"/></svg>
+        </button>
+      </div>
+
+      <div class="loan-row">
+        <button type="button">Bank loan TBC</button>
+        <button type="button">Bank loan BG</button>
+      </div>
+    </aside>
+  </section>
+
+  <section class="feature-panel">
+    <div class="type-block">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 9h.1M12 9h.1M16 9h.1"/></svg>
+      <h2>Studio apartment</h2>
+      <strong>1 Living room</strong>
+      <strong>1 bedroom</strong>
+      <strong>1 Bathroom</strong>
+      <strong>1 Balcony</strong>
+    </div>
+
+    <div class="amenities">
+      <span>Airconditioning</span>
+      <span>Fire extinguisher</span>
+      <span>Heating</span>
+      <span>Car service</span>
+      <span>Wi Fi</span>
+      <span>BBQ grill</span>
+      <span>Washing machine</span>
+      <span>Shower</span>
+    </div>
+
+    <div class="request-actions">
+      <button type="button">Request a hous tour</button>
+      <button type="button">Contact an agent</button>
+    </div>
+  </section>
+
+  <section class="about-card">
+    <h2>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16M9 9h.1M15 9h.1M9 13h.1M15 13h.1M9 17h.1M15 17h.1"/></svg>
+      About the apartment
+    </h2>
+    <p>{{ description }}</p>
+    <p>
+      The community at LuxeResidences is just as thoughtfully designed as the apartments.
+      Enjoy exclusive access to premium amenities, including our beautifully landscaped courtyards,
+      secure parking, and pet-friendly policies.
+    </p>
+    <p>
+      Located just minutes from shopping, dining, and top-rated schools, LuxeResidences offers
+      the perfect balance of convenience and comfort.
+    </p>
+  </section>
+
+  <section class="benefits" aria-label="Apartment benefits">
+    <article>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5h16v16M8 9h2m4 0h2M8 13h2m4 0h2M8 17h2m4 0h2"/></svg>
+      <strong>Great location</strong>
+    </article>
+    <article>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-8h6v8"/></svg>
+      <strong>Less bureaucracy</strong>
+    </article>
+    <article>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z"/></svg>
+      <strong>Easy access</strong>
+    </article>
+    <article>
+      <img src="/agent1.jpg" alt="Agent service" />
+      <strong>Agent service</strong>
+    </article>
+  </section>
+
+  <section class="reviews-section">
+    <h2>Read the reviews</h2>
+    <div class="reviews-grid">
+      <article class="review-card" *ngFor="let review of reviews">
+        <div class="review-person">
+          <span aria-hidden="true"></span>
+          <div>
+            <strong>{{ review.name }}</strong>
+            <small>★★★★★</small>
+          </div>
+        </div>
+        <p>{{ review.text }}</p>
+        <button type="button">Show more</button>
+      </article>
+    </div>
+  </section>
+
+  <section class="agent-section">
+    <h2>Meet your agent</h2>
+    <article class="agent-wide-card">
+      <div class="agent-profile">
+        <img src="/agent1.jpg" alt="Giorgi Metreveli" />
+        <div>
+          <strong>Giorgi Metreveli</strong>
+          <span>Real estate professional</span>
+          <span>Gori, Georgia</span>
+          <small>★ 4.99</small>
+        </div>
+      </div>
+      <p>
+        Giorgi brings years of expertise, passion, and dedication to help you find your dream home.
+        Whether you're a first-time buyer, looking to upgrade, or searching for investment opportunities,
+        Giorgi's deep understanding of the market ensures a seamless real estate experience.
+      </p>
+      <p>
+        With over 5 years in the real estate industry, Giorgi has developed a reputation for delivering
+        exceptional results and building lasting client relationships.
+      </p>
+    </article>
+  </section>
+
+  <section class="similar-section">
+    <div class="section-title-row">
+      <h2>Similar Apartments</h2>
+      <div class="round-actions" aria-hidden="true">
+        <span>&lt;</span>
+        <span>&gt;</span>
+      </div>
+    </div>
+
+    <div class="similar-grid">
+      <article class="similar-card" *ngFor="let similar of similarApartments">
+        <div class="similar-image">
+          <img [src]="similar.imageUrl" [alt]="similar.title" />
+          <button type="button" aria-label="Save apartment">♡</button>
+          <div class="dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="similar-info">
+          <div>
+            <strong>{{ similar.title }}</strong>
+            <span>★ {{ similar.rating }}</span>
+          </div>
+          <p>{{ similar.address }}</p>
+          <small>{{ similar.distance }}</small>
+          <b>{{ similar.price | currency:'USD':'symbol':'1.0-0' }} <span>month</span></b>
+        </div>
+      </article>
+    </div>
+  </section>
+</section>

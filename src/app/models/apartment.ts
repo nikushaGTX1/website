@@ -5,7 +5,14 @@ export interface Apartment {
   price: number;
   address?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   createdAt: string;
+  userId?: string;
+  ownerId?: string;
+  createdById?: string;
+  applicationUserId?: string;
+  createdByEmail?: string;
+  userEmail?: string;
 }
 
 export interface CreateApartment {
@@ -14,4 +21,5 @@ export interface CreateApartment {
   price: number;
   address?: string;
   imageUrl?: string;
+  imageUrls?: string[];
 }

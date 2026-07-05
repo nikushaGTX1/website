@@ -36,7 +36,9 @@
   </div>
 
   <div class="agents-list">
-    <ng-container *ngIf="isLoading || agents.length === 0">
+    <p class="agents-message error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <ng-container *ngIf="isLoading">
       <div class="agent-card skeleton" *ngFor="let item of skeletonCards">
         <div class="card-left">
           <div class="avatar-container skeleton-blink"></div>
@@ -60,11 +62,20 @@
       </div>
     </ng-container>
 
+    <p class="agents-message" *ngIf="!isLoading && !errorMessage && agents.length === 0">
+      No agents found.
+    </p>
+
     <ng-container *ngIf="!isLoading && agents.length > 0">
       <div class="agent-card" *ngFor="let agent of agents">
         <div class="card-left">
           <div class="avatar-container">
-            <img [src]="agent.avatarUrl || 'assets/placeholder-avatar.png'" [alt]="agent.name" class="avatar">
+            <img
+              [src]="agent.avatarUrl || '/agent1.jpg'"
+              [alt]="agent.name"
+              class="avatar"
+              (error)="fixAgentImage($event)"
+            >
           </div>
           <div class="rating-badge">
             <svg class="icon-star" viewBox="0 0 24 24" fill="currentColor">

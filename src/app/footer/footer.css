@@ -6,14 +6,14 @@
 .footer-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 45px 25px 25px;
+    padding: 58px 25px 22px;
 }
 
 .footer-top {
     display: flex;
     justify-content: space-between;
     gap: 120px;
-    padding-bottom: 35px;
+    padding-bottom: 38px;
 }
 
 .footer-column {
@@ -23,8 +23,8 @@
 }
 
 .footer-column h4 {
-    margin-bottom: 18px;
-    font-size: 20px;
+    margin-bottom: 16px;
+    font-size: 13px;
     font-weight: 700;
     color: #111;
 }
@@ -32,15 +32,15 @@
 .footer-column a {
     text-decoration: none;
     color: #222;
-    font-size: 17px;
-    margin-bottom: 16px;
+    font-size: 12px;
+    margin-bottom: 13px;
     transition: .2s;
 }
 
 
 .footer-bottom {
     border-top: 1px solid #ddd;
-    padding-top: 22px;
+    padding-top: 18px;
 
     display: flex;
     justify-content: space-between;
@@ -58,7 +58,7 @@
 .footer-left a,
 .footer-right span {
     color: #222;
-    font-size: 16px;
+    font-size: 12px;
     text-decoration: none;
 }
 
@@ -72,7 +72,7 @@
 
 .footer-right a {
     color: #222;
-    font-size: 26px;
+    font-size: 17px;
     transition: .2s;
 }
 
