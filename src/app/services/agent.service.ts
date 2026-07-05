@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Agent } from '../models/agent';
+import { API_URL } from '../utils/api-config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AgentService {
-  private readonly apiUrl = 'https://localhost:7111/api/Agents';
+  private readonly apiUrl = `${API_URL}/Agents`;
 
   constructor(private http: HttpClient) {}
 

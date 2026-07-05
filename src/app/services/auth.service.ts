@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
 import { AuthResponse, User } from '../models/user';
+import { API_URL } from '../utils/api-config';
 
 export interface RegisterRequest {
   userName: string;
@@ -25,8 +26,8 @@ export interface ProfileSettingsRequest {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://localhost:7111/api/Auth';
-  private profileUrl = 'https://localhost:7111/api/Profile';
+  private apiUrl = `${API_URL}/Auth`;
+  private profileUrl = `${API_URL}/Profile`;
   private currentUserSubject = new BehaviorSubject<User | null>(this.readStoredUser());
 
   currentUser$ = this.currentUserSubject.asObservable();

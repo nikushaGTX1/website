@@ -3,13 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Agent } from '../models/agent';
 import { User } from '../models/user';
+import { API_URL } from '../utils/api-config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AdminService {
-  private readonly adminUrl = 'https://localhost:7111/api/Admin';
-  private readonly agentsUrl = 'https://localhost:7111/api/Agents';
+  private readonly adminUrl = `${API_URL}/Admin`;
+  private readonly agentsUrl = `${API_URL}/Agents`;
 
   constructor(private http: HttpClient) {}
 

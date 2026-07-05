@@ -1,4 +1,6 @@
-const apiOrigin = 'https://localhost:7111';
+import { API_BASE_URL } from './api-config';
+
+const apiOrigin = API_BASE_URL;
 const profileUploadsPath = 'uploads/profiles';
 const attemptedMediaFallbacks = new WeakMap<HTMLImageElement, number>();
 
