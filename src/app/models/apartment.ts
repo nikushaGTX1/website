@@ -11,8 +11,18 @@ export interface Apartment {
   ownerId?: string;
   createdById?: string;
   applicationUserId?: string;
+  agentId?: string;
+  agentUserId?: string;
+  uploadedById?: string;
   createdByEmail?: string;
   userEmail?: string;
+  agentEmail?: string;
+  uploadedByEmail?: string;
+  agentName?: string;
+  uploadedByName?: string;
+  ownerName?: string;
+  agentProfilePictureUrl?: string;
+  uploaderProfilePictureUrl?: string;
 }
 
 export interface CreateApartment {
@@ -22,4 +32,5 @@ export interface CreateApartment {
   address?: string;
   imageUrl?: string;
   imageUrls?: string[];
+  imageFile?: File;
 }

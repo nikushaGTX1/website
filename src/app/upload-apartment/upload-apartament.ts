@@ -108,6 +108,7 @@ export class UploadApartment {
   userMessages: PendingApartment[] = [];
   pendingDebug = '';
   imageUploadMessage = '';
+  private selectedImageFiles: File[] = [];
 
   constructor(
     private apartmentService: ApartmentService,
@@ -182,6 +183,7 @@ export class UploadApartment {
       try {
         const imageDataUrl = await this.resizeImage(file);
         this.form.imageUrls = [...this.form.imageUrls, imageDataUrl].slice(0, this.maxImages);
+        this.selectedImageFiles = [...this.selectedImageFiles, file].slice(0, this.maxImages);
       } catch {
         this.imageUploadMessage = 'One of the selected images could not be processed.';
       }
@@ -193,6 +195,7 @@ export class UploadApartment {
 
   removeImage(index: number): void {
     this.form.imageUrls = this.form.imageUrls.filter((_, imageIndex) => imageIndex !== index);
+    this.selectedImageFiles = this.selectedImageFiles.filter((_, imageIndex) => imageIndex !== index);
     this.form.imageUrl = this.form.imageUrls[0] || '';
   }
 
@@ -207,15 +210,15 @@ export class UploadApartment {
 
     this.loading = true;
 
-    if (!this.authService.isAdmin) {
-      this.pendingService.submit(this.toCreateApartment(), this.authService.currentUser);
+    if (!this.authService.isAgent) {
+      this.pendingService.submit(this.toCreateApartment(false), this.authService.currentUser);
       this.pendingDebug = this.pendingService.getStorageDebug();
       this.loading = false;
       this.successMessage = 'Your apartment was sent for agent confirmation. It will be published after approval.';
       return;
     }
 
-    this.apartmentService.createApartment(this.toCreateApartment()).subscribe({
+    this.apartmentService.createApartment(this.toCreateApartment(true)).subscribe({
       next: () => {
         this.loading = false;
         this.successMessage = 'Apartment listing published successfully.';
@@ -227,7 +230,7 @@ export class UploadApartment {
     });
   }
 
-  private toCreateApartment(): CreateApartment {
+  private toCreateApartment(includeImageFile: boolean): CreateApartment {
     const addressParts = [this.form.location, this.form.street, this.form.streetNumber].filter(Boolean);
     const title = this.form.title.trim() || `${this.form.realEstateType} ${this.form.dealType}`;
     const meta = [
@@ -251,7 +254,7 @@ export class UploadApartment {
       .filter(Boolean)
       .join(' | ');
 
-    return {
+    const apartment: CreateApartment = {
       title,
       description: `${this.form.description || 'Apartment listing'}\n\n${meta}`,
       price: this.form.totalPrice || 0,
@@ -259,6 +262,12 @@ export class UploadApartment {
       imageUrl: this.form.imageUrls[0] || undefined,
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };
+
+    if (includeImageFile && this.selectedImageFiles[0]) {
+      apartment.imageFile = this.selectedImageFiles[0];
+    }
+
+    return apartment;
   }
 
   private resizeImage(file: File): Promise<string> {

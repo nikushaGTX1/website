@@ -42,13 +42,15 @@
 
    <div class="apartment-grid">
 
-    <div class="apartment-card" *ngFor="let apartment of apartments" [routerLink]="['/apartments', apartment.id]">
+    <p class="empty-apartments" *ngIf="!loading && topApartments.length === 0">No published apartments yet.</p>
+
+    <div class="apartment-card" *ngFor="let apartment of topApartments" [routerLink]="['/apartments', apartment.id]">
 
         <div class="image">
 
             <img
-                [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/banner.jpg'"
-                [alt]="apartment.title">
+                [src]="getApartmentImage(apartment)"
+                [alt]="getApartmentTitle(apartment)">
 
             <button class="favorite">♡</button>
 
@@ -57,16 +59,16 @@
         <div class="card-info">
 
             <div class="title-row">
-                <h3>{{ apartment.title }}</h3>
+                <h3>{{ getApartmentTitle(apartment) }}</h3>
 
                 <span>
                     ⭐ 4.9
                 </span>
             </div>
 
-            <p>{{ apartment.address }}</p>
+            <p>{{ getApartmentAddress(apartment) }}</p>
 
-            <small>{{ apartment.description }}</small>
+            <small>{{ getApartmentDescription(apartment) }}</small>
 
             <h4>
                 ${{ apartment.price }}

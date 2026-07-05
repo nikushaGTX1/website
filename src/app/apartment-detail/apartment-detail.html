@@ -1,6 +1,7 @@
 <section class="detail-page">
   <p class="status-message" *ngIf="errorMessage">{{ errorMessage }}</p>
 
+  <ng-container *ngIf="apartment; else detailState">
   <header class="detail-heading">
     <div>
       <h1>{{ title }}</h1>
@@ -51,10 +52,10 @@
         </p>
         <span>{{ distance }}</span>
         <div class="mini-agent">
-          <img src="/agent1.jpg" alt="Giorgi Metreveli" />
+          <img [src]="agentImage" [alt]="agentName" />
           <div>
-            <strong>Giorgi Metreveli</strong>
-            <span>Agent</span>
+            <strong>{{ agentName }}</strong>
+            <span>{{ agentRole }}</span>
           </div>
         </div>
       </div>
@@ -95,10 +96,6 @@
         </button>
       </div>
 
-      <div class="loan-row">
-        <button type="button">Bank loan TBC</button>
-        <button type="button">Bank loan BG</button>
-      </div>
     </aside>
   </section>
 
@@ -135,15 +132,6 @@
       About the apartment
     </h2>
     <p>{{ description }}</p>
-    <p>
-      The community at LuxeResidences is just as thoughtfully designed as the apartments.
-      Enjoy exclusive access to premium amenities, including our beautifully landscaped courtyards,
-      secure parking, and pet-friendly policies.
-    </p>
-    <p>
-      Located just minutes from shopping, dining, and top-rated schools, LuxeResidences offers
-      the perfect balance of convenience and comfort.
-    </p>
   </section>
 
   <section class="benefits" aria-label="Apartment benefits">
@@ -160,7 +148,7 @@
       <strong>Easy access</strong>
     </article>
     <article>
-      <img src="/agent1.jpg" alt="Agent service" />
+      <img [src]="agentImage" [alt]="agentName" />
       <strong>Agent service</strong>
     </article>
   </section>
@@ -186,23 +174,16 @@
     <h2>Meet your agent</h2>
     <article class="agent-wide-card">
       <div class="agent-profile">
-        <img src="/agent1.jpg" alt="Giorgi Metreveli" />
+        <img [src]="agentImage" [alt]="agentName" />
         <div>
-          <strong>Giorgi Metreveli</strong>
-          <span>Real estate professional</span>
-          <span>Gori, Georgia</span>
-          <small>★ 4.99</small>
+          <strong>{{ agentName }}</strong>
+          <span>{{ agentRole }}</span>
+          <span>{{ agentLocation }}</span>
+          <small>★ {{ agentRating }}</small>
         </div>
       </div>
-      <p>
-        Giorgi brings years of expertise, passion, and dedication to help you find your dream home.
-        Whether you're a first-time buyer, looking to upgrade, or searching for investment opportunities,
-        Giorgi's deep understanding of the market ensures a seamless real estate experience.
-      </p>
-      <p>
-        With over 5 years in the real estate industry, Giorgi has developed a reputation for delivering
-        exceptional results and building lasting client relationships.
-      </p>
+      <p>{{ agentBio }}</p>
+      <p>{{ agentExperience }}</p>
     </article>
   </section>
 
@@ -234,4 +215,13 @@
       </article>
     </div>
   </section>
+  </ng-container>
+
+  <ng-template #detailState>
+    <section class="detail-empty-state">
+      <h1>Apartment details unavailable</h1>
+      <p>Select a published apartment from Top apartments or Explore Property.</p>
+      <button type="button" routerLink="/main">Back to home</button>
+    </section>
+  </ng-template>
 </section>

@@ -2,7 +2,10 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Apartment } from '../models/apartment';
+import { Agent } from '../models/agent';
+import { AgentService } from '../services/agent.service';
 import { ApartmentService } from '../services/apartment.service';
+import { toMediaUrl } from '../utils/api-media';
 
 interface Review {
   name: string;
@@ -26,6 +29,7 @@ interface SimilarApartment {
 })
 export class ApartmentDetail implements OnInit {
   apartment: Apartment | null = null;
+  selectedAgent: Agent | null = null;
   similarApartments: SimilarApartment[] = [];
   mapUrl: SafeResourceUrl;
 
@@ -53,10 +57,11 @@ export class ApartmentDetail implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private apartmentService: ApartmentService,
+    private agentService: AgentService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {
-    this.mapUrl = this.createMapUrl('Gia Chanturia St. 8, Tbilisi, Georgia');
+    this.mapUrl = this.createMapUrl('Tbilisi, Georgia');
   }
 
   ngOnInit(): void {
@@ -65,7 +70,7 @@ export class ApartmentDetail implements OnInit {
     if (apartmentId) {
       this.loadApartment(apartmentId);
     } else {
-      this.applyApartment(this.createFallbackApartment());
+      this.errorMessage = 'Open an apartment from the listings to view its details.';
     }
 
     this.loadSimilarApartments(apartmentId);
@@ -79,14 +84,18 @@ export class ApartmentDetail implements OnInit {
     this.apartmentService.getApartment(id).subscribe({
       next: (apartment) => {
         this.applyApartment(apartment);
+        this.loadApartmentAgent(apartment);
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Apartment detail API error:', err);
-        this.applyApartment(this.createFallbackApartment(id));
+        this.apartment = null;
+        this.selectedAgent = null;
+        this.galleryImages = this.getPlaceholderImages();
+        this.realPhotoCount = 0;
         this.loading = false;
-        this.errorMessage = 'Showing preview details while the apartment API is unavailable.';
+        this.errorMessage = 'Could not load this apartment from the API.';
         this.cdr.detectChanges();
       },
     });
@@ -100,22 +109,22 @@ export class ApartmentDetail implements OnInit {
           .slice(0, 4)
           .map((apartment, index) => this.toSimilarApartment(apartment, index));
 
-        this.similarApartments = nearby.length ? nearby : this.createFallbackSimilarApartments();
+        this.similarApartments = nearby;
         this.cdr.detectChanges();
       },
       error: () => {
-        this.similarApartments = this.createFallbackSimilarApartments();
+        this.similarApartments = [];
         this.cdr.detectChanges();
       },
     });
   }
 
   get title(): string {
-    return this.apartment?.title || 'One bedroom apartment in Tbilisi, Georgia';
+    return this.apartment?.title?.trim() || 'Apartment details unavailable';
   }
 
   get address(): string {
-    return this.apartment?.address || 'Gia Chanturia St. 8';
+    return this.apartment?.address?.trim() || 'Address not provided';
   }
 
   get cityLine(): string {
@@ -124,14 +133,11 @@ export class ApartmentDetail implements OnInit {
   }
 
   get price(): number {
-    return this.apartment?.price || 1880;
+    return this.apartment?.price || 0;
   }
 
   get description(): string {
-    return (
-      this.apartment?.description ||
-      'Step inside and experience high-end finishes, from sleek hardwood floors to custom cabinetry. Our apartments boast open-concept living spaces, allowing for a seamless flow from the kitchen to the living room. Large windows fill your home with natural light, and many units include private balconies or patios.'
-    );
+    return this.apartment?.description?.trim() || 'No description provided.';
   }
 
   get rating(): string {
@@ -148,20 +154,108 @@ export class ApartmentDetail implements OnInit {
     return this.realPhotoCount;
   }
 
+  get agentName(): string {
+    return this.selectedAgent
+      ? this.selectedAgent.fullName || this.selectedAgent.name || this.selectedAgent.userName || this.selectedAgent.email || 'Agent'
+      : this.apartment?.agentName || this.apartment?.uploadedByName || this.apartment?.ownerName || 'Agent information unavailable';
+  }
+
+  get agentRole(): string {
+    return this.selectedAgent || this.apartment?.agentName || this.apartment?.uploadedByName
+      ? 'Real estate professional'
+      : 'No agent connected to this apartment';
+  }
+
+  get agentLocation(): string {
+    return this.selectedAgent?.location || this.apartment?.address || '';
+  }
+
+  get agentImage(): string {
+    return toMediaUrl(
+      this.selectedAgent?.profilePictureUrl ||
+      this.selectedAgent?.profilePicture ||
+      this.selectedAgent?.avatarUrl ||
+      this.apartment?.agentProfilePictureUrl ||
+      this.apartment?.uploaderProfilePictureUrl
+    ) || '/agent1.jpg';
+  }
+
+  get agentRating(): string {
+    const rating = this.selectedAgent?.averageRating || this.selectedAgent?.rating;
+    return rating ? rating.toFixed(2) : 'No rating';
+  }
+
+  get agentBio(): string {
+    return this.selectedAgent?.bio || 'This apartment has no agent profile connected by the API yet.';
+  }
+
+  get agentExperience(): string {
+    const deals = this.selectedAgent?.closedDeals;
+    return deals
+      ? `${this.agentName} has closed ${deals} deal${deals === 1 ? '' : 's'} on the platform.`
+      : 'Agent experience details will appear here when the API returns them.';
+  }
+
   private applyApartment(apartment: Apartment): void {
     this.apartment = apartment;
     this.mapUrl = this.createMapUrl(this.address);
     this.galleryImages = this.getApartmentImages(apartment);
   }
 
+  private loadApartmentAgent(apartment: Apartment): void {
+    const ownerIds = [
+      apartment.userId,
+      apartment.ownerId,
+      apartment.createdById,
+      apartment.applicationUserId,
+      apartment.agentId,
+      apartment.agentUserId,
+      apartment.uploadedById,
+    ].filter((value): value is string => !!value);
+    const ownerEmails = [
+      apartment.userEmail,
+      apartment.createdByEmail,
+      apartment.agentEmail,
+      apartment.uploadedByEmail,
+    ]
+      .filter((value): value is string => !!value)
+      .map((value) => value.toLowerCase());
+
+    if (!ownerIds.length && !ownerEmails.length) {
+      this.selectedAgent = null;
+      return;
+    }
+
+    this.agentService.getAgents().subscribe({
+      next: (agents) => {
+        this.selectedAgent = agents.find((agent) => {
+          const agentIds = [agent.id, agent.userId]
+            .filter((value): value is string => !!value)
+            .map((value) => value.toLowerCase());
+          const agentEmail = agent.email?.toLowerCase();
+
+          return (
+            ownerIds.some((ownerId) => agentIds.includes(ownerId.toLowerCase())) ||
+            (!!agentEmail && ownerEmails.includes(agentEmail))
+          );
+        }) || null;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.selectedAgent = null;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   private toSimilarApartment(apartment: Apartment, index: number): SimilarApartment {
     return {
       title: this.getLocation(apartment),
-      address: apartment.address || 'Gia Chanturia St. 8',
+      address: apartment.address || 'Address not provided',
       distance: `${index + 3}.${apartment.id % 10} kilometers away`,
       price: apartment.price,
       rating: Math.min(4.8 + (apartment.id % 5) * 0.04, 5).toFixed(2),
-      imageUrl: apartment.imageUrls?.[0] || apartment.imageUrl || this.galleryImages[index % this.galleryImages.length],
+      imageUrl: toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/banner.jpg',
     };
   }
 
@@ -171,21 +265,9 @@ export class ApartmentDetail implements OnInit {
     return address.split(',')[0].trim() || address;
   }
 
-  private createFallbackApartment(id = 1): Apartment {
-    return {
-      id,
-      title: 'One bedroom apartment in Tbilisi, Georgia',
-      description: this.description,
-      price: 1880,
-      address: 'Gia Chanturia St. 8, Tbilisi, Georgia',
-      imageUrl: '/banner.jpg',
-      imageUrls: ['/banner.jpg', '/agent2.jpg', '/Career.jpg', '/agent3.jpg', '/banner.jpg'],
-      createdAt: new Date().toISOString(),
-    };
-  }
-
   private getApartmentImages(apartment: Apartment): string[] {
-    const uploadedImages = (apartment.imageUrls || []).filter(Boolean);
+    const uploadedImages = (apartment.imageUrls || []).map((image) => toMediaUrl(image)).filter(Boolean);
+    const singleImage = toMediaUrl(apartment.imageUrl);
 
     if (uploadedImages.length) {
       this.realPhotoCount = Math.min(uploadedImages.length, 15);
@@ -198,51 +280,14 @@ export class ApartmentDetail implements OnInit {
       ].slice(0, Math.max(5, Math.min(uploadedImages.length, 15)));
     }
 
-    this.realPhotoCount = apartment.imageUrl ? 1 : 5;
-    return [
-      apartment.imageUrl || '/banner.jpg',
-      '/agent2.jpg',
-      '/Career.jpg',
-      '/agent3.jpg',
-      apartment.imageUrl || '/banner.jpg',
-    ];
+    this.realPhotoCount = singleImage ? 1 : 0;
+    return singleImage
+      ? [singleImage, ...this.getPlaceholderImages()].slice(0, 5)
+      : this.getPlaceholderImages();
   }
 
-  private createFallbackSimilarApartments(): SimilarApartment[] {
-    return [
-      {
-        title: 'Tbilisi, Georgia',
-        address: 'Mikheil Tamarashvili St. 26',
-        distance: '6.5 kilometers away',
-        price: 1680,
-        rating: '4.65',
-        imageUrl: '/banner.jpg',
-      },
-      {
-        title: 'Kutaisi, Georgia',
-        address: 'Akaki Tsereteli St. 37',
-        distance: '302 kilometers away',
-        price: 980,
-        rating: '4.80',
-        imageUrl: '/agent2.jpg',
-      },
-      {
-        title: 'Tbilisi, Georgia',
-        address: 'Gia Chanturia St. 8',
-        distance: '7 kilometers away',
-        price: 2300,
-        rating: '4.98',
-        imageUrl: '/Career.jpg',
-      },
-      {
-        title: 'Tbilisi, Georgia',
-        address: 'Baktrioni St. 22',
-        distance: '5.3 kilometers away',
-        price: 1880,
-        rating: '5.00',
-        imageUrl: '/agent3.jpg',
-      },
-    ];
+  private getPlaceholderImages(): string[] {
+    return ['/banner.jpg', '/banner.jpg', '/banner.jpg', '/banner.jpg', '/banner.jpg'];
   }
 
   private createMapUrl(query: string): SafeResourceUrl {

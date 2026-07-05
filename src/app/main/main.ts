@@ -28,6 +28,12 @@ export class Main implements OnInit {
     this.loadAgents();
   }
 
+  get topApartments(): Apartment[] {
+    return this.apartments
+      .filter((apartment) => this.isDisplayableApartment(apartment))
+      .slice(0, 4);
+  }
+
   loadApartments(): void {
     this.loading = true;
 
@@ -86,5 +92,25 @@ export class Main implements OnInit {
 
   fixAgentImage(event: Event): void {
     tryNextProfileImageUrl(event);
+  }
+
+  getApartmentImage(apartment: Apartment): string {
+    return toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/banner.jpg';
+  }
+
+  getApartmentTitle(apartment: Apartment): string {
+    return apartment.title?.trim() || `Apartment #${apartment.id}`;
+  }
+
+  getApartmentAddress(apartment: Apartment): string {
+    return apartment.address?.trim() || 'Address not provided';
+  }
+
+  getApartmentDescription(apartment: Apartment): string {
+    return apartment.description?.trim() || 'No description provided.';
+  }
+
+  private isDisplayableApartment(apartment: Apartment): boolean {
+    return !!apartment.title?.trim() && Number(apartment.price) > 0;
   }
 }
