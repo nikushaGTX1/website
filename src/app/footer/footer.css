@@ -84,3 +84,74 @@
 .currency {
     font-weight: 500;
 }
+
+
+
+@media (max-width: 992px) {
+    .footer-top {
+        /* Replaces the rigid 120px gap with dynamic wrapping grid slots */
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 40px;
+        padding-bottom: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-container {
+        padding: 40px 20px 20px;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .footer-left,
+    .footer-right {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-top {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .footer-column {
+        min-width: 100%;
+    }
+
+    .footer-column h4 {
+        margin-bottom: 12px;
+        font-size: 14px; 
+    }
+
+    .footer-column a {
+        margin-bottom: 10px;
+        font-size: 13px;
+        display: block;
+    }
+
+    .footer-bottom {
+        display: flex;
+        flex-direction: column-reverse; 
+        gap: 24px;
+        padding-top: 24px;
+    }
+
+    .footer-left {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .footer-right {
+        width: 100%;
+        justify-content: center;
+        gap: 20px;
+    }
+}
