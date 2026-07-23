@@ -1,15 +1,15 @@
 {
   "name": "site",
   "version": "0.0.0",
+  "private": true,
+  "packageManager": "npm@11.12.1",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "serve -s dist/site/browser -l tcp://0.0.0.0:$PORT",
+    "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
-  "private": true,
-  "packageManager": "npm@11.12.1",
   "dependencies": {
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
@@ -20,6 +20,7 @@
     "@googlemaps/js-api-loader": "^2.1.1",
     "@types/google.maps": "^3.65.2",
     "rxjs": "~7.8.0",
+    "serve": "^14.2.6",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
