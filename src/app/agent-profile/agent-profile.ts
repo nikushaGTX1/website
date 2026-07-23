@@ -10,6 +10,7 @@ export interface AgentCard {
   location: string;
   closedDeals: number;
   rating: number;
+  ratingCount: number;
   avatarUrl: string;
   bio: string;
 }
@@ -116,6 +117,7 @@ export class AgentProfile implements OnInit {
       location: agent.location || agent.email || 'Verified agent',
       closedDeals: agent.closedDeals || 0,
       rating: agent.averageRating || agent.rating || 0,
+      ratingCount: agent.ratingCount || 0,
       avatarUrl: toMediaUrl(agent.profilePictureUrl || agent.profilePicture || agent.avatarUrl) || '/agent1.jpg',
       bio: agent.bio || 'Verified real estate agent ready to help with apartments and property questions.',
     };

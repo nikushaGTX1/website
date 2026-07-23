@@ -1,0 +1,118 @@
+<div class="concierge-shell" *ngIf="!submitted; else results">
+  <div class="ambient one"></div>
+  <div class="ambient two"></div>
+  <header class="page-intro">
+    <span>AI Property Concierge</span>
+    <h1>Let's find a home that fits your life.</h1>
+    <p>Nine thoughtful questions. One personalized shortlist.</p>
+  </header>
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <strong>Question {{ currentStep + 1 }} of {{ questions.length }}</strong
+      ><span>{{ progress | number: '1.0-0' }}% complete</span>
+    </div>
+    <div
+      class="progress"
+      role="progressbar"
+      [attr.aria-valuenow]="progress"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <div [style.width.%]="progress"></div>
+    </div>
+  </div>
+  <main class="question-layout" [class.loading]="loading">
+    <app-lifestyle-avatar [preferences]="preferences"></app-lifestyle-avatar>
+    <section class="question-card">
+      <div class="question-copy">
+        <span class="step-dot">{{ currentStep + 1 }}</span>
+        <div>
+          <h2>{{ question.title }}</h2>
+          <p *ngIf="question.hint">{{ question.hint }}</p>
+        </div>
+      </div>
+      <div class="options" *ngIf="question.options" [class.compact]="currentStep === 7">
+        <div class="option-wrap" *ngFor="let option of question.options">
+          <button
+            class="option"
+            type="button"
+            [class.selected]="selected(option)"
+            [attr.aria-pressed]="selected(option)"
+            (click)="select(option)"
+          >
+            <span class="option-icon" *ngIf="option.icon">{{ option.icon }}</span
+            ><span>{{ option.label }}</span
+            ><span class="check" aria-hidden="true">✓</span>
+          </button>
+          <select
+            *ngIf="currentStep === 7 && selected(option)"
+            [value]="featureLevel(option.value)"
+            (change)="setFeatureLevel(option.value, $event)"
+            [attr.aria-label]="'Priority for ' + option.label"
+          >
+            <option value="must">Must Have</option>
+            <option value="nice">Nice to Have</option>
+          </select>
+        </div>
+      </div>
+      <div class="conditional" *ngIf="currentStep === 5 && preferences.transportation === 'Metro'">
+        <label for="metro-distance">Maximum walk to the metro</label
+        ><select id="metro-distance" [(ngModel)]="preferences.metroDistanceMinutes">
+          <option [ngValue]="undefined">Choose a distance</option>
+          <option *ngFor="let minute of [3, 5, 10, 15]" [ngValue]="minute">
+            {{ minute }} minutes
+          </option>
+        </select>
+      </div>
+      <label class="parking" *ngIf="currentStep === 5 && preferences.transportation === 'Car'"
+        ><input type="checkbox" [(ngModel)]="preferences.needsParking" /> Parking is required</label
+      >
+      <form class="budget" *ngIf="currentStep === 6" [formGroup]="budgetForm">
+        <label
+          >Minimum budget<span
+            ><b>$</b><input type="number" formControlName="min" min="0" inputmode="numeric" /></span
+        ></label>
+        <div class="range-line"></div>
+        <label
+          >Maximum budget<span
+            ><b>$</b><input type="number" formControlName="max" min="0" inputmode="numeric" /></span
+        ></label>
+        <p class="validation" *ngIf="budgetForm.controls.max.value < budgetForm.controls.min.value">
+          Maximum budget cannot be lower than minimum.
+        </p>
+      </form>
+      <div class="error" *ngIf="errorMessage" role="alert">
+        <span>!</span>
+        <p>{{ errorMessage }}</p>
+        <button type="button" (click)="submit()">Retry</button>
+      </div>
+      <div class="actions">
+        <button
+          class="back"
+          type="button"
+          (click)="back()"
+          [disabled]="currentStep === 0 || loading"
+        >
+          ← Back</button
+        ><button
+          class="continue"
+          type="button"
+          (click)="continue()"
+          [disabled]="!canContinue() || loading"
+        >
+          <span class="spinner" *ngIf="loading"></span
+          >{{
+            loading
+              ? 'Finding your matches…'
+              : currentStep === questions.length - 1
+                ? 'Find My Matches ✨'
+                : 'Continue →'
+          }}
+        </button>
+      </div>
+    </section>
+  </main>
+</div>
+<ng-template #results
+  ><app-concierge-results [matches]="matches" (adjust)="adjust()"></app-concierge-results
+></ng-template>

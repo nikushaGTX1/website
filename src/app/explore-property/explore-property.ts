@@ -1,5 +1,4 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Apartment } from '../models/apartment';
 import { ApartmentService } from '../services/apartment.service';
 
@@ -23,17 +22,13 @@ export class ExploreProperty implements OnInit {
   location = '';
 
   selectedApartment: Apartment | null = null;
-  mapUrl: SafeResourceUrl;
 
   propertiesPlaceholder = new Array(4);
 
   constructor(
     private apartmentService: ApartmentService,
-    private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
-  ) {
-    this.mapUrl = this.createMapUrl('Tbilisi, Georgia');
-  }
+  ) {}
 
   ngOnInit(): void {
     this.loadApartments();
@@ -55,7 +50,6 @@ export class ExploreProperty implements OnInit {
           this.selectApartment(apartments[0], false);
         } else {
           this.selectedApartment = null;
-          this.mapUrl = this.createMapUrl('Tbilisi, Georgia');
         }
 
         this.loading = false;
@@ -126,7 +120,6 @@ export class ExploreProperty implements OnInit {
       this.selectApartment(this.apartments[0], false);
     } else {
       this.selectedApartment = null;
-      this.mapUrl = this.createMapUrl('Tbilisi, Georgia');
     }
 
     this.cdr.detectChanges();
@@ -134,7 +127,6 @@ export class ExploreProperty implements OnInit {
 
   selectApartment(apartment: Apartment, updateView = true): void {
     this.selectedApartment = apartment;
-    this.mapUrl = this.createMapUrl(this.getApartmentMapQuery(apartment));
 
     if (updateView) {
       this.cdr.detectChanges();
@@ -178,11 +170,4 @@ export class ExploreProperty implements OnInit {
     }
   }
 
-  private createMapUrl(query: string): SafeResourceUrl {
-    const encodedQuery = encodeURIComponent(query);
-
-    return this.sanitizer.bypassSecurityTrustResourceUrl(
-      `https://maps.google.com/maps?q=${encodedQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`
-    );
-  }
 }

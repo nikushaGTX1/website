@@ -3,3 +3,8 @@
     padding: 0;
     box-sizing: border-box;
 }
+/* Homepage AI concierge call to action (global to keep the legacy main component within its style budget). */
+.ai-home-cta{margin-top:18px;width:min(100%,560px);display:flex;align-items:center;gap:13px;padding:14px 17px;border:1px solid #ffffff80;border-radius:18px;color:#fff;background:#1f1a4bc2;box-shadow:0 12px 30px #120f313b;backdrop-filter:blur(10px);text-decoration:none;transition:.2s}
+.ai-home-cta:hover{transform:translateY(-2px);background:#2a2366e6}.ai-home-cta:focus-visible{outline:3px solid #fff;outline-offset:3px}.ai-sparkle{font-size:26px}.ai-home-cta strong,.ai-home-cta small{display:block}.ai-home-cta strong{font-size:16px}.ai-home-cta small{margin-top:3px;opacity:.75}.ai-arrow{margin-left:auto;font-size:23px}
+
+.nearest-summary{display:flex;gap:8px;padding:0 14px 10px;overflow:auto}.nearest-summary article{min-width:145px;padding:9px 11px;border:1px solid #e2deea;border-radius:11px;cursor:pointer;background:#faf9fc}.nearest-summary article:hover{border-color:#7767cf}.nearest-summary span,.nearest-summary strong,.nearest-summary b{display:block}.nearest-summary span{font-size:10px;color:#777}.nearest-summary strong{font-size:12px;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nearest-summary b{font-size:11px;color:#4d3eaa}

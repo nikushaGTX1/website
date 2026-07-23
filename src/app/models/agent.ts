@@ -13,5 +13,6 @@ export interface Agent {
   avatarUrl?: string;
   rating?: number;
   averageRating?: number;
+  ratingCount?: number;
   closedDeals?: number;
 }

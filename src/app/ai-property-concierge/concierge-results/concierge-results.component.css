@@ -1,0 +1,159 @@
+:host {
+  display: block;
+}
+.results {
+  max-width: 1180px;
+  margin: auto;
+  padding: 64px 24px 90px;
+  color: #1b1930;
+}
+header {
+  max-width: 760px;
+  margin: 0 auto 42px;
+  text-align: center;
+}
+.eyebrow {
+  color: #6552d9;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+}
+h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.08;
+  margin: 12px 0 14px;
+}
+header p,
+.empty p {
+  color: #6c687c;
+}
+.result-grid {
+  display: grid;
+  gap: 24px;
+}
+.match-card {
+  display: grid;
+  grid-template-columns: 38% 1fr;
+  background: white;
+  border: 1px solid #e8e6ed;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 16px 45px rgba(29, 25, 55, 0.08);
+}
+.media {
+  min-height: 330px;
+  position: relative;
+}
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.score {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  padding: 11px 14px;
+  border-radius: 15px;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  box-shadow: 0 6px 20px #0002;
+}
+.score strong {
+  color: #5745c7;
+  font-size: 22px;
+}
+.score span {
+  font-weight: 700;
+  font-size: 13px;
+}
+.content {
+  padding: 30px;
+}
+.title {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.title span {
+  color: #777285;
+  font-size: 14px;
+}
+h2 {
+  margin: 5px 0 0;
+  font-size: 25px;
+}
+.title > strong {
+  white-space: nowrap;
+  font-size: 21px;
+}
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: #5c5869;
+  padding: 18px 0;
+  border-bottom: 1px solid #eee;
+}
+ul {
+  list-style: none;
+  padding: 0;
+}
+.reasons li {
+  color: #285c48;
+  margin: 8px 0;
+}
+.warnings li {
+  color: #875d24;
+  margin: 7px 0;
+}
+a,
+.empty button {
+  display: inline-flex;
+  margin-top: 12px;
+  background: #5846ca;
+  color: #fff;
+  padding: 13px 18px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  border: 0;
+  cursor: pointer;
+}
+.adjust {
+  display: block;
+  margin: 30px auto 0;
+  border: 0;
+  background: transparent;
+  color: #5547b5;
+  font-weight: 700;
+  cursor: pointer;
+}
+.empty {
+  text-align: center;
+  background: white;
+  padding: 60px 24px;
+  border-radius: 24px;
+}
+.empty-icon {
+  font-size: 54px;
+}
+@media (max-width: 750px) {
+  .match-card {
+    grid-template-columns: 1fr;
+  }
+  .media {
+    min-height: 240px;
+  }
+  .content {
+    padding: 22px;
+  }
+  .title {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

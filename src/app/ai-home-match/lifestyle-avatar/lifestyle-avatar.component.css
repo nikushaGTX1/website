@@ -1,0 +1,54 @@
+.avatar {
+  background: #f0edff;
+  border: 1px solid #ddd7ff;
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+}
+.scene {
+  min-height: 145px;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+}
+.person {
+  font-size: 55px;
+  display: inline-block;
+  margin: -5px;
+  animation: pop 0.3s ease;
+}
+.child {
+  font-size: 38px;
+  display: inline-block;
+  margin: -4px;
+  animation: pop 0.3s ease;
+}
+.items {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+.items span {
+  background: white;
+  padding: 5px;
+  border-radius: 10px;
+  font-size: 24px;
+  animation: pop 0.3s ease;
+}
+.avatar p {
+  font-size: 12px;
+  color: #5e5873;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7) translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}

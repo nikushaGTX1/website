@@ -14,12 +14,16 @@ import { UploadApartment } from './upload-apartment/upload-apartament';
 import { AdminPanel } from './admin-panel/admin-panel';
 import { MyListings } from './my-listings/my-listings';
 import { ApartmentDetail } from './apartment-detail/apartment-detail';
+import { AiConciergePageComponent } from './ai-property-concierge/ai-concierge-page/ai-concierge-page.component';
+import { AiHomeMatchPageComponent } from './ai-home-match/ai-home-match-page/ai-home-match-page.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'main', pathMatch: 'full' },
   { path: 'main', component: Main },
   { path: 'ExploreProperty', component: ExploreProperty },
   { path: 'apartments/:id', component: ApartmentDetail },
+  { path: 'find-my-home', component: AiConciergePageComponent },
+  { path: 'ai-home-match', component: AiHomeMatchPageComponent },
   { path: 'apartment-detail', component: ApartmentDetail },
   { path: 'agent-profile', component: AgentProfile },
   { path: 'login', component: Login, canActivate: [guestGuard] },

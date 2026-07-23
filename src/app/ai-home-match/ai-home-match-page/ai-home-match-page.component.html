@@ -1,0 +1,454 @@
+<div class="velven" *ngIf="view === 'questions'">
+  <header>
+    <span>Velven AI Home Match</span>
+    <h1>Build a home profile around your life.</h1>
+  </header>
+  <div class="progress">
+    <div>
+      <b>{{ step + 1 }} / {{ questions.length }}</b><span>{{ question.title }}</span>
+    </div>
+    <div class="track"><i [style.width.%]="progress"></i></div>
+  </div>
+  <main>
+    <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
+    <section class="question">
+      <div class="question-title">
+        <span>{{ step + 1 }}</span>
+        <div>
+          <h2>{{ question.title }}</h2>
+          <p *ngIf="question.subtitle">{{ question.subtitle }}</p>
+        </div>
+      </div>
+      <ng-container [ngSwitch]="step">
+        <div class="options" *ngSwitchCase="0">
+          <button
+            type="button"
+            [class.selected]="profile.propertyGoal === 'Rent'"
+            [attr.aria-pressed]="profile.propertyGoal === 'Rent'"
+            (click)="choose('propertyGoal', 'Rent')"
+          >
+            Rent an apartment</button
+          ><button
+            type="button"
+            [class.selected]="profile.propertyGoal === 'Buy'"
+            [attr.aria-pressed]="profile.propertyGoal === 'Buy'"
+            (click)="choose('propertyGoal', 'Buy')"
+          >
+            Buy an apartment
+          </button>
+        </div>
+        <div *ngSwitchCase="1">
+          <div class="options compact">
+            <button
+              type="button"
+              *ngFor="let option of districts"
+              [class.selected]="selected('districts', option.value)"
+              [attr.aria-pressed]="selected('districts', option.value)"
+              (click)="toggle('districts', option.value)"
+            >
+              {{ option.label }}</button
+            ><button
+              type="button"
+              [class.selected]="profile.locationFlexible"
+              [attr.aria-pressed]="profile.locationFlexible"
+              (click)="flexible()"
+            >
+              I am flexible about location
+            </button>
+          </div>
+          <div class="sub">
+            <label for="proximity">Is there a specific place you would like to live near?</label
+            ><select
+              id="proximity"
+              [ngModel]="profile.proximityTarget"
+              (ngModelChange)="choose('proximityTarget', $event)"
+            >
+              <option value="">Choose if relevant</option>
+              <option
+                *ngFor="
+                  let item of [
+                    'Workplace',
+                    'University',
+                    'School',
+                    'FamilyMemberWorkplace',
+                    'SpecificAddress',
+                    'No',
+                  ]
+                "
+                [value]="item"
+              >
+                {{item.replace('FamilyMemberWorkplace',\"Family member's workplace\").replace('SpecificAddress','Specific address')}}
+              </option></select
+            ><label *ngIf="profile.proximityTarget && profile.proximityTarget !== 'No'"
+              >Address<input
+                [(ngModel)]="profile.proximityAddress"
+                (ngModelChange)="persist()"
+                placeholder="Enter a nearby address"
+            /></label>
+          </div>
+        </div>
+        <form class="budget" *ngSwitchCase="2" [formGroup]="budgetForm">
+          <label>Minimum amount<input type="number" min="0" formControlName="min" /></label
+          ><label>Maximum amount<input type="number" min="0" formControlName="max" /></label
+          ><label
+            >Currency<select formControlName="currency">
+              <option>USD</option>
+              <option>GEL</option>
+              <option>EUR</option>
+            </select></label
+          >
+          <p
+            class="validation"
+            *ngIf="budgetForm.controls.max.value < budgetForm.controls.min.value"
+          >
+            Maximum must be greater than or equal to minimum.
+          </p>
+          <fieldset>
+            <legend>Should utilities and building service fees be included?</legend>
+            <button
+              type="button"
+              [class.selected]="profile.includesUtilities === true"
+              (click)="setUtilities(true)"
+            >
+              Yes</button
+            ><button
+              type="button"
+              [class.selected]="profile.includesUtilities === false"
+              (click)="setUtilities(false)"
+            >
+              No</button
+            ><button
+              type="button"
+              [class.selected]="profile.includesUtilities === null"
+              (click)="setUtilities(null)"
+            >
+              It does not matter
+            </button>
+          </fieldset>
+        </form>
+        <div class="options" *ngSwitchCase="3">
+          <button
+            type="button"
+            *ngFor="let option of household"
+            [class.selected]="profile.householdType === option.value"
+            [attr.aria-pressed]="profile.householdType === option.value"
+            (click)="choose('householdType', option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+        <div *ngSwitchCase="4" class="people">
+          <div class="counter">
+            <span>Adults</span
+            ><button
+              type="button"
+              (click)="changeCount('adults', -1)"
+              [disabled]="profile.adults === 1"
+            >
+              −</button
+            ><b>{{ profile.adults }}</b
+            ><button type="button" (click)="changeCount('adults', 1)">+</button>
+          </div>
+          <div class="counter">
+            <span>Children</span
+            ><button
+              type="button"
+              (click)="changeCount('children', -1)"
+              [disabled]="profile.children === 0"
+            >
+              −</button
+            ><b>{{ profile.children }}</b
+            ><button type="button" (click)="changeCount('children', 1)">+</button>
+          </div>
+          <fieldset *ngIf="profile.children">
+            <legend>What age groups are the children in?</legend>
+            <button
+              type="button"
+              *ngFor="
+                let option of opts(
+                  ['0–3 years', '4–6 years', '7–12 years', '13–17 years'],
+                  ['Age0To3', 'Age4To6', 'Age7To12', 'Age13To17']
+                )
+              "
+              [class.selected]="selected('childrenAgeGroups', option.value)"
+              (click)="toggle('childrenAgeGroups', option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </fieldset>
+        </div>
+        <div *ngSwitchCase="5">
+          <div class="options">
+            <button
+              type="button"
+              *ngFor="
+                let option of [
+                  { label: 'Studio', value: 0 },
+                  { label: '1 bedroom', value: 1 },
+                  { label: '2 bedrooms', value: 2 },
+                  { label: '3 bedrooms', value: 3 },
+                  { label: '4 or more', value: 4 },
+                  { label: 'Let AI decide', value: null },
+                ]
+              "
+              [class.selected]="profile.bedrooms === option.value"
+              (click)="setBedrooms(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+          <fieldset>
+            <legend>Do you need an additional room?</legend>
+            <button
+              type="button"
+              *ngFor="
+                let option of opts(
+                  ['Home office', 'Guest room', 'Both', 'No'],
+                  ['HomeOffice', 'GuestRoom', 'Both', 'No']
+                )
+              "
+              [class.selected]="profile.additionalRoom === option.value"
+              (click)="choose('additionalRoom', option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </fieldset>
+        </div>
+        <div *ngSwitchCase="6">
+          <ng-container *ngIf="profile.propertyGoal === 'Rent'; else buyTiming"
+            ><fieldset>
+              <legend>How long would you like to stay?</legend>
+              <button
+                type="button"
+                *ngFor="
+                  let option of opts(
+                    [
+                      '3–5 months',
+                      '6 months',
+                      '12 months',
+                      'More than 12 months',
+                      'I do not know yet',
+                    ],
+                    [
+                      'ThreeToFiveMonths',
+                      'SixMonths',
+                      'TwelveMonths',
+                      'MoreThanTwelveMonths',
+                      'Unknown',
+                    ]
+                  )
+                "
+                [class.selected]="profile.rentalDuration === option.value"
+                (click)="choose('rentalDuration', option.value)"
+              >
+                {{ option.label }}
+              </button>
+            </fieldset>
+            <fieldset>
+              <legend>When would you like to move in?</legend>
+              <button
+                type="button"
+                *ngFor="
+                  let option of opts(
+                    [
+                      'Immediately',
+                      'Within one week',
+                      'Within one month',
+                      'Specific date',
+                      'I am flexible',
+                    ],
+                    ['Immediately', 'WithinOneWeek', 'WithinOneMonth', 'SpecificDate', 'Flexible']
+                  )
+                "
+                [class.selected]="profile.moveInTiming === option.value"
+                (click)="choose('moveInTiming', option.value)"
+              >
+                {{ option.label }}</button
+              ><label *ngIf="profile.moveInTiming === 'SpecificDate'"
+                >Move-in date<input
+                  type="date"
+                  [(ngModel)]="profile.moveInDate"
+                  (ngModelChange)="persist()"
+              /></label></fieldset></ng-container
+          ><ng-template #buyTiming
+            ><fieldset>
+              <legend>When are you planning to buy?</legend>
+              <button
+                type="button"
+                *ngFor="
+                  let option of opts(
+                    [
+                      'Immediately',
+                      'Within 1–3 months',
+                      'Within 3–6 months',
+                      'More than 6 months from now',
+                      'I am only exploring the market',
+                    ],
+                    [
+                      'Immediately',
+                      'WithinOneToThreeMonths',
+                      'WithinThreeToSixMonths',
+                      'MoreThanSixMonths',
+                      'Exploring',
+                    ]
+                  )
+                "
+                [class.selected]="profile.purchaseTiming === option.value"
+                (click)="choose('purchaseTiming', option.value)"
+              >
+                {{ option.label }}
+              </button>
+            </fieldset></ng-template
+          >
+        </div>
+        <div *ngSwitchCase="7">
+          <div class="options">
+            <button
+              type="button"
+              *ngFor="let option of transport"
+              [class.selected]="selected('transportation', option.value)"
+              [attr.aria-pressed]="selected('transportation', option.value)"
+              (click)="toggle('transportation', option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+          <fieldset *ngIf="profile.transportation.includes('Metro')">
+            <legend>How many minutes to the metro is acceptable?</legend>
+            <button
+              type="button"
+              *ngFor="
+                let option of [
+                  { label: 'Up to 5 minutes', value: 5 },
+                  { label: 'Up to 10 minutes', value: 10 },
+                  { label: 'Up to 15 minutes', value: 15 },
+                  { label: 'It does not matter', value: null },
+                ]
+              "
+              [class.selected]="profile.metroDistanceMinutes === option.value"
+              (click)="setMetro(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </fieldset>
+          <p class="notice" *ngIf="profile.parkingAutomaticallyPrioritized">
+            Parking has been automatically prioritized.
+          </p>
+        </div>
+        <div class="options" *ngSwitchCase="8">
+          <button
+            type="button"
+            *ngFor="let option of lifestyles"
+            [class.selected]="selected('lifestyles', option.value)"
+            [attr.aria-pressed]="selected('lifestyles', option.value)"
+            (click)="toggle('lifestyles', option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+        <div class="options" *ngSwitchCase="9">
+          <button type="button" [class.selected]="profile.hasPet === true" (click)="setPet(true)">
+            Yes</button
+          ><button
+            type="button"
+            [class.selected]="profile.hasPet === false"
+            (click)="setPet(false)"
+          >
+            No
+          </button>
+        </div>
+        <div *ngSwitchCase="10">
+          <p class="selection-count" aria-live="polite">
+            {{ profile.mainPreferences.length }} of 5 selected
+          </p>
+          <div class="options compact">
+            <button
+              type="button"
+              *ngFor="let option of preferences"
+              [class.selected]="selected('mainPreferences', option.value)"
+              [disabled]="
+                profile.mainPreferences.length === 5 && !selected('mainPreferences', option.value)
+              "
+              [attr.aria-pressed]="selected('mainPreferences', option.value)"
+              (click)="toggle('mainPreferences', option.value, 5)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+        <div *ngSwitchCase="11">
+          <div class="options compact">
+            <button
+              type="button"
+              *ngFor="let option of additional"
+              [class.selected]="selected('additionalRequirements', option.value)"
+              [attr.aria-pressed]="selected('additionalRequirements', option.value)"
+              (click)="toggle('additionalRequirements', option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+          <label class="notes"
+            >Additional notes<textarea
+              [(ngModel)]="profile.additionalNotes"
+              (ngModelChange)="persist()"
+              placeholder="For example: I need a large elevator, I want to replace the beds, or the lease must be under a company name."
+            ></textarea>
+          </label>
+        </div>
+        <div *ngSwitchCase="12">
+          <p class="selection-count" aria-live="polite">
+            {{ profile.topPriorities.length }} of 3 ranked
+          </p>
+          <div class="options compact">
+            <button
+              type="button"
+              *ngFor="let option of suggestedPriorities"
+              [class.selected]="profile.topPriorities.includes(option.value)"
+              [disabled]="profile.topPriorities.length === 3 && !profile.topPriorities.includes(option.value)"
+              [attr.aria-pressed]="profile.topPriorities.includes(option.value)"
+              (click)="togglePriority(option.value)"
+            >
+              <b *ngIf="profile.topPriorities.includes(option.value)">
+                #{{ profile.topPriorities.indexOf(option.value) + 1 }}
+              </b>
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+      </ng-container>
+      <div class="actions">
+        <button type="button" class="back" (click)="back()" [disabled]="step === 0">← Back</button
+        ><button type="button" class="continue" (click)="next()" [disabled]="!canContinue()">
+          {{ step === questions.length - 1 ? 'Review My Profile' : 'Continue →' }}
+        </button>
+      </div>
+    </section>
+  </main>
+</div>
+<app-home-profile-summary
+  *ngIf="view === 'review'"
+  [profile]="profile"
+  [saving]="saving"
+  [saveMessage]="saveMessage"
+  (edit)="edit()"
+  (save)="save()"
+  (submitProfile)="submit()"
+></app-home-profile-summary>
+<section class="loading-screen" *ngIf="view === 'loading'" aria-live="polite">
+  <div class="loader"></div>
+  <h1>Finding your Velven matches</h1>
+  <p>{{ loadingMessage }}</p>
+</section>
+<section class="error-screen" *ngIf="view === 'error'">
+  <h1>We could not calculate your matches.</h1>
+  <p>{{ errorMessage }}</p>
+  <button type="button" (click)="submit()">Retry</button
+  ><button type="button" (click)="edit()">Edit answers</button>
+</section>
+<app-home-match-results
+  *ngIf="view === 'results'"
+  [matches]="matches"
+  [profile]="profile"
+  (edit)="edit()"
+></app-home-match-results>

@@ -4,6 +4,11 @@ import { Observable } from 'rxjs';
 import { Apartment, CreateApartment } from '../models/apartment';
 import { API_URL } from '../utils/api-config';
 
+interface ApartmentMutationResponse {
+  message: string;
+  apartment?: Apartment;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -20,16 +25,16 @@ export class ApartmentService {
     return this.http.get<Apartment>(`${this.apiUrl}/${id}`);
   }
 
-  createApartment(data: CreateApartment): Observable<any> {
-    return this.http.post(this.apiUrl, this.toApartmentFormData(data));
+  createApartment(data: CreateApartment): Observable<ApartmentMutationResponse> {
+    return this.http.post<ApartmentMutationResponse>(this.apiUrl, this.toApartmentFormData(data));
   }
 
-  updateApartment(id: number, data: Partial<CreateApartment>): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, this.toApartmentFormData(data));
+  updateApartment(id: number, data: Partial<CreateApartment>): Observable<ApartmentMutationResponse> {
+    return this.http.put<ApartmentMutationResponse>(`${this.apiUrl}/${id}`, this.toApartmentFormData(data));
   }
 
-  deleteApartment(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  deleteApartment(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
 
   private toApartmentFormData(data: Partial<CreateApartment>): FormData {
@@ -50,6 +55,41 @@ export class ApartmentService {
     if (data.address !== undefined) {
       formData.append('Address', data.address || '');
     }
+
+    const textFields: Array<[keyof CreateApartment, string]> = [
+      ['city', 'City'],
+      ['district', 'District'],
+      ['apartmentStyle', 'ApartmentStyle'],
+    ];
+    const numberFields: Array<[keyof CreateApartment, string]> = [
+      ['latitude', 'Latitude'],
+      ['longitude', 'Longitude'],
+      ['bedrooms', 'Bedrooms'],
+      ['bathrooms', 'Bathrooms'],
+      ['sizeSquareMeters', 'SizeSquareMeters'],
+      ['floor', 'Floor'],
+      ['totalFloors', 'TotalFloors'],
+    ];
+    const booleanFields: Array<[keyof CreateApartment, string]> = [
+      ['hasElevator', 'HasElevator'],
+      ['hasParking', 'HasParking'],
+      ['hasBalcony', 'HasBalcony'],
+      ['hasBathtub', 'HasBathtub'],
+      ['hasAirConditioning', 'HasAirConditioning'],
+      ['hasDishwasher', 'HasDishwasher'],
+      ['isPetFriendly', 'IsPetFriendly'],
+      ['hasHomeOfficeSpace', 'HasHomeOfficeSpace'],
+      ['hasLargeKitchen', 'HasLargeKitchen'],
+      ['hasView', 'HasView'],
+      ['isFurnished', 'IsFurnished'],
+    ];
+
+    [...textFields, ...numberFields, ...booleanFields].forEach(([key, apiName]) => {
+      const value = data[key];
+      if (value !== undefined) {
+        formData.append(apiName, String(value));
+      }
+    });
 
     const image = data.imageFile || this.dataUrlToFile(data.imageUrl);
     if (image) {

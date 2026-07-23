@@ -43,20 +43,7 @@
 
   <main class="explore-content">
     <section class="map-view-container">
-      <iframe
-        [src]="mapUrl"
-        width="100%"
-        height="100%"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
-
-      <div class="map-controls" aria-hidden="true">
-        <span>+</span>
-        <span>-</span>
-      </div>
+      <app-google-property-map *ngIf="selectedApartment" [address]="getApartmentMapQuery(selectedApartment)" [apartmentTitle]="selectedApartment.title"></app-google-property-map>
 
       <div class="map-caption" *ngIf="selectedApartment">
         <strong>{{ selectedApartment.title }}</strong>

@@ -1,0 +1,12 @@
+<aside class="avatar">
+  <div class="scene">
+    <div>
+      <span class="person" *ngFor="let adult of adults">🧑</span
+      ><span class="child" *ngFor="let child of children">🧒</span>
+    </div>
+    <div class="items">
+      <span *ngFor="let item of items">{{ item }}</span>
+    </div>
+  </div>
+  <p>{{ summary }}</p>
+</aside>

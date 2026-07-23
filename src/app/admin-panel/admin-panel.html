@@ -116,10 +116,37 @@
       <span>{{ filteredAgents.length }} active</span>
     </div>
     <div class="empty-state" *ngIf="filteredAgents.length === 0">No agents found.</div>
-    <div class="data-row" *ngFor="let agent of filteredAgents; trackBy: identifyAgent">
-      <div>
+    <div class="data-row agent-admin-row" *ngFor="let agent of filteredAgents; trackBy: identifyAgent">
+      <div class="agent-admin-identity">
         <strong>{{ agent.fullName || agent.userName || agent.email || agent.id }}</strong>
         <span>{{ agent.email || agent.userId || 'Agent' }}</span>
+      </div>
+      <div class="agent-rating-summary">
+        <strong>★ {{ getAgentRating(agent) | number:'1.1-1' }}</strong>
+        <span>{{ getAgentRatingCount(agent) }} rating{{ getAgentRatingCount(agent) === 1 ? '' : 's' }}</span>
+      </div>
+      <div class="agent-rating-editor">
+        <label [attr.for]="'agent-rating-' + (agent.id || agent.userId)">
+          Set rating
+        </label>
+        <input
+          [id]="'agent-rating-' + (agent.id || agent.userId)"
+          type="number"
+          min="1"
+          max="5"
+          step="0.1"
+          [ngModel]="getDraftRating(agent)"
+          (ngModelChange)="setDraftRating(agent, $event)"
+          [disabled]="actionId === 'rating:' + (agent.id || agent.userId)"
+        />
+        <button
+          type="button"
+          class="rating-save"
+          (click)="setAgentRating(agent)"
+          [disabled]="(!agent.id && !agent.userId) || actionId === 'rating:' + (agent.id || agent.userId)"
+        >
+          Save rating
+        </button>
       </div>
       <button type="button" class="danger" (click)="removeAgent(agent)" [disabled]="actionId === (agent.userId || agent.id)">
         Remove agent

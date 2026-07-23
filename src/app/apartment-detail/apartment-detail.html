@@ -61,12 +61,7 @@
       </div>
 
       <div class="map-panel">
-        <iframe
-          [src]="mapUrl"
-          title="Apartment map"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
+        <app-google-property-map [address]="address" [apartmentTitle]="title"></app-google-property-map>
       </div>
     </article>
 

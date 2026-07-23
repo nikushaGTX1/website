@@ -1,8 +1,9 @@
 :host {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   display: block;
-  background-color: #ffffff;
-  padding: 24px;
+  background:
+    linear-gradient(180deg, #f7f9fc 0%, #ffffff 360px);
+  padding: 34px 24px 48px;
 }
 
 .agents-container {
@@ -14,14 +15,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  gap: 16px;
+  margin-bottom: 30px;
+  gap: 20px;
 }
 
 .title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 750;
+  color: #111827;
   margin: 0;
 }
 
@@ -32,53 +34,67 @@
 }
 
 .filter-input {
-  padding: 6px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 13px;
+  width: min(280px, 40vw);
+  height: 44px;
+  padding: 0 15px;
+  border: 1px solid #d9e0ea;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 10px 24px rgba(28, 45, 74, .05);
+  font-size: 14px;
   outline: none;
-  color: #4a5568;
+  color: #283243;
+  transition: border-color .2s, box-shadow .2s, background-color .2s;
 }
 
 .filter-input:focus {
-  border-color: #3b82f6;
+  border-color: #3569f5;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(53, 105, 245, .11);
 }
 
 .sort-wrapper {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d9e0ea;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 10px 24px rgba(28, 45, 74, .05);
 }
 
 .icon-filter {
   width: 16px;
   height: 16px;
-  color: #3b82f6;
+  color: #3569f5;
 }
 
 .filter-select {
   background: transparent;
   border: none;
-  color: #4a5568;
+  color: #283243;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
   outline: none;
   padding-right: 4px;
 }
 
 .agents-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
 }
 
 .agents-message {
+  grid-column: 1 / -1;
   margin: 0;
   padding: 18px 20px;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fafafa;
   color: #4a5568;
   font-weight: 600;
@@ -90,31 +106,56 @@
   color: #dc2626;
 }
 
-/* Base Card Styles */
 .agent-card {
   display: grid;
-  grid-template-columns: 120px 180px 1fr auto;
-  gap: 24px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 24px;
-  background-color: #fafafa;
-  align-items: start;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  gap: 14px;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  border: 1px solid #e1e7f0;
+  border-radius: 8px;
+  padding: 22px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  box-shadow: 0 18px 42px rgba(24, 38, 63, .08);
+  position: relative;
+  overflow: hidden;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+
+.agent-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: linear-gradient(90deg, #3569f5, #21b8a9);
+}
+
+.agent-card:hover {
+  border-color: #c8d6f0;
+  box-shadow: 0 24px 54px rgba(24, 38, 63, .13);
+  transform: translateY(-3px);
 }
 
 .card-left {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
 }
 
 .avatar-container {
-  width: 90px;
-  height: 90px;
+  width: 82px;
+  height: 82px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #e5e7eb;
+  flex: 0 0 auto;
+  background-color: #e8edf5;
+  border: 4px solid #ffffff;
+  box-shadow: 0 9px 22px rgba(22, 35, 58, .16);
 }
 
 .avatar {
@@ -126,97 +167,131 @@
 .rating-badge {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
+  min-width: 92px;
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid #e2e8f2;
+  border-radius: 8px;
+  background: #fff;
 }
 
 .icon-star {
   width: 16px;
   height: 16px;
-  color: #3b82f6;
+  color: #3569f5;
 }
 
 .rating-text {
   font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: 750;
+  color: #111827;
+}
+
+.rating-count {
+  color: #8b98aa;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .card-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  min-width: 0;
 }
 
 .agent-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 4px 0;
+  font-size: 23px;
+  line-height: 1.15;
+  font-weight: 750;
+  color: #111827;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .agent-role {
-  font-size: 13px;
-  color: #9ca3af;
+  font-size: 14px;
+  color: #607086;
   margin: 0;
 }
 
 .agent-location {
   font-size: 13px;
-  color: #d1d5db;
-  margin: 0 0 8px 0;
+  color: #8b98aa;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .agent-deals {
+  width: fit-content;
+  max-width: 100%;
+  margin: 8px 0 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #edf4ff;
+  color: #244fb4;
   font-size: 13px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0;
+  font-weight: 750;
 }
 
 .card-bio {
+  min-height: 0;
   font-size: 14px;
-  line-height: 1.5;
-  color: #4a5568;
+  line-height: 1.55;
+  color: #516073;
+  overflow: hidden;
 }
 
 .card-bio p {
   margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card-actions {
   display: flex;
-  gap: 8px;
-  align-self: end;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 2px;
 }
 
 .action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #3b82f6;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border: 1px solid #3569f5;
   border-radius: 8px;
   background-color: #ffffff;
-  color: #3b82f6;
+  color: #3569f5;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  box-shadow: 0 8px 18px rgba(53, 105, 245, .08);
+  transition: background-color 0.2s, color 0.2s, transform .2s, box-shadow .2s;
 }
 
 .action-btn:hover {
-  background-color: #3b82f6;
+  background-color: #3569f5;
   color: #ffffff;
+  box-shadow: 0 12px 22px rgba(53, 105, 245, .22);
+  transform: translateY(-1px);
 }
 
 .btn-icon {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
 }
 
 
 .skeleton {
-  background-color: #fcfcfc;
-  border-color: #f3f4f6;
+  background: #fff;
+  border-color: #edf1f6;
   pointer-events: none; 
 }
 
@@ -228,7 +303,7 @@
 .skeleton-blink-line {
   height: 12px;
   background-color: #e5e7eb;
-  border-radius: 4px;
+  border-radius: 8px;
   animation: pulse 1.5s infinite ease-in-out;
 }
 
@@ -333,6 +408,10 @@
 }
 
 @media (max-width: 992px) {
+    .agents-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .career h2 {
         font-size: 38px;
     }
@@ -342,6 +421,54 @@
 }
 
 @media (max-width: 768px) {
+    :host {
+        padding: 24px 16px 40px;
+    }
+
+    .agents-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .filter-controls {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .filter-input {
+        width: 100%;
+    }
+
+    .sort-wrapper {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .filter-select {
+        flex: 1;
+    }
+
+    .agents-list {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .agent-card {
+        gap: 13px;
+        padding: 18px;
+    }
+
+    .avatar-container {
+        width: 72px;
+        height: 72px;
+    }
+
+    .agent-name {
+        font-size: 21px;
+    }
+
     .career {
         height: auto;
         padding: 60px 0;
@@ -361,30 +488,4 @@
   0% { opacity: 0.6; }
   50% { opacity: 1; }
   100% { opacity: 0.6; }
-}
-
-
-
-@media (max-width: 768px) {
-  .agents-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .agent-card {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 16px;
-  }
-  
-  .card-left {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 16px;
-  }
-
-  .card-actions {
-    justify-content: flex-end;
-    width: 100%;
-  }
 }

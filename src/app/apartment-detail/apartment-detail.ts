@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
@@ -31,7 +30,6 @@ export class ApartmentDetail implements OnInit {
   apartment: Apartment | null = null;
   selectedAgent: Agent | null = null;
   similarApartments: SimilarApartment[] = [];
-  mapUrl: SafeResourceUrl;
 
   loading = false;
   errorMessage = '';
@@ -58,11 +56,8 @@ export class ApartmentDetail implements OnInit {
     private route: ActivatedRoute,
     private apartmentService: ApartmentService,
     private agentService: AgentService,
-    private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
-  ) {
-    this.mapUrl = this.createMapUrl('Tbilisi, Georgia');
-  }
+  ) {}
 
   ngOnInit(): void {
     const apartmentId = Number(this.route.snapshot.paramMap.get('id') || 0);
@@ -198,7 +193,6 @@ export class ApartmentDetail implements OnInit {
 
   private applyApartment(apartment: Apartment): void {
     this.apartment = apartment;
-    this.mapUrl = this.createMapUrl(this.address);
     this.galleryImages = this.getApartmentImages(apartment);
   }
 
@@ -290,9 +284,4 @@ export class ApartmentDetail implements OnInit {
     return ['/banner.jpg', '/banner.jpg', '/banner.jpg', '/banner.jpg', '/banner.jpg'];
   }
 
-  private createMapUrl(query: string): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(
-      `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`
-    );
-  }
 }

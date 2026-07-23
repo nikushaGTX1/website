@@ -26,12 +26,37 @@ type UploadForm = {
   bathrooms: number | null;
   floor: number | null;
   totalFloors: number | null;
+  hasElevator: boolean;
+  hasParking: boolean;
+  hasBalcony: boolean;
+  hasBathtub: boolean;
+  hasAirConditioning: boolean;
+  hasDishwasher: boolean;
+  isPetFriendly: boolean;
+  hasHomeOfficeSpace: boolean;
+  hasLargeKitchen: boolean;
+  hasView: boolean;
+  isFurnished: boolean;
+  apartmentStyle: string;
   imageUrl: string;
   imageUrls: string[];
   contactName: string;
   contactPhone: string;
   contactEmail: string;
 };
+
+type BooleanFeature =
+  | 'hasElevator'
+  | 'hasParking'
+  | 'hasBalcony'
+  | 'hasBathtub'
+  | 'hasAirConditioning'
+  | 'hasDishwasher'
+  | 'isPetFriendly'
+  | 'hasHomeOfficeSpace'
+  | 'hasLargeKitchen'
+  | 'hasView'
+  | 'isFurnished';
 
 @Component({
   selector: 'app-upload-apartment',
@@ -73,6 +98,20 @@ export class UploadApartment {
     'White Plus',
   ];
 
+  readonly featureOptions: Array<{ label: string; field: BooleanFeature }> = [
+    { label: 'Elevator', field: 'hasElevator' },
+    { label: 'Parking', field: 'hasParking' },
+    { label: 'Balcony', field: 'hasBalcony' },
+    { label: 'Bathtub', field: 'hasBathtub' },
+    { label: 'Air conditioning', field: 'hasAirConditioning' },
+    { label: 'Dishwasher', field: 'hasDishwasher' },
+    { label: 'Pet friendly', field: 'isPetFriendly' },
+    { label: 'Home office space', field: 'hasHomeOfficeSpace' },
+    { label: 'Large kitchen', field: 'hasLargeKitchen' },
+    { label: 'View', field: 'hasView' },
+    { label: 'Furnished', field: 'isFurnished' },
+  ];
+
   form: UploadForm = {
     realEstateType: 'Apartment',
     dealType: 'For Sale',
@@ -95,6 +134,18 @@ export class UploadApartment {
     bathrooms: null,
     floor: null,
     totalFloors: null,
+    hasElevator: false,
+    hasParking: false,
+    hasBalcony: false,
+    hasBathtub: false,
+    hasAirConditioning: false,
+    hasDishwasher: false,
+    isPetFriendly: false,
+    hasHomeOfficeSpace: false,
+    hasLargeKitchen: false,
+    hasView: false,
+    isFurnished: false,
+    apartmentStyle: 'Modern',
     imageUrl: '',
     imageUrls: [],
     contactName: '',
@@ -129,7 +180,7 @@ export class UploadApartment {
     this.form.currency = currency;
   }
 
-  toggle(field: 'hideAddress' | 'exchangePossible'): void {
+  toggle(field: 'hideAddress' | 'exchangePossible' | BooleanFeature): void {
     this.form[field] = !this.form[field];
   }
 
@@ -259,6 +310,25 @@ export class UploadApartment {
       description: `${this.form.description || 'Apartment listing'}\n\n${meta}`,
       price: this.form.totalPrice || 0,
       address: this.form.hideAddress ? this.form.location : addressParts.join(', '),
+      city: 'Tbilisi',
+      district: this.form.location,
+      bedrooms: this.form.bedrooms ?? 0,
+      bathrooms: this.form.bathrooms ?? 0,
+      sizeSquareMeters: this.form.area ?? 0,
+      floor: this.form.floor ?? 0,
+      totalFloors: this.form.totalFloors ?? 0,
+      hasElevator: this.form.hasElevator,
+      hasParking: this.form.hasParking,
+      hasBalcony: this.form.hasBalcony,
+      hasBathtub: this.form.hasBathtub,
+      hasAirConditioning: this.form.hasAirConditioning,
+      hasDishwasher: this.form.hasDishwasher,
+      isPetFriendly: this.form.isPetFriendly,
+      hasHomeOfficeSpace: this.form.hasHomeOfficeSpace,
+      hasLargeKitchen: this.form.hasLargeKitchen,
+      hasView: this.form.hasView,
+      isFurnished: this.form.isFurnished,
+      apartmentStyle: this.form.apartmentStyle,
       imageUrl: this.form.imageUrls[0] || undefined,
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };

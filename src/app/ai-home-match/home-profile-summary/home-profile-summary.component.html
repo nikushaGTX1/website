@@ -1,0 +1,71 @@
+<section class="summary">
+  <span class="eyebrow">Profile ready</span>
+  <h1>Your Velven Home Profile</h1>
+  <p>Review the profile Velven will use to rank your apartments.</p>
+  <div class="summary-grid">
+    <div>
+      <span>Looking for</span><strong>{{ label(profile.propertyGoal) }}</strong>
+    </div>
+    <div>
+      <span>Location</span
+      ><strong>{{ profile.locationFlexible ? 'Flexible' : list(profile.districts) }}</strong>
+    </div>
+    <div>
+      <span>Budget</span><strong>{{ budget }}</strong>
+    </div>
+    <div>
+      <span>Household</span
+      ><strong
+        >{{ profile.adults }} adult{{ profile.adults === 1 ? '' : 's' }},
+        {{ profile.children }} child{{ profile.children === 1 ? '' : 'ren' }}</strong
+      >
+    </div>
+    <div>
+      <span>Bedrooms</span
+      ><strong>{{
+        profile.bedrooms === null
+          ? 'Let AI decide'
+          : profile.bedrooms === 0
+            ? 'Studio'
+            : profile.bedrooms
+      }}</strong>
+    </div>
+    <div>
+      <span>Timing</span
+      ><strong>{{
+        label(profile.propertyGoal === 'Rent' ? profile.rentalDuration : profile.purchaseTiming)
+      }}</strong>
+    </div>
+    <div>
+      <span>Lifestyle</span><strong>{{ list(profile.lifestyles) }}</strong>
+    </div>
+    <div>
+      <span>Transport</span><strong>{{ list(profile.transportation) }}</strong>
+    </div>
+    <div>
+      <span>Parking</span
+      ><strong>{{
+        profile.parkingAutomaticallyPrioritized ? 'Automatically prioritized' : 'Not prioritized'
+      }}</strong>
+    </div>
+    <div>
+      <span>Pet</span><strong>{{ profile.hasPet ? 'Yes' : 'No' }}</strong>
+    </div>
+    <div class="wide">
+      <span>Main preferences</span><strong>{{ list(profile.mainPreferences) }}</strong>
+    </div>
+    <div class="wide">
+      <span>Additional requirements</span
+      ><strong>{{ list(profile.additionalRequirements) }}</strong>
+    </div>
+  </div>
+  <p class="save-message" aria-live="polite">{{ saveMessage }}</p>
+  <div class="actions">
+    <button type="button" class="secondary" (click)="edit.emit()">Edit My Answers</button
+    ><button type="button" class="secondary" (click)="save.emit()" [disabled]="saving">
+      {{ saving ? 'Saving…' : 'Save My Profile' }}</button
+    ><button type="button" class="primary" (click)="submitProfile.emit()">
+      Find My Best Matches
+    </button>
+  </div>
+</section>

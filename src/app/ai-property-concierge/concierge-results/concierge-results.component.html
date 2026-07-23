@@ -1,0 +1,58 @@
+<section class="results" aria-live="polite">
+  <header>
+    <span class="eyebrow">Your personalized shortlist</span>
+    <h1>
+      We found {{ matches.length }} apartment{{ matches.length === 1 ? '' : 's' }} that match your
+      lifestyle
+    </h1>
+    <p>Based on your answers, these homes are the strongest matches for you.</p>
+  </header>
+  <div class="empty" *ngIf="matches.length === 0">
+    <div class="empty-icon">⌁</div>
+    <h2>We could not find a strong match yet.</h2>
+    <p>Try increasing your budget, selecting more districts, or changing a must-have preference.</p>
+    <button type="button" (click)="adjust.emit()">Adjust My Preferences</button>
+  </div>
+  <div class="result-grid">
+    <article class="match-card" *ngFor="let match of sortedMatches">
+      <div class="media">
+        <img [src]="image(match)" [alt]="match.apartment.title || 'Apartment photo'" />
+        <div class="score">
+          <strong>{{ match.matchScore }}%</strong><span>{{ label(match.matchScore) }}</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="title">
+          <div>
+            <span>{{ location(match) }}</span>
+            <h2>{{ match.apartment.title }}</h2>
+          </div>
+          <strong>${{ match.apartment.price | number }}/mo</strong>
+        </div>
+        <div class="facts">
+          <span *ngIf="match.apartment.bedrooms !== undefined"
+            >🛏
+            {{
+              match.apartment.bedrooms === 0 ? 'Studio' : match.apartment.bedrooms + ' bed'
+            }}</span
+          ><span *ngIf="match.apartment.bathrooms">🛁 {{ match.apartment.bathrooms }} bath</span
+          ><span *ngIf="match.apartment.sizeSquareMeters"
+            >▱ {{ match.apartment.sizeSquareMeters }} m²</span
+          >
+        </div>
+        <ul class="reasons">
+          <li *ngFor="let reason of match.reasons | slice: 0 : 4">✓ {{ reason }}</li>
+        </ul>
+        <ul class="warnings" *ngIf="match.warnings.length">
+          <li *ngFor="let warning of match.warnings">⚠ {{ warning }}</li>
+        </ul>
+        <a [routerLink]="['/apartments', match.apartment.id]"
+          >View apartment details <span aria-hidden="true">→</span></a
+        >
+      </div>
+    </article>
+  </div>
+  <button class="adjust" type="button" *ngIf="matches.length" (click)="adjust.emit()">
+    ← Adjust preferences
+  </button>
+</section>

@@ -38,6 +38,7 @@ export class AdminPanel implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
   adminSearch = '';
+  agentRatings: Record<string, number> = {};
   pendingDebug = '';
   reviewedCount = 0;
 
@@ -176,6 +177,14 @@ export class AdminPanel implements OnInit, OnDestroy {
         this.users = data.users;
         this.userIds = data.userIds;
         this.agents = data.agents;
+        this.agentRatings = data.agents.reduce<Record<string, number>>((ratings, agent) => {
+          const agentId = this.getAgentRatingId(agent);
+          if (agentId) {
+            ratings[agentId] = this.getAgentRating(agent) || 5;
+          }
+
+          return ratings;
+        }, {});
         this.apartments = data.apartments;
 
         this.loading = false;
@@ -322,6 +331,63 @@ export class AdminPanel implements OnInit, OnDestroy {
     });
   }
 
+  getAgentRating(agent: Agent): number {
+    return agent.averageRating ?? agent.rating ?? 0;
+  }
+
+  getAgentRatingCount(agent: Agent): number {
+    return agent.ratingCount ?? 0;
+  }
+
+  getDraftRating(agent: Agent): number {
+    const agentId = this.getAgentRatingId(agent);
+    if (!agentId) return 5;
+
+    const rating = this.agentRatings[agentId] ?? this.getAgentRating(agent);
+    return rating > 0 ? rating : 5;
+  }
+
+  setDraftRating(agent: Agent, value: string | number): void {
+    const agentId = this.getAgentRatingId(agent);
+    if (!agentId) return;
+
+    this.agentRatings[agentId] = Number(value);
+  }
+
+  setAgentRating(agent: Agent): void {
+    if (!this.isAdmin) {
+      this.errorMessage = 'Only admins can set agent ratings.';
+      this.successMessage = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const agentId = this.getAgentRatingId(agent);
+    const rating = this.clampRating(this.getDraftRating(agent));
+
+    if (!agentId || this.actionId) return;
+
+    this.agentRatings[agentId] = rating;
+    this.actionId = `rating:${agentId}`;
+    this.successMessage = '';
+    this.errorMessage = '';
+    this.cdr.detectChanges();
+
+    this.adminService.rateAgent(agentId, rating).subscribe({
+      next: () => {
+        this.successMessage = 'Agent rating updated.';
+        this.actionId = '';
+        this.loadDashboard();
+      },
+      error: (err) => {
+        console.error('Set agent rating error:', err);
+        this.errorMessage = 'Could not update this agent rating.';
+        this.actionId = '';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   deleteApartment(apartment: Apartment): void {
     if (!this.isAdmin) {
       this.errorMessage = 'Only admins can delete apartments.';
@@ -440,6 +506,15 @@ export class AdminPanel implements OnInit, OnDestroy {
     return values
       .filter((value): value is string | number => value !== undefined && value !== null)
       .some((value) => String(value).toLowerCase().includes(query));
+  }
+
+  private getAgentRatingId(agent: Agent): string {
+    return agent.id || agent.userId || '';
+  }
+
+  private clampRating(value: number): number {
+    if (!Number.isFinite(value)) return 5;
+    return Math.min(5, Math.max(1, Math.round(value * 10) / 10));
   }
 
   private updateReviewedCount(): void {

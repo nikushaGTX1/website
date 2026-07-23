@@ -149,6 +149,41 @@
             <input type="number" name="totalFloors" placeholder="Total floors" [(ngModel)]="form.totalFloors" />
           </div>
         </div>
+
+        <div class="field-group">
+          <label class="field-label">Apartment amenities</label>
+          <div class="chip-grid chip-grid-wide">
+            <button
+              *ngFor="let option of featureOptions"
+              type="button"
+              class="chip"
+              [class.selected]="form[option.field]"
+              [attr.aria-pressed]="form[option.field]"
+              (click)="toggle(option.field)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Lifestyle matching information</label>
+          <div class="input-row input-row-3">
+            <label>
+              Apartment style
+              <select name="apartmentStyle" [(ngModel)]="form.apartmentStyle">
+                <option value="Modern">Modern</option>
+                <option value="Luxury">Luxury</option>
+                <option value="Minimal">Minimal</option>
+                <option value="Classic">Classic</option>
+                <option value="Industrial">Industrial</option>
+              </select>
+            </label>
+          </div>
+          <p class="image-upload-message">
+            Nearby school, metro, gym, park, kindergarten, and university walking times are calculated automatically by the backend from the address.
+          </p>
+        </div>
       </section>
 
       <section class="form-section">

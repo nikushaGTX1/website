@@ -1,0 +1,132 @@
+<section class="results">
+  <header>
+    <span>Velven recommendations</span>
+    <h1>Your AI Home Matches</h1>
+    <p>
+      We found {{ matches.length }} home{{ matches.length === 1 ? '' : 's' }} ranked by how well
+      they fit your lifestyle.
+    </p>
+  </header>
+  <div class="empty" *ngIf="!matches.length">
+    <h2>We could not find a strong match yet.</h2>
+    <p>
+      Try increasing your budget, selecting more districts, or removing one of your strict
+      preferences.
+    </p>
+    <button type="button" (click)="edit.emit()">Adjust My Preferences</button
+    ><a routerLink="/ExploreProperty">View All Apartments</a>
+  </div>
+  <article *ngFor="let result of sorted" class="card">
+    <div class="media">
+      <img [src]="image(result)" [alt]="result.apartment.title" />
+      <div class="score">
+        <b>{{ result.matchScore }}%</b
+        ><span>{{ result.matchLabel || label(result.matchScore) }}</span>
+      </div>
+    </div>
+    <div class="body">
+      <span class="category">{{ result.recommendationCategory || 'Best Balanced Match' }}</span>
+      <span class="category" *ngIf="result.priorityScore !== undefined">
+        +{{ result.priorityScore }} priority points
+      </span>
+      <details class="priority-points" *ngIf="result.priorityBreakdown?.length">
+        <summary>Check priority points</summary>
+        <div class="priority-row priority-head">
+          <span>Priority</span><span>Base</span><span>Weight</span><span>Points</span>
+        </div>
+        <div class="priority-row" *ngFor="let item of result.priorityBreakdown">
+          <span><b>#{{ item.rank }}</b> {{ item.priority }}</span>
+          <span>{{ item.baseScore }}</span>
+          <span>×{{ item.multiplier }}</span>
+          <strong>{{ item.weightedPoints }}</strong>
+        </div>
+        <div class="priority-total">
+          <span>Coverage bonus</span><strong>+{{ result.priorityCoverageBonus || 0 }}</strong>
+        </div>
+        <div class="priority-total grand-total">
+          <span>Priority points</span><strong>{{ result.priorityScore }}</strong>
+        </div>
+        <div class="priority-total">
+          <span>Final ranking total</span
+          ><strong>{{ result.matchScore }} + {{ result.priorityScore }} = {{ result.rankingScore }}</strong>
+        </div>
+      </details>
+      <div class="heading">
+        <div>
+          <h2>{{ result.apartment.title }}</h2>
+          <p>{{ result.apartment.district || result.apartment.address }}</p>
+        </div>
+        <strong>${{ result.apartment.price | number }}/mo</strong>
+      </div>
+      <div class="facts">
+        <span *ngIf="result.apartment.bedrooms !== undefined"
+          >{{ result.apartment.bedrooms }} bedrooms</span
+        ><span *ngIf="result.apartment.bathrooms">{{ result.apartment.bathrooms }} bathrooms</span
+        ><span *ngIf="result.apartment.sizeSquareMeters"
+          >{{ result.apartment.sizeSquareMeters }} m²</span
+        >
+      </div>
+      <ul class="reasons">
+        <li *ngFor="let reason of result.reasons">
+          <b>✓ {{ reason.title }}</b
+          ><span *ngIf="reason.description">{{ reason.description }}</span>
+        </li>
+      </ul>
+      <section class="nearby-times" aria-live="polite">
+        <h3>Live Google walking times</h3>
+        <p *ngIf="enrichingApartmentIds.has(result.apartment.id)">
+          Checking places near this apartment…
+        </p>
+        <div *ngIf="hasNearbyTimes(result)" class="nearby-time-grid">
+          <span *ngIf="result.apartment.schoolDistanceMinutes !== undefined"
+            ><b>Nearest school</b>{{ result.apartment.schoolDistanceMinutes }} min walk</span
+          >
+          <span *ngIf="result.apartment.kindergartenDistanceMinutes !== undefined"
+            ><b>Nearest kindergarten</b>{{ result.apartment.kindergartenDistanceMinutes }} min
+            walk</span
+          >
+          <span *ngIf="result.apartment.groceryDistanceMinutes !== undefined"
+            ><b>Nearest grocery</b>{{ result.apartment.groceryDistanceMinutes }} min walk</span
+          >
+          <span *ngIf="result.apartment.gymDistanceMinutes !== undefined"
+            ><b>Nearest gym</b>{{ result.apartment.gymDistanceMinutes }} min walk</span
+          >
+          <span *ngIf="result.apartment.metroDistanceMinutes !== undefined"
+            ><b>Nearest metro</b>{{ result.apartment.metroDistanceMinutes }} min walk</span
+          >
+        </div>
+        <small *ngIf="hasNearbyTimes(result)"
+          >Live distances do not change the backend match percentage, but they are included in the
+          priority points above.</small
+        >
+      </section>
+      <div class="trade" *ngIf="visibleTradeOffs(result).length">
+        <h3>Trade-offs</h3>
+        <p *ngFor="let item of visibleTradeOffs(result)">
+          <b>{{ item.title }}:</b> {{ item.description }}
+        </p>
+      </div>
+      <p class="warning" *ngFor="let warning of result.warnings">⚠ {{ warning }}</p>
+      <details *ngIf="result.scoreBreakdown?.length || result.reasons?.length">
+        <summary>Why this match?</summary>
+        <div class="breakdown" *ngFor="let item of result.scoreBreakdown">
+          <span>{{ item.label }}</span
+          ><b>{{ item.pointsEarned }} / {{ item.pointsAvailable }}</b>
+        </div>
+        <div
+          class="breakdown"
+          *ngFor="let reason of result.scoreBreakdown?.length ? [] : result.reasons"
+        >
+          <span>{{ reason.title }}</span
+          ><b *ngIf="reason.pointsAvailable !== undefined"
+            >{{ reason.pointsEarned }} / {{ reason.pointsAvailable }}</b
+          >
+        </div>
+      </details>
+      <a class="view" [routerLink]="['/apartments', result.apartment.id]">View apartment</a>
+    </div>
+  </article>
+  <button class="edit" type="button" *ngIf="matches.length" (click)="edit.emit()">
+    Edit my answers
+  </button>
+</section>

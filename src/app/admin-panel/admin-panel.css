@@ -281,6 +281,52 @@ button:disabled {
   gap: 4px;
 }
 
+.agent-admin-row {
+  grid-template-columns: minmax(220px, 1fr) 120px minmax(280px, auto) auto;
+}
+
+.agent-rating-summary {
+  color: #171717;
+}
+
+.agent-rating-summary strong {
+  color: #244fb4;
+}
+
+.agent-rating-summary span,
+.agent-rating-editor label {
+  color: #667085;
+  font-size: 13px;
+}
+
+.agent-rating-editor {
+  display: grid;
+  grid-template-columns: auto 88px auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.agent-rating-editor input {
+  width: 88px;
+  min-height: 40px;
+  border: 1px solid #d8dce4;
+  border-radius: 7px;
+  padding: 0 10px;
+  background: #fff;
+  color: #171717;
+  font: inherit;
+  outline: none;
+}
+
+.agent-rating-editor input:focus {
+  border-color: #3569f5;
+  box-shadow: 0 0 0 3px rgba(53, 105, 245, 0.1);
+}
+
+.agent-rating-editor .rating-save {
+  background: #12925f;
+}
+
 .apartment-row {
   grid-template-columns: minmax(0, 1fr) auto auto;
 }
@@ -395,6 +441,8 @@ button:disabled {
   .stats-grid,
   .review-row,
   .data-row,
+  .agent-admin-row,
+  .agent-rating-editor,
   .apartment-row,
   .form-row,
   .blog-admin-row {

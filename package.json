@@ -17,6 +17,8 @@
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
+    "@googlemaps/js-api-loader": "^2.1.1",
+    "@types/google.maps": "^3.65.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

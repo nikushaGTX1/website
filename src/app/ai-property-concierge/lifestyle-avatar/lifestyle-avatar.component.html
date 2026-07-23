@@ -1,0 +1,14 @@
+<aside class="avatar-card" aria-label="Lifestyle avatar">
+  <div class="scene">
+    <div class="people">
+      <span class="person">🧑</span
+      ><span class="person companion" *ngFor="let person of companions">{{ person }}</span>
+    </div>
+    <div class="items">
+      <span class="avatar-item" *ngFor="let item of items" [attr.title]="item.label">{{
+        item.icon
+      }}</span>
+    </div>
+  </div>
+  <p>{{ summary }}</p>
+</aside>

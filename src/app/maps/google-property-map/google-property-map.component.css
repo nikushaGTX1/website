@@ -1,0 +1,225 @@
+:host {
+  display: block;
+  height: 100%;
+}
+.google-property-map {
+  height: 100%;
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  color: #211d35;
+}
+.google-property-map header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e7e4ec;
+}
+.google-property-map header strong,
+.google-property-map header span {
+  display: block;
+}
+.google-property-map header span {
+  font-size: 11px;
+  color: #777;
+  margin-top: 3px;
+}
+.google-property-map form {
+  display: flex;
+  min-width: min(350px, 55%);
+}
+.google-property-map input {
+  width: 100%;
+  border: 1px solid #d9d5e1;
+  border-radius: 10px 0 0 10px;
+  padding: 10px;
+}
+.google-property-map form button {
+  border: 0;
+  background: #5645bd;
+  color: #fff;
+  border-radius: 0 10px 10px 0;
+  padding: 0 14px;
+  font-weight: 700;
+}
+.google-property-map nav {
+  display: flex;
+  gap: 7px;
+  overflow: auto;
+  padding: 10px 14px;
+}
+.google-property-map nav button {
+  white-space: nowrap;
+  border: 1px solid #ddd8e7;
+  background: #fff;
+  border-radius: 20px;
+  padding: 8px 11px;
+  cursor: pointer;
+}
+.google-property-map nav button.active {
+  background: #5544bd;
+  color: #fff;
+  border-color: #5544bd;
+}
+.google-property-map button:focus-visible,
+.google-property-map input:focus-visible,
+.google-property-map select:focus-visible {
+  outline: 3px solid #9d91ea;
+  outline-offset: 2px;
+}
+.map-area {
+  position: relative;
+  min-height: 320px;
+  flex: 1;
+}
+.map-canvas {
+  position: absolute;
+  inset: 0;
+}
+.map-message {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #fffffff2;
+  padding: 13px 16px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px #0002;
+  text-align: center;
+}
+.map-message.error {
+  color: #8e3540;
+  max-width: 420px;
+}
+.lower-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-height: 290px;
+  border-top: 1px solid #e6e3eb;
+}
+.lower-panel.has-route {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.place-list {
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 8px;
+}
+.place-list article {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 9px;
+  border-radius: 10px;
+}
+.place-list article > div {
+  min-width: 0;
+}
+.place-list article.selected {
+  background: #f0edff;
+}
+.number {
+  display: grid;
+  place-items: center;
+  background: #5746bf;
+  color: #fff;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  font-size: 11px;
+}
+.place-list strong,
+.place-list small,
+.place-list b {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.place-list small {
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: none;
+}
+.place-list b {
+  font-size: 11px;
+  color: #4d3eaa;
+  margin-top: 3px;
+}
+.place-list button {
+  border: 0;
+  background: #eeeafc;
+  color: #4939a5;
+  border-radius: 8px;
+  padding: 7px;
+  cursor: pointer;
+}
+.route {
+  min-width: 0;
+  overflow: auto;
+  border-left: 1px solid #e8e5ec;
+  padding: 10px;
+}
+.route > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+.route select {
+  padding: 7px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+.directions-panel {
+  font-size: 12px;
+}
+.empty {
+  padding: 12px;
+  text-align: center;
+  color: #777;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 700px) {
+  .google-property-map {
+    min-height: 680px;
+  }
+  .google-property-map header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .google-property-map form {
+    min-width: 100%;
+  }
+  .lower-panel.has-route {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lower-panel {
+    max-height: 360px;
+  }
+  .route {
+    border-left: 0;
+    border-top: 1px solid #eee;
+  }
+  .map-area {
+    min-height: 300px;
+  }
+}

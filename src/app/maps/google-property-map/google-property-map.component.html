@@ -1,0 +1,81 @@
+<section class="google-property-map" aria-label="Apartment neighborhood map">
+  <header>
+    <div>
+      <strong>Explore the neighborhood</strong><span>Places near {{ apartmentTitle }}</span>
+    </div>
+    <form (submit)="$event.preventDefault(); search()">
+      <label class="sr-only" for="nearby-search">Search nearby</label
+      ><input
+        id="nearby-search"
+        name="nearbySearch"
+        [(ngModel)]="searchQuery"
+        placeholder="Search cafés, parks, pharmacies…"
+      /><button type="submit" [disabled]="searching || !searchQuery.trim()">Search</button>
+    </form>
+  </header>
+  <nav aria-label="Nearby place filters">
+    <button
+      type="button"
+      *ngFor="let category of categories"
+      [class.active]="activeCategory === category.value && !searchQuery"
+      [attr.aria-pressed]="activeCategory === category.value && !searchQuery"
+      (click)="selectCategory(category.value)"
+    >
+      {{ category.label }}
+    </button>
+  </nav>
+  <div class="nearest-summary" *ngIf="nearestPlaces.length">
+    <article
+      *ngFor="let place of nearestPlaces"
+      (click)="showDirections(place)"
+      tabindex="0"
+      (keyup.enter)="showDirections(place)"
+    >
+      <span>Nearest {{ categoryLabel(place.category) }}</span
+      ><strong>{{ place.name }}</strong
+      ><b *ngIf="place.walkingMinutes !== undefined">{{ place.walkingMinutes }} min walk</b
+      ><b *ngIf="place.walkingMinutes === undefined">{{ distance(place.distanceMeters) }} away</b>
+    </article>
+  </div>
+  <div class="map-area">
+    <div #mapContainer class="map-canvas"></div>
+    <div class="map-message" *ngIf="loading || searching">
+      {{ loading ? 'Loading Google Maps…' : 'Searching nearby…' }}
+    </div>
+    <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  </div>
+  <div class="lower-panel" [class.has-route]="selectedPlace" *ngIf="places.length">
+    <div class="place-list">
+      <article
+        *ngFor="let place of places; let index = index"
+        [class.selected]="selectedPlace?.id === place.id"
+      >
+        <span class="number">{{ index + 1 }}</span>
+        <div>
+          <strong>{{ place.name }}</strong
+          ><small>{{ categoryLabel(place.category) }} · {{ place.address }}</small
+          ><b *ngIf="place.walkingMinutes !== undefined"
+            >By walk: {{ place.walkingMinutes }} min · {{ distance(place.distanceMeters) }}</b
+          ><b *ngIf="place.walkingMinutes === undefined"
+            >{{ distance(place.distanceMeters) }} away</b
+          >
+        </div>
+        <button type="button" (click)="showDirections(place)">Directions</button>
+      </article>
+    </div>
+    <aside class="route" *ngIf="selectedPlace">
+      <div>
+        <strong>Route to {{ selectedPlace.name }}</strong
+        ><select [(ngModel)]="travelMode" (change)="showDirections(selectedPlace)">
+          <option value="WALKING">Walking</option>
+          <option value="DRIVING">Driving</option>
+          <option value="TRANSIT">Public transit</option>
+        </select>
+      </div>
+      <div #directionsPanel class="directions-panel"></div>
+    </aside>
+  </div>
+  <p class="empty" *ngIf="!loading && !searching && !errorMessage && places.length === 0">
+    No matching places were found within 10 km. Try another category or search.
+  </p>
+</section>

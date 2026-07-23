@@ -41,4 +41,8 @@ export class AdminService {
   getAgent(agentId: string): Observable<Agent> {
     return this.http.get<Agent>(`${this.agentsUrl}/${agentId}`);
   }
+
+  rateAgent(agentId: string, rating: number): Observable<unknown> {
+    return this.http.post(`${this.agentsUrl}/${agentId}/ratings`, { rating });
+  }
 }
