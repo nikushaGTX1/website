@@ -1,51 +1,56 @@
-<nav class="navigation">
+<header class="site-header">
+  <nav class="navigation" aria-label="Main navigation">
+    <a class="brand" routerLink="/main" aria-label="White Tower home" (click)="closeMenu()">
+      <img src="/logo.png" alt="White Tower" />
+    </a>
 
-    <div class="nav-top">
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-label="Toggle navigation"
+      [attr.aria-expanded]="menuOpen"
+      (click)="menuOpen = !menuOpen"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
 
-        <div class="logo">
-            <img src="/logo.png">
-        </div>
+    <div class="navigation-content" [class.is-open]="menuOpen">
+      <div class="nav-links">
+        <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'buy' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Buy</a>
+        <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'rent' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Rent</a>
+        <a class="ai-link" routerLink="/ai-home-match" routerLinkActive="active" (click)="closeMenu()">
+          AI Match <span aria-hidden="true">✦</span>
+        </a>
+        <a routerLink="/agent-profile" routerLinkActive="active" (click)="closeMenu()">Agents</a>
+        <a routerLink="/find-my-home" routerLinkActive="active" (click)="closeMenu()">Services</a>
+        <a routerLink="/blog" routerLinkActive="active" (click)="closeMenu()">Blog</a>
+        <a routerLink="/about" routerLinkActive="active" (click)="closeMenu()">About Us</a>
+      </div>
 
-        <div class="nav-right">
+      <div class="nav-actions">
+        <a class="admin-link" routerLink="/admin" *ngIf="canOpenAdmin" (click)="closeMenu()">Dashboard</a>
 
-            <a class="upload-btn" routerLink="/upload-apartment">
-                List your property
-                <span>+</span>
-            </a>
+        <button class="language" type="button" aria-label="Select language">
+          ENG
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="m6 8 4 4 4-4" />
+          </svg>
+        </button>
 
-            <a class="admin-link" routerLink="/admin" *ngIf="canOpenAdmin">Dashboard</a>
+        <a class="sign-in" routerLink="/login" *ngIf="!isLoggedIn" (click)="closeMenu()">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="3.5" />
+            <path d="M5 20c.4-4 2.7-6 7-6s6.6 2 7 6" />
+          </svg>
+          Sign in
+        </a>
 
-            <div class="language">
-                🌐 ENG
-            </div>
+        <app-profile-burger-menu *ngIf="isLoggedIn"></app-profile-burger-menu>
 
-            <div class="icon">
-                ♡
-                <div class="badge">0</div>
-            </div>
-
-
-            <a class="icon login-icon" routerLink="/login" *ngIf="!isLoggedIn">👤</a>
-
-            <app-profile-burger-menu *ngIf="isLoggedIn"></app-profile-burger-menu>
-
-        </div>
-
+        <a class="list-property" routerLink="/upload-apartment" (click)="closeMenu()">List your property</a>
+      </div>
     </div>
-
-    <div class="nav-divider"></div>
-
-    <div class="nav-bottom">
-
-        <div class="nav-menu">
-            <a routerLink="/">Home</a>
-            <a routerLink="/agent-profile">Agent profiles</a>
-            <a routerLink="/ExploreProperty">Explore Property</a>
-            <a routerLink="/services">Services</a>
-            <a routerLink="/blog">Blog</a>
-            <a routerLink="/about">About us</a>
-        </div>
-
-    </div>
-
-</nav>
+  </nav>
+</header>
