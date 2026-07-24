@@ -11,7 +11,22 @@ export function toMediaUrl(value?: string | null): string {
 
   const normalizedValue = value.replace(/\\/g, '/');
 
+  if (normalizedValue.startsWith('/media/')) {
+    return normalizedValue;
+  }
+
   if (normalizedValue.startsWith('http://') || normalizedValue.startsWith('https://')) {
+    try {
+      const mediaUrl = new URL(normalizedValue);
+      if (
+        mediaUrl.hostname === 'zhijxljnddhvlxzhrckz.supabase.co' &&
+        mediaUrl.pathname.startsWith('/storage/v1/object/sign/apartments/')
+      ) {
+        return `/media/apartment-image?url=${encodeURIComponent(normalizedValue)}`;
+      }
+    } catch {
+      return '';
+    }
     return normalizedValue;
   }
 

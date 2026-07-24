@@ -16,7 +16,10 @@ export class ConciergeResultsComponent {
     return [...this.matches].sort((a, b) => b.matchScore - a.matchScore);
   }
   image(match: ApartmentMatchResult): string {
-    return toMediaUrl(match.apartment.imageUrls?.[0] || match.apartment.imageUrl) || '/banner.jpg';
+    return (
+      toMediaUrl(match.apartment.imageUrls?.[0] || match.apartment.imageUrl) ||
+      '/property-placeholder.svg'
+    );
   }
   location(match: ApartmentMatchResult): string {
     return match.apartment.district || match.apartment.address || 'Tbilisi';

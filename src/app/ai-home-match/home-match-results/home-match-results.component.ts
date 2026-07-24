@@ -29,7 +29,8 @@ export class HomeMatchResultsComponent implements OnChanges {
   }
   image(result: HomeMatchResult): string {
     return (
-      toMediaUrl(result.apartment.imageUrls?.[0] || result.apartment.imageUrl) || '/banner.jpg'
+      toMediaUrl(result.apartment.imageUrls?.[0] || result.apartment.imageUrl) ||
+      '/property-placeholder.svg'
     );
   }
   label(score: number): string {

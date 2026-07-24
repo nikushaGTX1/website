@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { concat, EMPTY, Observable, of } from 'rxjs';
+import { catchError, map, shareReplay, tap } from 'rxjs/operators';
 import { Apartment, CreateApartment } from '../models/apartment';
 import { API_URL } from '../utils/api-config';
+import { toMediaUrl } from '../utils/api-media';
 
 interface ApartmentMutationResponse {
   message: string;
@@ -14,27 +16,139 @@ interface ApartmentMutationResponse {
 })
 export class ApartmentService {
   private apiUrl = `${API_URL}/Apartments`;
+  private apartmentsCache$?: Observable<Apartment[]>;
+  private apartmentsCacheCreatedAt = 0;
+  private readonly apartmentsCacheLifetimeMs = 5 * 60 * 1000;
+  private readonly persistedApartmentsKey = 'white-tower-apartments-cache-v1';
+  private readonly persistedApartmentsLifetimeMs = 15 * 60 * 1000;
 
   constructor(private http: HttpClient) {}
 
   getApartments(): Observable<Apartment[]> {
-    return this.http.get<Apartment[]>(this.apiUrl);
+    const cacheExpired =
+      Date.now() - this.apartmentsCacheCreatedAt >= this.apartmentsCacheLifetimeMs;
+
+    if (!this.apartmentsCache$ || cacheExpired) {
+      const persistedApartments = this.readPersistedApartments();
+      this.apartmentsCacheCreatedAt = Date.now();
+      const networkRequest$ = this.http
+        .get<Apartment[]>(this.apiUrl)
+        .pipe(
+          map((apartments) => apartments.map((apartment) => this.normalizeImages(apartment))),
+          tap((apartments) => this.persistApartments(apartments)),
+          catchError((error) => {
+            if (persistedApartments) {
+              return EMPTY;
+            }
+            throw error;
+          }),
+        );
+
+      this.apartmentsCache$ = (
+        persistedApartments
+          ? concat(of(persistedApartments), networkRequest$)
+          : networkRequest$
+      ).pipe(shareReplay({ bufferSize: 1, refCount: false }));
+    }
+
+    return this.apartmentsCache$;
   }
 
   getApartment(id: number): Observable<Apartment> {
-    return this.http.get<Apartment>(`${this.apiUrl}/${id}`);
+    const persistedApartment = this.readPersistedApartments()?.find(
+      (apartment) => apartment.id === id,
+    );
+    const networkRequest$ = this.http.get<Apartment>(`${this.apiUrl}/${id}`).pipe(
+      map((apartment) => this.normalizeImages(apartment)),
+      tap((apartment) => this.persistApartment(apartment)),
+      catchError((error) => {
+        if (persistedApartment) {
+          return EMPTY;
+        }
+        throw error;
+      }),
+    );
+
+    return persistedApartment
+      ? concat(of(persistedApartment), networkRequest$)
+      : networkRequest$;
   }
 
   createApartment(data: CreateApartment): Observable<ApartmentMutationResponse> {
-    return this.http.post<ApartmentMutationResponse>(this.apiUrl, this.toApartmentFormData(data));
+    return this.http
+      .post<ApartmentMutationResponse>(this.apiUrl, this.toApartmentFormData(data))
+      .pipe(tap(() => this.clearApartmentCache()));
   }
 
   updateApartment(id: number, data: Partial<CreateApartment>): Observable<ApartmentMutationResponse> {
-    return this.http.put<ApartmentMutationResponse>(`${this.apiUrl}/${id}`, this.toApartmentFormData(data));
+    return this.http
+      .put<ApartmentMutationResponse>(`${this.apiUrl}/${id}`, this.toApartmentFormData(data))
+      .pipe(tap(() => this.clearApartmentCache()));
   }
 
   deleteApartment(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
+    return this.http
+      .delete<{ message: string }>(`${this.apiUrl}/${id}`)
+      .pipe(tap(() => this.clearApartmentCache()));
+  }
+
+  private clearApartmentCache(): void {
+    this.apartmentsCache$ = undefined;
+    this.apartmentsCacheCreatedAt = 0;
+    localStorage.removeItem(this.persistedApartmentsKey);
+  }
+
+  private readPersistedApartments(): Apartment[] | null {
+    try {
+      const rawCache = localStorage.getItem(this.persistedApartmentsKey);
+      if (!rawCache) {
+        return null;
+      }
+
+      const cache = JSON.parse(rawCache) as { savedAt: number; apartments: Apartment[] };
+      if (
+        !Array.isArray(cache.apartments) ||
+        Date.now() - cache.savedAt >= this.persistedApartmentsLifetimeMs
+      ) {
+        localStorage.removeItem(this.persistedApartmentsKey);
+        return null;
+      }
+
+      return cache.apartments;
+    } catch {
+      localStorage.removeItem(this.persistedApartmentsKey);
+      return null;
+    }
+  }
+
+  private persistApartments(apartments: Apartment[]): void {
+    localStorage.setItem(
+      this.persistedApartmentsKey,
+      JSON.stringify({ savedAt: Date.now(), apartments }),
+    );
+  }
+
+  private persistApartment(apartment: Apartment): void {
+    const apartments = this.readPersistedApartments() || [];
+    const apartmentIndex = apartments.findIndex((item) => item.id === apartment.id);
+
+    if (apartmentIndex >= 0) {
+      apartments[apartmentIndex] = apartment;
+    } else {
+      apartments.unshift(apartment);
+    }
+
+    this.persistApartments(apartments);
+  }
+
+  private normalizeImages(apartment: Apartment): Apartment {
+    return {
+      ...apartment,
+      imageUrl: toMediaUrl(apartment.imageUrl) || undefined,
+      imageUrls: apartment.imageUrls
+        ?.map((image) => toMediaUrl(image))
+        .filter((image): image is string => !!image),
+    };
   }
 
   private toApartmentFormData(data: Partial<CreateApartment>): FormData {

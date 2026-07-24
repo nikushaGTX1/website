@@ -95,7 +95,7 @@ export class Main implements OnInit {
   }
 
   getApartmentImage(apartment: Apartment): string {
-    return toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/banner.jpg';
+    return toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg';
   }
 
   getApartmentTitle(apartment: Apartment): string {

@@ -70,12 +70,18 @@
 
       <article
         class="property-card"
-        *ngFor="let apartment of filteredApartments"
+        *ngFor="let apartment of filteredApartments; let index = index"
         [class.selected]="selectedApartment?.id === apartment.id"
         (click)="selectApartment(apartment)"
       >
         <div class="property-image">
-          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/banner.jpg'" [alt]="apartment.title" />
+          <img
+            [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'"
+            [alt]="apartment.title"
+            [attr.loading]="index < 2 ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
+            decoding="async"
+          />
           <button class="favorite-btn" type="button" (click)="$event.stopPropagation()">♡</button>
           <div class="image-dots" aria-hidden="true">
             <span></span>
