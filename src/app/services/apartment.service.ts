@@ -58,20 +58,16 @@ export class ApartmentService {
     const persistedApartment = this.readPersistedApartments()?.find(
       (apartment) => apartment.id === id,
     );
-    const networkRequest$ = this.http.get<Apartment>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<Apartment>(`${this.apiUrl}/${id}`).pipe(
       map((apartment) => this.normalizeImages(apartment)),
       tap((apartment) => this.persistApartment(apartment)),
       catchError((error) => {
         if (persistedApartment) {
-          return EMPTY;
+          return of(this.normalizeImages(persistedApartment));
         }
         throw error;
       }),
     );
-
-    return persistedApartment
-      ? concat(of(persistedApartment), networkRequest$)
-      : networkRequest$;
   }
 
   createApartment(data: CreateApartment): Observable<ApartmentMutationResponse> {
@@ -142,12 +138,30 @@ export class ApartmentService {
   }
 
   private normalizeImages(apartment: Apartment): Apartment {
+    const gallery = [...(apartment.images || [])]
+      .sort(
+        (left, right) =>
+          Number(right.isCover) - Number(left.isCover) ||
+          (left.sortOrder ?? 0) - (right.sortOrder ?? 0),
+      )
+      .map((image) => ({
+        ...image,
+        url: toMediaUrl(image.url || image.storagePath) || undefined,
+      }));
+    const galleryUrls = gallery
+      .map((image) => image.url)
+      .filter((image): image is string => !!image);
+    const legacyUrls = (apartment.imageUrls || [])
+      .map((image) => toMediaUrl(image))
+      .filter((image): image is string => !!image);
+    const imageUrl =
+      galleryUrls[0] || toMediaUrl(apartment.imageUrl) || legacyUrls[0] || undefined;
+
     return {
       ...apartment,
-      imageUrl: toMediaUrl(apartment.imageUrl) || undefined,
-      imageUrls: apartment.imageUrls
-        ?.map((image) => toMediaUrl(image))
-        .filter((image): image is string => !!image),
+      imageUrl,
+      imageUrls: galleryUrls.length ? galleryUrls : legacyUrls,
+      images: gallery,
     };
   }
 
@@ -208,8 +222,6 @@ export class ApartmentService {
     const images = this.getApartmentImages(data).slice(0, 15);
 
     if (images.length) {
-      // Keep the legacy field until every deployed API instance supports Images.
-      formData.append('Image', images[0], images[0].name);
       images.forEach((image) => {
         formData.append('Images', image, image.name);
       });

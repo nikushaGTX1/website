@@ -85,9 +85,20 @@ function warmApartmentImages(body) {
   try {
     const payload = JSON.parse(body.toString('utf8'));
     const apartments = Array.isArray(payload) ? payload : [payload];
-    const imageUrls = apartments.map(
-      (apartment) => apartment?.imageUrls?.[0] || apartment?.imageUrl,
-    );
+    const imageUrls = apartments.map((apartment) => {
+      const gallery = Array.isArray(apartment?.images) ? [...apartment.images] : [];
+      gallery.sort(
+        (left, right) =>
+          Number(right?.isCover) - Number(left?.isCover) ||
+          (left?.sortOrder ?? 0) - (right?.sortOrder ?? 0),
+      );
+      return (
+        gallery[0]?.url ||
+        gallery[0]?.storagePath ||
+        apartment?.imageUrls?.[0] ||
+        apartment?.imageUrl
+      );
+    });
 
     for (const imageUrl of new Set(imageUrls.filter(Boolean))) {
       void fetchApartmentImage(imageUrl).catch((error) =>
@@ -122,29 +133,6 @@ function sendApiResponse(response, apiResponse, cacheStatus) {
   response.send(apiResponse.body);
 }
 
-function cacheApartmentDetails(listResponse) {
-  try {
-    const apartments = JSON.parse(listResponse.body.toString('utf8'));
-
-    if (!Array.isArray(apartments)) {
-      return;
-    }
-
-    for (const apartment of apartments) {
-      if (apartment?.id === undefined || apartment?.id === null) {
-        continue;
-      }
-
-      publicApiCache.set(`/api/Apartments/${apartment.id}`, {
-        ...listResponse,
-        body: Buffer.from(JSON.stringify(apartment)),
-      });
-    }
-  } catch (error) {
-    console.error('Could not seed apartment detail cache:', error);
-  }
-}
-
 async function fetchPublicApi(cacheKey) {
   if (publicApiRequests.has(cacheKey)) {
     return publicApiRequests.get(cacheKey);
@@ -172,7 +160,6 @@ async function fetchPublicApi(cacheKey) {
     if (upstreamResponse.ok) {
       publicApiCache.set(cacheKey, apiResponse);
       if (cacheKey === '/api/Apartments') {
-        cacheApartmentDetails(apiResponse);
         warmApartmentImages(apiResponse.body);
       } else if (/^\/api\/Apartments\/\d+$/.test(cacheKey)) {
         warmApartmentImages(apiResponse.body);
