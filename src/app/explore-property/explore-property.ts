@@ -15,15 +15,26 @@ export class ExploreProperty implements OnInit {
   loading = false;
   errorMessage = '';
 
+  bedroomOptions = ['Studio', '1 Bedroom', '2 Bedrooms', '3 Bedrooms', '4+ Bedrooms'];
+  bathroomOptions = ['1+ Bathrooms', '2+ Bathrooms', '3+ Bathrooms'];
+  propertyTypeOptions = ['Apartment', 'House', 'Townhouse', 'Penthouse'];
+  amenityOptions = ['Parking', 'Balcony', 'Elevator', 'Pool', 'Furnished'];
+
   searchQuery = '';
-  selectedType = '';
+  selectedType = 'For Rent'; 
   priceRange = '';
   homeType = '';
   location = '';
 
-  selectedApartment: Apartment | null = null;
+  selectedPriceMax = 3000;
+  selectedBedrooms: string[] = [];
+  selectedBathrooms: string[] = [];
+  selectedPropertyTypes: string[] = [];
+  selectedAmenities: string[] = [];
 
-  propertiesPlaceholder = new Array(4);
+  selectedApartment: Apartment | null = null;
+  propertiesPlaceholder = new Array(6);
+  currentSort = 'newest';
 
   constructor(
     private apartmentService: ApartmentService,
@@ -41,40 +52,28 @@ export class ExploreProperty implements OnInit {
 
     this.apartmentService.getApartments().subscribe({
       next: (apartments) => {
-        console.log('Explore apartments loaded:', apartments);
-
         this.apartments = apartments;
-        this.filteredApartments = [...apartments];
-
-        if (apartments.length > 0) {
-          this.selectApartment(apartments[0], false);
-        } else {
-          this.selectedApartment = null;
-        }
-
+        this.onSearch(); // Perform initial search on page load
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Explore apartments API error:', err);
-
+        console.error('API Error:', err);
         this.apartments = [];
         this.filteredApartments = [];
-        this.selectedApartment = null;
-
         this.loading = false;
         this.errorMessage = 'Could not load apartments right now.';
-
         this.cdr.detectChanges();
       },
     });
   }
 
+  
   onSearch(): void {
     const query = this.searchQuery.trim().toLowerCase();
-    const location = this.location.trim().toLowerCase();
-    const selectedType = this.selectedType.trim().toLowerCase();
-    const homeType = this.homeType.trim().toLowerCase();
+    const loc = this.location.trim().toLowerCase();
+    const type = this.selectedType.trim().toLowerCase();
+    const home = this.homeType.trim().toLowerCase();
 
     this.filteredApartments = this.apartments.filter((apartment) => {
       const haystack = [
@@ -86,91 +85,133 @@ export class ExploreProperty implements OnInit {
         .join(' ')
         .toLowerCase();
 
+      const matchesQuery = !query || haystack.includes(query);
+      const matchesType = !type || haystack.includes(type);
+      const matchesHome = !home || haystack.includes(home);
+      const matchesLocation = !loc || haystack.includes(loc);
+
+      const matchesHeaderPrice = this.matchesPriceRange(apartment.price);
+      const matchesSliderPrice = apartment.price <= this.selectedPriceMax;
+      const matchesBedrooms = this.matchesBedroomFilter(apartment);
+      const matchesBathrooms = this.matchesBathroomFilter(apartment);
+      const matchesPropertyType = this.matchesPropertyTypeFilter(apartment);
+      const matchesAmenities = this.matchesAmenitiesFilter(apartment);
+
       return (
-        (!query || haystack.includes(query)) &&
-        (!selectedType || haystack.includes(selectedType)) &&
-        (!homeType || haystack.includes(homeType)) &&
-        (!location || haystack.includes(location)) &&
-        this.matchesPrice(apartment.price)
+        matchesQuery &&
+        matchesType &&
+        matchesHome &&
+        matchesLocation &&
+        matchesHeaderPrice &&
+        matchesSliderPrice &&
+        matchesBedrooms &&
+        matchesBathrooms &&
+        matchesPropertyType &&
+        matchesAmenities
       );
     });
 
+    this.applySorting();
+
     if (this.filteredApartments.length === 0) {
       this.selectedApartment = null;
-    } else if (
-      !this.selectedApartment ||
-      !this.filteredApartments.some((apartment) => apartment.id === this.selectedApartment?.id)
-    ) {
+    } else {
       this.selectApartment(this.filteredApartments[0], false);
     }
 
     this.cdr.detectChanges();
   }
 
+  toggleFilterItem(list: string[], item: string): void {
+    const index = list.indexOf(item);
+    if (index > -1) {
+      list.splice(index, 1);
+    } else {
+      list.push(item);
+    }
+  }
+
+  isFilterActive(list: string[], item: string): boolean {
+    return list.includes(item);
+  }
+
   clearFilters(): void {
     this.searchQuery = '';
-    this.selectedType = '';
+    this.selectedType = 'For Rent';
     this.priceRange = '';
     this.homeType = '';
     this.location = '';
 
-    this.filteredApartments = [...this.apartments];
+    this.selectedPriceMax = 3000;
+    this.selectedBedrooms = [];
+    this.selectedBathrooms = [];
+    this.selectedPropertyTypes = [];
+    this.selectedAmenities = [];
 
-    if (this.apartments.length > 0) {
-      this.selectApartment(this.apartments[0], false);
-    } else {
-      this.selectedApartment = null;
+    this.onSearch();
+  }
+
+  onSortChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.currentSort = select.value;
+    this.applySorting();
+  }
+
+  private applySorting(): void {
+    if (this.currentSort === 'price-asc') {
+      this.filteredApartments.sort((a, b) => a.price - b.price);
+    } else if (this.currentSort === 'price-desc') {
+      this.filteredApartments.sort((a, b) => b.price - a.price);
     }
-
-    this.cdr.detectChanges();
   }
 
   selectApartment(apartment: Apartment, updateView = true): void {
     this.selectedApartment = apartment;
-
     if (updateView) {
       this.cdr.detectChanges();
     }
   }
 
-  getApartmentMapQuery(apartment: Apartment): string {
-    return apartment.address || apartment.title || 'Tbilisi, Georgia';
-  }
-
   getApartmentLocation(apartment: Apartment): string {
     const address = apartment.address?.trim();
-    if (!address) return 'Tbilisi, Georgia';
-
-    return address.split(',')[0].trim() || address;
+    return address ? address.split(',')[0].trim() : 'Tbilisi, Georgia';
   }
 
   getApartmentStreet(apartment: Apartment): string {
     return apartment.address || 'Address not provided';
   }
 
-  getApartmentRating(apartment: Apartment): string {
-    const rating = 4.6 + (apartment.id % 5) * 0.08;
-    return Math.min(rating, 5).toFixed(2);
-  }
-
-  getApartmentDistance(apartment: Apartment): string {
-    return `${(apartment.id % 6) + 1}.${apartment.id % 10} kilometers away`;
-  }
-
-  private matchesPrice(price: number): boolean {
+  private matchesPriceRange(price: number): boolean {
     switch (this.priceRange) {
-      case '0-1000':
-        return price >= 0 && price <= 1000;
-      case '1000-2000':
-        return price > 1000 && price <= 2000;
-      case '2000+':
-        return price > 2000;
-      default:
-        return true;
+      case '0-1000': return price <= 1000;
+      case '600-2000': return price >= 600 && price <= 2000;
+      case '1000-2000': return price >= 1000 && price <= 2000;
+      case '2000+': return price >= 2000;
+      default: return true;
     }
   }
 
+  private matchesBedroomFilter(apartment: Apartment): boolean {
+    if (this.selectedBedrooms.length === 0) return true;
+    const text = `${apartment.title} ${apartment.description}`.toLowerCase();
+    return this.selectedBedrooms.some((bed) => text.includes(bed.toLowerCase()));
+  }
 
-  
+  private matchesBathroomFilter(apartment: Apartment): boolean {
+    if (this.selectedBathrooms.length === 0) return true;
+    const text = `${apartment.title} ${apartment.description}`.toLowerCase();
+    return this.selectedBathrooms.some((bath) => text.includes(bath.toLowerCase()));
+  }
 
+  private matchesPropertyTypeFilter(apartment: Apartment): boolean {
+    if (this.selectedPropertyTypes.length === 0) return true;
+    const text = `${apartment.title} ${apartment.description}`.toLowerCase();
+    return this.selectedPropertyTypes.some((type) => text.includes(type.toLowerCase()));
+  }
+
+  private matchesAmenitiesFilter(apartment: Apartment): boolean {
+    if (this.selectedAmenities.length === 0) return true;
+    const text = `${apartment.title} ${apartment.description}`.toLowerCase();
+    return this.selectedAmenities.every((amenity) => text.includes(amenity.toLowerCase()));
+  }
 }
