@@ -91,15 +91,20 @@ export class ApartmentService {
       }
     });
 
-    const image = data.imageFile || this.dataUrlToFile(data.imageUrl);
-    if (image) {
-      formData.append('Image', image, image.name);
+    const images = this.getApartmentImages(data).slice(0, 15);
+
+    if (images.length) {
+      // Keep the legacy field until every deployed API instance supports Images.
+      formData.append('Image', images[0], images[0].name);
+      images.forEach((image) => {
+        formData.append('Images', image, image.name);
+      });
     }
 
     return formData;
   }
 
-  private dataUrlToFile(value?: string): File | null {
+  private dataUrlToFile(value?: string, fileName = 'apartment-image.jpg'): File | null {
     if (!value?.startsWith('data:image/')) {
       return null;
     }
@@ -113,6 +118,23 @@ export class ApartmentService {
       bytes[index] = binary.charCodeAt(index);
     }
 
-    return new File([bytes], 'apartment-image.jpg', { type: mimeType });
+    return new File([bytes], fileName, { type: mimeType });
+  }
+
+  private getApartmentImages(data: Partial<CreateApartment>): File[] {
+    if (data.imageFiles?.length) {
+      return data.imageFiles;
+    }
+
+    const dataUrlImages = (data.imageUrls || [])
+      .map((image, index) => this.dataUrlToFile(image, `apartment-image-${index + 1}.jpg`))
+      .filter((image): image is File => image !== null);
+
+    if (dataUrlImages.length) {
+      return dataUrlImages;
+    }
+
+    const fallbackImage = data.imageFile || this.dataUrlToFile(data.imageUrl);
+    return fallbackImage ? [fallbackImage] : [];
   }
 }

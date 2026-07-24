@@ -81,4 +81,5 @@ export interface CreateApartment {
   imageUrl?: string;
   imageUrls?: string[];
   imageFile?: File;
+  imageFiles?: File[];
 }

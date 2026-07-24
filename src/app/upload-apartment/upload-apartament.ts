@@ -343,8 +343,9 @@ export class UploadApartment {
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };
 
-    if (includeImageFile && this.selectedImageFiles[0]) {
+    if (includeImageFile && this.selectedImageFiles.length) {
       apartment.imageFile = this.selectedImageFiles[0];
+      apartment.imageFiles = [...this.selectedImageFiles];
     }
 
     return apartment;
