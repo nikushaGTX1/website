@@ -49,13 +49,16 @@
 
     <p class="empty-apartments" *ngIf="!loading && topApartments.length === 0">No published apartments yet.</p>
 
-    <div class="apartment-card" *ngFor="let apartment of topApartments" [routerLink]="['/apartments', apartment.id]">
+    <div class="apartment-card" *ngFor="let apartment of topApartments; let index = index" [routerLink]="['/apartments', apartment.id]">
 
         <div class="image">
 
             <img
                 [src]="getApartmentImage(apartment)"
-                [alt]="getApartmentTitle(apartment)">
+                [alt]="getApartmentTitle(apartment)"
+                [attr.loading]="index === 0 ? 'eager' : 'lazy'"
+                [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
+                decoding="async">
 
             <button class="favorite">♡</button>
 

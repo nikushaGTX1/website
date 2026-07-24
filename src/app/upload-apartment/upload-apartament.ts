@@ -59,6 +59,11 @@ type BooleanFeature =
   | 'hasView'
   | 'isFurnished';
 
+interface PreparedImage {
+  previewUrl: string;
+  file: File;
+}
+
 @Component({
   selector: 'app-upload-apartment',
   standalone: false,
@@ -160,7 +165,7 @@ export class UploadApartment {
   userMessages: PendingApartment[] = [];
   pendingDebug = '';
   imageUploadMessage = '';
-  private selectedImageFiles: File[] = [];
+  selectedImages: File[] = [];
 
   constructor(
     private apartmentService: ApartmentService,
@@ -226,20 +231,30 @@ export class UploadApartment {
       this.imageUploadMessage = `Only ${this.maxImages} photos can be uploaded. Extra files were skipped.`;
     }
 
-    for (const file of selectedFiles) {
-      if (!file.type.startsWith('image/')) {
-        this.imageUploadMessage = 'Only image files are supported.';
-        continue;
-      }
-
-      try {
-        const imageDataUrl = await this.resizeImage(file);
-        this.form.imageUrls = [...this.form.imageUrls, imageDataUrl].slice(0, this.maxImages);
-        this.selectedImageFiles = [...this.selectedImageFiles, file].slice(0, this.maxImages);
-      } catch {
-        this.imageUploadMessage = 'One of the selected images could not be processed.';
-      }
+    const validFiles = selectedFiles.filter((file) => file.type.startsWith('image/'));
+    if (validFiles.length !== selectedFiles.length) {
+      this.imageUploadMessage = 'Only image files are supported. Other files were skipped.';
     }
+
+    const preparedImages = await Promise.all(
+      validFiles.map((file) => this.prepareImage(file).catch(() => null)),
+    );
+    const successfulImages = preparedImages.filter(
+      (image): image is PreparedImage => image !== null,
+    );
+
+    if (successfulImages.length !== validFiles.length) {
+      this.imageUploadMessage = 'One or more selected images could not be processed.';
+    }
+
+    this.form.imageUrls = [
+      ...this.form.imageUrls,
+      ...successfulImages.map((image) => image.previewUrl),
+    ].slice(0, this.maxImages);
+    this.selectedImages = [
+      ...this.selectedImages,
+      ...successfulImages.map((image) => image.file),
+    ].slice(0, this.maxImages);
 
     this.form.imageUrl = this.form.imageUrls[0] || '';
     input.value = '';
@@ -247,7 +262,7 @@ export class UploadApartment {
 
   removeImage(index: number): void {
     this.form.imageUrls = this.form.imageUrls.filter((_, imageIndex) => imageIndex !== index);
-    this.selectedImageFiles = this.selectedImageFiles.filter((_, imageIndex) => imageIndex !== index);
+    this.selectedImages = this.selectedImages.filter((_, imageIndex) => imageIndex !== index);
     this.form.imageUrl = this.form.imageUrls[0] || '';
   }
 
@@ -343,15 +358,15 @@ export class UploadApartment {
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };
 
-    if (includeImageFile && this.selectedImageFiles.length) {
-      apartment.imageFile = this.selectedImageFiles[0];
-      apartment.imageFiles = [...this.selectedImageFiles];
+    if (includeImageFile && this.selectedImages.length) {
+      apartment.imageFile = this.selectedImages[0];
+      apartment.imageFiles = [...this.selectedImages];
     }
 
     return apartment;
   }
 
-  private resizeImage(file: File): Promise<string> {
+  private prepareImage(file: File): Promise<PreparedImage> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
@@ -376,7 +391,26 @@ export class UploadApartment {
           canvas.width = width;
           canvas.height = height;
           context.drawImage(image, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.78));
+          const previewUrl = canvas.toDataURL('image/jpeg', 0.82);
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Could not optimize image.'));
+                return;
+              }
+
+              const baseName = file.name.replace(/\.[^.]+$/, '') || 'apartment-photo';
+              resolve({
+                previewUrl,
+                file: new File([blob], `${baseName}.jpg`, {
+                  type: 'image/jpeg',
+                  lastModified: file.lastModified,
+                }),
+              });
+            },
+            'image/jpeg',
+            0.82,
+          );
         };
 
         image.src = String(reader.result || '');

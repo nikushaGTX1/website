@@ -25,20 +25,40 @@
     </div>
   </header>
 
-  <section class="gallery" aria-label="Apartment photos">
-    <img class="gallery-main" [src]="galleryImages[0]" [alt]="title" />
-    <img [src]="galleryImages[1]" alt="Apartment bathroom" />
-    <img [src]="galleryImages[2]" alt="Apartment entrance" />
-    <img [src]="galleryImages[3]" alt="Apartment dining area" />
-    <img [src]="galleryImages[4]" alt="Apartment bedroom" />
-    <span class="photo-count">{{ photoCount }} photos</span>
+  <section
+    class="gallery"
+    [style.grid-template-columns]="photoCount === 1 ? '1fr' : null"
+    [style.grid-template-rows]="photoCount === 1 ? '365px' : null"
+    *ngIf="photoCount > 0; else noApartmentPhotos"
+    aria-label="Apartment photos"
+  >
+    <img
+      *ngFor="let image of galleryImages | slice:0:5; let index = index"
+      [class.gallery-main]="index === 0"
+      [style.grid-row]="photoCount === 1 ? '1' : null"
+      [src]="image"
+      [alt]="title + ' photo ' + (index + 1)"
+      [attr.loading]="index === 0 ? 'eager' : 'lazy'"
+      [attr.fetchpriority]="index === 0 ? 'high' : 'low'"
+      decoding="async"
+    />
+    <span class="photo-count">{{ photoCount }} {{ photoCount === 1 ? 'photo' : 'photos' }}</span>
   </section>
+
+  <ng-template #noApartmentPhotos>
+    <section class="gallery" style="grid-template-columns:1fr;grid-template-rows:365px" aria-label="No apartment photos">
+      <img class="gallery-main" style="grid-row:1" src="/property-placeholder.svg" [alt]="title + ' photo unavailable'" />
+      <span class="photo-count">No uploaded photos</span>
+    </section>
+  </ng-template>
 
   <section class="photo-strip" *ngIf="photoCount > 5" aria-label="All uploaded apartment photos">
     <img
-      *ngFor="let image of galleryImages; let index = index"
+      *ngFor="let image of additionalGalleryImages; let index = index"
       [src]="image"
-      [alt]="'Apartment uploaded photo ' + (index + 1)"
+      [alt]="title + ' photo ' + (index + 6)"
+      loading="lazy"
+      decoding="async"
     />
   </section>
 
@@ -213,7 +233,11 @@
   </ng-container>
 
   <ng-template #detailState>
-    <section class="detail-empty-state">
+    <section class="detail-empty-state" *ngIf="loading">
+      <h1>Loading apartment details…</h1>
+      <p>Preparing the listing and its photos.</p>
+    </section>
+    <section class="detail-empty-state" *ngIf="!loading">
       <h1>Apartment details unavailable</h1>
       <p>Select a published apartment from Top apartments or Explore Property.</p>
       <button type="button" routerLink="/main">Back to home</button>

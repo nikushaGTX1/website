@@ -34,8 +34,8 @@ export class ApartmentDetail implements OnInit {
   loading = false;
   errorMessage = '';
 
-  galleryImages = ['/banner.jpg', '/agent2.jpg', '/Career.jpg', '/agent3.jpg', '/banner.jpg'];
-  private realPhotoCount = 5;
+  galleryImages: string[] = [];
+  private realPhotoCount = 0;
 
   reviews: Review[] = [
     {
@@ -87,7 +87,7 @@ export class ApartmentDetail implements OnInit {
         console.error('Apartment detail API error:', err);
         this.apartment = null;
         this.selectedAgent = null;
-        this.galleryImages = this.getPlaceholderImages();
+        this.galleryImages = [];
         this.realPhotoCount = 0;
         this.loading = false;
         this.errorMessage = 'Could not load this apartment from the API.';
@@ -147,6 +147,10 @@ export class ApartmentDetail implements OnInit {
 
   get photoCount(): number {
     return this.realPhotoCount;
+  }
+
+  get additionalGalleryImages(): string[] {
+    return this.galleryImages.slice(5);
   }
 
   get agentName(): string {
@@ -249,7 +253,9 @@ export class ApartmentDetail implements OnInit {
       distance: `${index + 3}.${apartment.id % 10} kilometers away`,
       price: apartment.price,
       rating: Math.min(4.8 + (apartment.id % 5) * 0.04, 5).toFixed(2),
-      imageUrl: toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/banner.jpg',
+      imageUrl:
+        toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) ||
+        '/property-placeholder.svg',
     };
   }
 
@@ -260,28 +266,13 @@ export class ApartmentDetail implements OnInit {
   }
 
   private getApartmentImages(apartment: Apartment): string[] {
-    const uploadedImages = (apartment.imageUrls || []).map((image) => toMediaUrl(image)).filter(Boolean);
-    const singleImage = toMediaUrl(apartment.imageUrl);
+    const images = [...(apartment.imageUrls || []), apartment.imageUrl]
+      .map((image) => toMediaUrl(image))
+      .filter((image): image is string => !!image);
+    const uniqueImages = [...new Set(images)].slice(0, 15);
 
-    if (uploadedImages.length) {
-      this.realPhotoCount = Math.min(uploadedImages.length, 15);
-      return [
-        ...uploadedImages.slice(0, 15),
-        '/banner.jpg',
-        '/agent2.jpg',
-        '/Career.jpg',
-        '/agent3.jpg',
-      ].slice(0, Math.max(5, Math.min(uploadedImages.length, 15)));
-    }
-
-    this.realPhotoCount = singleImage ? 1 : 0;
-    return singleImage
-      ? [singleImage, ...this.getPlaceholderImages()].slice(0, 5)
-      : this.getPlaceholderImages();
-  }
-
-  private getPlaceholderImages(): string[] {
-    return ['/banner.jpg', '/banner.jpg', '/banner.jpg', '/banner.jpg', '/banner.jpg'];
+    this.realPhotoCount = uniqueImages.length;
+    return uniqueImages;
   }
 
 }

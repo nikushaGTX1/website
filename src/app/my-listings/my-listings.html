@@ -56,7 +56,7 @@
     <div class="listings-grid" *ngIf="!loading && listings.length > 0">
       <article class="listing-card" *ngFor="let apartment of listings">
         <div class="listing-image">
-          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/banner.jpg'" [alt]="apartment.title" />
+          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'" [alt]="apartment.title" loading="lazy" decoding="async" />
         </div>
 
         <div class="listing-content" *ngIf="editingId !== apartment.id">

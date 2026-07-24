@@ -207,13 +207,23 @@
 
       <article
         class="property-card"
-        *ngFor="let apartment of filteredApartments"
+        *ngFor="let apartment of filteredApartments; let index = index"
         [class.selected]="selectedApartment?.id === apartment.id"
         (click)="selectApartment(apartment)"
       >
         <div class="property-image">
+<<<<<<< HEAD
           <span class="badge premium">Premium</span>
           <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/banner.jpg'" [alt]="apartment.title" />
+=======
+          <img
+            [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'"
+            [alt]="apartment.title"
+            [attr.loading]="index < 2 ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
+            decoding="async"
+          />
+>>>>>>> aca6355d91ed2b436a8fa276a5a23a1d74a72c16
           <button class="favorite-btn" type="button" (click)="$event.stopPropagation()">♡</button>
         </div>
 

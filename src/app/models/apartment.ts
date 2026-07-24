@@ -1,3 +1,13 @@
+export interface ApartmentImage {
+  id?: number;
+  apartmentId?: number;
+  url?: string;
+  storagePath?: string;
+  sortOrder?: number;
+  isCover?: boolean;
+  createdAt?: string;
+}
+
 export interface Apartment {
   id: number;
   title: string;
@@ -33,6 +43,7 @@ export interface Apartment {
   universityDistanceMinutes?: number;
   imageUrl?: string;
   imageUrls?: string[];
+  images?: ApartmentImage[];
   createdAt: string;
   userId?: string;
   ownerId?: string;

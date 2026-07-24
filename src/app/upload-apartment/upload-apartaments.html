@@ -218,6 +218,7 @@
           <div class="uploaded-image-grid" *ngIf="uploadedImageCount">
             <article *ngFor="let image of form.imageUrls; let index = index" class="uploaded-image">
               <img [src]="image" [alt]="'Uploaded apartment photo ' + (index + 1)" />
+              <span *ngIf="index === 0">Cover photo</span>
               <button type="button" (click)="removeImage(index)" aria-label="Remove image">×</button>
             </article>
           </div>
