@@ -85,19 +85,21 @@ function warmApartmentImages(body) {
   try {
     const payload = JSON.parse(body.toString('utf8'));
     const apartments = Array.isArray(payload) ? payload : [payload];
-    const imageUrls = apartments.map((apartment) => {
+    const imageUrls = apartments.flatMap((apartment) => {
       const gallery = Array.isArray(apartment?.images) ? [...apartment.images] : [];
       gallery.sort(
         (left, right) =>
           Number(right?.isCover) - Number(left?.isCover) ||
           (left?.sortOrder ?? 0) - (right?.sortOrder ?? 0),
       );
-      return (
-        gallery[0]?.url ||
-        gallery[0]?.storagePath ||
-        apartment?.imageUrls?.[0] ||
-        apartment?.imageUrl
-      );
+      const galleryUrls = gallery
+        .slice(0, 5)
+        .map((image) => image?.url || image?.storagePath)
+        .filter(Boolean);
+
+      return galleryUrls.length
+        ? galleryUrls
+        : [apartment?.imageUrls?.[0] || apartment?.imageUrl].filter(Boolean);
     });
 
     for (const imageUrl of new Set(imageUrls.filter(Boolean))) {
@@ -107,6 +109,27 @@ function warmApartmentImages(body) {
     }
   } catch (error) {
     console.error('Could not inspect apartment images for warm-up:', error);
+  }
+}
+
+function warmApartmentDetails(body) {
+  try {
+    const apartments = JSON.parse(body.toString('utf8'));
+    if (!Array.isArray(apartments)) {
+      return;
+    }
+
+    const detailPaths = apartments
+      .slice(0, 12)
+      .map((apartment) => apartment?.id)
+      .filter((id) => id !== undefined && id !== null)
+      .map((id) => `/api/Apartments/${id}`);
+
+    void Promise.allSettled(
+      detailPaths.map((detailPath) => fetchPublicApi(detailPath, false)),
+    );
+  } catch (error) {
+    console.error('Could not warm apartment details:', error);
   }
 }
 
@@ -133,7 +156,7 @@ function sendApiResponse(response, apiResponse, cacheStatus) {
   response.send(apiResponse.body);
 }
 
-async function fetchPublicApi(cacheKey) {
+async function fetchPublicApi(cacheKey, shouldWarmImages = true) {
   if (publicApiRequests.has(cacheKey)) {
     return publicApiRequests.get(cacheKey);
   }
@@ -161,7 +184,8 @@ async function fetchPublicApi(cacheKey) {
       publicApiCache.set(cacheKey, apiResponse);
       if (cacheKey === '/api/Apartments') {
         warmApartmentImages(apiResponse.body);
-      } else if (/^\/api\/Apartments\/\d+$/.test(cacheKey)) {
+        warmApartmentDetails(apiResponse.body);
+      } else if (shouldWarmImages && /^\/api\/Apartments\/\d+$/.test(cacheKey)) {
         warmApartmentImages(apiResponse.body);
       }
     }
@@ -199,11 +223,17 @@ app.use('/api', async (request, response) => {
       const cached = publicApiCache.get(cacheKey);
 
       if (cached?.expiresAt > Date.now()) {
+        if (/^\/api\/Apartments\/\d+$/.test(cacheKey)) {
+          warmApartmentImages(cached.body);
+        }
         sendApiResponse(response, cached, 'HIT');
         return;
       }
 
       if (cached?.staleUntil > Date.now()) {
+        if (/^\/api\/Apartments\/\d+$/.test(cacheKey)) {
+          warmApartmentImages(cached.body);
+        }
         sendApiResponse(response, cached, 'STALE');
         void fetchPublicApi(cacheKey).catch((error) =>
           console.error(`API cache refresh failed for ${cacheKey}:`, error),
