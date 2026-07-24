@@ -1,55 +1,177 @@
 <div class="explore-wrapper">
-  <header class="filter-panel">
-    <div class="search-field">
-      <input
-        type="text"
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="onSearch()"
-        placeholder="Enter an address, city, neighborhood or a ZIP code"
-      />
-      <button class="search-icon-embedded" type="button" (click)="onSearch()">Search</button>
+  <section class="hero-search-section">
+    <div class="hero-header">
+      <h1>Explore Properties</h1>
+      <p>Find your perfect home from thousands of verified listings.</p>
     </div>
 
-    <div class="filter-dropdowns">
-      <select [(ngModel)]="selectedType" (change)="onSearch()">
-        <option value="">For rent</option>
-        <option value="For Rent">For rent</option>
-        <option value="For Sale">For sale</option>
-      </select>
+    <div class="search-card">
+      <div class="search-tabs">
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="selectedType !== 'For Sale'" 
+          (click)="selectedType = 'For Rent'; onSearch()">
+          <span class="icon">🏠</span> Rent
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="selectedType === 'For Sale'" 
+          (click)="selectedType = 'For Sale'; onSearch()">
+          <span class="icon">🏘️</span> Buy
+        </button>
+      </div>
 
-      <select [(ngModel)]="priceRange" (change)="onSearch()">
-        <option value="">Price</option>
-        <option value="0-1000">$0 - $1,000</option>
-        <option value="1000-2000">$1,000 - $2,000</option>
-        <option value="2000+">$2,000+</option>
-      </select>
+      <div class="search-inputs-bar">
+        <div class="input-group">
+          <label>Location</label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="location" (change)="onSearch()">
+              <option value="">Saburtalo, Tbilisi</option>
+              <option value="Tbilisi">Tbilisi</option>
+              <option value="Kutaisi">Kutaisi</option>
+            </select>
+          </div>
+        </div>
 
-      <select [(ngModel)]="homeType" (change)="onSearch()">
-        <option value="">Home type</option>
-        <option value="Apartment">Apartment</option>
-        <option value="Private house">House</option>
-      </select>
+        <div class="divider"></div>
 
-      <select [(ngModel)]="location" (change)="onSearch()">
-        <option value="">Location</option>
-        <option value="Tbilisi">Tbilisi</option>
-        <option value="Kutaisi">Kutaisi</option>
+        <div class="input-group">
+          <label>Price</label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="priceRange" (change)="onSearch()">
+              <option value="">$600 - $2,000</option>
+              <option value="0-1000">$0 - $1,000</option>
+              <option value="1000-2000">$1,000 - $2,000</option>
+              <option value="2000+">$2,000+</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="input-group">
+          <label>Home Type</label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="homeType" (change)="onSearch()">
+              <option value="">Any type</option>
+              <option value="Apartment">Apartment</option>
+              <option value="Private house">House</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="search-actions">
+          <button class="btn-secondary" type="button">
+            <span>⚙️</span> More filters
+          </button>
+          <button class="btn-primary-search" type="button" (click)="onSearch()">
+            Search Homes 🔍
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="results-header">
+    <span class="count"><strong>{{ filteredApartments.length }}</strong> properties found</span>
+    <div class="sort-by">
+      <label>Sort by:</label>
+      <select>
+        <option>Newest</option>
+        <option>Price: Low to High</option>
+        <option>Price: High to Low</option>
       </select>
     </div>
-
-    <button class="btn-execute-search" type="button" (click)="onSearch()">Search</button>
-    <button class="btn-clear-search" type="button" (click)="clearFilters()">Clear</button>
-  </header>
+  </div>
 
   <main class="explore-content">
-    <section class="map-view-container">
-      <app-google-property-map *ngIf="selectedApartment" [address]="getApartmentMapQuery(selectedApartment)" [apartmentTitle]="selectedApartment.title"></app-google-property-map>
-
-      <div class="map-caption" *ngIf="selectedApartment">
-        <strong>{{ selectedApartment.title }}</strong>
-        <span>{{ getApartmentMapQuery(selectedApartment) }}</span>
+    <!-- Left Sidebar: Filters Panel -->
+    <aside class="sidebar-filters">
+      <div class="filter-header">
+        <h3>Filters</h3>
+        <button type="button" class="btn-clear" (click)="clearFilters()">Clear all</button>
       </div>
-    </section>
+
+      <div class="filter-group">
+        <div class="group-title">
+          <span>Price range</span>
+          <span class="chevron">▲</span>
+        </div>
+        <div class="price-slider-placeholder">
+          <input type="range" min="0" max="3000" />
+          <div class="price-labels">
+            <span>$600</span>
+            <span>$2,000+</span>
+          </div>
+        </div>
+        <div class="price-inputs">
+          <div class="price-box">
+            <span class="label">Min</span>
+            <input type="text" value="$600" readonly />
+          </div>
+          <div class="price-box">
+            <span class="label">Max</span>
+            <input type="text" value="$2,000+" readonly />
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="group-title">
+          <span>Bedrooms</span>
+          <span class="chevron">▲</span>
+        </div>
+        <div class="checkbox-list">
+          <label class="custom-checkbox"><input type="checkbox" /> Studio</label>
+          <label class="custom-checkbox"><input type="checkbox" /> 1 Bedroom</label>
+          <label class="custom-checkbox"><input type="checkbox" checked /> 2 Bedrooms</label>
+          <label class="custom-checkbox"><input type="checkbox" /> 3 Bedrooms</label>
+          <label class="custom-checkbox"><input type="checkbox" /> 4+ Bedrooms</label>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="group-title">
+          <span>Bathrooms</span>
+          <span class="chevron">▲</span>
+        </div>
+        <div class="checkbox-list">
+          <label class="custom-checkbox"><input type="checkbox" /> 1+ Bathrooms</label>
+          <label class="custom-checkbox"><input type="checkbox" checked /> 2+ Bathrooms</label>
+          <label class="custom-checkbox"><input type="checkbox" /> 3+ Bathrooms</label>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="group-title">
+          <span>Property type</span>
+          <span class="chevron">▲</span>
+        </div>
+        <div class="checkbox-list">
+          <label class="custom-checkbox"><input type="checkbox" checked /> Apartment</label>
+          <label class="custom-checkbox"><input type="checkbox" /> House</label>
+          <label class="custom-checkbox"><input type="checkbox" /> Townhouse</label>
+          <label class="custom-checkbox"><input type="checkbox" /> Penthouse</label>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="group-title">
+          <span>Amenities</span>
+          <span class="chevron">▲</span>
+        </div>
+        <div class="checkbox-list">
+          <label class="custom-checkbox"><input type="checkbox" /> Parking</label>
+          <label class="custom-checkbox"><input type="checkbox" checked /> Balcony</label>
+          <label class="custom-checkbox"><input type="checkbox" /> Elevator</label>
+          <label class="custom-checkbox"><input type="checkbox" /> Pool</label>
+          <label class="custom-checkbox"><input type="checkbox" /> Furnished</label>
+        </div>
+        <button type="button" class="btn-show-more">Show more ▾</button>
+      </div>
+    </aside>
 
     <section class="cards-grid-view">
       <ng-container *ngIf="loading">
@@ -75,30 +197,98 @@
         (click)="selectApartment(apartment)"
       >
         <div class="property-image">
+          <span class="badge premium">Premium</span>
           <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/banner.jpg'" [alt]="apartment.title" />
           <button class="favorite-btn" type="button" (click)="$event.stopPropagation()">♡</button>
-          <div class="image-dots" aria-hidden="true">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
         </div>
 
         <div class="property-card-body">
-          <div class="property-title-row">
-            <h3>{{ getApartmentLocation(apartment) }}</h3>
-            <span class="rating">★ {{ getApartmentRating(apartment) }}</span>
+          <div class="property-price">
+            {{ apartment.price | currency:'USD':'symbol':'1.0-0' }} <span>/month</span>
           </div>
-          <p class="property-address">{{ getApartmentStreet(apartment) }}</p>
-          <p class="property-distance">{{ getApartmentDistance(apartment) }}</p>
-          <strong class="property-price">
-            {{ apartment.price | currency:'USD':'symbol':'1.0-0' }}
-            <span>month</span>
-          </strong>
+          <h3 class="property-title">{{ apartment.title || getApartmentLocation(apartment) }}</h3>
+          <p class="property-address">📍 {{ getApartmentStreet(apartment) }}</p>
+          
+          <div class="property-specs">
+            <span>🛏️ 2 Beds</span>
+            <span>🛁 2 Baths</span>
+            <span>📐 1,250 sqft</span>
+          </div>
+
           <a class="details-link" [routerLink]="['/apartments', apartment.id]" (click)="$event.stopPropagation()">View details</a>
         </div>
       </article>
     </section>
   </main>
+
+  <!-- Bottom Features Banner -->
+  <section class="features-banner">
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <div class="feature-content">
+        <h4>Verified listings</h4>
+        <p>Every property is verified for your peace of mind.</p>
+      </div>
+    </div>
+
+    <div class="feature-divider"></div>
+
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <div class="feature-content">
+        <h4>No duplicate listings</h4>
+        <p>We remove duplicates so you only see real, unique options.</p>
+      </div>
+    </div>
+
+    <div class="feature-divider"></div>
+
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      <div class="feature-content">
+        <h4>Smart search</h4>
+        <p>Advanced filters help you find the right home faster.</p>
+      </div>
+    </div>
+
+    <div class="feature-divider"></div>
+
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+      </div>
+      <div class="feature-content">
+        <h4>AI property match</h4>
+        <p>Our AI learns your preferences to match you with better homes.</p>
+      </div>
+    </div>
+
+    <div class="feature-divider"></div>
+
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </div>
+      <div class="feature-content">
+        <h4>Professional agents</h4>
+        <p>Experienced agents to guide you every step of the way.</p>
+      </div>
+    </div>
+  </section>
 </div>

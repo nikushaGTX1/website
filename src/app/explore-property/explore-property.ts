@@ -170,4 +170,7 @@ export class ExploreProperty implements OnInit {
     }
   }
 
+
+  
+
 }
