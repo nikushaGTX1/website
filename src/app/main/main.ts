@@ -4,6 +4,7 @@ import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-main',
@@ -16,11 +17,17 @@ export class Main implements OnInit {
   agents: Agent[] = [];
   loading = true;
   agentsLoading = true;
+  searchMode: 'rent' | 'buy' = 'rent';
+  searchLocation = '';
+  searchBudget = '';
+  searchBedrooms = '';
+  searchMoveIn = '';
 
   constructor(
     private apartmentService: ApartmentService,
     private agentService: AgentService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -108,6 +115,24 @@ export class Main implements OnInit {
 
   getApartmentDescription(apartment: Apartment): string {
     return apartment.description?.trim() || 'No description provided.';
+  }
+
+  searchHomes(): void {
+    void this.router.navigate(['/ExploreProperty'], {
+      queryParams: {
+        mode: this.searchMode,
+        location: this.searchLocation || null,
+        budget: this.searchBudget || null,
+        bedrooms: this.searchBedrooms || null,
+        moveIn: this.searchMoveIn || null,
+      },
+    });
+  }
+
+  useQuickFilter(filter: string): void {
+    void this.router.navigate(['/ExploreProperty'], {
+      queryParams: { mode: this.searchMode, feature: filter },
+    });
   }
 
   private isDisplayableApartment(apartment: Apartment): boolean {

@@ -1,307 +1,149 @@
-<section class="hero">
-
-    <div class="hero-bg"></div>
-    <div class="hero-overlay"></div>
-
-    <div class="hero-content">
-        <h1>
-            Verified Apartments in Tbilisi,<br>
-            No Fake Prices, No Duplicate Listings.
-        </h1>
-
-        <div class="search-box">
-            <input
-                type="text"
-                placeholder="Enter an address, city, neighborhood or a ZIP code">
-
-            <button>
-                <!-- svg -->
-            </button>
-        </div>
-        <a class="ai-home-cta" routerLink="/ai-home-match">
-            <span class="ai-sparkle">✨</span>
-            <span><strong>Find My Perfect Home with Velven AI</strong><small>Build your lifestyle profile and see personalized matches</small></span>
-            <span class="ai-arrow" aria-hidden="true">→</span>
-        </a>
+<main class="home-page">
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Verified homes. Smarter search.</span>
+      <h1>Find the right home<br>for every chapter of <em>your life</em></h1>
+      <p>Verified properties. Smart search. Real results.<br>We help you find a place you’ll love coming home to.</p>
     </div>
 
-</section>
+    <form class="property-search" (submit)="searchHomes(); $event.preventDefault()">
+      <div class="search-tabs" role="tablist" aria-label="Property type">
+        <button type="button" [class.active]="searchMode === 'rent'" (click)="searchMode = 'rent'">⌂ <span>Rent</span></button>
+        <button type="button" [class.active]="searchMode === 'buy'" (click)="searchMode = 'buy'">⌂ <span>Buy</span></button>
+      </div>
 
-<section class="top-apartments">
+      <div class="search-fields">
+        <label class="location-field">
+          <span>Location</span>
+          <div class="field-control"><b>⌖</b><input name="location" [(ngModel)]="searchLocation" placeholder="Search city, neighborhood or building"></div>
+        </label>
+        <label>
+          <span>Budget</span>
+          <select name="budget" [(ngModel)]="searchBudget">
+            <option value="">Any budget</option>
+            <option value="1000">Up to $1,000</option>
+            <option value="2000">Up to $2,000</option>
+            <option value="3000">Up to $3,000</option>
+            <option value="5000">Up to $5,000</option>
+          </select>
+        </label>
+        <label>
+          <span>Bedrooms</span>
+          <select name="bedrooms" [(ngModel)]="searchBedrooms">
+            <option value="">Any</option>
+            <option value="1">1 bedroom</option>
+            <option value="2">2 bedrooms</option>
+            <option value="3">3+ bedrooms</option>
+          </select>
+        </label>
+        <label>
+          <span>Move-in</span>
+          <input name="moveIn" [(ngModel)]="searchMoveIn" type="date">
+        </label>
+        <button class="search-submit" type="submit">Search Homes <span>⌕</span></button>
+      </div>
 
-    <div class="section-header">
+      <div class="quick-filters">
+        <button type="button" (click)="useQuickFilter('parking')">▰ Parking</button>
+        <button type="button" (click)="useQuickFilter('metro')">▥ Near Metro</button>
+        <button type="button" (click)="useQuickFilter('pets')">♣ Pet Friendly</button>
+        <button type="button" (click)="useQuickFilter('family')">♟ Family Homes</button>
+        <button type="button" (click)="useQuickFilter('new')">▤ New Buildings</button>
+        <a routerLink="/ai-home-match">✦ Let AI find my home</a>
+      </div>
+    </form>
+  </section>
 
-        <div>
-            <h2>Top apartments</h2>
-            <p>Based on our customers' experience</p>
-        </div>
-
-        <div class="slider-buttons">
-
-            <button>&lt;</button>
-            <button>&gt;</button>
-
-        </div>
-
+  <section class="content-section featured">
+    <div class="section-heading">
+      <div><span class="eyebrow">Handpicked for you</span><h2>Featured Properties</h2></div>
+      <a routerLink="/ExploreProperty">View all properties <span>→</span></a>
     </div>
 
-   <div class="apartment-grid">
-
-    <p class="empty-apartments" *ngIf="!loading && topApartments.length === 0">No published apartments yet.</p>
-
-    <div class="apartment-card" *ngFor="let apartment of topApartments; let index = index" [routerLink]="['/apartments', apartment.id]">
-
-        <div class="image">
-
-            <img
-                [src]="getApartmentImage(apartment)"
-                [alt]="getApartmentTitle(apartment)"
-                [attr.loading]="index === 0 ? 'eager' : 'lazy'"
-                [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
-                decoding="async">
-
-            <button class="favorite">♡</button>
-
+    <div class="property-grid">
+      <article class="property-card skeleton-card" *ngIf="loading">
+        <div class="skeleton image-skeleton"></div><div class="skeleton line"></div><div class="skeleton line short"></div>
+      </article>
+      <p class="empty-apartments" *ngIf="!loading && topApartments.length === 0">No published apartments yet.</p>
+      <article class="property-card" *ngFor="let apartment of topApartments; let index = index" [routerLink]="['/apartments', apartment.id]">
+        <div class="property-image">
+          <img [src]="getApartmentImage(apartment)" [alt]="getApartmentTitle(apartment)"
+            [attr.loading]="index === 0 ? 'eager' : 'lazy'" [attr.fetchpriority]="index === 0 ? 'high' : 'auto'" decoding="async">
+          <span class="property-badge">{{ index === 0 ? 'Premium' : index === 1 ? 'New' : index === 2 ? 'Hot' : 'Featured' }}</span>
+          <button type="button" class="favorite" aria-label="Save property" (click)="$event.stopPropagation()">♡</button>
         </div>
-
-        <div class="card-info">
-
-            <div class="title-row">
-                <h3>{{ getApartmentTitle(apartment) }}</h3>
-
-                <span>
-                    ⭐ 4.9
-                </span>
-            </div>
-
-            <p>{{ getApartmentAddress(apartment) }}</p>
-
-            <small>{{ getApartmentDescription(apartment) }}</small>
-
-            <h4>
-                ${{ apartment.price }}
-                <span>/month</span>
-            </h4>
-
+        <div class="property-info">
+          <h3>${{ apartment.price | number:'1.0-0' }}<small>/mo</small></h3>
+          <strong>{{ getApartmentTitle(apartment) }}</strong>
+          <p>⌖ {{ getApartmentAddress(apartment) }}</p>
+          <div class="property-meta">
+            <span>▱ {{ apartment.bedrooms || '—' }} Beds</span>
+            <span>♨ {{ apartment.bathrooms || '—' }} Baths</span>
+            <span>□ {{ apartment.sizeSquareMeters || '—' }} m²</span>
+          </div>
         </div>
-
+      </article>
     </div>
+  </section>
 
-</div>
-
-    <div class="see-all">
-        <a routerLink="/ExploreProperty">See all apartments</a>
+  <section class="content-section why-us">
+    <div class="section-heading compact"><div><span class="eyebrow">Built around trust</span><h2>Why White Tower</h2></div></div>
+    <div class="benefit-grid">
+      <article><i>✓</i><div><h3>Verified Listings</h3><p>Every property is reviewed for your peace of mind.</p></div></article>
+      <article><i>▤</i><div><h3>No Duplicate Listings</h3><p>Only clear, unique options you can rely on.</p></div></article>
+      <article><i>⌕</i><div><h3>Smart Search</h3><p>Advanced filters help you find the right home faster.</p></div></article>
+      <article><i>✦</i><div><h3>AI Property Match</h3><p>Our AI learns what matters and finds better matches.</p></div></article>
+      <article><i>♙</i><div><h3>Expert Agents</h3><p>Professional support at every step of the way.</p></div></article>
     </div>
+  </section>
 
-</section>
-
-<section class="services">
-
-    <div class="services-container">
-
-        <h2>Discover our services and our benefits</h2>
-
-        <div class="services-grid">
-
-            <!-- Card 1 -->
-            <div class="service-card">
-
-                <img src="/agent1.jpg" alt="Driver Service">
-
-                <h3>Driver service</h3>
-
-                <p>
-                    Professional drivers ready to help you travel comfortably and
-                    safely whenever you need.
-                </p>
-
-                <a routerLink="/agent-profile" class="service-btn">
-                    Ask an agent
-                </a>
-
-            </div>
-
-            <!-- Card 2 -->
-            <div class="service-card">
-
-                <img src="/agent2.jpg" alt="Photography">
-
-                <h3>Property photography service</h3>
-
-                <p>
-                    High quality property photography that helps your listings
-                    attract more customers.
-                </p>
-
-                <a routerLink="/upload-apartment" class="service-btn">
-                    List your property
-                </a>
-
-            </div>
-
-            <!-- Card 3 -->
-            <div class="service-card">
-
-                <img src="/agent3.jpg" alt="Agent Service">
-
-                <h3>Agent service</h3>
-
-                <p>
-                    Connect with experienced real estate agents for buying,
-                    selling or renting.
-                </p>
-
-                <a routerLink="/agent-profile" class="service-btn">
-                    Contact an agent
-                </a>
-
-            </div>
-
-        </div>
-
+  <section class="content-section ai-match">
+    <div class="ai-copy">
+      <span class="eyebrow">Personalized discovery</span>
+      <h2>AI Home Match <b>✦</b></h2>
+      <p>Tell us what you’re looking for and our AI will do the hard work. Get personalized matches that feel just right.</p>
+      <a routerLink="/ai-home-match">Try AI Match <span>✦</span></a>
     </div>
-
-</section>
-
-
-<section class="top-agents">
-
-    <div class="section-header">
-
-        <div>
-            <h2>Top agents</h2>
-            <p>Based on our customers' experience</p>
-        </div>
-
+    <div class="ai-orb">✦</div>
+    <div class="ai-preview">
+      <img [src]="topApartments.length ? getApartmentImage(topApartments[0]) : '/property-placeholder.svg'" alt="Recommended apartment">
+      <div><small>Best match for you</small><strong>{{ topApartments.length ? getApartmentTitle(topApartments[0]) : 'Your ideal home' }}</strong><span>{{ topApartments.length ? getApartmentAddress(topApartments[0]) : 'Tbilisi, Georgia' }}</span></div>
     </div>
+    <ul><li>Near Metro <b>✓</b></li><li>Pet Friendly <b>✓</b></li><li>2–3 Bedrooms <b>✓</b></li><li>Within Budget <b>✓</b></li></ul>
+  </section>
 
-    <div class="agents-grid">
-
-        <div class="agent-card agent-card-loading" *ngIf="agentsLoading">
-
-            <div class="agent-media">
-                <div class="agent-photo-skeleton"></div>
-                <div class="agent-rating">★ 0.0</div>
-            </div>
-
-            <div class="agent-info">
-                <h3>Loading agents</h3>
-                <span class="job">Real estate professional</span>
-                <span class="location">Please wait</span>
-                <div class="deals">Closed deals: 0</div>
-            </div>
-
-
-        </div>
-
-        <div class="agent-card agent-card-empty" *ngIf="!agentsLoading && agents.length === 0">
-
-            <div class="agent-media">
-                <img src="/agent1.jpg" alt="Agent">
-                <div class="agent-rating">★ 0.0</div>
-            </div>
-
-            <div class="agent-info">
-                <h3>No agents yet</h3>
-                <span class="job">Real estate professional</span>
-                <span class="location">Agents will appear here after the API returns them.</span>
-                <div class="deals">Closed deals: 0</div>
-            </div>
-
-        </div>
-
-        <div class="agent-card" *ngFor="let agent of agents">
-
-            <div class="agent-media">
-                <img [src]="getAgentImage(agent)" [alt]="getAgentName(agent)" (error)="fixAgentImage($event)">
-                <div class="agent-rating">★ {{ getAgentRating(agent) | number:'1.2-2' }}</div>
-            </div>
-
-            <div class="agent-info">
-                <h3>{{ getAgentName(agent) }}</h3>
-
-                <span class="job">Real estate professional</span>
-
-                <span class="location">{{ getAgentLocation(agent) }}</span>
-
-                <div class="deals">
-                    Closed deals: {{ getClosedDeals(agent) }}
-                </div>
-
-                <div class="agent-buttons">
-                    <button type="button" [disabled]="!agent.phoneNumber" aria-label="Call agent">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.95.36 1.88.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.34 1.86.57 2.81.7A2 2 0 0 1 22 16.92z"/>
-                        </svg>
-                    </button>
-                    <button type="button" [disabled]="!agent.email" aria-label="Message agent">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                        </svg>
-                    </button>
-                </div>
-
-            </div>
-
-        </div>
-
+  <section class="content-section lifestyle">
+    <div class="section-heading compact"><div><span class="eyebrow">Find your fit</span><h2>Explore by lifestyle</h2></div></div>
+    <div class="lifestyle-row">
+      <button (click)="useQuickFilter('family')">♟ <span>Family Homes</span></button>
+      <button (click)="useQuickFilter('metro')">▥ <span>Near Metro</span></button>
+      <button (click)="useQuickFilter('pets')">♣ <span>Pet Friendly</span></button>
+      <button (click)="useQuickFilter('view')">≋ <span>Great Views</span></button>
+      <button (click)="useQuickFilter('parking')">▰ <span>Parking</span></button>
+      <button (click)="useQuickFilter('new')">▤ <span>New Buildings</span></button>
     </div>
+  </section>
 
-    <div class="see-all">
-        <a routerLink="/agent-profile">See all agents</a>
+  <section class="content-section process">
+    <div class="section-heading compact"><div><span class="eyebrow">Simple from start to finish</span><h2>How it works</h2></div></div>
+    <div class="process-grid">
+      <article><i>⌕</i><div><b>01</b><h3>Search</h3><p>Use smart filters to find homes that fit your needs.</p></div></article>
+      <span>→</span>
+      <article><i>✦</i><div><b>02</b><h3>Match</h3><p>Our AI suggests the best matches just for you.</p></div></article>
+      <span>→</span>
+      <article><i>▣</i><div><b>03</b><h3>Tour</h3><p>Schedule visits and tour your favorite properties.</p></div></article>
+      <span>→</span>
+      <article><i>⌘</i><div><b>04</b><h3>Move In</h3><p>Close the deal and start your new chapter.</p></div></article>
     </div>
+  </section>
 
-</section>
-
-<section class="career">
-
-    <div class="career-overlay"></div>
-
-    <div class="career-container">
-
-        <div class="career-content">
-
-            <h2>
-                Every listing is checked <br>
-                by a White Tower agent. <br>
-                Tenant pays 0% agency fee. <br>
-            </h2>
-
-            <a routerLink="/upload-apartment" class="career-btn">
-                Submit a listing
-            </a>
-
-        </div>
-
+  <section class="content-section testimonials">
+    <div class="section-heading compact"><div><span class="eyebrow">Real experiences</span><h2>What our clients say</h2></div></div>
+    <div class="testimonial-grid">
+      <article><q>White Tower made finding our dream home so easy. The listings are real, the filters are smart, and our agent was incredible.</q><div><img src="/agent1.jpg" alt=""><p><strong>Sarah A.</strong><span>★★★★★ · Tbilisi</span></p></div></article>
+      <article><q>The AI match feature showed us homes we didn’t even know existed. We found the perfect place within a week.</q><div><img src="/agent2.jpg" alt=""><p><strong>Omar K.</strong><span>★★★★★ · Vake</span></p></div></article>
+      <article><q>Transparent, professional and efficient. White Tower is now our go-to platform for all real estate needs.</q><div><img src="/agent3.jpg" alt=""><p><strong>Maya K.</strong><span>★★★★★ · Saburtalo</span></p></div></article>
+      <aside><div><span class="eyebrow">For owners</span><h2>Own a property?</h2><p>List with White Tower and connect with thousands of serious renters and buyers.</p><a routerLink="/upload-apartment">List your property</a></div><b>⌂</b></aside>
     </div>
-
-</section>
-
-<section class="newsletter">
-
-    <div class="newsletter-container">
-
-        <h2>
-            Subscribe For Daily Apartment Deals Delivered To Your Inbox!
-        </h2>
-
-        <p>
-            Unlock daily apartment deals by subscribing to our newsletter.
-            Stay in the loop with the latest offers sent directly to your email.
-        </p>
-
-        <form class="newsletter-form">
-
-            <input
-                type="email"
-                placeholder="Enter your email address">
-
-            <button type="submit">
-                Subscribe
-            </button>
-
-        </form>
-
-    </div>
-
-</section>
+  </section>
+</main>
