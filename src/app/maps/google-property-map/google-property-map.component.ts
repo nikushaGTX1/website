@@ -1,8 +1,10 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   SimpleChanges,
@@ -56,6 +58,11 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
   private directionsRenderer?: google.maps.DirectionsRenderer;
   private viewReady = false;
   private allPlaces: NearbyPlace[] = [];
+
+  constructor(
+    private readonly ngZone: NgZone,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   get places(): NearbyPlace[] {
     return this.activeCategory === 'all'
@@ -118,6 +125,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.errorMessage = 'Nearby search is temporarily unavailable.';
     } finally {
       this.searching = false;
+      this.refreshView();
     }
   }
   async showDirections(place: NearbyPlace): Promise<void> {
@@ -143,6 +151,8 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       renderer.setDirections(result);
     } catch {
       this.errorMessage = `Directions to ${place.name} could not be calculated.`;
+    } finally {
+      this.refreshView();
     }
   }
   distance(value: number): string {
@@ -164,6 +174,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.loading = false;
       this.errorMessage =
         'Google Maps is not configured. Add a browser-restricted API key to the google-maps-api-key meta tag.';
+      this.refreshView();
       return;
     }
     try {
@@ -195,6 +206,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         'Google Maps could not locate this apartment. Check the address and API configuration.';
     } finally {
       this.loading = false;
+      this.refreshView();
     }
   }
   private async findNearby(): Promise<void> {
@@ -288,6 +300,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         'Nearby places could not be loaded. Make sure Places API (New) is enabled.';
     } finally {
       this.searching = false;
+      this.refreshView();
     }
   }
   private async applyPlaces(
@@ -366,6 +379,11 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
     this.placeMarkers.forEach((marker) => marker.setMap(null));
     this.placeMarkers = [];
   }
+
+  private refreshView(): void {
+    this.ngZone.run(() => this.cdr.detectChanges());
+  }
+
   private normalizeCategory(
     primaryType: string | null | undefined,
     fallback: PlaceCategory,
