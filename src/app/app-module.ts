@@ -27,6 +27,7 @@ import { AiHomeMatchPageComponent } from './ai-home-match/ai-home-match-page/ai-
 import { HomeMatchResultsComponent } from './ai-home-match/home-match-results/home-match-results.component';
 import { HomeProfileSummaryComponent } from './ai-home-match/home-profile-summary/home-profile-summary.component';
 import { VelvenLifestyleAvatarComponent } from './ai-home-match/lifestyle-avatar/lifestyle-avatar.component';
+import { AboutUs } from './about-us/about-us';
 
 @NgModule({
   declarations: [
@@ -52,6 +53,7 @@ import { VelvenLifestyleAvatarComponent } from './ai-home-match/lifestyle-avatar
     HomeMatchResultsComponent,
     HomeProfileSummaryComponent,
     VelvenLifestyleAvatarComponent,
+    AboutUs,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
   providers: [
