@@ -5,12 +5,25 @@ import { fileURLToPath } from 'node:url';
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const apiOrigin = 'https://websiteapi-production-c970.up.railway.app';
+const canonicalHost = 'website-production-ab09.up.railway.app';
 const browserDirectory = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   'dist',
   'site',
   'browser',
 );
+
+app.use((request, response, next) => {
+  const forwardedHost = request.get('x-forwarded-host')?.split(',')[0].trim();
+  const requestHost = (forwardedHost || request.get('host') || '').split(':')[0].toLowerCase();
+
+  if (requestHost === `www.${canonicalHost}`) {
+    response.redirect(301, `https://${canonicalHost}${request.originalUrl}`);
+    return;
+  }
+
+  next();
+});
 
 app.use('/api', async (request, response) => {
   try {
