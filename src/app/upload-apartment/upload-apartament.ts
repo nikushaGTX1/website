@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ApartmentService } from '../services/apartment.service';
 import { CreateApartment } from '../models/apartment';
 import { AuthService } from '../services/auth.service';
@@ -274,9 +275,18 @@ export class UploadApartment {
         this.loading = false;
         this.successMessage = 'Apartment listing published successfully.';
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.loading = false;
-        this.errorMessage = 'Could not publish right now. The form is ready, but the API did not respond.';
+        const apiMessage =
+          typeof error.error === 'string'
+            ? error.error
+            : error.error?.message || error.error?.title;
+
+        this.errorMessage =
+          apiMessage ||
+          (error.status === 500
+            ? 'The apartment API encountered a server or database error. Please check the Railway API logs.'
+            : `Could not publish the apartment (HTTP ${error.status || 'network error'}).`);
       },
     });
   }
