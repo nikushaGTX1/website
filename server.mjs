@@ -51,6 +51,10 @@ app.use('/api', async (request, response) => {
   }
 });
 
+app.get('/', (_request, response) => {
+  response.redirect(301, '/main');
+});
+
 app.use(express.static(browserDirectory));
 app.use((_request, response) => {
   response.sendFile(path.join(browserDirectory, 'index.html'));
