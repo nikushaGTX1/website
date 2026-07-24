@@ -11,6 +11,7 @@ import { AuthService } from '../services/auth.service';
 export class Navigation implements OnInit, OnDestroy {
   isLoggedIn = false;
   canOpenAdmin = false;
+  menuOpen = false;
   private subscription?: Subscription;
 
   constructor(private authService: AuthService) {}
@@ -26,5 +27,9 @@ export class Navigation implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+  }
+
+  closeMenu(): void {
+    this.menuOpen = false;
   }
 }
