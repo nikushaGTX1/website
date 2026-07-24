@@ -1,123 +1,319 @@
-/* Centered layout container */
-.auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 80vh;
-    background-color: #f8f9fa;
-    font-family: sans-serif;
-    padding: 20px;
+/* Page Background Container */
+.page-wrapper {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f3f4f6;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
 }
 
-/* Card Styling */
+/* Outer Card Container Layout */
+.auth-card-container {
+  display: flex;
+  width: 100%;
+  max-width: 1050px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  min-height: 680px;
+}
+
+/* Left Section: Auth Forms */
 .auth-card {
-    background: #ffffff;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    box-sizing: border-box;
+  flex: 1.1;
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.auth-card h2 {
-    margin: 0 0 8px 0;
-    color: #333333;
-    font-size: 1.75rem;
-    text-align: center;
+.auth-card .title {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 2.25rem;
+  font-weight: 400;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
 }
 
-.subtitle {
-    margin: 0 0 24px 0;
-    color: #666666;
-    font-size: 0.9rem;
-    text-align: center;
+.auth-card .subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0 0 28px 0;
 }
 
-/* Form Layout */
+/* Tab Switcher */
+.role-tabs {
+  display: flex;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: #ffffff;
+  color: #0052ff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Form Styling */
 .auth-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .form-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #444444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
 }
 
-.form-group input {
-    padding: 10px 12px;
-    border: 1px solid #cccccc;
-    border-radius: 4px;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.2s;
+.input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.form-group input:focus {
-    border-color: #3569f5;
+.input-icon {
+  position: absolute;
+  left: 14px;
+  pointer-events: none;
 }
 
-/* Primary Button */
+.input-icon-wrapper input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+  color: #0f172a;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.input-icon-wrapper input:focus {
+  outline: none;
+  border-color: #0052ff;
+  box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.12);
+}
+
+/* Submit Action Button */
 .submit-btn {
-    background-color: #3569f5;
-    color: #ffffff;
-    border: none;
-    padding: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background-color 0.2s;
+  background-color: #0052ff;
+  color: #ffffff;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .submit-btn:hover {
-    background-color: #2857d8;
+  background-color: #0043d0;
 }
 
 .submit-btn:disabled {
-    background-color: #93c5fd;
-    cursor: not-allowed;
+  background-color: #93c5fd;
+  cursor: not-allowed;
 }
 
-/* Bottom Toggle Navigation */
+/* Divider Line */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0 20px 0;
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.divider span {
+  padding: 0 12px;
+}
+
+/* Social Login Options */
+.social-login {
+  display: flex;
+  gap: 12px;
+}
+
+.social-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background-color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.social-btn:hover {
+  background-color: #f8fafc;
+}
+
+/* Footer Link Switcher */
 .auth-toggle-footer {
-    margin-top: 24px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: #666666;
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #64748b;
 }
 
 .toggle-link-btn {
-    background: none;
-    border: none;
-    color: #3569f5;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 5px;
-    text-decoration: underline;
+  background: none;
+  border: none;
+  color: #0052ff;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 4px;
+  text-decoration: underline;
 }
 
-.toggle-link-btn:hover {
-    color: #2857d8;
-}
-
+/* Messages */
 .error {
-  color: #d93025;
+  color: #ef4444;
+  font-size: 0.85rem;
   margin-bottom: 12px;
 }
 
 .success {
-  color: #188038;
+  color: #22c55e;
+  font-size: 0.85rem;
   margin-bottom: 12px;
+}
+
+/* Right Section: Luxury Hero Sidebar */
+.hero-sidebar {
+  flex: 0.9;
+  position: relative;
+  background-color: #eff6ff;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+  /* High quality villa background matching the design image */
+  background-image: linear-gradient(180deg, rgba(239, 246, 255, 0.9) 0%, rgba(239, 246, 255, 0.45) 55%, rgba(0, 0, 0, 0.1) 100%), 
+                    url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1000&q=80');
+  background-size: cover;
+  background-position: center bottom;
+}
+
+.hero-sidebar h1 {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 2.75rem;
+  font-weight: 400;
+  color: #0f172a;
+  margin: 0 0 10px 0;
+  line-height: 1.15;
+}
+
+.hero-sidebar h1 span {
+  font-style: italic;
+  color: #d97706;
+}
+
+.hero-subtitle {
+  color: #475569;
+  font-size: 0.925rem;
+  line-height: 1.5;
+  margin-bottom: 36px;
+  max-width: 360px;
+}
+
+/* Feature List Inside Hero */
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.feature-list li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.feature-icon {
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.feature-text h3 {
+  margin: 0 0 2px 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.feature-text p {
+  margin: 0;
+  font-size: 0.825rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* Responsive collapse for small screens */
+@media (max-width: 850px) {
+  .auth-card-container {
+    flex-direction: column;
+  }
+  .hero-sidebar {
+    display: none;
+  }
+  .auth-card {
+    padding: 32px 24px;
+  }
 }
