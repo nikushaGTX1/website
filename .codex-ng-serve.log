@@ -1,0 +1,5 @@
+
+> site@0.0.0 start
+> node server.mjs --host 127.0.0.1 --port 4200
+
+Website listening on port 3000

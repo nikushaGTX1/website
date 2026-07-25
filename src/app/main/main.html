@@ -74,18 +74,27 @@
         <div class="property-image">
           <img [src]="getApartmentImage(apartment)" [alt]="getApartmentTitle(apartment)"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'" [attr.fetchpriority]="index === 0 ? 'high' : 'auto'" decoding="async">
-          <span class="property-badge">{{ index === 0 ? 'Premium' : index === 1 ? 'New' : index === 2 ? 'Hot' : 'Featured' }}</span>
-          <button type="button" class="favorite" aria-label="Save property" (click)="$event.stopPropagation()">♡</button>
+          <span class="property-badge"><i class="fa-solid" [class.fa-crown]="index === 0" [class.fa-star]="index !== 0"></i>{{ index === 0 ? 'Premium' : index === 1 ? 'New' : index === 2 ? 'Hot' : 'Featured' }}</span>
+          <button type="button" class="favorite" aria-label="Save property" (click)="$event.stopPropagation()"><i class="fa-regular fa-heart"></i></button>
         </div>
         <div class="property-info">
-          <h3>${{ apartment.price | number:'1.0-0' }}<small>/mo</small></h3>
-          <strong>{{ getApartmentTitle(apartment) }}</strong>
-          <p><i class="fa-solid fa-location-dot"></i> {{ getApartmentAddress(apartment) }}</p>
+          <h3>${{ apartment.price | number:'1.0-0' }}<small>/ month</small></h3>
+          <strong class="property-title">{{ getApartmentTitle(apartment) }}</strong>
+          <p class="property-address"><i class="fa-solid fa-location-dot"></i> {{ getApartmentAddress(apartment) }}</p>
           <div class="property-meta">
-            <span>▱ {{ apartment.bedrooms || '—' }} Beds</span>
-            <span>♨ {{ apartment.bathrooms || '—' }} Baths</span>
-            <span>□ {{ apartment.sizeSquareMeters || '—' }} m²</span>
+            <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
+            <span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span>
+            <span><i class="fa-solid fa-up-right-and-down-left-from-center"></i>{{ apartment.sizeSquareMeters || '—' }} m²</span>
           </div>
+          <div class="nearby">
+            <span class="nearby-label">Nearby</span>
+            <div class="nearby-grid">
+              <span><i class="fa-solid fa-train-subway"></i><b>Metro</b><small>4 min walk</small></span>
+              <span><i class="fa-solid fa-graduation-cap"></i><b>School</b><small>5 min</small></span>
+              <span><i class="fa-solid fa-car"></i><b>Parking</b><small>Available</small></span>
+            </div>
+          </div>
+          <span class="view-details">View details <i class="fa-solid fa-arrow-right"></i></span>
         </div>
       </article>
     </div>
