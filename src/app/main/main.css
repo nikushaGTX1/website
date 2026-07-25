@@ -9,6 +9,8 @@
 }
 .hero {
   position: relative;
+  z-index: 10;
+  overflow: visible;
   width: min(1400px, calc(100% - 48px));
   min-height: 580px;
   margin: 0 auto;
@@ -21,12 +23,16 @@
   background-repeat: no-repeat;
 }
 .hero-copy {
-  width: min(620px, 55vw);
+  width: min(720px, 58vw);
   margin-top: 5%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
 .eyebrow {
   display: block;
-  margin-bottom: 8px;
+  margin: 0;
   color: #2163d8;
   font-size: 12px;
   font-weight: 800;
@@ -50,7 +56,7 @@
   font-weight: 400;
 }
 .hero-copy p {
-  margin: 24px 0 0;
+  margin: 8px 0 0;
   color: #526079;
   font-size: 16px;
   line-height: 1.75;
@@ -58,6 +64,7 @@
 .property-search {
   position: absolute;
   z-index: 2;
+  pointer-events: auto;
   left: 5vw;
   right: 5vw;
   bottom: -72px;
@@ -179,6 +186,8 @@
   align-items: center;
 }
 .search-footer {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -229,6 +238,8 @@
   margin: 0 auto;
 }
 .featured {
+  position: relative;
+  z-index: 1;
   padding-top: 128px;
 }
 .section-heading {
@@ -271,7 +282,7 @@
 }
 .property-image {
   position: relative;
-  height: 195px;
+  height: 270px;
   overflow: hidden;
 }
 .property-image img {
@@ -307,12 +318,12 @@
   font-size: 22px;
 }
 .property-info {
-  padding: 14px;
+  padding: 21px;
 }
 .property-info h3 {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   color: #0f1828;
-  font-size: 22px;
+  font-size: 27px;
 }
 .property-info h3 small {
   font-size: 11px;
@@ -320,23 +331,27 @@
 }
 .property-info strong {
   display: block;
+  font-size: 18px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .property-info p {
-  min-height: 30px;
-  margin: 6px 0 12px;
+  min-height: 38px;
+  margin: 8px 0 14px;
   color: #6e788a;
-  font-size: 11px;
+  font-size: 14px;
+  line-height: 1.45;
 }
 .property-meta {
   display: flex;
   justify-content: space-between;
-  padding-top: 11px;
+  gap: 12px;
+  padding-top: 14px;
   border-top: 1px solid #edf0f4;
   color: #697487;
-  font-size: 10px;
+  font-size: 13px;
+  font-weight: 600;
 }
 .skeleton-card {
   padding-bottom: 15px;
@@ -906,9 +921,9 @@
     transform: translateX(-50%);
   }
   .content-section {
-    width: min(1300px, 90vw);
+    width: min(1500px, 94vw);
   }
   .property-image {
-    height: 225px;
+    height: 270px;
   }
 }
