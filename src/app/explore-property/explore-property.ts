@@ -25,6 +25,7 @@ export class ExploreProperty implements OnInit {
   priceRange = '';
   homeType = '';
   location = '';
+  headerBedrooms = '';
 
   selectedPriceMax = 3000;
   selectedBedrooms: string[] = [];
@@ -35,6 +36,28 @@ export class ExploreProperty implements OnInit {
   selectedApartment: Apartment | null = null;
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
+  currentPage = 1;
+  pageSize = 12;
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredApartments.length / this.pageSize));
+  }
+
+  get paginatedApartments(): Apartment[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredApartments.slice(start, start + this.pageSize);
+  }
+
+  get visiblePages(): number[] {
+    if (this.totalPages <= 4) {
+      return Array.from({ length: this.totalPages }, (_, index) => index + 1);
+    }
+    if (this.currentPage <= 3) return [1, 2, 3];
+    if (this.currentPage >= this.totalPages - 2) {
+      return [this.totalPages - 2, this.totalPages - 1, this.totalPages];
+    }
+    return [this.currentPage - 1, this.currentPage, this.currentPage + 1];
+  }
 
   constructor(
     private apartmentService: ApartmentService,
@@ -72,7 +95,6 @@ export class ExploreProperty implements OnInit {
   onSearch(): void {
     const query = this.searchQuery.trim().toLowerCase();
     const loc = this.location.trim().toLowerCase();
-    const type = this.selectedType.trim().toLowerCase();
     const home = this.homeType.trim().toLowerCase();
 
     this.filteredApartments = this.apartments.filter((apartment) => {
@@ -86,9 +108,11 @@ export class ExploreProperty implements OnInit {
         .toLowerCase();
 
       const matchesQuery = !query || haystack.includes(query);
-      const matchesType = !type || haystack.includes(type);
       const matchesHome = !home || haystack.includes(home);
       const matchesLocation = !loc || haystack.includes(loc);
+      const matchesHeaderBedrooms =
+        !this.headerBedrooms ||
+        Number(apartment.bedrooms || 0) >= Number(this.headerBedrooms);
 
       const matchesHeaderPrice = this.matchesPriceRange(apartment.price);
       const matchesSliderPrice = apartment.price <= this.selectedPriceMax;
@@ -99,9 +123,9 @@ export class ExploreProperty implements OnInit {
 
       return (
         matchesQuery &&
-        matchesType &&
         matchesHome &&
         matchesLocation &&
+        matchesHeaderBedrooms &&
         matchesHeaderPrice &&
         matchesSliderPrice &&
         matchesBedrooms &&
@@ -112,6 +136,7 @@ export class ExploreProperty implements OnInit {
     });
 
     this.applySorting();
+    this.currentPage = 1;
 
     if (this.filteredApartments.length === 0) {
       this.selectedApartment = null;
@@ -141,6 +166,7 @@ export class ExploreProperty implements OnInit {
     this.priceRange = '';
     this.homeType = '';
     this.location = '';
+    this.headerBedrooms = '';
 
     this.selectedPriceMax = 3000;
     this.selectedBedrooms = [];
@@ -155,6 +181,20 @@ export class ExploreProperty implements OnInit {
     const select = event.target as HTMLSelectElement;
     this.currentSort = select.value;
     this.applySorting();
+    this.currentPage = 1;
+  }
+
+  goToPage(page: number): void {
+    this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
+    document.querySelector('.results-header')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }
+
+  onPageSizeChange(event: Event): void {
+    this.pageSize = Number((event.target as HTMLSelectElement).value);
+    this.currentPage = 1;
   }
 
   private applySorting(): void {

@@ -81,13 +81,23 @@
   color: #526079;
   font-size: 15px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .search-tabs button.active {
   border-color: #0c67ed;
   color: #0c67ed;
 }
-.search-tabs button:first-letter {
-  font-size: 22px;
+.search-tabs .home-icon {
+  display: inline-block;
+  font-family: Arial Black, Arial, sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  transform: scale(1.18);
+  transform-origin: center;
 }
 .search-fields {
   display: grid;

@@ -8,8 +8,8 @@
 
     <form class="property-search" (submit)="searchHomes(); $event.preventDefault()">
       <div class="search-tabs" role="tablist" aria-label="Property type">
-        <button type="button" [class.active]="searchMode === 'rent'" (click)="searchMode = 'rent'">⌂ <span>Rent</span></button>
-        <button type="button" [class.active]="searchMode === 'buy'" (click)="searchMode = 'buy'">⌂ <span>Buy</span></button>
+        <button type="button" [class.active]="searchMode === 'rent'" (click)="searchMode = 'rent'"><span class="home-icon" aria-hidden="true">⌂</span><span>Rent</span></button>
+        <button type="button" [class.active]="searchMode === 'buy'" (click)="searchMode = 'buy'"><span class="home-icon" aria-hidden="true">⌂</span><span>Buy</span></button>
       </div>
 
       <div class="search-fields">
