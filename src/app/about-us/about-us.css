@@ -485,3 +485,48 @@
     width: 100%;
   }
 }
+
+@media (max-width: 600px) {
+  .velven-page {
+    padding: 0 14px;
+  }
+
+  .hero-section {
+    gap: 24px;
+    padding: 34px 0 26px;
+  }
+
+  .hero-content h1 {
+    font-size: 38px;
+  }
+
+  .hero-image-wrapper {
+    height: 240px;
+  }
+
+  .stats-bar,
+  .trust-grid,
+  .mission-grid,
+  .footer-top {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-bar,
+  .card-box,
+  .team-content,
+  .newsletter-card {
+    padding: 22px 18px;
+  }
+
+  .newsletter-info {
+    align-items: flex-start;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+  }
+
+  .newsletter-form button {
+    width: 100%;
+  }
+}

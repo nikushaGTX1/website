@@ -118,3 +118,17 @@
     grid-column: 1 / -1;
   }
 }
+
+@media (max-width: 390px) {
+  .footer-container {
+    width: calc(100% - 24px);
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-column {
+    grid-column: auto;
+  }
+}

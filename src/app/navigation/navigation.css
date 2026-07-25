@@ -341,9 +341,56 @@
 
   .nav-actions {
     flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
   }
 
   .list-property {
-    flex: 1 1 100%;
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .language-picker,
+  .language,
+  .sign-in,
+  .admin-link {
+    width: 100%;
+  }
+
+  .language-menu {
+    right: auto;
+    left: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .navigation {
+    min-height: 62px;
+    padding-inline: max(12px, env(safe-area-inset-left));
+  }
+
+  .brand img {
+    width: 132px;
+    height: 39px;
+  }
+
+  .navigation-content {
+    max-height: calc(100dvh - 62px);
+    overflow-y: auto;
+    padding: 14px max(14px, env(safe-area-inset-right)) 20px;
+  }
+
+  .nav-links {
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 12px;
+  }
+
+  .nav-links a {
+    height: 42px;
+  }
+
+  .nav-actions {
+    gap: 10px;
   }
 }

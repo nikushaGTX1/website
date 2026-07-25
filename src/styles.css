@@ -77,6 +77,72 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
   }
 }
 
+/* Phone-wide safety rules (iPhone and Galaxy class devices). */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 600px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  button,
+  select,
+  input[type='button'],
+  input[type='submit'] {
+    min-height: 44px;
+  }
+
+  app-root > main {
+    min-width: 0;
+  }
+
+  app-root > app-footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .modal,
+  .dialog,
+  .modal-content,
+  .dialog-content {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 24px);
+    overflow: auto;
+  }
+
+  table {
+    min-width: 620px;
+  }
+
+  .table-wrapper,
+  .table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* Homepage AI concierge call to action (global to keep the legacy main component within its style budget). */
 .ai-home-cta {
   margin-top: 18px;

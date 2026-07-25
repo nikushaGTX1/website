@@ -659,6 +659,40 @@
   .testimonial-grid aside {
     min-height: 170px;
   }
+
+  .home-page {
+    width: 100%;
+  }
+
+  .hero {
+    padding-inline: 18px;
+  }
+
+  .property-search {
+    left: 12px;
+    right: 12px;
+  }
+
+  .search-tabs button {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .search-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .search-submit {
+    grid-column: auto;
+  }
+
+  .content-section {
+    width: calc(100% - 28px);
+  }
+
+  .section-heading h2 {
+    font-size: 29px;
+  }
 }
 
 /* Refined desktop scale and typography */
