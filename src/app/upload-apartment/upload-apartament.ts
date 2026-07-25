@@ -309,6 +309,7 @@ export class UploadApartment {
   private toCreateApartment(includeImageFile: boolean): CreateApartment {
     const addressParts = [this.form.location, this.form.street, this.form.streetNumber].filter(Boolean);
     const title = this.form.title.trim() || `${this.form.realEstateType} ${this.form.dealType}`;
+    const currentUser = this.authService.currentUser;
     const meta = [
       `Type: ${this.form.realEstateType}`,
       `Deal: ${this.form.dealType}`,
@@ -326,6 +327,8 @@ export class UploadApartment {
       this.form.contactName ? `Contact: ${this.form.contactName}` : '',
       this.form.contactPhone ? `Phone: ${this.form.contactPhone}` : '',
       this.form.contactEmail ? `Email: ${this.form.contactEmail}` : '',
+      currentUser?.id ? `Owner ID: ${currentUser.id}` : '',
+      currentUser?.email ? `Owner Email: ${currentUser.email}` : '',
     ]
       .filter(Boolean)
       .join(' | ');

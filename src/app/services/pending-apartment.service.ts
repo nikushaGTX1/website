@@ -16,6 +16,7 @@ export interface PendingApartment {
   reviewedAt?: string;
   reviewedBy?: string;
   message?: string;
+  publishedApartmentId?: number;
 }
 
 @Injectable({
@@ -81,12 +82,17 @@ export class PendingApartmentService {
     return request;
   }
 
-  markApproved(id: string, reviewer: User | null): PendingApartment | null {
+  markApproved(
+    id: string,
+    reviewer: User | null,
+    publishedApartmentId?: number,
+  ): PendingApartment | null {
     return this.update(id, {
       status: 'approved',
       reviewedAt: new Date().toISOString(),
       reviewedBy: reviewer?.fullName || reviewer?.userName || 'Agent',
       message: 'Your post was confirmed and published.',
+      publishedApartmentId,
     });
   }
 
@@ -105,6 +111,7 @@ export class PendingApartmentService {
       reviewedAt: undefined,
       reviewedBy: undefined,
       message: undefined,
+      publishedApartmentId: undefined,
     });
   }
 

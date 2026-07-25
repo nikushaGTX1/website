@@ -166,12 +166,33 @@ export class MyListings implements OnInit, OnDestroy {
       .map((value) => value.toLowerCase());
 
     const description = apartment.description?.toLowerCase() || '';
+    const approvedRequests = this.pendingService
+      .getForUser(this.user)
+      .filter((request) => request.status === 'approved');
+    const linkedByPublishedId = approvedRequests.some(
+      (request) => request.publishedApartmentId === apartment.id,
+    );
+    const linkedByOriginalListing = approvedRequests.some(
+      (request) => this.isSameListing(request.apartment, apartment),
+    );
 
     return (
+      linkedByPublishedId ||
+      linkedByOriginalListing ||
       (!!userId && ownerIds.includes(userId)) ||
       ownerEmails.includes(userEmail) ||
       description.includes(`email: ${userEmail}`) ||
       description.includes(userEmail)
+    );
+  }
+
+  private isSameListing(request: CreateApartment, apartment: Apartment): boolean {
+    const normalize = (value?: string): string => (value || '').trim().toLowerCase();
+
+    return (
+      normalize(request.title) === normalize(apartment.title) &&
+      Number(request.price) === Number(apartment.price) &&
+      normalize(request.address) === normalize(apartment.address)
     );
   }
 

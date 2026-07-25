@@ -26,7 +26,7 @@
       <span>Apartments</span>
       <strong>{{ apartments.length }}</strong>
     </button>
-    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'blog'" (click)="activeTab = 'blog'">
+    <button type="button" class="stat" *ngIf="canManageBlog" [class.active]="activeTab === 'blog'" (click)="activeTab = 'blog'">
       <span>Blog</span>
       <strong>{{ blogPosts.length }}</strong>
     </button>
@@ -172,7 +172,7 @@
     </div>
   </section>
 
-  <section class="admin-section" *ngIf="activeTab === 'blog' && isAdmin">
+  <section class="admin-section" *ngIf="activeTab === 'blog' && canManageBlog">
     <div class="section-title">
       <h2>Blog posts</h2>
       <span>{{ filteredBlogPosts.length }} published</span>
@@ -184,9 +184,10 @@
           Title
           <input type="text" name="blogTitle" [(ngModel)]="blogForm.title" placeholder="Blog title" />
         </label>
-        <label>
-          Image URL
-          <input type="url" name="blogImageUrl" [(ngModel)]="blogForm.imageUrl" placeholder="/banner.jpg" />
+        <label class="blog-image-upload">
+          Cover image
+          <input #blogImageInput type="file" accept="image/*" (change)="onBlogImageSelected($event)" />
+          <span class="upload-control">{{ blogImageName || 'Choose an image' }}</span>
         </label>
       </div>
 
@@ -200,7 +201,14 @@
         ></textarea>
       </label>
 
-      <button type="submit" class="publish-blog-btn">Publish blog post</button>
+      <div class="blog-image-preview" *ngIf="blogImagePreview">
+        <img [src]="blogImagePreview" alt="Selected blog cover preview" />
+        <button type="button" (click)="clearBlogImage(blogImageInput)">Remove image</button>
+      </div>
+
+      <button type="submit" class="publish-blog-btn" [disabled]="publishingBlog">
+        {{ publishingBlog ? 'Publishing...' : 'Publish blog post' }}
+      </button>
     </form>
 
     <div class="empty-state" *ngIf="filteredBlogPosts.length === 0">No blog posts found.</div>

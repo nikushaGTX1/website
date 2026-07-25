@@ -3,11 +3,13 @@ export interface BlogPost {
   title: string;
   description: string;
   imageUrl: string;
+  summary?: string;
+  content?: string;
   createdAt?: string;
 }
 
 export interface CreateBlogPost {
   title: string;
   description: string;
-  imageUrl: string;
+  imageFile?: File | null;
 }

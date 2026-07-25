@@ -256,11 +256,13 @@ app.use('/api', async (request, response) => {
     }
 
     const hasBody = !['GET', 'HEAD'].includes(request.method);
+    const requestBody = hasBody
+      ? Buffer.concat(await Array.fromAsync(request))
+      : undefined;
     const upstreamResponse = await fetch(targetUrl, {
       method: request.method,
       headers,
-      body: hasBody ? request : undefined,
-      duplex: hasBody ? 'half' : undefined,
+      body: requestBody?.length ? requestBody : undefined,
       redirect: 'manual',
     });
 
@@ -292,7 +294,15 @@ app.get('/', (_request, response) => {
 });
 
 app.use(express.static(browserDirectory));
-app.use((_request, response) => {
+app.use((request, response) => {
+  // Do not return index.html for missing browser assets. During a rolling
+  // deployment that turns a missing JavaScript bundle into an HTML response,
+  // so the browser rejects it and leaves the static SEO fallback on screen.
+  if (path.extname(request.path)) {
+    response.sendStatus(404);
+    return;
+  }
+
   response.sendFile(path.join(browserDirectory, 'index.html'));
 });
 
