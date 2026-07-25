@@ -77,7 +77,6 @@
   left: 0;
   height: 2px;
   border-radius: 2px;
-  background: #1769e8;
   transform: scaleX(0);
   transition: transform 0.18s ease;
 }
