@@ -1,44 +1,112 @@
 <section class="blog-page">
+  <header class="blog-hero">
+    <div class="hero-content">
+      <span class="blog-brand-tag">Velven Blog</span>
+      <h1 class="blog-heading">Insights that move<br />you forward</h1>
+      <p class="hero-subtext">
+        Expert tips, market updates, and neighborhood guides to help you make smarter real estate decisions.
+      </p>
+    </div>
+  </header>
+
   <div class="blog-container">
-    <h1 class="blog-heading">Blog</h1>
+    <div class="filter-bar">
+      <div class="category-pills">
+        <button type="button" class="pill-btn active">All Articles</button>
+        <button type="button" class="pill-btn">Buying</button>
+        <button type="button" class="pill-btn">Renting</button>
+        <button type="button" class="pill-btn">Market News</button>
+        <button type="button" class="pill-btn">Lifestyle</button>
+        <button type="button" class="pill-btn">Neighborhood Guides</button>
+        <button type="button" class="pill-btn">Home Tips</button>
+      </div>
+
+      <div class="search-box">
+        <input type="text" placeholder="Search articles..." />
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+    </div>
 
     <p class="blog-message" *ngIf="loading">Loading blog posts...</p>
     <p class="blog-message error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
     <p class="blog-message" *ngIf="!loading && !errorMessage && blogPosts.length === 0">No blog posts yet.</p>
 
-    <div class="blog-grid">
-      <article class="blog-card" *ngFor="let post of pagedPosts">
-        <div class="card-image-wrapper">
-          <img [src]="post.imageUrl || '/banner.jpg'" [alt]="post.title" class="card-image" />
+    <!-- Main Content Layout Grid -->
+    <div class="blog-layout" *ngIf="!loading && blogPosts.length > 0">
+      <div class="main-content-column">
+        
+        <div class="blog-grid">
+          <article class="blog-card" *ngFor="let post of pagedPosts">
+            <div class="card-image-wrapper">
+              <img [src]="post.imageUrl || '/banner.jpg'" [alt]="post.title" class="card-image" />
+              <span class="card-category-tag">ARTICLE</span>
+            </div>
+
+            <div class="card-content">
+              <h3 class="card-title">{{ post.title }}</h3>
+              <p class="card-excerpt">{{ post.description }}</p>
+
+              <a href="#" class="read-more-btn" (click)="$event.preventDefault()">
+                Read more
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </a>
+            </div>
+          </article>
         </div>
 
-        <div class="card-content">
-          <h3 class="card-title">{{ post.title }}</h3>
-          <p class="card-excerpt">{{ post.description }}</p>
+        <nav class="blog-pagination" *ngIf="blogPosts.length > pageSize" aria-label="Blog pagination">
+          <button type="button" class="nav-arrow" (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1">‹</button>
+          <button
+            type="button"
+            *ngFor="let page of pageNumbers"
+            [class.active]="page === currentPage"
+            (click)="setPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button type="button" class="nav-arrow" (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages">›</button>
+        </nav>
 
-          <a href="#" class="read-more-btn" (click)="$event.preventDefault()">Read more</a>
+      </div>
+
+      <aside class="blog-sidebar">
+        <div class="newsletter-card">
+          <div class="newsletter-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0052FF" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </div>
+          <h3>Stay in the know</h3>
+          <p>Get the latest market updates, expert tips, and exclusive property insights delivered to your inbox.</p>
+          
+          <div class="subscribe-form">
+            <input type="email" placeholder="Enter your email address" />
+            <button type="button" class="subscribe-btn">Subscribe</button>
+          </div>
+          <span class="sub-disclaimer">No spam. Unsubscribe anytime.</span>
         </div>
-      </article>
+
+        <div class="topics-card">
+          <h3>Popular Topics</h3>
+          <ul class="topics-list">
+            <li><span>Dubai Market Updates</span> <span class="topic-count">24</span></li>
+            <li><span>Buying Guides</span> <span class="topic-count">18</span></li>
+            <li><span>Renting Tips</span> <span class="topic-count">15</span></li>
+            <li><span>Neighborhood Guides</span> <span class="topic-count">12</span></li>
+            <li><span>Home Improvement</span> <span class="topic-count">10</span></li>
+          </ul>
+          <button type="button" class="explore-topics-btn">Explore all topics</button>
+        </div>
+      </aside>
     </div>
 
-    <nav class="blog-pagination" *ngIf="blogPosts.length > pageSize" aria-label="Blog pagination">
-      <button type="button" (click)="setPage(currentPage - 1)" [disabled]="currentPage === 1">‹</button>
-      <button
-        type="button"
-        *ngFor="let page of pageNumbers"
-        [class.active]="page === currentPage"
-        (click)="setPage(page)"
-      >
-        {{ page }}
-      </button>
-      <button type="button" (click)="setPage(currentPage + 1)" [disabled]="currentPage === totalPages">›</button>
-    </nav>
   </div>
 
-  <section class="career-banner">
-    <div>
-      <h2>Start a career as<br />a real estate agent<br />with us.</h2>
-      <button type="button" routerLink="/agent-profile">Submit a form</button>
-    </div>
-  </section>
 </section>

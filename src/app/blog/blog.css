@@ -1,195 +1,440 @@
-:host {
-  display: block;
-  background: #ffffff;
-}
-
+/* Container Base */
 .blog-page {
-  min-height: 100vh;
-  color: #050505;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #fafafa;
+  color: #0f172a;
+  padding-bottom: 60px;
 }
 
 .blog-container {
-  max-width: 1210px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 58px 28px 88px;
+  padding: 0 24px;
+}
+
+/* Header / Hero Section */
+.blog-hero {
+  background: linear-gradient(180deg, #f0f4ff 0%, #fafafa 100%),
+              url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1600&q=80') no-repeat center right;
+  background-size: cover;
+  padding: 72px 24px 48px;
+  max-width: 1200px;
+  margin: 0 auto 32px;
+  border-radius: 20px;
+}
+
+.hero-content {
+  max-width: 520px;
+}
+
+.blog-brand-tag {
+  color: #d97706;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .blog-heading {
-  margin: 0 0 42px;
-  font-size: 18px;
-  font-weight: 500;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 3rem;
+  font-weight: 400;
+  line-height: 1.15;
+  color: #0f172a;
+  margin: 12px 0 16px;
 }
 
-.blog-message {
-  margin: 0 0 24px;
+.hero-subtext {
+  font-size: 1rem;
   color: #64748b;
-  font-size: 14px;
-  font-weight: 700;
+  line-height: 1.6;
 }
 
-.blog-message.error {
-  color: #dc2626;
-}
-
-.blog-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 46px 54px;
-}
-
-.blog-card {
-  min-height: 484px;
-  border-radius: 10px;
-  background: #ffffff;
-  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2);
+/* Filter Navigation Bar */
+.filter-bar {
   display: flex;
-  flex-direction: column;
-  padding: 38px 42px 24px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
 }
 
-.card-image-wrapper {
-  height: 286px;
-  margin-bottom: 17px;
-  overflow: hidden;
+.category-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pill-btn {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.pill-btn:hover {
   background: #f1f5f9;
 }
 
+.pill-btn.active {
+  background: #0052ff;
+  color: #ffffff;
+  border-color: #0052ff;
+}
+
+/* Search Box */
+.search-box {
+  position: relative;
+  min-width: 240px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 36px 8px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  outline: none;
+  background: #ffffff;
+}
+
+.search-box input:focus {
+  border-color: #0052ff;
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Main Layout Grid */
+.blog-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 40px;
+}
+
+/* Blog Cards Grid */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+}
+
+.blog-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.blog-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.07);
+}
+
+.card-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
 .card-image {
-  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
+.card-category-tag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0052ff;
+  letter-spacing: 0.04em;
+}
+
 .card-content {
+  padding: 20px;
   display: flex;
-  flex: 1;
   flex-direction: column;
+  flex-grow: 1;
 }
 
 .card-title {
-  max-width: 360px;
-  margin: 0 0 8px;
-  color: #050505;
-  font-size: 16px;
-  font-weight: 800;
-  line-height: 1.1;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #0f172a;
+  margin: 0 0 10px 0;
 }
 
 .card-excerpt {
-  display: -webkit-box;
-  margin: 0;
-  overflow: hidden;
-  color: #222222;
-  font-size: 13px;
-  line-height: 1.35;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+  flex-grow: 1;
 }
 
 .read-more-btn {
-  align-self: flex-end;
-  margin-top: auto;
-  color: #2563eb;
-  font-size: 14px;
-  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0052ff;
+  text-decoration: none;
+}
+
+.read-more-btn:hover {
   text-decoration: underline;
 }
 
+/* Pagination */
 .blog-pagination {
   display: flex;
   justify-content: center;
-  gap: 14px;
-  margin-top: 110px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 48px;
 }
 
 .blog-pagination button {
-  min-width: 18px;
-  height: 24px;
-  border: 0;
-  background: transparent;
-  color: #050505;
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
   cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.blog-pagination button:hover:not(:disabled) {
+  border-color: #0052ff;
+  color: #0052ff;
 }
 
 .blog-pagination button.active {
-  color: #2563eb;
+  background: #0052ff;
+  color: #ffffff;
+  border-color: #0052ff;
 }
 
 .blog-pagination button:disabled {
-  cursor: default;
-  opacity: 0.45;
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
+/* Right Sidebar */
+.blog-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.newsletter-card {
+  background: #eff6ff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #dbeafe;
+}
+
+.newsletter-icon {
+  background: #ffffff;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.newsletter-card h3 {
+  font-size: 1.1rem;
+  margin: 0 0 6px 0;
+  color: #0f172a;
+}
+
+.newsletter-card p {
+  font-size: 0.825rem;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0 0 16px 0;
+}
+
+.subscribe-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subscribe-form input {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.subscribe-btn {
+  background: #0052ff;
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.sub-disclaimer {
+  display: block;
+  font-size: 0.725rem;
+  color: #94a3b8;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Popular Topics Widget */
+.topics-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #f1f5f9;
+}
+
+.topics-card h3 {
+  font-size: 1rem;
+  margin: 0 0 16px 0;
+}
+
+.topics-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+.topics-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8fafc;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.topic-count {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.explore-topics-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #0052ff;
+  cursor: pointer;
+}
+
+/* Career Banner */
 .career-banner {
-  min-height: 282px;
-  background:
-    linear-gradient(90deg, rgba(61, 39, 52, 0.78), rgba(61, 39, 52, 0.2)),
-    url('/Career.jpg') center / cover;
-}
-
-.career-banner > div {
-  max-width: 1210px;
-  margin: 0 auto;
-  padding: 28px;
+  max-width: 1200px;
+  margin: 60px auto 0;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%),
+              url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80') no-repeat center right;
+  background-size: cover;
+  border-radius: 20px;
+  padding: 56px 48px;
+  color: #ffffff;
 }
 
 .career-banner h2 {
-  margin: 0 0 24px;
-  color: #ffffff;
-  font-size: 44px;
-  line-height: 1.08;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 2.25rem;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0 0 24px 0;
 }
 
-.career-banner button {
-  min-width: 235px;
-  border: 0;
+.career-btn {
+  background: #ffffff;
+  color: #0f172a;
+  border: none;
+  padding: 12px 24px;
   border-radius: 10px;
-  background: #2563eb;
-  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 800;
-  padding: 17px 38px;
+  transition: background 0.2s ease;
 }
 
-@media (max-width: 900px) {
+.career-btn:hover {
+  background: #f1f5f9;
+}
+
+/* Loading & Error States */
+.blog-message {
+  text-align: center;
+  padding: 40px;
+  font-size: 1rem;
+  color: #64748b;
+}
+
+.blog-message.error {
+  color: #ef4444;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 992px) {
+  .blog-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
   .blog-grid {
     grid-template-columns: 1fr;
   }
-
-  .blog-card {
-    min-height: auto;
+  .blog-hero {
+    padding: 36px 16px;
   }
-
-  .blog-pagination {
-    margin-top: 54px;
+  .blog-heading {
+    font-size: 2.2rem;
   }
-}
-
-@media (max-width: 560px) {
-  .blog-container {
-    padding: 34px 18px 56px;
-  }
-
-  .blog-card {
-    padding: 22px;
-  }
-
-  .card-image-wrapper {
-    height: 220px;
-  }
-
-  .career-banner h2 {
-    font-size: 30px;
-  }
-
-  .career-banner button {
-    min-width: 0;
-    width: 100%;
+  .career-banner {
+    padding: 32px 24px;
   }
 }
