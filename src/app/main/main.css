@@ -14,16 +14,15 @@
   margin: 0 auto;
   padding: 62px max(5vw, 24px) 0;
   background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.98) 0%,
-      rgba(255, 255, 255, 0.92) 33%,
-      rgba(255, 255, 255, 0.15) 70%
-    ),
-    url('/banner.jpg') center/cover no-repeat;
+
+    url('/banner.png');
+  background-position: center, right center;
+  background-size: cover, auto 100%;
+  background-repeat: no-repeat;
 }
 .hero-copy {
   width: min(620px, 55vw);
+  margin-top: 5%;
 }
 .eyebrow {
   display: block;
@@ -47,7 +46,7 @@
   letter-spacing: -0.04em;
 }
 .hero h1 em {
-  color: #0968e9;
+  color: #c9974d;
   font-weight: 400;
 }
 .hero-copy p {
@@ -172,8 +171,8 @@
 }
 .quick-filters a {
   margin-left: auto;
-  border-color: #0c67ed;
-  color: #0c67ed;
+  border-color: #c9974d;
+  color: #c9974d;
   font-size: 13px;
 }
 .content-section {
@@ -600,6 +599,8 @@
     width: calc(100% - 24px);
     min-height: 785px;
     padding-top: 40px;
+    background-position: center, 68% center;
+    background-size: cover, cover;
   }
   .hero-copy {
     width: 100%;

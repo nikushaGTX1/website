@@ -97,7 +97,7 @@
 }
 
 .ai-link span {
-  color: #0968e9;
+  color: #c9974d;
   font-size: 16px;
 }
 
@@ -218,7 +218,7 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: #0968e9;
+  background: #2596be;
   box-shadow: 0 5px 13px rgba(9, 104, 233, 0.2);
   transition: background 0.18s ease, transform 0.18s ease;
 }
