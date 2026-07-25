@@ -40,7 +40,7 @@
 }
 
 .btn-primary {
-  background-color: #1a62ff;
+  background-color: #2C64EA;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -52,7 +52,7 @@
 }
 
 .btn-primary:hover {
-  background-color: #124bd1;
+  background-color: #2C64EA;
 }
 
 .btn-large {
@@ -122,7 +122,7 @@
 
 .stat-icon-box {
   background: #eff6ff;
-  color: #1d4ed8;
+  color: #2C64EA;
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -135,7 +135,7 @@
 
 .stat-icon-box.light {
   background: #f1f5f9;
-  color: #2563eb;
+  color: #2C64EA;
 }
 
 .stat-item h3 {
@@ -172,7 +172,7 @@
 }
 
 .badge {
-  color: #2563eb;
+  color: #2C64EA;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -215,7 +215,7 @@
   height: 36px;
   border-radius: 50%;
   background: #eff6ff;
-  color: #2563eb;
+  color: #2C64EA;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -335,8 +335,8 @@
 
 .btn-outline {
   align-self: flex-start;
-  border: 1px solid #1a62ff;
-  color: #1a62ff;
+  border: 1px solid #2C64EA;
+  color: #2C64EA;
   background: transparent;
   padding: 10px 20px;
   border-radius: 8px;
@@ -447,7 +447,7 @@
 }
 
 .footer-col a:hover {
-  color: #1d4ed8;
+  color: #2C64EA;
 }
 
 .footer-bottom {

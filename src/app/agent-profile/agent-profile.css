@@ -58,7 +58,7 @@
 }
 
 .hero-title .highlight {
-  color: #2563eb;
+  color: #2C64EA;
   font-weight: 700;
 }
 
@@ -119,9 +119,9 @@
 
 .filter-select:focus,
 .filter-input:focus {
-  border-color: #2563eb;
+  border-color: #2C64EA;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(44, 100, 234, 0.1);
 }
 
 .field-icon-left {
@@ -336,7 +336,7 @@
 
 .rating-text {
   font-weight: 700;
-  color: #2563eb;
+  color: #2C64EA;
 }
 
 .rating-count {
@@ -389,7 +389,7 @@
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background-color: #ffffff;
-  color: #2563eb;
+  color: #2C64EA;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -411,9 +411,9 @@
   width: 100%;
   height: 38px;
   border-radius: 8px;
-  border: 1px solid #2563eb;
+  border: 1px solid #2C64EA;
   background-color: #ffffff;
-  color: #2563eb;
+  color: #2C64EA;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -421,7 +421,7 @@
 }
 
 .profile-btn:hover {
-  background-color: #2563eb;
+  background-color: #2C64EA;
   color: #ffffff;
 }
 
@@ -457,7 +457,7 @@
 }
 
 .career h2 .brand-blue {
-  color: #2563eb;
+  color: #2C64EA;
 }
 
 .career-subtitle {
@@ -490,12 +490,12 @@
 }
 
 .career-btn.primary {
-  background-color: #2563eb;
+  background-color: #2C64EA;
   color: #ffffff;
 }
 
 .career-btn.primary:hover {
-  background-color: #1d4ed8;
+  background-color: #2C64EA;
 }
 
 .career-btn.secondary {
@@ -504,13 +504,13 @@
 }
 
 .career-btn.secondary:hover {
-  color: #2563eb;
+  color: #2C64EA;
 }
 
 .play-icon {
   width: 14px;
   height: 14px;
-  color: #2563eb;
+  color: #2C64EA;
 }
 
 /* Skeleton Loaders */

@@ -33,7 +33,7 @@
 .eyebrow {
   display: block;
   margin: 0;
-  color: #2163d8;
+  color: #2C64EA;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -82,7 +82,7 @@
   border-bottom: 1px solid #dfe5ee;
 }
 .search-tabs button {
-  min-width: 125px;
+  min-width: 110px;
   border: 0;
   border-bottom: 3px solid transparent;
   background: none;
@@ -92,19 +92,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
 }
 .search-tabs button.active {
-  color: #0c67ed;
+  color: #2C64EA;
 }
 .search-tabs .home-icon {
   display: inline-block;
   font-family: Arial Black, Arial, sans-serif;
-  font-size: 28px;
-  font-weight: 900;
+  font-size: 20px;
+  font-weight: 700;
   line-height: 1;
-  transform: scale(1.18);
-  transform-origin: center;
 }
 .search-fields {
   display: grid;
@@ -146,8 +144,8 @@
 }
 
 .field-control:focus-within {
-  border-color: #1769e8;
-  box-shadow: 0 0 0 3px rgba(23, 105, 232, 0.12);
+  border-color: #2C64EA;
+  box-shadow: 0 0 0 3px rgba(44, 100, 234, 0.12);
 }
 .search-fields input,
 .search-fields select {
@@ -172,7 +170,7 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  box-shadow: 0 6px 14px rgba(7, 104, 238, 0.18);
+  box-shadow: 0 6px 14px rgba(44, 100, 234, 0.18);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -273,7 +271,7 @@
   font-weight: 500;
 }
 .section-heading a {
-  color: #0c67ed;
+  color: #2C64EA;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -313,12 +311,12 @@
   padding: 6px 12px;
   border-radius: 7px;
   background: #fff;
-  color: #0968e8;
+  color: #2C64EA;
   font-size: 11px;
   font-weight: 800;
 }
 .property-card:nth-child(3) .property-badge {
-  background: #0968e8;
+  background: #2C64EA;
   color: #fff;
 }
 .favorite {
@@ -441,7 +439,7 @@
   gap: 24px;
   margin-top: 34px;
   padding: 24px;
-  border: 1px solid #7eb2f6;
+  border: 1px solid #2C64EA;
   border-radius: 12px;
   background: linear-gradient(110deg, #f8fbff, #eef6ff 52%, #fff);
 }
@@ -451,7 +449,7 @@
   font-weight: 500;
 }
 .ai-copy h2 b {
-  color: #0968e9;
+  color: #2C64EA;
 }
 .ai-copy p {
   margin: 9px 0 17px;
@@ -464,7 +462,7 @@
   display: inline-flex;
   padding: 10px 18px;
   border-radius: 5px;
-  background: #0868eb;
+  background: #2C64EA;
   color: #fff;
   font-size: 11px;
   font-weight: 800;
@@ -477,7 +475,7 @@
   height: 72px;
   border-radius: 50%;
   background: #fff;
-  color: #0870f3;
+  color: #2C64EA;
   font-size: 30px;
   box-shadow: 0 8px 30px #cfe0fa;
 }
@@ -518,7 +516,7 @@
   justify-content: space-between;
   padding: 8px 10px;
   border-bottom: 1px solid #e6edf6;
-  color: #1761bf;
+  color: #2C64EA;
   font-size: 10px;
 }
 .lifestyle,
@@ -540,7 +538,7 @@
   font-weight: 700;
 }
 .lifestyle-row button:first-letter {
-  color: #0870f3;
+  color: #2C64EA;
   font-size: 23px;
 }
 .process-grid {
@@ -629,7 +627,7 @@
 }
 .testimonial-grid aside > b {
   align-self: flex-end;
-  color: #82b3f1;
+  color: #2C64EA;
   font-size: 70px;
 }
 @media (max-width: 1000px) {

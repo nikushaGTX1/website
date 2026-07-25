@@ -54,8 +54,8 @@
 }
 
 .rating-mark svg {
-  fill: #3569f5;
-  stroke: #3569f5;
+  fill: #2C64EA;
+  stroke: #2C64EA;
 }
 
 .heading-actions {
@@ -72,7 +72,7 @@
   border: 1px solid #d8e2ff;
   border-radius: 12px;
   background: #fff;
-  color: #3569f5;
+  color: #2C64EA;
   cursor: pointer;
 }
 
@@ -172,7 +172,7 @@
 .about-card svg,
 .type-block svg,
 .benefits svg {
-  color: #3569f5;
+  color: #2C64EA;
 }
 
 .location-info > span {
@@ -271,7 +271,7 @@
 .contact-row button {
   width: 52px;
   height: 52px;
-  border: 2px solid #3569f5;
+  border: 2px solid #2C64EA;
 }
 
 .loan-row {
@@ -285,7 +285,7 @@
   height: 50px;
   border: 0;
   border-radius: 12px;
-  background: #65cdf3;
+  background: #2C64EA;
   color: #fff;
   font-weight: 700;
   cursor: pointer;
@@ -341,7 +341,7 @@
   height: 20px;
   margin-right: 10px;
   vertical-align: middle;
-  border: 2px solid #3569f5;
+  border: 2px solid #2C64EA;
   border-radius: 5px;
 }
 
@@ -353,7 +353,7 @@
 }
 
 .request-actions button {
-  background: #3569f5;
+  background: #2C64EA;
 }
 
 .about-card {
@@ -392,7 +392,7 @@
   place-items: center;
   gap: 14px;
   min-height: 174px;
-  border: 7px solid #3569f5;
+  border: 7px solid #2C64EA;
   border-radius: 18px;
   text-align: center;
 }
@@ -451,7 +451,7 @@
 
 .review-person small {
   display: block;
-  color: #3569f5;
+  color: #2C64EA;
   letter-spacing: 1px;
 }
 
@@ -468,10 +468,10 @@
   width: 136px;
   height: 42px;
   margin: 0 auto;
-  border: 2px solid #3569f5;
+  border: 2px solid #2C64EA;
   border-radius: 8px;
   background: #fff;
-  color: #3569f5;
+  color: #2C64EA;
   font-weight: 700;
   cursor: pointer;
 }
@@ -571,7 +571,7 @@
 }
 
 .similar-info div span {
-  color: #3569f5;
+  color: #2C64EA;
   white-space: nowrap;
 }
 

@@ -83,7 +83,7 @@
 
 .nav-links a:hover,
 .nav-links a.active {
-  color: #1769e8;
+  color: #2C64EA;
 }
 
 .nav-links a:hover::after,
@@ -217,13 +217,13 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: #1769e8;
-  box-shadow: 0 5px 13px rgba(9, 104, 233, 0.2);
+  background: #2C64EA;
+  box-shadow: 0 5px 13px rgba(44, 100, 234, 0.2);
   transition: background 0.18s ease, transform 0.18s ease;
 }
 
 .list-property:hover {
-  background: #075dce;
+  background: #2C64EA;
   transform: translateY(-1px);
 }
 

@@ -3,7 +3,7 @@
   <desc id="description">A simple illustration of a home.</desc>
   <rect width="800" height="520" fill="#eef3ff"/>
   <path d="M215 286 400 135l185 151v152H215Z" fill="#d9e4ff"/>
-  <path d="m174 303 226-184 226 184" fill="none" stroke="#4775f5" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M343 438V311h114v127" fill="#fff" stroke="#4775f5" stroke-width="18"/>
+  <path d="m174 303 226-184 226 184" fill="none" stroke="#2C64EA" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M343 438V311h114v127" fill="#fff" stroke="#2C64EA" stroke-width="18"/>
   <text x="400" y="485" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#52617a">Photo coming soon</text>
 </svg>

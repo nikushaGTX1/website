@@ -110,7 +110,7 @@
 .menu-list a:hover,
 .menu-list button:hover{
     background:#f6f7fb;
-    color:#2563eb;
+    color:#2C64EA;
 }
 
 .menu-list svg{
@@ -122,7 +122,7 @@
 
 .menu-list a:hover svg,
 .menu-list button:hover svg{
-    stroke:#2563eb;
+    stroke:#2C64EA;
 }
 
 .sep{

@@ -73,7 +73,7 @@
 }
 
 .section-heading > span {
-  color: #0968e9;
+  color: #2C64EA;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 3px;
@@ -121,7 +121,7 @@
   height: 70px;
   margin-bottom: 22px;
   fill: none;
-  stroke: #0871ed;
+  stroke: #2C64EA;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
@@ -142,7 +142,7 @@
 
 .service-card a {
   margin-top: auto;
-  color: #0968e9;
+  color: #2C64EA;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -163,7 +163,7 @@
   align-items: center;
   gap: 20px;
   overflow: hidden;
-  border: 1px solid #a9caf8;
+  border: 1px solid #2C64EA;
   border-radius: 14px;
   background: linear-gradient(100deg, #f9fbff, #eef6ff);
 }
@@ -181,7 +181,7 @@
 .support-icon svg {
   width: 49px;
   fill: none;
-  stroke: #0871ed;
+  stroke: #2C64EA;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.2;
@@ -223,7 +223,7 @@
 }
 
 .contact-details strong {
-  color: #0871ed;
+  color: #2C64EA;
   font-size: 20px;
 }
 
@@ -249,7 +249,7 @@
   gap: 18px;
   border-radius: 6px;
   color: #fff;
-  background: #0968e9;
+  background: #2C64EA;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -263,15 +263,15 @@
   justify-content: center;
   gap: 7px;
   opacity: 0.32;
-  border-bottom: 1px solid #1474e8;
+  border-bottom: 1px solid #2C64EA;
 }
 
 .skyline * {
   width: 28px;
   display: block;
-  border: 1px solid #1474e8;
+  border: 1px solid #2C64EA;
   border-bottom: 0;
-  background: repeating-linear-gradient(90deg, transparent 0 5px, #1474e8 6px 7px);
+  background: repeating-linear-gradient(90deg, transparent 0 5px, #2C64EA 6px 7px);
 }
 
 .skyline span {
