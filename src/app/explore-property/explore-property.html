@@ -15,14 +15,12 @@
 
       <div class="search-inputs-bar">
         <label class="input-group"><span>Location</span>
-          <select [(ngModel)]="location">
-            <option value="">⌖ &nbsp; Saburtalo, Tbilisi</option>
-            <option value="Tbilisi">Tbilisi</option><option value="Kutaisi">Kutaisi</option>
-          </select>
+          <div class="location-control"><b>⌖</b><input [(ngModel)]="location"
+            placeholder="Search city, neighborhood or building"></div>
         </label>
-        <label class="input-group"><span>Price</span>
+        <label class="input-group"><span>Budget</span>
           <select [(ngModel)]="priceRange">
-            <option value="">All Prices</option><option value="0-1000">$0 - $1,000</option>
+            <option value="">Any budget</option><option value="0-1000">$0 - $1,000</option>
             <option value="600-2000">$600 - $2,000</option><option value="1000-2000">$1,000 - $2,000</option>
             <option value="2000+">$2,000+</option>
           </select>
@@ -31,9 +29,15 @@
           <select [(ngModel)]="headerBedrooms"><option value="">Any</option><option value="1">1 Bedroom</option>
             <option value="2">2 Bedrooms</option><option value="3">3+ Bedrooms</option></select>
         </label>
-        <button class="btn-secondary" type="button">☷ &nbsp; More filters</button>
-        <button class="btn-secondary save-search" type="button">♡ &nbsp; Save search</button>
+        <label class="input-group"><span>Move-in</span>
+          <input [(ngModel)]="moveInDate" type="date">
+        </label>
         <button class="btn-primary-search" type="button" (click)="onSearch()">Search Homes <b>⌕</b></button>
+      </div>
+
+      <div class="explore-search-footer">
+        <button class="btn-secondary" type="button" (click)="focusFilters()">☷ &nbsp; More Filters</button>
+        <a routerLink="/ai-home-match">✦ Let AI find my home</a>
       </div>
     </div>
   </section>

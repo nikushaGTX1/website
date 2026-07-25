@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService } from '../services/apartment.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-explore-property',
@@ -26,6 +27,8 @@ export class ExploreProperty implements OnInit {
   homeType = '';
   location = '';
   headerBedrooms = '';
+  featureFilter = '';
+  moveInDate = '';
 
   selectedPriceMax = 3000;
   selectedBedrooms: string[] = [];
@@ -61,10 +64,19 @@ export class ExploreProperty implements OnInit {
 
   constructor(
     private apartmentService: ApartmentService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
+    const params = this.route.snapshot.queryParamMap;
+    this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
+    this.location = params.get('location') || '';
+    this.headerBedrooms = params.get('bedrooms') || '';
+    this.moveInDate = params.get('moveIn') || '';
+    this.featureFilter = params.get('feature') || '';
+    const budget = Number(params.get('budget'));
+    if (budget > 0) this.selectedPriceMax = budget;
     this.loadApartments();
   }
 
@@ -120,6 +132,7 @@ export class ExploreProperty implements OnInit {
       const matchesBathrooms = this.matchesBathroomFilter(apartment);
       const matchesPropertyType = this.matchesPropertyTypeFilter(apartment);
       const matchesAmenities = this.matchesAmenitiesFilter(apartment);
+      const matchesFeature = this.matchesQuickFeature(apartment);
 
       return (
         matchesQuery &&
@@ -132,6 +145,7 @@ export class ExploreProperty implements OnInit {
         matchesBathrooms &&
         matchesPropertyType &&
         matchesAmenities
+        && matchesFeature
       );
     });
 
@@ -197,6 +211,13 @@ export class ExploreProperty implements OnInit {
     this.currentPage = 1;
   }
 
+  focusFilters(): void {
+    document.querySelector('.sidebar-filters')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }
+
   private applySorting(): void {
     if (this.currentSort === 'price-asc') {
       this.filteredApartments.sort((a, b) => a.price - b.price);
@@ -253,5 +274,15 @@ export class ExploreProperty implements OnInit {
     if (this.selectedAmenities.length === 0) return true;
     const text = `${apartment.title} ${apartment.description}`.toLowerCase();
     return this.selectedAmenities.every((amenity) => text.includes(amenity.toLowerCase()));
+  }
+
+  private matchesQuickFeature(apartment: Apartment): boolean {
+    switch (this.featureFilter) {
+      case 'parking': return !!apartment.hasParking;
+      case 'pets': return !!apartment.isPetFriendly;
+      case 'metro': return Number(apartment.metroDistanceMinutes || 999) <= 15;
+      case 'family': return Number(apartment.bedrooms || 0) >= 2;
+      default: return true;
+    }
   }
 }

@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: sans-serif;
 }
 
 /* Reload entrance */
@@ -143,7 +144,6 @@ textarea {
   }
 }
 
-/* Homepage AI concierge call to action (global to keep the legacy main component within its style budget). */
 .ai-home-cta {
   margin-top: 18px;
   width: min(100%, 560px);

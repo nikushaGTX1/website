@@ -22,6 +22,7 @@ export class Main implements OnInit {
   searchBudget = '';
   searchBedrooms = '';
   searchMoveIn = '';
+  public advancedFiltersOpen = false;
 
   constructor(
     private apartmentService: ApartmentService,
@@ -133,6 +134,14 @@ export class Main implements OnInit {
     void this.router.navigate(['/ExploreProperty'], {
       queryParams: { mode: this.searchMode, feature: filter },
     });
+  }
+
+  public toggleAdvancedFilters(): void {
+    this.advancedFiltersOpen = !this.advancedFiltersOpen;
+  }
+
+  public openAiHomeMatch(): void {
+    void this.router.navigate(['/ai-home-match']);
   }
 
   private isDisplayableApartment(apartment: Apartment): boolean {

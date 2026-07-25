@@ -42,13 +42,19 @@
         <button class="search-submit" type="submit">Search Homes <span>⌕</span></button>
       </div>
 
-      <div class="quick-filters">
+      <div class="search-footer">
+        <button class="more-filters-toggle" type="button"
+          [attr.aria-expanded]="advancedFiltersOpen"
+          (click)="toggleAdvancedFilters()">☷ &nbsp; More Filters</button>
+        <button class="ai-home-link" type="button" (click)="openAiHomeMatch()">✦ Let AI find my home</button>
+      </div>
+
+      <div class="quick-filters" *ngIf="advancedFiltersOpen">
         <button type="button" (click)="useQuickFilter('parking')">▰ Parking</button>
         <button type="button" (click)="useQuickFilter('metro')">▥ Near Metro</button>
         <button type="button" (click)="useQuickFilter('pets')">♣ Pet Friendly</button>
         <button type="button" (click)="useQuickFilter('family')">♟ Family Homes</button>
         <button type="button" (click)="useQuickFilter('new')">▤ New Buildings</button>
-        <a routerLink="/ai-home-match">✦ Let AI find my home</a>
       </div>
     </form>
   </section>
