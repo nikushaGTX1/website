@@ -1,6 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import {
+  AppLanguage,
+  TranslationService,
+} from '../services/translation.service';
 
 @Component({
   selector: 'app-navigation',
@@ -12,9 +16,13 @@ export class Navigation implements OnInit, OnDestroy {
   isLoggedIn = false;
   canOpenAdmin = false;
   menuOpen = false;
+  languageOpen = false;
   private subscription?: Subscription;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    readonly translation: TranslationService,
+  ) {}
 
   ngOnInit(): void {
     this.isLoggedIn = this.authService.isLoggedIn;
@@ -31,5 +39,11 @@ export class Navigation implements OnInit, OnDestroy {
 
   closeMenu(): void {
     this.menuOpen = false;
+    this.languageOpen = false;
+  }
+
+  selectLanguage(language: AppLanguage): void {
+    this.translation.setLanguage(language);
+    this.languageOpen = false;
   }
 }

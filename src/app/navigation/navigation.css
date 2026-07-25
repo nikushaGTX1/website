@@ -136,6 +136,49 @@
   cursor: pointer;
 }
 
+.language-picker {
+  position: relative;
+}
+
+.language-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 150px;
+  overflow: hidden;
+  padding: 6px;
+  border: 1px solid #e2e7ef;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 35px rgba(16, 32, 62, 0.14);
+}
+
+.language-menu button {
+  width: 100%;
+  padding: 10px;
+  display: flex;
+  gap: 12px;
+  border: 0;
+  border-radius: 7px;
+  color: #111827;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.language-menu button:hover {
+  background: #f2f6fc;
+}
+
+.language-menu span {
+  color: #657084;
+  font-weight: 500;
+}
+
 .language svg {
   width: 15px;
   fill: none;

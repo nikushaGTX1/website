@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { AfterViewInit, Component, signal } from '@angular/core';
+import { TranslationService } from './services/translation.service';
 
 @Component({
   selector: 'app-root',
@@ -6,6 +7,12 @@ import { Component, signal } from '@angular/core';
   standalone: false,
   styleUrl: './app.css'
 })
-export class App {
+export class App implements AfterViewInit {
   protected readonly title = signal('site');
+
+  constructor(private translation: TranslationService) {}
+
+  ngAfterViewInit(): void {
+    this.translation.start();
+  }
 }
