@@ -39,6 +39,7 @@ export class ApartmentDetail implements OnInit {
   activePhotoIndex = 0;
   photoViewerOpen = false;
   favorite = false;
+  phoneRevealed = false;
   descriptionExpanded = false;
   nearbyPlaces: NearbyPlace[] = [];
   private realPhotoCount = 0;
@@ -190,6 +191,13 @@ export class ApartmentDetail implements OnInit {
     return this.selectedAgent?.phoneNumber?.trim() || this.getListingMetadata('Phone');
   }
 
+  get maskedPhoneNumber(): string {
+    const phone = this.phoneNumber;
+    if (!phone) return '';
+    const visibleDigits = phone.replace(/\D/g, '').slice(-2);
+    return `••• ••• ••${visibleDigits ? ` ${visibleDigits}` : ''}`;
+  }
+
   get visibleDescription(): string {
     const clean = this.description.split(/\n\nType:/i)[0].trim();
     return this.descriptionExpanded || clean.length <= 360
@@ -257,6 +265,10 @@ export class ApartmentDetail implements OnInit {
 
   contactAgent(): void {
     if (this.phoneNumber) {
+      if (!this.phoneRevealed) {
+        this.phoneRevealed = true;
+        return;
+      }
       location.href = `tel:${this.phoneNumber.replace(/[^\d+]/g, '')}`;
       return;
     }
@@ -376,6 +388,7 @@ export class ApartmentDetail implements OnInit {
 
   private applyApartment(apartment: Apartment): void {
     this.apartment = apartment;
+    this.phoneRevealed = false;
     this.galleryImages = this.getApartmentImages(apartment);
   }
 

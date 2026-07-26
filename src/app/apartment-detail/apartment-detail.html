@@ -50,7 +50,7 @@
           <span><i class="fa-solid fa-bath"></i><b>{{ bathrooms || '—' }}</b><small>Bathrooms</small></span>
           <span><i class="fa-regular fa-calendar"></i><b>{{ apartment.totalFloors || '—' }}</b><small>Total floors</small></span>
         </div>
-        <button type="button" class="contact primary" (click)="contactAgent()"><i class="fa-solid fa-phone"></i> Contact Agent</button>
+        <button type="button" class="contact primary" (click)="contactAgent()"><i class="fa-solid fa-phone"></i> {{ phoneRevealed && phoneNumber ? phoneNumber : 'Reveal phone number' }}</button>
         <button type="button" class="contact whatsapp" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
         <button type="button" class="contact schedule" (click)="scheduleViewing()"><i class="fa-regular fa-calendar-check"></i> Schedule a viewing</button>
       </aside>
@@ -94,9 +94,12 @@
           <h3>{{ agentName }}</h3>
           <span>{{ agentRole }}</span>
           <small class="agent-rating">★ {{ agentRating }} <em>{{ agentRatingCount }}</em></small>
-          <a class="agent-phone" *ngIf="phoneNumber" [href]="'tel:' + phoneNumber"><i class="fa-solid fa-phone"></i> {{ phoneNumber }}</a>
+          <div class="phone-reveal" *ngIf="phoneNumber">
+            <span><i class="fa-solid fa-phone"></i> {{ phoneRevealed ? phoneNumber : maskedPhoneNumber }}</span>
+            <button type="button" class="reveal-number" *ngIf="!phoneRevealed" (click)="phoneRevealed = true">Reveal number</button>
+          </div>
           <p class="agent-bio">{{ agentBio }}</p>
-          <div class="agent-actions"><button type="button" (click)="contactAgent()"><i class="fa-solid fa-phone"></i> Contact Agent</button><button type="button" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button></div>
+          <div class="agent-actions"><button type="button" (click)="contactAgent()"><i class="fa-solid fa-phone"></i> {{ phoneRevealed && phoneNumber ? 'Call Agent' : 'Reveal Number' }}</button><button type="button" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button></div>
         </div>
       </article>
     </section>
