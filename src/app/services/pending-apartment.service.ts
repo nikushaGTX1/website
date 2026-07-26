@@ -115,6 +115,30 @@ export class PendingApartmentService {
     });
   }
 
+  updateSubmission(id: string, apartment: CreateApartment): PendingApartment | null {
+    return this.update(id, {
+      apartment,
+      status: 'pending',
+      submittedAt: new Date().toISOString(),
+      reviewedAt: undefined,
+      reviewedBy: undefined,
+      message: 'Changes saved. Waiting for agent approval.',
+      publishedApartmentId: undefined,
+    });
+  }
+
+  remove(id: string): boolean {
+    const items = this.getAll();
+    const updated = items.filter((item) => item.id !== id);
+
+    if (updated.length === items.length) {
+      return false;
+    }
+
+    this.save(updated);
+    return true;
+  }
+
   private update(id: string, changes: Partial<PendingApartment>): PendingApartment | null {
     let updatedItem: PendingApartment | null = null;
     const updated = this.getAll().map((item) => {

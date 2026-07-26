@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Apartment, CreateApartment } from '../models/apartment';
 import { User } from '../models/user';
 import { ApartmentService } from '../services/apartment.service';
@@ -19,6 +20,7 @@ export class MyListings implements OnInit, OnDestroy {
   listings: Apartment[] = [];
   pendingListings: PendingApartment[] = [];
   editingId: number | null = null;
+  editingPendingId: string | null = null;
   editForm: ListingForm = this.createEmptyForm();
 
   loading = false;
@@ -74,21 +76,43 @@ export class MyListings implements OnInit, OnDestroy {
 
   startEdit(apartment: Apartment): void {
     this.editingId = apartment.id;
+    this.editingPendingId = null;
     this.successMessage = '';
     this.errorMessage = '';
-    this.editForm = {
-      title: apartment.title,
-      description: apartment.description,
-      price: apartment.price,
-      address: apartment.address || '',
-      imageUrl: apartment.imageUrl || '',
-      imageUrls: apartment.imageUrls || [],
-    };
+    this.editForm = this.toListingForm(apartment);
+  }
+
+  startPendingEdit(request: PendingApartment): void {
+    this.editingId = null;
+    this.editingPendingId = request.id;
+    this.successMessage = '';
+    this.errorMessage = '';
+    this.editForm = this.toListingForm(request.apartment);
   }
 
   cancelEdit(): void {
     this.editingId = null;
+    this.editingPendingId = null;
     this.editForm = this.createEmptyForm();
+  }
+
+  savePendingEdit(request: PendingApartment): void {
+    if (!this.validateForm()) return;
+
+    this.pendingService.updateSubmission(request.id, this.normalizedForm());
+    this.successMessage = 'Changes saved and sent for approval.';
+    this.errorMessage = '';
+    this.cancelEdit();
+  }
+
+  deletePendingListing(request: PendingApartment): void {
+    if (!confirm(`Delete "${request.apartment.title}"?`)) return;
+
+    if (this.pendingService.remove(request.id)) {
+      this.successMessage = 'Upload request deleted.';
+      this.errorMessage = '';
+      this.cancelEdit();
+    }
   }
 
   saveEdit(apartment: Apartment): void {
@@ -97,30 +121,20 @@ export class MyListings implements OnInit, OnDestroy {
     this.successMessage = '';
     this.errorMessage = '';
 
-    if (!this.editForm.title.trim() || !this.editForm.price) {
-      this.errorMessage = 'Title and price are required.';
-      return;
-    }
+    if (!this.validateForm()) return;
 
     this.saving = true;
 
-    this.apartmentService.updateApartment(apartment.id, {
-      title: this.editForm.title.trim(),
-      description: this.editForm.description.trim(),
-      price: Number(this.editForm.price),
-      address: this.editForm.address?.trim(),
-      imageUrl: this.editForm.imageUrl?.trim() || undefined,
-      imageUrls: this.editForm.imageUrls,
-    }).subscribe({
+    this.apartmentService.updateApartment(apartment.id, this.normalizedForm()).subscribe({
       next: () => {
         this.saving = false;
         this.successMessage = 'Listing updated.';
         this.cancelEdit();
         this.loadListings();
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.saving = false;
-        this.errorMessage = 'Could not update this listing.';
+        this.errorMessage = this.getApiError(error, 'Could not update this listing.');
       },
     });
   }
@@ -135,10 +149,15 @@ export class MyListings implements OnInit, OnDestroy {
         this.successMessage = 'Listing deleted.';
         this.listings = this.listings.filter((item) => item.id !== apartment.id);
       },
-      error: () => {
-        this.errorMessage = 'Could not delete this listing.';
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage = this.getApiError(error, 'Could not delete this listing.');
       },
     });
+  }
+
+  onImagesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.editForm.imageFiles = Array.from(input.files || []).slice(0, 15);
   }
 
   getStatusLabel(status: PendingApartment['status']): string {
@@ -205,5 +224,76 @@ export class MyListings implements OnInit, OnDestroy {
       imageUrl: '',
       imageUrls: [],
     };
+  }
+
+  private toListingForm(apartment: Partial<Apartment & CreateApartment>): ListingForm {
+    return {
+      title: apartment.title || '',
+      description: apartment.description || '',
+      price: Number(apartment.price) || 0,
+      address: apartment.address || '',
+      city: apartment.city || 'Tbilisi',
+      district: apartment.district || '',
+      bedrooms: apartment.bedrooms ?? 0,
+      bathrooms: apartment.bathrooms ?? 0,
+      sizeSquareMeters: apartment.sizeSquareMeters ?? 0,
+      floor: apartment.floor ?? 0,
+      totalFloors: apartment.totalFloors ?? 1,
+      hasElevator: !!apartment.hasElevator,
+      hasParking: !!apartment.hasParking,
+      hasBalcony: !!apartment.hasBalcony,
+      hasBathtub: !!apartment.hasBathtub,
+      hasAirConditioning: !!apartment.hasAirConditioning,
+      hasDishwasher: !!apartment.hasDishwasher,
+      isPetFriendly: !!apartment.isPetFriendly,
+      hasHomeOfficeSpace: !!apartment.hasHomeOfficeSpace,
+      hasLargeKitchen: !!apartment.hasLargeKitchen,
+      hasView: !!apartment.hasView,
+      isFurnished: !!apartment.isFurnished,
+      apartmentStyle: apartment.apartmentStyle || '',
+      imageUrl: apartment.imageUrl || '',
+      imageUrls: [...(apartment.imageUrls || [])],
+    };
+  }
+
+  private validateForm(): boolean {
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    if (!this.editForm.title.trim() || Number(this.editForm.price) <= 0) {
+      this.errorMessage = 'Title and a valid price are required.';
+      return false;
+    }
+
+    return true;
+  }
+
+  private normalizedForm(): ListingForm {
+    return {
+      ...this.editForm,
+      title: this.editForm.title.trim(),
+      description: this.editForm.description.trim(),
+      price: Number(this.editForm.price),
+      address: this.editForm.address?.trim(),
+      city: this.editForm.city?.trim() || 'Tbilisi',
+      district: this.editForm.district?.trim() || this.editForm.address?.trim() || 'Tbilisi',
+      bedrooms: Number(this.editForm.bedrooms) || 0,
+      bathrooms: Number(this.editForm.bathrooms) || 0,
+      sizeSquareMeters: Number(this.editForm.sizeSquareMeters) || 0,
+      floor: Number(this.editForm.floor) || 0,
+      totalFloors: Math.max(1, Number(this.editForm.totalFloors) || 1),
+      imageUrl: this.editForm.imageUrl?.trim() || undefined,
+    };
+  }
+
+  private getApiError(error: HttpErrorResponse, fallback: string): string {
+    const apiMessage =
+      typeof error.error === 'string'
+        ? error.error
+        : error.error?.message || error.error?.title;
+
+    if (error.status === 401) return 'Your session expired. Please sign in again.';
+    if (error.status === 403) return 'You do not have permission to change this listing.';
+    return apiMessage || `${fallback} (HTTP ${error.status || 'network error'})`;
   }
 }

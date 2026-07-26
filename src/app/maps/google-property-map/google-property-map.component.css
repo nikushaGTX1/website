@@ -12,6 +12,10 @@
   overflow: hidden;
   color: #211d35;
 }
+.google-property-map.compact {
+  min-height: 300px;
+  border-radius: 12px;
+}
 .google-property-map header {
   display: flex;
   align-items: center;

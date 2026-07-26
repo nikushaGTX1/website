@@ -1,5 +1,5 @@
-<section class="google-property-map" aria-label="Apartment neighborhood map">
-  <header>
+<section class="google-property-map" [class.compact]="compact" aria-label="Apartment location map">
+  <header *ngIf="!compact">
     <div>
       <strong>Explore the neighborhood</strong><span>Places near {{ apartmentTitle }}</span>
     </div>
@@ -13,7 +13,7 @@
       /><button type="submit" [disabled]="searching || !searchQuery.trim()">Search</button>
     </form>
   </header>
-  <nav aria-label="Nearby place filters">
+  <nav *ngIf="!compact" aria-label="Nearby place filters">
     <button
       type="button"
       *ngFor="let category of categories"
@@ -24,7 +24,7 @@
       {{ category.label }}
     </button>
   </nav>
-  <div class="nearest-summary" *ngIf="nearestPlaces.length">
+  <div class="nearest-summary" *ngIf="!compact && nearestPlaces.length">
     <article
       *ngFor="let place of nearestPlaces"
       (click)="showDirections(place)"
@@ -44,7 +44,7 @@
     </div>
     <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
   </div>
-  <div class="lower-panel" [class.has-route]="selectedPlace" *ngIf="places.length">
+  <div class="lower-panel" [class.has-route]="selectedPlace" *ngIf="!compact && places.length">
     <div class="place-list">
       <article
         *ngFor="let place of places; let index = index"
@@ -75,7 +75,7 @@
       <div #directionsPanel class="directions-panel"></div>
     </aside>
   </div>
-  <p class="empty" *ngIf="!loading && !searching && !errorMessage && places.length === 0">
+  <p class="empty" *ngIf="!compact && !loading && !searching && !errorMessage && places.length === 0">
     No matching places were found within 10 km. Try another category or search.
   </p>
 </section>
