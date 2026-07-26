@@ -34,6 +34,13 @@ app.use((request, response, next) => {
   next();
 });
 
+app.use((_request, response, next) => {
+  response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+  next();
+});
+
 function validateApartmentImageUrl(value) {
   const imageUrl = new URL(value);
   if (
@@ -352,7 +359,15 @@ app.get('/', (_request, response) => {
   response.redirect(301, '/main');
 });
 
-app.use(express.static(browserDirectory));
+app.use(express.static(browserDirectory, {
+  setHeaders(response, filePath) {
+    if (/\.[A-Z0-9]{8}\.(?:js|css)$/i.test(filePath)) {
+      response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (/\.(?:png|jpe?g|webp|svg|ico|woff2?)$/i.test(filePath)) {
+      response.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+    }
+  },
+}));
 app.use((request, response) => {
   // Do not return index.html for missing browser assets. During a rolling
   // deployment that turns a missing JavaScript bundle into an HTML response,
@@ -362,6 +377,7 @@ app.use((request, response) => {
     return;
   }
 
+  response.setHeader('Cache-Control', 'no-cache');
   response.sendFile(path.join(browserDirectory, 'index.html'));
 });
 
