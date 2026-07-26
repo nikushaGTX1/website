@@ -25,11 +25,27 @@ export class ExploreProperty implements OnInit {
   selectedType = 'For Rent'; 
   priceRange = '';
   budgetOpen = false;
+  bedroomOpen = false;
   budgetCurrency: 'GEL' | 'USD' = 'GEL';
-  budgetMin: number | null = null;
-  budgetMax: number | null = null;
+  budgetMin: number | null = 0;
+  budgetMax: number | null = 5000;
   appliedBudgetMin: number | null = null;
   appliedBudgetMax: number | null = null;
+  selectedBudgetRange = '';
+  readonly budgetRanges = [
+    { label: 'Up to $800', min: 0, max: 800 },
+    { label: '$800 – $1,500', min: 800, max: 1500 },
+    { label: '$1,500 – $3,000', min: 1500, max: 3000 },
+    { label: '$3,000 – $5,000', min: 3000, max: 5000 },
+  ];
+  readonly headerBedroomOptions = [
+    { label: 'Studio', value: '0', icon: '♙' },
+    { label: '1 Bed', value: '1', icon: '▱' },
+    { label: '2 Beds', value: '2', icon: '♙' },
+    { label: '3 Beds', value: '3', icon: '▱' },
+    { label: '4 Beds', value: '4', icon: '♙' },
+    { label: '4+ Beds', value: '4+', icon: '▦' },
+  ];
   homeType = '';
   location = '';
   headerBedrooms = '';
@@ -62,9 +78,21 @@ export class ExploreProperty implements OnInit {
     return `Up to ${this.appliedBudgetMax!.toLocaleString()} ${code}`;
   }
 
+  get headerBedroomSummary(): string {
+    return this.headerBedroomOptions.find((option) => option.value === this.headerBedrooms)?.label || 'Any';
+  }
+
   @HostListener('document:click')
   closeBudget(): void {
     this.budgetOpen = false;
+    this.bedroomOpen = false;
+  }
+
+  selectBudgetRange(range: { label: string; min: number; max: number }): void {
+    this.selectedBudgetRange = range.label;
+    this.budgetCurrency = 'USD';
+    this.budgetMin = range.min;
+    this.budgetMax = range.max;
   }
 
   setBudgetCurrency(currency: 'GEL' | 'USD'): void {
@@ -79,11 +107,24 @@ export class ExploreProperty implements OnInit {
   }
 
   resetBudget(): void {
-    this.budgetMin = null;
-    this.budgetMax = null;
+    this.budgetMin = 0;
+    this.budgetMax = 5000;
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
+    this.selectedBudgetRange = '';
     this.budgetOpen = false;
+    this.onSearch();
+  }
+
+  selectHeaderBedrooms(value: string): void {
+    this.headerBedrooms = value;
+    this.bedroomOpen = false;
+    this.onSearch();
+  }
+
+  clearHeaderBedrooms(): void {
+    this.headerBedrooms = '';
+    this.bedroomOpen = false;
     this.onSearch();
   }
 
@@ -163,9 +204,7 @@ export class ExploreProperty implements OnInit {
       const matchesQuery = !query || haystack.includes(query);
       const matchesHome = !home || haystack.includes(home);
       const matchesLocation = !loc || haystack.includes(loc);
-      const matchesHeaderBedrooms =
-        !this.headerBedrooms ||
-        Number(apartment.bedrooms || 0) >= Number(this.headerBedrooms);
+      const matchesHeaderBedrooms = this.matchesHeaderBedroom(apartment);
 
       const matchesHeaderPrice = this.matchesPriceRange(apartment.price);
       const matchesCustomBudget = this.matchesCustomBudget(apartment.price);
@@ -221,8 +260,8 @@ export class ExploreProperty implements OnInit {
     this.searchQuery = '';
     this.selectedType = 'For Rent';
     this.priceRange = '';
-    this.budgetMin = null;
-    this.budgetMax = null;
+    this.budgetMin = 0;
+    this.budgetMax = 5000;
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
     this.homeType = '';
@@ -244,6 +283,7 @@ export class ExploreProperty implements OnInit {
     this.applySorting();
     this.currentPage = 1;
   }
+
 
   goToPage(page: number): void {
     this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
@@ -303,6 +343,13 @@ export class ExploreProperty implements OnInit {
     if (this.selectedBedrooms.length === 0) return true;
     const text = `${apartment.title} ${apartment.description}`.toLowerCase();
     return this.selectedBedrooms.some((bed) => text.includes(bed.toLowerCase()));
+  }
+
+  private matchesHeaderBedroom(apartment: Apartment): boolean {
+    if (!this.headerBedrooms) return true;
+    const bedrooms = Number(apartment.bedrooms || 0);
+    if (this.headerBedrooms === '4+') return bedrooms >= 4;
+    return bedrooms === Number(this.headerBedrooms);
   }
 
   private matchesBathroomFilter(apartment: Apartment): boolean {

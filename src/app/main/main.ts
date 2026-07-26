@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ApartmentService } from '../services/apartment.service';
 import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
@@ -20,6 +20,28 @@ export class Main implements OnInit {
   searchMode: 'rent' | 'buy' = 'rent';
   searchLocation = '';
   searchBudget = '';
+  budgetOpen = false;
+  bedroomOpen = false;
+  budgetCurrency: 'GEL' | 'USD' = 'GEL';
+  budgetMin: number | null = 0;
+  budgetMax: number | null = 5000;
+  appliedBudgetMin: number | null = null;
+  appliedBudgetMax: number | null = null;
+  selectedBudgetRange = '';
+  readonly budgetRanges = [
+    { label: 'Up to $800', min: 0, max: 800 },
+    { label: '$800 – $1,500', min: 800, max: 1500 },
+    { label: '$1,500 – $3,000', min: 1500, max: 3000 },
+    { label: '$3,000 – $5,000', min: 3000, max: 5000 },
+  ];
+  readonly bedroomOptions = [
+    { label: 'Studio', value: '0', icon: '♙' },
+    { label: '1 Bed', value: '1', icon: '▱' },
+    { label: '2 Beds', value: '2', icon: '♙' },
+    { label: '3 Beds', value: '3', icon: '▱' },
+    { label: '4 Beds', value: '4', icon: '♙' },
+    { label: '4+ Beds', value: '4+', icon: '▦' },
+  ];
   searchBedrooms = '';
   searchMoveIn = '';
   public advancedFiltersOpen = false;
@@ -34,6 +56,59 @@ export class Main implements OnInit {
   ngOnInit(): void {
     this.loadApartments();
     this.loadAgents();
+  }
+
+  get budgetSummary(): string {
+    const min = this.appliedBudgetMin;
+    const max = this.appliedBudgetMax;
+    if (min == null && max == null) return 'Any budget';
+    if (min != null && max != null) return `${min.toLocaleString()} – ${max.toLocaleString()} ${this.budgetCurrency}`;
+    if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
+    return `Up to ${max!.toLocaleString()} ${this.budgetCurrency}`;
+  }
+
+  get bedroomSummary(): string {
+    return this.bedroomOptions.find((option) => option.value === this.searchBedrooms)?.label || 'Any';
+  }
+
+  @HostListener('document:click')
+  closeBudget(): void {
+    this.budgetOpen = false;
+    this.bedroomOpen = false;
+  }
+
+  selectBudgetRange(range: { label: string; min: number; max: number }): void {
+    this.selectedBudgetRange = range.label;
+    this.budgetCurrency = 'USD';
+    this.budgetMin = range.min;
+    this.budgetMax = range.max;
+  }
+
+  applyBudget(): void {
+    this.appliedBudgetMin = this.normalizeBudget(this.budgetMin);
+    this.appliedBudgetMax = this.normalizeBudget(this.budgetMax);
+    this.searchBudget = this.appliedBudgetMax?.toString() || '';
+    this.budgetOpen = false;
+  }
+
+  resetBudget(): void {
+    this.budgetMin = 0;
+    this.budgetMax = 5000;
+    this.appliedBudgetMin = null;
+    this.appliedBudgetMax = null;
+    this.searchBudget = '';
+    this.selectedBudgetRange = '';
+    this.budgetOpen = false;
+  }
+
+  selectBedrooms(value: string): void {
+    this.searchBedrooms = value;
+    this.bedroomOpen = false;
+  }
+
+  clearBedrooms(): void {
+    this.searchBedrooms = '';
+    this.bedroomOpen = false;
   }
 
   get topApartments(): Apartment[] {
@@ -123,7 +198,9 @@ export class Main implements OnInit {
       queryParams: {
         mode: this.searchMode,
         location: this.searchLocation || null,
-        budget: this.searchBudget || null,
+        budget: this.toUsd(this.appliedBudgetMax),
+        budgetMin: this.toUsd(this.appliedBudgetMin),
+        budgetCurrency: this.budgetCurrency,
         bedrooms: this.searchBedrooms || null,
         moveIn: this.searchMoveIn || null,
       },
@@ -146,5 +223,15 @@ export class Main implements OnInit {
 
   private isDisplayableApartment(apartment: Apartment): boolean {
     return !!apartment.title?.trim() && Number(apartment.price) > 0;
+  }
+
+  private normalizeBudget(value: number | null): number | null {
+    const normalized = Number(value);
+    return value == null || !Number.isFinite(normalized) || normalized < 0 ? null : normalized;
+  }
+
+  private toUsd(value: number | null): number | null {
+    if (value == null) return null;
+    return this.budgetCurrency === 'GEL' ? Math.round(value / 2.7) : value;
   }
 }

@@ -22,34 +22,56 @@
           <span>Budget</span>
           <button class="budget-trigger" type="button" [class.is-open]="budgetOpen"
             [attr.aria-expanded]="budgetOpen" aria-haspopup="dialog"
-            (click)="$event.stopPropagation(); budgetOpen = !budgetOpen">
+            (click)="$event.stopPropagation(); budgetOpen = !budgetOpen; bedroomOpen = false">
             <span>{{ budgetSummary }}</span><b aria-hidden="true">⌄</b>
           </button>
           <div class="budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen"
             (click)="$event.stopPropagation()">
-            <div class="budget-heading">
-              <h3>Price</h3>
-              <div class="currency-toggle" aria-label="Currency">
-                <button type="button" [class.active]="budgetCurrency === 'GEL'" (click)="setBudgetCurrency('GEL')">GEL</button>
-                <button type="button" [class.active]="budgetCurrency === 'USD'" (click)="setBudgetCurrency('USD')">USD</button>
-              </div>
+            <h3>Choose your price range</h3>
+            <div class="budget-presets">
+              <button type="button" *ngFor="let range of budgetRanges"
+                [class.active]="selectedBudgetRange === range.label"
+                (click)="selectBudgetRange(range)">{{ range.label }}</button>
             </div>
+            <div class="filter-divider"></div>
+            <h4>Custom range</h4>
             <div class="budget-fields">
               <label><span>Min price</span><input type="number" min="0" inputmode="numeric"
-                [(ngModel)]="budgetMin" placeholder="Min price"></label>
+                [(ngModel)]="budgetMin" (ngModelChange)="selectedBudgetRange = ''" placeholder="$ 0"></label>
+              <b aria-hidden="true">–</b>
               <label><span>Max price</span><input type="number" min="0" inputmode="numeric"
-                [(ngModel)]="budgetMax" placeholder="Max price"></label>
+                [(ngModel)]="budgetMax" (ngModelChange)="selectedBudgetRange = ''" placeholder="$ 5,000"></label>
             </div>
+            <div class="budget-slider-stack">
+              <input type="range" min="0" max="5000" step="100" [(ngModel)]="budgetMin"
+                (ngModelChange)="selectedBudgetRange = ''">
+              <input type="range" min="0" max="5000" step="100" [(ngModel)]="budgetMax"
+                (ngModelChange)="selectedBudgetRange = ''">
+            </div>
+            <div class="budget-scale"><span>$0</span><span>$1K</span><span>$2K</span><span>$5K+</span></div>
             <div class="budget-actions">
-              <button class="budget-reset" type="button" (click)="resetBudget()">Reset</button>
+              <button class="budget-reset" type="button" (click)="resetBudget()">↻ &nbsp; Reset</button>
               <button class="budget-apply" type="button" (click)="applyBudget()">Apply</button>
             </div>
           </div>
         </div>
-        <label class="input-group"><span>Bedrooms</span>
-          <select [(ngModel)]="headerBedrooms"><option value="">Any</option><option value="1">1 Bedroom</option>
-            <option value="2">2 Bedrooms</option><option value="3">3+ Bedrooms</option></select>
-        </label>
+        <div class="input-group bedroom-filter"><span>Bedrooms</span>
+          <button class="bedroom-trigger" type="button" [class.is-open]="bedroomOpen"
+            [attr.aria-expanded]="bedroomOpen" aria-haspopup="dialog"
+            (click)="$event.stopPropagation(); bedroomOpen = !bedroomOpen; budgetOpen = false">
+            <span>{{ headerBedroomSummary }}</span><b aria-hidden="true">⌄</b>
+          </button>
+          <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen"
+            (click)="$event.stopPropagation()">
+            <h3>Bedrooms</h3>
+            <div class="bedroom-options">
+              <button type="button" *ngFor="let option of headerBedroomOptions"
+                [class.active]="headerBedrooms === option.value"
+                (click)="selectHeaderBedrooms(option.value)">{{ option.icon }} <span>{{ option.label }}</span></button>
+            </div>
+            <button class="bedroom-clear" type="button" (click)="clearHeaderBedrooms()">Clear</button>
+          </div>
+        </div>
         <label class="input-group"><span>Move-in</span>
           <input [(ngModel)]="moveInDate" type="date">
         </label>
