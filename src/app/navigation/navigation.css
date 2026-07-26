@@ -480,17 +480,17 @@
   }
 
   .navigation-content {
-    position: fixed;
+    position: absolute;
     z-index: 1001;
-    top: 64px;
+    top: 100%;
     right: 0;
-    bottom: 0;
     left: 0;
     max-height: none;
-    padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    padding: 12px 16px 16px;
+    overflow: visible;
     background: #fff;
+    border-bottom: 1px solid #e4eaf3;
+    box-shadow: 0 16px 30px rgba(16, 32, 62, .12);
   }
 
   .navigation-content:not(.is-open) {
@@ -502,15 +502,15 @@
   }
 
   .nav-links {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: stretch;
-    flex-direction: column;
-    gap: 2px;
+    gap: 4px 8px;
   }
 
   .nav-links a {
     width: 100%;
-    height: 48px;
+    height: 42px;
     padding: 0 12px;
     border-radius: 8px;
     font-size: 15px;
@@ -526,10 +526,10 @@
 
   .nav-actions {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     width: 100%;
-    padding-top: 16px;
+    padding-top: 12px;
   }
 
   .language-picker,
@@ -549,7 +549,7 @@
   }
 
   .list-property {
-    grid-column: auto;
+    grid-column: 1 / -1;
   }
 
   .language-menu {
