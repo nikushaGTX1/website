@@ -31,7 +31,7 @@
             <span [class]="request.status">{{ getStatusLabel(request.status) }}</span>
           </div>
           <p>{{ request.apartment.address || 'No address' }}</p>
-          <strong>{{ request.apartment.price | currency:'USD':'symbol':'1.0-0' }}</strong>
+          <strong><app-currency-price [usdPrice]="request.apartment.price"></app-currency-price></strong>
           <small>{{ request.apartment.imageUrls?.length || (request.apartment.imageUrl ? 1 : 0) }} photos</small>
           <small *ngIf="request.message">{{ request.message }}</small>
           <div class="card-actions" *ngIf="request.status !== 'approved'">
@@ -77,7 +77,7 @@
               <h3>{{ apartment.title }}</h3>
               <p>{{ apartment.address || 'No address' }}</p>
             </div>
-            <strong>{{ apartment.price | currency:'USD':'symbol':'1.0-0' }}</strong>
+            <strong><app-currency-price [usdPrice]="apartment.price"></app-currency-price></strong>
           </div>
 
           <p class="description">{{ apartment.description }}</p>

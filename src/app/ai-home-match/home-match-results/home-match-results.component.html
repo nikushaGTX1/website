@@ -56,7 +56,7 @@
           <h2>{{ result.apartment.title }}</h2>
           <p>{{ result.apartment.district || result.apartment.address }}</p>
         </div>
-        <strong>${{ result.apartment.price | number }}/mo</strong>
+        <strong><app-currency-price [usdPrice]="result.apartment.price" suffix="/mo"></app-currency-price></strong>
       </div>
       <div class="facts">
         <span *ngIf="result.apartment.bedrooms !== undefined"

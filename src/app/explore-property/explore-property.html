@@ -8,14 +8,14 @@
     <div class="search-card">
       <div class="search-tabs">
         <button type="button" class="tab-btn" [class.active]="selectedType !== 'For Sale'"
-          (click)="selectedType = 'For Rent'; onSearch()"><span class="tab-home">⌂</span> Rent</button>
+          (click)="selectedType = 'For Rent'; onSearch()"><span class="tab-home"><i class="fa-solid fa-house"></i></span> Rent</button>
         <button type="button" class="tab-btn" [class.active]="selectedType === 'For Sale'"
-          (click)="selectedType = 'For Sale'; onSearch()"><span class="tab-home">⌂</span> Buy</button>
+          (click)="selectedType = 'For Sale'; onSearch()"><span class="tab-home"><i class="fa-solid fa-house"></i></span> Buy</button>
       </div>
 
       <div class="search-inputs-bar">
         <label class="input-group"><span>Location</span>
-          <div class="location-control"><b>⌖</b><input [(ngModel)]="location"
+          <div class="location-control"><b><i class="fa-solid fa-location-dot"></i></b><input [(ngModel)]="location"
             placeholder="Search city, neighborhood or building"></div>
         </label>
         <div class="input-group budget-filter">
@@ -23,7 +23,7 @@
           <button class="budget-trigger" type="button" [class.is-open]="budgetOpen"
             [attr.aria-expanded]="budgetOpen" aria-haspopup="dialog"
             (click)="$event.stopPropagation(); budgetOpen = !budgetOpen; bedroomOpen = false">
-            <span>{{ budgetSummary }}</span><b aria-hidden="true">⌄</b>
+            <span><i class="fa-solid fa-wallet"></i> {{ budgetSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div class="budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen"
             (click)="$event.stopPropagation()">
@@ -50,7 +50,7 @@
             </div>
             <div class="budget-scale"><span>$0</span><span>$1K</span><span>$2K</span><span>$5K+</span></div>
             <div class="budget-actions">
-              <button class="budget-reset" type="button" (click)="resetBudget()">↻ &nbsp; Reset</button>
+              <button class="budget-reset" type="button" (click)="resetBudget()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
               <button class="budget-apply" type="button" (click)="applyBudget()">Apply</button>
             </div>
           </div>
@@ -59,7 +59,7 @@
           <button class="bedroom-trigger" type="button" [class.is-open]="bedroomOpen"
             [attr.aria-expanded]="bedroomOpen" aria-haspopup="dialog"
             (click)="$event.stopPropagation(); bedroomOpen = !bedroomOpen; budgetOpen = false">
-            <span>{{ headerBedroomSummary }}</span><b aria-hidden="true">⌄</b>
+            <span><i class="fa-solid fa-bed"></i> {{ headerBedroomSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen"
             (click)="$event.stopPropagation()">
@@ -67,20 +67,20 @@
             <div class="bedroom-options">
               <button type="button" *ngFor="let option of headerBedroomOptions"
                 [class.active]="headerBedrooms === option.value"
-                (click)="selectHeaderBedrooms(option.value)">{{ option.icon }} <span>{{ option.label }}</span></button>
+                (click)="selectHeaderBedrooms(option.value)"><i [class]="option.icon"></i><span>{{ option.label }}</span></button>
             </div>
             <button class="bedroom-clear" type="button" (click)="clearHeaderBedrooms()">Clear</button>
           </div>
         </div>
         <label class="input-group"><span>Move-in</span>
-          <input [(ngModel)]="moveInDate" type="date">
+          <div class="date-control"><i class="fa-regular fa-calendar"></i><input [(ngModel)]="moveInDate" type="date"></div>
         </label>
-        <button class="btn-primary-search" type="button" (click)="onSearch()">Search Homes <b>⌕</b></button>
+        <button class="btn-primary-search" type="button" (click)="onSearch()">Search Homes <i class="fa-solid fa-magnifying-glass"></i></button>
       </div>
 
       <div class="explore-search-footer">
-        <button class="btn-secondary" type="button" (click)="focusFilters()">☷ &nbsp; More Filters</button>
-        <a routerLink="/ai-home-match">✦ Let AI find my home</a>
+        <button class="btn-secondary" type="button" (click)="focusFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
+        <a routerLink="/ai-home-match"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</a>
       </div>
     </div>
   </section>
@@ -137,7 +137,7 @@
             <button class="favorite-btn" type="button" aria-label="Save property" (click)="$event.stopPropagation()">♡</button>
           </div>
           <div class="property-card-body">
-            <div class="property-price">{{ apartment.price | currency:'USD':'symbol':'1.0-0' }} <span>/month</span></div>
+            <div class="property-price"><app-currency-price [usdPrice]="apartment.price" suffix="/month"></app-currency-price></div>
             <h3>{{ apartment.title || getApartmentLocation(apartment) }}</h3>
             <p class="property-address">⌖ &nbsp;{{ getApartmentStreet(apartment) }}</p>
             <div class="property-specs"><span>♙ {{ apartment.bedrooms || '—' }} Beds</span>

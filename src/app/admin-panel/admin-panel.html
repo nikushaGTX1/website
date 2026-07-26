@@ -73,7 +73,7 @@
         </div>
         <p class="description">{{ item.apartment.description }}</p>
         <div class="meta">
-          <span>{{ item.apartment.price | currency:'USD':'symbol':'1.0-0' }}</span>
+          <span><app-currency-price [usdPrice]="item.apartment.price"></app-currency-price></span>
           <span>{{ item.apartment.imageUrls?.length || (item.apartment.imageUrl ? 1 : 0) }} photos</span>
           <span>{{ item.submittedByName }}</span>
           <span>{{ item.submittedByEmail || 'No email' }}</span>
@@ -165,7 +165,7 @@
         <strong>{{ apartment.title }}</strong>
         <span>{{ apartment.address || apartment.createdAt }}</span>
       </div>
-      <b>{{ apartment.price | currency:'USD':'symbol':'1.0-0' }}</b>
+      <b><app-currency-price [usdPrice]="apartment.price"></app-currency-price></b>
       <button type="button" class="danger" (click)="deleteApartment(apartment)" [disabled]="actionId === ('' + apartment.id)">
         Delete
       </button>

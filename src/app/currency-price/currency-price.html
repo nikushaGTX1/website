@@ -1,0 +1,5 @@
+<span class="currency-price-value">{{ currency === 'USD' ? '$' : '₾' }}{{ displayedPrice | number:'1.0-0' }}<small *ngIf="suffix">{{ suffix }}</small></span>
+<span class="currency-switch" role="group" aria-label="Display currency">
+  <button type="button" [class.active]="currency === 'USD'" (click)="$event.stopPropagation(); currency = 'USD'" aria-label="Show this price in US dollars">$</button>
+  <button type="button" [class.active]="currency === 'GEL'" (click)="$event.stopPropagation(); currency = 'GEL'" aria-label="Show this price in Georgian lari">₾</button>
+</span>

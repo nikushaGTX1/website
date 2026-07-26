@@ -21,7 +21,7 @@
           <button class="main-budget-trigger" type="button"
             [class.open]="budgetOpen" [attr.aria-expanded]="budgetOpen"
             aria-haspopup="dialog" (click)="budgetOpen = !budgetOpen; bedroomOpen = false">
-            <span>{{ budgetSummary }}</span><b aria-hidden="true">⌄</b>
+            <span><i class="fa-solid fa-wallet"></i> {{ budgetSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div class="main-budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen">
             <h3>Choose your price range</h3>
@@ -47,7 +47,7 @@
             </div>
             <div class="budget-scale"><span>$0</span><span>$1K</span><span>$2K</span><span>$5K+</span></div>
             <div class="main-budget-actions">
-              <button class="main-budget-reset" type="button" (click)="resetBudget()">↻ &nbsp; Reset</button>
+              <button class="main-budget-reset" type="button" (click)="resetBudget()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
               <button class="main-budget-apply" type="button" (click)="applyBudget()">Apply</button>
             </div>
           </div>
@@ -57,38 +57,38 @@
           <button class="main-bedroom-trigger" type="button"
             [class.open]="bedroomOpen" [attr.aria-expanded]="bedroomOpen"
             aria-haspopup="dialog" (click)="bedroomOpen = !bedroomOpen; budgetOpen = false">
-            <span>{{ bedroomSummary }}</span><b aria-hidden="true">⌄</b>
+            <span><i class="fa-solid fa-bed"></i> {{ bedroomSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen">
             <h3>Bedrooms</h3>
             <div class="bedroom-options">
               <button type="button" *ngFor="let option of bedroomOptions"
                 [class.active]="searchBedrooms === option.value"
-                (click)="selectBedrooms(option.value)">{{ option.icon }} &nbsp; {{ option.label }}</button>
+                (click)="selectBedrooms(option.value)"><i [class]="option.icon"></i> {{ option.label }}</button>
             </div>
             <button class="bedroom-clear" type="button" (click)="clearBedrooms()">Clear</button>
           </div>
         </label>
         <label>
           <span>Move-in</span>
-          <input name="moveIn" [(ngModel)]="searchMoveIn" type="date">
+          <div class="date-control"><i class="fa-regular fa-calendar"></i><input name="moveIn" [(ngModel)]="searchMoveIn" type="date"></div>
         </label>
-        <button class="search-submit" type="submit">Search Homes <span>⌕</span></button>
+        <button class="search-submit" type="submit">Search Homes <i class="fa-solid fa-magnifying-glass"></i></button>
       </div>
 
       <div class="search-footer">
         <button class="more-filters-toggle" type="button"
           [attr.aria-expanded]="advancedFiltersOpen"
-          (click)="toggleAdvancedFilters()">☷ &nbsp; More Filters</button>
-        <button class="ai-home-link" type="button" (click)="openAiHomeMatch()">✦ Let AI find my home</button>
+          (click)="toggleAdvancedFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
+        <button class="ai-home-link" type="button" (click)="openAiHomeMatch()"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</button>
       </div>
 
       <div class="quick-filters" *ngIf="advancedFiltersOpen">
-        <button type="button" (click)="useQuickFilter('parking')">▰ Parking</button>
-        <button type="button" (click)="useQuickFilter('metro')">▥ Near Metro</button>
-        <button type="button" (click)="useQuickFilter('pets')">♣ Pet Friendly</button>
-        <button type="button" (click)="useQuickFilter('family')">♟ Family Homes</button>
-        <button type="button" (click)="useQuickFilter('new')">▤ New Buildings</button>
+        <button type="button" (click)="useQuickFilter('parking')"><i class="fa-solid fa-square-parking"></i> Parking</button>
+        <button type="button" (click)="useQuickFilter('metro')"><i class="fa-solid fa-train-subway"></i> Near Metro</button>
+        <button type="button" (click)="useQuickFilter('pets')"><i class="fa-solid fa-paw"></i> Pet Friendly</button>
+        <button type="button" (click)="useQuickFilter('family')"><i class="fa-solid fa-people-roof"></i> Family Homes</button>
+        <button type="button" (click)="useQuickFilter('new')"><i class="fa-solid fa-building"></i> New Buildings</button>
       </div>
     </form>
   </section>
@@ -112,7 +112,7 @@
           <button type="button" class="favorite" aria-label="Save property" (click)="$event.stopPropagation()"><i class="fa-regular fa-heart"></i></button>
         </div>
         <div class="property-info">
-          <h3>${{ apartment.price | number:'1.0-0' }}<small>/ month</small></h3>
+          <h3><app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price></h3>
           <strong class="property-title">{{ getApartmentTitle(apartment) }}</strong>
           <p class="property-address"><i class="fa-solid fa-location-dot"></i> Tbilisi</p>
           <div class="property-meta">

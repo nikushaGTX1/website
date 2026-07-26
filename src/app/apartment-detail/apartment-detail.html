@@ -41,7 +41,7 @@
       </div>
 
       <aside class="price-card">
-        <strong class="price">{{ price | currency:'USD':'symbol':'1.0-0' }}<small>/ month</small></strong>
+        <strong class="price"><app-currency-price [usdPrice]="price" suffix="/ month"></app-currency-price></strong>
         <div class="facts-grid">
           <span><i class="fa-solid fa-up-right-and-down-left-from-center"></i><b>{{ area || '—' }} m²</b><small>Total area</small></span>
           <span><i class="fa-solid fa-stairs"></i><b>{{ floorLabel }}</b><small>Floor</small></span>
@@ -126,7 +126,7 @@
         <div class="similar-grid">
           <button type="button" class="similar-card" *ngFor="let similar of similarApartments | slice:0:3; let index = index" (click)="viewSimilar(index)">
             <img [src]="similar.imageUrl" [alt]="similar.title" />
-            <span><b>{{ similar.price | currency:'USD':'symbol':'1.0-0' }}<small>/ mo</small></b><strong>{{ similar.title }}</strong><small>{{ similar.address }}</small></span>
+            <span><b><app-currency-price [usdPrice]="similar.price" suffix="/ mo"></app-currency-price></b><strong>{{ similar.title }}</strong><small>{{ similar.address }}</small></span>
           </button>
         </div>
       </article>

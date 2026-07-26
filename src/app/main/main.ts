@@ -35,12 +35,12 @@ export class Main implements OnInit {
     { label: '$3,000 – $5,000', min: 3000, max: 5000 },
   ];
   readonly bedroomOptions = [
-    { label: 'Studio', value: '0', icon: '♙' },
-    { label: '1 Bed', value: '1', icon: '▱' },
-    { label: '2 Beds', value: '2', icon: '♙' },
-    { label: '3 Beds', value: '3', icon: '▱' },
-    { label: '4 Beds', value: '4', icon: '♙' },
-    { label: '4+ Beds', value: '4+', icon: '▦' },
+    { label: 'Studio', value: '0', icon: 'fa-solid fa-building' },
+    { label: '1 Bed', value: '1', icon: 'fa-solid fa-bed' },
+    { label: '2 Beds', value: '2', icon: 'fa-solid fa-bed' },
+    { label: '3 Beds', value: '3', icon: 'fa-solid fa-bed' },
+    { label: '4 Beds', value: '4', icon: 'fa-solid fa-bed' },
+    { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
   ];
   searchBedrooms = '';
   searchMoveIn = '';
