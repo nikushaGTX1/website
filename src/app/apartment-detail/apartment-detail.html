@@ -99,7 +99,7 @@
             <button type="button" class="reveal-number" *ngIf="!phoneRevealed" (click)="phoneRevealed = true">Reveal number</button>
           </div>
           <p class="agent-bio">{{ agentBio }}</p>
-          <div class="agent-actions"><button type="button" (click)="contactAgent()"><i class="fa-solid fa-phone"></i> {{ phoneRevealed && phoneNumber ? 'Call Agent' : 'Reveal Number' }}</button><button type="button" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button></div>
+          <div class="agent-actions"><button type="button" (click)="contactAgent()"><i class="fa-solid fa-phone"></i> {{ phoneRevealed && phoneNumber ? phoneNumber : 'Reveal Number' }}</button><button type="button" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button></div>
         </div>
       </article>
     </section>

@@ -265,11 +265,7 @@ export class ApartmentDetail implements OnInit {
 
   contactAgent(): void {
     if (this.phoneNumber) {
-      if (!this.phoneRevealed) {
-        this.phoneRevealed = true;
-        return;
-      }
-      location.href = `tel:${this.phoneNumber.replace(/[^\d+]/g, '')}`;
+      this.phoneRevealed = true;
       return;
     }
     location.href = `mailto:${this.agentEmail}?subject=${encodeURIComponent(`Apartment enquiry: ${this.title}`)}`;
