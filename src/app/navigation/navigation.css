@@ -413,3 +413,149 @@
     gap: 10px;
   }
 }
+
+/* Authoritative phone navigation */
+@media (max-width: 650px) {
+  :host {
+    position: sticky;
+    top: 0;
+  }
+
+  .site-header {
+    min-height: 64px;
+  }
+
+  .navigation {
+    position: relative;
+    width: 100%;
+    min-height: 64px;
+    padding: 10px 16px;
+    gap: 12px;
+  }
+
+  .brand {
+    min-width: 0;
+    max-width: calc(100% - 58px);
+  }
+
+  .brand img {
+    width: auto;
+    max-width: min(170px, 54vw);
+    height: 32px;
+  }
+
+  .menu-toggle {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    margin-left: auto;
+    align-items: center;
+    gap: 5px;
+    padding: 10px;
+    transition: border-color .2s ease, background .2s ease;
+  }
+
+  .menu-toggle span {
+    width: 22px;
+    flex: 0 0 2px;
+    transition: transform .22s ease, opacity .16s ease;
+    transform-origin: center;
+  }
+
+  .menu-toggle[aria-expanded="true"] {
+    border-color: #cbd7ea;
+    background: #f7f9fd;
+  }
+
+  .menu-toggle[aria-expanded="true"] span:first-child {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .menu-toggle[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .menu-toggle[aria-expanded="true"] span:last-child {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .navigation-content {
+    position: fixed;
+    z-index: 1001;
+    top: 64px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    max-height: none;
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #fff;
+  }
+
+  .navigation-content:not(.is-open) {
+    display: none;
+  }
+
+  .navigation-content.is-open {
+    display: flex;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .nav-links a {
+    width: 100%;
+    height: 48px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+
+  .nav-links a.active {
+    background: #f1f5ff;
+  }
+
+  .nav-links a::after {
+    display: none;
+  }
+
+  .nav-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+    padding-top: 16px;
+  }
+
+  .language-picker,
+  .language,
+  .sign-in,
+  .admin-link,
+  .list-property,
+  app-profile-burger-menu {
+    width: 100%;
+  }
+
+  .language,
+  .sign-in,
+  .admin-link,
+  .list-property {
+    min-height: 48px;
+  }
+
+  .list-property {
+    grid-column: auto;
+  }
+
+  .language-menu {
+    position: static;
+    width: 100%;
+    margin-top: 8px;
+    box-shadow: none;
+  }
+}

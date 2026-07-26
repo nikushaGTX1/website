@@ -177,12 +177,12 @@
 .avatar-sm svg{width:18px;height:18px;stroke:#8a8a8e}
 
 @media (max-width:620px){
-    :host{grid-column:1 / -1;width:100%}
-    .profile-burger-wrapper,.profile-burger{width:100%}
+    :host{grid-column:1 / -1;width:100%;min-width:0;max-width:100%}
+    .profile-burger-wrapper,.profile-burger{width:100%;min-width:0;max-width:100%}
     .profile-burger{justify-content:flex-start;padding:8px 12px}
     .account-label{display:inline}
     .menu-chevron{margin-left:auto}
-    .burger-menu{position:static;width:100%;max-height:0;margin-top:0;border:0;border-radius:12px;box-shadow:none;overflow:hidden;opacity:1;visibility:visible;transform:none;transition:max-height .28s ease,margin-top .28s ease,border-color .2s}
+    .burger-menu{position:static;width:100%;min-width:0;max-width:100%;max-height:0;margin-top:0;border:0;border-radius:12px;box-shadow:none;overflow:hidden;opacity:1;visibility:visible;transform:none;transition:max-height .28s ease,margin-top .28s ease,border-color .2s}
     .burger-menu.open{max-height:650px;margin-top:10px;border:1px solid #e2e7ef;transform:none}
     .menu-profile{padding:16px}
     .menu-list{padding:8px}

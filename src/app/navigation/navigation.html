@@ -1,15 +1,16 @@
 <header class="site-header">
   <nav class="navigation" aria-label="Main navigation">
     <a class="brand" routerLink="/main" aria-label="Velven home" (click)="closeMenu()">
-      <img src="/VELVEN WEB 2.svg " alt="Velven" />
+      <img src="/VELVEN WEB 2.svg" alt="Velven" width="170" height="40" />
       <span aria-hidden="true"></span>
     </a>
 
     <button
       class="menu-toggle"
       type="button"
-      aria-label="Toggle navigation"
+      [attr.aria-label]="menuOpen ? 'Close navigation' : 'Open navigation'"
       [attr.aria-expanded]="menuOpen"
+      aria-controls="mobile-navigation"
       (click)="menuOpen = !menuOpen"
     >
       <span></span>
@@ -17,7 +18,7 @@
       <span></span>
     </button>
 
-    <div class="navigation-content" [class.is-open]="menuOpen">
+    <div class="navigation-content" id="mobile-navigation" [class.is-open]="menuOpen">
       <div class="nav-links">
         <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'buy' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Buy</a>
         <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'rent' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Rent</a>

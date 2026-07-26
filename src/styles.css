@@ -11,7 +11,7 @@ html {
 }
 
 body {
-  min-width: 320px;
+  min-width: 0;
   color: #111827;
   background: #fff;
   line-height: 1.5;
@@ -102,8 +102,17 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
 /* Phone-wide safety rules (iPhone and Galaxy class devices). */
 html,
 body {
+  width: 100%;
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
+}
+
+app-root {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 img,
@@ -121,7 +130,58 @@ textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  html,
+  body,
+  app-root,
+  .route-content {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  app-main,
+  app-explore-property,
+  app-apartment-detail,
+  app-agent-profile,
+  app-services,
+  app-about-us,
+  app-blog,
+  app-login,
+  app-upload-apartment,
+  app-my-profile,
+  app-my-listings,
+  app-admin-panel,
+  app-ai-home-match-page,
+  app-ai-concierge-page,
+  app-home-match-results,
+  app-home-profile-summary,
+  app-concierge-results,
+  app-lifestyle-avatar,
+  app-velven-lifestyle-avatar,
+  app-google-property-map {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  main,
+  section,
+  article,
+  aside,
+  form,
+  fieldset,
+  header,
+  footer,
+  nav,
+  div,
+  ul,
+  li {
+    min-width: 0;
+  }
   h1 {
     overflow-wrap: anywhere;
   }
@@ -178,7 +238,11 @@ textarea {
   }
 
   table {
-    min-width: 620px;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   .table-wrapper,

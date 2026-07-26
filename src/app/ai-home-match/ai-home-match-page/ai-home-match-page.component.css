@@ -785,11 +785,13 @@ fieldset {
   .phase-progress {
     width: calc(100% - 24px);
     padding: 18px 12px;
-    overflow-x: auto;
+    overflow: hidden;
   }
 
   .phase-list {
-    min-width: 540px;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .velven main.wizard-shell,
