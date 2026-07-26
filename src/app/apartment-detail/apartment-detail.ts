@@ -263,14 +263,6 @@ export class ApartmentDetail implements OnInit {
     this.errorMessage = 'Apartment link copied.';
   }
 
-  contactAgent(): void {
-    if (this.phoneNumber) {
-      this.phoneRevealed = true;
-      return;
-    }
-    location.href = `mailto:${this.agentEmail}?subject=${encodeURIComponent(`Apartment enquiry: ${this.title}`)}`;
-  }
-
   openWhatsApp(): void {
     const phone = this.phoneNumber.replace(/\D/g, '');
     const message = encodeURIComponent(`Hello, I am interested in ${this.title}.`);

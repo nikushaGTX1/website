@@ -19,21 +19,20 @@
   padding: 0 38px;
   display: flex;
   align-items: center;
-  gap: 48px;
+  gap: 32px;
 }
 
 .brand {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .brand img {
   display: block;
-  width: 178px;
   height: 50px;
-  object-fit: contain;
-  object-position: left center;
+  width: auto;
 }
 
 .navigation-content {
@@ -233,12 +232,12 @@
 
 @media (max-width: 1240px) {
   .navigation {
-    gap: 28px;
+    gap: 24px;
     padding-inline: 24px;
   }
 
   .brand img {
-    width: 145px;
+    height: 46px;
   }
 
   .nav-links {
@@ -261,7 +260,6 @@
   }
 
   .brand img {
-    width: 156px;
     height: 44px;
   }
 
@@ -370,7 +368,6 @@
   }
 
   .brand img {
-    width: 132px;
     height: 39px;
   }
 
