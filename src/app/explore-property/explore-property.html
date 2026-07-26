@@ -18,13 +18,34 @@
           <div class="location-control"><b>⌖</b><input [(ngModel)]="location"
             placeholder="Search city, neighborhood or building"></div>
         </label>
-        <label class="input-group"><span>Budget</span>
-          <select [(ngModel)]="priceRange">
-            <option value="">Any budget</option><option value="0-1000">$0 - $1,000</option>
-            <option value="600-2000">$600 - $2,000</option><option value="1000-2000">$1,000 - $2,000</option>
-            <option value="2000+">$2,000+</option>
-          </select>
-        </label>
+        <div class="input-group budget-filter">
+          <span>Budget</span>
+          <button class="budget-trigger" type="button" [class.is-open]="budgetOpen"
+            [attr.aria-expanded]="budgetOpen" aria-haspopup="dialog"
+            (click)="$event.stopPropagation(); budgetOpen = !budgetOpen">
+            <span>{{ budgetSummary }}</span><b aria-hidden="true">⌄</b>
+          </button>
+          <div class="budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen"
+            (click)="$event.stopPropagation()">
+            <div class="budget-heading">
+              <h3>Price</h3>
+              <div class="currency-toggle" aria-label="Currency">
+                <button type="button" [class.active]="budgetCurrency === 'GEL'" (click)="setBudgetCurrency('GEL')">GEL</button>
+                <button type="button" [class.active]="budgetCurrency === 'USD'" (click)="setBudgetCurrency('USD')">USD</button>
+              </div>
+            </div>
+            <div class="budget-fields">
+              <label><span>Min price</span><input type="number" min="0" inputmode="numeric"
+                [(ngModel)]="budgetMin" placeholder="Min price"></label>
+              <label><span>Max price</span><input type="number" min="0" inputmode="numeric"
+                [(ngModel)]="budgetMax" placeholder="Max price"></label>
+            </div>
+            <div class="budget-actions">
+              <button class="budget-reset" type="button" (click)="resetBudget()">Reset</button>
+              <button class="budget-apply" type="button" (click)="applyBudget()">Apply</button>
+            </div>
+          </div>
+        </div>
         <label class="input-group"><span>Bedrooms</span>
           <select [(ngModel)]="headerBedrooms"><option value="">Any</option><option value="1">1 Bedroom</option>
             <option value="2">2 Bedrooms</option><option value="3">3+ Bedrooms</option></select>

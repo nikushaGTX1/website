@@ -27,12 +27,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  color: #2c64ea;
+  text-decoration: none;
 }
 
 .brand img {
   display: block;
-  height: 50px;
+  height: 32px;
   width: auto;
+}
+
+.brand span {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.025em;
 }
 
 .navigation-content {
@@ -237,7 +248,11 @@
   }
 
   .brand img {
-    height: 46px;
+    height: 28px;
+  }
+
+  .brand span {
+    font-size: 24px;
   }
 
   .nav-links {
@@ -260,7 +275,11 @@
   }
 
   .brand img {
-    height: 44px;
+    height: 31px;
+  }
+
+  .brand span {
+    font-size: 23px;
   }
 
   .menu-toggle {
@@ -368,7 +387,11 @@
   }
 
   .brand img {
-    height: 39px;
+    height: 29px;
+  }
+
+  .brand span {
+    font-size: 21px;
   }
 
   .navigation-content {

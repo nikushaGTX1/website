@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService } from '../services/apartment.service';
 import { ActivatedRoute } from '@angular/router';
@@ -24,6 +24,12 @@ export class ExploreProperty implements OnInit {
   searchQuery = '';
   selectedType = 'For Rent'; 
   priceRange = '';
+  budgetOpen = false;
+  budgetCurrency: 'GEL' | 'USD' = 'GEL';
+  budgetMin: number | null = null;
+  budgetMax: number | null = null;
+  appliedBudgetMin: number | null = null;
+  appliedBudgetMax: number | null = null;
   homeType = '';
   location = '';
   headerBedrooms = '';
@@ -44,6 +50,41 @@ export class ExploreProperty implements OnInit {
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.filteredApartments.length / this.pageSize));
+  }
+
+  get budgetSummary(): string {
+    if (this.appliedBudgetMin == null && this.appliedBudgetMax == null) return 'Any budget';
+    const code = this.budgetCurrency;
+    if (this.appliedBudgetMin != null && this.appliedBudgetMax != null) {
+      return `${this.appliedBudgetMin.toLocaleString()} – ${this.appliedBudgetMax.toLocaleString()} ${code}`;
+    }
+    if (this.appliedBudgetMin != null) return `${this.appliedBudgetMin.toLocaleString()}+ ${code}`;
+    return `Up to ${this.appliedBudgetMax!.toLocaleString()} ${code}`;
+  }
+
+  @HostListener('document:click')
+  closeBudget(): void {
+    this.budgetOpen = false;
+  }
+
+  setBudgetCurrency(currency: 'GEL' | 'USD'): void {
+    this.budgetCurrency = currency;
+  }
+
+  applyBudget(): void {
+    this.appliedBudgetMin = this.normalizedBudgetValue(this.budgetMin);
+    this.appliedBudgetMax = this.normalizedBudgetValue(this.budgetMax);
+    this.budgetOpen = false;
+    this.onSearch();
+  }
+
+  resetBudget(): void {
+    this.budgetMin = null;
+    this.budgetMax = null;
+    this.appliedBudgetMin = null;
+    this.appliedBudgetMax = null;
+    this.budgetOpen = false;
+    this.onSearch();
   }
 
   get paginatedApartments(): Apartment[] {
@@ -127,6 +168,7 @@ export class ExploreProperty implements OnInit {
         Number(apartment.bedrooms || 0) >= Number(this.headerBedrooms);
 
       const matchesHeaderPrice = this.matchesPriceRange(apartment.price);
+      const matchesCustomBudget = this.matchesCustomBudget(apartment.price);
       const matchesSliderPrice = apartment.price <= this.selectedPriceMax;
       const matchesBedrooms = this.matchesBedroomFilter(apartment);
       const matchesBathrooms = this.matchesBathroomFilter(apartment);
@@ -140,6 +182,7 @@ export class ExploreProperty implements OnInit {
         matchesLocation &&
         matchesHeaderBedrooms &&
         matchesHeaderPrice &&
+        matchesCustomBudget &&
         matchesSliderPrice &&
         matchesBedrooms &&
         matchesBathrooms &&
@@ -178,6 +221,10 @@ export class ExploreProperty implements OnInit {
     this.searchQuery = '';
     this.selectedType = 'For Rent';
     this.priceRange = '';
+    this.budgetMin = null;
+    this.budgetMax = null;
+    this.appliedBudgetMin = null;
+    this.appliedBudgetMax = null;
     this.homeType = '';
     this.location = '';
     this.headerBedrooms = '';
@@ -274,6 +321,20 @@ export class ExploreProperty implements OnInit {
     if (this.selectedAmenities.length === 0) return true;
     const text = `${apartment.title} ${apartment.description}`.toLowerCase();
     return this.selectedAmenities.every((amenity) => text.includes(amenity.toLowerCase()));
+  }
+
+  private normalizedBudgetValue(value: number | null): number | null {
+    if (value == null || !Number.isFinite(Number(value)) || Number(value) < 0) return null;
+    return Number(value);
+  }
+
+  private matchesCustomBudget(priceInUsd: number): boolean {
+    const exchangeRate = 2.7;
+    const comparablePrice = this.budgetCurrency === 'GEL' ? priceInUsd * exchangeRate : priceInUsd;
+    return (
+      (this.appliedBudgetMin == null || comparablePrice >= this.appliedBudgetMin) &&
+      (this.appliedBudgetMax == null || comparablePrice <= this.appliedBudgetMax)
+    );
   }
 
   private matchesQuickFeature(apartment: Apartment): boolean {
