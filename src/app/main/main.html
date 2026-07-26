@@ -39,7 +39,8 @@
               <label><span>Max price</span><input type="number" name="budgetMax"
                 [(ngModel)]="budgetMax" min="0" max="5000" (ngModelChange)="selectedBudgetRange = ''" placeholder="$ 5,000"></label>
             </div>
-            <div class="budget-sliders">
+            <div class="budget-sliders" [style.--range-start]="budgetMinPercent + '%'" [style.--range-end]="budgetMaxPercent + '%'">
+              <span class="range-fill" aria-hidden="true"></span>
               <input type="range" name="budgetMinSlider" min="0" max="5000" step="100"
                 [(ngModel)]="budgetMin" (ngModelChange)="selectedBudgetRange = ''">
               <input type="range" name="budgetMaxSlider" min="0" max="5000" step="100"

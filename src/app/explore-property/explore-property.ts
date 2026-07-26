@@ -82,6 +82,14 @@ export class ExploreProperty implements OnInit {
     return this.headerBedroomOptions.find((option) => option.value === this.headerBedrooms)?.label || 'Any';
   }
 
+  get budgetMinPercent(): number {
+    return Math.min(this.normalizedSliderValue(this.budgetMin), this.normalizedSliderValue(this.budgetMax));
+  }
+
+  get budgetMaxPercent(): number {
+    return Math.max(this.normalizedSliderValue(this.budgetMin), this.normalizedSliderValue(this.budgetMax));
+  }
+
   @HostListener('document:click')
   closeBudget(): void {
     this.budgetOpen = false;
@@ -373,6 +381,10 @@ export class ExploreProperty implements OnInit {
   private normalizedBudgetValue(value: number | null): number | null {
     if (value == null || !Number.isFinite(Number(value)) || Number(value) < 0) return null;
     return Number(value);
+  }
+
+  private normalizedSliderValue(value: number | null): number {
+    return Math.min(100, Math.max(0, Number(value || 0) / 50));
   }
 
   private matchesCustomBudget(priceInUsd: number): boolean {
