@@ -2,8 +2,257 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: sans-serif;
 }
-/* Homepage AI concierge call to action (global to keep the legacy main component within its style budget). */
+
+html {
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-width: 0;
+  color: #111827;
+  background: #fff;
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 3px solid #2c64ea;
+  outline-offset: 3px;
+}
+
+img {
+  height: auto;
+}
+
+/* Reload entrance */
+app-root[ng-version] {
+  display: block;
+}
+
+app-root[ng-version] > app-navigation {
+  display: block;
+  animation: reload-slide-down 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+app-root[ng-version] > .route-content {
+  animation: reload-fade-in 520ms ease-out both;
+}
+
+app-root[ng-version] .home-page > section {
+  animation: reload-rise 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+app-root[ng-version] .home-page > section:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+app-root[ng-version] .home-page > section:nth-child(3) {
+  animation-delay: 130ms;
+}
+
+app-root[ng-version] .home-page > section:nth-child(4) {
+  animation-delay: 180ms;
+}
+
+app-root[ng-version] .home-page > section:nth-child(n + 5) {
+  animation-delay: 230ms;
+}
+
+@keyframes reload-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes reload-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reload-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  app-root[ng-version] > app-navigation,
+  app-root[ng-version] > .route-content,
+  app-root[ng-version] .home-page > section {
+    animation: none;
+  }
+}
+
+/* Phone-wide safety rules (iPhone and Galaxy class devices). */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+app-root {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 768px) {
+  html,
+  body,
+  app-root,
+  .route-content {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  app-main,
+  app-explore-property,
+  app-apartment-detail,
+  app-agent-profile,
+  app-services,
+  app-about-us,
+  app-blog,
+  app-login,
+  app-upload-apartment,
+  app-my-profile,
+  app-my-listings,
+  app-admin-panel,
+  app-ai-home-match-page,
+  app-ai-concierge-page,
+  app-home-match-results,
+  app-home-profile-summary,
+  app-concierge-results,
+  app-lifestyle-avatar,
+  app-velven-lifestyle-avatar,
+  app-google-property-map {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  main,
+  section,
+  article,
+  aside,
+  form,
+  fieldset,
+  header,
+  footer,
+  nav,
+  div,
+  ul,
+  li {
+    min-width: 0;
+  }
+  h1 {
+    overflow-wrap: anywhere;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  button {
+    max-width: 100%;
+  }
+
+  pre,
+  code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .route-content,
+  .route-content > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  button,
+  select,
+  input[type='button'],
+  input[type='submit'] {
+    min-height: 44px;
+  }
+
+  app-root > main {
+    min-width: 0;
+  }
+
+  app-root > app-footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .modal,
+  .dialog,
+  .modal-content,
+  .dialog-content {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 24px);
+    overflow: auto;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .table-wrapper,
+  .table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .ai-home-cta {
   margin-top: 18px;
   width: min(100%, 560px);
@@ -84,3 +333,4 @@
   font-size: 11px;
   color: #4d3eaa;
 }
+

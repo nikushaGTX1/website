@@ -30,13 +30,16 @@ export class AdminPanel implements OnInit, OnDestroy {
   blogForm: CreateBlogPost = {
     title: '',
     description: '',
-    imageUrl: '',
   };
 
   loading = false;
   actionId = '';
   errorMessage = '';
   successMessage = '';
+  publishingBlog = false;
+  blogImageName = '';
+  blogImagePreview = '';
+  blogImageFile: File | null = null;
   adminSearch = '';
   agentRatings: Record<string, number> = {};
   pendingDebug = '';
@@ -68,6 +71,7 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.releaseBlogImagePreview();
     this.subscriptions.unsubscribe();
   }
 
@@ -77,6 +81,10 @@ export class AdminPanel implements OnInit, OnDestroy {
 
   get isAdmin(): boolean {
     return this.authService.isAdmin;
+  }
+
+  get canManageBlog(): boolean {
+    return this.authService.isAdmin || this.authService.isAgent;
   }
 
   get waitingCount(): number {
@@ -237,8 +245,12 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     this.apartmentService.createApartment(item.apartment).subscribe({
-      next: () => {
-        this.pendingService.markApproved(item.id, this.currentUser);
+      next: (result) => {
+        this.pendingService.markApproved(
+          item.id,
+          this.currentUser,
+          result.apartment?.id,
+        );
         this.successMessage = 'Apartment confirmed and published.';
         this.actionId = '';
         this.loadDashboard();
@@ -418,11 +430,13 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   createBlogPost(): void {
-    if (!this.isAdmin) {
-      this.errorMessage = 'Only admins can post blog articles.';
+    if (!this.canManageBlog) {
+      this.errorMessage = 'Only agents and admins can post blog articles.';
       this.cdr.detectChanges();
       return;
     }
+
+    if (this.publishingBlog) return;
 
     this.successMessage = '';
     this.errorMessage = '';
@@ -433,19 +447,21 @@ export class AdminPanel implements OnInit, OnDestroy {
       return;
     }
 
+    this.publishingBlog = true;
     this.blogService
       .createPost({
         title: this.blogForm.title.trim(),
         description: this.blogForm.description.trim(),
-        imageUrl: this.blogForm.imageUrl.trim(),
+        imageFile: this.blogImageFile,
       })
       .subscribe({
         next: () => {
           this.blogForm = {
             title: '',
             description: '',
-            imageUrl: '',
           };
+          this.clearBlogImage();
+          this.publishingBlog = false;
 
           this.successMessage = 'Blog post published.';
           this.loadBlogPosts();
@@ -453,15 +469,115 @@ export class AdminPanel implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Create blog error:', err);
-          this.errorMessage = 'Could not publish blog post.';
+          this.publishingBlog = false;
+          this.errorMessage =
+            err?.error?.message ||
+            err?.error?.title ||
+            `Could not publish blog post (HTTP ${err?.status || 'network error'}).`;
           this.cdr.detectChanges();
         },
       });
   }
 
+  async onBlogImageSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    this.errorMessage = '';
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.errorMessage = 'Please select a valid image file.';
+      input.value = '';
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      this.errorMessage = 'Blog images must be smaller than 10 MB.';
+      input.value = '';
+      return;
+    }
+
+    try {
+      const optimizedImage = await this.optimizeBlogImage(file);
+      this.releaseBlogImagePreview();
+      this.blogImageFile = optimizedImage;
+      this.blogImagePreview = URL.createObjectURL(optimizedImage);
+      this.blogImageName = file.name;
+      this.cdr.detectChanges();
+    } catch {
+      this.errorMessage = 'The selected image could not be processed.';
+      this.blogImageName = '';
+      input.value = '';
+      this.cdr.detectChanges();
+    }
+  }
+
+  clearBlogImage(input?: HTMLInputElement): void {
+    this.releaseBlogImagePreview();
+    this.blogImageFile = null;
+    this.blogImagePreview = '';
+    this.blogImageName = '';
+    if (input) input.value = '';
+  }
+
+  private optimizeBlogImage(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onerror = () => reject(new Error('Could not read image.'));
+      reader.onload = () => {
+        const image = new Image();
+        image.onerror = () => reject(new Error('Could not load image.'));
+        image.onload = () => {
+          const maxWidth = 1600;
+          const scale = Math.min(1, maxWidth / image.width);
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+
+          if (!context) {
+            reject(new Error('Canvas is unavailable.'));
+            return;
+          }
+
+          canvas.width = Math.max(1, Math.round(image.width * scale));
+          canvas.height = Math.max(1, Math.round(image.height * scale));
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Could not optimize image.'));
+                return;
+              }
+
+              const baseName = file.name.replace(/\.[^.]+$/, '') || 'blog-cover';
+              resolve(
+                new File([blob], `${baseName}.jpg`, {
+                  type: 'image/jpeg',
+                  lastModified: file.lastModified,
+                }),
+              );
+            },
+            'image/jpeg',
+            0.82,
+          );
+        };
+        image.src = String(reader.result || '');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private releaseBlogImagePreview(): void {
+    if (this.blogImagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(this.blogImagePreview);
+    }
+  }
+
   deleteBlogPost(post: BlogPost): void {
-    if (!this.isAdmin) {
-      this.errorMessage = 'Only admins can delete blog posts.';
+    if (!this.canManageBlog) {
+      this.errorMessage = 'Only agents and admins can delete blog posts.';
       this.cdr.detectChanges();
       return;
     }

@@ -29,6 +29,8 @@ import { HomeProfileSummaryComponent } from './ai-home-match/home-profile-summar
 import { VelvenLifestyleAvatarComponent } from './ai-home-match/lifestyle-avatar/lifestyle-avatar.component';
 import { AboutUs } from './about-us/about-us';
 import { Services } from './services/services';
+import { CurrencyPrice } from './currency-price/currency-price';
+import { SavedListings } from './saved-listings/saved-listings';
 
 @NgModule({
   declarations: [
@@ -56,6 +58,8 @@ import { Services } from './services/services';
     VelvenLifestyleAvatarComponent,
     AboutUs,
     Services,
+    CurrencyPrice,
+    SavedListings,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
   providers: [

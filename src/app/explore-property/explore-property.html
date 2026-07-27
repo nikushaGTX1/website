@@ -7,226 +7,174 @@
 
     <div class="search-card">
       <div class="search-tabs">
-        <button 
-          type="button" 
-          class="tab-btn" 
-          [class.active]="selectedType !== 'For Sale'" 
-          (click)="selectedType = 'For Rent'; onSearch()">
-          <span class="icon">🏠</span> Rent
-        </button>
-        <button 
-          type="button" 
-          class="tab-btn" 
-          [class.active]="selectedType === 'For Sale'" 
-          (click)="selectedType = 'For Sale'; onSearch()">
-          <span class="icon">🏘️</span> Buy
-        </button>
+        <button type="button" class="tab-btn" [class.active]="selectedType !== 'For Sale'"
+          (click)="selectedType = 'For Rent'; onSearch()"><span class="tab-home"><i class="fa-solid fa-house"></i></span> Rent</button>
+        <button type="button" class="tab-btn" [class.active]="selectedType === 'For Sale'"
+          (click)="selectedType = 'For Sale'; onSearch()"><span class="tab-home"><i class="fa-solid fa-house"></i></span> Buy</button>
       </div>
 
       <div class="search-inputs-bar">
-        <div class="input-group">
-          <label>Location</label>
-          <div class="select-wrapper">
-            <select [(ngModel)]="location">
-              <option value="">Saburtalo, Tbilisi</option>
-              <option value="Tbilisi">Tbilisi</option>
-              <option value="Kutaisi">Kutaisi</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="input-group">
-          <label>Price</label> 
-          <div class="select-wrapper">
-            <select [(ngModel)]="priceRange">
-              <option value="">All Prices</option>
-              <option value="0-1000">$0 - $1,000</option>
-              <option value="600-2000">$600 - $2,000</option>
-              <option value="1000-2000">$1,000 - $2,000</option>
-              <option value="2000+">$2,000+</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="input-group">
-          <label>Home Type</label>
-          <div class="select-wrapper">
-            <select [(ngModel)]="homeType">
-              <option value="">Any type</option>
-              <option value="Apartment">Apartment</option>
-              <option value="Private house">House</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="search-actions">
-          <button class="btn-secondary" type="button">
-            <span>⚙️</span> More filters
+        <label class="input-group"><span>Location</span>
+          <div class="location-control"><b><i class="fa-solid fa-location-dot"></i></b><input [(ngModel)]="location"
+            placeholder="Search city, neighborhood or building"></div>
+        </label>
+        <div class="input-group budget-filter">
+          <span>Budget</span>
+          <button class="budget-trigger" type="button" [class.is-open]="budgetOpen"
+            [attr.aria-expanded]="budgetOpen" aria-haspopup="dialog"
+            (click)="$event.stopPropagation(); budgetOpen = !budgetOpen; bedroomOpen = false">
+            <span><i class="fa-solid fa-wallet"></i> {{ budgetSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
-          
-          <button class="btn-primary-search" type="button" (click)="onSearch()">
-            Search Homes 🔍
-          </button>
+          <div class="budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen"
+            (click)="$event.stopPropagation()">
+            <h3>Choose your price range</h3>
+            <div class="budget-presets">
+              <button type="button" *ngFor="let range of budgetRanges"
+                [class.active]="selectedBudgetRange === range.label"
+                (click)="selectBudgetRange(range)">{{ range.label }}</button>
+            </div>
+            <div class="filter-divider"></div>
+            <h4>Custom range</h4>
+            <div class="budget-fields">
+              <label><span>Min price</span><input type="number" min="0" inputmode="numeric"
+                [(ngModel)]="budgetMin" (ngModelChange)="selectedBudgetRange = ''" placeholder="$ 0"></label>
+              <b aria-hidden="true">–</b>
+              <label><span>Max price</span><input type="number" min="0" inputmode="numeric"
+                [(ngModel)]="budgetMax" (ngModelChange)="selectedBudgetRange = ''" placeholder="$ 5,000"></label>
+            </div>
+            <div class="budget-slider-stack" [style.--range-start]="budgetMinPercent + '%'" [style.--range-end]="budgetMaxPercent + '%'">
+              <span class="range-fill" aria-hidden="true"></span>
+              <input type="range" min="0" max="5000" step="100" [(ngModel)]="budgetMin"
+                (ngModelChange)="selectedBudgetRange = ''">
+              <input type="range" min="0" max="5000" step="100" [(ngModel)]="budgetMax"
+                (ngModelChange)="selectedBudgetRange = ''">
+            </div>
+            <div class="budget-scale"><span>$0</span><span>$1K</span><span>$2K</span><span>$5K+</span></div>
+            <div class="budget-actions">
+              <button class="budget-reset" type="button" (click)="resetBudget()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+              <button class="budget-apply" type="button" (click)="applyBudget()">Apply</button>
+            </div>
+          </div>
         </div>
+        <div class="input-group bedroom-filter"><span>Bedrooms</span>
+          <button class="bedroom-trigger" type="button" [class.is-open]="bedroomOpen"
+            [attr.aria-expanded]="bedroomOpen" aria-haspopup="dialog"
+            (click)="$event.stopPropagation(); bedroomOpen = !bedroomOpen; budgetOpen = false">
+            <span><i class="fa-solid fa-bed"></i> {{ headerBedroomSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
+          </button>
+          <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen"
+            (click)="$event.stopPropagation()">
+            <h3>Bedrooms</h3>
+            <div class="bedroom-options">
+              <button type="button" *ngFor="let option of headerBedroomOptions"
+                [class.active]="headerBedrooms === option.value"
+                (click)="selectHeaderBedrooms(option.value)"><i [class]="option.icon"></i><span>{{ option.label }}</span></button>
+            </div>
+            <button class="bedroom-clear" type="button" (click)="clearHeaderBedrooms()">Clear</button>
+          </div>
+        </div>
+        <button class="btn-primary-search" type="button" (click)="onSearch()">Search Homes <i class="fa-solid fa-magnifying-glass"></i></button>
+      </div>
+
+      <div class="explore-search-footer">
+        <button class="btn-secondary" type="button" (click)="focusFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
+        <a routerLink="/ai-home-match"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</a>
       </div>
     </div>
   </section>
 
-  <div class="results-header">
-    <span class="count"><strong>{{ filteredApartments.length }}</strong> properties found</span>
-    <div class="sort-by">
-      <label>Sort by:</label>
-      <select (change)="onSortChange($event)">
-        <option value="newest">Newest</option>
-        <option value="price-asc">Price: Low to High</option>
-        <option value="price-desc">Price: High to Low</option>
-      </select>
+  <div class="page-shell">
+    <div class="results-header">
+      <span class="count"><strong>{{ filteredApartments.length | number }}</strong> properties found</span>
+      <div class="sort-by"><label>Sort by:</label>
+        <select (change)="onSortChange($event)"><option value="newest">Newest</option>
+          <option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option></select>
+      </div>
     </div>
-  </div>
 
-  <main class="explore-content">
-    <aside class="sidebar-filters">
-      <div class="filter-header">
-        <h3>Filters</h3>
-        <button type="button" class="btn-clear" (click)="clearFilters()">Clear all</button>
-      </div>
-
-      <div class="filter-group">
-        <div class="group-title">
-          <span>Price range</span>
-          <span class="chevron">▲</span>
+    <main class="explore-content">
+      <aside class="sidebar-filters">
+        <div class="filter-header"><h3>Filters</h3><button type="button" class="btn-clear" (click)="clearFilters()">Clear all</button></div>
+        <div class="filter-group">
+          <div class="group-title"><span>Price range</span><span>⌃</span></div>
+          <input class="price-range" type="range" min="0" max="3000" [(ngModel)]="selectedPriceMax" />
+          <div class="price-labels"><span>$600</span><span>$2,000+</span></div>
+          <div class="price-inputs"><label><span>Min</span><input value="$600" readonly></label>
+            <label><span>Max</span><input [value]="'$' + selectedPriceMax" readonly></label></div>
         </div>
-        <div class="price-slider-placeholder">
-          <input type="range" min="0" max="3000" [(ngModel)]="selectedPriceMax" />
-          <div class="price-labels">
-            <span>$0</span>
-            <span>$3,000+</span>
+        <div class="filter-group"><div class="group-title"><span>Bedrooms</span><span>⌃</span></div>
+          <div class="checkbox-list"><label *ngFor="let option of bedroomOptions"><input type="checkbox"
+            [checked]="isFilterActive(selectedBedrooms, option)" (change)="toggleFilterItem(selectedBedrooms, option); onSearch()"> {{ option }}</label></div>
+        </div>
+        <div class="filter-group"><div class="group-title"><span>Bathrooms</span><span>⌃</span></div>
+          <div class="checkbox-list"><label *ngFor="let option of bathroomOptions"><input type="checkbox"
+            [checked]="isFilterActive(selectedBathrooms, option)" (change)="toggleFilterItem(selectedBathrooms, option); onSearch()"> {{ option }}</label></div>
+        </div>
+        <div class="filter-group"><div class="group-title"><span>Property type</span><span>⌃</span></div>
+          <div class="checkbox-list"><label *ngFor="let option of propertyTypeOptions"><input type="checkbox"
+            [checked]="isFilterActive(selectedPropertyTypes, option)" (change)="toggleFilterItem(selectedPropertyTypes, option); onSearch()"> {{ option }}</label></div>
+        </div>
+        <div class="filter-group"><div class="group-title"><span>Amenities</span><span>⌃</span></div>
+          <div class="checkbox-list"><label *ngFor="let option of amenityOptions"><input type="checkbox"
+            [checked]="isFilterActive(selectedAmenities, option)" (change)="toggleFilterItem(selectedAmenities, option); onSearch()"> {{ option }}</label></div>
+          <button class="show-more" type="button">Show more⌄</button>
+        </div>
+      </aside>
+
+      <section class="cards-grid-view">
+        <ng-container *ngIf="loading"><div *ngFor="let card of propertiesPlaceholder" class="property-card skeleton-card">
+          <div class="skeleton-image"></div><div class="skeleton-lines"></div></div></ng-container>
+        <p class="property-message error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
+        <p class="property-message" *ngIf="!loading && !errorMessage && filteredApartments.length === 0">No apartments match your filters.</p>
+
+        <article class="property-card" *ngFor="let apartment of paginatedApartments; let index = index"
+          [routerLink]="['/apartments', apartment.id]">
+          <div class="property-image">
+            <span class="badge" [class.hot]="index % 3 === 2">{{ index % 4 === 0 ? 'Premium' : index % 3 === 0 ? 'Hot' : 'New' }}</span>
+            <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'" [alt]="apartment.title">
+            <button class="favorite-btn" type="button" [class.active]="favoriteService.isFavorite(apartment.id)"
+              [attr.aria-label]="favoriteService.isFavorite(apartment.id) ? 'Remove from saved properties' : 'Save property'"
+              [attr.aria-pressed]="favoriteService.isFavorite(apartment.id)"
+              (click)="toggleFavorite($event, apartment)">
+              <i [class]="favoriteService.isFavorite(apartment.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+            </button>
           </div>
-        </div>
-        <div class="price-inputs">
-          <div class="price-box">
-            <span class="label">Min</span>
-            <input type="text" value="$0" readonly />
+          <div class="property-card-body">
+            <div class="property-price"><app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price></div>
+            <h3>{{ apartment.title || getApartmentLocation(apartment) }}</h3>
+            <p class="property-address">⌖ &nbsp;{{ getApartmentStreet(apartment) }}</p>
+            <div class="property-specs"><span>♙ {{ apartment.bedrooms || '—' }} Beds</span>
+              <span>♨ {{ apartment.bathrooms || '—' }} Baths</span><span>□ {{ apartment.sizeSquareMeters || '—' }} m²</span></div>
+            <small>{{ index % 2 ? '1 day ago' : '2 days ago' }}</small>
           </div>
-          <div class="price-box">
-            <span class="label">Max</span>
-            <input type="text" [value]="'$' + selectedPriceMax" readonly />
-          </div>
-        </div>
-      </div>
+        </article>
+      </section>
+    </main>
 
-      <div class="filter-group">
-        <div class="group-title">
-          <span>Bedrooms</span>
-          <span class="chevron">▲</span>
-        </div>
-        <div class="checkbox-list">
-          <label *ngFor="let option of bedroomOptions" class="custom-checkbox">
-            <input 
-              type="checkbox" 
-              [checked]="isFilterActive(selectedBedrooms, option)" 
-              (change)="toggleFilterItem(selectedBedrooms, option)" /> 
-            {{ option }}
-          </label>
-        </div>
-      </div>
+    <div class="pagination" *ngIf="filteredApartments.length">
+      <button type="button" aria-label="Previous page" [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)">‹</button>
+      <button type="button" *ngFor="let page of visiblePages" [class.active]="page === currentPage"
+        [attr.aria-current]="page === currentPage ? 'page' : null" (click)="goToPage(page)">{{ page }}</button>
+      <span *ngIf="totalPages > 4 && currentPage < totalPages - 2">…</span>
+      <button type="button" *ngIf="totalPages > 4 && !visiblePages.includes(totalPages)"
+        [class.active]="currentPage === totalPages" (click)="goToPage(totalPages)">{{ totalPages }}</button>
+      <button type="button" aria-label="Next page" [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)">›</button>
+      <label>Show
+        <select [value]="pageSize" (change)="onPageSizeChange($event)">
+          <option value="6">6</option><option value="12">12</option><option value="24">24</option>
+        </select>
+        per page
+      </label>
+    </div>
 
-      <div class="filter-group">
-        <div class="group-title">
-          <span>Bathrooms</span>
-          <span class="chevron">▲</span>
-        </div>
-        <div class="checkbox-list">
-          <label *ngFor="let option of bathroomOptions" class="custom-checkbox">
-            <input 
-              type="checkbox" 
-              [checked]="isFilterActive(selectedBathrooms, option)" 
-              (change)="toggleFilterItem(selectedBathrooms, option)" /> 
-            {{ option }}
-          </label>
-        </div>
-      </div>
-
-      <div class="filter-group">
-        <div class="group-title">
-          <span>Property type</span>
-          <span class="chevron">▲</span>
-        </div>
-        <div class="checkbox-list">
-          <label *ngFor="let option of propertyTypeOptions" class="custom-checkbox">
-            <input 
-              type="checkbox" 
-              [checked]="isFilterActive(selectedPropertyTypes, option)" 
-              (change)="toggleFilterItem(selectedPropertyTypes, option)" /> 
-            {{ option }}
-          </label>
-        </div>
-      </div>
-
-      <div class="filter-group">
-        <div class="group-title">
-          <span>Amenities</span>
-          <span class="chevron">▲</span>
-        </div>
-        <div class="checkbox-list">
-          <label *ngFor="let option of amenityOptions" class="custom-checkbox">
-            <input 
-              type="checkbox" 
-              [checked]="isFilterActive(selectedAmenities, option)" 
-              (change)="toggleFilterItem(selectedAmenities, option)" /> 
-            {{ option }}
-          </label>
-        </div>
-      </div>
-
-      <button class="btn-primary-search" style="width: 100%; margin-top: 1rem;" type="button" (click)="onSearch()">
-        Apply Filters
-      </button>
-    </aside>
-
-    <section class="cards-grid-view">
-      <ng-container *ngIf="loading">
-        <div *ngFor="let card of propertiesPlaceholder" class="empty-card-skeleton">
-          <div class="skeleton-image-area"></div>
-          <div class="skeleton-text-block">
-            <div class="line title-bar"></div>
-            <div class="line text-bar"></div>
-            <div class="line label-bar"></div>
-          </div>
-        </div>
-      </ng-container>
-
-      <p class="property-message error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
-      <p class="property-message" *ngIf="!loading && !errorMessage && filteredApartments.length === 0">
-        No apartments match your filters.
-      </p>
-
-      <article
-        class="property-card"
-        *ngFor="let apartment of filteredApartments"
-        [class.selected]="selectedApartment?.id === apartment.id"
-        (click)="selectApartment(apartment)"
-      >
-        <div class="property-image">
-          <span class="badge premium">Premium</span>
-          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/banner.jpg'" [alt]="apartment.title" />
-          <button class="favorite-btn" type="button" (click)="$event.stopPropagation()">♡</button>
-        </div>
-
-        <div class="property-card-body">
-          <div class="property-price">
-            {{ apartment.price | currency:'USD':'symbol':'1.0-0' }} <span>/month</span>
-          </div>
-          <h3 class="property-title">{{ apartment.title || getApartmentLocation(apartment) }}</h3>
-          <p class="property-address">📍 {{ getApartmentStreet(apartment) }}</p>
-
-          <a class="details-link" [routerLink]="['/apartments', apartment.id]" (click)="$event.stopPropagation()">View details</a>
-        </div>
-      </article>
+    <section class="features-banner">
+      <article><i>♢</i><div><h4>Verified listings</h4><p>Every property is verified for your peace of mind.</p></div></article>
+      <article><i>▣</i><div><h4>No duplicate listings</h4><p>We remove duplicates so you only see real, unique options.</p></div></article>
+      <article><i>⌕</i><div><h4>Smart search</h4><p>Advanced filters help you find the right home faster.</p></div></article>
+      <article><i>✦</i><div><h4>AI property match</h4><p>Our AI learns your preferences to match you with better homes.</p></div></article>
+      <article><i>♙</i><div><h4>Professional agents</h4><p>Experienced agents to guide you every step of the way.</p></div></article>
     </section>
-  </main>
+  </div>
 </div>

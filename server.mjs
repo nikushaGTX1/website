@@ -12,6 +12,7 @@ const publicApiCache = new Map();
 const publicApiRequests = new Map();
 const apartmentImageCache = new Map();
 const apartmentImageRequests = new Map();
+const translationCache = new Map();
 const publicCacheLifetimeMs = 60_000;
 const publicCacheStaleLifetimeMs = 5 * 60_000;
 const browserDirectory = path.join(
@@ -30,6 +31,13 @@ app.use((request, response, next) => {
     return;
   }
 
+  next();
+});
+
+app.use((_request, response, next) => {
+  response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
   next();
 });
 
@@ -149,6 +157,64 @@ app.get('/media/apartment-image', async (request, response) => {
   }
 });
 
+app.post(
+  '/translation',
+  express.json({ limit: '32kb' }),
+  async (request, response) => {
+    try {
+      const language = request.body?.language;
+      const text = request.body?.text;
+      if (!['ka', 'ru'].includes(language) || typeof text !== 'string' || !text.trim()) {
+        response.status(400).json({ message: 'Invalid translation request.' });
+        return;
+      }
+      if (text.length > 5000) {
+        response.status(413).json({ message: 'Translation request is too large.' });
+        return;
+      }
+
+      const cacheKey = `${language}:${text}`;
+      const cached = translationCache.get(cacheKey);
+      if (cached) {
+        response.json({ translatedText: cached });
+        return;
+      }
+
+      const params = new URLSearchParams({
+        client: 'gtx',
+        sl: 'en',
+        tl: language,
+        dt: 't',
+        q: text,
+      });
+      const upstream = await fetch(
+        `https://translate.googleapis.com/translate_a/single?${params}`,
+      );
+      if (!upstream.ok) {
+        throw new Error(`Translation service returned HTTP ${upstream.status}.`);
+      }
+
+      const payload = await upstream.json();
+      const translatedText = payload[0]
+        .map((part) => part?.[0] || '')
+        .join('');
+      if (!translatedText) {
+        throw new Error('Translation service returned an empty response.');
+      }
+
+      translationCache.set(cacheKey, translatedText);
+      if (translationCache.size > 1000) {
+        translationCache.delete(translationCache.keys().next().value);
+      }
+      response.setHeader('Cache-Control', 'private, max-age=86400');
+      response.json({ translatedText });
+    } catch (error) {
+      console.error('Translation proxy error:', error);
+      response.status(502).json({ message: 'Translation is temporarily unavailable.' });
+    }
+  },
+);
+
 function sendApiResponse(response, apiResponse, cacheStatus) {
   response.status(apiResponse.status);
   apiResponse.headers.forEach(([name, value]) => response.setHeader(name, value));
@@ -256,11 +322,13 @@ app.use('/api', async (request, response) => {
     }
 
     const hasBody = !['GET', 'HEAD'].includes(request.method);
+    const requestBody = hasBody
+      ? Buffer.concat(await Array.fromAsync(request))
+      : undefined;
     const upstreamResponse = await fetch(targetUrl, {
       method: request.method,
       headers,
-      body: hasBody ? request : undefined,
-      duplex: hasBody ? 'half' : undefined,
+      body: requestBody?.length ? requestBody : undefined,
       redirect: 'manual',
     });
 
@@ -291,8 +359,25 @@ app.get('/', (_request, response) => {
   response.redirect(301, '/main');
 });
 
-app.use(express.static(browserDirectory));
-app.use((_request, response) => {
+app.use(express.static(browserDirectory, {
+  setHeaders(response, filePath) {
+    if (/\.[A-Z0-9]{8}\.(?:js|css)$/i.test(filePath)) {
+      response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (/\.(?:png|jpe?g|webp|svg|ico|woff2?)$/i.test(filePath)) {
+      response.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+    }
+  },
+}));
+app.use((request, response) => {
+  // Do not return index.html for missing browser assets. During a rolling
+  // deployment that turns a missing JavaScript bundle into an HTML response,
+  // so the browser rejects it and leaves the static SEO fallback on screen.
+  if (path.extname(request.path)) {
+    response.sendStatus(404);
+    return;
+  }
+
+  response.setHeader('Cache-Control', 'no-cache');
   response.sendFile(path.join(browserDirectory, 'index.html'));
 });
 

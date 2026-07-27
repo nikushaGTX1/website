@@ -184,6 +184,10 @@ export class ApartmentService {
       formData.append('Address', data.address || '');
     }
 
+    if (data.phoneNumber !== undefined) {
+      formData.append('PhoneNumber', data.phoneNumber || '');
+    }
+
     const textFields: Array<[keyof CreateApartment, string]> = [
       ['city', 'City'],
       ['district', 'District'],

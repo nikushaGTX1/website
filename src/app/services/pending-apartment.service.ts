@@ -16,6 +16,7 @@ export interface PendingApartment {
   reviewedAt?: string;
   reviewedBy?: string;
   message?: string;
+  publishedApartmentId?: number;
 }
 
 @Injectable({
@@ -81,12 +82,17 @@ export class PendingApartmentService {
     return request;
   }
 
-  markApproved(id: string, reviewer: User | null): PendingApartment | null {
+  markApproved(
+    id: string,
+    reviewer: User | null,
+    publishedApartmentId?: number,
+  ): PendingApartment | null {
     return this.update(id, {
       status: 'approved',
       reviewedAt: new Date().toISOString(),
       reviewedBy: reviewer?.fullName || reviewer?.userName || 'Agent',
       message: 'Your post was confirmed and published.',
+      publishedApartmentId,
     });
   }
 
@@ -105,7 +111,32 @@ export class PendingApartmentService {
       reviewedAt: undefined,
       reviewedBy: undefined,
       message: undefined,
+      publishedApartmentId: undefined,
     });
+  }
+
+  updateSubmission(id: string, apartment: CreateApartment): PendingApartment | null {
+    return this.update(id, {
+      apartment,
+      status: 'pending',
+      submittedAt: new Date().toISOString(),
+      reviewedAt: undefined,
+      reviewedBy: undefined,
+      message: 'Changes saved. Waiting for agent approval.',
+      publishedApartmentId: undefined,
+    });
+  }
+
+  remove(id: string): boolean {
+    const items = this.getAll();
+    const updated = items.filter((item) => item.id !== id);
+
+    if (updated.length === items.length) {
+      return false;
+    }
+
+    this.save(updated);
+    return true;
   }
 
   private update(id: string, changes: Partial<PendingApartment>): PendingApartment | null {

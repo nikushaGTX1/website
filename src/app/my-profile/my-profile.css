@@ -129,8 +129,8 @@
 
 .form-group input:focus,
 .form-group textarea:focus {
-  border-color: #3569f5;
-  box-shadow: 0 0 0 3px rgba(53, 105, 245, 0.12);
+  border-color: #2C64EA;
+  box-shadow: 0 0 0 3px rgba(44, 100, 234, 0.12);
 }
 
 .form-group input[type="file"] {
@@ -159,13 +159,51 @@
 
 .save-btn {
   width: fit-content;
-  background: #3569f5;
-  border-color: #3569f5;
+  background: #2C64EA;
+  border-color: #2C64EA;
   color: #fff;
 }
 
 .save-btn:hover {
-  background: #2857d8;
+  background: #2C64EA;
+}
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 18px 12px 34px;
+  }
+
+  .profile-card {
+    padding: 22px 16px;
+    border-radius: 12px;
+  }
+
+  .profile-header {
+    gap: 14px;
+  }
+
+  .avatar {
+    width: 60px;
+    height: 60px;
+    flex: 0 0 60px;
+  }
+
+  .detail-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .value {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+
+  .logout-btn,
+  .save-btn {
+    width: 100%;
+  }
 }
 
 .save-btn:disabled {

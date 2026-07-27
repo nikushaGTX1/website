@@ -1,5 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ApartmentService } from '../services/apartment.service';
+import { FavoriteService } from '../services/favorite.service';
+import { AuthService } from '../services/auth.service';
 import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
@@ -20,19 +22,123 @@ export class Main implements OnInit {
   searchMode: 'rent' | 'buy' = 'rent';
   searchLocation = '';
   searchBudget = '';
+  budgetOpen = false;
+  bedroomOpen = false;
+  budgetCurrency: 'GEL' | 'USD' = 'GEL';
+  budgetMin: number | null = 0;
+  budgetMax: number | null = 5000;
+  appliedBudgetMin: number | null = null;
+  appliedBudgetMax: number | null = null;
+  selectedBudgetRange = '';
+  readonly budgetRanges = [
+    { label: 'Up to $800', min: 0, max: 800 },
+    { label: '$800 – $1,500', min: 800, max: 1500 },
+    { label: '$1,500 – $3,000', min: 1500, max: 3000 },
+    { label: '$3,000 – $5,000', min: 3000, max: 5000 },
+  ];
+  readonly bedroomOptions = [
+    { label: 'Studio', value: '0', icon: 'fa-solid fa-building' },
+    { label: '1 Bed', value: '1', icon: 'fa-solid fa-bed' },
+    { label: '2 Beds', value: '2', icon: 'fa-solid fa-bed' },
+    { label: '3 Beds', value: '3', icon: 'fa-solid fa-bed' },
+    { label: '4 Beds', value: '4', icon: 'fa-solid fa-bed' },
+    { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
+  ];
   searchBedrooms = '';
-  searchMoveIn = '';
+  public advancedFiltersOpen = false;
 
   constructor(
     private apartmentService: ApartmentService,
     private agentService: AgentService,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    readonly favoriteService: FavoriteService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
     this.loadApartments();
     this.loadAgents();
+    this.favoriteService.loadFavorites().subscribe({
+      next: () => this.cdr.detectChanges(),
+      error: () => undefined,
+    });
+  }
+
+  toggleFavorite(event: Event, apartment: Apartment): void {
+    event.stopPropagation();
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: '/' } });
+      return;
+    }
+    this.favoriteService.toggleFavorite(apartment.id).subscribe({
+      next: () => this.cdr.detectChanges(),
+      error: (error) => {
+        this.cdr.detectChanges();
+        console.error('Favorite API error:', error);
+      },
+    });
+  }
+
+  get budgetSummary(): string {
+    const min = this.appliedBudgetMin;
+    const max = this.appliedBudgetMax;
+    if (min == null && max == null) return 'Any budget';
+    if (min != null && max != null) return `${min.toLocaleString()} – ${max.toLocaleString()} ${this.budgetCurrency}`;
+    if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
+    return `Up to ${max!.toLocaleString()} ${this.budgetCurrency}`;
+  }
+
+  get bedroomSummary(): string {
+    return this.bedroomOptions.find((option) => option.value === this.searchBedrooms)?.label || 'Any';
+  }
+
+  get budgetMinPercent(): number {
+    return Math.min(this.normalizedSliderValue(this.budgetMin), this.normalizedSliderValue(this.budgetMax));
+  }
+
+  get budgetMaxPercent(): number {
+    return Math.max(this.normalizedSliderValue(this.budgetMin), this.normalizedSliderValue(this.budgetMax));
+  }
+
+  @HostListener('document:click')
+  closeBudget(): void {
+    this.budgetOpen = false;
+    this.bedroomOpen = false;
+  }
+
+  selectBudgetRange(range: { label: string; min: number; max: number }): void {
+    this.selectedBudgetRange = range.label;
+    this.budgetCurrency = 'USD';
+    this.budgetMin = range.min;
+    this.budgetMax = range.max;
+  }
+
+  applyBudget(): void {
+    this.appliedBudgetMin = this.normalizeBudget(this.budgetMin);
+    this.appliedBudgetMax = this.normalizeBudget(this.budgetMax);
+    this.searchBudget = this.appliedBudgetMax?.toString() || '';
+    this.budgetOpen = false;
+  }
+
+  resetBudget(): void {
+    this.budgetMin = 0;
+    this.budgetMax = 5000;
+    this.appliedBudgetMin = null;
+    this.appliedBudgetMax = null;
+    this.searchBudget = '';
+    this.selectedBudgetRange = '';
+    this.budgetOpen = false;
+  }
+
+  selectBedrooms(value: string): void {
+    this.searchBedrooms = value;
+    this.bedroomOpen = false;
+  }
+
+  clearBedrooms(): void {
+    this.searchBedrooms = '';
+    this.bedroomOpen = false;
   }
 
   get topApartments(): Apartment[] {
@@ -122,9 +228,10 @@ export class Main implements OnInit {
       queryParams: {
         mode: this.searchMode,
         location: this.searchLocation || null,
-        budget: this.searchBudget || null,
+        budget: this.toUsd(this.appliedBudgetMax),
+        budgetMin: this.toUsd(this.appliedBudgetMin),
+        budgetCurrency: this.budgetCurrency,
         bedrooms: this.searchBedrooms || null,
-        moveIn: this.searchMoveIn || null,
       },
     });
   }
@@ -135,7 +242,29 @@ export class Main implements OnInit {
     });
   }
 
+  public toggleAdvancedFilters(): void {
+    this.advancedFiltersOpen = !this.advancedFiltersOpen;
+  }
+
+  public openAiHomeMatch(): void {
+    void this.router.navigate(['/ai-home-match']);
+  }
+
   private isDisplayableApartment(apartment: Apartment): boolean {
     return !!apartment.title?.trim() && Number(apartment.price) > 0;
+  }
+
+  private normalizeBudget(value: number | null): number | null {
+    const normalized = Number(value);
+    return value == null || !Number.isFinite(normalized) || normalized < 0 ? null : normalized;
+  }
+
+  private toUsd(value: number | null): number | null {
+    if (value == null) return null;
+    return this.budgetCurrency === 'GEL' ? Math.round(value / 2.7) : value;
+  }
+
+  private normalizedSliderValue(value: number | null): number {
+    return Math.min(100, Math.max(0, Number(value || 0) / 50));
   }
 }

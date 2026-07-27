@@ -22,13 +22,9 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   user: User | null = null;
 
   menuItems: MenuItem[] = [
-    { label: 'My Profile', route: '/my-profile', icon: 'profile' },
-    { label: 'My listings', route: '/my-listings', icon: 'listings' },
-    { label: 'Saved listings', route: '/saved-listings', icon: 'bookmark' },
-    { label: 'Premium', route: '/premium', icon: 'premium' },
-    { label: 'Balance', route: '/balance', icon: 'balance' },
-    { label: 'Payment methods', route: '/payment-methods', icon: 'card' },
-    { label: 'My business', route: '/my-business', icon: 'business' },
+    { label: 'My Profile', route: '/my-profile', icon: 'fa-regular fa-user' },
+    { label: 'My listings', route: '/my-listings', icon: 'fa-solid fa-list' },
+    { label: 'Saved listings', route: '/saved-listings', icon: 'fa-regular fa-heart' },
   ];
 
   private subscription?: Subscription;

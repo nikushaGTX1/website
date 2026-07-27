@@ -1,14 +1,16 @@
 <header class="site-header">
   <nav class="navigation" aria-label="Main navigation">
     <a class="brand" routerLink="/main" aria-label="Velven home" (click)="closeMenu()">
-      <img src="/velven-logo.svg" alt="Velven" />
+      <img src="/logosh.png" alt="Velven" width="170" height="40" />
+      <span aria-hidden="true">VELVEN</span>
     </a>
 
     <button
       class="menu-toggle"
       type="button"
-      aria-label="Toggle navigation"
+      [attr.aria-label]="menuOpen ? 'Close navigation' : 'Open navigation'"
       [attr.aria-expanded]="menuOpen"
+      aria-controls="mobile-navigation"
       (click)="menuOpen = !menuOpen"
     >
       <span></span>
@@ -16,7 +18,7 @@
       <span></span>
     </button>
 
-    <div class="navigation-content" [class.is-open]="menuOpen">
+    <div class="navigation-content" id="mobile-navigation" [class.is-open]="menuOpen">
       <div class="nav-links">
         <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'buy' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Buy</a>
         <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'rent' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Rent</a>
@@ -32,12 +34,25 @@
       <div class="nav-actions">
         <a class="admin-link" routerLink="/admin" *ngIf="canOpenAdmin" (click)="closeMenu()">Dashboard</a>
 
-        <button class="language" type="button" aria-label="Select language">
-          ENG
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="m6 8 4 4 4-4" />
-          </svg>
-        </button>
+        <div class="language-picker" data-no-translate>
+          <button
+            class="language"
+            type="button"
+            aria-label="Select language"
+            [attr.aria-expanded]="languageOpen"
+            (click)="languageOpen = !languageOpen"
+          >
+            {{ translation.label() }}
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="m6 8 4 4 4-4" />
+            </svg>
+          </button>
+          <div class="language-menu" *ngIf="languageOpen">
+            <button type="button" (click)="selectLanguage('en')">EN <span>English</span></button>
+            <button type="button" (click)="selectLanguage('ka')">GE <span>ქართული</span></button>
+            <button type="button" (click)="selectLanguage('ru')">RU <span>Русский</span></button>
+          </div>
+        </div>
 
         <a class="sign-in" routerLink="/login" *ngIf="!isLoggedIn" (click)="closeMenu()">
           <svg viewBox="0 0 24 24" aria-hidden="true">

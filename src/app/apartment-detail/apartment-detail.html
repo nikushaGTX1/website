@@ -2,245 +2,156 @@
   <p class="status-message" *ngIf="errorMessage">{{ errorMessage }}</p>
 
   <ng-container *ngIf="apartment; else detailState">
-  <header class="detail-heading">
-    <div>
-      <h1>{{ title }}</h1>
-      <span class="rating-mark">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.9 6.1 6.7.9-4.8 4.7 1.2 6.6-6-3.2-6 3.2 1.2-6.6L2.4 9l6.7-.9L12 2z"/></svg>
-        {{ rating }}
-      </span>
-    </div>
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a routerLink="/main">Home</a><span>›</span><a routerLink="/ExploreProperty">Rent</a><span>›</span>
+      <span>{{ apartment.district || 'Tbilisi' }}</span><span>›</span><strong>{{ title }}</strong>
+    </nav>
 
-    <div class="heading-actions">
-      <button type="button" aria-label="Share apartment">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 12v7h16v-7M12 16V3m0 0 5 5m-5-5-5 5"/>
-        </svg>
-      </button>
-      <button type="button" aria-label="Save apartment">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20.8 4.6a5.4 5.4 0 0 0-7.7 0L12 5.7l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.7z"/>
-        </svg>
-      </button>
-    </div>
-  </header>
+    <header class="detail-heading">
+      <div>
+        <h1>{{ title }}</h1>
+        <p><i class="fa-solid fa-location-dot"></i>{{ address }}</p>
+        <div class="listing-tags">
+          <span class="verified"><i class="fa-regular fa-circle-check"></i> Verified</span>
+          <span><i class="fa-regular fa-snowflake"></i> New Listing</span>
+          <span class="gold"><i class="fa-regular fa-lightbulb"></i> AI Match</span>
+        </div>
+      </div>
+      <div class="heading-actions">
+        <button type="button" (click)="toggleFavorite()" [class.active]="favorite"
+          [attr.aria-label]="favorite ? 'Remove from saved properties' : 'Save apartment'"
+          [attr.aria-pressed]="favorite">
+          <i [class]="favorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+        </button>
+        <button type="button" (click)="shareApartment()" aria-label="Share apartment"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
+      </div>
+    </header>
 
-  <section
-    class="gallery"
-    [style.grid-template-columns]="photoCount === 1 ? '1fr' : null"
-    [style.grid-template-rows]="photoCount === 1 ? '365px' : null"
-    *ngIf="photoCount > 0; else noApartmentPhotos"
-    aria-label="Apartment photos"
-  >
-    <img
-      *ngFor="let image of galleryImages | slice:0:5; let index = index"
-      [class.gallery-main]="index === 0"
-      [style.grid-row]="photoCount === 1 ? '1' : null"
-      [src]="image"
-      [alt]="title + ' photo ' + (index + 1)"
-      [attr.loading]="index === 0 ? 'eager' : 'lazy'"
-      [attr.fetchpriority]="index === 0 ? 'high' : 'low'"
-      decoding="async"
-    />
-    <span class="photo-count">{{ photoCount }} {{ photoCount === 1 ? 'photo' : 'photos' }}</span>
-  </section>
+    <section class="hero-layout">
+      <div class="gallery-column">
+        <div class="main-photo">
+          <img [src]="activePhoto" [alt]="title" />
+          <button type="button" class="photo-nav previous" (click)="previousPhoto()" *ngIf="photoCount > 1" aria-label="Previous photo">‹</button>
+          <button type="button" class="photo-nav next" (click)="nextPhoto()" *ngIf="photoCount > 1" aria-label="Next photo">›</button>
+          <button type="button" class="all-photos" (click)="openPhotoViewer()"><i class="fa-regular fa-images"></i> View all photos ({{ photoCount }})</button>
+        </div>
+        <div class="thumbnail-row" *ngIf="galleryImages.length > 1">
+          <button type="button" *ngFor="let image of galleryImages | slice:0:5; let index = index" (click)="selectPhoto(index)" [class.active]="activePhotoIndex === index">
+            <img [src]="image" [alt]="title + ' thumbnail ' + (index + 1)" />
+          </button>
+        </div>
+      </div>
 
-  <ng-template #noApartmentPhotos>
-    <section class="gallery" style="grid-template-columns:1fr;grid-template-rows:365px" aria-label="No apartment photos">
-      <img class="gallery-main" style="grid-row:1" src="/property-placeholder.svg" [alt]="title + ' photo unavailable'" />
-      <span class="photo-count">No uploaded photos</span>
+      <aside class="price-card">
+        <strong class="price"><app-currency-price [usdPrice]="price" suffix="/ month"></app-currency-price></strong>
+        <div class="facts-grid">
+          <span><i class="fa-solid fa-up-right-and-down-left-from-center"></i><b>{{ area || '—' }} m²</b><small>Total area</small></span>
+          <span><i class="fa-solid fa-stairs"></i><b>{{ floorLabel }}</b><small>Floor</small></span>
+          <span><i class="fa-solid fa-bed"></i><b>{{ bedrooms || '—' }}</b><small>Bedrooms</small></span>
+          <span><i class="fa-regular fa-building"></i><b>{{ buildingType }}</b><small>Building type</small></span>
+          <span><i class="fa-solid fa-bath"></i><b>{{ bathrooms || '—' }}</b><small>Bathrooms</small></span>
+          <span><i class="fa-regular fa-calendar"></i><b>{{ apartment.totalFloors || '—' }}</b><small>Total floors</small></span>
+        </div>
+        <button *ngIf="!phoneRevealed" type="button" class="contact primary" (click)="$event.preventDefault(); $event.stopPropagation(); phoneRevealed = true"><i class="fa-solid fa-phone"></i> Reveal phone number</button>
+        <div *ngIf="phoneRevealed" class="contact primary revealed-phone"><i class="fa-solid fa-phone"></i> {{ phoneNumber || 'No phone number provided' }}</div>
+        <button type="button" class="contact whatsapp" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+        <button type="button" class="contact schedule" (click)="scheduleViewing()"><i class="fa-regular fa-calendar-check"></i> Schedule a viewing</button>
+      </aside>
     </section>
-  </ng-template>
 
-  <section class="photo-strip" *ngIf="photoCount > 5" aria-label="All uploaded apartment photos">
-    <img
-      *ngFor="let image of additionalGalleryImages; let index = index"
-      [src]="image"
-      [alt]="title + ' photo ' + (index + 6)"
-      loading="lazy"
-      decoding="async"
-    />
-  </section>
-
-  <section class="summary-grid">
-    <article class="location-card">
-      <div class="location-info">
-        <h2>{{ title }}</h2>
-        <p class="pin-line">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-5.4 7-12a7 7 0 1 0-14 0c0 6.6 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
-          {{ address }}
-        </p>
-        <span>{{ distance }}</span>
-        <div class="mini-agent">
-          <img [src]="agentImage" [alt]="agentName" />
-          <div>
-            <strong>{{ agentName }}</strong>
-            <span>{{ agentRole }}</span>
-          </div>
+    <section class="info-pair">
+      <article class="panel features-panel">
+        <h2>Key Features</h2>
+        <div class="feature-grid">
+          <span *ngFor="let feature of keyFeatures"><i class="fa-solid {{ feature.icon }}"></i><b>{{ feature.label }}</b><small>{{ feature.value }}</small></span>
         </div>
-      </div>
-
-      <div class="map-panel">
-        <app-google-property-map [address]="address" [apartmentTitle]="title"></app-google-property-map>
-      </div>
-    </article>
-
-    <aside class="price-card">
-      <div class="price-row">
-        <strong>{{ price | currency:'USD':'symbol':'1.0-0' }} <span>month</span></strong>
-        <p>
-          <span>3 days ago</span>
-          <span>760 views</span>
-          <span>57 saves</span>
-        </p>
-      </div>
-
-      <div class="facts-grid">
-        <span>Area: <strong>55 m2</strong></span>
-        <span>Bedroom: <strong>1</strong></span>
-        <span>Floor: <strong>2</strong></span>
-        <span>Rooms: <strong>2</strong></span>
-      </div>
-
-      <div class="contact-row">
-        <button type="button" aria-label="Call agent">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7A2 2 0 0 1 22 16.9z"/></svg>
-        </button>
-        <button type="button" aria-label="Message agent">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5a8.5 8.5 0 0 1 17 0z"/></svg>
-        </button>
-      </div>
-
-    </aside>
-  </section>
-
-  <section class="feature-panel">
-    <div class="type-block">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V7l8-4 8 4v14M9 21v-6h6v6M8 9h.1M12 9h.1M16 9h.1"/></svg>
-      <h2>Studio apartment</h2>
-      <strong>1 Living room</strong>
-      <strong>1 bedroom</strong>
-      <strong>1 Bathroom</strong>
-      <strong>1 Balcony</strong>
-    </div>
-
-    <div class="amenities">
-      <span>Airconditioning</span>
-      <span>Fire extinguisher</span>
-      <span>Heating</span>
-      <span>Car service</span>
-      <span>Wi Fi</span>
-      <span>BBQ grill</span>
-      <span>Washing machine</span>
-      <span>Shower</span>
-    </div>
-
-    <div class="request-actions">
-      <button type="button">Request a hous tour</button>
-      <button type="button">Contact an agent</button>
-    </div>
-  </section>
-
-  <section class="about-card">
-    <h2>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16M9 9h.1M15 9h.1M9 13h.1M15 13h.1M9 17h.1M15 17h.1"/></svg>
-      About the apartment
-    </h2>
-    <p>{{ description }}</p>
-  </section>
-
-  <section class="benefits" aria-label="Apartment benefits">
-    <article>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5h16v16M8 9h2m4 0h2M8 13h2m4 0h2M8 17h2m4 0h2"/></svg>
-      <strong>Great location</strong>
-    </article>
-    <article>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-8h6v8"/></svg>
-      <strong>Less bureaucracy</strong>
-    </article>
-    <article>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z"/></svg>
-      <strong>Easy access</strong>
-    </article>
-    <article>
-      <img [src]="agentImage" [alt]="agentName" />
-      <strong>Agent service</strong>
-    </article>
-  </section>
-
-  <section class="reviews-section">
-    <h2>Read the reviews</h2>
-    <div class="reviews-grid">
-      <article class="review-card" *ngFor="let review of reviews">
-        <div class="review-person">
-          <span aria-hidden="true"></span>
-          <div>
-            <strong>{{ review.name }}</strong>
-            <small>★★★★★</small>
-          </div>
-        </div>
-        <p>{{ review.text }}</p>
-        <button type="button">Show more</button>
       </article>
-    </div>
-  </section>
 
-  <section class="agent-section">
-    <h2>Meet your agent</h2>
-    <article class="agent-wide-card">
-      <div class="agent-profile">
+      <article class="panel nearby-panel">
+        <div class="panel-heading">
+          <div><h2>What’s nearby</h2><p>Real walking times from this apartment.</p></div>
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <div class="nearby-grid" *ngIf="nearbyPlaces.length; else nearbyLoading">
+          <button type="button" *ngFor="let place of nearbyPlaces" (click)="openWalkingDirections(place)">
+            <i class="fa-solid" [class.fa-train-subway]="place.category === 'transit_station'" [class.fa-graduation-cap]="place.category === 'school'" [class.fa-dumbbell]="place.category === 'gym'" [class.fa-tree]="place.category === 'park'" [class.fa-cart-shopping]="place.category === 'supermarket'" [class.fa-location-dot]="!['transit_station','school','gym','park','supermarket'].includes(place.category)"></i>
+            <span><b>{{ place.name }}</b><small>{{ place.walkingMinutes }} min walk</small></span>
+          </button>
+        </div>
+        <ng-template #nearbyLoading><p class="nearby-loading">Calculating nearby walking times…</p></ng-template>
+      </article>
+    </section>
+
+    <section class="about-agent">
+      <article class="panel about-card">
+        <h2>About this property</h2>
+        <p>{{ visibleDescription }}</p>
+        <button type="button" class="text-button" *ngIf="description.length > 360" (click)="descriptionExpanded = !descriptionExpanded">
+          {{ descriptionExpanded ? 'Show less' : 'Show more' }} <i class="fa-solid fa-chevron-down"></i>
+        </button>
+      </article>
+
+      <article class="panel agent-card">
         <img [src]="agentImage" [alt]="agentName" />
-        <div>
-          <strong>{{ agentName }}</strong>
+        <div class="agent-details">
+          <h3>{{ agentName }}</h3>
           <span>{{ agentRole }}</span>
-          <span>{{ agentLocation }}</span>
-          <small>★ {{ agentRating }}</small>
-        </div>
-      </div>
-      <p>{{ agentBio }}</p>
-      <p>{{ agentExperience }}</p>
-    </article>
-  </section>
-
-  <section class="similar-section">
-    <div class="section-title-row">
-      <h2>Similar Apartments</h2>
-      <div class="round-actions" aria-hidden="true">
-        <span>&lt;</span>
-        <span>&gt;</span>
-      </div>
-    </div>
-
-    <div class="similar-grid">
-      <article class="similar-card" *ngFor="let similar of similarApartments">
-        <div class="similar-image">
-          <img [src]="similar.imageUrl" [alt]="similar.title" />
-          <button type="button" aria-label="Save apartment">♡</button>
-          <div class="dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-        </div>
-        <div class="similar-info">
-          <div>
-            <strong>{{ similar.title }}</strong>
-            <span>★ {{ similar.rating }}</span>
+          <small class="agent-rating">★ {{ agentRating }} <em>{{ agentRatingCount }}</em></small>
+          <div class="phone-reveal" *ngIf="phoneNumber">
+            <span><i class="fa-solid fa-phone"></i> {{ phoneRevealed ? phoneNumber : maskedPhoneNumber }}</span>
+            <button type="button" class="reveal-number" *ngIf="!phoneRevealed" (click)="$event.preventDefault(); $event.stopPropagation(); phoneRevealed = true">Reveal number</button>
           </div>
-          <p>{{ similar.address }}</p>
-          <small>{{ similar.distance }}</small>
-          <b>{{ similar.price | currency:'USD':'symbol':'1.0-0' }} <span>month</span></b>
+          <p class="agent-bio">{{ agentBio }}</p>
+          <div class="agent-actions"><button *ngIf="!phoneRevealed" type="button" (click)="$event.preventDefault(); $event.stopPropagation(); phoneRevealed = true"><i class="fa-solid fa-phone"></i> Reveal Number</button><span *ngIf="phoneRevealed" class="agent-phone-text"><i class="fa-solid fa-phone"></i> {{ phoneNumber || 'No phone number provided' }}</span><button type="button" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button></div>
         </div>
       </article>
+    </section>
+
+    <section class="lower-layout">
+      <article class="panel location-section">
+        <div class="panel-heading">
+          <div><h2>Location &amp; Map</h2><p>{{ address }}</p></div>
+          <button type="button" class="open-map" (click)="openMaps()">Open in Maps <i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+        </div>
+        <app-google-property-map
+          [address]="address"
+          [apartmentTitle]="title"
+          [latitude]="apartment.latitude"
+          [longitude]="apartment.longitude"
+          [compact]="true"
+          (nearbyPlacesChange)="setNearbyPlaces($event)">
+        </app-google-property-map>
+      </article>
+
+      <article class="panel similar-section">
+        <div class="panel-heading"><h2>Similar properties</h2><a routerLink="/ExploreProperty">View all</a></div>
+        <div class="similar-grid">
+          <button type="button" class="similar-card" *ngFor="let similar of similarApartments | slice:0:3; let index = index" (click)="viewSimilar(index)">
+            <img [src]="similar.imageUrl" [alt]="similar.title" />
+            <span><b><app-currency-price [usdPrice]="similar.price" suffix="/ mo"></app-currency-price></b><strong>{{ similar.title }}</strong><small>{{ similar.address }}</small></span>
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <section class="trust-row">
+      <span><i class="fa-regular fa-circle-check"></i><b>Verified properties</b><small>Every listing is verified</small></span>
+      <span><i class="fa-solid fa-shield-halved"></i><b>Secure process</b><small>Safe and transparent</small></span>
+      <span><i class="fa-solid fa-headset"></i><b>Expert support</b><small>We’re here to help</small></span>
+      <span><i class="fa-solid fa-wand-magic-sparkles"></i><b>AI matched for you</b><small>Smarter search, better results</small></span>
+    </section>
+
+    <div class="photo-viewer" *ngIf="photoViewerOpen" (click)="closePhotoViewer()">
+      <button type="button" class="viewer-close" (click)="closePhotoViewer()" aria-label="Close photos">×</button>
+      <button type="button" class="viewer-nav previous" (click)="$event.stopPropagation(); previousPhoto()">‹</button>
+      <img [src]="activePhoto" [alt]="title + ' full photo'" (click)="$event.stopPropagation()" />
+      <button type="button" class="viewer-nav next" (click)="$event.stopPropagation(); nextPhoto()">›</button>
+      <span>{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
     </div>
-  </section>
   </ng-container>
 
   <ng-template #detailState>
-    <section class="detail-empty-state" *ngIf="loading">
-      <h1>Loading apartment details…</h1>
-      <p>Preparing the listing and its photos.</p>
-    </section>
-    <section class="detail-empty-state" *ngIf="!loading">
-      <h1>Apartment details unavailable</h1>
-      <p>Select a published apartment from Top apartments or Explore Property.</p>
-      <button type="button" routerLink="/main">Back to home</button>
-    </section>
+    <section class="detail-empty-state" *ngIf="loading"><h1>Loading apartment details…</h1><p>Preparing the listing, location, and nearby places.</p></section>
+    <section class="detail-empty-state" *ngIf="!loading"><h1>Apartment details unavailable</h1><p>Select a published apartment to view its details.</p><button type="button" routerLink="/main">Back to home</button></section>
   </ng-template>
 </section>

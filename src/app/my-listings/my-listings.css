@@ -16,7 +16,7 @@
 }
 
 .listings-header span {
-  color: #3168f4;
+  color: #2C64EA;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -39,7 +39,7 @@
 .primary {
   border: 0;
   border-radius: 8px;
-  background: #3168f4;
+  background: #2C64EA;
   color: #ffffff;
   cursor: pointer;
   font-weight: 800;
@@ -164,7 +164,7 @@
 
 .pending {
   background: #eff6ff;
-  color: #2563eb;
+  color: #2C64EA;
 }
 
 .approved {
@@ -272,6 +272,49 @@
   grid-column: 1 / -1;
 }
 
+.pending-edit {
+  align-self: stretch;
+}
+
+.field-hint {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.amenities {
+  margin: 0;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px 16px;
+  border: 1px solid #d9dee8;
+  border-radius: 8px;
+}
+
+.amenities legend {
+  padding: 0 6px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.amenities label {
+  display: flex;
+  grid-template-columns: none;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.amenities input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  padding: 0;
+  accent-color: #2C64EA;
+}
+
 .loading,
 .empty-state {
   border: 1px dashed #cbd5e1;
@@ -307,6 +350,10 @@
   .pending-grid,
   .listings-grid,
   .edit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .amenities {
     grid-template-columns: 1fr;
   }
 }

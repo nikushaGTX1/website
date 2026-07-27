@@ -15,6 +15,14 @@ type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
   styleUrl: './ai-home-match-page.component.css',
 })
 export class AiHomeMatchPageComponent implements OnDestroy {
+  readonly phaseLabels = [
+    'Lifestyle',
+    'Location',
+    'Home Details',
+    'Preferences',
+    'Budget',
+    'Review',
+  ];
   readonly questions: HomeMatchQuestion[] = [
     { title: 'What are you looking for?' },
     { title: 'Where would you like to live?', subtitle: 'Choose one or more locations.' },
@@ -223,6 +231,27 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get progress(): number {
     return ((this.step + 1) / this.questions.length) * 100;
+  }
+  get currentPhase(): number {
+    return Math.min(
+      this.phaseLabels.length - 1,
+      Math.floor((this.step * this.phaseLabels.length) / this.questions.length),
+    );
+  }
+  get householdLabel(): string {
+    return this.profile.householdType
+      ? this.profile.householdType.replace(/([a-z])([A-Z])/g, '$1 $2')
+      : 'Tell us who will live there';
+  }
+  get locationLabel(): string {
+    return this.profile.locationFlexible
+      ? 'Flexible'
+      : this.profile.districts.length
+        ? this.profile.districts.join(', ')
+        : 'Not selected yet';
+  }
+  scrollToMatcher(): void {
+    document.querySelector('.wizard-shell')?.scrollIntoView({ behavior: 'smooth' });
   }
   get suggestedPriorities(): HomeMatchOption[] {
     return this.generateSuggestedPriorities();

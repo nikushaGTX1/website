@@ -2,6 +2,8 @@
     position:relative;
 }
 
+:host{display:block}
+
 .burger-menu{
     position:absolute;
     right:0;
@@ -42,10 +44,9 @@
     overflow:hidden;
 }
 
-.avatar-lg svg{
-    width:28px;
-    height:28px;
-    stroke:#9ca3af;
+.avatar-lg > i{
+    color:#9ca3af;
+    font-size:25px;
 }
 
 .avatar-lg img,
@@ -82,7 +83,8 @@
     margin-bottom:4px;
 }
 
-.menu-list a{
+.menu-list a,
+.menu-list button{
     display:flex;
     align-items:center;
     gap:14px;
@@ -97,39 +99,50 @@
     border-radius:12px;
 
     transition:.2s;
+    width:100%;
+    border:0;
+    background:transparent;
+    text-align:left;
+    cursor:pointer;
 }
 
-.menu-list a:hover{
+.menu-list a:hover,
+.menu-list button:hover{
     background:#f6f7fb;
-    color:#2563eb;
+    color:#2C64EA;
 }
 
-.menu-list svg{
+.menu-list a > i,
+.menu-list button > i{
     width:22px;
-    height:22px;
-    stroke:#7b7b7b;
+    color:#7b7b7b;
+    font-size:18px;
+    text-align:center;
     transition:.2s;
 }
 
-.menu-list a:hover svg{
-    stroke:#2563eb;
+.menu-list a:hover > i,
+.menu-list button:hover > i{
+    color:#2C64EA;
 }
 
-.divider{
+.sep{
     list-style:none;
     margin:12px 0;
     border-top:1px solid #ececec;
 }
 
-.logout a{
+.logout a,
+.logout button{
     color:#ef4444;
 }
 
-.logout svg{
-    stroke:#ef4444;
+.logout button > i{
+    color:#ef4444;
 }
 
-.logout a:hover{
+.logout a:hover,
+.logout button:hover{
     background:#fff1f2;
 }
 
@@ -138,8 +151,18 @@
     align-items:center;
     gap:8px;
     cursor:pointer;
-    text-decoration:none;
+    min-height:44px;
+    padding:5px 9px;
+    border:1px solid #e2e7ef;
+    border-radius:9px;
+    background:#fff;
+    color:#232323;
+    font:inherit;
 }
+
+.account-label{display:none;font-size:14px;font-weight:700}
+.menu-chevron{font-size:17px;transition:transform .2s ease}
+.profile-burger[aria-expanded="true"] .menu-chevron{transform:rotate(180deg)}
 
 .avatar-sm{
     width:34px;
@@ -150,4 +173,20 @@
     justify-content:center;
     align-items:center;
     overflow:hidden;
+}
+
+.avatar-sm > i{color:#8a8a8e;font-size:16px}
+
+@media (max-width:620px){
+    :host{grid-column:1 / -1;width:100%;min-width:0;max-width:100%}
+    .profile-burger-wrapper,.profile-burger{width:100%;min-width:0;max-width:100%}
+    .profile-burger{justify-content:flex-start;padding:8px 12px}
+    .account-label{display:inline}
+    .menu-chevron{margin-left:auto}
+    .burger-menu{position:static;width:100%;min-width:0;max-width:100%;max-height:0;margin-top:0;border:0;border-radius:12px;box-shadow:none;overflow:hidden;opacity:1;visibility:visible;transform:none;transition:max-height .28s ease,margin-top .28s ease,border-color .2s}
+    .burger-menu.open{max-height:650px;margin-top:10px;border:1px solid #e2e7ef;transform:none}
+    .menu-profile{padding:16px}
+    .menu-list{padding:8px}
+    .menu-list a,.menu-list button{min-height:48px;padding:12px}
+    .logout button{border:1px solid #fecaca;background:#fff7f7;font-weight:700}
 }

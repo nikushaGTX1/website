@@ -67,8 +67,8 @@
 }
 
 .step-item.active .step-dot {
-  border-color: #3569F5;
-  background: #3569F5;
+  border-color: #2C64EA;
+  background: #2C64EA;
 }
 
 .preview-card {
@@ -163,7 +163,7 @@
 .preview-card em {
   display: block;
   margin-top: 8px;
-  color: #3569F5;
+  color: #2C64EA;
   font-size: 12px;
   font-style: normal;
   font-weight: 700;
@@ -231,7 +231,7 @@
 
 .chip:hover,
 .chip.selected {
-  border-color: #2355dd;
+  border-color: #2C64EA;
   color: #060606;
 }
 
@@ -269,7 +269,7 @@ textarea::placeholder {
 
 input:focus,
 textarea:focus {
-  border-color: #3569F5;
+  border-color: #2C64EA;
   box-shadow: 0 0 0 3px rgba(25, 183, 116, 0.1);
 }
 
@@ -310,7 +310,7 @@ textarea:focus {
   height: 24px;
   display: inline-block;
   border-radius: 12px 12px 12px 2px;
-  background: linear-gradient(135deg, #3569F5 0 60%, #ffd76a 60% 100%);
+  background: linear-gradient(135deg, #2C64EA 0 60%, #ffd76a 60% 100%);
   transform: rotate(45deg);
   flex: 0 0 auto;
 }
@@ -329,7 +329,7 @@ textarea:focus {
   height: 24px;
   min-height: 24px;
   padding: 0;
-  accent-color: #4674f3;
+  accent-color: #2C64EA;
 }
 
 .info-icon {
@@ -337,9 +337,9 @@ textarea:focus {
   place-items: center;
   width: 16px;
   height: 16px;
-  border: 1px solid #0a9bf2;
+  border: 1px solid #2C64EA;
   border-radius: 50%;
-  color: #0a9bf2;
+  color: #2C64EA;
   font-size: 11px;
   font-weight: 700;
 }
@@ -378,7 +378,7 @@ textarea:focus {
 }
 
 .currency-toggle button.active {
-  background: #3569F5;
+  background: #2C64EA;
   color: #fff;
 }
 
@@ -407,7 +407,7 @@ textarea:focus {
 }
 
 .toggle-row input:checked {
-  background: #3569F5;
+  background: #2C64EA;
 }
 
 .toggle-row input:checked::after {
@@ -430,9 +430,9 @@ textarea:focus {
   place-items: center;
   width: 24px;
   height: 24px;
-  border: 2px solid #3569F5;
+  border: 2px solid #2C64EA;
   border-radius: 3px;
-  color: #3569F5;
+  color: #2C64EA;
   font-size: 10px;
   font-weight: 800;
 }
@@ -484,7 +484,7 @@ textarea:focus {
   border: 2px dashed #b8c8fb;
   border-radius: 12px;
   background: #f7f9ff;
-  color: #3569F5;
+  color: #2C64EA;
   cursor: pointer;
   text-align: center;
 }
@@ -598,7 +598,7 @@ textarea:focus {
 
 .btn-publish {
   border: 0;
-  background: #3569F5;
+  background: #2C64EA;
   color: #fff;
 }
 

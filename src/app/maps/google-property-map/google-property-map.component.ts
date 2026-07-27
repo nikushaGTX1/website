@@ -3,19 +3,21 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EventEmitter,
   Input,
   NgZone,
   OnChanges,
   OnDestroy,
   SimpleChanges,
+  Output,
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 
-type PlaceCategory = 'school' | 'preschool' | 'supermarket' | 'hospital' | 'transit_station';
+type PlaceCategory = 'school' | 'preschool' | 'supermarket' | 'hospital' | 'transit_station' | 'gym' | 'park';
 type CategoryFilter = PlaceCategory | 'all';
 type TravelModeName = 'WALKING' | 'DRIVING' | 'TRANSIT';
-interface NearbyPlace {
+export interface NearbyPlace {
   id: string;
   name: string;
   address: string;
@@ -34,6 +36,10 @@ interface NearbyPlace {
 export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input({ required: true }) address = '';
   @Input() apartmentTitle = 'Apartment';
+  @Input() latitude?: number;
+  @Input() longitude?: number;
+  @Input() compact = false;
+  @Output() nearbyPlacesChange = new EventEmitter<NearbyPlace[]>();
   @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('directionsPanel') directionsPanel?: ElementRef<HTMLDivElement>;
   loading = true;
@@ -50,6 +56,8 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
     { value: 'supermarket', label: 'Groceries' },
     { value: 'hospital', label: 'Healthcare' },
     { value: 'transit_station', label: 'Transport' },
+    { value: 'gym', label: 'Gyms' },
+    { value: 'park', label: 'Parks' },
   ];
   private map?: google.maps.Map;
   private apartmentLocation?: google.maps.LatLng;
@@ -87,7 +95,12 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
     void this.initialize();
   }
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.viewReady && changes['address']) void this.initialize();
+    if (
+      this.viewReady &&
+      (changes['address'] || changes['latitude'] || changes['longitude'])
+    ) {
+      void this.initialize();
+    }
   }
   ngOnDestroy(): void {
     this.clearPlaceMarkers();
@@ -177,14 +190,25 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.refreshView();
       return;
     }
+    const loadTimeout = window.setTimeout(() => {
+      if (!this.loading) return;
+      this.loading = false;
+      this.errorMessage =
+        'Google Maps did not load. Check that this website domain is allowed on the Maps API key.';
+      this.refreshView();
+    }, 12000);
     try {
       setOptions({ key: apiKey, v: 'weekly' });
       const [{ Map }, { Geocoder }] = await Promise.all([
         importLibrary('maps') as Promise<google.maps.MapsLibrary>,
         importLibrary('geocoding') as Promise<google.maps.GeocodingLibrary>,
       ]);
-      const geocode = await new Geocoder().geocode({ address: `${this.address}, Georgia` });
-      const location = geocode.results[0]?.geometry.location;
+      const hasCoordinates =
+        Number.isFinite(this.latitude) && Number.isFinite(this.longitude);
+      const location = hasCoordinates
+        ? new google.maps.LatLng(this.latitude!, this.longitude!)
+        : (await new Geocoder().geocode({ address: `${this.address}, Georgia` }))
+            .results[0]?.geometry.location;
       if (!location) throw new Error('Address not found');
       this.apartmentLocation = location;
       this.map = new Map(this.mapContainer.nativeElement, {
@@ -193,6 +217,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,
+        clickableIcons: false,
       });
       this.apartmentMarker = new google.maps.Marker({
         map: this.map,
@@ -205,6 +230,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.errorMessage =
         'Google Maps could not locate this apartment. Check the address and API configuration.';
     } finally {
+      window.clearTimeout(loadTimeout);
       this.loading = false;
       this.refreshView();
     }
@@ -235,6 +261,8 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         { includedPrimaryTypes: ['supermarket'], maxResultCount: 5 },
         { includedPrimaryTypes: ['hospital'], maxResultCount: 5 },
         { includedPrimaryTypes: ['transit_station'], maxResultCount: 5 },
+        { includedPrimaryTypes: ['gym'], maxResultCount: 5 },
+        { includedPrimaryTypes: ['park'], maxResultCount: 5 },
       ];
       const responses = await Promise.all(
         searches.map((search) =>
@@ -325,25 +353,14 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       )
       .sort((a, b) => a.distanceMeters - b.distanceMeters);
     await this.loadWalkingTimes();
+    this.nearbyPlacesChange.emit(this.nearestPlaces);
     this.drawMarkers();
   }
   private drawMarkers(): void {
     this.clearPlaceMarkers();
-    if (!this.map) return;
-    const bounds = new google.maps.LatLngBounds();
-    if (this.apartmentLocation) bounds.extend(this.apartmentLocation);
-    this.places.forEach((place, index) => {
-      const marker = new google.maps.Marker({
-        map: this.map,
-        position: place.location,
-        title: `${place.name}${place.walkingMinutes ? ` · ${place.walkingMinutes} min walk` : ''}`,
-        label: { text: String(index + 1), color: '#fff', fontSize: '11px', fontWeight: '700' },
-      });
-      marker.addListener('click', () => void this.showDirections(place));
-      this.placeMarkers.push(marker);
-      bounds.extend(place.location);
-    });
-    if (this.places.length) this.map.fitBounds(bounds, 70);
+    if (!this.map || !this.apartmentLocation) return;
+    this.map.setCenter(this.apartmentLocation);
+    this.map.setZoom(15);
   }
   private async loadWalkingTimes(): Promise<void> {
     if (!this.apartmentLocation || !this.allPlaces.length) return;
@@ -371,6 +388,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
           place.category !== 'school' ||
           (place.walkingMinutes !== undefined && place.walkingMinutes <= 20),
       );
+      this.nearbyPlacesChange.emit(this.nearestPlaces);
     } catch {
       /* Straight-line distances remain visible when walking estimates are unavailable. */
     }
@@ -395,6 +413,8 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
     ) {
       return 'school';
     }
+    if (primaryType === 'gym') return 'gym';
+    if (primaryType === 'park') return 'park';
     return (primaryType as PlaceCategory) || fallback;
   }
   private isEligibleSchool(place: google.maps.places.Place, privateSearchMatch = false): boolean {

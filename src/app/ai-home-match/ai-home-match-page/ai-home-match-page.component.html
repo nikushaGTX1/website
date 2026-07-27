@@ -1,16 +1,40 @@
 <div class="velven" *ngIf="view === 'questions'">
-  <header>
-    <span>Velven AI Home Match</span>
-    <h1>Build a home profile around your life.</h1>
-  </header>
-  <div class="progress">
-    <div>
-      <b>{{ step + 1 }} / {{ questions.length }}</b><span>{{ question.title }}</span>
+  <header class="match-hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <span>✦ AI Home Match</span>
+        <h1>Let AI find<br />your perfect home.</h1>
+        <p>Answer a few questions about your lifestyle, preferences and needs — and Velven AI will recommend properties that truly match you.</p>
+        <div class="hero-actions">
+          <button type="button" (click)="scrollToMatcher()">✦ &nbsp; Start AI Home Match</button>
+          <a href="#how-it-works" (click)="$event.preventDefault(); scrollToMatcher()">▷ &nbsp; How It Works</a>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <img src="/ai-match-family.png" alt="" />
+      </div>
     </div>
-    <div class="track"><i [style.width.%]="progress"></i></div>
-  </div>
-  <main>
-    <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
+  </header>
+
+  <section class="phase-progress" aria-label="AI Home Match progress">
+    <div class="phase-list">
+      <div
+        *ngFor="let label of phaseLabels; let index = index"
+        [class.active]="index === currentPhase"
+        [class.complete]="index < currentPhase"
+      >
+        <b>{{ index + 1 }}</b>
+        <span>{{ label }}</span>
+      </div>
+    </div>
+    <div class="phase-status">
+      <span>Step {{ currentPhase + 1 }} of {{ phaseLabels.length }}</span>
+      <div><i [style.width.%]="progress"></i></div>
+      <b>{{ progress | number:'1.0-0' }}%</b>
+    </div>
+  </section>
+
+  <main class="wizard-shell" id="how-it-works">
     <section class="question">
       <div class="question-title">
         <span>{{ step + 1 }}</span>
@@ -424,7 +448,37 @@
         </button>
       </div>
     </section>
+    <aside class="profile-card">
+      <div class="profile-card-head">
+        <h3>Your Lifestyle Profile</h3>
+        <button type="button" (click)="step = 0">✎ Edit Profile</button>
+      </div>
+      <img src="/ai-match-family.png" alt="Your generated lifestyle profile" />
+      <dl>
+        <div><dt>⌖ Location</dt><dd>{{ locationLabel }}</dd></div>
+        <div><dt>♙ Who will live</dt><dd>{{ householdLabel }}</dd></div>
+        <div><dt>♧ Pets</dt><dd>{{ profile.hasPet === null ? 'Not answered' : profile.hasPet ? 'Pet owner' : 'No pets' }}</dd></div>
+        <div><dt>⌂ Lifestyle</dt><dd>{{ profile.lifestyles.length ? profile.lifestyles.join(', ') : 'Building your profile' }}</dd></div>
+        <div><dt>▣ Transport</dt><dd>{{ profile.transportation.length ? profile.transportation.join(', ') : 'Not selected yet' }}</dd></div>
+        <div><dt>◷ Budget</dt><dd>{{ profile.currency }} {{ profile.budgetMin | number }} – {{ profile.budgetMax | number }}</dd></div>
+      </dl>
+    </aside>
   </main>
+
+  <section class="lifestyle-strip">
+    <div>
+      <span>Lifestyle Avatar</span>
+      <h2>This is you.</h2>
+      <p>We build your avatar as you answer questions so we can understand your lifestyle better.</p>
+    </div>
+    <img src="/ai-match-family.png" alt="Velven lifestyle avatar" />
+    <ul>
+      <li>✓ Personalized household profile</li>
+      <li>✓ Location and commute priorities</li>
+      <li>✓ Lifestyle-aware recommendations</li>
+      <li>✓ Homes ranked for your real needs</li>
+    </ul>
+  </section>
 </div>
 <app-home-profile-summary
   *ngIf="view === 'review'"

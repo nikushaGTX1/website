@@ -1,6 +1,9 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService } from '../services/apartment.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FavoriteService } from '../services/favorite.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-explore-property',
@@ -23,8 +26,32 @@ export class ExploreProperty implements OnInit {
   searchQuery = '';
   selectedType = 'For Rent'; 
   priceRange = '';
+  budgetOpen = false;
+  bedroomOpen = false;
+  budgetCurrency: 'GEL' | 'USD' = 'GEL';
+  budgetMin: number | null = 0;
+  budgetMax: number | null = 5000;
+  appliedBudgetMin: number | null = null;
+  appliedBudgetMax: number | null = null;
+  selectedBudgetRange = '';
+  readonly budgetRanges = [
+    { label: 'Up to $800', min: 0, max: 800 },
+    { label: '$800 – $1,500', min: 800, max: 1500 },
+    { label: '$1,500 – $3,000', min: 1500, max: 3000 },
+    { label: '$3,000 – $5,000', min: 3000, max: 5000 },
+  ];
+  readonly headerBedroomOptions = [
+    { label: 'Studio', value: '0', icon: 'fa-solid fa-building' },
+    { label: '1 Bed', value: '1', icon: 'fa-solid fa-bed' },
+    { label: '2 Beds', value: '2', icon: 'fa-solid fa-bed' },
+    { label: '3 Beds', value: '3', icon: 'fa-solid fa-bed' },
+    { label: '4 Beds', value: '4', icon: 'fa-solid fa-bed' },
+    { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
+  ];
   homeType = '';
   location = '';
+  headerBedrooms = '';
+  featureFilter = '';
 
   selectedPriceMax = 3000;
   selectedBedrooms: string[] = [];
@@ -35,14 +62,134 @@ export class ExploreProperty implements OnInit {
   selectedApartment: Apartment | null = null;
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
+  currentPage = 1;
+  pageSize = 12;
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredApartments.length / this.pageSize));
+  }
+
+  get budgetSummary(): string {
+    if (this.appliedBudgetMin == null && this.appliedBudgetMax == null) return 'Any budget';
+    const code = this.budgetCurrency;
+    if (this.appliedBudgetMin != null && this.appliedBudgetMax != null) {
+      return `${this.appliedBudgetMin.toLocaleString()} – ${this.appliedBudgetMax.toLocaleString()} ${code}`;
+    }
+    if (this.appliedBudgetMin != null) return `${this.appliedBudgetMin.toLocaleString()}+ ${code}`;
+    return `Up to ${this.appliedBudgetMax!.toLocaleString()} ${code}`;
+  }
+
+  get headerBedroomSummary(): string {
+    return this.headerBedroomOptions.find((option) => option.value === this.headerBedrooms)?.label || 'Any';
+  }
+
+  get budgetMinPercent(): number {
+    return Math.min(this.normalizedSliderValue(this.budgetMin), this.normalizedSliderValue(this.budgetMax));
+  }
+
+  get budgetMaxPercent(): number {
+    return Math.max(this.normalizedSliderValue(this.budgetMin), this.normalizedSliderValue(this.budgetMax));
+  }
+
+  @HostListener('document:click')
+  closeBudget(): void {
+    this.budgetOpen = false;
+    this.bedroomOpen = false;
+  }
+
+  selectBudgetRange(range: { label: string; min: number; max: number }): void {
+    this.selectedBudgetRange = range.label;
+    this.budgetCurrency = 'USD';
+    this.budgetMin = range.min;
+    this.budgetMax = range.max;
+  }
+
+  setBudgetCurrency(currency: 'GEL' | 'USD'): void {
+    this.budgetCurrency = currency;
+  }
+
+  applyBudget(): void {
+    this.appliedBudgetMin = this.normalizedBudgetValue(this.budgetMin);
+    this.appliedBudgetMax = this.normalizedBudgetValue(this.budgetMax);
+    this.budgetOpen = false;
+    this.onSearch();
+  }
+
+  resetBudget(): void {
+    this.budgetMin = 0;
+    this.budgetMax = 5000;
+    this.appliedBudgetMin = null;
+    this.appliedBudgetMax = null;
+    this.selectedBudgetRange = '';
+    this.budgetOpen = false;
+    this.onSearch();
+  }
+
+  selectHeaderBedrooms(value: string): void {
+    this.headerBedrooms = value;
+    this.bedroomOpen = false;
+    this.onSearch();
+  }
+
+  clearHeaderBedrooms(): void {
+    this.headerBedrooms = '';
+    this.bedroomOpen = false;
+    this.onSearch();
+  }
+
+  get paginatedApartments(): Apartment[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filteredApartments.slice(start, start + this.pageSize);
+  }
+
+  get visiblePages(): number[] {
+    if (this.totalPages <= 4) {
+      return Array.from({ length: this.totalPages }, (_, index) => index + 1);
+    }
+    if (this.currentPage <= 3) return [1, 2, 3];
+    if (this.currentPage >= this.totalPages - 2) {
+      return [this.totalPages - 2, this.totalPages - 1, this.totalPages];
+    }
+    return [this.currentPage - 1, this.currentPage, this.currentPage + 1];
+  }
 
   constructor(
     private apartmentService: ApartmentService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
+    readonly favoriteService: FavoriteService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    const params = this.route.snapshot.queryParamMap;
+    this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
+    this.location = params.get('location') || '';
+    this.headerBedrooms = params.get('bedrooms') || '';
+    this.featureFilter = params.get('feature') || '';
+    const budget = Number(params.get('budget'));
+    if (budget > 0) this.selectedPriceMax = budget;
     this.loadApartments();
+    this.favoriteService.loadFavorites().subscribe({
+      next: () => this.cdr.detectChanges(),
+      error: () => undefined,
+    });
+  }
+
+  toggleFavorite(event: Event, apartment: Apartment): void {
+    event.stopPropagation();
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: '/ExploreProperty' } });
+      return;
+    }
+    this.favoriteService.toggleFavorite(apartment.id).subscribe({
+      next: () => this.cdr.detectChanges(),
+      error: (error) => {
+        this.cdr.detectChanges();
+        console.error('Favorite API error:', error);
+      },
+    });
   }
 
   loadApartments(): void {
@@ -72,7 +219,6 @@ export class ExploreProperty implements OnInit {
   onSearch(): void {
     const query = this.searchQuery.trim().toLowerCase();
     const loc = this.location.trim().toLowerCase();
-    const type = this.selectedType.trim().toLowerCase();
     const home = this.homeType.trim().toLowerCase();
 
     this.filteredApartments = this.apartments.filter((apartment) => {
@@ -86,32 +232,37 @@ export class ExploreProperty implements OnInit {
         .toLowerCase();
 
       const matchesQuery = !query || haystack.includes(query);
-      const matchesType = !type || haystack.includes(type);
       const matchesHome = !home || haystack.includes(home);
       const matchesLocation = !loc || haystack.includes(loc);
+      const matchesHeaderBedrooms = this.matchesHeaderBedroom(apartment);
 
       const matchesHeaderPrice = this.matchesPriceRange(apartment.price);
+      const matchesCustomBudget = this.matchesCustomBudget(apartment.price);
       const matchesSliderPrice = apartment.price <= this.selectedPriceMax;
       const matchesBedrooms = this.matchesBedroomFilter(apartment);
       const matchesBathrooms = this.matchesBathroomFilter(apartment);
       const matchesPropertyType = this.matchesPropertyTypeFilter(apartment);
       const matchesAmenities = this.matchesAmenitiesFilter(apartment);
+      const matchesFeature = this.matchesQuickFeature(apartment);
 
       return (
         matchesQuery &&
-        matchesType &&
         matchesHome &&
         matchesLocation &&
+        matchesHeaderBedrooms &&
         matchesHeaderPrice &&
+        matchesCustomBudget &&
         matchesSliderPrice &&
         matchesBedrooms &&
         matchesBathrooms &&
         matchesPropertyType &&
         matchesAmenities
+        && matchesFeature
       );
     });
 
     this.applySorting();
+    this.currentPage = 1;
 
     if (this.filteredApartments.length === 0) {
       this.selectedApartment = null;
@@ -139,8 +290,13 @@ export class ExploreProperty implements OnInit {
     this.searchQuery = '';
     this.selectedType = 'For Rent';
     this.priceRange = '';
+    this.budgetMin = 0;
+    this.budgetMax = 5000;
+    this.appliedBudgetMin = null;
+    this.appliedBudgetMax = null;
     this.homeType = '';
     this.location = '';
+    this.headerBedrooms = '';
 
     this.selectedPriceMax = 3000;
     this.selectedBedrooms = [];
@@ -155,6 +311,28 @@ export class ExploreProperty implements OnInit {
     const select = event.target as HTMLSelectElement;
     this.currentSort = select.value;
     this.applySorting();
+    this.currentPage = 1;
+  }
+
+
+  goToPage(page: number): void {
+    this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
+    document.querySelector('.results-header')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }
+
+  onPageSizeChange(event: Event): void {
+    this.pageSize = Number((event.target as HTMLSelectElement).value);
+    this.currentPage = 1;
+  }
+
+  focusFilters(): void {
+    document.querySelector('.sidebar-filters')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
   }
 
   private applySorting(): void {
@@ -197,6 +375,13 @@ export class ExploreProperty implements OnInit {
     return this.selectedBedrooms.some((bed) => text.includes(bed.toLowerCase()));
   }
 
+  private matchesHeaderBedroom(apartment: Apartment): boolean {
+    if (!this.headerBedrooms) return true;
+    const bedrooms = Number(apartment.bedrooms || 0);
+    if (this.headerBedrooms === '4+') return bedrooms >= 4;
+    return bedrooms === Number(this.headerBedrooms);
+  }
+
   private matchesBathroomFilter(apartment: Apartment): boolean {
     if (this.selectedBathrooms.length === 0) return true;
     const text = `${apartment.title} ${apartment.description}`.toLowerCase();
@@ -213,5 +398,33 @@ export class ExploreProperty implements OnInit {
     if (this.selectedAmenities.length === 0) return true;
     const text = `${apartment.title} ${apartment.description}`.toLowerCase();
     return this.selectedAmenities.every((amenity) => text.includes(amenity.toLowerCase()));
+  }
+
+  private normalizedBudgetValue(value: number | null): number | null {
+    if (value == null || !Number.isFinite(Number(value)) || Number(value) < 0) return null;
+    return Number(value);
+  }
+
+  private normalizedSliderValue(value: number | null): number {
+    return Math.min(100, Math.max(0, Number(value || 0) / 50));
+  }
+
+  private matchesCustomBudget(priceInUsd: number): boolean {
+    const exchangeRate = 2.7;
+    const comparablePrice = this.budgetCurrency === 'GEL' ? priceInUsd * exchangeRate : priceInUsd;
+    return (
+      (this.appliedBudgetMin == null || comparablePrice >= this.appliedBudgetMin) &&
+      (this.appliedBudgetMax == null || comparablePrice <= this.appliedBudgetMax)
+    );
+  }
+
+  private matchesQuickFeature(apartment: Apartment): boolean {
+    switch (this.featureFilter) {
+      case 'parking': return !!apartment.hasParking;
+      case 'pets': return !!apartment.isPetFriendly;
+      case 'metro': return Number(apartment.metroDistanceMinutes || 999) <= 15;
+      case 'family': return Number(apartment.bedrooms || 0) >= 2;
+      default: return true;
+    }
   }
 }

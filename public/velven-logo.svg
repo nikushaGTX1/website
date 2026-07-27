@@ -3,9 +3,9 @@
   <desc id="description">Velven blue serif wordmark</desc>
   <defs>
     <linearGradient id="velvenBlue" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0056d9"/>
-      <stop offset="0.5" stop-color="#0874ed"/>
-      <stop offset="1" stop-color="#004bbf"/>
+      <stop offset="0" stop-color="#2C64EA"/>
+      <stop offset="0.5" stop-color="#2C64EA"/>
+      <stop offset="1" stop-color="#2C64EA"/>
     </linearGradient>
   </defs>
   <g fill="url(#velvenBlue)">

@@ -2,7 +2,7 @@
 .page-wrapper {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: #f3f4f6;
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -16,7 +16,6 @@
   width: 100%;
   max-width: 1050px;
   background: #ffffff;
-  border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   min-height: 680px;
@@ -71,7 +70,7 @@
 
 .tab-btn.active {
   background: #ffffff;
-  color: #0052ff;
+  color: #2C64EA;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -120,13 +119,13 @@
 
 .input-icon-wrapper input:focus {
   outline: none;
-  border-color: #0052ff;
-  box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.12);
+  border-color: #2C64EA;
+  box-shadow: 0 0 0 3px rgba(44, 100, 234, 0.12);
 }
 
 /* Submit Action Button */
 .submit-btn {
-  background-color: #0052ff;
+  background-color: #2C64EA;
   color: #ffffff;
   border: none;
   padding: 14px;
@@ -139,11 +138,11 @@
 }
 
 .submit-btn:hover {
-  background-color: #0043d0;
+  background-color: #2C64EA;
 }
 
 .submit-btn:disabled {
-  background-color: #93c5fd;
+  background-color: #2C64EA;
   cursor: not-allowed;
 }
 
@@ -205,7 +204,7 @@
 .toggle-link-btn {
   background: none;
   border: none;
-  color: #0052ff;
+  color: #2C64EA;
   font-weight: 600;
   cursor: pointer;
   margin-left: 4px;
@@ -315,5 +314,23 @@
   }
   .auth-card {
     padding: 32px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 14px 10px;
+  }
+
+  .auth-card-container {
+    border-radius: 14px;
+  }
+
+  .auth-card {
+    padding: 25px 18px;
+  }
+
+  .auth-card h1 {
+    font-size: 1.9rem;
   }
 }

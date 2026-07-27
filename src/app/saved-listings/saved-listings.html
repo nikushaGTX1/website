@@ -1,0 +1,84 @@
+<main class="saved-page">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a routerLink="/main"><i class="fa-solid fa-house"></i> Home</a>
+    <i class="fa-solid fa-chevron-right"></i>
+    <span>Saved Listings</span>
+  </nav>
+
+  <header class="page-heading">
+    <span class="heading-icon"><i class="fa-regular fa-bookmark"></i></span>
+    <div>
+      <h1>Saved Listings</h1>
+      <p>Properties you’ve saved for later. You can compare, remove or contact agents.</p>
+    </div>
+  </header>
+
+  <div class="saved-layout">
+    <section class="saved-content">
+      <div class="toolbar">
+        <p><strong>{{ apartments.length }}</strong> {{ apartments.length === 1 ? 'property' : 'properties' }} saved</p>
+        <div class="toolbar-actions">
+          <label>Sort by:
+            <select [(ngModel)]="sort" (ngModelChange)="onSortChange()">
+              <option value="recent">Recently saved</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+            </select>
+          </label>
+          <button type="button" [class.active]="view === 'grid'" (click)="view = 'grid'" aria-label="Grid view"><i class="fa-solid fa-grip"></i></button>
+          <button type="button" [class.active]="view === 'list'" (click)="view = 'list'" aria-label="List view"><i class="fa-solid fa-list"></i></button>
+        </div>
+      </div>
+
+      <div class="saved-message" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading saved properties…</div>
+      <div class="saved-message error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+      <div class="saved-message empty" *ngIf="!loading && !errorMessage && apartments.length === 0">
+        <i class="fa-regular fa-heart"></i>
+        <h2>No saved properties yet</h2>
+        <p>Tap the heart on any property to keep it here.</p>
+        <a routerLink="/ExploreProperty">Explore properties</a>
+      </div>
+
+      <div class="saved-grid" [class.list-view]="view === 'list'" *ngIf="!loading && apartments.length">
+        <article class="saved-card" *ngFor="let apartment of apartments; let index = index">
+          <div class="card-image">
+            <img [src]="getImage(apartment)" [alt]="apartment.title || 'Saved property'" loading="lazy">
+            <span class="card-badge"><i [class]="getBadge(index).icon"></i>{{ getBadge(index).label }}</span>
+            <button type="button" class="saved-heart active" aria-label="Remove from saved properties"
+              (click)="removeFavorite($event, apartment)"><i class="fa-solid fa-heart"></i></button>
+          </div>
+          <div class="card-body">
+            <app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price>
+            <h2>{{ apartment.title || 'Apartment in Tbilisi' }}</h2>
+            <p class="location"><i class="fa-solid fa-location-dot"></i>{{ getLocation(apartment) }}</p>
+            <div class="specs">
+              <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
+              <span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span>
+              <span><i class="fa-solid fa-up-right-and-down-left-from-center"></i>{{ apartment.sizeSquareMeters || '—' }} m²</span>
+            </div>
+            <small>Saved recently</small>
+            <a class="view-details" [routerLink]="['/apartments', apartment.id]">View details</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <aside class="saved-sidebar">
+      <section>
+        <h2><i class="fa-solid fa-bookmark"></i>Your saved properties</h2>
+        <p>Save properties you love and come back to them anytime.</p>
+        <ul>
+          <li><i class="fa-solid fa-heart"></i>Save unlimited properties</li>
+          <li><i class="fa-solid fa-scale-balanced"></i>Compare your favorites</li>
+          <li><i class="fa-regular fa-bell"></i>Get price and status updates</li>
+          <li><i class="fa-regular fa-comment"></i>Contact agents easily</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Need help finding more?</h2>
+        <p>Use AI Match to get personalized recommendations based on your preferences.</p>
+        <a routerLink="/ai-home-match"><i class="fa-solid fa-wand-magic-sparkles"></i>Try AI Home Match</a>
+      </section>
+    </aside>
+  </div>
+</main>

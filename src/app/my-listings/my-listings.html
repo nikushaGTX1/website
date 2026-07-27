@@ -25,16 +25,28 @@
           <span *ngIf="!(request.apartment.imageUrls?.[0] || request.apartment.imageUrl)">No photo</span>
         </div>
 
-        <div class="pending-body">
+        <div class="pending-body" *ngIf="editingPendingId !== request.id">
           <div class="pending-title">
             <h3>{{ request.apartment.title }}</h3>
             <span [class]="request.status">{{ getStatusLabel(request.status) }}</span>
           </div>
           <p>{{ request.apartment.address || 'No address' }}</p>
-          <strong>{{ request.apartment.price | currency:'USD':'symbol':'1.0-0' }}</strong>
+          <strong><app-currency-price [usdPrice]="request.apartment.price"></app-currency-price></strong>
           <small>{{ request.apartment.imageUrls?.length || (request.apartment.imageUrl ? 1 : 0) }} photos</small>
           <small *ngIf="request.message">{{ request.message }}</small>
+          <div class="card-actions" *ngIf="request.status !== 'approved'">
+            <button type="button" class="secondary" (click)="startPendingEdit(request)">Edit upload</button>
+            <button type="button" class="danger" (click)="deletePendingListing(request)">Delete</button>
+          </div>
         </div>
+
+        <form class="edit-form pending-edit" *ngIf="editingPendingId === request.id" (ngSubmit)="savePendingEdit(request)">
+          <ng-container *ngTemplateOutlet="listingFields; context: { id: request.id }"></ng-container>
+          <div class="card-actions">
+            <button type="submit" class="primary">Save and resubmit</button>
+            <button type="button" class="secondary" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
       </article>
     </div>
   </section>
@@ -65,7 +77,7 @@
               <h3>{{ apartment.title }}</h3>
               <p>{{ apartment.address || 'No address' }}</p>
             </div>
-            <strong>{{ apartment.price | currency:'USD':'symbol':'1.0-0' }}</strong>
+            <strong><app-currency-price [usdPrice]="apartment.price"></app-currency-price></strong>
           </div>
 
           <p class="description">{{ apartment.description }}</p>
@@ -77,30 +89,7 @@
         </div>
 
         <form class="edit-form" *ngIf="editingId === apartment.id" (ngSubmit)="saveEdit(apartment)">
-          <label>
-            Title
-            <input type="text" name="title-{{ apartment.id }}" [(ngModel)]="editForm.title" required />
-          </label>
-
-          <label>
-            Price
-            <input type="number" name="price-{{ apartment.id }}" [(ngModel)]="editForm.price" required />
-          </label>
-
-          <label>
-            Address
-            <input type="text" name="address-{{ apartment.id }}" [(ngModel)]="editForm.address" />
-          </label>
-
-          <label>
-            Image URL
-            <input type="url" name="image-{{ apartment.id }}" [(ngModel)]="editForm.imageUrl" />
-          </label>
-
-          <label class="full">
-            Description
-            <textarea name="description-{{ apartment.id }}" rows="4" [(ngModel)]="editForm.description"></textarea>
-          </label>
+          <ng-container *ngTemplateOutlet="listingFields; context: { id: apartment.id }"></ng-container>
 
           <div class="card-actions">
             <button type="submit" class="primary" [disabled]="saving">
@@ -112,4 +101,67 @@
       </article>
     </div>
   </section>
+
+  <ng-template #listingFields let-id="id">
+    <label>
+      Title
+      <input type="text" name="title-{{ id }}" [(ngModel)]="editForm.title" required />
+    </label>
+    <label>
+      Price
+      <input type="number" min="1" name="price-{{ id }}" [(ngModel)]="editForm.price" required />
+    </label>
+    <label>
+      Address
+      <input type="text" name="address-{{ id }}" [(ngModel)]="editForm.address" />
+    </label>
+    <label>
+      District
+      <input type="text" name="district-{{ id }}" [(ngModel)]="editForm.district" />
+    </label>
+    <label>
+      Bedrooms
+      <input type="number" min="0" name="bedrooms-{{ id }}" [(ngModel)]="editForm.bedrooms" />
+    </label>
+    <label>
+      Bathrooms
+      <input type="number" min="0" name="bathrooms-{{ id }}" [(ngModel)]="editForm.bathrooms" />
+    </label>
+    <label>
+      Area (m²)
+      <input type="number" min="0" name="area-{{ id }}" [(ngModel)]="editForm.sizeSquareMeters" />
+    </label>
+    <label>
+      Style
+      <input type="text" name="style-{{ id }}" [(ngModel)]="editForm.apartmentStyle" />
+    </label>
+    <label>
+      Floor
+      <input type="number" min="0" name="floor-{{ id }}" [(ngModel)]="editForm.floor" />
+    </label>
+    <label>
+      Total floors
+      <input type="number" min="1" name="total-floors-{{ id }}" [(ngModel)]="editForm.totalFloors" />
+    </label>
+    <label class="full">
+      Add new photos
+      <input type="file" accept="image/*" multiple (change)="onImagesSelected($event)" />
+      <small class="field-hint">Choose up to 15 photos. Existing photos stay unless the API replaces them.</small>
+    </label>
+    <label class="full">
+      Description
+      <textarea name="description-{{ id }}" rows="5" [(ngModel)]="editForm.description"></textarea>
+    </label>
+    <fieldset class="amenities full">
+      <legend>Amenities</legend>
+      <label><input type="checkbox" name="parking-{{ id }}" [(ngModel)]="editForm.hasParking" /> Parking</label>
+      <label><input type="checkbox" name="elevator-{{ id }}" [(ngModel)]="editForm.hasElevator" /> Elevator</label>
+      <label><input type="checkbox" name="balcony-{{ id }}" [(ngModel)]="editForm.hasBalcony" /> Balcony</label>
+      <label><input type="checkbox" name="furnished-{{ id }}" [(ngModel)]="editForm.isFurnished" /> Furnished</label>
+      <label><input type="checkbox" name="pets-{{ id }}" [(ngModel)]="editForm.isPetFriendly" /> Pet friendly</label>
+      <label><input type="checkbox" name="air-{{ id }}" [(ngModel)]="editForm.hasAirConditioning" /> Air conditioning</label>
+      <label><input type="checkbox" name="dishwasher-{{ id }}" [(ngModel)]="editForm.hasDishwasher" /> Dishwasher</label>
+      <label><input type="checkbox" name="view-{{ id }}" [(ngModel)]="editForm.hasView" /> View</label>
+    </fieldset>
+  </ng-template>
 </section>

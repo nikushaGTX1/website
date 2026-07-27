@@ -98,11 +98,17 @@
   line-height: 1.1;
 }
 
+<<<<<<< HEAD
 .sparkle-gold {
   color: #d97706;
   margin-left: 6px;
   font-size: 32px;
   vertical-align: top;
+=======
+.hero-title .highlight {
+  color: #2C64EA;
+  font-weight: 700;
+>>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
 }
 
 .hero-subtitle {
@@ -129,12 +135,73 @@
   gap: 12px;
 }
 
+<<<<<<< HEAD
 .metric-icon {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   background-color: #fef3c7;
   color: #b45309;
+=======
+.filter-select,
+.filter-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 32px 0 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  font-size: 13px;
+  color: #334155;
+  outline: none;
+  appearance: none;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+  border-color: #2C64EA;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(44, 100, 234, 0.1);
+}
+
+.field-icon-left {
+  position: absolute;
+  left: 10px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.select-wrapper .filter-select {
+  padding-left: 32px;
+}
+
+.chevron-icon {
+  position: absolute;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.search-input-wrapper .filter-input {
+  padding-right: 36px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.more-filters-btn {
+>>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
   display: flex;
   align-items: center;
   justify-content: center;
@@ -241,9 +308,38 @@
 }
 
 .agent-role {
+<<<<<<< HEAD
   font-size: 13px;
   color: #2563eb;
   margin: 0 0 16px 0;
+=======
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 10px 0;
+}
+
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+
+.icon-star {
+  width: 14px;
+  height: 14px;
+  color: #eab308;
+}
+
+.rating-text {
+  font-weight: 700;
+  color: #2C64EA;
+}
+
+.rating-count {
+  color: #94a3b8;
+>>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
 }
 
 .meta-details {
@@ -304,7 +400,7 @@
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background-color: #ffffff;
-  color: #2563eb;
+  color: #2C64EA;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -331,8 +427,14 @@
   flex: 1;
   height: 38px;
   border-radius: 8px;
+<<<<<<< HEAD
   background-color: #2563eb;
   color: #ffffff;
+=======
+  border: 1px solid #2C64EA;
+  background-color: #ffffff;
+  color: #2C64EA;
+>>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
   font-size: 13px;
   font-weight: 500;
   border: none;
@@ -341,7 +443,12 @@
 }
 
 .profile-btn:hover {
+<<<<<<< HEAD
   background-color: #1d4ed8;
+=======
+  background-color: #2C64EA;
+  color: #ffffff;
+>>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
 }
 
 /* Star Rating Section */
@@ -363,7 +470,16 @@
   color: #0f172a;
 }
 
+<<<<<<< HEAD
 .rating-reviews {
+=======
+.career h2 .brand-blue {
+  color: #2C64EA;
+}
+
+.career-subtitle {
+  font-size: 14px;
+>>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
   color: #64748b;
   font-size: 12px;
 }
@@ -429,6 +545,7 @@
   transition: all 0.2s ease;
 }
 
+<<<<<<< HEAD
 .explore-career-btn:hover {
   background-color: #f8fafc;
   border-color: #94a3b8;
@@ -439,6 +556,33 @@
   height: 15px;
 }
 
+=======
+.career-btn.primary {
+  background-color: #2C64EA;
+  color: #ffffff;
+}
+
+.career-btn.primary:hover {
+  background-color: #2C64EA;
+}
+
+.career-btn.secondary {
+  background: transparent;
+  color: #334155;
+}
+
+.career-btn.secondary:hover {
+  color: #2C64EA;
+}
+
+.play-icon {
+  width: 14px;
+  height: 14px;
+  color: #2C64EA;
+}
+
+/* Skeleton Loaders */
+>>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
 .skeleton {
   pointer-events: none;
 }

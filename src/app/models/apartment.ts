@@ -14,6 +14,7 @@ export interface Apartment {
   description: string;
   price: number;
   address?: string;
+  phoneNumber?: string;
   city?: string;
   district?: string;
   latitude?: number;
@@ -68,6 +69,7 @@ export interface CreateApartment {
   description: string;
   price: number;
   address?: string;
+  phoneNumber?: string;
   city?: string;
   district?: string;
   latitude?: number;

@@ -27,7 +27,7 @@
             <span>{{ location(match) }}</span>
             <h2>{{ match.apartment.title }}</h2>
           </div>
-          <strong>${{ match.apartment.price | number }}/mo</strong>
+          <strong><app-currency-price [usdPrice]="match.apartment.price" suffix="/mo"></app-currency-price></strong>
         </div>
         <div class="facts">
           <span *ngIf="match.apartment.bedrooms !== undefined"
