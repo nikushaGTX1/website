@@ -258,12 +258,13 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
   border: 1px solid #f1f5f9;
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .agent-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.07);
+  border-color: #dbe6ff;
+  box-shadow: 0 16px 36px rgba(44, 100, 234, 0.1);
 }
 
 .avatar-container {
@@ -400,8 +401,31 @@
 }
 
 .action-btn.icon-only:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
+  color: #ffffff;
+  background-color: #2C64EA;
+  border-color: #2C64EA;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 15px rgba(44, 100, 234, 0.22);
+}
+
+.action-btn.whatsapp-btn:hover {
+  color: #ffffff;
+  background-color: #16a34a;
+  border-color: #16a34a;
+  box-shadow: 0 7px 15px rgba(22, 163, 74, 0.2);
+}
+
+.action-btn.icon-only:active,
+.profile-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn.icon-only:focus-visible,
+.profile-btn:focus-visible,
+.dialog-close:focus-visible,
+.call-now-btn:focus-visible {
+  outline: 3px solid rgba(44, 100, 234, 0.25);
+  outline-offset: 3px;
 }
 
 .btn-icon {
@@ -414,10 +438,8 @@
   height: 38px;
   border-radius: 8px;
   background-color: #2563eb;
-  color: #ffffff;
+  color: white;
   border: 1px solid #2C64EA;
-  background-color: #ffffff;
-  color: #2C64EA;
   font-size: 13px;
   font-weight: 500;
   border: none;
@@ -430,12 +452,163 @@
 }
 
 .profile-btn:hover {
-  background-color: #1d4ed8;
-  background-color: #2C64EA;
+  background-color: #174dc9;
   color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(44, 100, 234, 0.24);
 }
 
-/* Star Rating Section */
+.phone-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(5px);
+  animation: dialog-fade-in 0.2s ease-out;
+}
+
+.phone-dialog {
+  position: relative;
+  width: min(100%, 410px);
+  box-sizing: border-box;
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.24);
+  text-align: center;
+  animation: dialog-rise-in 0.25s ease-out;
+}
+
+.dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.dialog-close:hover {
+  color: #0f172a;
+  background: #e2e8f0;
+  transform: rotate(5deg);
+}
+
+.dialog-close svg {
+  width: 17px;
+  height: 17px;
+}
+
+.dialog-phone-icon {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  border-radius: 20px;
+  color: #ffffff;
+  background: linear-gradient(145deg, #4f7df0, #1d4ed8);
+  box-shadow: 0 12px 25px rgba(44, 100, 234, 0.27);
+}
+
+.dialog-phone-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.dialog-eyebrow {
+  margin: 0 0 7px;
+  color: #2C64EA;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.phone-dialog h2 {
+  margin: 0 0 9px;
+  color: #0f172a;
+  font-family: Georgia, serif;
+  font-size: 25px;
+}
+
+.dialog-description {
+  margin: 0 auto 22px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.revealed-number {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 15px;
+  margin-bottom: 14px;
+  border: 1px solid #dbe6ff;
+  border-radius: 12px;
+  background: #f6f9ff;
+}
+
+.revealed-number span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.revealed-number strong {
+  color: #174dc9;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+
+.revealed-number.unavailable strong {
+  color: #64748b;
+}
+
+.call-now-btn {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 11px;
+  color: #ffffff;
+  background: #2C64EA;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.call-now-btn:hover {
+  background: #174dc9;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(44, 100, 234, 0.24);
+}
+
+.call-now-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+@keyframes dialog-fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes dialog-rise-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+
 .rating-badge-bottom {
   display: flex;
   align-items: center;
@@ -635,5 +808,40 @@
 
   .agents-list {
     grid-template-columns: 1fr;
+  }
+
+  .page-container {
+    padding: 0 16px 40px;
+  }
+
+  .phone-dialog-backdrop {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .phone-dialog {
+    width: 100%;
+    padding: 30px 22px 22px;
+    border-radius: 22px 22px 16px 16px;
+  }
+}
+
+@media (hover: none) {
+  .agent-card:hover,
+  .action-btn.icon-only:hover,
+  .profile-btn:hover,
+  .call-now-btn:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-card,
+  .action-btn.icon-only,
+  .profile-btn,
+  .phone-dialog-backdrop,
+  .phone-dialog {
+    animation: none;
+    transition: none;
   }
 }

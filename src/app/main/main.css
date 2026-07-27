@@ -633,16 +633,32 @@
 }
 .lifestyle-row button {
   height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 14px;
   border: 1px solid #dfe5ed;
   border-radius: 7px;
   background: #fff;
   color: #354158;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: 600;
 }
-.lifestyle-row button:first-letter {
+
+.lifestyle-row button i {
+  width: 20px;
   color: #2C64EA;
-  font-size: 23px;
+  font-size: 18px;
+  text-align: center;
 }
+
+.lifestyle-row button:hover {
+  color: #174dc9;
+  border-color: #9db8f7;
+  background: #f3f7ff;
+}
+
 .process-grid {
   display: grid;
   grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
@@ -656,15 +672,26 @@
   padding: 17px;
   border: 1px solid #e1e6ed;
   border-radius: 7px;
+  text-align: left;
 }
-.process-grid article b {
-  color: #a4afbf;
-  font-size: 12px;
+
+.process-grid article > i {
+  width: 22px;
+  color: #2C64EA;
+  font-size: 20px;
+  text-align: center;
 }
+
+.process-grid article > div {
+  min-width: 0;
+  flex: 1;
+}
+
 .process-grid h3 {
-  display: inline;
-  margin: 0 0 0 8px;
-  font-size: 42px;
+  display: block;
+  margin: 0;
+  color: #142038;
+  font-size: 15px;
 }
 .process-grid p {
   margin: 5px 0 0;
@@ -992,17 +1019,10 @@
 }
 .lifestyle-row button {
   height: 62px;
-  font-size: 14px;
 }
 .process-grid article {
   min-height: 100px;
   padding: 22px;
-}
-.process-grid article b {
-  font-size: 11px;
-}
-.process-grid h3 {
-  font-size: 15px;
 }
 .process-grid p {
   font-size: 12px;

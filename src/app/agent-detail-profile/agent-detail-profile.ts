@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { Agent } from '../models/agent';
@@ -18,6 +18,7 @@ export class AgentDetailProfile implements OnInit {
   listings: Apartment[] = [];
   loading = true;
   errorMessage = '';
+  phoneDialogOpen = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -40,7 +41,9 @@ export class AgentDetailProfile implements OnInit {
     }).subscribe({
       next: ({ agent, apartments }) => {
         this.agent = agent;
-        this.listings = apartments.filter((apartment) => this.belongsToAgent(apartment, agentId)).slice(0, 3);
+        this.listings = apartments
+          .filter((apartment) => this.belongsToAgent(apartment, agent, agentId))
+          .sort((left, right) => Date.parse(right.createdAt || '') - Date.parse(left.createdAt || ''));
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -84,12 +87,28 @@ export class AgentDetailProfile implements OnInit {
     return this.agent?.closedDeals || this.listings.length;
   }
 
+  get contactPhone(): string {
+    return this.agent?.phoneNumber?.trim() ||
+      this.listings.find((listing) => listing.phoneNumber?.trim())?.phoneNumber?.trim() ||
+      this.listings.map((listing) => this.getListingMetadata(listing, 'Phone')).find(Boolean) ||
+      '';
+  }
+
   callAgent(): void {
-    if (this.agent?.phoneNumber) location.href = `tel:${this.agent.phoneNumber}`;
+    this.phoneDialogOpen = true;
+  }
+
+  closePhoneDialog(): void {
+    this.phoneDialogOpen = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closePhoneDialog();
   }
 
   whatsappAgent(): void {
-    const phone = this.agent?.phoneNumber?.replace(/\D/g, '') || '';
+    const phone = this.contactPhone.replace(/\D/g, '');
     window.open(`https://wa.me/${phone}`, '_blank', 'noopener');
   }
 
@@ -101,8 +120,17 @@ export class AgentDetailProfile implements OnInit {
     return toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg';
   }
 
-  private belongsToAgent(apartment: Apartment, agentId: string): boolean {
-    return [
+  private belongsToAgent(apartment: Apartment, agent: Agent, routeAgentId: string): boolean {
+    const agentIds = [routeAgentId, agent.id, agent.userId]
+      .filter((value): value is string => !!value)
+      .map((value) => value.toLowerCase());
+    const agentEmails = [agent.email]
+      .filter((value): value is string => !!value)
+      .map((value) => value.toLowerCase());
+    const agentNames = [agent.fullName, agent.name, agent.userName]
+      .filter((value): value is string => !!value)
+      .map((value) => value.trim().toLowerCase());
+    const apartmentIds = [
       apartment.agentId,
       apartment.agentUserId,
       apartment.userId,
@@ -110,6 +138,28 @@ export class AgentDetailProfile implements OnInit {
       apartment.createdById,
       apartment.applicationUserId,
       apartment.uploadedById,
-    ].some((id) => String(id || '').toLowerCase() === agentId.toLowerCase());
+      this.getListingMetadata(apartment, 'Owner ID'),
+    ].filter((value): value is string => !!value).map((value) => value.toLowerCase());
+    const apartmentEmails = [
+      apartment.agentEmail,
+      apartment.userEmail,
+      apartment.createdByEmail,
+      apartment.uploadedByEmail,
+      this.getListingMetadata(apartment, 'Owner Email'),
+    ].filter((value): value is string => !!value).map((value) => value.toLowerCase());
+    const apartmentNames = [
+      apartment.agentName,
+      apartment.uploadedByName,
+      apartment.ownerName,
+    ].filter((value): value is string => !!value).map((value) => value.trim().toLowerCase());
+
+    return apartmentIds.some((value) => agentIds.includes(value)) ||
+      apartmentEmails.some((value) => agentEmails.includes(value)) ||
+      apartmentNames.some((value) => agentNames.includes(value));
+  }
+
+  private getListingMetadata(apartment: Apartment, label: string): string {
+    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return apartment.description?.match(new RegExp(`(?:^|\\|)\\s*${escapedLabel}:\\s*([^|\\r\\n]+)`, 'i'))?.[1]?.trim() || '';
   }
 }

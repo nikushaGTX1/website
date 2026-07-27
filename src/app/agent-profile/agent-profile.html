@@ -138,7 +138,7 @@
         </div>
 
         <div class="card-footer-actions">
-          <button class="action-btn icon-only" (click)="onCall(agent)" aria-label="Call agent">
+          <button class="action-btn icon-only phone-btn" (click)="onCall(agent)" [attr.aria-label]="'Reveal ' + agent.name + ' phone number'">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
@@ -150,11 +150,9 @@
             </svg>
           </button>
 
-          <button class="profile-btn">View profile</button>
+          <a class="profile-btn" [routerLink]="['/agent-profile', agent.id]">View profile</a>
         </div>
 
-        <a class="profile-btn" [routerLink]="['/agent-profile', agent.id]">View profile</a>
-=======
         <div class="rating-badge-bottom">
           <svg class="icon-star" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
@@ -190,4 +188,51 @@
       </svg>
     </a>
   </section>
+
+  <div
+    class="phone-dialog-backdrop"
+    *ngIf="selectedPhoneAgent as phoneAgent"
+    (click)="closePhoneDialog()"
+    role="presentation"
+  >
+    <section
+      class="phone-dialog"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="'phone-dialog-title-' + phoneAgent.id"
+      (click)="$event.stopPropagation()"
+    >
+      <button class="dialog-close" type="button" (click)="closePhoneDialog()" aria-label="Close phone number">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+
+      <div class="dialog-phone-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+
+      <p class="dialog-eyebrow">DIRECT CONTACT</p>
+      <h2 [id]="'phone-dialog-title-' + phoneAgent.id">Call {{ phoneAgent.name }}</h2>
+      <p class="dialog-description">Speak directly with this agent about properties, viewings, and availability.</p>
+
+      <div class="revealed-number" [class.unavailable]="!phoneAgent.phoneNumber">
+        <span>Phone number</span>
+        <strong>{{ phoneAgent.phoneNumber || 'Not provided' }}</strong>
+      </div>
+
+      <a
+        *ngIf="phoneAgent.phoneNumber"
+        class="call-now-btn"
+        [href]="'tel:' + phoneAgent.phoneNumber"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
+        </svg>
+        Call now
+      </a>
+    </section>
+  </div>
 </div>

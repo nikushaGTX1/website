@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Agent as ApiAgent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
@@ -13,6 +13,7 @@ export interface AgentCard {
   ratingCount: number;
   avatarUrl: string;
   bio: string;
+  phoneNumber: string;
 }
 
 @Component({
@@ -30,6 +31,7 @@ export class AgentProfile implements OnInit {
 
   searchQuery = '';
   selectedSort = 'name-az';
+  selectedPhoneAgent: AgentCard | null = null;
 
   skeletonCards = [1, 2, 3, 4];
 
@@ -98,7 +100,16 @@ export class AgentProfile implements OnInit {
   }
 
   onCall(agent: AgentCard): void {
-    console.log(`Calling ${agent.name}`);
+    this.selectedPhoneAgent = agent;
+  }
+
+  closePhoneDialog(): void {
+    this.selectedPhoneAgent = null;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closePhoneDialog();
   }
 
   onMessage(agent: AgentCard): void {
@@ -120,6 +131,7 @@ export class AgentProfile implements OnInit {
       ratingCount: agent.ratingCount || 0,
       avatarUrl: toMediaUrl(agent.profilePictureUrl || agent.profilePicture || agent.avatarUrl) || '/agent1.jpg',
       bio: agent.bio || 'Verified real estate agent ready to help with apartments and property questions.',
+      phoneNumber: agent.phoneNumber?.trim() || '',
     };
   }
 }

@@ -25,8 +25,8 @@
         </div>
         <p class="intro">{{ bio }}</p>
         <div class="contact-actions">
-          <button type="button" (click)="callAgent()" [disabled]="!agent.phoneNumber"><i class="fa-solid fa-phone"></i>Contact Agent</button>
-          <button type="button" (click)="whatsappAgent()" [disabled]="!agent.phoneNumber"><i class="fa-brands fa-whatsapp"></i>WhatsApp</button>
+          <button type="button" (click)="callAgent()"><i class="fa-solid fa-phone"></i>Contact Agent</button>
+          <button type="button" (click)="whatsappAgent()" [disabled]="!contactPhone"><i class="fa-brands fa-whatsapp"></i>WhatsApp</button>
           <a href="#active-listings"><i class="fa-regular fa-calendar"></i>View Listings</a>
         </div>
       </div>
@@ -59,10 +59,11 @@
       <p class="no-listings" *ngIf="!listings.length">This agent has no active listings right now.</p>
       <div class="listing-grid" *ngIf="listings.length">
         <article *ngFor="let apartment of listings">
-          <a [routerLink]="['/apartments', apartment.id]"><img [src]="getListingImage(apartment)" [alt]="apartment.title"></a>
+          <a class="listing-image-link" [routerLink]="['/apartments', apartment.id]"><img [src]="getListingImage(apartment)" [alt]="apartment.title"></a>
           <div><h3>{{ apartment.title || 'Property in Tbilisi' }}</h3><p><i class="fa-solid fa-location-dot"></i>{{ apartment.address || 'Tbilisi' }}</p>
             <div class="listing-specs"><span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span><span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span><span>{{ apartment.sizeSquareMeters || '—' }} m²</span></div>
             <app-currency-price [usdPrice]="apartment.price"></app-currency-price>
+            <a class="view-property" [routerLink]="['/apartments', apartment.id]">View property <i class="fa-solid fa-arrow-right"></i></a>
           </div>
         </article>
       </div>
@@ -77,4 +78,19 @@
       </div>
     </section>
   </ng-container>
+
+  <div class="phone-backdrop" *ngIf="phoneDialogOpen && agent" (click)="closePhoneDialog()">
+    <section class="phone-dialog" role="dialog" aria-modal="true" aria-labelledby="contact-agent-title" (click)="$event.stopPropagation()">
+      <button class="phone-close" type="button" (click)="closePhoneDialog()" aria-label="Close contact dialog"><i class="fa-solid fa-xmark"></i></button>
+      <div class="phone-icon"><i class="fa-solid fa-phone"></i></div>
+      <span class="phone-label">DIRECT CONTACT</span>
+      <h2 id="contact-agent-title">Contact {{ name }}</h2>
+      <p>Call the agent directly to ask about listings, availability, or arrange a viewing.</p>
+      <div class="phone-number" [class.unavailable]="!contactPhone">
+        <small>Phone number</small>
+        <strong>{{ contactPhone || 'Not provided' }}</strong>
+      </div>
+      <a class="phone-call" *ngIf="contactPhone" [href]="'tel:' + contactPhone"><i class="fa-solid fa-phone"></i>Call now</a>
+    </section>
+  </div>
 </main>
