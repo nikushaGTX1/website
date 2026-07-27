@@ -43,7 +43,6 @@ type UploadForm = {
   imageUrls: string[];
   contactName: string;
   contactPhone: string;
-  contactEmail: string;
 };
 
 type BooleanFeature =
@@ -156,7 +155,6 @@ export class UploadApartment {
     imageUrls: [],
     contactName: '',
     contactPhone: '',
-    contactEmail: '',
   };
 
   loading = false;
@@ -270,8 +268,8 @@ export class UploadApartment {
     this.successMessage = '';
     this.errorMessage = '';
 
-    if (!this.form.location || !this.form.totalPrice) {
-      this.errorMessage = 'Please fill in location and total price before publishing.';
+    if (!this.form.location || !this.form.totalPrice || !this.form.contactPhone.trim()) {
+      this.errorMessage = 'Please fill in location, total price, and phone number before publishing.';
       return;
     }
 
@@ -325,8 +323,6 @@ export class UploadApartment {
       this.form.exchangePossible ? 'Exchange possible' : '',
       this.form.cadastralCode ? `Cadastral: ${this.form.cadastralCode}` : '',
       this.form.contactName ? `Contact: ${this.form.contactName}` : '',
-      this.form.contactPhone ? `Phone: ${this.form.contactPhone}` : '',
-      this.form.contactEmail ? `Email: ${this.form.contactEmail}` : '',
       currentUser?.id ? `Owner ID: ${currentUser.id}` : '',
       currentUser?.email ? `Owner Email: ${currentUser.email}` : '',
     ]
@@ -338,6 +334,7 @@ export class UploadApartment {
       description: `${this.form.description || 'Apartment listing'}\n\n${meta}`,
       price: this.form.totalPrice || 0,
       address: this.form.hideAddress ? this.form.location : addressParts.join(', '),
+      phoneNumber: this.form.contactPhone.trim(),
       city: 'Tbilisi',
       district: this.form.location,
       bedrooms: this.form.bedrooms ?? 0,

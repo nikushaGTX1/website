@@ -227,11 +227,18 @@
 
       <section class="form-section">
         <div class="field-group">
-          <label class="field-label">Contact Information</label>
-          <div class="input-row input-row-3">
+          <label class="field-label">Contact Information <span class="req">*</span></label>
+          <div class="input-row">
             <input type="text" name="contactName" placeholder="Name" [(ngModel)]="form.contactName" />
-            <input type="tel" name="contactPhone" placeholder="Phone" [(ngModel)]="form.contactPhone" />
-            <input type="email" name="contactEmail" placeholder="Email" [(ngModel)]="form.contactEmail" />
+            <input
+              type="tel"
+              name="contactPhone"
+              placeholder="Phone number"
+              autocomplete="tel"
+              inputmode="tel"
+              required
+              [(ngModel)]="form.contactPhone"
+            />
           </div>
         </div>
       </section>

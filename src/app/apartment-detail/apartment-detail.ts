@@ -188,7 +188,12 @@ export class ApartmentDetail implements OnInit {
   }
 
   get phoneNumber(): string {
-    return this.getListingMetadata('Phone') || this.selectedAgent?.phoneNumber?.trim() || '';
+    return (
+      this.apartment?.phoneNumber?.trim() ||
+      this.getListingMetadata('Phone') ||
+      this.selectedAgent?.phoneNumber?.trim() ||
+      ''
+    );
   }
 
   get maskedPhoneNumber(): string {
