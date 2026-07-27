@@ -3,21 +3,17 @@
     [attr.aria-expanded]="isOpen" (click)="toggleMenu()">
     <span class="avatar-sm">
       <img *ngIf="profileImage" [src]="profileImage" alt="Profile" (error)="fixProfileImage($event)">
-      <svg *ngIf="!profileImage" viewBox="0 0 24 24" fill="none" stroke-width="2">
-        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-      </svg>
+      <i *ngIf="!profileImage" class="fa-regular fa-user" aria-hidden="true"></i>
     </span>
     <span class="account-label">Account</span>
-    <span class="menu-chevron" aria-hidden="true">⌄</span>
+    <i class="menu-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
   </button>
 
   <div class="burger-menu" [class.open]="isOpen">
     <div class="menu-profile">
       <div class="avatar-lg">
         <img *ngIf="profileImage" [src]="profileImage" alt="Profile" (error)="fixProfileImage($event)">
-        <svg *ngIf="!profileImage" viewBox="0 0 24 24" fill="none" stroke-width="2">
-          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-        </svg>
+        <i *ngIf="!profileImage" class="fa-regular fa-user" aria-hidden="true"></i>
       </div>
       <div><div class="name">{{ user?.fullName || 'My account' }}</div>
         <div class="pin">{{ userPinLabel || '' }}</div></div>
@@ -27,19 +23,14 @@
     <ul class="menu-list">
       <li *ngFor="let item of menuItems">
         <a [routerLink]="item.route" (click)="closeMenu()">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-            <rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/>
-          </svg>
+          <i [class]="item.icon" aria-hidden="true"></i>
           {{ item.label }}
         </a>
       </li>
       <li class="sep" aria-hidden="true"></li>
       <li class="logout">
         <button type="button" (click)="logout()">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>
-          </svg>
+          <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
           Log out
         </button>
       </li>

@@ -132,7 +132,12 @@
           <div class="property-image">
             <span class="badge" [class.hot]="index % 3 === 2">{{ index % 4 === 0 ? 'Premium' : index % 3 === 0 ? 'Hot' : 'New' }}</span>
             <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'" [alt]="apartment.title">
-            <button class="favorite-btn" type="button" aria-label="Save property" (click)="$event.stopPropagation()">♡</button>
+            <button class="favorite-btn" type="button" [class.active]="favoriteService.isFavorite(apartment.id)"
+              [attr.aria-label]="favoriteService.isFavorite(apartment.id) ? 'Remove from saved properties' : 'Save property'"
+              [attr.aria-pressed]="favoriteService.isFavorite(apartment.id)"
+              (click)="toggleFavorite($event, apartment)">
+              <i [class]="favoriteService.isFavorite(apartment.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+            </button>
           </div>
           <div class="property-card-body">
             <div class="property-price"><app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price></div>

@@ -4,6 +4,8 @@ import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { ApartmentService } from '../services/apartment.service';
+import { FavoriteService } from '../services/favorite.service';
+import { AuthService } from '../services/auth.service';
 import { toMediaUrl } from '../utils/api-media';
 import { NearbyPlace } from '../maps/google-property-map/google-property-map.component';
 
@@ -65,12 +67,21 @@ export class ApartmentDetail implements OnInit {
     private agentService: AgentService,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    private favoriteService: FavoriteService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
     const apartmentId = Number(this.route.snapshot.paramMap.get('id') || 0);
 
     if (apartmentId) {
+      this.favoriteService.loadFavorites().subscribe({
+        next: () => {
+          this.favorite = this.favoriteService.isFavorite(apartmentId);
+          this.cdr.detectChanges();
+        },
+        error: () => undefined,
+      });
       this.loadApartment(apartmentId);
     } else {
       this.errorMessage = 'Open an apartment from the listings to view its details.';
@@ -87,7 +98,7 @@ export class ApartmentDetail implements OnInit {
     this.apartmentService.getApartment(id).subscribe({
       next: (apartment) => {
         this.applyApartment(apartment);
-        this.favorite = localStorage.getItem(`favorite-apartment-${apartment.id}`) === 'true';
+        this.favorite = this.favoriteService.isFavorite(apartment.id);
         this.loadApartmentAgent(apartment);
         this.loading = false;
         this.cdr.detectChanges();
@@ -254,8 +265,20 @@ export class ApartmentDetail implements OnInit {
 
   toggleFavorite(): void {
     if (!this.apartment) return;
-    this.favorite = !this.favorite;
-    localStorage.setItem(`favorite-apartment-${this.apartment.id}`, String(this.favorite));
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/login'], {
+        queryParams: { returnUrl: `/apartments/${this.apartment.id}` },
+      });
+      return;
+    }
+
+    this.favoriteService.toggleFavorite(this.apartment.id).subscribe({
+      next: (favorite) => {
+        this.favorite = favorite;
+        this.cdr.detectChanges();
+      },
+      error: (error) => console.error('Favorite API error:', error),
+    });
   }
 
   async shareApartment(): Promise<void> {

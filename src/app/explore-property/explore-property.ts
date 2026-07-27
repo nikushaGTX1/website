@@ -1,7 +1,9 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService } from '../services/apartment.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FavoriteService } from '../services/favorite.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-explore-property',
@@ -155,6 +157,9 @@ export class ExploreProperty implements OnInit {
     private apartmentService: ApartmentService,
     private cdr: ChangeDetectorRef,
     private route: ActivatedRoute,
+    private router: Router,
+    readonly favoriteService: FavoriteService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -166,6 +171,18 @@ export class ExploreProperty implements OnInit {
     const budget = Number(params.get('budget'));
     if (budget > 0) this.selectedPriceMax = budget;
     this.loadApartments();
+    this.favoriteService.loadFavorites().subscribe({ error: () => undefined });
+  }
+
+  toggleFavorite(event: Event, apartment: Apartment): void {
+    event.stopPropagation();
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: '/ExploreProperty' } });
+      return;
+    }
+    this.favoriteService.toggleFavorite(apartment.id).subscribe({
+      error: (error) => console.error('Favorite API error:', error),
+    });
   }
 
   loadApartments(): void {

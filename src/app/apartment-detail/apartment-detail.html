@@ -18,7 +18,9 @@
         </div>
       </div>
       <div class="heading-actions">
-        <button type="button" (click)="toggleFavorite()" [class.active]="favorite" aria-label="Save apartment">
+        <button type="button" (click)="toggleFavorite()" [class.active]="favorite"
+          [attr.aria-label]="favorite ? 'Remove from saved properties' : 'Save apartment'"
+          [attr.aria-pressed]="favorite">
           <i [class]="favorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
         </button>
         <button type="button" (click)="shareApartment()" aria-label="Share apartment"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>

@@ -106,7 +106,12 @@
           <img [src]="getApartmentImage(apartment)" [alt]="getApartmentTitle(apartment)"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'" [attr.fetchpriority]="index === 0 ? 'high' : 'auto'" decoding="async">
           <span class="property-badge"><i class="fa-solid" [class.fa-crown]="index === 0" [class.fa-star]="index !== 0"></i>{{ index === 0 ? 'Premium' : index === 1 ? 'New' : index === 2 ? 'Hot' : 'Featured' }}</span>
-          <button type="button" class="favorite" aria-label="Save property" (click)="$event.stopPropagation()"><i class="fa-regular fa-heart"></i></button>
+          <button type="button" class="favorite" [class.active]="favoriteService.isFavorite(apartment.id)"
+            [attr.aria-label]="favoriteService.isFavorite(apartment.id) ? 'Remove from saved properties' : 'Save property'"
+            [attr.aria-pressed]="favoriteService.isFavorite(apartment.id)"
+            (click)="toggleFavorite($event, apartment)">
+            <i [class]="favoriteService.isFavorite(apartment.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+          </button>
         </div>
         <div class="property-info">
           <h3><app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price></h3>

@@ -1,5 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ApartmentService } from '../services/apartment.service';
+import { FavoriteService } from '../services/favorite.service';
+import { AuthService } from '../services/auth.service';
 import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
@@ -50,11 +52,25 @@ export class Main implements OnInit {
     private agentService: AgentService,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    readonly favoriteService: FavoriteService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
     this.loadApartments();
     this.loadAgents();
+    this.favoriteService.loadFavorites().subscribe({ error: () => undefined });
+  }
+
+  toggleFavorite(event: Event, apartment: Apartment): void {
+    event.stopPropagation();
+    if (!this.authService.isLoggedIn) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: '/' } });
+      return;
+    }
+    this.favoriteService.toggleFavorite(apartment.id).subscribe({
+      error: (error) => console.error('Favorite API error:', error),
+    });
   }
 
   get budgetSummary(): string {

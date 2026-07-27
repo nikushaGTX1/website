@@ -44,10 +44,9 @@
     overflow:hidden;
 }
 
-.avatar-lg svg{
-    width:28px;
-    height:28px;
-    stroke:#9ca3af;
+.avatar-lg > i{
+    color:#9ca3af;
+    font-size:25px;
 }
 
 .avatar-lg img,
@@ -113,16 +112,18 @@
     color:#2C64EA;
 }
 
-.menu-list svg{
+.menu-list a > i,
+.menu-list button > i{
     width:22px;
-    height:22px;
-    stroke:#7b7b7b;
+    color:#7b7b7b;
+    font-size:18px;
+    text-align:center;
     transition:.2s;
 }
 
-.menu-list a:hover svg,
-.menu-list button:hover svg{
-    stroke:#2C64EA;
+.menu-list a:hover > i,
+.menu-list button:hover > i{
+    color:#2C64EA;
 }
 
 .sep{
@@ -136,8 +137,8 @@
     color:#ef4444;
 }
 
-.logout svg{
-    stroke:#ef4444;
+.logout button > i{
+    color:#ef4444;
 }
 
 .logout a:hover,
@@ -174,7 +175,7 @@
     overflow:hidden;
 }
 
-.avatar-sm svg{width:18px;height:18px;stroke:#8a8a8e}
+.avatar-sm > i{color:#8a8a8e;font-size:16px}
 
 @media (max-width:620px){
     :host{grid-column:1 / -1;width:100%;min-width:0;max-width:100%}
