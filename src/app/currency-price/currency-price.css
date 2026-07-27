@@ -1,1 +1,56 @@
-:host{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}.currency-price-value{font:inherit;color:inherit}.currency-price-value small{margin-left:3px;color:#657084;font-size:.48em;font-weight:500}.currency-switch{display:inline-flex;padding:2px;border:1px solid #dce3ec;border-radius:7px;background:#f7f9fc}.currency-switch button{width:27px;height:25px;padding:0;border:0;border-radius:5px;background:transparent;color:#697586;font:700 12px/1 Arial;cursor:pointer}.currency-switch button.active{background:#2c64ea;color:#fff;box-shadow:0 2px 6px #2c64ea35}
+:host {
+  display: block;
+  color: inherit;
+}
+
+.price-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.primary-price {
+  color: #0f1b31;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.primary-price small {
+  margin-left: 5px;
+  color: #536178;
+  font-size: .48em;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.approximate-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #69758a;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.approximate-price b {
+  color: #69758a;
+  font-weight: 650;
+}
+
+.price-info {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  margin-left: 2px;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font: 700 9px/1 Arial, sans-serif;
+  
+}

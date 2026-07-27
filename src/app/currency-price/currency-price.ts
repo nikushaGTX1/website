@@ -10,14 +10,9 @@ import { CurrencyService } from '../services/currency.service';
 export class CurrencyPrice {
   @Input({ required: true }) usdPrice = 0;
   @Input() suffix = '';
-  currency: 'USD' | 'GEL' = 'USD';
   usdGelRate = 2.7;
 
   constructor(readonly currencyService: CurrencyService) {
     currencyService.usdGel$.subscribe((rate) => this.usdGelRate = rate);
-  }
-
-  get displayedPrice(): number {
-    return this.currency === 'GEL' ? Number(this.usdPrice || 0) * this.usdGelRate : Number(this.usdPrice || 0);
   }
 }
