@@ -98,17 +98,15 @@
   line-height: 1.1;
 }
 
-<<<<<<< HEAD
 .sparkle-gold {
   color: #d97706;
   margin-left: 6px;
   font-size: 32px;
   vertical-align: top;
-=======
+} 
 .hero-title .highlight {
   color: #2C64EA;
   font-weight: 700;
->>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
 }
 
 .hero-subtitle {
@@ -135,14 +133,6 @@
   gap: 12px;
 }
 
-<<<<<<< HEAD
-.metric-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #fef3c7;
-  color: #b45309;
-=======
 .filter-select,
 .filter-input {
   width: 100%;
@@ -201,7 +191,6 @@
 }
 
 .more-filters-btn {
->>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
   display: flex;
   align-items: center;
   justify-content: center;
@@ -308,11 +297,9 @@
 }
 
 .agent-role {
-<<<<<<< HEAD
   font-size: 13px;
   color: #2563eb;
   margin: 0 0 16px 0;
-=======
   font-size: 12px;
   color: #64748b;
   margin: 0 0 10px 0;
@@ -339,7 +326,6 @@
 
 .rating-count {
   color: #94a3b8;
->>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
 }
 
 .meta-details {
@@ -427,14 +413,11 @@
   flex: 1;
   height: 38px;
   border-radius: 8px;
-<<<<<<< HEAD
   background-color: #2563eb;
   color: #ffffff;
-=======
   border: 1px solid #2C64EA;
   background-color: #ffffff;
   color: #2C64EA;
->>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
   font-size: 13px;
   font-weight: 500;
   border: none;
@@ -443,12 +426,9 @@
 }
 
 .profile-btn:hover {
-<<<<<<< HEAD
   background-color: #1d4ed8;
-=======
   background-color: #2C64EA;
   color: #ffffff;
->>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
 }
 
 /* Star Rating Section */
@@ -470,16 +450,13 @@
   color: #0f172a;
 }
 
-<<<<<<< HEAD
-.rating-reviews {
-=======
 .career h2 .brand-blue {
   color: #2C64EA;
+
 }
 
 .career-subtitle {
   font-size: 14px;
->>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
   color: #64748b;
   font-size: 12px;
 }
@@ -545,7 +522,6 @@
   transition: all 0.2s ease;
 }
 
-<<<<<<< HEAD
 .explore-career-btn:hover {
   background-color: #f8fafc;
   border-color: #94a3b8;
@@ -556,7 +532,6 @@
   height: 15px;
 }
 
-=======
 .career-btn.primary {
   background-color: #2C64EA;
   color: #ffffff;
@@ -582,7 +557,6 @@
 }
 
 /* Skeleton Loaders */
->>>>>>> 1365c5a6434d1b036912424da18f553f4eeda644
 .skeleton {
   pointer-events: none;
 }
