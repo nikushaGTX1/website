@@ -43,7 +43,6 @@ export class Main implements OnInit {
     { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
   ];
   searchBedrooms = '';
-  searchMoveIn = '';
   public advancedFiltersOpen = false;
 
   constructor(
@@ -210,7 +209,6 @@ export class Main implements OnInit {
         budgetMin: this.toUsd(this.appliedBudgetMin),
         budgetCurrency: this.budgetCurrency,
         bedrooms: this.searchBedrooms || null,
-        moveIn: this.searchMoveIn || null,
       },
     });
   }

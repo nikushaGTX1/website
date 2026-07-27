@@ -50,7 +50,6 @@ export class ExploreProperty implements OnInit {
   location = '';
   headerBedrooms = '';
   featureFilter = '';
-  moveInDate = '';
 
   selectedPriceMax = 3000;
   selectedBedrooms: string[] = [];
@@ -163,7 +162,6 @@ export class ExploreProperty implements OnInit {
     this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
     this.location = params.get('location') || '';
     this.headerBedrooms = params.get('bedrooms') || '';
-    this.moveInDate = params.get('moveIn') || '';
     this.featureFilter = params.get('feature') || '';
     const budget = Number(params.get('budget'));
     if (budget > 0) this.selectedPriceMax = budget;
