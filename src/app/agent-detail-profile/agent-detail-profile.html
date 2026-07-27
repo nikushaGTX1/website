@@ -1,0 +1,80 @@
+<main class="agent-page">
+  <nav class="breadcrumbs"><a routerLink="/main">Home</a><i class="fa-solid fa-chevron-right"></i><a routerLink="/agent-profile">Agents</a><i class="fa-solid fa-chevron-right"></i><span>Agent Profile</span></nav>
+
+  <div class="status" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading agent profile…</div>
+  <div class="status error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+
+  <ng-container *ngIf="!loading && agent">
+    <section class="profile-hero">
+      <div class="portrait-wrap">
+        <img [src]="photo" [alt]="name" (error)="fixImage($event)">
+        <span><i class="fa-solid fa-award"></i></span>
+      </div>
+
+      <div class="profile-main">
+        <h1>{{ name }} <i class="fa-solid fa-circle-check"></i></h1>
+        <strong>Senior Property Advisor</strong>
+        <p class="location"><i class="fa-solid fa-location-dot"></i>{{ location }}</p>
+        <div class="rating">
+          <span>★★★★★</span><b>{{ rating | number:'1.1-1' }}</b><small>({{ agent.ratingCount || 0 }} reviews)</small>
+          <i class="fa-regular fa-clock"></i><small>Avg. Response Time: &lt; 1h</small>
+        </div>
+        <div class="agent-meta">
+          <b>Languages</b><span>🇬🇪 GE</span><span>🇺🇸 EN</span><span>🇷🇺 RU</span>
+          <b>Areas Covered</b><small>Vake, Saburtalo, Vera, Tbilisi City Center</small>
+        </div>
+        <p class="intro">{{ bio }}</p>
+        <div class="contact-actions">
+          <button type="button" (click)="callAgent()" [disabled]="!agent.phoneNumber"><i class="fa-solid fa-phone"></i>Contact Agent</button>
+          <button type="button" (click)="whatsappAgent()" [disabled]="!agent.phoneNumber"><i class="fa-brands fa-whatsapp"></i>WhatsApp</button>
+          <a href="#active-listings"><i class="fa-regular fa-calendar"></i>View Listings</a>
+        </div>
+      </div>
+
+      <aside class="stats">
+        <div><i class="fa-solid fa-award"></i><p><b>{{ closedDeals }}+</b><span>Closed Deals</span></p></div>
+        <div><i class="fa-solid fa-briefcase"></i><p><b>{{ yearsExperience }}+</b><span>Years of Experience</span></p></div>
+        <div><i class="fa-regular fa-clock"></i><p><b>&lt; 1h</b><span>Average Response Time</span></p></div>
+        <div><i class="fa-regular fa-thumbs-up"></i><p><b>{{ rating ? (rating / 5 * 100 | number:'1.0-0') : 100 }}%</b><span>Client Satisfaction</span></p></div>
+        <div><i class="fa-regular fa-gem"></i><p><strong>Specialties</strong><span>Luxury Rentals, Family Homes, Investment Properties</span></p></div>
+      </aside>
+    </section>
+
+    <div class="info-grid">
+      <section class="panel about">
+        <h2>About the Agent</h2>
+        <p>{{ bio }}</p>
+      </section>
+      <section class="panel focus">
+        <h2>Property Focus &amp; Service Areas <i class="fa-regular fa-map"></i></h2>
+        <h3>Locations Covered</h3>
+        <div class="chips"><span><i class="fa-solid fa-location-dot"></i>Vake</span><span><i class="fa-solid fa-location-dot"></i>Saburtalo</span><span><i class="fa-solid fa-location-dot"></i>Vera</span><span><i class="fa-solid fa-location-dot"></i>City Center</span></div>
+        <h3>Property Types</h3>
+        <div class="property-types"><span><i class="fa-regular fa-building"></i>Apartments</span><span><i class="fa-solid fa-shop"></i>Commercial</span><span><i class="fa-solid fa-house"></i>Family Homes</span><span><i class="fa-solid fa-chart-line"></i>Investments</span></div>
+      </section>
+    </div>
+
+    <section class="panel listings" id="active-listings">
+      <header><h2>Active Listings ({{ listings.length }})</h2><a routerLink="/ExploreProperty">View all listings <i class="fa-solid fa-arrow-right"></i></a></header>
+      <p class="no-listings" *ngIf="!listings.length">This agent has no active listings right now.</p>
+      <div class="listing-grid" *ngIf="listings.length">
+        <article *ngFor="let apartment of listings">
+          <a [routerLink]="['/apartments', apartment.id]"><img [src]="getListingImage(apartment)" [alt]="apartment.title"></a>
+          <div><h3>{{ apartment.title || 'Property in Tbilisi' }}</h3><p><i class="fa-solid fa-location-dot"></i>{{ apartment.address || 'Tbilisi' }}</p>
+            <div class="listing-specs"><span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span><span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span><span>{{ apartment.sizeSquareMeters || '—' }} m²</span></div>
+            <app-currency-price [usdPrice]="apartment.price"></app-currency-price>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel reviews">
+      <header><h2>Recent Client Reviews</h2></header>
+      <div>
+        <article><p>“Professional, responsive, and genuinely helpful throughout the property search.”</p><span>★★★★★</span><b>Verified client</b></article>
+        <article><p>“Very knowledgeable about the market and made the whole process smooth.”</p><span>★★★★★</span><b>Property investor</b></article>
+        <article><p>“Clear communication and excellent attention to detail from start to finish.”</p><span>★★★★★</span><b>Home seeker</b></article>
+      </div>
+    </section>
+  </ng-container>
+</main>

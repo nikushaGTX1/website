@@ -422,7 +422,11 @@
   font-weight: 500;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .profile-btn:hover {
@@ -631,11 +635,5 @@
 
   .agents-list {
     grid-template-columns: 1fr;
-  }
-
-  .career-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
   }
 }
