@@ -1,20 +1,31 @@
 <section class="upload-page">
+  <header class="page-intro">
+    <div>
+      <span class="page-eyebrow"><i class="fa-solid fa-shield-check"></i> VERIFIED LISTING</span>
+      <h1>Create a property listing</h1>
+      <p>Present your property professionally and connect with serious buyers and renters.</p>
+    </div>
+    <div class="intro-trust"><i class="fa-solid fa-lock"></i><span><strong>Secure submission</strong><small>Your listing is reviewed before publishing</small></span></div>
+  </header>
+
   <div class="upload-layout">
     <aside class="upload-sidebar" aria-label="Listing progress">
       <div class="progress-card">
+        <div class="sidebar-title"><span>Listing progress</span><small>Complete all required fields</small></div>
         <button
           *ngFor="let step of steps; let index = index"
           class="step-item"
           type="button"
-          [class.active]="index === 0"
-          [class.disabled]="index > 0"
+          [class.active]="index === currentStepIndex"
+          [class.completed]="isStepComplete(index)"
         >
-          <span class="step-dot"></span>
+          <span class="step-dot"><i *ngIf="isStepComplete(index)" class="fa-solid fa-check"></i></span>
           <span>{{ step }}</span>
         </button>
       </div>
 
       <div class="preview-card">
+        <div class="preview-heading"><span>Live preview</span><small>Updates automatically</small></div>
         <div class="preview-photo">
           <img *ngIf="primaryImage" [src]="primaryImage" alt="Listing preview" />
           <span *ngIf="!primaryImage" class="camera-icon"></span>
@@ -36,6 +47,7 @@
       </div>
 
       <section class="form-section">
+        <header class="section-header"><span>01</span><div><h2>Property details</h2><p>Choose the options that best describe the property.</p></div></header>
         <div class="field-group">
           <label class="field-label">Real estate type <span class="req">*</span></label>
           <div class="chip-grid">
@@ -98,6 +110,7 @@
       </section>
 
       <section class="form-section">
+        <header class="section-header"><span>02</span><div><h2>Property location</h2><p>Add an accurate address to help clients find the listing.</p></div></header>
         <div class="field-group">
           <label class="field-label">Location <span class="req">*</span></label>
           <div class="input-row location-row">
@@ -109,11 +122,13 @@
 
         <label class="checkbox-row">
           <input type="checkbox" name="hideAddress" [(ngModel)]="form.hideAddress" />
-          <span class="info-icon">i</span>
+          <span>Hide the exact street address from the public listing</span>
+          <span class="info-icon" title="Only the general location will be visible">i</span>
         </label>
       </section>
 
       <section class="form-section">
+        <header class="section-header"><span>03</span><div><h2>Pricing</h2><p>Set a clear price and preferred currency.</p></div></header>
         <div class="field-group">
           <label class="field-label">Price <span class="req">*</span></label>
           <div class="price-table">
@@ -138,6 +153,7 @@
       </section>
 
       <section class="form-section">
+        <header class="section-header"><span>04</span><div><h2>Features &amp; amenities</h2><p>Detailed listings receive more relevant enquiries.</p></div></header>
         <div class="field-group">
           <label class="field-label">Features</label>
           <div class="input-row input-row-3">
@@ -187,6 +203,7 @@
       </section>
 
       <section class="form-section">
+        <header class="section-header"><span>05</span><div><h2>Presentation</h2><p>Add a compelling title, description, and high-quality photos.</p></div></header>
         <div class="field-group">
           <label class="field-label">Description / Photos</label>
           <input type="text" name="title" placeholder="Listing title" [(ngModel)]="form.title" />
@@ -209,8 +226,9 @@
               [disabled]="uploadedImageCount >= maxImages"
               (change)="onImagesSelected($event)"
             />
-            <strong>Upload apartment photos</strong>
-            <span>Select up to 15 images from your computer.</span>
+            <i class="fa-regular fa-images"></i>
+            <strong>Drop photos here or click to browse</strong>
+            <span>Upload up to 15 JPG, PNG, or WebP images.</span>
           </label>
 
           <p *ngIf="imageUploadMessage" class="image-upload-message">{{ imageUploadMessage }}</p>
@@ -226,6 +244,7 @@
       </section>
 
       <section class="form-section">
+        <header class="section-header"><span>06</span><div><h2>Contact information</h2><p>Clients will use these details to contact you about the property.</p></div></header>
         <div class="field-group">
           <label class="field-label">Contact Information <span class="req">*</span></label>
           <div class="input-row">
@@ -248,8 +267,9 @@
       <p *ngIf="pendingDebug" class="form-debug">{{ pendingDebug }}</p>
 
       <div class="form-actions">
-        <button class="btn-back" type="button" routerLink="/main">Back</button>
+        <button class="btn-back" type="button" routerLink="/main"><i class="fa-solid fa-arrow-left"></i> Back</button>
         <button class="btn-publish" type="submit" [disabled]="loading">
+          <i [class]="loading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-paper-plane'"></i>
           {{ loading ? 'Submitting...' : 'Submit Listing' }}
         </button>
       </div>

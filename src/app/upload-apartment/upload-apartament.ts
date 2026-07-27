@@ -212,6 +212,30 @@ export class UploadApartment {
     return this.form.imageUrls.length;
   }
 
+  get currentStepIndex(): number {
+    const firstIncomplete = this.steps.findIndex((_, index) => !this.isStepComplete(index));
+    return firstIncomplete === -1 ? this.steps.length - 1 : firstIncomplete;
+  }
+
+  isStepComplete(index: number): boolean {
+    switch (index) {
+      case 0:
+        return !!(this.form.realEstateType && this.form.dealType && this.form.buildingStatus && this.form.condition);
+      case 1:
+        return !!this.form.location.trim();
+      case 2:
+        return !!this.form.totalPrice;
+      case 3:
+        return !!(this.form.area || this.form.rooms || this.form.bedrooms);
+      case 4:
+        return !!(this.form.title.trim() && this.form.description.trim() && this.uploadedImageCount);
+      case 5:
+        return !!this.form.contactPhone.trim();
+      default:
+        return false;
+    }
+  }
+
   async onImagesSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
