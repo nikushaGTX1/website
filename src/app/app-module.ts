@@ -31,6 +31,7 @@ import { AboutUs } from './about-us/about-us';
 import { Services } from './services/services';
 import { CurrencyPrice } from './currency-price/currency-price';
 import { SavedListings } from './saved-listings/saved-listings';
+import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile';
 
 @NgModule({
   declarations: [
@@ -60,6 +61,7 @@ import { SavedListings } from './saved-listings/saved-listings';
     Services,
     CurrencyPrice,
     SavedListings,
+    AgentDetailProfile,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
   providers: [

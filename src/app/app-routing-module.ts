@@ -19,6 +19,7 @@ import { AiConciergePageComponent } from './ai-property-concierge/ai-concierge-p
 import { AiHomeMatchPageComponent } from './ai-home-match/ai-home-match-page/ai-home-match-page.component';
 import { Services } from './services/services';
 import { SavedListings } from './saved-listings/saved-listings';
+import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile';
 
 const routes: Routes = [
   { path: '', redirectTo: 'main', pathMatch: 'full' },
@@ -31,6 +32,7 @@ const routes: Routes = [
   { path: 'services', component: Services, title: 'Real Estate Services | White Tower' },
   { path: 'apartment-detail', component: ApartmentDetail, title: 'Apartment Details | White Tower' },
   { path: 'agent-profile', component: AgentProfile, title: 'Real Estate Agents in Tbilisi | White Tower' },
+  { path: 'agent-profile/:id', component: AgentDetailProfile, title: 'Agent Profile | White Tower' },
   { path: 'login', component: Login, title: 'Sign In | White Tower', canActivate: [guestGuard] },
   { path: 'blog', component: Blog, title: 'Tbilisi Property Blog | White Tower' },
   { path: 'upload-apartment', component: UploadApartment, title: 'List Your Property | White Tower', canActivate: [authGuard] },
