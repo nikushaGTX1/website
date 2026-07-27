@@ -30,6 +30,7 @@ import { VelvenLifestyleAvatarComponent } from './ai-home-match/lifestyle-avatar
 import { AboutUs } from './about-us/about-us';
 import { Services } from './services/services';
 import { CurrencyPrice } from './currency-price/currency-price';
+import { SavedListings } from './saved-listings/saved-listings';
 
 @NgModule({
   declarations: [
@@ -58,6 +59,7 @@ import { CurrencyPrice } from './currency-price/currency-price';
     AboutUs,
     Services,
     CurrencyPrice,
+    SavedListings,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
   providers: [

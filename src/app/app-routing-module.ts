@@ -18,6 +18,7 @@ import { ApartmentDetail } from './apartment-detail/apartment-detail';
 import { AiConciergePageComponent } from './ai-property-concierge/ai-concierge-page/ai-concierge-page.component';
 import { AiHomeMatchPageComponent } from './ai-home-match/ai-home-match-page/ai-home-match-page.component';
 import { Services } from './services/services';
+import { SavedListings } from './saved-listings/saved-listings';
 
 const routes: Routes = [
   { path: '', redirectTo: 'main', pathMatch: 'full' },
@@ -36,7 +37,7 @@ const routes: Routes = [
   { path: 'admin', component: AdminPanel, title: 'Dashboard | White Tower', canActivate: [authGuard, agentGuard] },
   { path: 'my-profile', component: MyProfile, title: 'My Profile | White Tower', canActivate: [authGuard] },
   { path: 'my-listings', component: MyListings, title: 'My Listings | White Tower', canActivate: [authGuard] },
-  { path: 'saved-listings', component: MyProfile, canActivate: [authGuard] },
+  { path: 'saved-listings', component: SavedListings, title: 'Saved Listings | White Tower', canActivate: [authGuard] },
   { path: 'premium', component: MyProfile, canActivate: [authGuard] },
   { path: 'balance', component: MyProfile, canActivate: [authGuard] },
   { path: 'payment-methods', component: MyProfile, canActivate: [authGuard] },

@@ -59,7 +59,10 @@ export class Main implements OnInit {
   ngOnInit(): void {
     this.loadApartments();
     this.loadAgents();
-    this.favoriteService.loadFavorites().subscribe({ error: () => undefined });
+    this.favoriteService.loadFavorites().subscribe({
+      next: () => this.cdr.detectChanges(),
+      error: () => undefined,
+    });
   }
 
   toggleFavorite(event: Event, apartment: Apartment): void {
@@ -69,7 +72,11 @@ export class Main implements OnInit {
       return;
     }
     this.favoriteService.toggleFavorite(apartment.id).subscribe({
-      error: (error) => console.error('Favorite API error:', error),
+      next: () => this.cdr.detectChanges(),
+      error: (error) => {
+        this.cdr.detectChanges();
+        console.error('Favorite API error:', error);
+      },
     });
   }
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map, shareReplay, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { catchError, map, shareReplay, tap } from 'rxjs/operators';
 import { Apartment } from '../models/apartment';
 import { AuthService } from './auth.service';
 import { API_URL } from '../utils/api-config';
@@ -48,16 +48,20 @@ export class FavoriteService {
 
   toggleFavorite(apartmentId: number): Observable<boolean> {
     const removing = this.isFavorite(apartmentId);
+    const previous = new Set(this.favoriteIdsSubject.value);
+    const optimistic = new Set(previous);
+    removing ? optimistic.delete(apartmentId) : optimistic.add(apartmentId);
+    this.favoriteIdsSubject.next(optimistic);
+
     const request$ = removing
       ? this.http.delete<unknown>(`${this.apiUrl}/${apartmentId}`)
       : this.http.post<unknown>(`${this.apiUrl}/${apartmentId}`, {});
 
     return request$.pipe(
       map(() => !removing),
-      tap((isFavorite) => {
-        const next = new Set(this.favoriteIdsSubject.value);
-        isFavorite ? next.add(apartmentId) : next.delete(apartmentId);
-        this.favoriteIdsSubject.next(next);
+      catchError((error) => {
+        this.favoriteIdsSubject.next(previous);
+        return throwError(() => error);
       }),
     );
   }

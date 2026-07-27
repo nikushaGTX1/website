@@ -272,12 +272,20 @@ export class ApartmentDetail implements OnInit {
       return;
     }
 
+    const previous = this.favorite;
+    this.favorite = !previous;
+    this.cdr.detectChanges();
+
     this.favoriteService.toggleFavorite(this.apartment.id).subscribe({
       next: (favorite) => {
         this.favorite = favorite;
         this.cdr.detectChanges();
       },
-      error: (error) => console.error('Favorite API error:', error),
+      error: (error) => {
+        this.favorite = previous;
+        this.cdr.detectChanges();
+        console.error('Favorite API error:', error);
+      },
     });
   }
 
