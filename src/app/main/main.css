@@ -268,8 +268,8 @@
 }
 .section-heading h2 {
   margin: 0;
-  font-size: 30px;
-  font-weight: 500;
+  font-size: 40px;
+  font-weight: 800;
 }
 .section-heading a {
   color: #2C64EA;
@@ -637,7 +637,7 @@
   border-radius: 7px;
   background: #fff;
   color: #354158;
-  font-weight: 700;
+  font-weight: 900;
 }
 .lifestyle-row button:first-letter {
   color: #2C64EA;
@@ -659,12 +659,12 @@
 }
 .process-grid article b {
   color: #a4afbf;
-  font-size: 9px;
+  font-size: 12px;
 }
 .process-grid h3 {
   display: inline;
   margin: 0 0 0 8px;
-  font-size: 12px;
+  font-size: 42px;
 }
 .process-grid p {
   margin: 5px 0 0;
