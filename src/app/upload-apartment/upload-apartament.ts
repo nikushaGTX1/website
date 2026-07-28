@@ -267,7 +267,7 @@ export class UploadApartment implements OnInit {
     this.selectedDistrictValue = suggestion.value || suggestion.label;
     this.form.street = '';
     this.selectedStreetValue = '';
-    this.locationPicker = 'street';
+    this.locationPicker = null;
   }
 
   selectUploadStreet(suggestion: LocationSuggestion): void {

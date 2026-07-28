@@ -194,7 +194,7 @@ export class MyListings implements OnInit, OnDestroy {
   selectEditArea(suggestion: LocationSuggestion): void {
     this.editForm.district = suggestion.label;
     this.selectedEditDistrictValue = suggestion.value || suggestion.label;
-    this.editLocationPicker = 'street';
+    this.editLocationPicker = null;
   }
 
   selectEditStreet(suggestion: LocationSuggestion): void {

@@ -240,7 +240,7 @@ export class Main implements OnInit {
     this.searchLocation = suggestion.label;
     this.selectedLocationValue = suggestion.value || suggestion.label;
     this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
-    this.locationOpen = suggestion.type === 'Area';
+    this.locationOpen = false;
   }
 
   onLocationInput(): void {

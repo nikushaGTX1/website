@@ -235,8 +235,8 @@ export class ExploreProperty implements OnInit {
     this.locationDisplayLanguage = this.locationService.languageForQuery(suggestion.label);
     this.selectedLocationValue = suggestion.value || suggestion.label;
     this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
-    this.locationOpen = suggestion.type === 'Area';
-    if (suggestion.type !== 'Area') this.onSearch();
+    this.locationOpen = false;
+    this.onSearch();
   }
 
   onLocationInput(): void {

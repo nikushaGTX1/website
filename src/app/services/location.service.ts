@@ -80,6 +80,7 @@ export class LocationService {
     const overrides: Record<string, string> = {
       'mcxeta st.': 'მცხეთის ქუჩა',
       'mckheta st.': 'მცხეთის ქუჩა',
+      'm. aleksidze st.': 'ალექსიძე მერაბის ქუჩა',
     };
     return overrides[english.trim().toLowerCase()] || english;
   }
