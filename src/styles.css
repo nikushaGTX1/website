@@ -70,10 +70,15 @@ img {
 
 .property-option-svg {
   display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 27px;
+  height: 27px;
   flex: 0 0 auto;
   background-color: currentColor;
+}
+
+.condo-svg {
+  -webkit-mask: url('/condo.svg') center / contain no-repeat;
+  mask: url('/condo.svg') center / contain no-repeat;
 }
 
 .office-svg {
@@ -156,7 +161,7 @@ img {
 
 .property-type-options button {
   width: 100%;
-  min-height: 46px;
+  min-height: 50px;
   padding: 0 13px;
   display: flex;
   align-items: center;
@@ -172,8 +177,8 @@ img {
 }
 
 .property-type-options button .listing-svg {
-  width: 20px;
-  height: 20px;
+  width: 27px;
+  height: 27px;
 }
 
 .property-type-options button:hover {
