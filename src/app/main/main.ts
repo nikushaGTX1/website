@@ -46,7 +46,7 @@ export class Main implements OnInit {
     { label: '4 Beds', value: '4', icon: 'fa-solid fa-bed' },
     { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
   ];
-  readonly propertyTypeOptions = ['Apartment', 'Commercial place', 'House', 'Country House'];
+  readonly propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
   searchBedrooms = '';
   public advancedFiltersOpen = false;
 

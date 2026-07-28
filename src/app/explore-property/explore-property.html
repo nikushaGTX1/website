@@ -31,9 +31,9 @@
               <button type="button" role="option" *ngFor="let option of propertyTypeOptions"
               [class.active]="homeType === option" [attr.aria-selected]="homeType === option"
               (click)="selectHeaderPropertyType(option)"><span class="property-option-svg"
-                [class.condo-svg]="option === 'Apartment'"
-                [class.office-svg]="option === 'Commercial place'" [class.house-option-svg]="option === 'House'"
-                [class.listing-svg]="option === 'Country House'" aria-hidden="true"></span>{{ option }}</button>
+                [class.flats-svg]="option === 'Apartament'"
+                [class.shop-svg]="option === 'Commercial Place'" [class.house-option-svg]="option === 'House'"
+                [class.country-house-svg]="option === 'Country house'" aria-hidden="true"></span>{{ option }}</button>
             </div>
             <button class="property-type-clear" type="button" (click)="selectHeaderPropertyType('')">Clear</button>
           </div>

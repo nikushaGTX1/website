@@ -20,7 +20,7 @@ export class ExploreProperty implements OnInit {
 
   bedroomOptions = ['Studio', '1 Bedroom', '2 Bedrooms', '3 Bedrooms', '4+ Bedrooms'];
   bathroomOptions = ['1+ Bathrooms', '2+ Bathrooms', '3+ Bathrooms'];
-  propertyTypeOptions = ['Apartment', 'Commercial place', 'House', 'Country House'];
+  propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
   amenityOptions = ['Parking', 'Balcony', 'Elevator', 'Pool', 'Furnished'];
 
   searchQuery = '';
@@ -410,6 +410,7 @@ export class ExploreProperty implements OnInit {
     if (selectedType === 'house' && text.includes('country house')) return false;
     const aliases: Record<string, string[]> = {
       apartment: ['apartment', 'flat'],
+      apartament: ['apartment', 'apartament', 'flat'],
       'commercial place': ['commercial place', 'commercial', 'office', 'shop'],
       house: ['house', 'private house'],
       'country house': ['country house', 'cottage', 'villa'],

@@ -76,19 +76,24 @@ img {
   background-color: currentColor;
 }
 
-.condo-svg {
-  -webkit-mask: url('/condo.svg') center / contain no-repeat;
-  mask: url('/condo.svg') center / contain no-repeat;
+.flats-svg {
+  -webkit-mask: url('/flats.svg') center / contain no-repeat;
+  mask: url('/flats.svg') center / contain no-repeat;
 }
 
-.office-svg {
-  -webkit-mask: url('/office.svg') center / contain no-repeat;
-  mask: url('/office.svg') center / contain no-repeat;
+.shop-svg {
+  -webkit-mask: url('/shop.svg') center / contain no-repeat;
+  mask: url('/shop.svg') center / contain no-repeat;
 }
 
 .house-option-svg {
   -webkit-mask: url('/house.svg') center / contain no-repeat;
   mask: url('/house.svg') center / contain no-repeat;
+}
+
+.country-house-svg {
+  -webkit-mask: url('/country-house.svg') center / contain no-repeat;
+  mask: url('/country-house.svg') center / contain no-repeat;
 }
 
 .property-type-filter {
