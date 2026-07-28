@@ -60,7 +60,7 @@ export class LocationService {
         value: street.english,
         label:
           language === 'ka'
-            ? street.georgian || this.georgianStreetFallback(street.english)
+            ? street.georgian || street.english
             : street.english,
       }));
     }
@@ -74,14 +74,5 @@ export class LocationService {
       value,
       label: localized?.[index] || value,
     }));
-  }
-
-  private georgianStreetFallback(english: string): string {
-    const overrides: Record<string, string> = {
-      'mcxeta st.': 'მცხეთის ქუჩა',
-      'mckheta st.': 'მცხეთის ქუჩა',
-      'm. aleksidze st.': 'ალექსიძე მერაბის ქუჩა',
-    };
-    return overrides[english.trim().toLowerCase()] || english;
   }
 }
