@@ -21,6 +21,15 @@ export class LocationService {
     return this.locations$;
   }
 
+  languageForQuery(...values: Array<string | undefined>): Exclude<AppLanguage, 'ru'> {
+    for (const value of values) {
+      const query = value?.trim() || '';
+      if (/[\u10A0-\u10FF]/.test(query)) return 'ka';
+      if (/[A-Za-z]/.test(query)) return 'en';
+    }
+    return 'ka';
+  }
+
   cityName(location: ApiLocation, language: AppLanguage): string {
     return language === 'ka'
       ? location.cityKa || location.cityGe || location.cityGeo || location.cityGeorgian || location.cityNameKa || location.city

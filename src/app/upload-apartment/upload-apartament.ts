@@ -206,7 +206,7 @@ export class UploadApartment implements OnInit {
 
   get uploadAreaSuggestions(): LocationSuggestion[] {
     const query = this.form.location.trim().toLowerCase();
-    const language = 'ka';
+    const language = this.locationService.languageForQuery(this.form.location);
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -225,7 +225,7 @@ export class UploadApartment implements OnInit {
 
   get uploadStreetSuggestions(): LocationSuggestion[] {
     const query = this.form.street.trim().toLowerCase();
-    const language = 'ka';
+    const language = this.locationService.languageForQuery(this.form.street, this.form.location);
     if (!this.selectedDistrictValue && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 
@@ -274,6 +274,12 @@ export class UploadApartment implements OnInit {
     this.form.street = suggestion.label;
     this.selectedStreetValue = suggestion.value || suggestion.label;
     this.locationPicker = null;
+  }
+
+  uploadLocationText(english: string, georgian: string): string {
+    return this.locationService.languageForQuery(this.form.street, this.form.location) === 'ka'
+      ? georgian
+      : english;
   }
 
   select(field: keyof UploadForm, value: string): void {

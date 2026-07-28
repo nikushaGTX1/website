@@ -119,9 +119,9 @@
         <div class="location-status" *ngIf="locationLoading">Loading areas…</div>
         <div class="location-status error" *ngIf="locationError">Locations are temporarily unavailable.</div>
         <section *ngIf="!locationLoading && !locationError && editAreaSuggestions.length">
-          <h3>Areas</h3>
+          <h3>{{ editLocationText('Areas', 'უბნები') }}</h3>
           <button type="button" *ngFor="let suggestion of editAreaSuggestions" (click)="selectEditArea(suggestion)">
-            <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>Area</em></b><small>Tbilisi</small></span>
+            <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>{{ editLocationText('Area', 'უბანი') }}</em></b><small>{{ editLocationText('Tbilisi', 'თბილისი') }}</small></span>
           </button>
         </section>
       </div>
@@ -135,7 +135,7 @@
         <section *ngIf="!locationLoading && editStreetSuggestions.length">
           <h3>{{ selectedEditDistrictValue ? 'Streets in ' + editForm.district : 'Streets' }}</h3>
           <button type="button" *ngFor="let suggestion of editStreetSuggestions" (click)="selectEditStreet(suggestion)">
-            <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>Street</em></b><small>{{ suggestion.district }}</small></span>
+            <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>{{ editLocationText('Street', 'ქუჩა') }}</em></b><small>{{ suggestion.district }}</small></span>
           </button>
         </section>
         <div class="location-status" *ngIf="!locationLoading && !editStreetSuggestions.length">Choose a district or type at least two letters.</div>

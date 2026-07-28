@@ -133,7 +133,7 @@ export class MyListings implements OnInit, OnDestroy {
 
   get editAreaSuggestions(): LocationSuggestion[] {
     const query = (this.editForm.district || '').trim().toLowerCase();
-    const language = 'ka';
+    const language = this.locationService.languageForQuery(this.editForm.district);
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -151,7 +151,10 @@ export class MyListings implements OnInit, OnDestroy {
 
   get editStreetSuggestions(): LocationSuggestion[] {
     const query = (this.editForm.address || '').trim().toLowerCase();
-    const language = 'ka';
+    const language = this.locationService.languageForQuery(
+      this.editForm.address,
+      this.editForm.district,
+    );
     if (!this.selectedEditDistrictValue && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 
@@ -199,6 +202,15 @@ export class MyListings implements OnInit, OnDestroy {
     this.selectedEditStreetValue = suggestion.value || suggestion.label;
     this.editForm.street = this.selectedEditStreetValue;
     this.editLocationPicker = null;
+  }
+
+  editLocationText(english: string, georgian: string): string {
+    return this.locationService.languageForQuery(
+      this.editForm.address,
+      this.editForm.district,
+    ) === 'ka'
+      ? georgian
+      : english;
   }
 
   savePendingEdit(request: PendingApartment): void {

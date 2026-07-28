@@ -59,6 +59,7 @@ export class ExploreProperty implements OnInit {
   locationEntries: ApiLocation[] = [];
   selectedLocationArea = '';
   selectedLocationValue = '';
+  locationDisplayLanguage: 'en' | 'ka' = 'ka';
   headerBedrooms = '';
   featureFilter = '';
 
@@ -156,7 +157,7 @@ export class ExploreProperty implements OnInit {
 
   get areaSuggestions(): LocationSuggestion[] {
     const query = this.location.trim().toLowerCase();
-    const language = 'ka';
+    const language = this.locationService.languageForQuery(this.location);
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -178,7 +179,7 @@ export class ExploreProperty implements OnInit {
 
   get streetSuggestions(): LocationSuggestion[] {
     const query = this.location.trim().toLowerCase();
-    const language = 'ka';
+    const language = this.locationService.languageForQuery(this.location);
     if (!this.selectedLocationArea && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 
@@ -213,7 +214,13 @@ export class ExploreProperty implements OnInit {
   get streetGroupTitle(): string {
     if (!this.selectedLocationArea) return 'Streets';
     const entry = this.locationEntries.find((item) => item.district === this.selectedLocationArea);
-    return `Streets in ${entry ? this.locationService.districtName(entry, 'ka') : this.selectedLocationArea}`;
+    const language = this.locationService.languageForQuery(this.location);
+    const area = entry ? this.locationService.districtName(entry, language) : this.selectedLocationArea;
+    return language === 'ka' ? `${area} — ქუჩები` : `Streets in ${area}`;
+  }
+
+  locationText(english: string, georgian: string): string {
+    return this.locationService.languageForQuery(this.location) === 'ka' ? georgian : english;
   }
 
   openLocationSearch(): void {
@@ -225,6 +232,7 @@ export class ExploreProperty implements OnInit {
 
   selectLocation(suggestion: LocationSuggestion): void {
     this.location = suggestion.label;
+    this.locationDisplayLanguage = this.locationService.languageForQuery(suggestion.label);
     this.selectedLocationValue = suggestion.value || suggestion.label;
     this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
     this.locationOpen = suggestion.type === 'Area';
@@ -234,6 +242,7 @@ export class ExploreProperty implements OnInit {
   onLocationInput(): void {
     this.selectedLocationArea = '';
     this.selectedLocationValue = '';
+    this.locationDisplayLanguage = this.locationService.languageForQuery(this.location);
     this.openLocationSearch();
   }
 
@@ -266,13 +275,13 @@ export class ExploreProperty implements OnInit {
     if (!this.selectedLocationValue) return;
     const area = this.locationEntries.find((entry) => entry.district === this.selectedLocationValue);
     if (area) {
-      this.location = this.locationService.districtName(area, 'ka');
+      this.location = this.locationService.districtName(area, this.locationDisplayLanguage);
       return;
     }
 
     for (const entry of this.locationEntries) {
       const street = this.locationService
-        .streetNames(entry, 'ka')
+        .streetNames(entry, this.locationDisplayLanguage)
         .find((item) => item.value === this.selectedLocationValue);
       if (street) {
         this.location = street.label;
@@ -312,6 +321,7 @@ export class ExploreProperty implements OnInit {
     this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
     this.location = params.get('location') || '';
     this.selectedLocationValue = this.location;
+    this.locationDisplayLanguage = params.get('locationLanguage') === 'en' ? 'en' : 'ka';
     this.homeType = params.get('propertyType') || '';
     this.headerBedrooms = params.get('bedrooms') || '';
     this.featureFilter = params.get('feature') || '';

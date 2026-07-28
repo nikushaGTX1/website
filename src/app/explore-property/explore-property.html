@@ -26,15 +26,15 @@
             <div class="location-status error" *ngIf="!locationLoading && locationError">Locations are temporarily unavailable.</div>
             <ng-container *ngIf="!locationLoading && !locationError">
               <section *ngIf="areaSuggestions.length">
-                <h3>Areas</h3>
+                <h3>{{ locationText('Areas', 'უბნები') }}</h3>
                 <button type="button" *ngFor="let suggestion of areaSuggestions" (click)="selectLocation(suggestion)">
-                  <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>Area</em></b><small>Tbilisi</small></span>
+                  <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>{{ locationText('Area', 'უბანი') }}</em></b><small>{{ locationText('Tbilisi', 'თბილისი') }}</small></span>
                 </button>
               </section>
               <section *ngIf="streetSuggestions.length">
                 <h3>{{ streetGroupTitle }}</h3>
                 <button type="button" *ngFor="let suggestion of streetSuggestions" (click)="selectLocation(suggestion)">
-                  <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>Street</em></b><small>{{ suggestion.district }}</small></span>
+                  <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>{{ locationText('Street', 'ქუჩა') }}</em></b><small>{{ suggestion.district }}</small></span>
                 </button>
               </section>
               <div class="location-status" *ngIf="!hasLocationSuggestions">No matching Tbilisi area or street found.</div>

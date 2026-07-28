@@ -163,7 +163,7 @@ export class Main implements OnInit {
 
   get areaSuggestions(): LocationSuggestion[] {
     const query = this.searchLocation.trim().toLowerCase();
-    const language = 'ka';
+    const language = this.locationService.languageForQuery(this.searchLocation);
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -185,7 +185,7 @@ export class Main implements OnInit {
 
   get streetSuggestions(): LocationSuggestion[] {
     const query = this.searchLocation.trim().toLowerCase();
-    const language = 'ka';
+    const language = this.locationService.languageForQuery(this.searchLocation);
     if (!this.selectedLocationArea && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 
@@ -220,7 +220,13 @@ export class Main implements OnInit {
   get streetGroupTitle(): string {
     if (!this.selectedLocationArea) return 'Streets';
     const entry = this.locationEntries.find((item) => item.district === this.selectedLocationArea);
-    return `Streets in ${entry ? this.locationService.districtName(entry, 'ka') : this.selectedLocationArea}`;
+    const language = this.locationService.languageForQuery(this.searchLocation);
+    const area = entry ? this.locationService.districtName(entry, language) : this.selectedLocationArea;
+    return language === 'ka' ? `${area} — ქუჩები` : `Streets in ${area}`;
+  }
+
+  locationText(english: string, georgian: string): string {
+    return this.locationService.languageForQuery(this.searchLocation) === 'ka' ? georgian : english;
   }
 
   openLocationSearch(): void {
@@ -353,6 +359,7 @@ export class Main implements OnInit {
       queryParams: {
         mode: this.searchMode,
         location: this.selectedLocationValue || this.searchLocation || null,
+        locationLanguage: this.locationService.languageForQuery(this.searchLocation),
         propertyType: this.searchPropertyType || null,
         budget: this.toUsd(this.appliedBudgetMax),
         budgetMin: this.toUsd(this.appliedBudgetMin),

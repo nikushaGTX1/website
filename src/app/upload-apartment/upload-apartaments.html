@@ -121,9 +121,9 @@
                 <div class="location-status" *ngIf="locationLoading">Loading areas…</div>
                 <div class="location-status error" *ngIf="locationError">Locations are temporarily unavailable.</div>
                 <section *ngIf="!locationLoading && !locationError && uploadAreaSuggestions.length">
-                  <h3>Areas</h3>
+                  <h3>{{ uploadLocationText('Areas', 'უბნები') }}</h3>
                   <button type="button" *ngFor="let suggestion of uploadAreaSuggestions" (click)="selectUploadArea(suggestion)">
-                    <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>Area</em></b><small>Tbilisi</small></span>
+                    <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>{{ uploadLocationText('Area', 'უბანი') }}</em></b><small>{{ uploadLocationText('Tbilisi', 'თბილისი') }}</small></span>
                   </button>
                 </section>
                 <div class="location-status" *ngIf="!locationLoading && !locationError && !uploadAreaSuggestions.length">No matching area found.</div>
@@ -137,7 +137,7 @@
                 <section *ngIf="!locationLoading && uploadStreetSuggestions.length">
                   <h3>{{ selectedDistrictValue ? 'Streets in ' + form.location : 'Streets' }}</h3>
                   <button type="button" *ngFor="let suggestion of uploadStreetSuggestions" (click)="selectUploadStreet(suggestion)">
-                    <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>Street</em></b><small>{{ suggestion.district }}</small></span>
+                    <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>{{ uploadLocationText('Street', 'ქუჩა') }}</em></b><small>{{ suggestion.district }}</small></span>
                   </button>
                 </section>
                 <div class="location-status" *ngIf="!locationLoading && !uploadStreetSuggestions.length">Choose an area or type at least two letters.</div>
