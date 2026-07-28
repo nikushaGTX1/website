@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Apartment, CreateApartment } from '../models/apartment';
@@ -6,6 +6,9 @@ import { User } from '../models/user';
 import { ApartmentService } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
+import { ApiLocation, LocationSuggestion } from '../models/location';
+import { LocationService } from '../services/location.service';
+import { TranslationService } from '../services/translation.service';
 
 type ListingForm = CreateApartment;
 
@@ -27,13 +30,21 @@ export class MyListings implements OnInit, OnDestroy {
   saving = false;
   successMessage = '';
   errorMessage = '';
+  locationEntries: ApiLocation[] = [];
+  locationLoading = false;
+  locationError = false;
+  editLocationPicker: 'area' | 'street' | null = null;
+  selectedEditDistrictValue = '';
+  selectedEditStreetValue = '';
 
   private subscriptions = new Subscription();
 
   constructor(
     private apartmentService: ApartmentService,
     private authService: AuthService,
-    private pendingService: PendingApartmentService
+    private pendingService: PendingApartmentService,
+    private locationService: LocationService,
+    private translation: TranslationService,
   ) {}
 
   ngOnInit(): void {
@@ -51,6 +62,25 @@ export class MyListings implements OnInit, OnDestroy {
         this.pendingListings = this.pendingService.getForUser(this.user);
       })
     );
+
+    this.locationLoading = true;
+    this.subscriptions.add(
+      this.locationService.getLocations().subscribe({
+        next: (locations) => {
+          this.locationEntries = locations;
+          this.locationLoading = false;
+        },
+        error: () => {
+          this.locationLoading = false;
+          this.locationError = true;
+        },
+      }),
+    );
+  }
+
+  @HostListener('document:click')
+  closeEditLocationPicker(): void {
+    this.editLocationPicker = null;
   }
 
   ngOnDestroy(): void {
@@ -80,6 +110,8 @@ export class MyListings implements OnInit, OnDestroy {
     this.successMessage = '';
     this.errorMessage = '';
     this.editForm = this.toListingForm(apartment);
+    this.selectedEditDistrictValue = apartment.district || '';
+    this.selectedEditStreetValue = '';
   }
 
   startPendingEdit(request: PendingApartment): void {
@@ -88,12 +120,86 @@ export class MyListings implements OnInit, OnDestroy {
     this.successMessage = '';
     this.errorMessage = '';
     this.editForm = this.toListingForm(request.apartment);
+    this.selectedEditDistrictValue = request.apartment.district || '';
+    this.selectedEditStreetValue = '';
   }
 
   cancelEdit(): void {
     this.editingId = null;
     this.editingPendingId = null;
     this.editForm = this.createEmptyForm();
+    this.editLocationPicker = null;
+    this.selectedEditDistrictValue = '';
+    this.selectedEditStreetValue = '';
+  }
+
+  get editAreaSuggestions(): LocationSuggestion[] {
+    const query = (this.editForm.district || '').trim().toLowerCase();
+    const language = this.translation.language$.value;
+    return this.locationEntries
+      .filter((entry) => entry.city === 'Tbilisi')
+      .filter((entry) =>
+        !query ||
+        entry.district.toLowerCase().includes(query) ||
+        this.locationService.districtName(entry, language).toLowerCase().includes(query),
+      )
+      .slice(0, 10)
+      .map((entry) => ({
+        label: this.locationService.districtName(entry, language),
+        value: entry.district,
+        type: 'Area',
+      }));
+  }
+
+  get editStreetSuggestions(): LocationSuggestion[] {
+    const query = (this.editForm.address || '').trim().toLowerCase();
+    const language = this.translation.language$.value;
+    if (!this.selectedEditDistrictValue && query.length < 2) return [];
+    const suggestions: LocationSuggestion[] = [];
+
+    for (const entry of this.locationEntries.filter((item) =>
+      item.city === 'Tbilisi' &&
+      (!this.selectedEditDistrictValue || item.district === this.selectedEditDistrictValue),
+    )) {
+      for (const street of this.locationService.streetNames(entry, language)) {
+        if (!query || street.value.toLowerCase().includes(query) || street.label.toLowerCase().includes(query)) {
+          suggestions.push({
+            label: street.label,
+            value: street.value,
+            type: 'Street',
+            district: this.locationService.districtName(entry, language),
+          });
+          if (suggestions.length === 10) return suggestions;
+        }
+      }
+    }
+    return suggestions;
+  }
+
+  openEditLocationPicker(type: 'area' | 'street'): void {
+    this.editLocationPicker = type;
+  }
+
+  onEditDistrictInput(): void {
+    this.selectedEditDistrictValue = '';
+    this.openEditLocationPicker('area');
+  }
+
+  onEditAddressInput(): void {
+    this.selectedEditStreetValue = '';
+    this.openEditLocationPicker('street');
+  }
+
+  selectEditArea(suggestion: LocationSuggestion): void {
+    this.editForm.district = suggestion.label;
+    this.selectedEditDistrictValue = suggestion.value || suggestion.label;
+    this.editLocationPicker = 'street';
+  }
+
+  selectEditStreet(suggestion: LocationSuggestion): void {
+    this.editForm.address = suggestion.label;
+    this.selectedEditStreetValue = suggestion.value || suggestion.label;
+    this.editLocationPicker = null;
   }
 
   savePendingEdit(request: PendingApartment): void {
@@ -274,9 +380,13 @@ export class MyListings implements OnInit, OnDestroy {
       title: this.editForm.title.trim(),
       description: this.editForm.description.trim(),
       price: Number(this.editForm.price),
-      address: this.editForm.address?.trim(),
+      address: this.selectedEditStreetValue || this.editForm.address?.trim(),
       city: this.editForm.city?.trim() || 'Tbilisi',
-      district: this.editForm.district?.trim() || this.editForm.address?.trim() || 'Tbilisi',
+      district:
+        this.selectedEditDistrictValue ||
+        this.editForm.district?.trim() ||
+        this.editForm.address?.trim() ||
+        'Tbilisi',
       bedrooms: Number(this.editForm.bedrooms) || 0,
       bathrooms: Number(this.editForm.bathrooms) || 0,
       sizeSquareMeters: Number(this.editForm.sizeSquareMeters) || 0,

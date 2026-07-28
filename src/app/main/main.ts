@@ -7,6 +7,9 @@ import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { Router } from '@angular/router';
+import { ApiLocation, LocationSuggestion } from '../models/location';
+import { LocationService } from '../services/location.service';
+import { TranslationService } from '../services/translation.service';
 
 @Component({
   selector: 'app-main',
@@ -21,6 +24,12 @@ export class Main implements OnInit {
   agentsLoading = true;
   searchMode: 'rent' | 'buy' = 'rent';
   searchLocation = '';
+  locationOpen = false;
+  locationLoading = false;
+  locationError = false;
+  locationEntries: ApiLocation[] = [];
+  selectedLocationArea = '';
+  selectedLocationValue = '';
   searchPropertyType = '';
   searchBudget = '';
   budgetOpen = false;
@@ -55,6 +64,8 @@ export class Main implements OnInit {
     private agentService: AgentService,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    private locationService: LocationService,
+    private translation: TranslationService,
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
   ) {}
@@ -62,6 +73,7 @@ export class Main implements OnInit {
   ngOnInit(): void {
     this.loadApartments();
     this.loadAgents();
+    this.loadLocations();
     this.favoriteService.loadFavorites().subscribe({
       next: () => this.cdr.detectChanges(),
       error: () => undefined,
@@ -109,6 +121,7 @@ export class Main implements OnInit {
     this.budgetOpen = false;
     this.bedroomOpen = false;
     this.propertyTypeOpen = false;
+    this.locationOpen = false;
   }
 
   selectBudgetRange(range: { label: string; min: number; max: number }): void {
@@ -148,6 +161,111 @@ export class Main implements OnInit {
   selectPropertyType(value: string): void {
     this.searchPropertyType = value;
     this.propertyTypeOpen = false;
+  }
+
+  get areaSuggestions(): LocationSuggestion[] {
+    const query = this.searchLocation.trim().toLowerCase();
+    const language = this.translation.language$.value;
+    return this.locationEntries
+      .filter((entry) => entry.city === 'Tbilisi')
+      .filter((entry) =>
+        !query ||
+        entry.district.toLowerCase().includes(query) ||
+        entry.region.toLowerCase().includes(query) ||
+        this.locationService.districtName(entry, language).toLowerCase().includes(query) ||
+        this.locationService.regionName(entry, language).toLowerCase().includes(query),
+      )
+      .sort((left, right) => this.locationAreaRank(left.district) - this.locationAreaRank(right.district))
+      .slice(0, 8)
+      .map((entry) => ({
+        label: this.locationService.districtName(entry, language),
+        value: entry.district,
+        type: 'Area',
+        city: this.locationService.cityName(entry, language),
+      }));
+  }
+
+  get streetSuggestions(): LocationSuggestion[] {
+    const query = this.searchLocation.trim().toLowerCase();
+    const language = this.translation.language$.value;
+    if (!this.selectedLocationArea && query.length < 2) return [];
+    const suggestions: LocationSuggestion[] = [];
+
+    for (const entry of this.locationEntries.filter((item) =>
+      item.city === 'Tbilisi' &&
+      (!this.selectedLocationArea || item.district === this.selectedLocationArea),
+    )) {
+      for (const street of this.locationService.streetNames(entry, language)) {
+        if (
+          this.selectedLocationArea ||
+          street.value.toLowerCase().includes(query) ||
+          street.label.toLowerCase().includes(query)
+        ) {
+          suggestions.push({
+            label: street.label,
+            value: street.value,
+            type: 'Street',
+            city: this.locationService.cityName(entry, language),
+            district: this.locationService.districtName(entry, language),
+          });
+          if (suggestions.length === 8) return suggestions;
+        }
+      }
+    }
+    return suggestions;
+  }
+
+  get hasLocationSuggestions(): boolean {
+    return !!(this.areaSuggestions.length || this.streetSuggestions.length);
+  }
+
+  get streetGroupTitle(): string {
+    if (!this.selectedLocationArea) return 'Streets';
+    const entry = this.locationEntries.find((item) => item.district === this.selectedLocationArea);
+    return `Streets in ${entry ? this.locationService.districtName(entry, this.translation.language$.value) : this.selectedLocationArea}`;
+  }
+
+  openLocationSearch(): void {
+    this.locationOpen = true;
+    this.budgetOpen = false;
+    this.bedroomOpen = false;
+    this.propertyTypeOpen = false;
+  }
+
+  selectLocation(suggestion: LocationSuggestion): void {
+    this.searchLocation = suggestion.label;
+    this.selectedLocationValue = suggestion.value || suggestion.label;
+    this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
+    this.locationOpen = suggestion.type === 'Area';
+  }
+
+  onLocationInput(): void {
+    this.selectedLocationArea = '';
+    this.selectedLocationValue = '';
+    this.openLocationSearch();
+  }
+
+  private loadLocations(): void {
+    this.locationLoading = true;
+    this.locationService.getLocations().subscribe({
+      next: (locations) => {
+        this.locationEntries = locations;
+        this.locationLoading = false;
+        this.locationError = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.locationLoading = false;
+        this.locationError = true;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private locationAreaRank(district: string): number {
+    const popularAreas = ['Vake', 'Saburtalo', 'Vera', 'Didi Digomi', 'Mtatsminda', 'Avlabari'];
+    const index = popularAreas.indexOf(district);
+    return index === -1 ? popularAreas.length : index;
   }
 
   get topApartments(): Apartment[] {
@@ -236,7 +354,7 @@ export class Main implements OnInit {
     void this.router.navigate(['/ExploreProperty'], {
       queryParams: {
         mode: this.searchMode,
-        location: this.searchLocation || null,
+        location: this.selectedLocationValue || this.searchLocation || null,
         propertyType: this.searchPropertyType || null,
         budget: this.toUsd(this.appliedBudgetMax),
         budgetMin: this.toUsd(this.appliedBudgetMin),

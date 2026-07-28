@@ -37,7 +37,7 @@
             }}</span
           ><span *ngIf="match.apartment.bathrooms">🛁 {{ match.apartment.bathrooms }} bath</span
           ><span *ngIf="match.apartment.sizeSquareMeters"
-            >▱ {{ match.apartment.sizeSquareMeters }} m²</span
+            ><span class="measurement-svg" aria-hidden="true"></span>{{ match.apartment.sizeSquareMeters }} m²</span
           >
         </div>
         <ul class="reasons">

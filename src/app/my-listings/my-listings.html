@@ -111,13 +111,35 @@
       Price
       <input type="number" min="1" name="price-{{ id }}" [(ngModel)]="editForm.price" required />
     </label>
-    <label>
-      Address
-      <input type="text" name="address-{{ id }}" [(ngModel)]="editForm.address" />
-    </label>
-    <label>
+    <label class="location-search" (click)="$event.stopPropagation()">
       District
-      <input type="text" name="district-{{ id }}" [(ngModel)]="editForm.district" />
+      <input type="text" name="district-{{ id }}" autocomplete="off" [(ngModel)]="editForm.district"
+        (focus)="openEditLocationPicker('area')" (input)="onEditDistrictInput()" />
+      <div class="location-suggestions" *ngIf="editLocationPicker === 'area'">
+        <div class="location-status" *ngIf="locationLoading">Loading areas…</div>
+        <div class="location-status error" *ngIf="locationError">Locations are temporarily unavailable.</div>
+        <section *ngIf="!locationLoading && !locationError && editAreaSuggestions.length">
+          <h3>Areas</h3>
+          <button type="button" *ngFor="let suggestion of editAreaSuggestions" (click)="selectEditArea(suggestion)">
+            <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>Area</em></b><small>Tbilisi</small></span>
+          </button>
+        </section>
+      </div>
+    </label>
+    <label class="location-search" (click)="$event.stopPropagation()">
+      Address / street
+      <input type="text" name="address-{{ id }}" autocomplete="off" [(ngModel)]="editForm.address"
+        (focus)="openEditLocationPicker('street')" (input)="onEditAddressInput()" />
+      <div class="location-suggestions" *ngIf="editLocationPicker === 'street'">
+        <div class="location-status" *ngIf="locationLoading">Loading streets…</div>
+        <section *ngIf="!locationLoading && editStreetSuggestions.length">
+          <h3>{{ selectedEditDistrictValue ? 'Streets in ' + editForm.district : 'Streets' }}</h3>
+          <button type="button" *ngFor="let suggestion of editStreetSuggestions" (click)="selectEditStreet(suggestion)">
+            <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>Street</em></b><small>{{ suggestion.district }}</small></span>
+          </button>
+        </section>
+        <div class="location-status" *ngIf="!locationLoading && !editStreetSuggestions.length">Choose a district or type at least two letters.</div>
+      </div>
     </label>
     <label>
       Bedrooms

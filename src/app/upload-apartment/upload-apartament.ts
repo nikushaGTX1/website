@@ -1,9 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApartmentService } from '../services/apartment.service';
 import { CreateApartment } from '../models/apartment';
 import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
+import { ApiLocation, LocationSuggestion } from '../models/location';
+import { LocationService } from '../services/location.service';
+import { TranslationService } from '../services/translation.service';
 
 type UploadForm = {
   realEstateType: string;
@@ -69,7 +72,7 @@ interface PreparedImage {
   templateUrl: './upload-apartaments.html',
   styleUrl: './upload-apartment.css',
 })
-export class UploadApartment {
+export class UploadApartment implements OnInit {
   readonly maxImages = 15;
 
   readonly steps = [
@@ -164,16 +167,115 @@ export class UploadApartment {
   pendingDebug = '';
   imageUploadMessage = '';
   selectedImages: File[] = [];
+  locationEntries: ApiLocation[] = [];
+  locationLoading = false;
+  locationError = false;
+  locationPicker: 'area' | 'street' | null = null;
+  selectedDistrictValue = '';
+  selectedStreetValue = '';
 
   constructor(
     private apartmentService: ApartmentService,
     private authService: AuthService,
-    private pendingService: PendingApartmentService
+    private pendingService: PendingApartmentService,
+    private locationService: LocationService,
+    private translation: TranslationService,
   ) {
     this.userMessages = this.pendingService
       .getForUser(this.authService.currentUser)
       .filter((item) => item.status === 'declined');
     this.pendingDebug = this.pendingService.getStorageDebug();
+  }
+
+  ngOnInit(): void {
+    this.locationLoading = true;
+    this.locationService.getLocations().subscribe({
+      next: (locations) => {
+        this.locationEntries = locations;
+        this.locationLoading = false;
+      },
+      error: () => {
+        this.locationLoading = false;
+        this.locationError = true;
+      },
+    });
+  }
+
+  @HostListener('document:click')
+  closeLocationPicker(): void {
+    this.locationPicker = null;
+  }
+
+  get uploadAreaSuggestions(): LocationSuggestion[] {
+    const query = this.form.location.trim().toLowerCase();
+    const language = this.translation.language$.value;
+    return this.locationEntries
+      .filter((entry) => entry.city === 'Tbilisi')
+      .filter((entry) =>
+        !query ||
+        entry.district.toLowerCase().includes(query) ||
+        this.locationService.districtName(entry, language).toLowerCase().includes(query),
+      )
+      .slice(0, 10)
+      .map((entry) => ({
+        label: this.locationService.districtName(entry, language),
+        value: entry.district,
+        type: 'Area',
+        city: this.locationService.cityName(entry, language),
+      }));
+  }
+
+  get uploadStreetSuggestions(): LocationSuggestion[] {
+    const query = this.form.street.trim().toLowerCase();
+    const language = this.translation.language$.value;
+    if (!this.selectedDistrictValue && query.length < 2) return [];
+    const suggestions: LocationSuggestion[] = [];
+
+    for (const entry of this.locationEntries.filter((item) =>
+      item.city === 'Tbilisi' &&
+      (!this.selectedDistrictValue || item.district === this.selectedDistrictValue),
+    )) {
+      for (const street of this.locationService.streetNames(entry, language)) {
+        if (!query || street.value.toLowerCase().includes(query) || street.label.toLowerCase().includes(query)) {
+          suggestions.push({
+            label: street.label,
+            value: street.value,
+            type: 'Street',
+            district: this.locationService.districtName(entry, language),
+          });
+          if (suggestions.length === 10) return suggestions;
+        }
+      }
+    }
+    return suggestions;
+  }
+
+  openLocationPicker(type: 'area' | 'street'): void {
+    this.locationPicker = type;
+  }
+
+  onAreaInput(): void {
+    this.selectedDistrictValue = '';
+    this.openLocationPicker('area');
+  }
+
+  onStreetInput(): void {
+    this.selectedStreetValue = '';
+    this.openLocationPicker('street');
+  }
+
+  selectUploadArea(suggestion: LocationSuggestion): void {
+    this.form.location = suggestion.label;
+    this.selectedDistrictValue = suggestion.value || suggestion.label;
+    this.form.street = '';
+    this.selectedStreetValue = '';
+    this.locationPicker = 'street';
+  }
+
+  selectUploadStreet(suggestion: LocationSuggestion): void {
+    this.form.street = suggestion.label;
+    this.selectedStreetValue = suggestion.value || suggestion.label;
+    this.locationPicker = null;
   }
 
   select(field: keyof UploadForm, value: string): void {
@@ -329,7 +431,9 @@ export class UploadApartment {
   }
 
   private toCreateApartment(includeImageFile: boolean): CreateApartment {
-    const addressParts = [this.form.location, this.form.street, this.form.streetNumber].filter(Boolean);
+    const district = this.selectedDistrictValue || this.form.location;
+    const street = this.selectedStreetValue || this.form.street;
+    const addressParts = [district, street, this.form.streetNumber].filter(Boolean);
     const title = this.form.title.trim() || `${this.form.realEstateType} ${this.form.dealType}`;
     const currentUser = this.authService.currentUser;
     const meta = [
@@ -357,10 +461,10 @@ export class UploadApartment {
       title,
       description: `${this.form.description || 'Apartment listing'}\n\n${meta}`,
       price: this.form.totalPrice || 0,
-      address: this.form.hideAddress ? this.form.location : addressParts.join(', '),
+      address: this.form.hideAddress ? district : addressParts.join(', '),
       phoneNumber: this.form.contactPhone.trim(),
       city: 'Tbilisi',
-      district: this.form.location,
+      district,
       bedrooms: this.form.bedrooms ?? 0,
       bathrooms: this.form.bathrooms ?? 0,
       sizeSquareMeters: this.form.area ?? 0,

@@ -7,7 +7,13 @@ const port = Number(process.env.PORT) || 3000;
 const apiOrigin = 'https://websiteapi-production-c970.up.railway.app';
 const canonicalHost = 'website-production-ab09.up.railway.app';
 const supabaseHost = 'zhijxljnddhvlxzhrckz.supabase.co';
-const publicApiPaths = new Set(['/api/Apartments', '/api/Agents', '/api/Blog']);
+const publicApiPaths = new Set([
+  '/api/Apartments',
+  '/api/Agents',
+  '/api/Blog',
+  '/api/Locations',
+  '/api/Locations/cities',
+]);
 const publicApiCache = new Map();
 const publicApiRequests = new Map();
 const apartmentImageCache = new Map();

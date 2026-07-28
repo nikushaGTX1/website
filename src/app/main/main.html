@@ -12,9 +12,35 @@
       </div>
 
       <div class="search-fields">
-        <label class="location-field">
+        <label class="location-field location-search" (click)="$event.stopPropagation()">
           <span>Location</span>
-          <div class="field-control"><b><span class="location-svg" aria-hidden="true"></span></b><input name="location" [(ngModel)]="searchLocation" placeholder="Search city, neighborhood or building"></div>
+          <div class="field-control" [class.is-open]="locationOpen">
+            <b><span class="location-svg" aria-hidden="true"></span></b>
+            <input name="location" [(ngModel)]="searchLocation"
+              placeholder="Search Tbilisi area or street" autocomplete="off" role="combobox"
+              [attr.aria-expanded]="locationOpen" aria-autocomplete="list"
+              (focus)="openLocationSearch()" (input)="onLocationInput()">
+            <i class="fa-solid fa-chevron-down location-chevron" aria-hidden="true"></i>
+          </div>
+          <div class="location-suggestions" role="listbox" *ngIf="locationOpen">
+            <div class="location-status" *ngIf="locationLoading"><i class="fa-solid fa-spinner fa-spin"></i> Loading locations…</div>
+            <div class="location-status error" *ngIf="!locationLoading && locationError">Locations are temporarily unavailable.</div>
+            <ng-container *ngIf="!locationLoading && !locationError">
+              <section *ngIf="areaSuggestions.length">
+                <h3>Areas</h3>
+                <button type="button" *ngFor="let suggestion of areaSuggestions" (click)="selectLocation(suggestion)">
+                  <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>Area</em></b><small>Tbilisi</small></span>
+                </button>
+              </section>
+              <section *ngIf="streetSuggestions.length">
+                <h3>{{ streetGroupTitle }}</h3>
+                <button type="button" *ngFor="let suggestion of streetSuggestions" (click)="selectLocation(suggestion)">
+                  <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>Street</em></b><small>{{ suggestion.district }}</small></span>
+                </button>
+              </section>
+              <div class="location-status" *ngIf="!hasLocationSuggestions">No matching Tbilisi area or street found.</div>
+            </ng-container>
+          </div>
         </label>
         <label class="property-type-filter" (click)="$event.stopPropagation()">
           <span>Property Type</span>
@@ -141,7 +167,7 @@
           <div class="property-meta">
             <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
             <span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span>
-            <span><i class="fa-solid fa-up-right-and-down-left-from-center"></i>{{ apartment.sizeSquareMeters || '—' }} m²</span>
+            <span><span class="measurement-svg" aria-hidden="true"></span>{{ apartment.sizeSquareMeters || '—' }} m²</span>
           </div>
           <div class="nearby">
             <span class="nearby-label">Nearby</span>

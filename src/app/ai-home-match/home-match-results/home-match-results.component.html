@@ -63,7 +63,7 @@
           >{{ result.apartment.bedrooms }} bedrooms</span
         ><span *ngIf="result.apartment.bathrooms">{{ result.apartment.bathrooms }} bathrooms</span
         ><span *ngIf="result.apartment.sizeSquareMeters"
-          >{{ result.apartment.sizeSquareMeters }} m²</span
+          ><span class="measurement-svg" aria-hidden="true"></span>{{ result.apartment.sizeSquareMeters }} m²</span
         >
       </div>
       <ul class="reasons">

@@ -61,7 +61,7 @@
         <article *ngFor="let apartment of listings">
           <a class="listing-image-link" [routerLink]="['/apartments', apartment.id]"><img [src]="getListingImage(apartment)" [alt]="apartment.title"></a>
           <div><h3>{{ apartment.title || 'Property in Tbilisi' }}</h3><p><i class="fa-solid fa-location-dot"></i>{{ apartment.address || 'Tbilisi' }}</p>
-            <div class="listing-specs"><span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span><span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span><span>{{ apartment.sizeSquareMeters || '—' }} m²</span></div>
+            <div class="listing-specs"><span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span><span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span><span><span class="measurement-svg" aria-hidden="true"></span>{{ apartment.sizeSquareMeters || '—' }} m²</span></div>
             <app-currency-price [usdPrice]="apartment.price"></app-currency-price>
             <a class="view-property" [routerLink]="['/apartments', apartment.id]">View property <i class="fa-solid fa-arrow-right"></i></a>
           </div>

@@ -4,6 +4,9 @@ import { ApartmentService } from '../services/apartment.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
+import { ApiLocation, LocationSuggestion } from '../models/location';
+import { LocationService } from '../services/location.service';
+import { TranslationService } from '../services/translation.service';
 
 @Component({
   selector: 'app-explore-property',
@@ -51,6 +54,12 @@ export class ExploreProperty implements OnInit {
   ];
   homeType = '';
   location = '';
+  locationOpen = false;
+  locationLoading = false;
+  locationError = false;
+  locationEntries: ApiLocation[] = [];
+  selectedLocationArea = '';
+  selectedLocationValue = '';
   headerBedrooms = '';
   featureFilter = '';
 
@@ -97,6 +106,7 @@ export class ExploreProperty implements OnInit {
     this.budgetOpen = false;
     this.bedroomOpen = false;
     this.propertyTypeOpen = false;
+    this.locationOpen = false;
   }
 
   selectBudgetRange(range: { label: string; min: number; max: number }): void {
@@ -145,6 +155,132 @@ export class ExploreProperty implements OnInit {
     this.onSearch();
   }
 
+  get areaSuggestions(): LocationSuggestion[] {
+    const query = this.location.trim().toLowerCase();
+    const language = this.translation.language$.value;
+    return this.locationEntries
+      .filter((entry) => entry.city === 'Tbilisi')
+      .filter((entry) =>
+        !query ||
+        entry.district.toLowerCase().includes(query) ||
+        entry.region.toLowerCase().includes(query) ||
+        this.locationService.districtName(entry, language).toLowerCase().includes(query) ||
+        this.locationService.regionName(entry, language).toLowerCase().includes(query),
+      )
+      .sort((left, right) => this.locationAreaRank(left.district) - this.locationAreaRank(right.district))
+      .slice(0, 8)
+      .map((entry) => ({
+        label: this.locationService.districtName(entry, language),
+        value: entry.district,
+        type: 'Area',
+        city: this.locationService.cityName(entry, language),
+      }));
+  }
+
+  get streetSuggestions(): LocationSuggestion[] {
+    const query = this.location.trim().toLowerCase();
+    const language = this.translation.language$.value;
+    if (!this.selectedLocationArea && query.length < 2) return [];
+    const suggestions: LocationSuggestion[] = [];
+
+    for (const entry of this.locationEntries.filter((item) =>
+      item.city === 'Tbilisi' &&
+      (!this.selectedLocationArea || item.district === this.selectedLocationArea),
+    )) {
+      for (const street of this.locationService.streetNames(entry, language)) {
+        if (
+          this.selectedLocationArea ||
+          street.value.toLowerCase().includes(query) ||
+          street.label.toLowerCase().includes(query)
+        ) {
+          suggestions.push({
+            label: street.label,
+            value: street.value,
+            type: 'Street',
+            city: this.locationService.cityName(entry, language),
+            district: this.locationService.districtName(entry, language),
+          });
+          if (suggestions.length === 8) return suggestions;
+        }
+      }
+    }
+    return suggestions;
+  }
+
+  get hasLocationSuggestions(): boolean {
+    return !!(this.areaSuggestions.length || this.streetSuggestions.length);
+  }
+
+  get streetGroupTitle(): string {
+    if (!this.selectedLocationArea) return 'Streets';
+    const entry = this.locationEntries.find((item) => item.district === this.selectedLocationArea);
+    return `Streets in ${entry ? this.locationService.districtName(entry, this.translation.language$.value) : this.selectedLocationArea}`;
+  }
+
+  openLocationSearch(): void {
+    this.locationOpen = true;
+    this.budgetOpen = false;
+    this.bedroomOpen = false;
+    this.propertyTypeOpen = false;
+  }
+
+  selectLocation(suggestion: LocationSuggestion): void {
+    this.location = suggestion.label;
+    this.selectedLocationValue = suggestion.value || suggestion.label;
+    this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
+    this.locationOpen = suggestion.type === 'Area';
+    if (suggestion.type !== 'Area') this.onSearch();
+  }
+
+  onLocationInput(): void {
+    this.selectedLocationArea = '';
+    this.selectedLocationValue = '';
+    this.openLocationSearch();
+  }
+
+  private loadLocations(): void {
+    this.locationLoading = true;
+    this.locationService.getLocations().subscribe({
+      next: (locations) => {
+        this.locationEntries = locations;
+        this.localizeSelectedLocation();
+        this.locationLoading = false;
+        this.locationError = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.locationLoading = false;
+        this.locationError = true;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private locationAreaRank(district: string): number {
+    const popularAreas = ['Vake', 'Saburtalo', 'Vera', 'Didi Digomi', 'Mtatsminda', 'Avlabari'];
+    const index = popularAreas.indexOf(district);
+    return index === -1 ? popularAreas.length : index;
+  }
+
+  private localizeSelectedLocation(): void {
+    if (!this.selectedLocationValue || this.translation.language$.value !== 'ka') return;
+    const area = this.locationEntries.find((entry) => entry.district === this.selectedLocationValue);
+    if (area) {
+      this.location = this.locationService.districtName(area, 'ka');
+      return;
+    }
+
+    for (const entry of this.locationEntries) {
+      const street = this.locationService
+        .streetNames(entry, 'ka')
+        .find((item) => item.value === this.selectedLocationValue);
+      if (street) {
+        this.location = street.label;
+        return;
+      }
+    }
+  }
+
   get paginatedApartments(): Apartment[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredApartments.slice(start, start + this.pageSize);
@@ -166,6 +302,8 @@ export class ExploreProperty implements OnInit {
     private cdr: ChangeDetectorRef,
     private route: ActivatedRoute,
     private router: Router,
+    private locationService: LocationService,
+    private translation: TranslationService,
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
   ) {}
@@ -174,12 +312,14 @@ export class ExploreProperty implements OnInit {
     const params = this.route.snapshot.queryParamMap;
     this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
     this.location = params.get('location') || '';
+    this.selectedLocationValue = this.location;
     this.homeType = params.get('propertyType') || '';
     this.headerBedrooms = params.get('bedrooms') || '';
     this.featureFilter = params.get('feature') || '';
     const budget = Number(params.get('budget'));
     if (budget > 0) this.selectedPriceMax = budget;
     this.loadApartments();
+    this.loadLocations();
     this.favoriteService.loadFavorites().subscribe({
       next: () => this.cdr.detectChanges(),
       error: () => undefined,
@@ -227,7 +367,7 @@ export class ExploreProperty implements OnInit {
   
   onSearch(): void {
     const query = this.searchQuery.trim().toLowerCase();
-    const loc = this.location.trim().toLowerCase();
+    const loc = (this.selectedLocationValue || this.location).trim().toLowerCase();
     const home = this.homeType.trim().toLowerCase();
 
     this.filteredApartments = this.apartments.filter((apartment) => {
@@ -235,6 +375,8 @@ export class ExploreProperty implements OnInit {
         apartment.title,
         apartment.description,
         apartment.address,
+        apartment.city,
+        apartment.district,
       ]
         .filter(Boolean)
         .join(' ')
@@ -305,6 +447,8 @@ export class ExploreProperty implements OnInit {
     this.appliedBudgetMax = null;
     this.homeType = '';
     this.location = '';
+    this.selectedLocationValue = '';
+    this.selectedLocationArea = '';
     this.headerBedrooms = '';
 
     this.selectedPriceMax = 3000;

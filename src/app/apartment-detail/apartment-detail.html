@@ -45,7 +45,7 @@
       <aside class="price-card">
         <strong class="price"><app-currency-price [usdPrice]="price" suffix="/ month"></app-currency-price></strong>
         <div class="facts-grid">
-          <span><i class="fa-solid fa-up-right-and-down-left-from-center"></i><b>{{ area || '—' }} m²</b><small>Total area</small></span>
+          <span><span class="measurement-svg" aria-hidden="true"></span><b>{{ area || '—' }} m²</b><small>Total area</small></span>
           <span><i class="fa-solid fa-stairs"></i><b>{{ floorLabel }}</b><small>Floor</small></span>
           <span><i class="fa-solid fa-bed"></i><b>{{ bedrooms || '—' }}</b><small>Bedrooms</small></span>
           <span><i class="fa-regular fa-building"></i><b>{{ buildingType }}</b><small>Building type</small></span>
