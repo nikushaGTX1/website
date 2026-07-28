@@ -462,7 +462,10 @@ export class UploadApartment implements OnInit {
       address: this.form.hideAddress ? district : addressParts.join(', '),
       phoneNumber: this.form.contactPhone.trim(),
       city: 'Tbilisi',
+      region:
+        this.locationEntries.find((entry) => entry.district === district)?.region || '',
       district,
+      street,
       bedrooms: this.form.bedrooms ?? 0,
       bathrooms: this.form.bathrooms ?? 0,
       sizeSquareMeters: this.form.area ?? 0,

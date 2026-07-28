@@ -109,7 +109,7 @@ export class MyListings implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.editForm = this.toListingForm(apartment);
     this.selectedEditDistrictValue = apartment.district || '';
-    this.selectedEditStreetValue = '';
+    this.selectedEditStreetValue = apartment.street || '';
   }
 
   startPendingEdit(request: PendingApartment): void {
@@ -197,6 +197,7 @@ export class MyListings implements OnInit, OnDestroy {
   selectEditStreet(suggestion: LocationSuggestion): void {
     this.editForm.address = suggestion.label;
     this.selectedEditStreetValue = suggestion.value || suggestion.label;
+    this.editForm.street = this.selectedEditStreetValue;
     this.editLocationPicker = null;
   }
 
@@ -337,7 +338,9 @@ export class MyListings implements OnInit, OnDestroy {
       price: Number(apartment.price) || 0,
       address: apartment.address || '',
       city: apartment.city || 'Tbilisi',
+      region: apartment.region || '',
       district: apartment.district || '',
+      street: apartment.street || '',
       bedrooms: apartment.bedrooms ?? 0,
       bathrooms: apartment.bathrooms ?? 0,
       sizeSquareMeters: apartment.sizeSquareMeters ?? 0,
@@ -380,11 +383,18 @@ export class MyListings implements OnInit, OnDestroy {
       price: Number(this.editForm.price),
       address: this.selectedEditStreetValue || this.editForm.address?.trim(),
       city: this.editForm.city?.trim() || 'Tbilisi',
+      region:
+        this.locationEntries.find(
+          (entry) => entry.district === (this.selectedEditDistrictValue || this.editForm.district),
+        )?.region ||
+        this.editForm.region?.trim() ||
+        '',
       district:
         this.selectedEditDistrictValue ||
         this.editForm.district?.trim() ||
         this.editForm.address?.trim() ||
         'Tbilisi',
+      street: this.selectedEditStreetValue || this.editForm.street?.trim() || this.editForm.address?.trim(),
       bedrooms: Number(this.editForm.bedrooms) || 0,
       bathrooms: Number(this.editForm.bathrooms) || 0,
       sizeSquareMeters: Number(this.editForm.sizeSquareMeters) || 0,

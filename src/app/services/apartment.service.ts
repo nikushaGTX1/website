@@ -190,7 +190,9 @@ export class ApartmentService {
 
     const textFields: Array<[keyof CreateApartment, string]> = [
       ['city', 'City'],
+      ['region', 'Region'],
       ['district', 'District'],
+      ['street', 'Street'],
       ['apartmentStyle', 'ApartmentStyle'],
     ];
     const numberFields: Array<[keyof CreateApartment, string]> = [

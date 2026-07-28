@@ -245,6 +245,7 @@ export class ExploreProperty implements OnInit {
         this.localizeSelectedLocation();
         this.locationLoading = false;
         this.locationError = false;
+        if (this.apartments.length) this.onSearch();
         this.cdr.detectChanges();
       },
       error: () => {
@@ -374,7 +375,9 @@ export class ExploreProperty implements OnInit {
         apartment.description,
         apartment.address,
         apartment.city,
+        apartment.region,
         apartment.district,
+        apartment.street,
       ]
         .filter(Boolean)
         .join(' ')
@@ -382,7 +385,7 @@ export class ExploreProperty implements OnInit {
 
       const matchesQuery = !query || haystack.includes(query);
       const matchesHome = this.matchesHeaderPropertyType(apartment, home);
-      const matchesLocation = !loc || haystack.includes(loc);
+      const matchesLocation = this.matchesLocationFilter(apartment, loc);
       const matchesHeaderBedrooms = this.matchesHeaderBedroom(apartment);
 
       const matchesHeaderPrice = this.matchesPriceRange(apartment.price);
@@ -544,6 +547,61 @@ export class ExploreProperty implements OnInit {
     return this.selectedPropertyTypes.some((type) =>
       this.matchesHeaderPropertyType(apartment, type.toLowerCase()),
     );
+  }
+
+  private matchesLocationFilter(apartment: Apartment, location: string): boolean {
+    if (!location) return true;
+    const propertyLocation = [
+      apartment.address,
+      apartment.city,
+      apartment.region,
+      apartment.district,
+      apartment.street,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    if (propertyLocation.includes(location)) return true;
+
+    const selectedArea = this.locationEntries.find((entry) =>
+      entry.city === 'Tbilisi' &&
+      (
+        entry.district.toLowerCase() === location ||
+        this.locationService.districtName(entry, 'ka').toLowerCase() === location
+      ),
+    );
+
+    if (selectedArea) {
+      const georgianDistrict = this.locationService
+        .districtName(selectedArea, 'ka')
+        .toLowerCase();
+      if (georgianDistrict && propertyLocation.includes(georgianDistrict)) {
+        return true;
+      }
+
+      return this.locationService.streetNames(selectedArea, 'ka').some((street) =>
+        propertyLocation.includes(street.value.toLowerCase()) ||
+        propertyLocation.includes(street.label.toLowerCase()),
+      );
+    }
+
+    for (const entry of this.locationEntries.filter((item) => item.city === 'Tbilisi')) {
+      const selectedStreet = this.locationService.streetNames(entry, 'ka').find((street) =>
+        street.value.toLowerCase() === location || street.label.toLowerCase() === location,
+      );
+      if (
+        selectedStreet &&
+        (
+          propertyLocation.includes(selectedStreet.value.toLowerCase()) ||
+          propertyLocation.includes(selectedStreet.label.toLowerCase())
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private matchesHeaderPropertyType(apartment: Apartment, selectedType: string): boolean {

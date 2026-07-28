@@ -16,7 +16,9 @@ export interface Apartment {
   address?: string;
   phoneNumber?: string;
   city?: string;
+  region?: string;
   district?: string;
+  street?: string;
   latitude?: number;
   longitude?: number;
   bedrooms?: number;
@@ -71,7 +73,9 @@ export interface CreateApartment {
   address?: string;
   phoneNumber?: string;
   city?: string;
+  region?: string;
   district?: string;
+  street?: string;
   latitude?: number;
   longitude?: number;
   bedrooms?: number;
