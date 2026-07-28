@@ -19,7 +19,15 @@ export interface LoginRequest {
 export interface ProfileSettingsRequest {
   fullName: string;
   bio: string;
+  phoneNumber: string;
   profilePicture?: File | null;
+}
+
+export interface ProfileSettingsResponse {
+  message: string;
+  profilePicture?: string | null;
+  profilePicturePath?: string | null;
+  phoneNumber?: string | null;
 }
 
 @Injectable({
@@ -70,12 +78,22 @@ export class AuthService {
     const formData = new FormData();
     formData.append('FullName', data.fullName);
     formData.append('Bio', data.bio);
+    formData.append('PhoneNumber', data.phoneNumber);
 
     if (data.profilePicture) {
       formData.append('ProfilePicture', data.profilePicture);
     }
 
-    return this.http.put<unknown>(`${this.profileUrl}/settings`, formData).pipe(
+    return this.http.put<ProfileSettingsResponse>(`${this.profileUrl}/settings`, formData).pipe(
+      switchMap(() => this.getProfile())
+    );
+  }
+
+  updateProfilePicture(profilePicture: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('ProfilePicture', profilePicture);
+
+    return this.http.put<ProfileSettingsResponse>(`${this.profileUrl}/picture`, formData).pipe(
       switchMap(() => this.getProfile())
     );
   }

@@ -8,7 +8,10 @@ export interface Agent {
   bio?: string;
   location?: string;
   phoneNumber?: string;
+  /** Short-lived signed Supabase URL returned by the API. */
   profilePicture?: string;
+  /** Persistent Supabase object path; not directly displayable. */
+  profilePicturePath?: string;
   profilePictureUrl?: string;
   avatarUrl?: string;
   rating?: number;

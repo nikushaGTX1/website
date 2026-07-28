@@ -16,6 +16,7 @@ export class MyProfile implements OnInit, OnDestroy {
 
   fullName = '';
   bio = '';
+  phoneNumber = '';
   profilePicture: File | null = null;
   profilePreview = '';
 
@@ -36,6 +37,7 @@ export class MyProfile implements OnInit, OnDestroy {
       this.user = user;
       this.fullName = user?.fullName || '';
       this.bio = user?.bio || '';
+      this.phoneNumber = user?.phoneNumber || '';
       this.profilePreview = '';
     });
 
@@ -97,6 +99,7 @@ export class MyProfile implements OnInit, OnDestroy {
     this.authService.updateProfileSettings({
       fullName: this.fullName.trim(),
       bio: this.bio.trim(),
+      phoneNumber: this.phoneNumber.trim(),
       profilePicture: this.profilePicture,
     }).subscribe({
       next: () => {
