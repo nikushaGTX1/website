@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, shareReplay } from 'rxjs';
+import { Observable, shareReplay, tap } from 'rxjs';
 import { ApiLocation } from '../models/location';
 import { API_URL } from '../utils/api-config';
 import { AppLanguage } from './translation.service';
@@ -9,6 +9,7 @@ import { AppLanguage } from './translation.service';
 export class LocationService {
   private readonly locationsUrl = `${API_URL}/Locations`;
   private locations$?: Observable<ApiLocation[]>;
+  private readonly georgianStreetNames = new Map<string, string>();
 
   constructor(private http: HttpClient) {}
 
@@ -16,7 +17,10 @@ export class LocationService {
     if (!this.locations$) {
       this.locations$ = this.http
         .get<ApiLocation[]>(this.locationsUrl)
-        .pipe(shareReplay({ bufferSize: 1, refCount: false }));
+        .pipe(
+          tap((locations) => this.indexApiStreetTranslations(locations)),
+          shareReplay({ bufferSize: 1, refCount: false }),
+        );
     }
     return this.locations$;
   }
@@ -60,7 +64,9 @@ export class LocationService {
         value: street.english,
         label:
           language === 'ka'
-            ? street.georgian || street.english
+            ? street.georgian ||
+              this.georgianStreetNames.get(this.streetKey(street.english)) ||
+              street.english
             : street.english,
       }));
     }
@@ -72,7 +78,57 @@ export class LocationService {
 
     return (location.streetNames || []).map((value, index) => ({
       value,
-      label: localized?.[index] || value,
+      label:
+        localized?.[index] ||
+        (language === 'ka'
+          ? this.georgianStreetNames.get(this.streetKey(value))
+          : undefined) ||
+        value,
     }));
+  }
+
+  private indexApiStreetTranslations(locations: ApiLocation[]): void {
+    this.georgianStreetNames.clear();
+
+    for (const location of locations) {
+      if (location.streets?.length) {
+        for (const street of location.streets) {
+          if (street.georgian?.trim()) {
+            this.georgianStreetNames.set(
+              this.streetKey(street.english),
+              street.georgian.trim(),
+            );
+          }
+        }
+        continue;
+      }
+
+      const localized =
+        location.streetNamesKa ||
+        location.streetNamesGe ||
+        location.streetNamesGeo ||
+        location.streetNamesGeorgian ||
+        location.streetNameKa;
+
+      (location.streetNames || []).forEach((english, index) => {
+        const georgian = localized?.[index]?.trim();
+        if (georgian) {
+          this.georgianStreetNames.set(this.streetKey(english), georgian);
+        }
+      });
+    }
+  }
+
+  /**
+   * Treat common OSM Latin transliterations as the same lookup key.
+   * The translated value itself always comes from the Locations API.
+   */
+  private streetKey(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/\b(street|str|st)\b\.?/g, '')
+      .replace(/mckh|mcx|mtskh/g, 'mtskh')
+      .replace(/[^a-z0-9\u10a0-\u10ff]/g, '');
   }
 }

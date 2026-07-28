@@ -403,6 +403,11 @@ export class UploadApartment implements OnInit {
       return;
     }
 
+    if (!this.selectedDistrictValue) {
+      this.errorMessage = 'Please select an area from the API suggestions.';
+      return;
+    }
+
     this.loading = true;
 
     if (!this.authService.isAgent) {
