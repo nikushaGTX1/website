@@ -24,6 +24,10 @@ export interface ApiLocation {
   districtNameKa?: string;
   regionNameKa?: string;
   streetNameKa?: string[];
+  streets?: Array<{
+    english: string;
+    georgian?: string | null;
+  }>;
 }
 
 export type LocationSuggestionType = 'City' | 'Area' | 'Street';

@@ -8,7 +8,6 @@ import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
-import { TranslationService } from '../services/translation.service';
 
 type ListingForm = CreateApartment;
 
@@ -44,7 +43,6 @@ export class MyListings implements OnInit, OnDestroy {
     private authService: AuthService,
     private pendingService: PendingApartmentService,
     private locationService: LocationService,
-    private translation: TranslationService,
   ) {}
 
   ngOnInit(): void {
@@ -135,7 +133,7 @@ export class MyListings implements OnInit, OnDestroy {
 
   get editAreaSuggestions(): LocationSuggestion[] {
     const query = (this.editForm.district || '').trim().toLowerCase();
-    const language = this.translation.language$.value;
+    const language = 'ka';
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -153,7 +151,7 @@ export class MyListings implements OnInit, OnDestroy {
 
   get editStreetSuggestions(): LocationSuggestion[] {
     const query = (this.editForm.address || '').trim().toLowerCase();
-    const language = this.translation.language$.value;
+    const language = 'ka';
     if (!this.selectedEditDistrictValue && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 

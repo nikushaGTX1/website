@@ -6,7 +6,6 @@ import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
-import { TranslationService } from '../services/translation.service';
 
 type UploadForm = {
   realEstateType: string;
@@ -179,7 +178,6 @@ export class UploadApartment implements OnInit {
     private authService: AuthService,
     private pendingService: PendingApartmentService,
     private locationService: LocationService,
-    private translation: TranslationService,
   ) {
     this.userMessages = this.pendingService
       .getForUser(this.authService.currentUser)
@@ -208,7 +206,7 @@ export class UploadApartment implements OnInit {
 
   get uploadAreaSuggestions(): LocationSuggestion[] {
     const query = this.form.location.trim().toLowerCase();
-    const language = this.translation.language$.value;
+    const language = 'ka';
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -227,7 +225,7 @@ export class UploadApartment implements OnInit {
 
   get uploadStreetSuggestions(): LocationSuggestion[] {
     const query = this.form.street.trim().toLowerCase();
-    const language = this.translation.language$.value;
+    const language = 'ka';
     if (!this.selectedDistrictValue && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 

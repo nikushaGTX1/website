@@ -6,7 +6,6 @@ import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
-import { TranslationService } from '../services/translation.service';
 
 @Component({
   selector: 'app-explore-property',
@@ -157,7 +156,7 @@ export class ExploreProperty implements OnInit {
 
   get areaSuggestions(): LocationSuggestion[] {
     const query = this.location.trim().toLowerCase();
-    const language = this.translation.language$.value;
+    const language = 'ka';
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -179,7 +178,7 @@ export class ExploreProperty implements OnInit {
 
   get streetSuggestions(): LocationSuggestion[] {
     const query = this.location.trim().toLowerCase();
-    const language = this.translation.language$.value;
+    const language = 'ka';
     if (!this.selectedLocationArea && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 
@@ -214,7 +213,7 @@ export class ExploreProperty implements OnInit {
   get streetGroupTitle(): string {
     if (!this.selectedLocationArea) return 'Streets';
     const entry = this.locationEntries.find((item) => item.district === this.selectedLocationArea);
-    return `Streets in ${entry ? this.locationService.districtName(entry, this.translation.language$.value) : this.selectedLocationArea}`;
+    return `Streets in ${entry ? this.locationService.districtName(entry, 'ka') : this.selectedLocationArea}`;
   }
 
   openLocationSearch(): void {
@@ -263,7 +262,7 @@ export class ExploreProperty implements OnInit {
   }
 
   private localizeSelectedLocation(): void {
-    if (!this.selectedLocationValue || this.translation.language$.value !== 'ka') return;
+    if (!this.selectedLocationValue) return;
     const area = this.locationEntries.find((entry) => entry.district === this.selectedLocationValue);
     if (area) {
       this.location = this.locationService.districtName(area, 'ka');
@@ -303,7 +302,6 @@ export class ExploreProperty implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private locationService: LocationService,
-    private translation: TranslationService,
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
   ) {}

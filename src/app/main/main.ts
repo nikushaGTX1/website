@@ -9,7 +9,6 @@ import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { Router } from '@angular/router';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
-import { TranslationService } from '../services/translation.service';
 
 @Component({
   selector: 'app-main',
@@ -65,7 +64,6 @@ export class Main implements OnInit {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private locationService: LocationService,
-    private translation: TranslationService,
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
   ) {}
@@ -165,7 +163,7 @@ export class Main implements OnInit {
 
   get areaSuggestions(): LocationSuggestion[] {
     const query = this.searchLocation.trim().toLowerCase();
-    const language = this.translation.language$.value;
+    const language = 'ka';
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -187,7 +185,7 @@ export class Main implements OnInit {
 
   get streetSuggestions(): LocationSuggestion[] {
     const query = this.searchLocation.trim().toLowerCase();
-    const language = this.translation.language$.value;
+    const language = 'ka';
     if (!this.selectedLocationArea && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 
@@ -222,7 +220,7 @@ export class Main implements OnInit {
   get streetGroupTitle(): string {
     if (!this.selectedLocationArea) return 'Streets';
     const entry = this.locationEntries.find((item) => item.district === this.selectedLocationArea);
-    return `Streets in ${entry ? this.locationService.districtName(entry, this.translation.language$.value) : this.selectedLocationArea}`;
+    return `Streets in ${entry ? this.locationService.districtName(entry, 'ka') : this.selectedLocationArea}`;
   }
 
   openLocationSearch(): void {

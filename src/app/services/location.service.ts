@@ -28,8 +28,14 @@ export class LocationService {
   }
 
   districtName(location: ApiLocation, language: AppLanguage): string {
-    return language === 'ka'
-      ? location.districtKa || location.districtGe || location.districtGeo || location.districtGeorgian || location.districtNameKa || location.district
+    const georgian =
+      location.districtKa ||
+      location.districtGe ||
+      location.districtGeo ||
+      location.districtGeorgian ||
+      location.districtNameKa;
+    return language === 'ka' && georgian && georgian !== 'System.Collections.Hashtable'
+      ? georgian
       : location.district;
   }
 
@@ -40,6 +46,16 @@ export class LocationService {
   }
 
   streetNames(location: ApiLocation, language: AppLanguage): Array<{ label: string; value: string }> {
+    if (location.streets?.length) {
+      return location.streets.map((street) => ({
+        value: street.english,
+        label:
+          language === 'ka'
+            ? street.georgian || this.georgianStreetFallback(street.english)
+            : street.english,
+      }));
+    }
+
     const localized =
       language === 'ka'
         ? location.streetNamesKa || location.streetNamesGe || location.streetNamesGeo || location.streetNamesGeorgian || location.streetNameKa
@@ -49,5 +65,13 @@ export class LocationService {
       value,
       label: localized?.[index] || value,
     }));
+  }
+
+  private georgianStreetFallback(english: string): string {
+    const overrides: Record<string, string> = {
+      'mcxeta st.': 'მცხეთის ქუჩა',
+      'mckheta st.': 'მცხეთის ქუჩა',
+    };
+    return overrides[english.trim().toLowerCase()] || english;
   }
 }
