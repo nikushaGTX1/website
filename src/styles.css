@@ -68,6 +68,16 @@ img {
   filter: drop-shadow(0 0 0.7px #344054);
 }
 
+.layers-svg {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  background-color: currentColor;
+  -webkit-mask: url('/layers.svg') center / contain no-repeat;
+  mask: url('/layers.svg') center / contain no-repeat;
+}
+
 .property-option-svg {
   display: inline-block;
   width: 27px;

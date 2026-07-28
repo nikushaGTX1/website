@@ -21,7 +21,7 @@
           <button class="property-type-trigger" type="button" [class.is-open]="propertyTypeOpen"
             [attr.aria-expanded]="propertyTypeOpen" aria-haspopup="listbox"
             (click)="propertyTypeOpen = !propertyTypeOpen; budgetOpen = false; bedroomOpen = false">
-            <span><span class="listing-svg" aria-hidden="true"></span>{{ searchPropertyType || 'Any property type' }}</span>
+            <span><span class="layers-svg" aria-hidden="true"></span>{{ searchPropertyType || 'Any property type' }}</span>
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
           <div class="property-type-menu" role="listbox" *ngIf="propertyTypeOpen">
