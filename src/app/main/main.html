@@ -16,14 +16,24 @@
           <span>Location</span>
           <div class="field-control"><b><span class="location-svg" aria-hidden="true"></span></b><input name="location" [(ngModel)]="searchLocation" placeholder="Search city, neighborhood or building"></div>
         </label>
-        <label>
+        <label class="property-type-filter" (click)="$event.stopPropagation()">
           <span>Property Type</span>
-          <div class="property-type-control">
-            <span class="listing-svg" aria-hidden="true"></span>
-            <select name="propertyType" [(ngModel)]="searchPropertyType">
-              <option value="">Any property type</option>
-              <option *ngFor="let option of propertyTypeOptions" [value]="option">{{ option }}</option>
-            </select>
+          <button class="property-type-trigger" type="button" [class.is-open]="propertyTypeOpen"
+            [attr.aria-expanded]="propertyTypeOpen" aria-haspopup="listbox"
+            (click)="propertyTypeOpen = !propertyTypeOpen; budgetOpen = false; bedroomOpen = false">
+            <span><span class="listing-svg" aria-hidden="true"></span>{{ searchPropertyType || 'Any property type' }}</span>
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="property-type-menu" role="listbox" *ngIf="propertyTypeOpen">
+            <h3>Property Type</h3>
+            <div class="property-type-options">
+              <button type="button" role="option" *ngFor="let option of propertyTypeOptions"
+              [class.active]="searchPropertyType === option" [attr.aria-selected]="searchPropertyType === option"
+              (click)="selectPropertyType(option)"><span class="property-option-svg"
+                [class.office-svg]="option === 'Commercial place'" [class.house-option-svg]="option === 'House'"
+                [class.listing-svg]="option !== 'Commercial place' && option !== 'House'" aria-hidden="true"></span>{{ option }}</button>
+            </div>
+            <button class="property-type-clear" type="button" (click)="selectPropertyType('')">Clear</button>
           </div>
         </label>
         <label class="main-budget" (click)="$event.stopPropagation()">

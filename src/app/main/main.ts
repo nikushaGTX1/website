@@ -25,6 +25,7 @@ export class Main implements OnInit {
   searchBudget = '';
   budgetOpen = false;
   bedroomOpen = false;
+  propertyTypeOpen = false;
   budgetCurrency: 'GEL' | 'USD' = 'GEL';
   budgetMin: number | null = 0;
   budgetMax: number | null = 5000;
@@ -107,6 +108,7 @@ export class Main implements OnInit {
   closeBudget(): void {
     this.budgetOpen = false;
     this.bedroomOpen = false;
+    this.propertyTypeOpen = false;
   }
 
   selectBudgetRange(range: { label: string; min: number; max: number }): void {
@@ -141,6 +143,11 @@ export class Main implements OnInit {
   clearBedrooms(): void {
     this.searchBedrooms = '';
     this.bedroomOpen = false;
+  }
+
+  selectPropertyType(value: string): void {
+    this.searchPropertyType = value;
+    this.propertyTypeOpen = false;
   }
 
   get topApartments(): Apartment[] {

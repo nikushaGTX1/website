@@ -28,6 +28,7 @@ export class ExploreProperty implements OnInit {
   priceRange = '';
   budgetOpen = false;
   bedroomOpen = false;
+  propertyTypeOpen = false;
   budgetCurrency: 'GEL' | 'USD' = 'GEL';
   budgetMin: number | null = 0;
   budgetMax: number | null = 5000;
@@ -95,6 +96,7 @@ export class ExploreProperty implements OnInit {
   closeBudget(): void {
     this.budgetOpen = false;
     this.bedroomOpen = false;
+    this.propertyTypeOpen = false;
   }
 
   selectBudgetRange(range: { label: string; min: number; max: number }): void {
@@ -134,6 +136,12 @@ export class ExploreProperty implements OnInit {
   clearHeaderBedrooms(): void {
     this.headerBedrooms = '';
     this.bedroomOpen = false;
+    this.onSearch();
+  }
+
+  selectHeaderPropertyType(value: string): void {
+    this.homeType = value;
+    this.propertyTypeOpen = false;
     this.onSearch();
   }
 
