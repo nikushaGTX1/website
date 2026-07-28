@@ -63,7 +63,7 @@
       <article class="panel features-panel">
         <h2>Key Features</h2>
         <div class="feature-grid">
-          <span *ngFor="let feature of keyFeatures"><i class="fa-solid {{ feature.icon }}"></i><b>{{ feature.label }}</b><small>{{ feature.value }}</small></span>
+          <span *ngFor="let feature of keyFeatures"><span *ngIf="feature.icon === 'fa-house'; else fontAwesomeFeatureIcon" class="home-svg" aria-hidden="true"></span><ng-template #fontAwesomeFeatureIcon><i class="fa-solid {{ feature.icon }}"></i></ng-template><b>{{ feature.label }}</b><small>{{ feature.value }}</small></span>
         </div>
       </article>
 

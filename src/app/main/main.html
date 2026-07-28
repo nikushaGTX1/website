@@ -7,14 +7,24 @@
 
     <form class="property-search" (submit)="searchHomes(); $event.preventDefault()">
       <div class="search-tabs" role="tablist" aria-label="Property type">
-        <button type="button" [class.active]="searchMode === 'rent'" (click)="searchMode = 'rent'"><span class="home-icon" aria-hidden="true"><i class="fa-regular fa-house"></i></span><span>Rent</span></button>
-        <button type="button" [class.active]="searchMode === 'buy'" (click)="searchMode = 'buy'"><span class="home-icon" aria-hidden="true"><i class="fa-regular fa-house"></i></span><span>Buy</span></button>
+        <button type="button" [class.active]="searchMode === 'rent'" (click)="searchMode = 'rent'"><span class="home-icon home-svg" aria-hidden="true"></span><span>Rent</span></button>
+        <button type="button" [class.active]="searchMode === 'buy'" (click)="searchMode = 'buy'"><span class="home-icon home-svg" aria-hidden="true"></span><span>Buy</span></button>
       </div>
 
       <div class="search-fields">
         <label class="location-field">
           <span>Location</span>
-          <div class="field-control"><b><i class="fa-solid fa-location-dot"></i></b><input name="location" [(ngModel)]="searchLocation" placeholder="Search city, neighborhood or building"></div>
+          <div class="field-control"><b><span class="location-svg" aria-hidden="true"></span></b><input name="location" [(ngModel)]="searchLocation" placeholder="Search city, neighborhood or building"></div>
+        </label>
+        <label>
+          <span>Property Type</span>
+          <div class="property-type-control">
+            <span class="listing-svg" aria-hidden="true"></span>
+            <select name="propertyType" [(ngModel)]="searchPropertyType">
+              <option value="">Any property type</option>
+              <option *ngFor="let option of propertyTypeOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
         </label>
         <label class="main-budget" (click)="$event.stopPropagation()">
           <span>Budget</span>

@@ -20,7 +20,7 @@ export class ExploreProperty implements OnInit {
 
   bedroomOptions = ['Studio', '1 Bedroom', '2 Bedrooms', '3 Bedrooms', '4+ Bedrooms'];
   bathroomOptions = ['1+ Bathrooms', '2+ Bathrooms', '3+ Bathrooms'];
-  propertyTypeOptions = ['Apartment', 'House', 'Townhouse', 'Penthouse'];
+  propertyTypeOptions = ['Apartment', 'Commercial place', 'House', 'Country House'];
   amenityOptions = ['Parking', 'Balcony', 'Elevator', 'Pool', 'Furnished'];
 
   searchQuery = '';
@@ -166,6 +166,7 @@ export class ExploreProperty implements OnInit {
     const params = this.route.snapshot.queryParamMap;
     this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
     this.location = params.get('location') || '';
+    this.homeType = params.get('propertyType') || '';
     this.headerBedrooms = params.get('bedrooms') || '';
     this.featureFilter = params.get('feature') || '';
     const budget = Number(params.get('budget'));
@@ -232,7 +233,7 @@ export class ExploreProperty implements OnInit {
         .toLowerCase();
 
       const matchesQuery = !query || haystack.includes(query);
-      const matchesHome = !home || haystack.includes(home);
+      const matchesHome = this.matchesHeaderPropertyType(apartment, home);
       const matchesLocation = !loc || haystack.includes(loc);
       const matchesHeaderBedrooms = this.matchesHeaderBedroom(apartment);
 
@@ -390,8 +391,22 @@ export class ExploreProperty implements OnInit {
 
   private matchesPropertyTypeFilter(apartment: Apartment): boolean {
     if (this.selectedPropertyTypes.length === 0) return true;
-    const text = `${apartment.title} ${apartment.description}`.toLowerCase();
-    return this.selectedPropertyTypes.some((type) => text.includes(type.toLowerCase()));
+    return this.selectedPropertyTypes.some((type) =>
+      this.matchesHeaderPropertyType(apartment, type.toLowerCase()),
+    );
+  }
+
+  private matchesHeaderPropertyType(apartment: Apartment, selectedType: string): boolean {
+    if (!selectedType) return true;
+    const text = `${apartment.apartmentStyle || ''} ${apartment.title || ''} ${apartment.description || ''}`.toLowerCase();
+    if (selectedType === 'house' && text.includes('country house')) return false;
+    const aliases: Record<string, string[]> = {
+      apartment: ['apartment', 'flat'],
+      'commercial place': ['commercial place', 'commercial', 'office', 'shop'],
+      house: ['house', 'private house'],
+      'country house': ['country house', 'cottage', 'villa'],
+    };
+    return (aliases[selectedType] || [selectedType]).some((value) => text.includes(value));
   }
 
   private matchesAmenitiesFilter(apartment: Apartment): boolean {

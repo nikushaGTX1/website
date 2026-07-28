@@ -8,15 +8,24 @@
     <div class="search-card">
       <div class="search-tabs">
         <button type="button" class="tab-btn" [class.active]="selectedType !== 'For Sale'"
-          (click)="selectedType = 'For Rent'; onSearch()"><span class="tab-home"><i class="fa-solid fa-house"></i></span> Rent</button>
+          (click)="selectedType = 'For Rent'; onSearch()"><span class="tab-home home-svg" aria-hidden="true"></span> Rent</button>
         <button type="button" class="tab-btn" [class.active]="selectedType === 'For Sale'"
-          (click)="selectedType = 'For Sale'; onSearch()"><span class="tab-home"><i class="fa-solid fa-house"></i></span> Buy</button>
+          (click)="selectedType = 'For Sale'; onSearch()"><span class="tab-home home-svg" aria-hidden="true"></span> Buy</button>
       </div>
 
       <div class="search-inputs-bar">
         <label class="input-group"><span>Location</span>
-          <div class="location-control"><b><i class="fa-solid fa-location-dot"></i></b><input [(ngModel)]="location"
+          <div class="location-control"><b><span class="location-svg" aria-hidden="true"></span></b><input [(ngModel)]="location"
             placeholder="Search city, neighborhood or building"></div>
+        </label>
+        <label class="input-group"><span>Property Type</span>
+          <div class="property-type-control">
+            <span class="listing-svg" aria-hidden="true"></span>
+            <select [(ngModel)]="homeType" (ngModelChange)="onSearch()">
+              <option value="">Any property type</option>
+              <option *ngFor="let option of propertyTypeOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
         </label>
         <div class="input-group budget-filter">
           <span>Budget</span>

@@ -21,6 +21,7 @@ export class Main implements OnInit {
   agentsLoading = true;
   searchMode: 'rent' | 'buy' = 'rent';
   searchLocation = '';
+  searchPropertyType = '';
   searchBudget = '';
   budgetOpen = false;
   bedroomOpen = false;
@@ -44,6 +45,7 @@ export class Main implements OnInit {
     { label: '4 Beds', value: '4', icon: 'fa-solid fa-bed' },
     { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
   ];
+  readonly propertyTypeOptions = ['Apartment', 'Commercial place', 'House', 'Country House'];
   searchBedrooms = '';
   public advancedFiltersOpen = false;
 
@@ -228,6 +230,7 @@ export class Main implements OnInit {
       queryParams: {
         mode: this.searchMode,
         location: this.searchLocation || null,
+        propertyType: this.searchPropertyType || null,
         budget: this.toUsd(this.appliedBudgetMax),
         budgetMin: this.toUsd(this.appliedBudgetMin),
         budgetCurrency: this.budgetCurrency,

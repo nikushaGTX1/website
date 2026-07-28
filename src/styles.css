@@ -26,6 +26,66 @@ img {
   height: auto;
 }
 
+.home-svg {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  background-color: currentColor;
+  -webkit-mask: url('/home.svg') center / contain no-repeat;
+  mask: url('/home.svg') center / contain no-repeat;
+}
+
+.location-svg {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  background-color: currentColor;
+  -webkit-mask: url('/location.svg') center / contain no-repeat;
+  mask: url('/location.svg') center / contain no-repeat;
+}
+
+.location-field .location-svg {
+  width: 22px;
+  height: 22px;
+  color: #475569;
+}
+
+.location-control .location-svg {
+  width: 22px;
+  height: 22px;
+  color: #475569;
+}
+
+.listing-svg {
+  display: inline-block;
+  width: 21px;
+  height: 21px;
+  background-color: currentColor;
+  -webkit-mask: url('/listing.svg') center / contain no-repeat;
+  mask: url('/listing.svg') center / contain no-repeat;
+}
+
+.property-type-control {
+  position: relative;
+}
+
+.property-type-control .listing-svg {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 14px;
+  color: #475569;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.property-type-control select {
+  width: 100%;
+  padding-left: 44px !important;
+}
+
 /* Reload entrance */
 app-root[ng-version] {
   display: block;
