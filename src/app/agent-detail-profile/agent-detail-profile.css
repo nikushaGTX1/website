@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   background: #fbfcfe;
   color: #142038;
@@ -391,7 +391,7 @@
   background: linear-gradient(145deg,#4f7df0,#1768d7);
   color: #fff;
   font-size: 24px;
-  box-shadow: 0 12px 25px #2c64ea45;
+  box-shadow: 0 12px 25px #5A31E645;
 }
 .phone-label {
   color: #1768d7;

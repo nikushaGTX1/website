@@ -1,4 +1,4 @@
-.profile-page {
+﻿.profile-page {
   min-height: 70vh;
   display: flex;
   justify-content: center;
@@ -129,8 +129,8 @@
 
 .form-group input:focus,
 .form-group textarea:focus {
-  border-color: #2C64EA;
-  box-shadow: 0 0 0 3px rgba(44, 100, 234, 0.12);
+  border-color: #5A31E6;
+  box-shadow: 0 0 0 3px rgba(90,49,230, 0.12);
 }
 
 .form-group input[type="file"] {
@@ -159,13 +159,13 @@
 
 .save-btn {
   width: fit-content;
-  background: #2C64EA;
-  border-color: #2C64EA;
+  background: #5A31E6;
+  border-color: #5A31E6;
   color: #fff;
 }
 
 .save-btn:hover {
-  background: #2C64EA;
+  background: #5A31E6;
 }
 
 @media (max-width: 600px) {

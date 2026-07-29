@@ -1,4 +1,4 @@
-.my-listings-page {
+﻿.my-listings-page {
   min-height: calc(100vh - 80px);
   padding: 42px 48px 64px;
   background: #f5f6f8;
@@ -16,7 +16,7 @@
 }
 
 .listings-header span {
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -39,7 +39,7 @@
 .primary {
   border: 0;
   border-radius: 8px;
-  background: #2C64EA;
+  background: #5A31E6;
   color: #ffffff;
   cursor: pointer;
   font-weight: 800;
@@ -164,7 +164,7 @@
 
 .pending {
   background: #eff6ff;
-  color: #2C64EA;
+  color: #5A31E6;
 }
 
 .approved {
@@ -312,7 +312,7 @@
   height: 17px;
   margin: 0;
   padding: 0;
-  accent-color: #2C64EA;
+  accent-color: #5A31E6;
 }
 
 .loading,

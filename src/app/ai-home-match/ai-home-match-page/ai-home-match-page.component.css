@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   background: #f8f7fb;
   min-height: 100vh;
@@ -311,7 +311,7 @@ fieldset input,
 
 /* Reference-style AI Match experience */
 :host {
-  --match-blue: #2C64EA;
+  --match-blue: #5A31E6;
   --match-navy: #07152f;
   --match-gold: #bd8b26;
   background: #fff;
@@ -583,7 +583,7 @@ fieldset button {
 
 .options button:hover,
 fieldset button:hover {
-  border-color: #2C64EA;
+  border-color: #5A31E6;
 }
 
 .options button.selected,

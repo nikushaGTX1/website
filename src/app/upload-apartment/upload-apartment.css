@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
 }
 
@@ -6,7 +6,7 @@
   min-height: calc(100vh - 123px);
   padding: 42px 24px 70px;
   background:
-    radial-gradient(circle at 8% 0%, rgba(44, 100, 234, .08), transparent 28%),
+    radial-gradient(circle at 8% 0%, rgba(90,49,230, .08), transparent 28%),
     #f6f8fc;
   color: #142038;
   font-family: "Segoe UI", Arial, sans-serif;
@@ -25,7 +25,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .13em;
@@ -51,7 +51,7 @@
   border: 1px solid #dce5f5;
   border-radius: 12px;
   background: rgba(255,255,255,.78);
-  color: #2C64EA;
+  color: #5A31E6;
 }
 
 .intro-trust > i {
@@ -165,8 +165,8 @@
 }
 
 .step-item.active .step-dot {
-  border-color: #2C64EA;
-  background: #2C64EA;
+  border-color: #5A31E6;
+  background: #5A31E6;
 }
 
 .step-item.completed {
@@ -176,8 +176,8 @@
 .step-item.completed .step-dot {
   display: grid;
   place-items: center;
-  border-color: #2C64EA;
-  background: #2C64EA;
+  border-color: #5A31E6;
+  background: #5A31E6;
   color: #fff;
   box-shadow: none;
   font-size: 8px;
@@ -285,7 +285,7 @@
 .preview-card em {
   display: block;
   margin-top: 8px;
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 12px;
   font-style: normal;
   font-weight: 700;
@@ -390,7 +390,7 @@
   place-items: center;
   border-radius: 11px;
   background: #edf3ff;
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 11px;
   font-weight: 800;
 }
@@ -452,13 +452,13 @@
 
 .chip:hover,
 .chip.selected {
-  border-color: #2C64EA;
+  border-color: #5A31E6;
   color: #174dc9;
 }
 
 .chip.selected {
   background: #edf3ff;
-  box-shadow: inset 0 0 0 1px #2C64EA;
+  box-shadow: inset 0 0 0 1px #5A31E6;
 }
 
 .chip-grid-wide .chip {
@@ -493,8 +493,8 @@ textarea::placeholder {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #2C64EA;
-  box-shadow: 0 0 0 3px rgba(44, 100, 234, .12);
+  border-color: #5A31E6;
+  box-shadow: 0 0 0 3px rgba(90,49,230, .12);
 }
 
 .input-row label {
@@ -545,7 +545,7 @@ select:focus {
   height: 24px;
   display: inline-block;
   border-radius: 12px 12px 12px 2px;
-  background: linear-gradient(135deg, #2C64EA 0 60%, #ffd76a 60% 100%);
+  background: linear-gradient(135deg, #5A31E6 0 60%, #ffd76a 60% 100%);
   transform: rotate(45deg);
   flex: 0 0 auto;
 }
@@ -565,7 +565,7 @@ select:focus {
   height: 24px;
   min-height: 24px;
   padding: 0;
-  accent-color: #2C64EA;
+  accent-color: #5A31E6;
 }
 
 .info-icon {
@@ -573,9 +573,9 @@ select:focus {
   place-items: center;
   width: 16px;
   height: 16px;
-  border: 1px solid #2C64EA;
+  border: 1px solid #5A31E6;
   border-radius: 50%;
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 11px;
   font-weight: 700;
 }
@@ -614,7 +614,7 @@ select:focus {
 }
 
 .currency-toggle button.active {
-  background: #2C64EA;
+  background: #5A31E6;
   color: #fff;
 }
 
@@ -643,7 +643,7 @@ select:focus {
 }
 
 .toggle-row input:checked {
-  background: #2C64EA;
+  background: #5A31E6;
 }
 
 .toggle-row input:checked::after {
@@ -667,9 +667,9 @@ select:focus {
   place-items: center;
   width: 24px;
   height: 24px;
-  border: 2px solid #2C64EA;
+  border: 2px solid #5A31E6;
   border-radius: 3px;
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 10px;
   font-weight: 800;
 }
@@ -721,14 +721,14 @@ select:focus {
   border: 2px dashed #b8c8fb;
   border-radius: 14px;
   background: #f7f9ff;
-  color: #2C64EA;
+  color: #5A31E6;
   cursor: pointer;
   text-align: center;
   transition: border-color .2s, background .2s, transform .2s;
 }
 
 .photo-dropzone:hover:not(.disabled) {
-  border-color: #2C64EA;
+  border-color: #5A31E6;
   background: #eef3ff;
   transform: translateY(-2px);
 }
@@ -877,10 +877,10 @@ select:focus {
 
 .btn-publish {
   border: 0;
-  background: #2C64EA;
+  background: #5A31E6;
   color: #fff;
   min-width: 170px;
-  box-shadow: 0 8px 18px rgba(44,100,234,.22);
+  box-shadow: 0 8px 18px rgba(90,49,230,.22);
 }
 
 .btn-back:hover {

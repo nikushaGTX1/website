@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   position: relative;
   z-index: 1000;
@@ -28,7 +28,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #2c64ea;
+  color: #5A31E6;
   text-decoration: none;
 }
 
@@ -93,7 +93,7 @@
 
 .nav-links a:hover,
 .nav-links a.active {
-  color: #2C64EA;
+  color: #5A31E6;
 }
 
 .nav-links a:hover::after,
@@ -227,13 +227,13 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: #2C64EA;
-  box-shadow: 0 5px 13px rgba(44, 100, 234, 0.2);
+  background: #5A31E6;
+  box-shadow: 0 5px 13px rgba(90,49,230, 0.2);
   transition: background 0.18s ease, transform 0.18s ease;
 }
 
 .list-property:hover {
-  background: #2C64EA;
+  background: #5A31E6;
   transform: translateY(-1px);
 }
 

@@ -1,4 +1,4 @@
-.footer {
+﻿.footer {
   color: #172238;
   background: #fff;
   font-family: Arial, Helvetica, sans-serif;
@@ -79,7 +79,7 @@
 }
 
 .footer-column a:hover {
-  color: #2C64EA;
+  color: #5A31E6;
 }
 
 .contact-column a,

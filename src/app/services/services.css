@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   color: #0b1933;
   font-family: Arial, Helvetica, sans-serif;
@@ -73,7 +73,7 @@
 }
 
 .section-heading > span {
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 3px;
@@ -121,7 +121,7 @@
   height: 70px;
   margin-bottom: 22px;
   fill: none;
-  stroke: #2C64EA;
+  stroke: #5A31E6;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
@@ -142,7 +142,7 @@
 
 .service-card a {
   margin-top: auto;
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -163,7 +163,7 @@
   align-items: center;
   gap: 20px;
   overflow: hidden;
-  border: 1px solid #2C64EA;
+  border: 1px solid #5A31E6;
   border-radius: 14px;
   background: linear-gradient(100deg, #f9fbff, #eef6ff);
 }
@@ -181,7 +181,7 @@
 .support-icon svg {
   width: 49px;
   fill: none;
-  stroke: #2C64EA;
+  stroke: #5A31E6;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.2;
@@ -223,7 +223,7 @@
 }
 
 .contact-details strong {
-  color: #2C64EA;
+  color: #5A31E6;
   font-size: 20px;
 }
 
@@ -249,7 +249,7 @@
   gap: 18px;
   border-radius: 6px;
   color: #fff;
-  background: #2C64EA;
+  background: #5A31E6;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -263,15 +263,15 @@
   justify-content: center;
   gap: 7px;
   opacity: 0.32;
-  border-bottom: 1px solid #2C64EA;
+  border-bottom: 1px solid #5A31E6;
 }
 
 .skyline * {
   width: 28px;
   display: block;
-  border: 1px solid #2C64EA;
+  border: 1px solid #5A31E6;
   border-bottom: 0;
-  background: repeating-linear-gradient(90deg, transparent 0 5px, #2C64EA 6px 7px);
+  background: repeating-linear-gradient(90deg, transparent 0 5px, #5A31E6 6px 7px);
 }
 
 .skyline span {

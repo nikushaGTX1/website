@@ -1,4 +1,4 @@
-import {
+﻿import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
@@ -160,9 +160,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
         modes: [
           new TerraDrawPolygonMode({
             styles: {
-              fillColor: '#2563eb',
+              fillColor: '#5A31E6',
               fillOpacity: 0.18,
-              outlineColor: '#2563eb',
+              outlineColor: '#5A31E6',
               outlineWidth: 3,
               closingPointColor: '#ffffff',
               closingPointWidth: 7,
