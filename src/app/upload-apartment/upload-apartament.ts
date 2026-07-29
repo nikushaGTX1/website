@@ -226,7 +226,7 @@ export class UploadApartment implements OnInit {
   get uploadStreetSuggestions(): LocationSuggestion[] {
     const query = this.form.street.trim().toLowerCase();
     const language = this.locationService.languageForQuery(this.form.street, this.form.location);
-    if (!this.selectedDistrictValue && query.length < 2) return [];
+    if (query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 
     for (const entry of this.locationEntries.filter((item) =>
@@ -240,6 +240,8 @@ export class UploadApartment implements OnInit {
             value: street.value,
             type: 'Street',
             district: this.locationService.districtName(entry, language),
+            districtValue: entry.district,
+            region: entry.region,
           });
           if (suggestions.length === 10) return suggestions;
         }
@@ -259,6 +261,8 @@ export class UploadApartment implements OnInit {
 
   onStreetInput(): void {
     this.selectedStreetValue = '';
+    this.selectedDistrictValue = '';
+    this.form.location = '';
     this.openLocationPicker('street');
   }
 
@@ -273,6 +277,8 @@ export class UploadApartment implements OnInit {
   selectUploadStreet(suggestion: LocationSuggestion): void {
     this.form.street = suggestion.label;
     this.selectedStreetValue = suggestion.value || suggestion.label;
+    this.selectedDistrictValue = suggestion.districtValue || '';
+    this.form.location = suggestion.district || suggestion.districtValue || '';
     this.locationPicker = null;
   }
 
@@ -328,7 +334,11 @@ export class UploadApartment implements OnInit {
       case 0:
         return !!(this.form.realEstateType && this.form.dealType && this.form.buildingStatus && this.form.condition);
       case 1:
-        return !!this.form.location.trim();
+        return !!(
+          this.selectedStreetValue &&
+          this.selectedDistrictValue &&
+          this.form.streetNumber.trim()
+        );
       case 2:
         return !!this.form.totalPrice;
       case 3:
@@ -398,13 +408,14 @@ export class UploadApartment implements OnInit {
     this.successMessage = '';
     this.errorMessage = '';
 
-    if (!this.form.location || !this.form.totalPrice || !this.form.contactPhone.trim()) {
-      this.errorMessage = 'Please fill in location, total price, and phone number before publishing.';
+    if (!this.form.totalPrice || !this.form.contactPhone.trim()) {
+      this.errorMessage = 'Please fill in street, total price, and phone number before publishing.';
       return;
     }
 
-    if (!this.selectedDistrictValue) {
-      this.errorMessage = 'Please select an area from the API suggestions.';
+    if (!this.selectedStreetValue || !this.selectedDistrictValue) {
+      this.errorMessage =
+        'Please select a street from the suggestions. Its district will be detected automatically.';
       return;
     }
 
@@ -442,7 +453,7 @@ export class UploadApartment implements OnInit {
   private toCreateApartment(includeImageFile: boolean): CreateApartment {
     const district = this.selectedDistrictValue || this.form.location;
     const street = this.selectedStreetValue || this.form.street;
-    const addressParts = [district, street, this.form.streetNumber].filter(Boolean);
+    const addressParts = [street, this.form.streetNumber, district].filter(Boolean);
     const title = this.form.title.trim() || `${this.form.realEstateType} ${this.form.dealType}`;
     const currentUser = this.authService.currentUser;
     const meta = [

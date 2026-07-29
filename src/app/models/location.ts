@@ -38,4 +38,6 @@ export interface LocationSuggestion {
   type: LocationSuggestionType;
   city?: string;
   district?: string;
+  districtValue?: string;
+  region?: string;
 }

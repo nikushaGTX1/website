@@ -112,22 +112,11 @@
       <section class="form-section">
         <header class="section-header"><span>02</span><div><h2>Property location</h2><p>Add an accurate address to help clients find the listing.</p></div></header>
         <div class="field-group">
-          <label class="field-label">Location <span class="req">*</span></label>
+          <label class="field-label">Street address <span class="req">*</span></label>
           <div class="input-row location-row">
             <div class="location-search form-location-picker" (click)="$event.stopPropagation()">
-              <input type="text" name="location" placeholder="Search Tbilisi area" autocomplete="off"
-                [(ngModel)]="form.location" (focus)="openLocationPicker('area')" (input)="onAreaInput()" />
-              <div class="location-suggestions" *ngIf="locationPicker === 'area'">
-                <div class="location-status" *ngIf="locationLoading">Loading areas…</div>
-                <div class="location-status error" *ngIf="locationError">Locations are temporarily unavailable.</div>
-                <section *ngIf="!locationLoading && !locationError && uploadAreaSuggestions.length">
-                  <h3>{{ uploadLocationText('Areas', 'უბნები') }}</h3>
-                  <button type="button" *ngFor="let suggestion of uploadAreaSuggestions" (click)="selectUploadArea(suggestion)">
-                    <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>{{ uploadLocationText('Area', 'უბანი') }}</em></b><small>{{ uploadLocationText('Tbilisi', 'თბილისი') }}</small></span>
-                  </button>
-                </section>
-                <div class="location-status" *ngIf="!locationLoading && !locationError && !uploadAreaSuggestions.length">No matching area found.</div>
-              </div>
+              <input type="text" name="location" placeholder="District is detected automatically"
+                [ngModel]="form.location" readonly />
             </div>
             <div class="location-search form-location-picker" (click)="$event.stopPropagation()">
               <input type="text" name="street" placeholder="Search street" autocomplete="off"
@@ -135,12 +124,12 @@
               <div class="location-suggestions" *ngIf="locationPicker === 'street'">
                 <div class="location-status" *ngIf="locationLoading">Loading streets…</div>
                 <section *ngIf="!locationLoading && uploadStreetSuggestions.length">
-                  <h3>{{ selectedDistrictValue ? 'Streets in ' + form.location : 'Streets' }}</h3>
+                  <h3>{{ uploadLocationText('Select a street', 'აირჩიეთ ქუჩა') }}</h3>
                   <button type="button" *ngFor="let suggestion of uploadStreetSuggestions" (click)="selectUploadStreet(suggestion)">
                     <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>{{ uploadLocationText('Street', 'ქუჩა') }}</em></b><small>{{ suggestion.district }}</small></span>
                   </button>
                 </section>
-                <div class="location-status" *ngIf="!locationLoading && !uploadStreetSuggestions.length">Choose an area or type at least two letters.</div>
+                <div class="location-status" *ngIf="!locationLoading && !uploadStreetSuggestions.length">Type at least two letters and select a street.</div>
               </div>
             </div>
             <input type="text" name="streetNumber" placeholder="Street number" [(ngModel)]="form.streetNumber" />
