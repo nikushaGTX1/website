@@ -6,6 +6,7 @@ import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
+import { TranslationService } from '../services/translation.service';
 
 @Component({
   selector: 'app-explore-property',
@@ -312,6 +313,7 @@ export class ExploreProperty implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private locationService: LocationService,
+    private translationService: TranslationService,
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
   ) {}
@@ -520,7 +522,30 @@ export class ExploreProperty implements OnInit {
   }
 
   getApartmentStreet(apartment: Apartment): string {
-    return apartment.address || 'Address not provided';
+    const storedStreet =
+      apartment.street?.trim() || apartment.address?.split(',')[0]?.trim();
+    const storedDistrict = apartment.district?.trim();
+    const language = this.translationService.language$.value;
+    const area = this.locationEntries.find(
+      (entry) =>
+        entry.district.toLowerCase() === storedDistrict?.toLowerCase(),
+    );
+    const district = area
+      ? this.locationService.districtName(area, language)
+      : storedDistrict;
+    const street =
+      area && storedStreet
+        ? this.locationService
+            .streetNames(area, language)
+            .find(
+              (item) =>
+                item.value.toLowerCase() === storedStreet.toLowerCase() ||
+                item.label.toLowerCase() === storedStreet.toLowerCase(),
+            )?.label || storedStreet
+        : storedStreet;
+
+    if (street && district) return `${street} — ${district}`;
+    return street || district || 'Address not provided';
   }
 
   private matchesPriceRange(price: number): boolean {
@@ -583,6 +608,13 @@ export class ExploreProperty implements OnInit {
     );
 
     if (selectedArea) {
+      if (
+        apartment.district?.trim().toLowerCase() ===
+        selectedArea.district.trim().toLowerCase()
+      ) {
+        return true;
+      }
+
       const georgianDistrict = this.locationService
         .districtName(selectedArea, 'ka')
         .toLowerCase();
