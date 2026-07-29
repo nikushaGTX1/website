@@ -64,6 +64,8 @@ export class ExploreProperty implements OnInit {
   headerBedrooms = '';
   featureFilter = '';
   drawnAreaActive = false;
+  drawAreaOpen = false;
+  drawAreaInitialized = false;
 
   selectedPriceMax = 3000;
   selectedBedrooms: string[] = [];
@@ -395,6 +397,32 @@ export class ExploreProperty implements OnInit {
     }
   }
 
+  openDrawArea(): void {
+    this.drawAreaInitialized = true;
+    this.drawAreaOpen = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeDrawArea(): void {
+    this.drawAreaOpen = false;
+    document.body.style.overflow = '';
+  }
+
+  applyDrawnArea(polygon: GeoJsonPolygon): void {
+    sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(polygon));
+    this.drawnAreaActive = true;
+    this.location = polygon.areaName || 'Selected map area';
+    this.selectedLocationValue = '';
+    this.closeDrawArea();
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { area: 'drawn', location: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    this.loadApartments();
+  }
+
   
   onSearch(): void {
     const query = this.searchQuery.trim().toLowerCase();
@@ -489,6 +517,8 @@ export class ExploreProperty implements OnInit {
     this.selectedBathrooms = [];
     this.selectedPropertyTypes = [];
     this.selectedAmenities = [];
+    this.drawnAreaActive = false;
+    sessionStorage.removeItem('white-tower-drawn-area');
 
     this.onSearch();
   }

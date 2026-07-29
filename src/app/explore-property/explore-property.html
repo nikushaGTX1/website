@@ -120,7 +120,10 @@
       </div>
 
       <div class="explore-search-footer">
-        <button class="btn-secondary" type="button" (click)="focusFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
+        <div class="explore-footer-actions">
+          <button class="btn-secondary" type="button" (click)="focusFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
+          <button class="btn-secondary draw-area-button" type="button" (click)="openDrawArea()"><i class="fa-solid fa-draw-polygon"></i> Draw your area</button>
+        </div>
         <a routerLink="/ai-home-match"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</a>
       </div>
     </div>
@@ -222,3 +225,10 @@
     </section>
   </div>
 </div>
+
+<app-draw-area-map
+  *ngIf="drawAreaInitialized"
+  [visible]="drawAreaOpen"
+  (close)="closeDrawArea()"
+  (apply)="applyDrawnArea($event)">
+</app-draw-area-map>
