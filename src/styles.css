@@ -218,8 +218,8 @@ img {
   height: 22px;
   flex: 0 0 auto;
   background-color: currentColor;
-  -webkit-mask: url('/layers.svg') center / contain no-repeat;
-  mask: url('/layers.svg') center / contain no-repeat;
+  -webkit-mask: url('/layers.svg?v=20260729') center / contain no-repeat;
+  mask: url('/layers.svg?v=20260729') center / contain no-repeat;
 }
 
 .measurement-svg {

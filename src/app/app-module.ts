@@ -15,6 +15,7 @@ import { Blog } from './blog/blog';
 import { ProfileBurgerMenu } from './profile-burger-menu/profile-burger-menu';
 import { MyProfile } from './my-profile/my-profile';
 import { authInterceptor } from './interceptors/auth.interceptor';
+import { apiPerformanceInterceptor } from './interceptors/api-performance.interceptor';
 import { UploadApartment } from './upload-apartment/upload-apartament';
 import { AdminPanel } from './admin-panel/admin-panel';
 import { MyListings } from './my-listings/my-listings';
@@ -66,7 +67,12 @@ import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile'
   imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(
+      withInterceptors([
+        authInterceptor,
+        apiPerformanceInterceptor,
+      ]),
+    ),
   ],
   bootstrap: [App],
 })

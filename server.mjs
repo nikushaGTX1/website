@@ -1,6 +1,12 @@
 import express from 'express';
 import path from 'node:path';
+import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
+import {
+  brotliCompressSync,
+  constants as zlibConstants,
+  gzipSync,
+} from 'node:zlib';
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -14,6 +20,13 @@ const publicApiPaths = new Set([
   '/api/Locations',
   '/api/Locations/cities',
 ]);
+const publicApiWarmPaths = [
+  '/api/Apartments?page=1&pageSize=100',
+  '/api/Agents',
+  '/api/Blog',
+  '/api/Locations',
+  '/api/Locations/cities',
+];
 const publicApiCache = new Map();
 const publicApiRequests = new Map();
 const apartmentImageCache = new Map();
@@ -221,11 +234,38 @@ app.post(
   },
 );
 
-function sendApiResponse(response, apiResponse, cacheStatus) {
+function compressedApiBody(request, response, apiResponse) {
+  if (apiResponse.body.length < 1024) {
+    return apiResponse.body;
+  }
+
+  const acceptedEncoding = request.get('accept-encoding') || '';
+  response.vary('Accept-Encoding');
+
+  if (acceptedEncoding.includes('br')) {
+    apiResponse.brotliBody ||= brotliCompressSync(apiResponse.body, {
+      params: {
+        [zlibConstants.BROTLI_PARAM_QUALITY]: 4,
+      },
+    });
+    response.setHeader('Content-Encoding', 'br');
+    return apiResponse.brotliBody;
+  }
+
+  if (acceptedEncoding.includes('gzip')) {
+    apiResponse.gzipBody ||= gzipSync(apiResponse.body, { level: 6 });
+    response.setHeader('Content-Encoding', 'gzip');
+    return apiResponse.gzipBody;
+  }
+
+  return apiResponse.body;
+}
+
+function sendApiResponse(request, response, apiResponse, cacheStatus) {
   response.status(apiResponse.status);
   apiResponse.headers.forEach(([name, value]) => response.setHeader(name, value));
   response.setHeader('X-White-Tower-Cache', cacheStatus);
-  response.send(apiResponse.body);
+  response.send(compressedApiBody(request, response, apiResponse));
 }
 
 async function fetchPublicApi(cacheKey, shouldWarmImages = true) {
@@ -254,7 +294,7 @@ async function fetchPublicApi(cacheKey, shouldWarmImages = true) {
 
     if (upstreamResponse.ok) {
       publicApiCache.set(cacheKey, apiResponse);
-      if (cacheKey === '/api/Apartments') {
+      if (new URL(cacheKey, apiOrigin).pathname === '/api/Apartments') {
         warmApartmentImages(apiResponse.body);
         warmApartmentDetails(apiResponse.body);
       } else if (shouldWarmImages && /^\/api\/Apartments\/\d+$/.test(cacheKey)) {
@@ -271,7 +311,7 @@ async function fetchPublicApi(cacheKey, shouldWarmImages = true) {
 
 async function warmPublicApis() {
   await Promise.allSettled(
-    [...publicApiPaths].map((apiPath) =>
+    publicApiWarmPaths.map((apiPath) =>
       fetchPublicApi(apiPath).catch((error) => {
         console.error(`API warm-up failed for ${apiPath}:`, error);
         throw error;
@@ -298,7 +338,7 @@ app.use('/api', async (request, response) => {
         if (/^\/api\/Apartments\/\d+$/.test(cacheKey)) {
           warmApartmentImages(cached.body);
         }
-        sendApiResponse(response, cached, 'HIT');
+        sendApiResponse(request, response, cached, 'HIT');
         return;
       }
 
@@ -306,7 +346,7 @@ app.use('/api', async (request, response) => {
         if (/^\/api\/Apartments\/\d+$/.test(cacheKey)) {
           warmApartmentImages(cached.body);
         }
-        sendApiResponse(response, cached, 'STALE');
+        sendApiResponse(request, response, cached, 'STALE');
         void fetchPublicApi(cacheKey).catch((error) =>
           console.error(`API cache refresh failed for ${cacheKey}:`, error),
         );
@@ -314,7 +354,7 @@ app.use('/api', async (request, response) => {
       }
 
       const apiResponse = await fetchPublicApi(cacheKey);
-      sendApiResponse(response, apiResponse, 'MISS');
+      sendApiResponse(request, response, apiResponse, 'MISS');
       return;
     }
 
@@ -328,13 +368,11 @@ app.use('/api', async (request, response) => {
     }
 
     const hasBody = !['GET', 'HEAD'].includes(request.method);
-    const requestBody = hasBody
-      ? Buffer.concat(await Array.fromAsync(request))
-      : undefined;
     const upstreamResponse = await fetch(targetUrl, {
       method: request.method,
       headers,
-      body: requestBody?.length ? requestBody : undefined,
+      body: hasBody ? Readable.toWeb(request) : undefined,
+      duplex: hasBody ? 'half' : undefined,
       redirect: 'manual',
     });
 
@@ -346,8 +384,7 @@ app.use('/api', async (request, response) => {
     });
 
     if (upstreamResponse.body) {
-      const body = Buffer.from(await upstreamResponse.arrayBuffer());
-      response.send(body);
+      Readable.fromWeb(upstreamResponse.body).pipe(response);
     } else {
       response.end();
     }
@@ -387,10 +424,11 @@ app.use((request, response) => {
   response.sendFile(path.join(browserDirectory, 'index.html'));
 });
 
-await warmPublicApis();
-
 app.listen(port, '0.0.0.0', () => {
   console.log(`Website listening on port ${port}`);
+  void warmPublicApis().catch((error) =>
+    console.error('Initial API warm-up failed:', error),
+  );
 });
 
 const apiWarmUpTimer = setInterval(() => void warmPublicApis(), 4 * 60_000);
