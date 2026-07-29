@@ -14,6 +14,7 @@ interface ApartmentMutationResponse {
 export interface GeoJsonPolygon {
   type: 'Polygon';
   coordinates: number[][][];
+  areaName?: string;
 }
 
 @Injectable({
@@ -90,8 +91,11 @@ export class ApartmentService {
     return this.http
       .post<Apartment[]>(`${API_URL}/apartments/within-area`, {
         type: 'Feature',
-        properties: {},
-        geometry: polygon,
+        properties: { areaName: polygon.areaName || undefined },
+        geometry: {
+          type: polygon.type,
+          coordinates: polygon.coordinates,
+        },
       })
       .pipe(
         map((apartments) => apartments.map((apartment) => this.normalizeImages(apartment))),

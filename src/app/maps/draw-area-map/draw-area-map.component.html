@@ -1,31 +1,80 @@
 <div class="draw-backdrop" role="presentation" (click)="handleBackdrop($event)">
   <section class="draw-dialog" role="dialog" aria-modal="true" aria-labelledby="draw-area-title">
-    <header>
-      <div>
-        <span>MAP SEARCH</span>
-        <h2 id="draw-area-title">Draw your preferred area</h2>
-        <p>Click around the map to outline where you want to live. You can drag any point to adjust it.</p>
+    <header class="dialog-header">
+      <div class="mode-tabs">
+        <button type="button" class="active"><i class="fa-solid fa-house"></i> Rent</button>
+        <button type="button"><i class="fa-solid fa-house"></i> Buy</button>
       </div>
-      <button type="button" class="close-button" aria-label="Close map" (click)="close.emit()">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <button type="button" class="close-button" aria-label="Close map" (click)="close.emit()"><i class="fa-solid fa-xmark"></i></button>
     </header>
-    <div class="map-shell">
-      <div #mapContainer class="draw-map" aria-label="Map of Tbilisi"></div>
-      <div class="map-message" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading map…</div>
-      <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
-      <div class="map-tip" *ngIf="!loading && !errorMessage && !hasPolygon">
-        <i class="fa-solid fa-draw-polygon"></i> Tap points on the map to start drawing
+
+    <div class="search-strip">
+      <div><label>Location</label><span><i class="fa-solid fa-location-dot"></i> Tbilisi, Georgia</span></div>
+      <div><label>Property Type</label><span><i class="fa-solid fa-layer-group"></i> Any property type</span></div>
+      <div><label>Budget</label><span><i class="fa-solid fa-wallet"></i> Any budget</span></div>
+      <div><label>Bedrooms</label><span><i class="fa-solid fa-bed"></i> Any</span></div>
+      <button type="button" class="search-button" (click)="applyArea()" [disabled]="!hasPolygon">Search Homes <i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+
+    <div class="area-heading">
+      <div>
+        <h2 id="draw-area-title">Choose an area in Tbilisi</h2>
+        <p>Select a neighborhood or draw a custom area to refine your search</p>
+      </div>
+      <div class="heading-actions">
+        <span><i class="fa-solid fa-draw-polygon"></i> Draw directly on the map</span>
+        <button type="button" class="clear-button" [disabled]="!hasPolygon" (click)="clearArea()">Clear area</button>
+        <button type="button" class="ai-button"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</button>
       </div>
     </div>
-    <footer>
-      <button type="button" class="clear-button" [disabled]="!hasPolygon" (click)="clearArea()">
-        <i class="fa-solid fa-trash-can"></i> Clear
-      </button>
-      <span *ngIf="hasPolygon"><i class="fa-solid fa-circle-check"></i> Area ready — edit or apply</span>
-      <button type="button" class="apply-button" [disabled]="!hasPolygon" (click)="applyArea()">
-        Apply area <i class="fa-solid fa-arrow-right"></i>
-      </button>
+
+    <div class="chooser-grid">
+      <section class="area-browser">
+        <label class="area-search"><i class="fa-solid fa-magnifying-glass"></i><input [(ngModel)]="areaSearch" placeholder="Search neighborhood or street in Tbilisi…" /></label>
+        <h3>POPULAR AREAS</h3>
+        <div class="popular-grid">
+          <button type="button" *ngFor="let area of popularAreas" [class.selected]="selectedArea === area" (click)="chooseArea(area)">
+            <i class="fa-solid fa-location-dot"></i>{{ area }}<i *ngIf="selectedArea === area" class="fa-solid fa-circle-check check"></i>
+          </button>
+        </div>
+        <h3>ALL TBILISI AREAS</h3>
+        <div class="area-columns">
+          <div *ngFor="let group of filteredAreaGroups">
+            <h4>{{ group.title }}</h4>
+            <button type="button" *ngFor="let area of group.areas" [class.selected]="selectedArea === area" (click)="chooseArea(area)">
+              <i class="fa-solid fa-location-dot"></i><span>{{ area }}</span><small *ngIf="area === 'Vake' || area === 'Saburtalo'">Popular</small>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="map-column">
+        <div class="map-shell">
+          <div #mapContainer class="draw-map" aria-label="Interactive map of Tbilisi"></div>
+          <div class="map-message" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading map…</div>
+          <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
+          <div class="map-tip" *ngIf="!loading && !errorMessage && !hasPolygon"><i class="fa-solid fa-draw-polygon"></i> Click points to draw your own area</div>
+        </div>
+        <div class="selection-card">
+          <div class="selection-title">
+            <strong><i class="fa-solid fa-location-dot"></i>{{ selectedArea ? 'Selected: ' + selectedArea : (hasPolygon ? 'Custom area selected' : 'Choose an area') }}</strong>
+            <span *ngIf="selectedArea"><i class="fa-solid fa-location-dot"></i> Popular Area</span>
+          </div>
+          <p>{{ hasPolygon ? 'Drag any polygon point to fine-tune your preferred search area.' : 'Pick a neighborhood or draw directly on the map.' }}</p>
+          <div class="selection-stats">
+            <div><i class="fa-solid fa-road"></i><span>Nearby streets<small>Explore listings inside your boundary</small></span></div>
+            <div><i class="fa-solid fa-house"></i><span>Verified homes<small>Live results after applying</small></span></div>
+          </div>
+          <button type="button" class="apply-button" [disabled]="!hasPolygon" (click)="applyArea()">
+            {{ selectedArea ? 'Continue with ' + selectedArea : 'Search this area' }} <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="mobile-footer">
+      <button type="button" class="clear-button" [disabled]="!hasPolygon" (click)="clearArea()">Clear</button>
+      <button type="button" class="apply-button" [disabled]="!hasPolygon" (click)="applyArea()">Apply area <i class="fa-solid fa-arrow-right"></i></button>
     </footer>
   </section>
 </div>

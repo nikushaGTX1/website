@@ -418,6 +418,31 @@ function pointInsidePolygon(longitude, latitude, coordinates) {
   return coordinates.slice(1).every((hole) => !pointInsideRing(longitude, latitude, hole));
 }
 
+async function fetchAllApartmentsForAreaSearch() {
+  const pageSize = 100;
+  const apartments = [];
+
+  for (let page = 1; page <= 100; page += 1) {
+    const apiResponse = await fetchPublicApi(
+      `/api/Apartments?page=${page}&pageSize=${pageSize}`,
+      false,
+    );
+    if (apiResponse.status < 200 || apiResponse.status >= 300) {
+      throw new Error(`Apartments API returned HTTP ${apiResponse.status} on page ${page}.`);
+    }
+
+    const items = JSON.parse(apiResponse.body.toString('utf8'));
+    if (!Array.isArray(items)) {
+      throw new Error('Apartments API returned an invalid response.');
+    }
+
+    apartments.push(...items);
+    if (items.length < pageSize) break;
+  }
+
+  return apartments;
+}
+
 app.post(
   '/api/apartments/within-area',
   express.json({ limit: '128kb' }),
@@ -426,6 +451,9 @@ app.post(
       const geometry = request.body?.type === 'Feature'
         ? request.body.geometry
         : request.body;
+      const selectedArea = request.body?.type === 'Feature'
+        ? String(request.body.properties?.areaName || '').trim()
+        : '';
       const coordinates = geometry?.coordinates;
       const ring = coordinates?.[0];
       const validRing = geometry?.type === 'Polygon'
@@ -448,19 +476,23 @@ app.post(
         return;
       }
 
-      const apiResponse = await fetchPublicApi('/api/Apartments?page=1&pageSize=1000', false);
-      if (apiResponse.status < 200 || apiResponse.status >= 300) {
-        response.status(502).json({ message: 'Properties are temporarily unavailable.' });
-        return;
-      }
-
-      const apartments = JSON.parse(apiResponse.body.toString('utf8'));
-      const matches = (Array.isArray(apartments) ? apartments : []).filter((apartment) => {
+      const apartments = await fetchAllApartmentsForAreaSearch();
+      const matches = apartments.filter((apartment) => {
         const latitude = Number(apartment.latitude ?? apartment.Latitude);
         const longitude = Number(apartment.longitude ?? apartment.Longitude);
-        return Number.isFinite(latitude)
+        const hasCoordinates = Number.isFinite(latitude)
           && Number.isFinite(longitude)
-          && pointInsidePolygon(longitude, latitude, coordinates);
+          && latitude !== 0
+          && longitude !== 0;
+
+        if (hasCoordinates) {
+          return pointInsidePolygon(longitude, latitude, coordinates);
+        }
+
+        return selectedArea
+          && String(apartment.district || apartment.District || '')
+            .trim()
+            .toLowerCase() === selectedArea.toLowerCase();
       });
 
       response.setHeader('Cache-Control', 'no-store');

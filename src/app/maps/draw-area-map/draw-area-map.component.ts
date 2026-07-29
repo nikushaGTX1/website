@@ -29,6 +29,33 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
   loading = true;
   errorMessage = '';
   hasPolygon = false;
+  areaSearch = '';
+  selectedArea = '';
+  readonly popularAreas = ['Vake', 'Saburtalo', 'Vera', 'Mtatsminda', 'Digomi', 'Didi Digomi'];
+  readonly areaGroups = [
+    { title: 'VAKE DISTRICT', areas: ['Vake', 'Bagebi', 'Nutsubidze Plateau', 'Chavchavadze'] },
+    { title: 'SABURTALO DISTRICT', areas: ['Saburtalo', 'Didube', 'Gldani', 'Nadzaladevi'] },
+    { title: 'MTATSMINDA DISTRICT', areas: ['Vera', 'Mtatsminda', 'Sololaki', 'Avlabari'] },
+    { title: 'OTHER AREAS', areas: ['Digomi', 'Didi Digomi', 'Vashlijvari', 'Krtsanisi'] },
+  ];
+  private readonly areaPolygons: Record<string, number[][]> = {
+    Vake: [[44.744,41.706],[44.758,41.691],[44.792,41.694],[44.806,41.710],[44.786,41.726],[44.755,41.724],[44.744,41.706]],
+    Saburtalo: [[44.742,41.724],[44.772,41.714],[44.805,41.726],[44.801,41.750],[44.762,41.759],[44.742,41.724]],
+    Vera: [[44.784,41.704],[44.797,41.700],[44.811,41.711],[44.805,41.722],[44.790,41.720],[44.784,41.704]],
+    Mtatsminda: [[44.768,41.686],[44.792,41.680],[44.807,41.699],[44.790,41.710],[44.770,41.704],[44.768,41.686]],
+    Digomi: [[44.754,41.760],[44.790,41.754],[44.814,41.779],[44.794,41.802],[44.756,41.791],[44.754,41.760]],
+    'Didi Digomi': [[44.704,41.776],[44.748,41.760],[44.775,41.790],[44.748,41.818],[44.707,41.811],[44.704,41.776]],
+    Bagebi: [[44.723,41.700],[44.755,41.691],[44.763,41.709],[44.742,41.720],[44.723,41.700]],
+    'Nutsubidze Plateau': [[44.720,41.720],[44.756,41.712],[44.762,41.740],[44.730,41.748],[44.720,41.720]],
+    Chavchavadze: [[44.755,41.703],[44.792,41.696],[44.797,41.707],[44.760,41.716],[44.755,41.703]],
+    Didube: [[44.767,41.741],[44.796,41.733],[44.812,41.751],[44.798,41.766],[44.772,41.762],[44.767,41.741]],
+    Gldani: [[44.796,41.780],[44.842,41.778],[44.856,41.814],[44.817,41.828],[44.791,41.808],[44.796,41.780]],
+    Nadzaladevi: [[44.792,41.746],[44.822,41.741],[44.837,41.767],[44.811,41.778],[44.792,41.746]],
+    Sololaki: [[44.792,41.686],[44.814,41.682],[44.820,41.697],[44.803,41.704],[44.792,41.686]],
+    Avlabari: [[44.814,41.688],[44.837,41.690],[44.838,41.708],[44.817,41.711],[44.814,41.688]],
+    Vashlijvari: [[44.711,41.742],[44.748,41.738],[44.758,41.762],[44.724,41.772],[44.711,41.742]],
+    Krtsanisi: [[44.803,41.656],[44.833,41.657],[44.837,41.683],[44.811,41.689],[44.803,41.656]],
+  };
   private map?: google.maps.Map;
   private draw?: import('terra-draw').TerraDraw;
 
@@ -45,7 +72,41 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
   clearArea(): void {
     this.draw?.clear();
     this.hasPolygon = false;
+    this.selectedArea = '';
     this.draw?.setMode('polygon');
+  }
+
+  get filteredAreaGroups(): { title: string; areas: string[] }[] {
+    const query = this.areaSearch.trim().toLowerCase();
+    if (!query) return this.areaGroups;
+    return this.areaGroups
+      .map((group) => ({ ...group, areas: group.areas.filter((area) => area.toLowerCase().includes(query)) }))
+      .filter((group) => group.areas.length);
+  }
+
+  chooseArea(area: string): void {
+    const coordinates = this.areaPolygons[area];
+    if (!coordinates || !this.draw || !this.map) return;
+    this.draw.clear();
+    const featureId = this.draw.getFeatureId();
+    const feature = {
+      type: 'Feature' as const,
+      id: featureId,
+      properties: { mode: 'polygon', name: area },
+      geometry: { type: 'Polygon' as const, coordinates: [coordinates] },
+    };
+    const result = this.draw.addFeatures([feature]);
+    if (result[0]?.valid) {
+      this.selectedArea = area;
+      this.hasPolygon = true;
+      this.draw.selectFeature(featureId);
+      const bounds = new google.maps.LatLngBounds();
+      coordinates.forEach(([lng, lat]) => bounds.extend({ lat, lng }));
+      this.map.fitBounds(bounds, 48);
+      this.cdr.detectChanges();
+    } else {
+      console.error(`Could not draw ${area}:`, result[0]?.reason || 'Invalid polygon');
+    }
   }
 
   applyArea(): void {
@@ -86,6 +147,14 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
         clickableIcons: false,
       });
 
+      // The Google adapter binds to controls created inside `.gm-style`.
+      // Those elements do not exist immediately after `new Map()`, so wait
+      // for the first rendered frame before registering Terra Draw.
+      await new Promise<void>((resolve) => {
+        google.maps.event.addListenerOnce(this.map!, 'idle', () => resolve());
+      });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
       this.draw = new TerraDraw({
         adapter: new TerraDrawGoogleMapsAdapter({ lib: google.maps, map: this.map }),
         modes: [
@@ -114,15 +183,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
       this.draw.start();
       this.draw.setMode('polygon');
       this.draw.on('finish', () => {
-        const polygons = this.draw?.getSnapshot().filter((feature) => feature.geometry.type === 'Polygon') || [];
+        const polygons = this.draw?.getSnapshot().filter((feature) => feature.geometry?.type === 'Polygon') || [];
         if (polygons.length > 1) this.draw?.removeFeatures(polygons.slice(0, -1).map((feature) => feature.id));
-        const latest = this.draw?.getSnapshot().find((feature) => feature.geometry.type === 'Polygon');
+        const latest = this.draw?.getSnapshot().find((feature) => feature.geometry?.type === 'Polygon');
         this.hasPolygon = !!latest;
         if (latest) this.draw?.selectFeature(latest.id);
         this.cdr.detectChanges();
       });
       this.draw.on('change', () => {
         this.hasPolygon = !!this.currentPolygon();
+        if (!this.hasPolygon) this.selectedArea = '';
         this.cdr.detectChanges();
       });
       this.loading = false;
@@ -136,7 +206,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
   }
 
   private currentPolygon(): GeoJsonPolygon | null {
-    const feature = this.draw?.getSnapshot().find((item) => item.geometry.type === 'Polygon');
-    return feature?.geometry.type === 'Polygon' ? (feature.geometry as GeoJsonPolygon) : null;
+    const feature = this.draw?.getSnapshot().find((item) => item.geometry?.type === 'Polygon');
+    return feature?.geometry?.type === 'Polygon'
+      ? {
+          type: 'Polygon',
+          coordinates: feature.geometry.coordinates as number[][][],
+          areaName: this.selectedArea || undefined,
+        }
+      : null;
   }
 }
