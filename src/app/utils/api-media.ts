@@ -41,7 +41,9 @@ export function toMediaUrl(value?: string | null): string {
   }
 
   if (cleanValue.startsWith('profiles/')) {
-    return `${apiOrigin}/uploads/${cleanValue}`;
+    // This is a private Supabase object path, not a public Railway URL.
+    // API responses must provide a signed absolute URL for display.
+    return '';
   }
 
   return `${apiOrigin}/${profileUploadsPath}/${cleanValue}`;
