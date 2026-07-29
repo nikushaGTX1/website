@@ -1,4 +1,6 @@
 import express from 'express';
+import { randomUUID } from 'node:crypto';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
@@ -32,6 +34,8 @@ const publicApiRequests = new Map();
 const apartmentImageCache = new Map();
 const apartmentImageRequests = new Map();
 const translationCache = new Map();
+const approvalDataDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'data');
+const approvalDataFile = path.join(approvalDataDirectory, 'apartment-approval-requests.json');
 const publicCacheLifetimeMs = 60_000;
 const publicCacheStaleLifetimeMs = 5 * 60_000;
 const browserDirectory = path.join(
@@ -59,6 +63,168 @@ app.use((_request, response, next) => {
   response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
   next();
 });
+
+async function readApprovalRequests() {
+  try {
+    const requests = JSON.parse(await readFile(approvalDataFile, 'utf8'));
+    return Array.isArray(requests) ? requests : [];
+  } catch (error) {
+    if (error?.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function writeApprovalRequests(requests) {
+  await mkdir(approvalDataDirectory, { recursive: true });
+  const temporaryFile = `${approvalDataFile}.${process.pid}.tmp`;
+  await writeFile(temporaryFile, JSON.stringify(requests), 'utf8');
+  await rename(temporaryFile, approvalDataFile);
+}
+
+function tokenRoles(token) {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return [];
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const parsed = JSON.parse(Buffer.from(normalized, 'base64').toString('utf8'));
+    const claims = [
+      parsed.role,
+      parsed.roles,
+      parsed['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+    ];
+    return claims.flatMap((claim) => Array.isArray(claim) ? claim : [claim])
+      .filter(Boolean)
+      .map((role) => String(role).toLowerCase());
+  } catch {
+    return [];
+  }
+}
+
+async function authenticatedApprovalUser(request) {
+  const authorization = request.get('authorization') || '';
+  const token = authorization.replace(/^Bearer\s+/i, '');
+  if (!token) return null;
+
+  const upstream = await fetch(`${apiOrigin}/api/Profile/me`, {
+    headers: { authorization },
+  });
+  if (!upstream.ok) return null;
+
+  const user = await upstream.json();
+  return {
+    ...user,
+    roles: [...new Set([
+      ...(Array.isArray(user.roles) ? user.roles : []),
+      user.role,
+      user.isAdmin ? 'admin' : '',
+      ...tokenRoles(token),
+    ].filter(Boolean).map((role) => String(role).toLowerCase()))],
+  };
+}
+
+app.post(
+  '/api/approval-requests',
+  express.json({ limit: '30mb' }),
+  async (request, response) => {
+    try {
+      const user = await authenticatedApprovalUser(request);
+      if (!user) {
+        response.status(401).json({ message: 'Sign in to submit an apartment.' });
+        return;
+      }
+      if (!request.body?.apartment || typeof request.body.apartment.title !== 'string') {
+        response.status(400).json({ message: 'A valid apartment submission is required.' });
+        return;
+      }
+
+      const item = {
+        id: randomUUID(),
+        apartment: request.body.apartment,
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+        submittedByUserId: user.id || undefined,
+        submittedByName: user.fullName || user.userName || 'User',
+        submittedByEmail: user.email || '',
+      };
+      const requests = await readApprovalRequests();
+      await writeApprovalRequests([item, ...requests]);
+      response.status(201).json(item);
+    } catch (error) {
+      console.error('Approval submission error:', error);
+      response.status(500).json({ message: 'Could not save the apartment for approval.' });
+    }
+  },
+);
+
+app.get('/api/approval-requests', async (request, response) => {
+  try {
+    const user = await authenticatedApprovalUser(request);
+    if (!user) {
+      response.status(401).json({ message: 'Sign in to view apartment requests.' });
+      return;
+    }
+
+    const requests = await readApprovalRequests();
+    if (user.roles.includes('admin')) {
+      response.json(requests);
+      return;
+    }
+
+    const email = String(user.email || '').toLowerCase();
+    response.json(requests.filter((item) =>
+      (user.id && item.submittedByUserId === user.id) ||
+      (email && String(item.submittedByEmail || '').toLowerCase() === email)
+    ));
+  } catch (error) {
+    console.error('Approval list error:', error);
+    response.status(500).json({ message: 'Could not load apartment requests.' });
+  }
+});
+
+app.patch(
+  '/api/approval-requests/:id',
+  express.json({ limit: '32kb' }),
+  async (request, response) => {
+    try {
+      const user = await authenticatedApprovalUser(request);
+      if (!user?.roles.includes('admin')) {
+        response.status(403).json({ message: 'Only admins can review apartment requests.' });
+        return;
+      }
+
+      const status = request.body?.status;
+      if (!['pending', 'approved', 'declined'].includes(status)) {
+        response.status(400).json({ message: 'Invalid approval status.' });
+        return;
+      }
+
+      const requests = await readApprovalRequests();
+      const index = requests.findIndex((item) => item.id === request.params.id);
+      if (index < 0) {
+        response.status(404).json({ message: 'Apartment request not found.' });
+        return;
+      }
+
+      requests[index] = {
+        ...requests[index],
+        status,
+        reviewedAt: status === 'pending' ? undefined : new Date().toISOString(),
+        reviewedBy: status === 'pending'
+          ? undefined
+          : (user.fullName || user.userName || 'Admin'),
+        message: request.body.message || undefined,
+        publishedApartmentId: status === 'approved'
+          ? request.body.publishedApartmentId
+          : undefined,
+      };
+      await writeApprovalRequests(requests);
+      response.json(requests[index]);
+    } catch (error) {
+      console.error('Approval update error:', error);
+      response.status(500).json({ message: 'Could not update the apartment request.' });
+    }
+  },
+);
 
 function validateApartmentImageUrl(value) {
   const imageUrl = new URL(value);

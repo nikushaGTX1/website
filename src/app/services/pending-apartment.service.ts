@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject } from 'rxjs';
 import { CreateApartment } from '../models/apartment';
 import { User } from '../models/user';
@@ -23,18 +24,20 @@ export interface PendingApartment {
   providedIn: 'root',
 })
 export class PendingApartmentService {
+  private readonly apiUrl = '/api/approval-requests';
   private readonly storageKey = 'pendingApartments';
   private readonly cookieKey = 'pendingApartments';
   private readonly pendingSubject = new BehaviorSubject<PendingApartment[]>(this.readAll());
 
   pendingApartments$ = this.pendingSubject.asObservable();
 
-  constructor() {
+  constructor(private http: HttpClient) {
     window.addEventListener('storage', (event) => {
       if (event.key === this.storageKey) {
         this.refresh();
       }
     });
+    this.refresh();
   }
 
   getAll(): PendingApartment[] {
@@ -42,7 +45,14 @@ export class PendingApartmentService {
   }
 
   refresh(): void {
-    this.pendingSubject.next(this.readAll());
+    const localItems = this.readAll();
+    this.pendingSubject.next(localItems);
+    this.http.get<PendingApartment[]>(this.apiUrl).subscribe({
+      next: (remoteItems) => this.save(this.merge(remoteItems, localItems)),
+      error: () => {
+        // Retain the local copy while offline or when the user is signed out.
+      },
+    });
   }
 
   getWaiting(): PendingApartment[] {
@@ -50,7 +60,7 @@ export class PendingApartmentService {
   }
 
   getStorageDebug(): string {
-    return `${location.origin} has ${this.getWaiting().length} pending / ${this.getAll().length} total local request(s).`;
+    return `${this.getWaiting().length} pending / ${this.getAll().length} total approval request(s).`;
   }
 
   getForUser(user: User | null): PendingApartment[] {
@@ -79,6 +89,15 @@ export class PendingApartmentService {
     };
 
     this.save([request, ...this.getAll()]);
+    this.http.post<PendingApartment>(this.apiUrl, request).subscribe({
+      next: (savedRequest) => {
+        const withoutTemporary = this.getAll().filter((item) => item.id !== request.id);
+        this.save([savedRequest, ...withoutTemporary]);
+      },
+      error: () => {
+        // The local request remains visible and can be retried after reconnecting.
+      },
+    });
     return request;
   }
 
@@ -87,32 +106,41 @@ export class PendingApartmentService {
     reviewer: User | null,
     publishedApartmentId?: number,
   ): PendingApartment | null {
-    return this.update(id, {
+    const changes: Partial<PendingApartment> = {
       status: 'approved',
       reviewedAt: new Date().toISOString(),
       reviewedBy: reviewer?.fullName || reviewer?.userName || 'Agent',
       message: 'Your post was confirmed and published.',
       publishedApartmentId,
-    });
+    };
+    const updated = this.update(id, changes);
+    this.syncReview(id, changes);
+    return updated;
   }
 
   markDeclined(id: string, reviewer: User | null, message = 'Your post was declined.'): PendingApartment | null {
-    return this.update(id, {
+    const changes: Partial<PendingApartment> = {
       status: 'declined',
       reviewedAt: new Date().toISOString(),
       reviewedBy: reviewer?.fullName || reviewer?.userName || 'Agent',
       message,
-    });
+    };
+    const updated = this.update(id, changes);
+    this.syncReview(id, changes);
+    return updated;
   }
 
   markPending(id: string): PendingApartment | null {
-    return this.update(id, {
+    const changes: Partial<PendingApartment> = {
       status: 'pending',
       reviewedAt: undefined,
       reviewedBy: undefined,
       message: undefined,
       publishedApartmentId: undefined,
-    });
+    };
+    const updated = this.update(id, changes);
+    this.syncReview(id, changes);
+    return updated;
   }
 
   updateSubmission(id: string, apartment: CreateApartment): PendingApartment | null {
@@ -159,6 +187,26 @@ export class PendingApartmentService {
     localStorage.setItem(this.storageKey, serialized);
     this.writeCookie(serialized);
     this.pendingSubject.next(items);
+  }
+
+  private syncReview(id: string, changes: Partial<PendingApartment>): void {
+    this.http.patch<PendingApartment>(`${this.apiUrl}/${encodeURIComponent(id)}`, changes).subscribe({
+      next: (remoteItem) => {
+        this.save(this.getAll().map((item) => item.id === id ? remoteItem : item));
+      },
+      error: () => {
+        // Keep the optimistic local status; the admin can retry the action.
+      },
+    });
+  }
+
+  private merge(remoteItems: PendingApartment[], localItems: PendingApartment[]): PendingApartment[] {
+    const items = new Map<string, PendingApartment>();
+    for (const item of localItems) items.set(item.id, item);
+    for (const item of remoteItems) items.set(item.id, item);
+    return [...items.values()].sort(
+      (left, right) => Date.parse(right.submittedAt) - Date.parse(left.submittedAt),
+    );
   }
 
   private readAll(): PendingApartment[] {

@@ -1,0 +1,88 @@
+<svg id="character" viewBox="0 0 400 620" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .shirt   { stroke: #F2545B; }
+      .pants   { stroke: #2F3A4C; }
+      .skin    { fill: #FFD9A6; }
+      .shoe    { fill: #1F2530; }
+      .torso   { fill: #F2545B; }
+      .torsoShade { fill: #000000; opacity: 0.08; }
+      .limb    { stroke-linecap: round; fill: none; }
+    </style>
+  </defs>
+
+  <!-- ================= LEFT LEG (drawn first, sits behind torso) ================= -->
+  <g id="upperLegL" transform-origin="175 335">
+    <circle cx="175" cy="335" r="21" class="pants" fill="#2F3A4C"/>
+    <line class="limb pants" x1="175" y1="335" x2="165" y2="430" stroke-width="42"/>
+  </g>
+  <g id="lowerLegL" transform-origin="165 430">
+    <circle cx="165" cy="430" r="18" fill="#2F3A4C"/>
+    <line class="limb pants" x1="165" y1="430" x2="160" y2="520" stroke-width="36"/>
+  </g>
+  <g id="footL" transform-origin="160 520">
+    <ellipse cx="153" cy="546" rx="30" ry="19" class="shoe"/>
+  </g>
+
+  <!-- ================= RIGHT LEG ================= -->
+  <g id="upperLegR" transform-origin="225 335">
+    <circle cx="225" cy="335" r="21" fill="#2F3A4C"/>
+    <line class="limb pants" x1="225" y1="335" x2="235" y2="430" stroke-width="42"/>
+  </g>
+  <g id="lowerLegR" transform-origin="235 430">
+    <circle cx="235" cy="430" r="18" fill="#2F3A4C"/>
+    <line class="limb pants" x1="235" y1="430" x2="240" y2="520" stroke-width="36"/>
+  </g>
+  <g id="footR" transform-origin="240 520">
+    <ellipse cx="247" cy="546" rx="30" ry="19" class="shoe"/>
+  </g>
+
+  <!-- ================= LEFT ARM ================= -->
+  <g id="upperArmL" transform-origin="150 190">
+    <circle cx="150" cy="190" r="19" fill="#F2545B"/>
+    <line class="limb shirt" x1="150" y1="190" x2="95" y2="260" stroke-width="38"/>
+  </g>
+  <g id="lowerArmL" transform-origin="95 260">
+    <circle cx="95" cy="260" r="17" fill="#F2545B"/>
+    <line class="limb shirt" x1="95" y1="260" x2="70" y2="340" stroke-width="34"/>
+  </g>
+  <g id="handL" transform-origin="70 340">
+    <circle cx="65" cy="356" r="21" class="skin"/>
+  </g>
+
+  <!-- ================= TORSO ================= -->
+  <g id="torso" transform-origin="200 250">
+    <ellipse cx="200" cy="252" rx="72" ry="98" class="torso"/>
+    <ellipse cx="200" cy="252" rx="72" ry="98" class="torsoShade" transform="translate(14,10)"/>
+  </g>
+
+  <!-- ================= NECK + HEAD ================= -->
+  <g id="neck" transform-origin="200 165">
+    <line x1="200" y1="140" x2="200" y2="185" stroke="#FFD9A6" stroke-width="34" stroke-linecap="round"/>
+  </g>
+
+  <g id="head" transform-origin="200 90">
+    <circle cx="200" cy="88" r="54" class="skin"/>
+    <!-- cheeks -->
+    <circle cx="164" cy="102" r="10" fill="#FF8FA3" opacity="0.45"/>
+    <circle cx="236" cy="102" r="10" fill="#FF8FA3" opacity="0.45"/>
+    <!-- eyes -->
+    <circle cx="182" cy="82" r="5.5" fill="#2F2F2F"/>
+    <circle cx="218" cy="82" r="5.5" fill="#2F2F2F"/>
+    <!-- smile -->
+    <path d="M180 104 Q200 118 220 104" stroke="#2F2F2F" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- ================= RIGHT ARM (bent, sits in front of torso) ================= -->
+  <g id="upperArmR" transform-origin="250 190">
+    <circle cx="250" cy="190" r="19" fill="#F2545B"/>
+    <line class="limb shirt" x1="250" y1="190" x2="305" y2="225" stroke-width="38"/>
+  </g>
+  <g id="lowerArmR" transform-origin="305 225">
+    <circle cx="305" cy="225" r="17" fill="#F2545B"/>
+    <line class="limb shirt" x1="305" y1="225" x2="292" y2="282" stroke-width="34"/>
+  </g>
+  <g id="handR" transform-origin="292 282">
+    <circle cx="290" cy="298" r="21" class="skin"/>
+  </g>
+</svg>

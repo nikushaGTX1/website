@@ -453,7 +453,7 @@
         <h3>Your Lifestyle Profile</h3>
         <button type="button" (click)="step = 0">✎ Edit Profile</button>
       </div>
-      <img src="/ai-match-family.png" alt="Your generated lifestyle profile" />
+      <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
       <dl>
         <div><dt>⌖ Location</dt><dd>{{ locationLabel }}</dd></div>
         <div><dt>♙ Who will live</dt><dd>{{ householdLabel }}</dd></div>
@@ -471,7 +471,7 @@
       <h2>This is you.</h2>
       <p>We build your avatar as you answer questions so we can understand your lifestyle better.</p>
     </div>
-    <img src="/ai-match-family.png" alt="Velven lifestyle avatar" />
+    <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
     <ul>
       <li>✓ Personalized household profile</li>
       <li>✓ Location and commute priorities</li>

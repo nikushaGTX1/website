@@ -1,52 +1,80 @@
+:host {
+  display: block;
+}
+
 .avatar {
-  background: #f0edff;
-  border: 1px solid #ddd7ff;
-  border-radius: 24px;
-  padding: 24px;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  display: grid;
+  place-items: center;
   text-align: center;
 }
-.scene {
-  min-height: 145px;
+
+.character-stage {
+  position: relative;
+  width: min(100%, 180px);
+  aspect-ratio: 400 / 620;
+}
+
+.character-stage img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  animation: pop 0.35s ease;
+}
+
+.gym-shirt {
+  position: absolute;
+  top: 25.2%;
+  left: 31.8%;
+  width: 36.4%;
+  height: 31.5%;
   display: grid;
-  place-content: center;
-  gap: 12px;
+  place-items: center;
+  box-sizing: border-box;
+  border: 4px solid #14254f;
+  border-radius: 42% 42% 46% 46% / 24% 24% 64% 64%;
+  background:
+    linear-gradient(90deg, transparent 42%, rgba(255, 255, 255, 0.75) 43% 57%, transparent 58%),
+    #2c64ea;
+  color: #fff;
+  clip-path: polygon(18% 0, 35% 8%, 50% 18%, 65% 8%, 82% 0, 100% 18%, 89% 100%, 11% 100%, 0 18%);
+  filter: drop-shadow(0 4px 3px rgba(20, 37, 79, 0.22));
+  animation: dress 0.32s ease-out;
 }
-.person {
-  font-size: 55px;
-  display: inline-block;
-  margin: -5px;
-  animation: pop 0.3s ease;
+
+.gym-shirt span {
+  margin-top: 28%;
+  padding: 3px 5px;
+  border-radius: 4px;
+  background: #14254f;
+  font: 800 11px/1 Arial, sans-serif;
+  letter-spacing: 0.08em;
 }
-.child {
-  font-size: 38px;
-  display: inline-block;
-  margin: -4px;
-  animation: pop 0.3s ease;
-}
-.items {
-  display: flex;
-  justify-content: center;
-  gap: 7px;
-}
-.items span {
-  background: white;
-  padding: 5px;
-  border-radius: 10px;
-  font-size: 24px;
-  animation: pop 0.3s ease;
-}
+
 .avatar p {
-  font-size: 12px;
-  color: #5e5873;
-  line-height: 1.5;
   margin: 8px 0 0;
+  color: #5e5873;
+  font-size: 12px;
+  line-height: 1.5;
 }
+
 @keyframes pop {
   from {
     opacity: 0;
     transform: scale(0.7) translateY(8px);
   }
 }
+
+@keyframes dress {
+  from {
+    opacity: 0;
+    transform: scale(0.75) translateY(-10px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

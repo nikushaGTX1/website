@@ -1,12 +1,9 @@
-<aside class="avatar">
-  <div class="scene">
-    <div>
-      <span class="person" *ngFor="let adult of adults">🧑</span
-      ><span class="child" *ngFor="let child of children">🧒</span>
-    </div>
-    <div class="items">
-      <span *ngFor="let item of items">{{ item }}</span>
+<div class="avatar" [class.gym-active]="wearsGymOutfit">
+  <div class="character-stage">
+    <img src="/round-limb-character.svg" alt="Your personalized lifestyle character" />
+    <div class="gym-shirt" *ngIf="wearsGymOutfit" aria-label="Gym outfit">
+      <span>GYM</span>
     </div>
   </div>
-  <p>{{ summary }}</p>
-</aside>
+  <p *ngIf="showSummary">{{ summary }}</p>
+</div>

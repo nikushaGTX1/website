@@ -8,6 +8,15 @@ import { HomeMatchProfile } from '../models/home-match-profile';
 })
 export class VelvenLifestyleAvatarComponent {
   @Input({ required: true }) profile!: HomeMatchProfile;
+  @Input() showSummary = false;
+
+  get wearsGymOutfit(): boolean {
+    return (
+      this.profile.lifestyles.includes('Athlete') ||
+      this.profile.mainPreferences.includes('GymNearby')
+    );
+  }
+
   get adults(): unknown[] {
     return Array(Math.min(this.profile.adults, 4));
   }

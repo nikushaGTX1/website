@@ -1,0 +1,51 @@
+<svg id="sportShirt" viewBox="0 0 400 620" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .jersey      { fill: #1E88E5; }
+      .jerseyDark  { fill: #0D47A1; }
+      .trim        { stroke: #FFFFFF; stroke-width: 6; fill: none; stroke-linecap: round; }
+      .stripe      { fill: #FFFFFF; }
+      .number      { fill: #FFFFFF; font-family: "Arial Black", Arial, sans-serif; font-weight: 900; }
+    </style>
+  </defs>
+
+  <!-- ============ LEFT SLEEVE (align with #upperArmL, same transform-origin) ============ -->
+  <g id="jerseySleeveL" transform-origin="150 190">
+    <circle cx="150" cy="190" r="24" class="jersey"/>
+    <line x1="150" y1="190" x2="110" y2="222" stroke="#1E88E5" stroke-width="48" stroke-linecap="round"/>
+    <line x1="98" y1="207" x2="124" y2="237" class="trim"/>
+  </g>
+
+  <!-- ============ RIGHT SLEEVE (align with #upperArmR, same transform-origin) ============ -->
+  <g id="jerseySleeveR" transform-origin="250 190">
+    <circle cx="250" cy="190" r="24" class="jersey"/>
+    <line x1="250" y1="190" x2="290" y2="222" stroke="#1E88E5" stroke-width="48" stroke-linecap="round"/>
+    <line x1="276" y1="207" x2="302" y2="237" class="trim"/>
+  </g>
+
+  <!-- ============ JERSEY BODY (align with #torso, same transform-origin) ============ -->
+  <g id="jerseyTorso" transform-origin="200 250">
+    <path class="jersey" d="M145,180
+             L170,180
+             Q200,222 230,180
+             L255,180
+             Q292,222 288,278
+             Q286,312 258,332
+             Q200,346 142,332
+             Q114,312 112,278
+             Q108,222 145,180 Z"/>
+
+    <!-- side stripes -->
+    <rect class="stripe" x="154" y="200" width="13" height="128" rx="6"/>
+    <rect class="stripe" x="233" y="200" width="13" height="128" rx="6"/>
+
+    <!-- collar trim -->
+    <path class="trim" d="M170,180 Q200,222 230,180"/>
+
+    <!-- hem trim -->
+    <path class="trim" stroke-width="5" d="M140,326 Q200,342 260,326"/>
+
+    <!-- number -->
+    <text class="number" x="200" y="285" font-size="72" text-anchor="middle">9</text>
+  </g>
+</svg>
