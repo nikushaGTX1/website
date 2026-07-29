@@ -2,27 +2,30 @@
   <section class="draw-dialog" role="dialog" aria-modal="true" aria-labelledby="draw-area-title">
     <header class="dialog-header">
       <div class="mode-tabs">
-        <button type="button" class="active"><i class="fa-solid fa-house"></i> Rent</button>
-        <button type="button"><i class="fa-solid fa-house"></i> Buy</button>
+        <button type="button" [class.active]="searchMode === 'rent'" (click)="searchMode = 'rent'"><i class="fa-solid fa-house"></i> Rent</button>
+        <button type="button" [class.active]="searchMode === 'buy'" (click)="searchMode = 'buy'"><i class="fa-solid fa-house"></i> Buy</button>
       </div>
       <button type="button" class="close-button" aria-label="Close map" (click)="close.emit()"><i class="fa-solid fa-xmark"></i></button>
     </header>
 
     <div class="search-strip">
-      <div><label>Location</label><span><i class="fa-solid fa-location-dot"></i> Tbilisi, Georgia</span></div>
-      <div><label>Property Type</label><span><i class="fa-solid fa-layer-group"></i> Any property type</span></div>
-      <div><label>Budget</label><span><i class="fa-solid fa-wallet"></i> Any budget</span></div>
-      <div><label>Bedrooms</label><span><i class="fa-solid fa-bed"></i> Any</span></div>
-      <button type="button" class="search-button" (click)="applyArea()" [disabled]="!hasPolygon">Search Homes <i class="fa-solid fa-magnifying-glass"></i></button>
+      <div [class.invalid]="validationMessage && !hasPolygon"><label>Location</label><span><i class="fa-solid fa-location-dot"></i> {{ selectedArea || (hasPolygon ? 'Custom map area' : 'Choose on map below') }}</span></div>
+      <div [class.invalid]="validationMessage && !propertyType"><label>Property Type</label><span><i class="fa-solid fa-layer-group"></i><select [(ngModel)]="propertyType"><option value="">Select property type</option><option *ngFor="let type of propertyTypes" [value]="type">{{ type }}</option></select></span></div>
+      <div [class.invalid]="validationMessage && (!budget || budget <= 0)"><label>Budget</label><span><i class="fa-solid fa-wallet"></i><input type="number" min="1" [(ngModel)]="budget" placeholder="Enter max budget"></span></div>
+      <div [class.invalid]="validationMessage && !bedrooms"><label>Bedrooms</label><span><i class="fa-solid fa-bed"></i><select [(ngModel)]="bedrooms"><option value="">Select bedrooms</option><option *ngFor="let choice of bedroomChoices" [value]="choice.value">{{ choice.label }}</option></select></span></div>
+      <button type="button" class="search-button" (click)="applyArea()">Search Homes <i class="fa-solid fa-magnifying-glass"></i></button>
     </div>
+    <div class="search-validation" role="alert" *ngIf="validationMessage"><i class="fa-solid fa-circle-exclamation"></i> {{ validationMessage }}</div>
 
     <div class="area-heading">
       <div>
-        <h2 id="draw-area-title">Choose an area in Tbilisi</h2>
-        <p>Select a neighborhood or draw a custom area to refine your search</p>
+        <div class="street-breadcrumbs" *ngIf="streetStep"><button type="button" (click)="backToAreas()">Tbilisi</button><i class="fa-solid fa-chevron-right"></i><b>{{ selectedArea }}</b><i class="fa-solid fa-chevron-right"></i><span>Street</span></div>
+        <h2 id="draw-area-title">{{ streetStep ? 'Choose a street in ' + selectedArea : 'Choose an area in Tbilisi' }}</h2>
+        <p>{{ streetStep ? 'Refine your search by selecting a street in the selected area.' : 'Select a neighborhood or draw a custom area to refine your search' }}</p>
       </div>
       <div class="heading-actions">
-        <span><i class="fa-solid fa-draw-polygon"></i> Draw directly on the map</span>
+        <button type="button" class="clear-button" *ngIf="streetStep" (click)="backToAreas()"><i class="fa-solid fa-arrow-left"></i> Back to areas</button>
+        <span *ngIf="!streetStep"><i class="fa-solid fa-draw-polygon"></i> Draw directly on the map</span>
         <button type="button" class="clear-button" [disabled]="!hasPolygon" (click)="clearArea()">Clear area</button>
         <button type="button" class="ai-button"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</button>
       </div>
@@ -30,6 +33,7 @@
 
     <div class="chooser-grid">
       <section class="area-browser">
+        <div *ngIf="!streetStep">
         <label class="area-search"><i class="fa-solid fa-magnifying-glass"></i><input [(ngModel)]="areaSearch" placeholder="Search neighborhood or street in Tbilisi…" /></label>
         <h3>POPULAR AREAS</h3>
         <div class="popular-grid">
@@ -46,6 +50,24 @@
             </button>
           </div>
         </div>
+        </div>
+
+        <div class="street-browser" *ngIf="streetStep">
+          <label class="area-search"><i class="fa-solid fa-magnifying-glass"></i><input [(ngModel)]="streetSearch" [placeholder]="'Search street in ' + selectedArea + '…'" /></label>
+          <h3>POPULAR STREETS</h3>
+          <div class="popular-grid street-popular-grid">
+            <button type="button" *ngFor="let street of popularStreets" [class.selected]="selectedStreet === street.value" (click)="selectStreet(street)">
+              <i class="fa-solid fa-location-dot"></i><span>{{ street.label }}</span><i *ngIf="selectedStreet === street.value" class="fa-solid fa-circle-check check"></i>
+            </button>
+          </div>
+          <h3>ALL STREETS IN {{ selectedArea | uppercase }}</h3>
+          <div class="street-columns" *ngIf="selectedAreaStreets.length">
+            <button type="button" *ngFor="let street of selectedAreaStreets; let index = index" [class.selected]="selectedStreet === street.value" (click)="selectStreet(street)">
+              <i class="fa-solid fa-location-dot"></i><span>{{ street.label }}</span><small>{{ index % 3 === 0 ? 'Popular' : (index % 3 === 1 ? 'Central' : 'Quiet') }}</small>
+            </button>
+          </div>
+          <div class="street-empty" *ngIf="!selectedAreaStreets.length">No streets found for this area.</div>
+        </div>
       </section>
 
       <aside class="map-column">
@@ -57,16 +79,16 @@
         </div>
         <div class="selection-card">
           <div class="selection-title">
-            <strong><i class="fa-solid fa-location-dot"></i>{{ selectedArea ? 'Selected: ' + selectedArea : (hasPolygon ? 'Custom area selected' : 'Choose an area') }}</strong>
+            <strong><i class="fa-solid fa-location-dot"></i>{{ selectedStreet ? 'Selected: ' + selectedStreet : (selectedArea ? 'Selected: ' + selectedArea : (hasPolygon ? 'Custom area selected' : 'Choose an area')) }}</strong>
             <span *ngIf="selectedArea"><i class="fa-solid fa-location-dot"></i> Popular Area</span>
           </div>
-          <p>{{ hasPolygon ? 'Drag any polygon point to fine-tune your preferred search area.' : 'Pick a neighborhood or draw directly on the map.' }}</p>
+          <p>{{ selectedStreet ? 'Street selected inside ' + selectedArea + '.' : (hasPolygon ? 'Drag any polygon point to fine-tune your preferred search area.' : 'Pick a neighborhood or draw directly on the map.') }}</p>
           <div class="selection-stats">
             <div><i class="fa-solid fa-road"></i><span>Nearby streets<small>Explore listings inside your boundary</small></span></div>
             <div><i class="fa-solid fa-house"></i><span>Verified homes<small>Live results after applying</small></span></div>
           </div>
           <button type="button" class="apply-button" [disabled]="!hasPolygon" (click)="applyArea()">
-            {{ selectedArea ? 'Continue with ' + selectedArea : 'Search this area' }} <i class="fa-solid fa-arrow-right"></i>
+            {{ selectedStreet ? 'Continue with ' + selectedStreet : (selectedArea ? 'Continue with ' + selectedArea : 'Search this area') }} <i class="fa-solid fa-arrow-right"></i>
           </button>
         </div>
       </aside>

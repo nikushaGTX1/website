@@ -401,11 +401,12 @@ export class Main implements OnInit {
     this.closeDrawArea();
     void this.router.navigate(['/ExploreProperty'], {
       queryParams: {
-        mode: this.searchMode,
+        mode: polygon.searchMode || this.searchMode,
         area: 'drawn',
-        propertyType: this.searchPropertyType || null,
-        budget: this.toUsd(this.appliedBudgetMax),
-        bedrooms: this.searchBedrooms || null,
+        location: polygon.streetName || null,
+        propertyType: polygon.propertyType || this.searchPropertyType || null,
+        budget: polygon.budget || this.toUsd(this.appliedBudgetMax),
+        bedrooms: polygon.bedrooms || this.searchBedrooms || null,
       },
     });
   }

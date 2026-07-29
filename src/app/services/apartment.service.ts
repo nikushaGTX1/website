@@ -15,6 +15,11 @@ export interface GeoJsonPolygon {
   type: 'Polygon';
   coordinates: number[][][];
   areaName?: string;
+  streetName?: string;
+  searchMode?: 'rent' | 'buy';
+  propertyType?: string;
+  budget?: number;
+  bedrooms?: string;
 }
 
 @Injectable({

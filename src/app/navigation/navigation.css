@@ -6,9 +6,9 @@
 
 .site-header {
   width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #eef1f6;
-  box-shadow: 0 2px 14px rgba(16, 32, 62, 0.04);
+  background: linear-gradient(90deg, #fff 0%, #fbfaff 48%, #f7f4ff 100%);
+  border-bottom: 1px solid #e9e3ff;
+  box-shadow: 0 5px 20px rgba(90, 49, 230, 0.07);
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -26,26 +26,26 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   color: #5A31E6;
   text-decoration: none;
 }
 
 .brand-mark {
   position: relative;
-  width: 40px;
+  width: 44px;
   height: 50px;
-  flex: 0 0 40px;
+  flex: 0 0 44px;
   overflow: hidden;
 }
 
 .brand-mark img {
   position: absolute;
-  top: -12px;
-  left: -40px;
+  top: -38px;
+  left: -41px;
   display: block;
-  width: 120px;
-  height: 80px;
+  width: 126px;
+  height: 126px;
   max-width: none;
 }
 
@@ -87,7 +87,7 @@
   font-weight: 600;
   white-space: nowrap;
   text-decoration: none;
-  transition: color 0.18s ease;
+  transition: color 0.18s ease, background 0.18s ease;
 }
 
 .nav-links a::after {
@@ -98,6 +98,7 @@
   left: 0;
   height: 2px;
   border-radius: 2px;
+  background: #7657f6;
   transform: scaleX(0);
   transition: transform 0.18s ease;
 }
@@ -105,6 +106,10 @@
 .nav-links a:hover,
 .nav-links a.active {
   color: #5A31E6;
+}
+
+.nav-links a:hover {
+  color: #7657f6;
 }
 
 .nav-links a:hover::after,
@@ -191,7 +196,8 @@
 }
 
 .language-menu button:hover {
-  background: #f2f6fc;
+  color: #6748db;
+  background: #f2eeff;
 }
 
 .language-menu span {
@@ -228,8 +234,9 @@
 .language:hover,
 .sign-in:hover,
 .admin-link:hover {
-  border-color: #b9c8de;
-  background: #f8faff;
+  border-color: #9b86f8;
+  color: #6748db;
+  background: #f2eeff;
 }
 
 .list-property {
@@ -244,7 +251,7 @@
 }
 
 .list-property:hover {
-  background: #5A31E6;
+  background: #7657f6;
   transform: translateY(-1px);
 }
 
@@ -265,10 +272,10 @@
   }
 
   .brand-mark img {
-    top: -10px;
-    left: -34px;
-    width: 102px;
-    height: 68px;
+    top: -33px;
+    left: -36px;
+    width: 108px;
+    height: 108px;
   }
 
   .brand span {
@@ -469,8 +476,8 @@
   }
 
   .menu-toggle[aria-expanded="true"] {
-    border-color: #cbd7ea;
-    background: #f7f9fd;
+    border-color: #9b86f8;
+    background: #f2eeff;
   }
 
   .menu-toggle[aria-expanded="true"] span:first-child {
@@ -494,9 +501,9 @@
     max-height: none;
     padding: 12px 16px 16px;
     overflow: visible;
-    background: #fff;
-    border-bottom: 1px solid #e4eaf3;
-    box-shadow: 0 16px 30px rgba(16, 32, 62, .12);
+    background: linear-gradient(180deg, #fff, #faf8ff);
+    border-bottom: 1px solid #e9e3ff;
+    box-shadow: 0 16px 30px rgba(90, 49, 230, .12);
   }
 
   .navigation-content:not(.is-open) {
@@ -523,7 +530,13 @@
   }
 
   .nav-links a.active {
-    background: #f1f5ff;
+    color: #5A31E6;
+    background: #ebe6ff;
+  }
+
+  .nav-links a:hover {
+    color: #6748db;
+    background: #f2eeff;
   }
 
   .nav-links a::after {

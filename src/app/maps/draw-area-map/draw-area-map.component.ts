@@ -12,6 +12,8 @@
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { GeoJsonPolygon } from '../../services/apartment.service';
+import { ApiLocation } from '../../models/location';
+import { LocationService } from '../../services/location.service';
 
 @Component({
   selector: 'app-draw-area-map',
@@ -30,7 +32,24 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
   errorMessage = '';
   hasPolygon = false;
   areaSearch = '';
+  streetSearch = '';
   selectedArea = '';
+  selectedStreet = '';
+  streetStep = false;
+  locations: ApiLocation[] = [];
+  searchMode: 'rent' | 'buy' = 'rent';
+  propertyType = '';
+  budget: number | null = null;
+  bedrooms = '';
+  validationMessage = '';
+  readonly propertyTypes = ['Apartament', 'House', 'Commercial Place', 'Country house'];
+  readonly bedroomChoices = [
+    { value: '0', label: 'Studio' },
+    { value: '1', label: '1 bedroom' },
+    { value: '2', label: '2 bedrooms' },
+    { value: '3', label: '3 bedrooms' },
+    { value: '4+', label: '4+ bedrooms' },
+  ];
   readonly popularAreas = ['Vake', 'Saburtalo', 'Vera', 'Mtatsminda', 'Digomi', 'Didi Digomi'];
   readonly areaGroups = [
     { title: 'VAKE DISTRICT', areas: ['Vake', 'Bagebi', 'Nutsubidze Plateau', 'Chavchavadze'] },
@@ -59,10 +78,17 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
   private map?: google.maps.Map;
   private draw?: import('terra-draw').TerraDraw;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef, private locationService: LocationService) {}
 
   ngAfterViewInit(): void {
     void this.initializeMap();
+    this.locationService.getLocations().subscribe({
+      next: (locations) => {
+        this.locations = locations.filter((location) => location.city === 'Tbilisi');
+        this.cdr.detectChanges();
+      },
+      error: () => undefined,
+    });
   }
 
   ngOnDestroy(): void {
@@ -73,6 +99,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
     this.draw?.clear();
     this.hasPolygon = false;
     this.selectedArea = '';
+    this.selectedStreet = '';
+    this.streetStep = false;
     this.draw?.setMode('polygon');
   }
 
@@ -82,6 +110,32 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
     return this.areaGroups
       .map((group) => ({ ...group, areas: group.areas.filter((area) => area.toLowerCase().includes(query)) }))
       .filter((group) => group.areas.length);
+  }
+
+  get selectedAreaStreets(): Array<{ label: string; value: string }> {
+    const entry = this.locations.find((location) =>
+      location.district.toLowerCase() === this.selectedArea.toLowerCase(),
+    );
+    const streets = entry ? this.locationService.streetNames(entry, 'en') : [];
+    const query = this.streetSearch.trim().toLowerCase();
+    return streets.filter((street) =>
+      !query || street.label.toLowerCase().includes(query) || street.value.toLowerCase().includes(query),
+    );
+  }
+
+  get popularStreets(): Array<{ label: string; value: string }> {
+    return this.selectedAreaStreets.slice(0, 6);
+  }
+
+  selectStreet(street: { label: string; value: string }): void {
+    this.selectedStreet = street.value;
+    this.streetSearch = '';
+  }
+
+  backToAreas(): void {
+    this.streetStep = false;
+    this.selectedStreet = '';
+    this.streetSearch = '';
   }
 
   chooseArea(area: string): void {
@@ -98,6 +152,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
     const result = this.draw.addFeatures([feature]);
     if (result[0]?.valid) {
       this.selectedArea = area;
+      this.selectedStreet = '';
+      this.streetSearch = '';
+      this.streetStep = true;
       this.hasPolygon = true;
       this.draw.selectFeature(featureId);
       const bounds = new google.maps.LatLngBounds();
@@ -111,7 +168,24 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
 
   applyArea(): void {
     const polygon = this.currentPolygon();
-    if (polygon) this.apply.emit(polygon);
+    const missing: string[] = [];
+    if (!polygon) missing.push('location');
+    if (!this.propertyType) missing.push('property type');
+    if (this.budget == null || this.budget <= 0) missing.push('budget');
+    if (!this.bedrooms) missing.push('bedrooms');
+    if (missing.length) {
+      this.validationMessage = `Please choose ${missing.join(', ')} before searching.`;
+      return;
+    }
+    this.validationMessage = '';
+    this.apply.emit({
+      ...polygon!,
+      searchMode: this.searchMode,
+      propertyType: this.propertyType,
+      budget: this.budget!,
+      bedrooms: this.bedrooms,
+      streetName: this.selectedStreet || undefined,
+    });
   }
 
   handleBackdrop(event: MouseEvent): void {
@@ -212,6 +286,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
           type: 'Polygon',
           coordinates: feature.geometry.coordinates as number[][][],
           areaName: this.selectedArea || undefined,
+          streetName: this.selectedStreet || undefined,
         }
       : null;
   }

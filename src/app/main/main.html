@@ -14,32 +14,13 @@
       <div class="search-fields">
         <label class="location-field location-search" (click)="$event.stopPropagation()">
           <span>Location</span>
-          <div class="field-control" [class.is-open]="locationOpen">
+          <div class="field-control map-location-trigger" role="button" tabindex="0"
+            aria-haspopup="dialog" (click)="openDrawArea()" (keydown.enter)="openDrawArea()"
+            (keydown.space)="openDrawArea(); $event.preventDefault()">
             <b><span class="location-svg" aria-hidden="true"></span></b>
-            <input name="location" [(ngModel)]="searchLocation"
-              placeholder="Search Tbilisi area or street" autocomplete="off" role="combobox"
-              [attr.aria-expanded]="locationOpen" aria-autocomplete="list"
-              (focus)="openLocationSearch()" (input)="onLocationInput()">
-            <i class="fa-solid fa-chevron-down location-chevron" aria-hidden="true"></i>
-          </div>
-          <div class="location-suggestions" role="listbox" *ngIf="locationOpen">
-            <div class="location-status" *ngIf="locationLoading"><i class="fa-solid fa-spinner fa-spin"></i> Loading locations…</div>
-            <div class="location-status error" *ngIf="!locationLoading && locationError">Locations are temporarily unavailable.</div>
-            <ng-container *ngIf="!locationLoading && !locationError">
-              <section *ngIf="areaSuggestions.length">
-                <h3>{{ locationText('Areas', 'უბნები') }}</h3>
-                <button type="button" *ngFor="let suggestion of areaSuggestions" (click)="selectLocation(suggestion)">
-                  <i class="fa-solid fa-location-dot"></i><span><b>{{ suggestion.label }} <em>{{ locationText('Area', 'უბანი') }}</em></b><small>{{ locationText('Tbilisi', 'თბილისი') }}</small></span>
-                </button>
-              </section>
-              <section *ngIf="streetSuggestions.length">
-                <h3>{{ streetGroupTitle }}</h3>
-                <button type="button" *ngFor="let suggestion of streetSuggestions" (click)="selectLocation(suggestion)">
-                  <i class="fa-solid fa-road"></i><span><b>{{ suggestion.label }} <em>{{ locationText('Street', 'ქუჩა') }}</em></b><small>{{ suggestion.district }}</small></span>
-                </button>
-              </section>
-              <div class="location-status" *ngIf="!hasLocationSuggestions">No matching Tbilisi area or street found.</div>
-            </ng-container>
+            <input name="location" [value]="searchLocation"
+              placeholder="Choose an area on the map" readonly tabindex="-1" aria-hidden="true">
+            <i class="fa-solid fa-map-location-dot location-chevron" aria-hidden="true"></i>
           </div>
         </label>
         <label class="property-type-filter" (click)="$event.stopPropagation()">
@@ -125,9 +106,6 @@
         <button class="more-filters-toggle" type="button"
           [attr.aria-expanded]="advancedFiltersOpen"
           (click)="toggleAdvancedFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
-        <button class="more-filters-toggle" type="button" (click)="openDrawArea()">
-          <i class="fa-solid fa-draw-polygon"></i> Draw your area
-        </button>
         </div>
         <button class="ai-home-link" type="button" (click)="openAiHomeMatch()"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</button>
       </div>

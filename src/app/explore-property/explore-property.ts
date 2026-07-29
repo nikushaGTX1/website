@@ -411,12 +411,26 @@ export class ExploreProperty implements OnInit {
   applyDrawnArea(polygon: GeoJsonPolygon): void {
     sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(polygon));
     this.drawnAreaActive = true;
-    this.location = polygon.areaName || 'Selected map area';
-    this.selectedLocationValue = '';
+    this.location = polygon.streetName || polygon.areaName || 'Selected map area';
+    this.selectedLocationValue = polygon.streetName || '';
+    if (polygon.searchMode) this.selectedType = polygon.searchMode === 'buy' ? 'For Sale' : 'For Rent';
+    if (polygon.propertyType) this.homeType = polygon.propertyType;
+    if (polygon.budget) {
+      this.budgetCurrency = 'USD';
+      this.appliedBudgetMax = polygon.budget;
+    }
+    if (polygon.bedrooms) this.headerBedrooms = polygon.bedrooms;
     this.closeDrawArea();
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { area: 'drawn', location: null },
+      queryParams: {
+        area: 'drawn',
+        location: polygon.streetName || null,
+        mode: polygon.searchMode || null,
+        propertyType: polygon.propertyType || null,
+        budget: polygon.budget || null,
+        bedrooms: polygon.bedrooms || null,
+      },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
