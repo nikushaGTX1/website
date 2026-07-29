@@ -353,15 +353,15 @@ img {
 }
 
 .property-type-options button:hover {
-  border-color: #aebfdb;
-  background: #f1f5ff;
-  color: #2459d6;
+  border-color: #9b86f8;
+  background: #f2eeff;
+  color: #7657f6;
 }
 
 .property-type-options button.active {
   border-color: #5A31E6;
-  background: #eaf0ff;
-  color: #2459d6;
+  background: #ebe6ff;
+  color: #5A31E6;
   font-weight: 700;
   box-shadow: inset 0 0 0 1px #5A31E6;
 }
@@ -380,7 +380,23 @@ img {
 }
 
 .property-type-clear:hover {
-  background: #e8ecf2;
+  background: #ece7ff;
+  color: #6748db;
+}
+
+/* Primary purple stays strong; interactive hover uses a lighter violet. */
+.btn-primary-search:hover,
+.search-submit:hover,
+.search-button:hover,
+.apply-button:hover,
+.submit-btn:hover,
+.save-btn:hover,
+.contact.primary:hover,
+.view-details:hover,
+.budget-apply:hover,
+.btn-publish:hover:not(:disabled) {
+  border-color: #7657f6 !important;
+  background: #7657f6 !important;
 }
 
 /* Reload entrance */
