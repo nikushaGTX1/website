@@ -10,6 +10,11 @@ export class LocationService {
   private readonly locationsUrl = `${API_URL}/Locations`;
   private locations$?: Observable<ApiLocation[]>;
   private readonly georgianStreetNames = new Map<string, string>();
+  private readonly streetTranslations: Array<{ english: string; georgian: string }> = [];
+  private readonly manualGeorgianStreetNames = new Map<string, string>([
+    ['kazbegi avenue', 'ალექსანდრე ყაზბეგის გამზირი'],
+    ['kazbegi st.', 'ალექსანდრე ყაზბეგის ქუჩა'],
+  ]);
 
   constructor(private http: HttpClient) {}
 
@@ -65,7 +70,7 @@ export class LocationService {
         label:
           language === 'ka'
             ? street.georgian ||
-              this.georgianStreetNames.get(this.streetKey(street.english)) ||
+              this.findGeorgianStreetName(street.english) ||
               street.english
             : street.english,
       }));
@@ -81,7 +86,7 @@ export class LocationService {
       label:
         localized?.[index] ||
         (language === 'ka'
-          ? this.georgianStreetNames.get(this.streetKey(value))
+          ? this.findGeorgianStreetName(value)
           : undefined) ||
         value,
     }));
@@ -89,15 +94,13 @@ export class LocationService {
 
   private indexApiStreetTranslations(locations: ApiLocation[]): void {
     this.georgianStreetNames.clear();
+    this.streetTranslations.length = 0;
 
     for (const location of locations) {
       if (location.streets?.length) {
         for (const street of location.streets) {
           if (street.georgian?.trim()) {
-            this.georgianStreetNames.set(
-              this.streetKey(street.english),
-              street.georgian.trim(),
-            );
+            this.addStreetTranslation(street.english, street.georgian);
           }
         }
         continue;
@@ -113,7 +116,7 @@ export class LocationService {
       (location.streetNames || []).forEach((english, index) => {
         const georgian = localized?.[index]?.trim();
         if (georgian) {
-          this.georgianStreetNames.set(this.streetKey(english), georgian);
+          this.addStreetTranslation(english, georgian);
         }
       });
     }
@@ -130,5 +133,58 @@ export class LocationService {
       .replace(/\b(street|str|st)\b\.?/g, '')
       .replace(/mckh|mcx|mtskh/g, 'mtskh')
       .replace(/[^a-z0-9\u10a0-\u10ff]/g, '');
+  }
+
+  private addStreetTranslation(english: string, georgian: string): void {
+    const translated = georgian.trim();
+    this.georgianStreetNames.set(this.streetKey(english), translated);
+    this.streetTranslations.push({ english, georgian: translated });
+  }
+
+  private findGeorgianStreetName(english: string): string | undefined {
+    const manual = this.manualGeorgianStreetNames.get(
+      english.trim().toLowerCase().replace(/\s+/g, ' '),
+    );
+    if (manual) return manual;
+
+    const exact = this.georgianStreetNames.get(this.streetKey(english));
+    if (exact) return exact;
+
+    const sourceType = this.streetType(english);
+    const sourceTokens = this.significantStreetTokens(english);
+    if (!sourceTokens.length) return undefined;
+
+    const matches = this.streetTranslations
+      .filter(({ english: candidate }) =>
+        (!sourceType || this.streetType(candidate) === sourceType) &&
+        sourceTokens.every((token) =>
+          this.significantStreetTokens(candidate).includes(token),
+        ),
+      )
+      .map(({ georgian }) => georgian)
+      .filter((value, index, values) => values.indexOf(value) === index);
+
+    return matches.length === 1 ? matches[0] : undefined;
+  }
+
+  private significantStreetTokens(value: string): string[] {
+    const ignored = new Set([
+      'street', 'st', 'avenue', 'ave', 'road', 'rd', 'lane', 'ln',
+      'square', 'highway', 'hwy', 'alley', 'the',
+    ]);
+    return value
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((token) => token && !ignored.has(token));
+  }
+
+  private streetType(value: string): string | undefined {
+    const tokens = value.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+    if (tokens.some((token) => token === 'avenue' || token === 'ave')) return 'avenue';
+    if (tokens.some((token) => token === 'street' || token === 'st')) return 'street';
+    if (tokens.some((token) => token === 'lane' || token === 'ln')) return 'lane';
+    if (tokens.some((token) => token === 'road' || token === 'rd')) return 'road';
+    if (tokens.includes('square')) return 'square';
+    return undefined;
   }
 }
