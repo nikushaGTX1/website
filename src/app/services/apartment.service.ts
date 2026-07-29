@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { concat, EMPTY, Observable, of } from 'rxjs';
-import { catchError, map, shareReplay, tap } from 'rxjs/operators';
+import { catchError, expand, map, reduce, shareReplay, tap } from 'rxjs/operators';
 import { Apartment, CreateApartment } from '../models/apartment';
 import { API_URL } from '../utils/api-config';
 import { toMediaUrl } from '../utils/api-media';
@@ -31,9 +31,20 @@ export class ApartmentService {
     if (!this.apartmentsCache$ || cacheExpired) {
       const persistedApartments = this.readPersistedApartments();
       this.apartmentsCacheCreatedAt = Date.now();
+      const pageSize = 100;
       const networkRequest$ = this.http
-        .get<Apartment[]>(this.apiUrl)
+        .get<Apartment[]>(this.apiUrl, {
+          params: { page: 1, pageSize },
+        })
         .pipe(
+          expand((page, index) =>
+            page.length === pageSize
+              ? this.http.get<Apartment[]>(this.apiUrl, {
+                  params: { page: index + 2, pageSize },
+                })
+              : EMPTY,
+          ),
+          reduce((all, page) => [...all, ...page], [] as Apartment[]),
           map((apartments) => apartments.map((apartment) => this.normalizeImages(apartment))),
           tap((apartments) => this.persistApartments(apartments)),
           catchError((error) => {
