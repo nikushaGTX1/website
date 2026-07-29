@@ -128,7 +128,8 @@
 
   <div class="page-shell">
     <div class="results-header">
-      <span class="count"><strong>{{ filteredApartments.length | number }}</strong> properties found</span>
+      <span class="count"><strong>{{ filteredApartments.length | number }}</strong>
+        {{ drawnAreaActive ? 'homes found in your selected area' : 'properties found' }}</span>
       <div class="sort-by"><label>Sort by:</label>
         <select (change)="onSortChange($event)"><option value="newest">Newest</option>
           <option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option></select>

@@ -24,6 +24,7 @@ import { AiConciergePageComponent } from './ai-property-concierge/ai-concierge-p
 import { ConciergeResultsComponent } from './ai-property-concierge/concierge-results/concierge-results.component';
 import { LifestyleAvatarComponent } from './ai-property-concierge/lifestyle-avatar/lifestyle-avatar.component';
 import { GooglePropertyMapComponent } from './maps/google-property-map/google-property-map.component';
+import { DrawAreaMapComponent } from './maps/draw-area-map/draw-area-map.component';
 import { AiHomeMatchPageComponent } from './ai-home-match/ai-home-match-page/ai-home-match-page.component';
 import { HomeMatchResultsComponent } from './ai-home-match/home-match-results/home-match-results.component';
 import { HomeProfileSummaryComponent } from './ai-home-match/home-profile-summary/home-profile-summary.component';
@@ -54,6 +55,7 @@ import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile'
     ConciergeResultsComponent,
     LifestyleAvatarComponent,
     GooglePropertyMapComponent,
+    DrawAreaMapComponent,
     AiHomeMatchPageComponent,
     HomeMatchResultsComponent,
     HomeProfileSummaryComponent,

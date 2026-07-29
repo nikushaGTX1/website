@@ -1,0 +1,32 @@
+:host { position: fixed; inset: 0; z-index: 10000; }
+:host.is-hidden { display: none; }
+.draw-backdrop { width: 100%; height: 100%; display: grid; place-items: center; padding: 24px; background: rgba(10, 20, 42, .58); backdrop-filter: blur(5px); }
+.draw-dialog { width: min(1080px, 100%); overflow: hidden; border: 1px solid #e6eaf1; border-radius: 22px; background: #fff; box-shadow: 0 28px 80px rgba(10, 20, 42, .28); }
+header { display: flex; justify-content: space-between; gap: 24px; padding: 26px 30px 20px; }
+header span { color: #2563eb; font-size: 11px; font-weight: 800; letter-spacing: .15em; }
+h2 { margin: 5px 0; color: #101b36; font-family: "Playfair Display", serif; font-size: clamp(25px, 3vw, 34px); }
+p { margin: 0; color: #667085; font-size: 14px; }
+button { border: 0; font: inherit; cursor: pointer; }
+.close-button { width: 42px; height: 42px; flex: 0 0 auto; border-radius: 50%; color: #526079; background: #f4f6f9; }
+.map-shell { position: relative; margin: 0 30px; overflow: hidden; border: 1px solid #e5e9f0; border-radius: 16px; background: #eef3f8; }
+.draw-map { width: 100%; height: min(56vh, 560px); min-height: 390px; }
+.map-message, .map-tip { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); padding: 11px 16px; border: 1px solid #dce5f5; border-radius: 12px; color: #334155; background: rgba(255,255,255,.96); box-shadow: 0 8px 24px rgba(25,45,80,.14); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.map-tip i { margin-right: 8px; color: #2563eb; }
+.map-message.error { color: #b42318; }
+footer { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 20px 30px 26px; }
+footer span { color: #18794e; font-size: 13px; font-weight: 700; }
+.clear-button, .apply-button { min-height: 46px; padding: 0 20px; border-radius: 11px; font-weight: 750; }
+.clear-button { color: #475467; background: #f3f5f8; }
+.apply-button { color: white; background: linear-gradient(135deg, #2c64ea, #1655ec); box-shadow: 0 10px 24px rgba(37,99,235,.24); }
+button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+@media (max-width: 700px) {
+  .draw-backdrop { padding: 0; }
+  .draw-dialog { width: 100%; height: 100%; border: 0; border-radius: 0; display: flex; flex-direction: column; }
+  header { padding: 18px 18px 14px; }
+  header p { font-size: 12px; }
+  .map-shell { flex: 1; margin: 0; border-inline: 0; border-radius: 0; }
+  .draw-map { height: 100%; min-height: 420px; }
+  footer { grid-template-columns: auto 1fr; padding: 14px 16px; }
+  footer span { display: none; }
+  .apply-button { width: 100%; }
+}

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { Apartment } from '../models/apartment';
-import { ApartmentService } from '../services/apartment.service';
+import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -63,6 +63,7 @@ export class ExploreProperty implements OnInit {
   locationDisplayLanguage: 'en' | 'ka' = 'ka';
   headerBedrooms = '';
   featureFilter = '';
+  drawnAreaActive = false;
 
   selectedPriceMax = 3000;
   selectedBedrooms: string[] = [];
@@ -327,6 +328,7 @@ export class ExploreProperty implements OnInit {
     this.homeType = params.get('propertyType') || '';
     this.headerBedrooms = params.get('bedrooms') || '';
     this.featureFilter = params.get('feature') || '';
+    this.drawnAreaActive = params.get('area') === 'drawn';
     const budget = Number(params.get('budget'));
     if (budget > 0) this.selectedPriceMax = budget;
     this.loadApartments();
@@ -357,7 +359,12 @@ export class ExploreProperty implements OnInit {
     this.errorMessage = '';
     this.cdr.detectChanges();
 
-    this.apartmentService.getApartments().subscribe({
+    const polygon = this.readDrawnArea();
+    const apartmentsRequest = this.drawnAreaActive && polygon
+      ? this.apartmentService.getApartmentsWithinArea(polygon)
+      : this.apartmentService.getApartments();
+
+    apartmentsRequest.subscribe({
       next: (apartments) => {
         this.apartments = apartments;
         this.onSearch(); // Perform initial search on page load
@@ -373,6 +380,19 @@ export class ExploreProperty implements OnInit {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  private readDrawnArea(): GeoJsonPolygon | null {
+    try {
+      const value = sessionStorage.getItem('white-tower-drawn-area');
+      if (!value) return null;
+      const polygon = JSON.parse(value) as GeoJsonPolygon;
+      return polygon?.type === 'Polygon' && Array.isArray(polygon.coordinates)
+        ? polygon
+        : null;
+    } catch {
+      return null;
+    }
   }
 
   

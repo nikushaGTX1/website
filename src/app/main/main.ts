@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
-import { ApartmentService } from '../services/apartment.service';
+import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
 import { Apartment } from '../models/apartment';
@@ -57,6 +57,8 @@ export class Main implements OnInit {
   readonly propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
   searchBedrooms = '';
   public advancedFiltersOpen = false;
+  drawAreaOpen = false;
+  drawAreaInitialized = false;
 
   constructor(
     private apartmentService: ApartmentService,
@@ -381,6 +383,31 @@ export class Main implements OnInit {
 
   public openAiHomeMatch(): void {
     void this.router.navigate(['/ai-home-match']);
+  }
+
+  openDrawArea(): void {
+    this.drawAreaInitialized = true;
+    this.drawAreaOpen = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeDrawArea(): void {
+    this.drawAreaOpen = false;
+    document.body.style.overflow = '';
+  }
+
+  applyDrawnArea(polygon: GeoJsonPolygon): void {
+    sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(polygon));
+    this.closeDrawArea();
+    void this.router.navigate(['/ExploreProperty'], {
+      queryParams: {
+        mode: this.searchMode,
+        area: 'drawn',
+        propertyType: this.searchPropertyType || null,
+        budget: this.toUsd(this.appliedBudgetMax),
+        bedrooms: this.searchBedrooms || null,
+      },
+    });
   }
 
   private isDisplayableApartment(apartment: Apartment): boolean {

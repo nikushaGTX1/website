@@ -42,8 +42,26 @@
     </aside>
 
     <form class="upload-main" (ngSubmit)="publish()">
-      <div class="review-message" *ngFor="let message of userMessages">
-        {{ message.message || 'Your post was declined.' }}
+      <div
+        class="review-message"
+        role="alert"
+        *ngFor="let message of userMessages; trackBy: identifyNotification"
+      >
+        <span class="review-message-icon"><i class="fa-solid fa-circle-exclamation"></i></span>
+        <span class="review-message-copy">
+          <strong>Listing not approved</strong>
+          <small>{{ message.apartment.title }}</small>
+          <span>{{ message.message || 'Your post was declined.' }}</span>
+        </span>
+        <button
+          type="button"
+          class="review-message-close"
+          aria-label="Dismiss notification"
+          title="Dismiss"
+          (click)="dismissNotification(message)"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
       <section class="form-section">

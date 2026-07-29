@@ -11,6 +11,11 @@ interface ApartmentMutationResponse {
   apartment?: Apartment;
 }
 
+export interface GeoJsonPolygon {
+  type: 'Polygon';
+  coordinates: number[][][];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -79,6 +84,18 @@ export class ApartmentService {
         throw error;
       }),
     );
+  }
+
+  getApartmentsWithinArea(polygon: GeoJsonPolygon): Observable<Apartment[]> {
+    return this.http
+      .post<Apartment[]>(`${API_URL}/apartments/within-area`, {
+        type: 'Feature',
+        properties: {},
+        geometry: polygon,
+      })
+      .pipe(
+        map((apartments) => apartments.map((apartment) => this.normalizeImages(apartment))),
+      );
   }
 
   createApartment(data: CreateApartment): Observable<ApartmentMutationResponse> {

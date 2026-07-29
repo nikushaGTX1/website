@@ -1,5 +1,6 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { ApartmentService } from '../services/apartment.service';
 import { CreateApartment } from '../models/apartment';
 import { AuthService } from '../services/auth.service';
@@ -71,7 +72,7 @@ interface PreparedImage {
   templateUrl: './upload-apartaments.html',
   styleUrl: './upload-apartment.css',
 })
-export class UploadApartment implements OnInit {
+export class UploadApartment implements OnInit, OnDestroy {
   readonly maxImages = 15;
 
   readonly steps = [
@@ -172,6 +173,9 @@ export class UploadApartment implements OnInit {
   locationPicker: 'area' | 'street' | null = null;
   selectedDistrictValue = '';
   selectedStreetValue = '';
+  private readonly dismissedNotificationsKey = 'dismissedApartmentApprovalNotifications';
+  private readonly subscriptions = new Subscription();
+  private dismissedNotificationIds = new Set<string>();
 
   constructor(
     private apartmentService: ApartmentService,
@@ -179,13 +183,15 @@ export class UploadApartment implements OnInit {
     private pendingService: PendingApartmentService,
     private locationService: LocationService,
   ) {
-    this.userMessages = this.pendingService
-      .getForUser(this.authService.currentUser)
-      .filter((item) => item.status === 'declined');
+    this.dismissedNotificationIds = this.readDismissedNotificationIds();
+    this.subscriptions.add(
+      this.pendingService.pendingApartments$.subscribe(() => this.refreshUserMessages()),
+    );
     this.pendingDebug = this.pendingService.getStorageDebug();
   }
 
   ngOnInit(): void {
+    this.pendingService.refresh();
     this.locationLoading = true;
     this.locationService.getLocations().subscribe({
       next: (locations) => {
@@ -197,6 +203,43 @@ export class UploadApartment implements OnInit {
         this.locationError = true;
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  dismissNotification(message: PendingApartment): void {
+    this.dismissedNotificationIds.add(message.id);
+    localStorage.setItem(
+      this.dismissedNotificationsKey,
+      JSON.stringify([...this.dismissedNotificationIds]),
+    );
+    this.refreshUserMessages();
+  }
+
+  identifyNotification(_: number, message: PendingApartment): string {
+    return message.id;
+  }
+
+  private refreshUserMessages(): void {
+    this.userMessages = this.pendingService
+      .getForUser(this.authService.currentUser)
+      .filter(
+        (item) =>
+          item.status === 'declined' &&
+          !this.dismissedNotificationIds.has(item.id),
+      );
+    this.pendingDebug = this.pendingService.getStorageDebug();
+  }
+
+  private readDismissedNotificationIds(): Set<string> {
+    try {
+      const ids = JSON.parse(localStorage.getItem(this.dismissedNotificationsKey) || '[]');
+      return new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === 'string') : []);
+    } catch {
+      return new Set<string>();
+    }
   }
 
   @HostListener('document:click')

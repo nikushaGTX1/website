@@ -1,0 +1,31 @@
+<div class="draw-backdrop" role="presentation" (click)="handleBackdrop($event)">
+  <section class="draw-dialog" role="dialog" aria-modal="true" aria-labelledby="draw-area-title">
+    <header>
+      <div>
+        <span>MAP SEARCH</span>
+        <h2 id="draw-area-title">Draw your preferred area</h2>
+        <p>Click around the map to outline where you want to live. You can drag any point to adjust it.</p>
+      </div>
+      <button type="button" class="close-button" aria-label="Close map" (click)="close.emit()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </header>
+    <div class="map-shell">
+      <div #mapContainer class="draw-map" aria-label="Map of Tbilisi"></div>
+      <div class="map-message" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading map…</div>
+      <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
+      <div class="map-tip" *ngIf="!loading && !errorMessage && !hasPolygon">
+        <i class="fa-solid fa-draw-polygon"></i> Tap points on the map to start drawing
+      </div>
+    </div>
+    <footer>
+      <button type="button" class="clear-button" [disabled]="!hasPolygon" (click)="clearArea()">
+        <i class="fa-solid fa-trash-can"></i> Clear
+      </button>
+      <span *ngIf="hasPolygon"><i class="fa-solid fa-circle-check"></i> Area ready — edit or apply</span>
+      <button type="button" class="apply-button" [disabled]="!hasPolygon" (click)="applyArea()">
+        Apply area <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </footer>
+  </section>
+</div>

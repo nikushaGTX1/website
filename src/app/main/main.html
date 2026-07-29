@@ -121,9 +121,14 @@
       </div>
 
       <div class="search-footer">
+        <div class="search-footer-left">
         <button class="more-filters-toggle" type="button"
           [attr.aria-expanded]="advancedFiltersOpen"
           (click)="toggleAdvancedFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
+        <button class="more-filters-toggle" type="button" (click)="openDrawArea()">
+          <i class="fa-solid fa-draw-polygon"></i> Draw your area
+        </button>
+        </div>
         <button class="ai-home-link" type="button" (click)="openAiHomeMatch()"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</button>
       </div>
 
@@ -244,3 +249,10 @@
     </div>
   </section>
 </main>
+
+<app-draw-area-map
+  *ngIf="drawAreaInitialized"
+  [visible]="drawAreaOpen"
+  (close)="closeDrawArea()"
+  (apply)="applyDrawnArea($event)">
+</app-draw-area-map>

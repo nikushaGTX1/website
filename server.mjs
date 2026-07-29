@@ -400,6 +400,78 @@ app.post(
   },
 );
 
+function pointInsideRing(longitude, latitude, ring) {
+  let inside = false;
+  for (let current = 0, previous = ring.length - 1; current < ring.length; previous = current++) {
+    const [currentLongitude, currentLatitude] = ring[current];
+    const [previousLongitude, previousLatitude] = ring[previous];
+    const crosses = (currentLatitude > latitude) !== (previousLatitude > latitude)
+      && longitude < ((previousLongitude - currentLongitude) * (latitude - currentLatitude))
+        / (previousLatitude - currentLatitude) + currentLongitude;
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+function pointInsidePolygon(longitude, latitude, coordinates) {
+  if (!pointInsideRing(longitude, latitude, coordinates[0])) return false;
+  return coordinates.slice(1).every((hole) => !pointInsideRing(longitude, latitude, hole));
+}
+
+app.post(
+  '/api/apartments/within-area',
+  express.json({ limit: '128kb' }),
+  async (request, response) => {
+    try {
+      const geometry = request.body?.type === 'Feature'
+        ? request.body.geometry
+        : request.body;
+      const coordinates = geometry?.coordinates;
+      const ring = coordinates?.[0];
+      const validRing = geometry?.type === 'Polygon'
+        && Array.isArray(ring)
+        && ring.length >= 4
+        && ring.length <= 1000
+        && ring.every((position) =>
+          Array.isArray(position)
+          && position.length >= 2
+          && Number.isFinite(Number(position[0]))
+          && Number.isFinite(Number(position[1]))
+          && Number(position[0]) >= -180
+          && Number(position[0]) <= 180
+          && Number(position[1]) >= -90
+          && Number(position[1]) <= 90
+        );
+
+      if (!validRing) {
+        response.status(400).json({ message: 'A valid GeoJSON Polygon is required.' });
+        return;
+      }
+
+      const apiResponse = await fetchPublicApi('/api/Apartments?page=1&pageSize=1000', false);
+      if (apiResponse.status < 200 || apiResponse.status >= 300) {
+        response.status(502).json({ message: 'Properties are temporarily unavailable.' });
+        return;
+      }
+
+      const apartments = JSON.parse(apiResponse.body.toString('utf8'));
+      const matches = (Array.isArray(apartments) ? apartments : []).filter((apartment) => {
+        const latitude = Number(apartment.latitude ?? apartment.Latitude);
+        const longitude = Number(apartment.longitude ?? apartment.Longitude);
+        return Number.isFinite(latitude)
+          && Number.isFinite(longitude)
+          && pointInsidePolygon(longitude, latitude, coordinates);
+      });
+
+      response.setHeader('Cache-Control', 'no-store');
+      response.json(matches);
+    } catch (error) {
+      console.error('Draw Area search error:', error);
+      response.status(500).json({ message: 'Could not search within the selected area.' });
+    }
+  },
+);
+
 function compressedApiBody(request, response, apiResponse) {
   if (apiResponse.body.length < 1024) {
     return apiResponse.body;
