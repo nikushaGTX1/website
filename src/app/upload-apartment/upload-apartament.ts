@@ -228,20 +228,36 @@ export class UploadApartment implements OnInit {
     const language = this.locationService.languageForQuery(this.form.street, this.form.location);
     if (!this.selectedDistrictValue && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
+    const seen = new Set<string>();
 
-    for (const entry of this.locationEntries.filter((item) =>
-      item.city === 'Tbilisi' &&
-      (!this.selectedDistrictValue || item.district === this.selectedDistrictValue),
+    const selectedArea = this.locationEntries.find((item) =>
+      item.city === 'Tbilisi' && item.district === this.selectedDistrictValue,
+    );
+    const citywideCatalog = this.locationEntries.find((item) =>
+      item.city === 'Tbilisi' && item.district === 'All Tbilisi',
+    );
+
+    for (const entry of [selectedArea, citywideCatalog].filter(
+      (item): item is ApiLocation => !!item,
     )) {
       for (const street of this.locationService.streetNames(entry, language)) {
-        if (!query || street.value.toLowerCase().includes(query) || street.label.toLowerCase().includes(query)) {
+        const key = street.value.trim().toLowerCase();
+        if (
+          !seen.has(key) &&
+          (!query ||
+            street.value.toLowerCase().includes(query) ||
+            street.label.toLowerCase().includes(query))
+        ) {
+          seen.add(key);
           suggestions.push({
             label: street.label,
             value: street.value,
             type: 'Street',
-            district: this.locationService.districtName(entry, language),
-            districtValue: entry.district,
-            region: entry.region,
+            district: selectedArea
+              ? this.locationService.districtName(selectedArea, language)
+              : this.form.location,
+            districtValue: this.selectedDistrictValue,
+            region: selectedArea?.region,
           });
           if (suggestions.length === 10) return suggestions;
         }

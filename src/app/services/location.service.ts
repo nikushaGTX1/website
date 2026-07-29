@@ -11,10 +11,6 @@ export class LocationService {
   private locations$?: Observable<ApiLocation[]>;
   private readonly georgianStreetNames = new Map<string, string>();
   private readonly streetTranslations: Array<{ english: string; georgian: string }> = [];
-  private readonly manualGeorgianStreetNames = new Map<string, string>([
-    ['kazbegi avenue', 'ალექსანდრე ყაზბეგის გამზირი'],
-    ['kazbegi st.', 'ალექსანდრე ყაზბეგის ქუჩა'],
-  ]);
 
   constructor(private http: HttpClient) {}
 
@@ -142,11 +138,6 @@ export class LocationService {
   }
 
   private findGeorgianStreetName(english: string): string | undefined {
-    const manual = this.manualGeorgianStreetNames.get(
-      english.trim().toLowerCase().replace(/\s+/g, ' '),
-    );
-    if (manual) return manual;
-
     const exact = this.georgianStreetNames.get(this.streetKey(english));
     if (exact) return exact;
 
