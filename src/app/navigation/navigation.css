@@ -26,16 +26,27 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 9px;
   color: #5A31E6;
   text-decoration: none;
 }
 
-.brand img {
-  display: block;
+.brand-mark {
+  position: relative;
+  width: 40px;
   height: 50px;
-  width: auto;
+  flex: 0 0 40px;
+  overflow: hidden;
+}
+
+.brand-mark img {
+  position: absolute;
+  top: -12px;
+  left: -40px;
+  display: block;
+  width: 120px;
+  height: 80px;
+  max-width: none;
 }
 
 .brand span {
@@ -247,8 +258,17 @@
     padding-inline: 24px;
   }
 
-  .brand img {
-    height: 28px;
+  .brand-mark {
+    width: 34px;
+    height: 42px;
+    flex-basis: 34px;
+  }
+
+  .brand-mark img {
+    top: -10px;
+    left: -34px;
+    width: 102px;
+    height: 68px;
   }
 
   .brand span {
@@ -272,10 +292,6 @@
   .navigation {
     min-height: 68px;
     justify-content: space-between;
-  }
-
-  .brand img {
-    height: 31px;
   }
 
   .brand span {
@@ -386,10 +402,6 @@
     padding-inline: max(12px, env(safe-area-inset-left));
   }
 
-  .brand img {
-    height: 29px;
-  }
-
   .brand span {
     font-size: 21px;
   }
@@ -436,12 +448,6 @@
   .brand {
     min-width: 0;
     max-width: calc(100% - 58px);
-  }
-
-  .brand img {
-    width: auto;
-    max-width: min(170px, 54vw);
-    height: 32px;
   }
 
   .menu-toggle {
