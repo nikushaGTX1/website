@@ -111,7 +111,7 @@
 }
 .rating > i {
   margin-left: 8px;
-  color: #c9974d;
+  color: #D8DCE5;
 }
 .agent-meta {
   display: grid;
@@ -182,7 +182,7 @@
 }
 .stats > div > i {
   width: 28px;
-  color: #c9974d;
+  color: #D8DCE5;
   font-size: 23px;
   text-align: center;
 }
@@ -226,7 +226,7 @@
   width: 35px;
   height: 2px;
   margin-top: 10px;
-  background: #c9974d;
+  background: #D8DCE5;
 }
 .about p {
   color: #46546b;
@@ -238,7 +238,7 @@
   justify-content: space-between;
 }
 .focus h2 > i {
-  color: #c9974d;
+  color: #D8DCE5;
   font-size: 20px;
 }
 .focus h3 {

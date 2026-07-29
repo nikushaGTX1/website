@@ -26,8 +26,9 @@
 }
 
 .footer-logo img {
-  width: 132px;
+  width: auto;
   height: 38px;
+  max-width: 100%;
   object-fit: contain;
   object-position: left center;
 }

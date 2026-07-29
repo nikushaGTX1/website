@@ -32,7 +32,6 @@
 }
 
 .brand-mark {
-  position: relative;
   width: 44px;
   height: 50px;
   flex: 0 0 44px;
@@ -40,16 +39,16 @@
 }
 
 .brand-mark img {
-  position: absolute;
-  top: -38px;
-  left: -41px;
   display: block;
-  width: 126px;
-  height: 126px;
-  max-width: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.75);
+  transform-origin: center;
 }
 
-.brand span {
+.brand-name {
   font-family: "Playfair Display", Georgia, serif;
   font-size: 27px;
   font-weight: 500;
@@ -122,7 +121,7 @@
 }
 
 .ai-link span {
-  color: #c9974d;
+  color: #D8DCE5;
   font-size: 16px;
 }
 
@@ -266,19 +265,12 @@
   }
 
   .brand-mark {
-    width: 34px;
-    height: 42px;
-    flex-basis: 34px;
+    width: 38px;
+    height: 44px;
+    flex-basis: 38px;
   }
 
-  .brand-mark img {
-    top: -33px;
-    left: -36px;
-    width: 108px;
-    height: 108px;
-  }
-
-  .brand span {
+  .brand-name {
     font-size: 24px;
   }
 
@@ -301,7 +293,7 @@
     justify-content: space-between;
   }
 
-  .brand span {
+  .brand-name {
     font-size: 23px;
   }
 
@@ -409,7 +401,7 @@
     padding-inline: max(12px, env(safe-area-inset-left));
   }
 
-  .brand span {
+  .brand-name {
     font-size: 21px;
   }
 

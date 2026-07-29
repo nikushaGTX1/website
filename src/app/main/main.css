@@ -52,7 +52,7 @@
   letter-spacing: -0.04em;
 }
 .hero h1 em {
-  color: #c9974d;
+  color: #D8DCE5;
   font-weight: 400;
 }
 .hero-copy p {
@@ -235,8 +235,8 @@
 .search-footer .ai-home-link {
   margin-left: auto;
   min-width: 230px;
-  border-color: #c9974d;
-  color: #c9974d;
+  border-color: #D8DCE5;
+  color: #D8DCE5;
   line-height: 1.2;
   position: relative;
   z-index: 4;
@@ -320,7 +320,7 @@
   padding: 9px 14px;
   border-radius: 10px;
   background: #fff;
-  color: #c9974d;
+  color: #D8DCE5;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -331,7 +331,7 @@
 }
 .property-card:nth-child(3) .property-badge {
   background: #fff;
-  color: #c9974d;
+  color: #D8DCE5;
 }
 .favorite {
   position: absolute;
