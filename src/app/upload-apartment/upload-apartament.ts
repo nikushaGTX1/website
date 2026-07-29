@@ -439,11 +439,11 @@ export class UploadApartment implements OnInit {
 
     this.loading = true;
 
-    if (!this.authService.isAgent) {
+    if (!this.authService.isAdmin) {
       this.pendingService.submit(this.toCreateApartment(false), this.authService.currentUser);
       this.pendingDebug = this.pendingService.getStorageDebug();
       this.loading = false;
-      this.successMessage = 'Your apartment was sent for agent confirmation. It will be published after approval.';
+      this.successMessage = 'Your apartment was sent for admin confirmation. It will be published after approval.';
       return;
     }
 
