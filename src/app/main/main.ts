@@ -515,6 +515,43 @@ export class Main implements OnInit {
     return apartment.address?.trim() || 'Address not provided';
   }
 
+  getApartmentLocationLabel(apartment: Apartment): string {
+    const city = apartment.city?.trim() || 'Tbilisi';
+    let district = apartment.district?.trim() || '';
+
+    if (!district) {
+      const locationText = [
+        apartment.address,
+        apartment.region,
+        apartment.street,
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      const matchedArea = this.locationEntries.find((entry) => {
+        const names = [
+          entry.district,
+          this.locationService.districtName(entry, 'en'),
+          this.locationService.districtName(entry, 'ka'),
+        ].filter(Boolean).map((name) => name.toLowerCase());
+        if (names.some((name) => locationText.includes(name))) return true;
+        return this.locationService.streetNames(entry, 'en').some((street) =>
+          locationText.includes(street.label.toLowerCase()) ||
+          locationText.includes(street.value.toLowerCase()),
+        );
+      });
+      district = matchedArea ? this.locationService.districtName(matchedArea, 'en') : '';
+    }
+
+    if (!district) return city;
+    const matchedDistrict = this.locationEntries.find((entry) =>
+      entry.district.toLowerCase() === district.toLowerCase() ||
+      this.locationService.districtName(entry, 'ka').toLowerCase() === district.toLowerCase(),
+    );
+    const districtLabel = matchedDistrict
+      ? this.locationService.districtName(matchedDistrict, 'en')
+      : district;
+    return `${city} District (${districtLabel})`;
+  }
+
   getApartmentDescription(apartment: Apartment): string {
     return apartment.description?.trim() || 'No description provided.';
   }

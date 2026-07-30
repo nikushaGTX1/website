@@ -301,7 +301,7 @@
         <div class="property-info">
           <h3><app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price></h3>
           <strong class="property-title">{{ getApartmentTitle(apartment) }}</strong>
-          <p class="property-address"><i class="fa-solid fa-location-dot"></i> Tbilisi</p>
+          <p class="property-address"><i class="fa-solid fa-location-dot"></i> {{ getApartmentLocationLabel(apartment) }}</p>
           <div class="property-meta">
             <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
             <span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span>
@@ -322,7 +322,7 @@
   </section>
 
   <section class="content-section why-us">
-    <div class="section-heading compact"><div><span class="eyebrow">Built around trust</span><h2>Why White Tower</h2></div></div>
+    <div class="section-heading compact"><div><span class="eyebrow">Built around trust</span><h2>Why Velven</h2></div></div>
     <div class="benefit-grid">
       <article><i>✓</i><div><h3>Verified Listings</h3><p>Every property is reviewed for your peace of mind.</p></div></article>
       <article><i>▤</i><div><h3>No Duplicate Listings</h3><p>Only clear, unique options you can rely on.</p></div></article>
@@ -375,10 +375,10 @@
   <section class="content-section testimonials">
     <div class="section-heading compact"><div><span class="eyebrow">Real experiences</span><h2>What our clients say</h2></div></div>
     <div class="testimonial-grid">
-      <article><q>White Tower made finding our dream home so easy. The listings are real, the filters are smart, and our agent was incredible.</q><div><img src="/agent1.jpg" alt=""><p><strong>Sarah A.</strong><span>★★★★★ · Tbilisi</span></p></div></article>
+      <article><q>Velven made finding our dream home so easy. The listings are real, the filters are smart, and our agent was incredible.</q><div><img src="/agent1.jpg" alt=""><p><strong>Sarah A.</strong><span>★★★★★ · Tbilisi</span></p></div></article>
       <article><q>The AI match feature showed us homes we didn’t even know existed. We found the perfect place within a week.</q><div><img src="/agent2.jpg" alt=""><p><strong>Omar K.</strong><span>★★★★★ · Vake</span></p></div></article>
-      <article><q>Transparent, professional and efficient. White Tower is now our go-to platform for all real estate needs.</q><div><img src="/agent3.jpg" alt=""><p><strong>Maya K.</strong><span>★★★★★ · Saburtalo</span></p></div></article>
-      <aside><div><span class="eyebrow">For owners</span><h2>Own a property?</h2><p>List with White Tower and connect with thousands of serious renters and buyers.</p><a routerLink="/upload-apartment">List your property</a></div><b>⌂</b></aside>
+      <article><q>Transparent, professional and efficient. Velven is now our go-to platform for all real estate needs.</q><div><img src="/agent3.jpg" alt=""><p><strong>Maya K.</strong><span>★★★★★ · Saburtalo</span></p></div></article>
+      <aside><div><span class="eyebrow">For owners</span><h2>Own a property?</h2><p>List with Velven and connect with thousands of serious renters and buyers.</p><a routerLink="/upload-apartment">List your property</a></div><b>⌂</b></aside>
     </div>
   </section>
 </main>
