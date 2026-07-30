@@ -41,28 +41,28 @@
                   <h3>Popular areas</h3>
                   <div class="featured-area-grid">
                     <button type="button" *ngFor="let area of featuredLocationAreas"
-                      [class.selected]="selectedLocationArea === area.name" (click)="chooseAreaForModal(area.name)">
+                      [class.selected]="isAreaSelected(area.name)" (click)="chooseAreaForModal(area.name)">
                       <i [class]="area.icon" aria-hidden="true"></i>
                       <span><b>{{ area.name }}</b><small>{{ area.description }}</small></span>
-                      <i class="fa-solid fa-circle-check area-check" *ngIf="selectedLocationArea === area.name"></i>
+                      <i class="fa-solid fa-circle-check area-check" *ngIf="isAreaSelected(area.name)"></i>
                     </button>
                   </div>
                   <h3>All areas</h3>
                   <div class="all-area-grid">
                     <button type="button" *ngFor="let area of allLocationAreas"
-                      [class.selected]="selectedLocationArea === area" (click)="chooseAreaForModal(area)">
+                      [class.selected]="isAreaSelected(area)" (click)="chooseAreaForModal(area)">
                       <i class="fa-solid fa-building" aria-hidden="true"></i>{{ area }}
                     </button>
                     <button type="button" class="more-areas-trigger" [class.selected]="moreAreasOpen"
                       [attr.aria-expanded]="moreAreasOpen" (click)="moreAreasOpen = !moreAreasOpen">
                       More areas <i class="fa-solid fa-chevron-down"></i>
                     </button>
-                  </div>
-                  <div class="more-areas-panel" *ngIf="moreAreasOpen">
-                    <button type="button" *ngFor="let area of apiTbilisiAreas"
-                      [class.selected]="selectedLocationArea === area" (click)="chooseAreaForModal(area)">
-                      <i class="fa-solid fa-location-dot"></i>{{ area }}
-                    </button>
+                    <ng-container *ngIf="moreAreasOpen">
+                      <button type="button" *ngFor="let area of additionalTbilisiAreas"
+                        [class.selected]="isAreaSelected(area)" (click)="chooseAreaForModal(area)">
+                        <i class="fa-solid fa-building" aria-hidden="true"></i>{{ area }}
+                      </button>
+                    </ng-container>
                   </div>
                 </section>
 
@@ -101,12 +101,12 @@
               <footer class="location-modal-footer">
                 <div class="selected-location">
                   <b>Selected:</b>
-                  <span *ngIf="selectedLocationArea">{{ selectedLocationArea }} <button type="button" aria-label="Clear selected area" (click)="clearModalLocation()">×</button></span>
+                  <span *ngFor="let area of selectedLocationAreas">{{ area }} <button type="button" [attr.aria-label]="'Remove ' + area" (click)="removeModalArea(area)">×</button></span>
                   <button type="button" class="clear-location" (click)="clearModalLocation()">Clear all</button>
                 </div>
                 <div>
                   <button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button>
-                  <button type="button" class="apply-location" [disabled]="!selectedLocationArea" (click)="applyModalLocation()">Apply locations</button>
+                  <button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply locations</button>
                 </div>
               </footer>
             </div>

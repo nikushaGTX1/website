@@ -29,6 +29,7 @@ export class Main implements OnInit {
   showLocationResults = false;
   locationEntries: ApiLocation[] = [];
   selectedLocationArea = '';
+  selectedLocationAreas: string[] = [];
   selectedLocationValue = '';
   streetSearch = '';
   selectedModalStreets: string[] = [];
@@ -247,7 +248,6 @@ export class Main implements OnInit {
 
   openLocationSearch(): void {
     this.locationOpen = !this.locationOpen;
-    if (this.locationOpen && !this.selectedLocationArea) this.chooseAreaForModal('Vake');
     this.budgetOpen = false;
     this.bedroomOpen = false;
     this.propertyTypeOpen = false;
@@ -281,18 +281,43 @@ export class Main implements OnInit {
     )].sort((left, right) => left.localeCompare(right));
   }
 
+  get additionalTbilisiAreas(): string[] {
+    const visibleAreas = new Set([
+      ...this.featuredLocationAreas.map((area) => area.name),
+      ...this.allLocationAreas,
+    ].map((area) => area.toLowerCase()));
+    return this.apiTbilisiAreas.filter((area) => !visibleAreas.has(area.toLowerCase()));
+  }
+
   get selectedAreaDescription(): string {
     return this.featuredLocationAreas.find((area) => area.name === this.selectedLocationArea)?.description
       || 'Explore homes, streets and neighborhoods in this area.';
   }
 
   chooseAreaForModal(area: string): void {
+    if (this.isAreaSelected(area)) {
+      this.removeModalArea(area);
+      return;
+    }
+    this.selectedLocationAreas = [...this.selectedLocationAreas, area];
     this.selectedLocationArea = area;
-    this.moreAreasOpen = false;
     this.showAllStreets = false;
     this.inlineDrawnPolygon = null;
     this.selectedModalStreets = [];
     this.streetSearch = '';
+  }
+
+  isAreaSelected(area: string): boolean {
+    return this.selectedLocationAreas.includes(area);
+  }
+
+  removeModalArea(area: string): void {
+    this.selectedLocationAreas = this.selectedLocationAreas.filter((item) => item !== area);
+    if (this.selectedLocationArea === area) {
+      this.selectedLocationArea = this.selectedLocationAreas.at(-1) || '';
+      this.selectedModalStreets = [];
+      this.inlineDrawnPolygon = null;
+    }
   }
 
   isStreetSelected(street: string): boolean {
@@ -307,6 +332,7 @@ export class Main implements OnInit {
 
   clearModalLocation(): void {
     this.selectedLocationArea = '';
+    this.selectedLocationAreas = [];
     this.selectedModalStreets = [];
     this.streetSearch = '';
     this.inlineDrawnPolygon = null;
@@ -321,11 +347,11 @@ export class Main implements OnInit {
   }
 
   applyModalLocation(): void {
-    if (!this.selectedLocationArea) return;
+    if (!this.selectedLocationAreas.length) return;
     this.searchLocation = this.selectedModalStreets.length
-      ? `${this.selectedLocationArea}: ${this.selectedModalStreets.join(', ')}`
-      : this.selectedLocationArea;
-    this.selectedLocationValue = this.selectedModalStreets[0] || this.selectedLocationArea;
+      ? `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
+      : this.selectedLocationAreas.join(', ');
+    this.selectedLocationValue = this.selectedModalStreets[0] || this.selectedLocationAreas.join(',');
     if (this.inlineDrawnPolygon) {
       sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
     } else {
