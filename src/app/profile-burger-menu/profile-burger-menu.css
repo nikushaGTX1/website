@@ -109,7 +109,7 @@
 .menu-list a:hover,
 .menu-list button:hover{
     background:#f6f7fb;
-    color:#5A31E6;
+    color:#502db8;
 }
 
 .menu-list a > i,
@@ -123,7 +123,7 @@
 
 .menu-list a:hover > i,
 .menu-list button:hover > i{
-    color:#5A31E6;
+    color:#502db8;
 }
 
 .sep{

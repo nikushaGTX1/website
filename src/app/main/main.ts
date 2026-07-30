@@ -26,9 +26,13 @@ export class Main implements OnInit {
   locationOpen = false;
   locationLoading = false;
   locationError = false;
+  showLocationResults = false;
   locationEntries: ApiLocation[] = [];
   selectedLocationArea = '';
   selectedLocationValue = '';
+  streetSearch = '';
+  selectedModalStreets: string[] = [];
+  inlineDrawnPolygon: GeoJsonPolygon | null = null;
   searchPropertyType = '';
   searchBudget = '';
   budgetOpen = false;
@@ -55,6 +59,14 @@ export class Main implements OnInit {
     { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
   ];
   readonly propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
+  readonly popularLocationAreas = ['Vake', 'Saburtalo', 'Vera', 'Mtatsminda', 'Didi Digomi', 'Digomi'];
+  readonly featuredLocationAreas = [
+    { name: 'Vake', description: 'Premium central area', icon: 'fa-regular fa-building' },
+    { name: 'Saburtalo', description: 'Central & convenient', icon: 'fa-solid fa-city' },
+    { name: 'Vera', description: 'Historic central', icon: 'fa-solid fa-house-chimney' },
+    { name: 'Mtatsminda', description: 'Old city & views', icon: 'fa-solid fa-landmark' },
+  ];
+  readonly allLocationAreas = ['Didube', 'Digomi', 'Didi Digomi', 'Gldani', 'Nadzaladevi', 'Isani', 'Samgori', 'Avlabari', 'Sololaki', 'Chugureti', 'Krtsanisi', 'Vashlijvari'];
   searchBedrooms = '';
   public advancedFiltersOpen = false;
   drawAreaOpen = false;
@@ -232,23 +244,135 @@ export class Main implements OnInit {
   }
 
   openLocationSearch(): void {
-    this.locationOpen = true;
+    this.locationOpen = !this.locationOpen;
+    if (this.locationOpen && !this.selectedLocationArea) this.chooseAreaForModal('Vake');
     this.budgetOpen = false;
     this.bedroomOpen = false;
     this.propertyTypeOpen = false;
+  }
+
+  get modalStreetSuggestions(): LocationSuggestion[] {
+    if (!this.selectedLocationArea) return [];
+    const query = this.streetSearch.trim().toLowerCase();
+    const entry = this.locationEntries.find((item) =>
+      item.district.toLowerCase() === this.selectedLocationArea.toLowerCase(),
+    );
+    if (!entry) return [];
+    return this.locationService.streetNames(entry, 'en')
+      .filter((street) => !query || street.label.toLowerCase().includes(query))
+      .slice(0, 8)
+      .map((street) => ({
+        label: street.label,
+        value: street.value,
+        type: 'Street',
+        city: this.locationService.cityName(entry, 'en'),
+        district: this.locationService.districtName(entry, 'en'),
+      }));
+  }
+
+  get selectedAreaDescription(): string {
+    return this.featuredLocationAreas.find((area) => area.name === this.selectedLocationArea)?.description
+      || 'Explore homes, streets and neighborhoods in this area.';
+  }
+
+  chooseAreaForModal(area: string): void {
+    this.selectedLocationArea = area;
+    this.inlineDrawnPolygon = null;
+    this.selectedModalStreets = [];
+    this.streetSearch = '';
+  }
+
+  isStreetSelected(street: string): boolean {
+    return this.selectedModalStreets.includes(street);
+  }
+
+  toggleModalStreet(street: string): void {
+    this.selectedModalStreets = this.isStreetSelected(street)
+      ? this.selectedModalStreets.filter((item) => item !== street)
+      : [...this.selectedModalStreets, street];
+  }
+
+  clearModalLocation(): void {
+    this.selectedLocationArea = '';
+    this.selectedModalStreets = [];
+    this.streetSearch = '';
+    this.inlineDrawnPolygon = null;
+  }
+
+  onInlinePolygon(polygon: GeoJsonPolygon | null): void {
+    this.inlineDrawnPolygon = polygon;
+  }
+
+  cancelLocationPicker(): void {
+    this.locationOpen = false;
+  }
+
+  applyModalLocation(): void {
+    if (!this.selectedLocationArea) return;
+    this.searchLocation = this.selectedModalStreets.length
+      ? `${this.selectedLocationArea}: ${this.selectedModalStreets.join(', ')}`
+      : this.selectedLocationArea;
+    this.selectedLocationValue = this.selectedModalStreets[0] || this.selectedLocationArea;
+    if (this.inlineDrawnPolygon) {
+      sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
+    } else {
+      sessionStorage.removeItem('white-tower-drawn-area');
+    }
+    this.locationOpen = false;
+  }
+
+  focusLocationInput(input: HTMLInputElement): void {
+    input.focus();
+  }
+
+  selectPopularArea(area: string): void {
+    const entry = this.locationEntries.find((item) => item.district.toLowerCase() === area.toLowerCase());
+    this.selectLocation({
+      label: entry ? this.locationService.districtName(entry, 'en') : area,
+      value: entry?.district || area,
+      type: 'Area',
+      city: entry ? this.locationService.cityName(entry, 'en') : 'Tbilisi',
+    });
+  }
+
+  chooseLocationByLabel(label: string): void {
+    for (const entry of this.locationEntries) {
+      const street = this.locationService.streetNames(entry, 'en')
+        .find((item) => item.label.toLowerCase().includes(label.toLowerCase()));
+      if (street) {
+        this.selectLocation({
+          label: street.label,
+          value: street.value,
+          type: 'Street',
+          city: this.locationService.cityName(entry, 'en'),
+          district: this.locationService.districtName(entry, 'en'),
+        });
+        return;
+      }
+    }
+    this.searchLocation = label;
+    this.selectedLocationValue = label;
+    this.locationOpen = false;
+  }
+
+  showAllTbilisiAreas(): void {
+    this.searchLocation = '';
+    this.showLocationResults = true;
   }
 
   selectLocation(suggestion: LocationSuggestion): void {
     this.searchLocation = suggestion.label;
     this.selectedLocationValue = suggestion.value || suggestion.label;
     this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
+    this.showLocationResults = false;
     this.locationOpen = false;
   }
 
   onLocationInput(): void {
     this.selectedLocationArea = '';
     this.selectedLocationValue = '';
-    this.openLocationSearch();
+    this.showLocationResults = true;
+    this.locationOpen = true;
   }
 
   private loadLocations(): void {
@@ -386,6 +510,7 @@ export class Main implements OnInit {
   }
 
   openDrawArea(): void {
+    this.locationOpen = false;
     this.drawAreaInitialized = true;
     this.drawAreaOpen = true;
     document.body.style.overflow = 'hidden';

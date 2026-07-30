@@ -38,7 +38,7 @@
   border-radius: 42% 42% 46% 46% / 24% 24% 64% 64%;
   background:
     linear-gradient(90deg, transparent 42%, rgba(255, 255, 255, 0.75) 43% 57%, transparent 58%),
-    #5A31E6;
+    #502db8;
   color: #fff;
   clip-path: polygon(18% 0, 35% 8%, 50% 18%, 65% 8%, 82% 0, 100% 18%, 89% 100%, 11% 100%, 0 18%);
   filter: drop-shadow(0 4px 3px rgba(20, 37, 79, 0.22));

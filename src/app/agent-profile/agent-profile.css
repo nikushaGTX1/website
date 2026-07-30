@@ -105,7 +105,7 @@
   vertical-align: top;
 } 
 .hero-title .highlight {
-  color: #5A31E6;
+  color: #502db8;
   font-weight: 700;
 }
 
@@ -151,9 +151,9 @@
 
 .filter-select:focus,
 .filter-input:focus {
-  border-color: #5A31E6;
+  border-color: #502db8;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(90,49,230, 0.1);
+  box-shadow: 0 0 0 3px rgba(80,45,184, 0.1);
 }
 
 .field-icon-left {
@@ -205,7 +205,7 @@
 .metric-icon {
   display: grid;
   place-items: center;
-  color: #D8DCE5;
+  color: #502db8;
 }
 
 .metric-text {
@@ -216,7 +216,7 @@
 .metric-text strong {
   font-size: 18px;
   font-weight: 700;
-  color: #5A31E6;
+  color: #502db8;
   line-height: 1.15;
 }
 
@@ -274,7 +274,7 @@
 .agent-card:hover {
   transform: translateY(-4px);
   border-color: #dbe6ff;
-  box-shadow: 0 16px 36px rgba(90,49,230, 0.1);
+  box-shadow: 0 16px 36px rgba(80,45,184, 0.1);
 }
 
 .avatar-container {
@@ -309,7 +309,7 @@
 
 .agent-role {
   font-size: 13px;
-  color: #5A31E6;
+  color: #502db8;
   margin: 0 0 16px 0;
   font-size: 12px;
   margin: 0 0 10px 0;
@@ -331,7 +331,7 @@
 
 .rating-text {
   font-weight: 700;
-  color: #5A31E6;
+  color: #502db8;
 }
 
 .rating-count {
@@ -396,7 +396,7 @@
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background-color: #ffffff;
-  color: #5A31E6;
+  color: #502db8;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -411,10 +411,10 @@
 
 .action-btn.icon-only:hover {
   color: #ffffff;
-  background-color: #5A31E6;
-  border-color: #5A31E6;
+  background-color: #502db8;
+  border-color: #502db8;
   transform: translateY(-2px);
-  box-shadow: 0 7px 15px rgba(90,49,230, 0.22);
+  box-shadow: 0 7px 15px rgba(80,45,184, 0.22);
 }
 
 .action-btn.whatsapp-btn:hover {
@@ -433,7 +433,7 @@
 .profile-btn:focus-visible,
 .dialog-close:focus-visible,
 .call-now-btn:focus-visible {
-  outline: 3px solid rgba(90,49,230, 0.25);
+  outline: 3px solid rgba(80,45,184, 0.25);
   outline-offset: 3px;
 }
 
@@ -446,9 +446,9 @@
   flex: 1;
   height: 38px;
   border-radius: 8px;
-  background-color: #5A31E6;
+  background-color: #502db8;
   color: white;
-  border: 1px solid #5A31E6;
+  border: 1px solid #502db8;
   font-size: 13px;
   font-weight: 500;
   border: none;
@@ -464,7 +464,7 @@
   background-color: #174dc9;
   color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(90,49,230, 0.24);
+  box-shadow: 0 8px 18px rgba(80,45,184, 0.24);
 }
 
 .phone-dialog-backdrop {
@@ -528,7 +528,7 @@
   border-radius: 20px;
   color: #ffffff;
   background: linear-gradient(145deg, #4f7df0, #1d4ed8);
-  box-shadow: 0 12px 25px rgba(90,49,230, 0.27);
+  box-shadow: 0 12px 25px rgba(80,45,184, 0.27);
 }
 
 .dialog-phone-icon svg {
@@ -538,7 +538,7 @@
 
 .dialog-eyebrow {
   margin: 0 0 7px;
-  color: #5A31E6;
+  color: #502db8;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -592,7 +592,7 @@
   gap: 9px;
   border-radius: 11px;
   color: #ffffff;
-  background: #5A31E6;
+  background: #502db8;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
@@ -602,7 +602,7 @@
 .call-now-btn:hover {
   background: #174dc9;
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(90,49,230, 0.24);
+  box-shadow: 0 10px 22px rgba(80,45,184, 0.24);
 }
 
 .call-now-btn svg {
@@ -637,7 +637,7 @@
 }
 
 .career h2 .brand-blue {
-  color: #5A31E6;
+  color: #502db8;
 
 }
 
@@ -675,7 +675,7 @@
 
 .trust-card:hover {
   border-color: #b9ccf3;
-  box-shadow: 0 12px 25px rgba(90,49,230,.1);
+  box-shadow: 0 12px 25px rgba(80,45,184,.1);
   transform: translateY(-3px);
 }
 
@@ -688,7 +688,7 @@
   margin: 0 auto 12px;
   border-radius: 8px;
   background: #eff6ff;
-  color: #5A31E6;
+  color: #502db8;
   font-size: 17px;
 }
 
@@ -706,12 +706,12 @@
 }
 
 .career-btn.primary {
-  background-color: #5A31E6;
+  background-color: #502db8;
   color: #ffffff;
 }
 
 .career-btn.primary:hover {
-  background-color: #5A31E6;
+  background-color: #502db8;
 }
 
 .career-btn.secondary {
@@ -720,7 +720,7 @@
 }
 
 .career-btn.secondary:hover {
-  color: #5A31E6;
+  color: #502db8;
 }
 
 .team-banner {
@@ -751,7 +751,7 @@
 .team-badge {
   display: inline-block;
   margin-bottom: 12px;
-  color: #5A31E6;
+  color: #502db8;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -774,9 +774,9 @@
 .team-join-btn {
   align-self: flex-start;
   padding: 10px 20px;
-  border: 1px solid #5A31E6;
+  border: 1px solid #502db8;
   border-radius: 8px;
-  color: #5A31E6;
+  color: #502db8;
   background: transparent;
   font-size: 14px;
   font-weight: 600;
@@ -786,14 +786,14 @@
 
 .team-join-btn:hover {
   color: #fff;
-  background: #5A31E6;
+  background: #502db8;
   transform: translateY(-2px);
 }
 
 .play-icon {
   width: 14px;
   height: 14px;
-  color: #5A31E6;
+  color: #502db8;
 }
 
 /* Skeleton Loaders */

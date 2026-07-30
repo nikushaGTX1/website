@@ -129,8 +129,8 @@
 
 .form-group input:focus,
 .form-group textarea:focus {
-  border-color: #5A31E6;
-  box-shadow: 0 0 0 3px rgba(90,49,230, 0.12);
+  border-color: #502db8;
+  box-shadow: 0 0 0 3px rgba(80,45,184, 0.12);
 }
 
 .form-group input[type="file"] {
@@ -159,13 +159,13 @@
 
 .save-btn {
   width: fit-content;
-  background: #5A31E6;
-  border-color: #5A31E6;
+  background: #502db8;
+  border-color: #502db8;
   color: #fff;
 }
 
 .save-btn:hover {
-  background: #5A31E6;
+  background: #502db8;
 }
 
 @media (max-width: 600px) {

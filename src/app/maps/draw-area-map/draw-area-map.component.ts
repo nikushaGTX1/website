@@ -6,8 +6,10 @@
   EventEmitter,
   HostBinding,
   Input,
+  OnChanges,
   OnDestroy,
   Output,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
@@ -21,12 +23,17 @@ import { LocationService } from '../../services/location.service';
   templateUrl: './draw-area-map.component.html',
   styleUrl: './draw-area-map.component.css',
 })
-export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
+export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() visible = false;
+  @Input() compact = false;
+  @Input() selectedAreaInput = '';
   @HostBinding('class.is-hidden') get isHidden(): boolean { return !this.visible; }
+  @HostBinding('class.is-compact') get isCompact(): boolean { return this.compact; }
   @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLDivElement>;
+  @ViewChild('compactMapContainer') compactMapContainer?: ElementRef<HTMLDivElement>;
   @Output() close = new EventEmitter<void>();
   @Output() apply = new EventEmitter<GeoJsonPolygon>();
+  @Output() polygonChange = new EventEmitter<GeoJsonPolygon | null>();
 
   loading = true;
   errorMessage = '';
@@ -91,6 +98,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedAreaInput'] && this.selectedAreaInput && this.draw && this.map) {
+      this.chooseArea(this.selectedAreaInput);
+    }
+  }
+
   ngOnDestroy(): void {
     this.draw?.stop();
   }
@@ -102,6 +115,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
     this.selectedStreet = '';
     this.streetStep = false;
     this.draw?.setMode('polygon');
+    this.polygonChange.emit(null);
   }
 
   get filteredAreaGroups(): { title: string; areas: string[] }[] {
@@ -161,6 +175,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
       coordinates.forEach(([lng, lat]) => bounds.extend({ lat, lng }));
       this.map.fitBounds(bounds, 48);
       this.cdr.detectChanges();
+      this.polygonChange.emit(this.currentPolygon());
     } else {
       console.error(`Could not draw ${area}:`, result[0]?.reason || 'Invalid polygon');
     }
@@ -197,7 +212,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
       .querySelector<HTMLMetaElement>('meta[name="google-maps-api-key"]')
       ?.content.trim();
 
-    if (!apiKey || !this.mapContainer) {
+    const mapElement = this.compact ? this.compactMapContainer : this.mapContainer;
+    if (!apiKey || !mapElement) {
       this.errorMessage = 'Google Maps is not configured.';
       this.loading = false;
       return;
@@ -212,7 +228,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
       ]);
       const { TerraDraw, TerraDrawPolygonMode, TerraDrawSelectMode } = terraDraw;
       const { TerraDrawGoogleMapsAdapter } = googleAdapter;
-      this.map = new Map(this.mapContainer.nativeElement, {
+      this.map = new Map(mapElement.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
         zoom: 12,
         mapTypeControl: false,
@@ -234,9 +250,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
         modes: [
           new TerraDrawPolygonMode({
             styles: {
-              fillColor: '#5A31E6',
+              fillColor: '#502db8',
               fillOpacity: 0.18,
-              outlineColor: '#5A31E6',
+              outlineColor: '#502db8',
               outlineWidth: 3,
               closingPointColor: '#ffffff',
               closingPointWidth: 7,
@@ -262,13 +278,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnDestroy {
         const latest = this.draw?.getSnapshot().find((feature) => feature.geometry?.type === 'Polygon');
         this.hasPolygon = !!latest;
         if (latest) this.draw?.selectFeature(latest.id);
+        this.polygonChange.emit(this.currentPolygon());
         this.cdr.detectChanges();
       });
       this.draw.on('change', () => {
         this.hasPolygon = !!this.currentPolygon();
         if (!this.hasPolygon) this.selectedArea = '';
+        this.polygonChange.emit(this.currentPolygon());
         this.cdr.detectChanges();
       });
+      if (this.selectedAreaInput) this.chooseArea(this.selectedAreaInput);
       this.loading = false;
       this.cdr.detectChanges();
     } catch (error) {

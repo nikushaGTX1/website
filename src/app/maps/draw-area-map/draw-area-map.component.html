@@ -1,4 +1,11 @@
-<div class="draw-backdrop" role="presentation" (click)="handleBackdrop($event)">
+<div class="compact-map-shell" *ngIf="compact">
+  <div #compactMapContainer class="compact-draw-map" aria-label="Draw an area on Google Maps"></div>
+  <div class="map-message" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading Google Maps...</div>
+  <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="map-tip" *ngIf="!loading && !errorMessage && !hasPolygon"><i class="fa-solid fa-draw-polygon"></i> Click points to draw your area</div>
+</div>
+
+<div class="draw-backdrop" role="presentation" (click)="handleBackdrop($event)" *ngIf="!compact">
   <section class="draw-dialog" role="dialog" aria-modal="true" aria-labelledby="draw-area-title">
     <header class="dialog-header">
       <div class="mode-tabs">

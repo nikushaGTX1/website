@@ -16,7 +16,7 @@
 }
 
 .listings-header span {
-  color: #5A31E6;
+  color: #502db8;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -39,7 +39,7 @@
 .primary {
   border: 0;
   border-radius: 8px;
-  background: #5A31E6;
+  background: #502db8;
   color: #ffffff;
   cursor: pointer;
   font-weight: 800;
@@ -164,7 +164,7 @@
 
 .pending {
   background: #eff6ff;
-  color: #5A31E6;
+  color: #502db8;
 }
 
 .approved {
@@ -312,7 +312,7 @@
   height: 17px;
   margin: 0;
   padding: 0;
-  accent-color: #5A31E6;
+  accent-color: #502db8;
 }
 
 .loading,
