@@ -311,7 +311,7 @@ fieldset input,
 
 /* Reference-style AI Match experience */
 :host {
-  --match-blue: #502db8;
+  --match-blue: #451a8f;
   --match-navy: #07152f;
   --match-gold: #bd8b26;
   background: #fff;
@@ -583,7 +583,7 @@ fieldset button {
 
 .options button:hover,
 fieldset button:hover {
-  border-color: #502db8;
+  border-color: #451a8f;
 }
 
 .options button.selected,

@@ -250,9 +250,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         modes: [
           new TerraDrawPolygonMode({
             styles: {
-              fillColor: '#502db8',
+              fillColor: '#451a8f',
               fillOpacity: 0.18,
-              outlineColor: '#502db8',
+              outlineColor: '#451a8f',
               outlineWidth: 3,
               closingPointColor: '#ffffff',
               closingPointWidth: 7,

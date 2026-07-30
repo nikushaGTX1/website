@@ -21,7 +21,7 @@
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #502db8;
+  color: #451a8f;
   font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
@@ -45,7 +45,7 @@ h1 {
   padding: 0 16px;
   border: 0;
   border-radius: 7px;
-  background: #502db8;
+  background: #451a8f;
   color: #fff;
   cursor: pointer;
   font: inherit;
@@ -87,8 +87,8 @@ button:disabled {
 }
 
 .stat.active {
-  border-color: #502db8;
-  box-shadow: 0 8px 22px rgba(80,45,184, 0.1);
+  border-color: #451a8f;
+  box-shadow: 0 8px 22px rgba(69,26,143, 0.1);
 }
 
 .stat span {
@@ -113,7 +113,7 @@ button:disabled {
 }
 
 .message.info {
-  color: #502db8;
+  color: #451a8f;
 }
 
 .admin-search {
@@ -136,8 +136,8 @@ button:disabled {
 }
 
 .admin-search input:focus {
-  border-color: #502db8;
-  box-shadow: 0 0 0 3px rgba(80,45,184, 0.1);
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69,26,143, 0.1);
 }
 
 .admin-search button {
@@ -290,7 +290,7 @@ button:disabled {
 }
 
 .agent-rating-summary strong {
-  color: #502db8;
+  color: #451a8f;
 }
 
 .agent-rating-summary span,
@@ -319,8 +319,8 @@ button:disabled {
 }
 
 .agent-rating-editor input:focus {
-  border-color: #502db8;
-  box-shadow: 0 0 0 3px rgba(80,45,184, 0.1);
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69,26,143, 0.1);
 }
 
 .agent-rating-editor .rating-save {
@@ -370,8 +370,8 @@ button:disabled {
 
 .blog-admin-form input:focus,
 .blog-admin-form textarea:focus {
-  border-color: #502db8;
-  box-shadow: 0 0 0 3px rgba(80,45,184, 0.1);
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69,26,143, 0.1);
 }
 
 .blog-image-upload {
@@ -392,9 +392,9 @@ button:disabled {
   display: flex;
   align-items: center;
   overflow: hidden;
-  border: 1px dashed #502db8;
+  border: 1px dashed #451a8f;
   border-radius: 7px;
-  color: #502db8;
+  color: #451a8f;
   background: #f4f7ff;
   cursor: pointer;
   text-overflow: ellipsis;
@@ -432,7 +432,7 @@ button:disabled {
   min-height: 40px;
   border: 0;
   border-radius: 7px;
-  background: #502db8;
+  background: #451a8f;
   color: #fff;
   cursor: pointer;
   font: inherit;

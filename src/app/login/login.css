@@ -70,7 +70,7 @@
 
 .tab-btn.active {
   background: #ffffff;
-  color: #502db8;
+  color: #451a8f;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
@@ -119,13 +119,13 @@
 
 .input-icon-wrapper input:focus {
   outline: none;
-  border-color: #502db8;
-  box-shadow: 0 0 0 3px rgba(80,45,184, 0.12);
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69,26,143, 0.12);
 }
 
 /* Submit Action Button */
 .submit-btn {
-  background-color: #502db8;
+  background-color: #451a8f;
   color: #ffffff;
   border: none;
   padding: 14px;
@@ -138,11 +138,11 @@
 }
 
 .submit-btn:hover {
-  background-color: #502db8;
+  background-color: #451a8f;
 }
 
 .submit-btn:disabled {
-  background-color: #502db8;
+  background-color: #451a8f;
   cursor: not-allowed;
 }
 
@@ -204,7 +204,7 @@
 .toggle-link-btn {
   background: none;
   border: none;
-  color: #502db8;
+  color: #451a8f;
   font-weight: 600;
   cursor: pointer;
   margin-left: 4px;

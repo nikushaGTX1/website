@@ -85,9 +85,9 @@
 }
 
 .pill-btn.active {
-  background: #502db8;
+  background: #451a8f;
   color: #ffffff;
-  border-color: #502db8;
+  border-color: #451a8f;
 }
 
 /* Search Box */
@@ -107,7 +107,7 @@
 }
 
 .search-box input:focus {
-  border-color: #502db8;
+  border-color: #451a8f;
 }
 
 .search-icon {
@@ -171,7 +171,7 @@
   border-radius: 6px;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #502db8;
+  color: #451a8f;
   letter-spacing: 0.04em;
 }
 
@@ -205,7 +205,7 @@
   gap: 6px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #502db8;
+  color: #451a8f;
   text-decoration: none;
 }
 
@@ -239,14 +239,14 @@
 }
 
 .blog-pagination button:hover:not(:disabled) {
-  border-color: #502db8;
-  color: #502db8;
+  border-color: #451a8f;
+  color: #451a8f;
 }
 
 .blog-pagination button.active {
-  background: #502db8;
+  background: #451a8f;
   color: #ffffff;
-  border-color: #502db8;
+  border-color: #451a8f;
 }
 
 .blog-pagination button:disabled {
@@ -306,7 +306,7 @@
 }
 
 .subscribe-btn {
-  background: #502db8;
+  background: #451a8f;
   color: #ffffff;
   border: none;
   padding: 10px;
@@ -365,7 +365,7 @@
   border-radius: 8px;
   font-size: 0.825rem;
   font-weight: 600;
-  color: #502db8;
+  color: #451a8f;
   cursor: pointer;
 }
 
