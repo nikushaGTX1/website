@@ -40,6 +40,10 @@
                   <h3>All areas</h3>
                   <div class="all-area-grid">
                     <button type="button" *ngFor="let area of allLocationAreas" [class.selected]="selectedLocationArea === area" (click)="chooseAreaForModal(area)"><i class="fa-solid fa-building"></i>{{ area }}</button>
+                    <button type="button" class="more-areas-trigger" [class.selected]="moreAreasOpen" [attr.aria-expanded]="moreAreasOpen" (click)="moreAreasOpen = !moreAreasOpen">More areas <i class="fa-solid fa-chevron-down"></i></button>
+                  </div>
+                  <div class="more-areas-panel" *ngIf="moreAreasOpen">
+                    <button type="button" *ngFor="let area of apiTbilisiAreas" [class.selected]="selectedLocationArea === area" (click)="chooseAreaForModal(area)"><i class="fa-solid fa-location-dot"></i>{{ area }}</button>
                   </div>
                 </section>
                 <section class="street-picker-column">
@@ -51,6 +55,11 @@
                     </button>
                     <p *ngIf="!modalStreetSuggestions.length">Choose an area to see its streets.</p>
                   </div>
+                  <button class="show-streets" type="button" *ngIf="modalStreetSuggestions.length"
+                    [class.expanded]="showAllStreets" [attr.aria-expanded]="showAllStreets"
+                    (click)="showAllStreets = !showAllStreets">
+                    {{ showAllStreets ? 'Show fewer streets' : 'Show all streets' }} <i class="fa-solid fa-chevron-down"></i>
+                  </button>
                 </section>
                 <aside class="location-map-preview">
                   <app-draw-area-map class="inline-google-draw" [visible]="true" [compact]="true" [selectedAreaInput]="selectedLocationArea" (polygonChange)="onInlinePolygon($event)"></app-draw-area-map>

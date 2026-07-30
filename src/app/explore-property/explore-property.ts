@@ -62,6 +62,8 @@ export class ExploreProperty implements OnInit {
   selectedLocationValue = '';
   streetSearch = '';
   selectedModalStreets: string[] = [];
+  moreAreasOpen = false;
+  showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
   readonly featuredLocationAreas = [
     { name: 'Vake', description: 'Premium central area', icon: 'fa-regular fa-building' },
@@ -252,9 +254,9 @@ export class ExploreProperty implements OnInit {
       item.district.toLowerCase() === this.selectedLocationArea.toLowerCase(),
     );
     if (!entry) return [];
-    return this.locationService.streetNames(entry, 'en')
-      .filter((street) => !query || street.label.toLowerCase().includes(query))
-      .slice(0, 8)
+    const streets = this.locationService.streetNames(entry, 'en')
+      .filter((street) => !query || street.label.toLowerCase().includes(query));
+    return (this.showAllStreets ? streets : streets.slice(0, 8))
       .map((street) => ({
         label: street.label,
         value: street.value,
@@ -264,6 +266,15 @@ export class ExploreProperty implements OnInit {
       }));
   }
 
+  get apiTbilisiAreas(): string[] {
+    return [...new Set(
+      this.locationEntries
+        .filter((entry) => entry.city === 'Tbilisi')
+        .map((entry) => this.locationService.districtName(entry, 'en'))
+        .filter((area) => !!area && area !== 'System.Collections.Hashtable'),
+    )].sort((left, right) => left.localeCompare(right));
+  }
+
   get selectedAreaDescription(): string {
     return this.featuredLocationAreas.find((area) => area.name === this.selectedLocationArea)?.description
       || 'Explore homes, streets and neighborhoods in this area.';
@@ -271,6 +282,8 @@ export class ExploreProperty implements OnInit {
 
   chooseAreaForModal(area: string): void {
     this.selectedLocationArea = area;
+    this.moreAreasOpen = false;
+    this.showAllStreets = false;
     this.selectedModalStreets = [];
     this.streetSearch = '';
     this.inlineDrawnPolygon = null;
