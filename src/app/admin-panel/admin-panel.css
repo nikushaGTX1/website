@@ -285,6 +285,44 @@ button:disabled {
   grid-template-columns: minmax(220px, 1fr) 120px minmax(280px, auto) auto;
 }
 
+.user-admin-identity{display:flex!important;grid-template-columns:none!important;align-items:center;gap:12px}
+.user-admin-identity>span:last-child{display:grid;gap:4px;min-width:0}
+.user-admin-avatar{width:44px;height:44px;display:grid;place-items:center;flex:0 0 44px;overflow:hidden;border-radius:50%;background:#f0f2f6;color:#667085}
+.user-admin-avatar img{width:100%;height:100%;object-fit:cover}
+.user-admin-actions{display:flex!important;grid-template-columns:none!important;gap:8px}
+.user-admin-actions .edit-user{background:#451a8f}
+.user-editor-backdrop{position:fixed;z-index:1500;inset:0;padding:24px;display:grid;place-items:center;background:rgba(13,20,34,.64);backdrop-filter:blur(4px)}
+.user-editor{width:min(760px,100%);max-height:calc(100dvh - 48px);overflow-y:auto;border-radius:16px;background:#fff;box-shadow:0 28px 80px rgba(0,0,0,.28)}
+.user-editor>header{padding:22px 26px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #e7eaf0}
+.user-editor>header p{margin:0 0 4px;color:#451a8f;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+.user-editor>header h2{margin:0;font-size:25px}
+.user-editor>header button{width:38px;height:38px;border:0;border-radius:50%;background:#f2f4f7;color:#344054;cursor:pointer}
+.user-editor-profile{padding:22px 26px;display:grid;grid-template-columns:72px auto 1fr;align-items:center;gap:14px;border-bottom:1px solid #edf0f4}
+.user-editor-avatar{grid-row:1/3;width:72px;height:72px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#edf0f5;color:#667085;font-size:24px}
+.user-editor-avatar img{width:100%;height:100%;object-fit:cover}
+.picture-upload{width:max-content;padding:10px 14px;border:1px solid #d8dce4;border-radius:8px;color:#451a8f;font-size:12px;font-weight:800;cursor:pointer}
+.picture-upload input{display:none}.user-editor-profile small{grid-column:2/-1;color:#667085}
+.user-editor-form{padding:24px 26px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.user-editor-form label,.password-reset label{display:grid;gap:7px;color:#475467;font-size:12px;font-weight:750}
+.user-editor-form input,.user-editor-form textarea,.password-reset input{width:100%;min-height:44px;padding:10px 12px;border:1px solid #d8dce4;border-radius:8px;background:#fff;color:#172033;font:inherit;outline:0}
+.user-editor-form input:focus,.user-editor-form textarea:focus,.password-reset input:focus{border-color:#451a8f;box-shadow:0 0 0 3px rgba(69,26,143,.1)}
+.user-editor-form textarea{resize:vertical}.user-editor-form .wide{grid-column:1/-1}
+.user-editor-actions{display:flex;justify-content:flex-end;gap:10px}
+.user-editor-actions button,.password-reset button{min-height:44px;padding:0 18px;border:0;border-radius:8px;background:#451a8f;color:#fff;font-weight:800;cursor:pointer}
+.user-editor-actions .cancel{border:1px solid #d8dce4;background:#fff;color:#475467}
+.user-editor button:disabled{opacity:.5;cursor:not-allowed}
+.password-reset{margin:0 26px 26px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) 230px auto;align-items:end;gap:14px;border:1px solid #f1c9c6;border-radius:10px;background:#fff8f7}
+.password-reset h3{margin:0 0 4px;font-size:15px}.password-reset p{margin:0;color:#667085;font-size:11px;line-height:1.4}
+.password-reset button.danger{background:#d83c34}
+
+@media(max-width:700px){
+  .user-admin-row{grid-template-columns:1fr}.user-admin-actions{width:100%;display:grid!important;grid-template-columns:1fr 1fr!important}
+  .user-editor-backdrop{padding:10px}.user-editor{max-height:calc(100dvh - 20px)}
+  .user-editor-form{grid-template-columns:1fr;padding:20px}.user-editor-form .wide{grid-column:auto}
+  .user-editor-profile{grid-template-columns:64px 1fr;padding:20px}.user-editor-avatar{width:64px;height:64px}.user-editor-profile small{grid-column:2}
+  .password-reset{margin:0 20px 20px;grid-template-columns:1fr}.password-reset button{width:100%}
+}
+
 .agent-rating-summary {
   color: #171717;
 }

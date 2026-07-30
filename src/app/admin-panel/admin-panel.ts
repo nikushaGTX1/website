@@ -10,6 +10,7 @@ import { ApartmentService } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { BlogService } from '../services/blog.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
+import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 
 @Component({
   selector: 'app-admin-panel',
@@ -44,6 +45,13 @@ export class AdminPanel implements OnInit, OnDestroy {
   agentRatings: Record<string, number> = {};
   pendingDebug = '';
   reviewedCount = 0;
+  editingUser: User | null = null;
+  editUserForm = { fullName: '', userName: '', email: '', phoneNumber: '', bio: '' };
+  editUserPassword = '';
+  editUserPicture: File | null = null;
+  editUserPicturePreview = '';
+  savingUser = false;
+  resettingPassword = false;
 
   private subscriptions = new Subscription();
 
@@ -72,6 +80,7 @@ export class AdminPanel implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.releaseBlogImagePreview();
+    this.releaseUserPicturePreview();
     this.subscriptions.unsubscribe();
   }
 
@@ -311,6 +320,119 @@ export class AdminPanel implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  openUserEditor(user: User): void {
+    if (!this.isAdmin || !user.id) return;
+
+    this.releaseUserPicturePreview();
+    this.editingUser = user;
+    this.editUserForm = {
+      fullName: user.fullName || '',
+      userName: user.userName || '',
+      email: user.email || '',
+      phoneNumber: user.phoneNumber || '',
+      bio: user.bio || '',
+    };
+    this.editUserPassword = '';
+    this.editUserPicture = null;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  closeUserEditor(): void {
+    if (this.savingUser || this.resettingPassword) return;
+    this.releaseUserPicturePreview();
+    this.editingUser = null;
+    this.editUserPicture = null;
+    this.editUserPassword = '';
+  }
+
+  onAdminUserPictureSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] || null;
+    this.releaseUserPicturePreview();
+    this.editUserPicture = file;
+    if (file) this.editUserPicturePreview = URL.createObjectURL(file);
+  }
+
+  saveUserChanges(): void {
+    const userId = this.editingUser?.id;
+    if (!this.isAdmin || !userId || this.savingUser) return;
+
+    if (!this.editUserForm.fullName.trim() ||
+        !this.editUserForm.userName.trim() ||
+        !this.editUserForm.email.trim()) {
+      this.errorMessage = 'Full name, username, and email are required.';
+      return;
+    }
+
+    this.savingUser = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.adminService.updateUser(userId, {
+      ...this.editUserForm,
+      fullName: this.editUserForm.fullName.trim(),
+      userName: this.editUserForm.userName.trim(),
+      email: this.editUserForm.email.trim(),
+      phoneNumber: this.editUserForm.phoneNumber.trim(),
+      bio: this.editUserForm.bio.trim(),
+      profilePicture: this.editUserPicture,
+    }).subscribe({
+      next: () => {
+        this.savingUser = false;
+        this.successMessage = 'User account updated.';
+        this.closeUserEditor();
+        this.loadDashboard();
+      },
+      error: (error) => {
+        console.error('Update user error:', error);
+        this.savingUser = false;
+        this.errorMessage = error?.error?.message || 'Could not update this user.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  resetUserPassword(): void {
+    const userId = this.editingUser?.id;
+    if (!this.isAdmin || !userId || this.resettingPassword) return;
+
+    if (this.editUserPassword.length < 8) {
+      this.errorMessage = 'The new password must be at least 8 characters.';
+      return;
+    }
+
+    this.resettingPassword = true;
+    this.errorMessage = '';
+    this.adminService.resetUserPassword(userId, this.editUserPassword).subscribe({
+      next: () => {
+        this.resettingPassword = false;
+        this.editUserPassword = '';
+        this.successMessage = 'User password reset successfully.';
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Reset password error:', error);
+        this.resettingPassword = false;
+        this.errorMessage = error?.error?.message || 'Could not reset this password.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  get adminUserPicture(): string {
+    return this.editUserPicturePreview ||
+      toMediaUrl(this.editingUser?.profilePictureUrl || this.editingUser?.profilePicture);
+  }
+
+  fixAdminUserPicture(event: Event): void {
+    tryNextProfileImageUrl(event);
+  }
+
+  private releaseUserPicturePreview(): void {
+    if (this.editUserPicturePreview) URL.revokeObjectURL(this.editUserPicturePreview);
+    this.editUserPicturePreview = '';
   }
 
   removeAgent(agent: Agent): void {

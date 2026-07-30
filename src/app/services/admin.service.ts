@@ -5,6 +5,15 @@ import { Agent } from '../models/agent';
 import { User } from '../models/user';
 import { API_URL } from '../utils/api-config';
 
+export interface AdminUserSettings {
+  fullName: string;
+  userName: string;
+  email: string;
+  phoneNumber: string;
+  bio: string;
+  profilePicture?: File | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -24,6 +33,25 @@ export class AdminService {
 
   getUser(id: string): Observable<User> {
     return this.http.get<User>(`${this.adminUrl}/users/${id}`);
+  }
+
+  updateUser(id: string, settings: AdminUserSettings): Observable<unknown> {
+    const formData = new FormData();
+    formData.append('FullName', settings.fullName);
+    formData.append('UserName', settings.userName);
+    formData.append('Email', settings.email);
+    formData.append('PhoneNumber', settings.phoneNumber);
+    formData.append('Bio', settings.bio);
+
+    if (settings.profilePicture) {
+      formData.append('ProfilePicture', settings.profilePicture);
+    }
+
+    return this.http.put(`${this.adminUrl}/users/${id}/settings`, formData);
+  }
+
+  resetUserPassword(id: string, newPassword: string): Observable<unknown> {
+    return this.http.put(`${this.adminUrl}/users/${id}/password`, { newPassword });
   }
 
   makeAgent(userId: string): Observable<unknown> {
