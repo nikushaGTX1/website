@@ -343,9 +343,9 @@
 }
 .location-steps { display: flex; align-items: center; gap: 12px; color: #a4aaba; font-size: 12px; font-weight: 700; }
 .location-steps span { min-width: 82px; display: flex; align-items: center; gap: 8px; }
-.location-steps b { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #e8e9ee; color: #fff; }
+.location-steps b { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid #e0e3e9; border-radius: 50%; background: #fff; color: #a4aaba; }
 .location-steps span.active { color: #451a8f; }
-.location-steps span.active b { background: #451a8f; }
+.location-steps span.active b { border-color: #451a8f; background: #451a8f; color: #fff; }
 .location-steps i { width: 70px; height: 2px; background: #451a8f; }
 .location-steps small { font-weight: 500; }
 .location-modal-body {

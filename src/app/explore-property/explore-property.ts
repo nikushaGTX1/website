@@ -254,12 +254,14 @@ export class ExploreProperty implements OnInit {
       this.locationEntries
         .filter((entry) => entry.district.toLowerCase() === selectedArea.toLowerCase() ||
           this.locationService.districtName(entry, 'en').toLowerCase() === selectedArea.toLowerCase())
-        .flatMap((entry) => this.locationService.streetNames(entry, 'en').map((street) => ({
+        .flatMap((entry) => this.locationService.streetNames(entry, 'ka').map((street) => ({
           ...street,
           city: this.locationService.cityName(entry, 'en'),
           district: selectedArea,
         })))
-        .filter((street) => !query || street.label.toLowerCase().includes(query)),
+        .filter((street) => !query ||
+          street.label.toLowerCase().includes(query) ||
+          street.value.toLowerCase().includes(query)),
     );
     const streets = Array.from(
       { length: Math.max(0, ...streetGroups.map((group) => group.length)) },
@@ -267,10 +269,13 @@ export class ExploreProperty implements OnInit {
     )
       .flat()
       .filter((street, index, list) => list.findIndex((item) =>
-        item.value === street.value && item.district === street.district) === index);
+        item.value === street.value && item.district === street.district) === index)
+      .sort((first, second) => first.label.localeCompare(second.label, 'ka'));
     return (this.showAllStreets ? streets : streets.slice(0, 8))
       .map((street) => ({
-        label: street.label,
+        label: street.label === street.value
+          ? street.value
+          : `${street.label} — ${street.value}`,
         value: street.value,
         type: 'Street',
         city: street.city,
