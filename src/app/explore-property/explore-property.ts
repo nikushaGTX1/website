@@ -448,6 +448,11 @@ export class ExploreProperty implements OnInit {
     this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
     this.location = params.get('location') || '';
     this.selectedLocationValue = this.location;
+    this.selectedLocationAreas = this.location
+      .split(',')
+      .map((area) => area.trim())
+      .filter(Boolean);
+    this.selectedLocationArea = this.selectedLocationAreas.at(-1) || '';
     this.locationDisplayLanguage = params.get('locationLanguage') === 'en' ? 'en' : 'ka';
     this.homeType = params.get('propertyType') || '';
     this.headerBedrooms = params.get('bedrooms') || '';
@@ -772,6 +777,14 @@ export class ExploreProperty implements OnInit {
 
   private matchesLocationFilter(apartment: Apartment, location: string): boolean {
     if (!location) return true;
+    const selectedLocations = location
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (selectedLocations.length > 1) {
+      return selectedLocations.some((item) => this.matchesLocationFilter(apartment, item));
+    }
+
     const propertyLocation = [
       apartment.address,
       apartment.city,
