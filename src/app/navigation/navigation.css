@@ -112,10 +112,7 @@
   color: #7657f6;
 }
 
-.nav-links a:hover::after,
-.nav-links a.active::after {
-  transform: scaleX(1);
-}
+
 
 .ai-link {
   gap: 7px;
