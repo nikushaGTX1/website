@@ -752,8 +752,11 @@
   margin-right: 7px;
 }
 .property-card:first-child .property-badge {
-  background: #d83a4e;
-  color: #d8dce5;
+  padding: 8px 13px;
+  border-radius: 8px;
+  background: #e63950;
+  color: #fff;
+  box-shadow: 0 5px 13px rgba(80, 24, 38, .2);
 }
 .property-card:nth-child(3) .property-badge {
   background: #fff;
