@@ -287,12 +287,21 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         this.polygonChange.emit(this.currentPolygon());
         this.cdr.detectChanges();
       });
-      if (this.selectedAreaInput) this.chooseArea(this.selectedAreaInput);
       this.loading = false;
+      this.errorMessage = '';
       this.cdr.detectChanges();
+      if (this.selectedAreaInput) {
+        try {
+          this.chooseArea(this.selectedAreaInput);
+        } catch (error) {
+          console.error('Could not draw the selected area:', error);
+        }
+      }
     } catch (error) {
       console.error('Draw Area map error:', error);
-      this.errorMessage = 'The map could not be loaded. Please try again.';
+      this.errorMessage = this.map
+        ? 'Area drawing is temporarily unavailable.'
+        : 'Google Maps could not be loaded. Please try again.';
       this.loading = false;
       this.cdr.detectChanges();
     }

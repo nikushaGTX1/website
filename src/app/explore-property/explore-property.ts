@@ -12,7 +12,7 @@ import { TranslationService } from '../services/translation.service';
   selector: 'app-explore-property',
   standalone: false,
   templateUrl: './explore-property.html',
-  styleUrl: './explore-property.css',
+  styleUrls: ['./explore-property.css', '../main/main.css'],
 })
 export class ExploreProperty implements OnInit {
   apartments: Apartment[] = [];
@@ -60,6 +60,16 @@ export class ExploreProperty implements OnInit {
   locationEntries: ApiLocation[] = [];
   selectedLocationArea = '';
   selectedLocationValue = '';
+  streetSearch = '';
+  selectedModalStreets: string[] = [];
+  inlineDrawnPolygon: GeoJsonPolygon | null = null;
+  readonly featuredLocationAreas = [
+    { name: 'Vake', description: 'Premium central area', icon: 'fa-regular fa-building' },
+    { name: 'Saburtalo', description: 'Central & convenient', icon: 'fa-solid fa-city' },
+    { name: 'Vera', description: 'Historic central', icon: 'fa-solid fa-house-chimney' },
+    { name: 'Mtatsminda', description: 'Old city & views', icon: 'fa-solid fa-landmark' },
+  ];
+  readonly allLocationAreas = ['Didube', 'Digomi', 'Didi Digomi', 'Gldani', 'Nadzaladevi', 'Isani', 'Samgori', 'Avlabari', 'Sololaki', 'Chugureti', 'Krtsanisi', 'Vashlijvari'];
   locationDisplayLanguage: 'en' | 'ka' = 'ka';
   headerBedrooms = '';
   featureFilter = '';
@@ -229,9 +239,82 @@ export class ExploreProperty implements OnInit {
 
   openLocationSearch(): void {
     this.locationOpen = true;
+    if (!this.selectedLocationArea) this.chooseAreaForModal('Vake');
     this.budgetOpen = false;
     this.bedroomOpen = false;
     this.propertyTypeOpen = false;
+  }
+
+  get modalStreetSuggestions(): LocationSuggestion[] {
+    if (!this.selectedLocationArea) return [];
+    const query = this.streetSearch.trim().toLowerCase();
+    const entry = this.locationEntries.find((item) =>
+      item.district.toLowerCase() === this.selectedLocationArea.toLowerCase(),
+    );
+    if (!entry) return [];
+    return this.locationService.streetNames(entry, 'en')
+      .filter((street) => !query || street.label.toLowerCase().includes(query))
+      .slice(0, 8)
+      .map((street) => ({
+        label: street.label,
+        value: street.value,
+        type: 'Street',
+        city: this.locationService.cityName(entry, 'en'),
+        district: this.locationService.districtName(entry, 'en'),
+      }));
+  }
+
+  get selectedAreaDescription(): string {
+    return this.featuredLocationAreas.find((area) => area.name === this.selectedLocationArea)?.description
+      || 'Explore homes, streets and neighborhoods in this area.';
+  }
+
+  chooseAreaForModal(area: string): void {
+    this.selectedLocationArea = area;
+    this.selectedModalStreets = [];
+    this.streetSearch = '';
+    this.inlineDrawnPolygon = null;
+  }
+
+  isStreetSelected(street: string): boolean {
+    return this.selectedModalStreets.includes(street);
+  }
+
+  toggleModalStreet(street: string): void {
+    this.selectedModalStreets = this.isStreetSelected(street)
+      ? this.selectedModalStreets.filter((item) => item !== street)
+      : [...this.selectedModalStreets, street];
+  }
+
+  clearModalLocation(): void {
+    this.selectedLocationArea = '';
+    this.selectedModalStreets = [];
+    this.streetSearch = '';
+    this.inlineDrawnPolygon = null;
+  }
+
+  cancelLocationPicker(): void {
+    this.locationOpen = false;
+  }
+
+  onInlinePolygon(polygon: GeoJsonPolygon | null): void {
+    this.inlineDrawnPolygon = polygon;
+  }
+
+  applyModalLocation(): void {
+    if (!this.selectedLocationArea) return;
+    this.location = this.selectedModalStreets.length
+      ? `${this.selectedLocationArea}: ${this.selectedModalStreets.join(', ')}`
+      : this.selectedLocationArea;
+    this.selectedLocationValue = this.selectedModalStreets[0] || this.selectedLocationArea;
+    this.drawnAreaActive = !!this.inlineDrawnPolygon;
+    if (this.inlineDrawnPolygon) {
+      sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
+    } else {
+      sessionStorage.removeItem('white-tower-drawn-area');
+    }
+    this.locationOpen = false;
+    this.onSearch();
   }
 
   selectLocation(suggestion: LocationSuggestion): void {
