@@ -72,6 +72,9 @@
   .sort-by{width:100%;justify-content:space-between}
   .sort-by select{min-width:0;max-width:180px}
   .sidebar-filters{padding:18px}
+  .filter-group{padding-top:20px}
+  .checkbox-list label{min-height:36px;font-size:13px}
+  .checkbox-list input{width:18px;height:18px}
   .cards-grid-view{grid-template-columns:minmax(0,1fr);width:100%}
   .property-card{width:100%;max-width:none}
   .property-specs{gap:8px;flex-wrap:wrap;justify-content:flex-start}

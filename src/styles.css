@@ -8,10 +8,13 @@
 html {
   scroll-behavior: smooth;
   text-size-adjust: 100%;
+  overflow-x: clip;
 }
 
 body {
+  width: 100%;
   min-width: 0;
+  overflow-x: clip;
   color: #111827;
   background: #fff;
   line-height: 1.5;
@@ -23,7 +26,34 @@ body {
 }
 
 img {
+  max-width: 100%;
   height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+app-root,
+.route-content,
+main,
+section,
+article,
+aside,
+form {
+  min-width: 0;
 }
 
 .home-svg {
@@ -68,6 +98,98 @@ img {
 
 .location-control {
   position: relative;
+}
+
+/* Site-wide phone and tablet safety layer */
+@media (max-width: 768px) {
+  html {
+    scroll-padding-top: 72px;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  button,
+  [role='button'],
+  select,
+  input[type='checkbox'],
+  input[type='radio'] {
+    touch-action: manipulation;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  span,
+  strong,
+  small,
+  label,
+  a {
+    overflow-wrap: anywhere;
+  }
+
+  [role='dialog'] {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+
+  .modal-backdrop,
+  .location-modal-backdrop,
+  .draw-backdrop,
+  .user-editor-backdrop,
+  .photo-viewer {
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    padding-left: max(10px, env(safe-area-inset-left));
+  }
+
+  .page-shell,
+  .page-container,
+  .content-container,
+  .container {
+    max-width: 100%;
+  }
+
+  .row-actions,
+  .toolbar-actions,
+  .heading-actions,
+  .form-actions {
+    flex-wrap: wrap;
+  }
+
+  .row-actions > button,
+  .form-actions > button {
+    min-height: 44px;
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 420px) {
+  [role='dialog'] {
+    max-width: calc(100vw - 12px);
+    max-height: calc(100dvh - 12px);
+  }
+
+  .modal-backdrop,
+  .location-modal-backdrop,
+  .draw-backdrop,
+  .user-editor-backdrop {
+    padding: 6px;
+  }
 }
 
 .location-chevron {
