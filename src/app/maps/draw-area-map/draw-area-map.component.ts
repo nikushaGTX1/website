@@ -27,6 +27,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   @Input() visible = false;
   @Input() compact = false;
   @Input() selectedAreaInput = '';
+  @Input() selectedAreasInput: string[] = [];
   @HostBinding('class.is-hidden') get isHidden(): boolean { return !this.visible; }
   @HostBinding('class.is-compact') get isCompact(): boolean { return this.compact; }
   @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLDivElement>;
@@ -99,7 +100,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedAreaInput'] && this.selectedAreaInput && this.draw && this.map) {
+    if (changes['selectedAreasInput'] && this.draw && this.map) {
+      this.chooseAreas(this.selectedAreasInput);
+    } else if (changes['selectedAreaInput'] && this.selectedAreaInput && this.draw && this.map) {
       this.chooseArea(this.selectedAreaInput);
     }
   }
@@ -153,32 +156,76 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   chooseArea(area: string): void {
-    const coordinates = this.areaPolygons[area];
-    if (!coordinates || !this.draw || !this.map) return;
+    this.chooseAreas([area]);
+  }
+
+  chooseAreas(areas: string[]): void {
+    if (!this.draw || !this.map) return;
+    const drawableAreas = areas
+      .map((area) => ({ area, coordinates: this.areaPolygons[area] }))
+      .filter((item): item is { area: string; coordinates: number[][] } => !!item.coordinates);
     this.draw.clear();
-    const featureId = this.draw.getFeatureId();
-    const feature = {
+    if (!drawableAreas.length) {
+      this.selectedArea = '';
+      this.hasPolygon = false;
+      this.polygonChange.emit(null);
+      this.cdr.detectChanges();
+      return;
+    }
+    const connectedCoordinates = this.convexHull(
+      drawableAreas.flatMap(({ coordinates }) => coordinates.slice(0, -1)),
+    );
+    const features = [{
       type: 'Feature' as const,
-      id: featureId,
-      properties: { mode: 'polygon', name: area },
-      geometry: { type: 'Polygon' as const, coordinates: [coordinates] },
-    };
-    const result = this.draw.addFeatures([feature]);
-    if (result[0]?.valid) {
-      this.selectedArea = area;
+      id: this.draw!.getFeatureId(),
+      properties: { mode: 'polygon', name: drawableAreas.map((item) => item.area).join(', ') },
+      geometry: { type: 'Polygon' as const, coordinates: [connectedCoordinates] },
+    }];
+    const results = this.draw.addFeatures(features);
+    const validFeatures = features.filter((_, index) => results[index]?.valid);
+    if (validFeatures.length) {
+      this.selectedArea = drawableAreas.map((item) => item.area).join(', ');
       this.selectedStreet = '';
       this.streetSearch = '';
       this.streetStep = true;
       this.hasPolygon = true;
-      this.draw.selectFeature(featureId);
       const bounds = new google.maps.LatLngBounds();
-      coordinates.forEach(([lng, lat]) => bounds.extend({ lat, lng }));
+      drawableAreas.forEach(({ coordinates }) =>
+        coordinates.forEach(([lng, lat]) => bounds.extend({ lat, lng })),
+      );
       this.map.fitBounds(bounds, 48);
       this.cdr.detectChanges();
       this.polygonChange.emit(this.currentPolygon());
     } else {
-      console.error(`Could not draw ${area}:`, result[0]?.reason || 'Invalid polygon');
+      console.error('Could not draw selected areas.');
     }
+  }
+
+  private convexHull(points: number[][]): number[][] {
+    const unique = [...new Map(points.map((point) => [`${point[0]},${point[1]}`, point])).values()]
+      .sort((left, right) => left[0] - right[0] || left[1] - right[1]);
+    if (unique.length < 3) {
+      return unique.length ? [...unique, unique[0]] : [];
+    }
+    const cross = (origin: number[], left: number[], right: number[]) =>
+      (left[0] - origin[0]) * (right[1] - origin[1]) -
+      (left[1] - origin[1]) * (right[0] - origin[0]);
+    const lower: number[][] = [];
+    for (const point of unique) {
+      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], point) <= 0) {
+        lower.pop();
+      }
+      lower.push(point);
+    }
+    const upper: number[][] = [];
+    for (const point of [...unique].reverse()) {
+      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], point) <= 0) {
+        upper.pop();
+      }
+      upper.push(point);
+    }
+    const hull = [...lower.slice(0, -1), ...upper.slice(0, -1)];
+    return [...hull, hull[0]];
   }
 
   applyArea(): void {
@@ -290,7 +337,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.loading = false;
       this.errorMessage = '';
       this.cdr.detectChanges();
-      if (this.selectedAreaInput) {
+      if (this.selectedAreasInput.length) {
+        try {
+          this.chooseAreas(this.selectedAreasInput);
+        } catch (error) {
+          console.error('Could not draw the selected areas:', error);
+        }
+      } else if (this.selectedAreaInput) {
         try {
           this.chooseArea(this.selectedAreaInput);
         } catch (error) {

@@ -53,21 +53,21 @@
                       [class.selected]="isAreaSelected(area)" (click)="chooseAreaForModal(area)">
                       <i class="fa-solid fa-building" aria-hidden="true"></i>{{ area }}
                     </button>
-                    <button type="button" class="more-areas-trigger" [class.selected]="moreAreasOpen"
-                      [attr.aria-expanded]="moreAreasOpen" (click)="moreAreasOpen = !moreAreasOpen">
-                      More areas <i class="fa-solid fa-chevron-down"></i>
-                    </button>
                     <ng-container *ngIf="moreAreasOpen">
                       <button type="button" *ngFor="let area of additionalTbilisiAreas"
                         [class.selected]="isAreaSelected(area)" (click)="chooseAreaForModal(area)">
                         <i class="fa-solid fa-building" aria-hidden="true"></i>{{ area }}
                       </button>
                     </ng-container>
+                    <button type="button" class="more-areas-trigger" [class.selected]="moreAreasOpen"
+                      [attr.aria-expanded]="moreAreasOpen" (click)="moreAreasOpen = !moreAreasOpen">
+                      {{ moreAreasOpen ? 'Fewer areas' : 'More areas' }} <i class="fa-solid fa-chevron-down"></i>
+                    </button>
                   </div>
                 </section>
 
                 <section class="street-picker-column">
-                  <h3>Streets in {{ selectedLocationArea || 'selected area' }}</h3>
+                  <h3>{{ streetAreaTitle }}</h3>
                   <label class="street-search">
                     <input name="streetSearch" [(ngModel)]="streetSearch" placeholder="Search street...">
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -76,7 +76,8 @@
                     <button type="button" *ngFor="let street of modalStreetSuggestions"
                       [class.selected]="isStreetSelected(street.label)" (click)="toggleModalStreet(street.label)">
                       <i class="fa-solid" [class.fa-circle-check]="isStreetSelected(street.label)"
-                        [class.fa-circle]="!isStreetSelected(street.label)" aria-hidden="true"></i>{{ street.label }}
+                        [class.fa-circle]="!isStreetSelected(street.label)" aria-hidden="true"></i>
+                      <span class="street-row-text">{{ street.label }} <small>{{ street.district }}</small></span>
                     </button>
                     <p *ngIf="!modalStreetSuggestions.length">Choose an area to see its streets.</p>
                   </div>
@@ -92,6 +93,7 @@
                     [visible]="true"
                     [compact]="true"
                     [selectedAreaInput]="selectedLocationArea"
+                    [selectedAreasInput]="selectedLocationAreas"
                     (polygonChange)="onInlinePolygon($event)">
                   </app-draw-area-map>
                   <div class="area-map-card"><i class="fa-solid fa-city"></i><span><b>{{ selectedLocationArea || 'Tbilisi' }}</b><small>{{ selectedAreaDescription }}</small></span></div>

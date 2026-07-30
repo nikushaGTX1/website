@@ -395,13 +395,14 @@
 .featured-area-grid .area-check { position: absolute; top: 10px; right: 10px; color: #451a8f; }
 .all-area-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .all-area-grid button {
+  position: relative;
   min-width: 0;
   min-height: 52px;
-  padding: 10px 12px;
+  padding: 10px 12px 10px 35px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 0;
   border: 1px solid #e1e5ec;
   border-radius: 8px;
   background: #fff;
@@ -414,6 +415,8 @@
   cursor: pointer;
 }
 .all-area-grid button i {
+  position: absolute;
+  left: 13px;
   width: 15px;
   margin: 0;
   flex: 0 0 15px;
@@ -424,10 +427,14 @@
 }
 .all-area-grid button.selected { border-color: #451a8f; color: #451a8f; background: #f8f6ff; }
 .all-area-grid .more-areas-trigger {
+  padding-inline: 12px;
+  gap: 9px;
   color: #451a8f;
   white-space: nowrap;
 }
 .all-area-grid .more-areas-trigger i {
+  position: static;
+  left: auto;
   width: auto;
   flex-basis: auto;
   font-size: 11px;
@@ -498,6 +505,8 @@
 }
 .street-choice-list button i { color: #c7ccd6; font-size: 17px; }
 .street-choice-list button.selected i { color: #451a8f; }
+.street-row-text { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: 1; text-align: left; }
+.street-row-text small { flex: 0 0 auto; color: #7b8496; font-size: 9px; font-weight: 700; }
 .street-choice-list p { padding: 30px 5px; color: #8a93a4; font-size: 12px; text-align: center; }
 .show-streets { width: 100%; margin-top: 12px; border: 0; background: transparent; color: #451a8f; font-size: 11px; font-weight: 750; cursor: pointer; }
 .show-streets i { margin-left: 9px; }

@@ -254,22 +254,39 @@ export class Main implements OnInit {
   }
 
   public get modalStreetSuggestions(): LocationSuggestion[] {
-    if (!this.selectedLocationArea) return [];
+    if (!this.selectedLocationAreas.length) return [];
     const query = this.streetSearch.trim().toLowerCase();
-    const entry = this.locationEntries.find((item) =>
-      item.district.toLowerCase() === this.selectedLocationArea.toLowerCase(),
+    const streetGroups = this.selectedLocationAreas.map((selectedArea) =>
+      this.locationEntries
+        .filter((entry) => entry.district.toLowerCase() === selectedArea.toLowerCase() ||
+          this.locationService.districtName(entry, 'en').toLowerCase() === selectedArea.toLowerCase())
+        .flatMap((entry) => this.locationService.streetNames(entry, 'en').map((street) => ({
+          ...street,
+          city: this.locationService.cityName(entry, 'en'),
+          district: selectedArea,
+        })))
+        .filter((street) => !query || street.label.toLowerCase().includes(query)),
     );
-    if (!entry) return [];
-    const streets = this.locationService.streetNames(entry, 'en')
-      .filter((street) => !query || street.label.toLowerCase().includes(query));
+    const streets = Array.from(
+      { length: Math.max(0, ...streetGroups.map((group) => group.length)) },
+      (_, index) => streetGroups.map((group) => group[index]).filter((street) => !!street),
+    )
+      .flat()
+      .filter((street, index, list) => list.findIndex((item) =>
+        item.value === street.value && item.district === street.district) === index);
     return (this.showAllStreets ? streets : streets.slice(0, 8))
       .map((street) => ({
         label: street.label,
         value: street.value,
         type: 'Street',
-        city: this.locationService.cityName(entry, 'en'),
-        district: this.locationService.districtName(entry, 'en'),
+        city: street.city,
+        district: street.district,
       }));
+  }
+
+  public get streetAreaTitle(): string {
+    if (!this.selectedLocationAreas.length) return 'Streets in selected areas';
+    return `Streets in ${this.selectedLocationAreas.join(' + ')}`;
   }
 
   public get apiTbilisiAreas(): string[] {
@@ -351,8 +368,10 @@ export class Main implements OnInit {
     this.searchLocation = this.selectedModalStreets.length
       ? `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
       : this.selectedLocationAreas.join(', ');
-    this.selectedLocationValue = this.selectedModalStreets[0] || this.selectedLocationAreas.join(',');
-    if (this.inlineDrawnPolygon) {
+    this.selectedLocationValue = this.selectedModalStreets.length
+      ? this.selectedModalStreets.join(',')
+      : this.selectedLocationAreas.join(',');
+    if (this.inlineDrawnPolygon && this.selectedLocationAreas.length === 1) {
       sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
     } else {
       sessionStorage.removeItem('white-tower-drawn-area');
