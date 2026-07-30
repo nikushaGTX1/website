@@ -276,7 +276,7 @@
         <div class="property-image">
           <img [src]="getApartmentImage(apartment)" [alt]="getApartmentTitle(apartment)"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'" [attr.fetchpriority]="index === 0 ? 'high' : 'auto'" decoding="async">
-          <span class="property-badge"><i class="fa-solid" [class.fa-crown]="index === 0" [class.fa-star]="index !== 0"></i>{{ index === 0 ? 'Premium' : index === 1 ? 'New' : index === 2 ? 'Hot' : 'Featured' }}</span>
+          <span class="property-badge"><i class="fa-solid" [class.fa-fire]="index === 0" [class.fa-crown]="index === 2" [class.fa-star]="index !== 0 && index !== 2"></i>{{ index === 0 ? 'Hot' : index === 1 ? 'New' : index === 2 ? 'Premium' : 'Featured' }}</span>
           <button type="button" class="favorite" [class.active]="favoriteService.isFavorite(apartment.id)"
             [attr.aria-label]="favoriteService.isFavorite(apartment.id) ? 'Remove from saved properties' : 'Save property'"
             [attr.aria-pressed]="favoriteService.isFavorite(apartment.id)"
