@@ -253,7 +253,7 @@ export class Main implements OnInit {
     this.propertyTypeOpen = false;
   }
 
-  get modalStreetSuggestions(): LocationSuggestion[] {
+  public get modalStreetSuggestions(): LocationSuggestion[] {
     if (!this.selectedLocationArea) return [];
     const query = this.streetSearch.trim().toLowerCase();
     const entry = this.locationEntries.find((item) =>
@@ -272,7 +272,7 @@ export class Main implements OnInit {
       }));
   }
 
-  get apiTbilisiAreas(): string[] {
+  public get apiTbilisiAreas(): string[] {
     return [...new Set(
       this.locationEntries
         .filter((entry) => entry.city === 'Tbilisi')
@@ -281,7 +281,7 @@ export class Main implements OnInit {
     )].sort((left, right) => left.localeCompare(right));
   }
 
-  get additionalTbilisiAreas(): string[] {
+  public get additionalTbilisiAreas(): string[] {
     const visibleAreas = new Set([
       ...this.featuredLocationAreas.map((area) => area.name),
       ...this.allLocationAreas,
@@ -289,12 +289,12 @@ export class Main implements OnInit {
     return this.apiTbilisiAreas.filter((area) => !visibleAreas.has(area.toLowerCase()));
   }
 
-  get selectedAreaDescription(): string {
+  public get selectedAreaDescription(): string {
     return this.featuredLocationAreas.find((area) => area.name === this.selectedLocationArea)?.description
       || 'Explore homes, streets and neighborhoods in this area.';
   }
 
-  chooseAreaForModal(area: string): void {
+  public chooseAreaForModal(area: string): void {
     if (this.isAreaSelected(area)) {
       this.removeModalArea(area);
       return;
@@ -307,11 +307,11 @@ export class Main implements OnInit {
     this.streetSearch = '';
   }
 
-  isAreaSelected(area: string): boolean {
+  public isAreaSelected(area: string): boolean {
     return this.selectedLocationAreas.includes(area);
   }
 
-  removeModalArea(area: string): void {
+  public removeModalArea(area: string): void {
     this.selectedLocationAreas = this.selectedLocationAreas.filter((item) => item !== area);
     if (this.selectedLocationArea === area) {
       this.selectedLocationArea = this.selectedLocationAreas.at(-1) || '';
@@ -320,17 +320,17 @@ export class Main implements OnInit {
     }
   }
 
-  isStreetSelected(street: string): boolean {
+  public isStreetSelected(street: string): boolean {
     return this.selectedModalStreets.includes(street);
   }
 
-  toggleModalStreet(street: string): void {
+  public toggleModalStreet(street: string): void {
     this.selectedModalStreets = this.isStreetSelected(street)
       ? this.selectedModalStreets.filter((item) => item !== street)
       : [...this.selectedModalStreets, street];
   }
 
-  clearModalLocation(): void {
+  public clearModalLocation(): void {
     this.selectedLocationArea = '';
     this.selectedLocationAreas = [];
     this.selectedModalStreets = [];
@@ -338,15 +338,15 @@ export class Main implements OnInit {
     this.inlineDrawnPolygon = null;
   }
 
-  onInlinePolygon(polygon: GeoJsonPolygon | null): void {
+  public onInlinePolygon(polygon: GeoJsonPolygon | null): void {
     this.inlineDrawnPolygon = polygon;
   }
 
-  cancelLocationPicker(): void {
+  public cancelLocationPicker(): void {
     this.locationOpen = false;
   }
 
-  applyModalLocation(): void {
+  public applyModalLocation(): void {
     if (!this.selectedLocationAreas.length) return;
     this.searchLocation = this.selectedModalStreets.length
       ? `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
@@ -448,7 +448,6 @@ export class Main implements OnInit {
 
     this.apartmentService.getApartments().subscribe({
       next: (data) => {
-        console.log('Apartments loaded:', data);
         this.apartments = data;
         this.loading = false;
         this.cdr.detectChanges();
@@ -549,7 +548,7 @@ export class Main implements OnInit {
     const districtLabel = matchedDistrict
       ? this.locationService.districtName(matchedDistrict, 'en')
       : district;
-    return `${city} District (${districtLabel})`;
+    return `${city} ${districtLabel}`;
   }
 
   getApartmentDescription(apartment: Apartment): string {
