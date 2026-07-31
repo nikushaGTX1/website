@@ -27,7 +27,7 @@
             <div class="location-picker-dialog" role="dialog" aria-modal="true" aria-label="Choose your location" (click)="$event.stopPropagation()">
               <header class="location-modal-header">
                 <div><h2>Choose your location</h2><div class="location-steps"><span class="active"><b>1</b> Areas</span><i></i><span [class.active]="selectedModalStreets.length > 0"><b>2</b> Streets <small>(optional)</small></span></div></div>
-                <button type="button" aria-label="Close location picker" (click)="cancelLocationPicker()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="location-modal-close" type="button" aria-label="Close location picker" (click)="cancelLocationPicker()"><i class="fa-solid fa-xmark"></i></button>
               </header>
               <div class="location-modal-body">
                 <section class="area-picker-column">
@@ -82,6 +82,7 @@
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
           <div class="property-type-menu" role="listbox" *ngIf="propertyTypeOpen">
+            <button class="mobile-popover-close" type="button" aria-label="Close property type" (click)="propertyTypeOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Property Type</h3>
             <div class="property-type-options">
               <button type="button" role="option" *ngFor="let option of propertyTypeOptions"
@@ -103,6 +104,7 @@
           </button>
           <div class="budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen"
             (click)="$event.stopPropagation()">
+            <button class="mobile-popover-close" type="button" aria-label="Close price filter" (click)="budgetOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Choose your price range</h3>
             <div class="budget-presets">
               <button type="button" *ngFor="let range of budgetRanges"
@@ -140,6 +142,7 @@
           </button>
           <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen"
             (click)="$event.stopPropagation()">
+            <button class="mobile-popover-close" type="button" aria-label="Close bedroom filter" (click)="bedroomOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Bedrooms</h3>
             <div class="bedroom-options">
               <button type="button" *ngFor="let option of headerBedroomOptions"

@@ -62,3 +62,4 @@ h3{font-size:12px;letter-spacing:.07em}
   visibility:visible;
   pointer-events:auto;
 }
+@media(max-width:650px){.compact-map-shell,.compact-draw-map{height:clamp(390px,58dvh,540px);min-height:clamp(390px,58dvh,540px)}.draw-tool-button{top:12px;left:12px;min-height:44px;padding-inline:15px}.compact-map-shell .map-message,.compact-map-shell .map-tip{top:66px;max-width:calc(100% - 24px);white-space:normal;text-align:center}}

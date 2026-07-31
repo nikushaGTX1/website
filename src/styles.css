@@ -192,6 +192,62 @@ form {
   }
 }
 
+/* Shared mobile usability layer. Component styles still control visual design;
+   these rules prevent common overflow, keyboard and touch issues site-wide. */
+@media (max-width: 768px) {
+  .route-content {
+    isolation: isolate;
+  }
+
+  main {
+    width: 100%;
+  }
+
+  textarea,
+  input,
+  select {
+    min-width: 0;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .form-actions,
+  .modal-actions,
+  .dialog-actions {
+    gap: 10px;
+  }
+
+  .form-actions > button,
+  .form-actions > a,
+  .modal-actions > button,
+  .dialog-actions > button {
+    flex: 1 1 140px;
+  }
+
+  [class*='grid'] > *,
+  [class*='layout'] > *,
+  [class*='row'] > * {
+    min-width: 0;
+  }
+
+  .breadcrumbs,
+  [class*='breadcrumb'] {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .breadcrumbs::-webkit-scrollbar,
+  [class*='breadcrumb']::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 .location-chevron {
   margin-right: 14px;
   color: #6b778c;
@@ -506,6 +562,58 @@ form {
   color: #6748db;
 }
 
+.mobile-popover-close {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  .property-type-menu {
+    position: fixed;
+    z-index: 1300;
+    top: 50%;
+    right: 14px;
+    left: 14px;
+    width: auto;
+    min-width: 0;
+    max-height: calc(100dvh - 28px);
+    padding: 22px 18px 18px;
+    overflow-y: auto;
+    border-radius: 18px;
+    transform: translateY(-50%);
+  }
+
+  .property-type-menu h3 {
+    min-height: 44px;
+    margin: 0 52px 10px 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-popover-close {
+    position: absolute;
+    z-index: 5;
+    top: 10px;
+    right: 12px;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #f3f0fb;
+    color: #273249;
+    font-size: 19px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .mobile-popover-close i {
+    margin: 0;
+    line-height: 1;
+  }
+}
+
 /* Primary purple stays strong; interactive hover uses a lighter violet. */
 .btn-primary-search:hover,
 .search-submit:hover,
@@ -599,7 +707,7 @@ html,
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 app-root {
@@ -607,7 +715,7 @@ app-root {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 img,
@@ -633,7 +741,19 @@ textarea {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
+  }
+
+  html {
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto;
+  }
+
+  body,
+  app-root,
+  .route-content {
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto;
   }
 
   app-main,
@@ -660,7 +780,7 @@ textarea {
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   main,
@@ -679,11 +799,6 @@ textarea {
   }
   h1 {
     overflow-wrap: anywhere;
-  }
-
-  button,
-  a {
-    touch-action: manipulation;
   }
 
   button {

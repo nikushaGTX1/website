@@ -33,7 +33,7 @@
                     <span [class.active]="selectedModalStreets.length > 0"><b>2</b> Streets <small>(optional)</small></span>
                   </div>
                 </div>
-                <button type="button" aria-label="Close location picker" (click)="cancelLocationPicker()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="location-modal-close" type="button" aria-label="Close location picker" (click)="cancelLocationPicker()"><i class="fa-solid fa-xmark"></i></button>
               </header>
 
               <div class="location-modal-body">
@@ -190,6 +190,7 @@
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
           <div class="property-type-menu" role="listbox" *ngIf="propertyTypeOpen">
+            <button class="mobile-popover-close" type="button" aria-label="Close property type" (click)="propertyTypeOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Property Type</h3>
             <div class="property-type-options">
               <button type="button" role="option" *ngFor="let option of propertyTypeOptions"
@@ -210,6 +211,7 @@
             <span><i class="fa-solid fa-wallet"></i> {{ budgetSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div class="main-budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen">
+            <button class="mobile-popover-close" type="button" aria-label="Close price filter" (click)="budgetOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Choose your price range</h3>
             <div class="budget-presets">
               <button type="button" *ngFor="let range of budgetRanges"
@@ -247,6 +249,7 @@
             <span><i class="fa-solid fa-bed"></i> {{ bedroomSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen">
+            <button class="mobile-popover-close" type="button" aria-label="Close room filter" (click)="bedroomOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Rooms</h3>
             <div class="bedroom-options">
               <button type="button" *ngFor="let option of bedroomOptions"
@@ -269,6 +272,7 @@
       </div>
 
       <div class="quick-filters" *ngIf="advancedFiltersOpen">
+        <button class="mobile-popover-close quick-filter-close" type="button" aria-label="Close more filters" (click)="advancedFiltersOpen = false"><i class="fa-solid fa-xmark"></i></button>
         <button type="button" (click)="useQuickFilter('parking')"><i class="fa-solid fa-square-parking"></i> Parking</button>
         <button type="button" (click)="useQuickFilter('metro')"><i class="fa-solid fa-train-subway"></i> Near Metro</button>
         <button type="button" (click)="useQuickFilter('pets')"><i class="fa-solid fa-paw"></i> Pet Friendly</button>
