@@ -74,7 +74,7 @@
                   </label>
                   <div class="street-choice-list">
                     <button type="button" *ngFor="let street of modalStreetSuggestions"
-                      [class.selected]="isStreetSelected(street.label)" (click)="toggleModalStreet(street.label)">
+                      [class.selected]="isStreetSelected(street.label)" (click)="toggleModalStreet(street)">
                       <i class="fa-solid" [class.fa-circle-check]="isStreetSelected(street.label)"
                         [class.fa-circle]="!isStreetSelected(street.label)" aria-hidden="true"></i>
                       <span class="street-row-text">{{ street.label }} <small>{{ street.district }}</small></span>
@@ -94,6 +94,7 @@
                     [compact]="true"
                     [selectedAreaInput]="selectedLocationArea"
                     [selectedAreasInput]="selectedLocationAreas"
+                    [selectedStreetsInput]="selectedModalStreetDetails"
                     (polygonChange)="onInlinePolygon($event)">
                   </app-draw-area-map>
                   <div class="area-map-card"><i class="fa-solid fa-city"></i><span><b>{{ selectedLocationArea || 'Tbilisi' }}</b><small>{{ selectedAreaDescription }}</small></span></div>

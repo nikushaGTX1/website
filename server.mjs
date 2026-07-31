@@ -34,6 +34,7 @@ const publicApiRequests = new Map();
 const apartmentImageCache = new Map();
 const apartmentImageRequests = new Map();
 const translationCache = new Map();
+const streetGeometryCache = new Map();
 const approvalDataDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'data');
 const approvalDataFile = path.join(approvalDataDirectory, 'apartment-approval-requests.json');
 const publicCacheLifetimeMs = 60_000;
@@ -62,6 +63,44 @@ app.use((_request, response, next) => {
   response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
   next();
+});
+
+app.get('/map-data/street', async (request, response) => {
+  const street = typeof request.query.street === 'string' ? request.query.street.trim() : '';
+  if (!street || street.length > 120) {
+    response.status(400).json({ message: 'A valid street name is required.' });
+    return;
+  }
+  const cached = streetGeometryCache.get(street.toLowerCase());
+  if (cached) {
+    response.setHeader('Cache-Control', 'public, max-age=86400');
+    response.json(cached);
+    return;
+  }
+  try {
+    const tokens = street.replace(/[.,]/g, ' ').split(/\s+/)
+      .filter((token) => token.length >= 4 && !/^(street|avenue|road|lane)$/i.test(token))
+      .sort((left, right) => right.length - left.length);
+    const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
+    const query = `[out:json][timeout:20];way["highway"][~"^(name|name:en)$"~"${searchToken}",i](41.50,44.55,41.92,45.10);out geom;`;
+    const upstream = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!upstream.ok) throw new Error(`Overpass returned HTTP ${upstream.status}.`);
+    const payload = await upstream.json();
+    const result = {
+      lines: (payload.elements || []).map((element) =>
+        (element.geometry || []).map((point) => [point.lon, point.lat]),
+      ).filter((line) => line.length >= 2),
+    };
+    streetGeometryCache.set(street.toLowerCase(), result);
+    if (streetGeometryCache.size > 500) streetGeometryCache.delete(streetGeometryCache.keys().next().value);
+    response.setHeader('Cache-Control', 'public, max-age=86400');
+    response.json(result);
+  } catch (error) {
+    console.error('Street geometry proxy error:', error);
+    response.status(502).json({ message: 'Street geometry is temporarily unavailable.' });
+  }
 });
 
 async function readApprovalRequests() {

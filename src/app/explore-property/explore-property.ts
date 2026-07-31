@@ -63,6 +63,7 @@ export class ExploreProperty implements OnInit {
   selectedLocationValue = '';
   streetSearch = '';
   selectedModalStreets: string[] = [];
+  selectedModalStreetDetails: Array<{ street: string; district: string }> = [];
   moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
@@ -318,7 +319,6 @@ export class ExploreProperty implements OnInit {
     this.selectedLocationAreas = [...this.selectedLocationAreas, area];
     this.selectedLocationArea = area;
     this.showAllStreets = false;
-    this.selectedModalStreets = [];
     this.streetSearch = '';
     this.inlineDrawnPolygon = null;
   }
@@ -329,9 +329,10 @@ export class ExploreProperty implements OnInit {
 
   removeModalArea(area: string): void {
     this.selectedLocationAreas = this.selectedLocationAreas.filter((item) => item !== area);
+    this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter((item) => item.district !== area);
+    this.selectedModalStreets = this.selectedModalStreetDetails.map((item) => item.street);
     if (this.selectedLocationArea === area) {
       this.selectedLocationArea = this.selectedLocationAreas.at(-1) || '';
-      this.selectedModalStreets = [];
       this.inlineDrawnPolygon = null;
     }
   }
@@ -340,16 +341,21 @@ export class ExploreProperty implements OnInit {
     return this.selectedModalStreets.includes(street);
   }
 
-  toggleModalStreet(street: string): void {
-    this.selectedModalStreets = this.isStreetSelected(street)
-      ? this.selectedModalStreets.filter((item) => item !== street)
-      : [...this.selectedModalStreets, street];
+  toggleModalStreet(street: LocationSuggestion): void {
+    if (this.isStreetSelected(street.label)) {
+      this.selectedModalStreets = this.selectedModalStreets.filter((item) => item !== street.label);
+      this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter((item) => item.street !== street.label);
+    } else {
+      this.selectedModalStreets = [...this.selectedModalStreets, street.label];
+      this.selectedModalStreetDetails = [...this.selectedModalStreetDetails, { street: street.label, district: street.district || '' }];
+    }
   }
 
   clearModalLocation(): void {
     this.selectedLocationArea = '';
     this.selectedLocationAreas = [];
     this.selectedModalStreets = [];
+    this.selectedModalStreetDetails = [];
     this.streetSearch = '';
     this.inlineDrawnPolygon = null;
   }
