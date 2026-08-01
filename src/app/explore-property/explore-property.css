@@ -58,6 +58,8 @@
 @media(max-width:420px){.budget-fields{grid-template-columns:1fr;margin-top:24px}.budget-heading h3{font-size:24px}.budget-apply{min-width:130px}}
 
 @media(max-width:650px){
+  :host{width:100%;max-width:100%;overflow-x:hidden}
+  .explore-wrapper{position:relative;width:100%;max-width:100%;overflow-x:hidden}
   .hero-search-section{width:100%;padding:28px 14px 18px;background-position:62% center}
   .hero-header h1{font-size:clamp(34px,10vw,42px);overflow-wrap:anywhere}
   .search-card{width:100%;margin-top:26px;padding:0 14px 16px;overflow:visible}
@@ -65,6 +67,7 @@
   .tab-btn{flex:1;min-width:0;padding:0 8px}
   .search-inputs-bar{display:flex;flex-direction:column;align-items:stretch;gap:12px}
   .input-group,.btn-primary-search,.btn-secondary{width:100%;min-width:0}
+  .location-control,.location-control input,.input-group>input,.property-type-trigger,.budget-trigger,.bedroom-trigger{width:100%;max-width:100%;min-width:0}
   .explore-search-footer{align-items:stretch;flex-direction:column;gap:10px}
   .explore-search-footer .btn-secondary,.explore-search-footer a{width:100%;min-width:0}
   .page-shell{width:100%;padding:24px 14px 50px}
@@ -140,6 +143,7 @@
   .explore-wrapper .location-steps{gap:7px;flex-wrap:nowrap}
   .explore-wrapper .location-steps i{width:clamp(22px,9vw,42px)}
   .explore-wrapper .location-modal-body{display:block}
+  .explore-wrapper .location-modal-body{width:100%;max-width:100%;overflow-x:hidden}
   .explore-wrapper .location-modal-body>*{padding:18px 14px}
   .explore-wrapper .area-picker-column{max-height:none;overflow:visible}
   .explore-wrapper .featured-area-grid{grid-template-columns:repeat(2,minmax(0,1fr))}

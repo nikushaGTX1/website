@@ -1623,6 +1623,11 @@
     min-height: 46px;
   }
 
+  .location-panel-trigger > b {
+    width: 46px;
+    flex-basis: 46px;
+  }
+
   .search-submit {
     grid-column: auto;
     width: 100%;
@@ -1847,8 +1852,15 @@
     max-width: 100%;
   }
 
+  :host {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
   .home-page {
-    overflow: visible;
+    position: relative;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .hero {
