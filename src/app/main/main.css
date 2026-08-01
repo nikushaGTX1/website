@@ -2367,45 +2367,61 @@
 /* Simple mobile location sheet: one native scroll container, no nested locks. */
 @media (max-width: 650px) {
   .location-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    display: block;
+    position: fixed !important;
+    z-index: 9999 !important;
+    inset: 0 !important;
+    display: block !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    padding: 0 !important;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior-y: contain;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
-    background: #fff;
+    background: #fff !important;
   }
 
   .location-picker-dialog {
-    position: relative;
-    inset: auto;
+    position: relative !important;
+    inset: auto !important;
     width: 100% !important;
-    min-height: 100dvh;
+    min-height: 100dvh !important;
     height: auto;
     max-height: none;
     display: block;
     overflow: visible;
-    padding-bottom: calc(150px + env(safe-area-inset-bottom));
+    padding-bottom: calc(116px + env(safe-area-inset-bottom));
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 
   .location-modal-header {
-    position: relative;
-    inset: auto;
+    position: sticky !important;
+    z-index: 10001 !important;
+    top: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    background: #fff !important;
+    box-shadow: 0 4px 14px rgba(20, 32, 58, .08);
   }
 
   .location-modal-footer {
-    position: fixed;
-    z-index: 1100;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    position: fixed !important;
+    z-index: 10002 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
     max-height: 34dvh;
     overflow-y: auto;
     padding-bottom: max(10px, env(safe-area-inset-bottom));
-    background: #fff;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: #fff !important;
     box-shadow: 0 -8px 24px rgba(20, 32, 58, .14);
   }
 
@@ -2426,14 +2442,21 @@
   }
 
   .location-map-preview {
-    min-height: 390px;
-    height: 50dvh;
-    max-height: 500px;
+    min-height: 320px;
+    height: 42dvh;
+    max-height: 390px;
     touch-action: pan-y;
   }
 
   .inline-google-draw {
-    min-height: 390px;
+    min-height: 320px;
     height: 100%;
+  }
+
+  .location-modal-footer > div:last-child {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr) !important;
+    gap: 9px;
   }
 }
