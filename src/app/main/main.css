@@ -2459,4 +2459,13 @@
     grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr) !important;
     gap: 9px;
   }
+
+  .location-modal-header > .location-modal-close {
+    right: max(24px, env(safe-area-inset-right)) !important;
+  }
+
+  .location-modal-footer {
+    padding-right: max(18px, env(safe-area-inset-right)) !important;
+    padding-left: max(18px, env(safe-area-inset-left)) !important;
+  }
 }
