@@ -2049,6 +2049,8 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior-y: contain;
+    scroll-padding-block: 94px 120px;
+    touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
     border: 0;
     border-radius: 0;
@@ -2226,11 +2228,13 @@
   .location-map-preview {
     min-height: clamp(390px, 58dvh, 540px);
     height: clamp(390px, 58dvh, 540px);
+    touch-action: pan-y;
   }
 
   .inline-google-draw {
     min-height: clamp(390px, 58dvh, 540px);
     height: clamp(390px, 58dvh, 540px);
+    touch-action: pan-y;
   }
 
   .area-map-card {

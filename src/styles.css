@@ -27,6 +27,8 @@ body {
 
 html.location-menu-open,
 body.location-menu-open {
+  height: 100%;
+  overflow: hidden !important;
   overscroll-behavior: none;
 }
 

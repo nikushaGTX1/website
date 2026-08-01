@@ -681,22 +681,10 @@ export class Main implements OnInit, OnDestroy {
       this.locationMenuScrollY = window.scrollY;
       document.documentElement.classList.add('location-menu-open');
       body.classList.add('location-menu-open');
-      body.style.position = 'fixed';
-      body.style.top = `-${this.locationMenuScrollY}px`;
-      body.style.left = '0';
-      body.style.right = '0';
-      body.style.width = '100%';
-      body.style.overflow = 'hidden';
       return;
     }
     document.documentElement.classList.remove('location-menu-open');
     body.classList.remove('location-menu-open');
-    body.style.position = '';
-    body.style.top = '';
-    body.style.left = '';
-    body.style.right = '';
-    body.style.width = '';
-    body.style.overflow = '';
     window.scrollTo(0, this.locationMenuScrollY);
   }
 }
