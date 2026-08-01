@@ -2045,15 +2045,18 @@
     height: 100dvh;
     max-height: 100dvh;
     margin: 0;
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    overflow: hidden;
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
     border: 0;
     border-radius: 0;
   }
 
   .location-modal-header {
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 4;
     min-height: 94px;
     padding: max(14px, env(safe-area-inset-top)) 16px 12px;
@@ -2129,11 +2132,7 @@
   .location-modal-body {
     min-height: 0;
     display: block;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    scrollbar-gutter: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .location-modal-body > * {
@@ -2248,7 +2247,8 @@
   }
 
   .location-modal-footer {
-    position: relative;
+    position: sticky;
+    bottom: 0;
     z-index: 5;
     min-height: 0;
     padding: 10px 12px max(10px, env(safe-area-inset-bottom));
