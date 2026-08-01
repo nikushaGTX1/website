@@ -702,7 +702,7 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -713,7 +713,7 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -722,6 +722,14 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
   app-root[ng-version] > .route-content,
   app-root[ng-version] .home-page > section {
     animation: none;
+  }
+}
+
+/* A transformed ancestor traps position:fixed overlays on iOS Safari. */
+@media (max-width: 768px) {
+  app-root[ng-version] .home-page > section {
+    animation: none;
+    transform: none;
   }
 }
 
