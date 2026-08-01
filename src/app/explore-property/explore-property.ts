@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,7 +14,7 @@ import { TranslationService } from '../services/translation.service';
   templateUrl: './explore-property.html',
   styleUrls: ['./explore-property.css', '../main/main.css'],
 })
-export class ExploreProperty implements OnInit, OnDestroy {
+export class ExploreProperty implements OnInit {
   apartments: Apartment[] = [];
   filteredApartments: Apartment[] = [];
 
@@ -54,18 +54,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   ];
   homeType = '';
   location = '';
-  private locationMenuOpen = false;
-  private locationMenuScrollY = 0;
-
-  get locationOpen(): boolean {
-    return this.locationMenuOpen;
-  }
-
-  set locationOpen(open: boolean) {
-    if (this.locationMenuOpen === open) return;
-    this.locationMenuOpen = open;
-    this.setLocationMenuScrollLock(open);
-  }
+  locationOpen = false;
   locationLoading = false;
   locationError = false;
   locationEntries: ApiLocation[] = [];
@@ -934,21 +923,4 @@ export class ExploreProperty implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    if (this.locationMenuOpen) this.setLocationMenuScrollLock(false);
-  }
-
-  private setLocationMenuScrollLock(locked: boolean): void {
-    if (typeof document === 'undefined' || typeof window === 'undefined') return;
-    const body = document.body;
-    if (locked) {
-      this.locationMenuScrollY = window.scrollY;
-      document.documentElement.classList.add('location-menu-open');
-      body.classList.add('location-menu-open');
-      return;
-    }
-    document.documentElement.classList.remove('location-menu-open');
-    body.classList.remove('location-menu-open');
-    window.scrollTo(0, this.locationMenuScrollY);
-  }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -16,25 +16,14 @@ import { LocationService } from '../services/location.service';
   templateUrl: './main.html',
   styleUrl: './main.css',
 })
-export class Main implements OnInit, OnDestroy {
+export class Main implements OnInit {
   apartments: Apartment[] = [];
   agents: Agent[] = [];
   loading = true;
   agentsLoading = true;
   searchMode: 'rent' | 'buy' = 'rent';
   searchLocation = '';
-  private locationMenuOpen = false;
-  private locationMenuScrollY = 0;
-
-  get locationOpen(): boolean {
-    return this.locationMenuOpen;
-  }
-
-  set locationOpen(open: boolean) {
-    if (this.locationMenuOpen === open) return;
-    this.locationMenuOpen = open;
-    this.setLocationMenuScrollLock(open);
-  }
+  locationOpen = false;
   locationLoading = false;
   locationError = false;
   showLocationResults = false;
@@ -670,21 +659,4 @@ export class Main implements OnInit, OnDestroy {
     return Math.min(100, Math.max(0, Number(value || 0) / 50));
   }
 
-  ngOnDestroy(): void {
-    if (this.locationMenuOpen) this.setLocationMenuScrollLock(false);
-  }
-
-  private setLocationMenuScrollLock(locked: boolean): void {
-    if (typeof document === 'undefined' || typeof window === 'undefined') return;
-    const body = document.body;
-    if (locked) {
-      this.locationMenuScrollY = window.scrollY;
-      document.documentElement.classList.add('location-menu-open');
-      body.classList.add('location-menu-open');
-      return;
-    }
-    document.documentElement.classList.remove('location-menu-open');
-    body.classList.remove('location-menu-open');
-    window.scrollTo(0, this.locationMenuScrollY);
-  }
 }

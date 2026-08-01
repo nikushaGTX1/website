@@ -2363,3 +2363,63 @@
 .budget-sliders:before,.budget-sliders .range-fill{top:12px;height:5px}.budget-sliders input::-webkit-slider-thumb{width:22px;height:22px;margin-top:-9px}.budget-sliders input::-moz-range-thumb{width:20px;height:20px}.budget-scale{display:flex;align-items:center;justify-content:space-between;margin-top:10px;color:#536278;font-size:13px;font-weight:700}
 
 .date-control{position:relative}.date-control>i{position:absolute;z-index:1;top:50%;right:14px;color:#657084;transform:translateY(-50%);pointer-events:none}.search-fields .date-control input{padding-right:38px}.date-control input::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer}.main-budget-trigger>span>i,.main-bedroom-trigger>span>i{width:17px;margin-right:5px;color:#607088}.main-budget-trigger>b,.main-bedroom-trigger>b{font-size:11px}.main-budget-reset,.more-filters-toggle,.ai-home-link,.quick-filters button{gap:8px}
+
+/* Simple mobile location sheet: one native scroll container, no nested locks. */
+@media (max-width: 650px) {
+  .location-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .location-picker-dialog {
+    position: relative;
+    inset: auto;
+    width: 100% !important;
+    min-height: 100dvh;
+    height: auto;
+    max-height: none;
+    display: block;
+    overflow: visible;
+  }
+
+  .location-modal-header,
+  .location-modal-footer {
+    position: relative;
+    inset: auto;
+  }
+
+  .location-modal-body,
+  .area-picker-column,
+  .street-picker-column,
+  .street-choice-list {
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    touch-action: auto;
+  }
+
+  .location-map-preview,
+  .inline-google-draw {
+    display: block;
+  }
+
+  .location-map-preview {
+    min-height: 390px;
+    height: 50dvh;
+    max-height: 500px;
+    pointer-events: none;
+    touch-action: pan-y;
+  }
+
+  .inline-google-draw {
+    min-height: 390px;
+    height: 100%;
+  }
+}
