@@ -2028,8 +2028,8 @@
 @media(max-width:650px){.main-budget-popover,.bedroom-popover{position:fixed;top:50%;right:14px;left:14px;width:auto;max-height:calc(100dvh - 28px);overflow-y:auto;transform:translateY(-50%)}.main-budget-popover:before,.bedroom-popover:before{display:none}}
 @media(max-width:420px){.main-budget-popover,.bedroom-popover{padding:20px}.main-budget-fields{grid-template-columns:1fr auto 1fr}.bedroom-options{grid-template-columns:repeat(2,1fr)}}
 
-/* Authoritative mobile location picker: one scroll surface between a fixed
-   header and action bar, with no nested scroll traps. */
+/* Authoritative mobile location picker: fixed chrome with one simple,
+   map-free scrolling region. */
 @media (max-width: 650px) {
   .location-modal-backdrop {
     padding: 0;
@@ -2045,20 +2045,15 @@
     height: 100dvh;
     max-height: 100dvh;
     margin: 0;
-    display: block;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    scroll-padding-block: 94px 120px;
-    touch-action: pan-y;
-    -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
     border: 0;
     border-radius: 0;
   }
 
   .location-modal-header {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 4;
     min-height: 94px;
     padding: max(14px, env(safe-area-inset-top)) 16px 12px;
@@ -2134,7 +2129,11 @@
   .location-modal-body {
     min-height: 0;
     display: block;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
   }
 
   .location-modal-body > * {
@@ -2226,15 +2225,11 @@
   }
 
   .location-map-preview {
-    min-height: clamp(390px, 58dvh, 540px);
-    height: clamp(390px, 58dvh, 540px);
-    touch-action: pan-y;
+    display: none;
   }
 
   .inline-google-draw {
-    min-height: clamp(390px, 58dvh, 540px);
-    height: clamp(390px, 58dvh, 540px);
-    touch-action: pan-y;
+    display: none;
   }
 
   .area-map-card {
@@ -2251,8 +2246,7 @@
   }
 
   .location-modal-footer {
-    position: sticky;
-    bottom: 0;
+    position: relative;
     z-index: 5;
     min-height: 0;
     padding: 10px 12px max(10px, env(safe-area-inset-bottom));

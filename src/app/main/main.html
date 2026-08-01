@@ -102,7 +102,7 @@
               </div>
 
               <footer class="location-modal-footer">
-                <div class="selected-location">
+                <div class="selected-location" *ngIf="selectedLocationAreas.length > 0">
                   <b>Selected:</b>
                   <span *ngFor="let area of selectedLocationAreas">{{ area }} <button type="button" [attr.aria-label]="'Remove ' + area" (click)="removeModalArea(area)">×</button></span>
                   <button type="button" class="clear-location" (click)="clearModalLocation()">Clear all</button>
