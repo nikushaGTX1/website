@@ -25,6 +25,11 @@ body {
   line-height: 1.5;
 }
 
+html.location-menu-open,
+body.location-menu-open {
+  overscroll-behavior: none;
+}
+
 :focus-visible {
   outline: 3px solid #451a8f;
   outline-offset: 3px;

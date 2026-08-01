@@ -46,7 +46,7 @@
                     <button type="button" class="more-areas-trigger" [class.selected]="moreAreasOpen" [attr.aria-expanded]="moreAreasOpen" (click)="moreAreasOpen = !moreAreasOpen">{{ moreAreasOpen ? 'Fewer areas' : 'More areas' }} <i class="fa-solid fa-chevron-down"></i></button>
                   </div>
                 </section>
-                <section class="street-picker-column">
+                <section class="street-picker-column" *ngIf="selectedLocationAreas.length > 0">
                   <h3>{{ streetAreaTitle }}</h3>
                   <label class="street-search"><input name="exploreStreetSearch" [(ngModel)]="streetSearch" placeholder="Search street..."><i class="fa-solid fa-magnifying-glass"></i></label>
                   <div class="street-choice-list">

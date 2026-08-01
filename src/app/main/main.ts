@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -16,14 +16,25 @@ import { LocationService } from '../services/location.service';
   templateUrl: './main.html',
   styleUrl: './main.css',
 })
-export class Main implements OnInit {
+export class Main implements OnInit, OnDestroy {
   apartments: Apartment[] = [];
   agents: Agent[] = [];
   loading = true;
   agentsLoading = true;
   searchMode: 'rent' | 'buy' = 'rent';
   searchLocation = '';
-  locationOpen = false;
+  private locationMenuOpen = false;
+  private locationMenuScrollY = 0;
+
+  get locationOpen(): boolean {
+    return this.locationMenuOpen;
+  }
+
+  set locationOpen(open: boolean) {
+    if (this.locationMenuOpen === open) return;
+    this.locationMenuOpen = open;
+    this.setLocationMenuScrollLock(open);
+  }
   locationLoading = false;
   locationError = false;
   showLocationResults = false;
@@ -657,5 +668,35 @@ export class Main implements OnInit {
 
   private normalizedSliderValue(value: number | null): number {
     return Math.min(100, Math.max(0, Number(value || 0) / 50));
+  }
+
+  ngOnDestroy(): void {
+    if (this.locationMenuOpen) this.setLocationMenuScrollLock(false);
+  }
+
+  private setLocationMenuScrollLock(locked: boolean): void {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return;
+    const body = document.body;
+    if (locked) {
+      this.locationMenuScrollY = window.scrollY;
+      document.documentElement.classList.add('location-menu-open');
+      body.classList.add('location-menu-open');
+      body.style.position = 'fixed';
+      body.style.top = `-${this.locationMenuScrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+      return;
+    }
+    document.documentElement.classList.remove('location-menu-open');
+    body.classList.remove('location-menu-open');
+    body.style.position = '';
+    body.style.top = '';
+    body.style.left = '';
+    body.style.right = '';
+    body.style.width = '';
+    body.style.overflow = '';
+    window.scrollTo(0, this.locationMenuScrollY);
   }
 }
