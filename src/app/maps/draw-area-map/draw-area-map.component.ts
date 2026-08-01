@@ -40,6 +40,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   loading = true;
   errorMessage = '';
   hasPolygon = false;
+  compactMapInteractive = false;
   areaSearch = '';
   streetSearch = '';
   selectedArea = '';
@@ -146,6 +147,18 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.draw?.setMode('polygon');
     this.polygonChange.emit(null);
     this.clearStreetLines();
+  }
+
+  enableCompactMap(): void {
+    this.compactMapInteractive = true;
+    this.startDrawing();
+  }
+
+  applyCompactMapChanges(): void {
+    const polygon = this.currentPolygon();
+    if (!polygon) return;
+    this.polygonChange.emit(polygon);
+    this.compactMapInteractive = false;
   }
 
   get filteredAreaGroups(): { title: string; areas: string[] }[] {

@@ -2429,7 +2429,6 @@
     min-height: 390px;
     height: 50dvh;
     max-height: 500px;
-    pointer-events: none;
     touch-action: pan-y;
   }
 
