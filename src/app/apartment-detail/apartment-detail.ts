@@ -43,6 +43,7 @@ export class ApartmentDetail implements OnInit {
   favorite = false;
   phoneRevealed = false;
   descriptionExpanded = false;
+  agentImageFailed = false;
   nearbyPlaces: NearbyPlace[] = [];
   private realPhotoCount = 0;
 
@@ -215,7 +216,7 @@ export class ApartmentDetail implements OnInit {
   }
 
   get visibleDescription(): string {
-    const clean = this.description.split(/\n\nType:/i)[0].trim();
+    const clean = this.description.split(/\r?\n\s*\r?\nType:/i)[0].trim();
     return this.descriptionExpanded || clean.length <= 360
       ? clean
       : `${clean.slice(0, 360).trim()}…`;
@@ -368,13 +369,26 @@ export class ApartmentDetail implements OnInit {
   }
 
   get agentImage(): string {
+    if (this.agentImageFailed) return '';
     return toMediaUrl(
       this.selectedAgent?.profilePictureUrl ||
       this.selectedAgent?.profilePicture ||
       this.selectedAgent?.avatarUrl ||
       this.apartment?.agentProfilePictureUrl ||
       this.apartment?.uploaderProfilePictureUrl
-    ) || '/agent1.jpg';
+    );
+  }
+
+  get agentInitials(): string {
+    const parts = this.agentName.trim().split(/\s+/).filter(Boolean);
+    const initials = parts.length > 1
+      ? `${parts[0][0]}${parts[1][0]}`
+      : parts[0]?.slice(0, 2) || 'U';
+    return initials.toUpperCase();
+  }
+
+  handleAgentImageError(): void {
+    this.agentImageFailed = true;
   }
 
   get agentRating(): string {
@@ -413,6 +427,7 @@ export class ApartmentDetail implements OnInit {
   private applyApartment(apartment: Apartment): void {
     this.apartment = apartment;
     this.phoneRevealed = false;
+    this.agentImageFailed = false;
     this.galleryImages = this.getApartmentImages(apartment);
   }
 
@@ -499,9 +514,10 @@ export class ApartmentDetail implements OnInit {
 
   private getListingMetadata(label: string): string {
     const description = this.apartment?.description || '';
-    const metadata = description.split(/\n\n/).slice(1).join(' | ');
     const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return metadata.match(new RegExp(`(?:^|\\|)\\s*${escapedLabel}:\\s*([^|]+)`, 'i'))?.[1]?.trim() || '';
+    return description.match(
+      new RegExp(`(?:^|[|\\r\\n])\\s*${escapedLabel}:\\s*([^|\\r\\n]+)`, 'i'),
+    )?.[1]?.trim() || '';
   }
 
   private getApartmentImages(apartment: Apartment): string[] {
