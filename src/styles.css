@@ -585,6 +585,75 @@ app-root {
   color: #6748db;
 }
 
+/* Shared Main and Explore search-control interactions. */
+:is(.property-search, .search-card) :is(
+  .field-control,
+  .location-control,
+  .property-type-trigger,
+  .main-budget-trigger,
+  .main-bedroom-trigger,
+  .budget-trigger,
+  .bedroom-trigger,
+  .street-search,
+  input:not([type='range']):not([type='checkbox']),
+  select
+),
+.explore-wrapper :is(.price-inputs input, .sort-by select, .pagination select) {
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :is(.property-search, .search-card) :is(
+    .field-control,
+    .location-control,
+    .property-type-trigger,
+    .main-budget-trigger,
+    .main-bedroom-trigger,
+    .budget-trigger,
+    .bedroom-trigger,
+    .street-search,
+    input:not([type='range']):not([type='checkbox']),
+    select
+  ):hover,
+  .explore-wrapper :is(.price-inputs input, .sort-by select, .pagination select):hover {
+    border-color: #9b86f8;
+    background-color: #faf8ff;
+    color: #451a8f;
+    box-shadow: 0 4px 14px rgba(69, 26, 143, .09);
+  }
+
+  :is(.property-search, .search-card) :is(
+    .field-control,
+    .location-control,
+    .property-type-trigger,
+    .main-budget-trigger,
+    .main-bedroom-trigger,
+    .budget-trigger,
+    .bedroom-trigger
+  ):hover :is(i, .location-svg, .layers-svg) {
+    color: #7657f6;
+  }
+}
+
+:is(.property-search, .search-card) :is(
+  .field-control,
+  .location-control,
+  .property-type-trigger,
+  .main-budget-trigger,
+  .main-bedroom-trigger,
+  .budget-trigger,
+  .bedroom-trigger,
+  input:not([type='range']):not([type='checkbox']),
+  select
+):focus-visible,
+:is(.property-search, .search-card) .street-search:focus-within,
+.explore-wrapper :is(.price-inputs input, .sort-by select, .pagination select):focus-visible {
+  outline: none;
+  border-color: #451a8f;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, .13);
+}
+
 .mobile-popover-close {
   display: none;
 }

@@ -1111,6 +1111,8 @@
   color: #354158;
   font-size: 14px;
   font-weight: 600;
+  cursor: pointer;
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
 .lifestyle-row button i {
@@ -1120,10 +1122,26 @@
   text-align: center;
 }
 
-.lifestyle-row button:hover {
-  color: #174dc9;
-  border-color: #9db8f7;
-  background: #f3f7ff;
+@media (hover: hover) and (pointer: fine) {
+  .lifestyle-row button:hover {
+    color: #451a8f;
+    border-color: #9b86f8;
+    background: #f7f4ff;
+    box-shadow: 0 7px 18px rgba(69, 26, 143, .11);
+    transform: translateY(-2px);
+  }
+
+  .lifestyle-row button:hover i {
+    color: #7657f6;
+  }
+}
+
+.lifestyle-row button:focus-visible {
+  outline: none;
+  color: #451a8f;
+  border-color: #451a8f;
+  background: #f7f4ff;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, .14);
 }
 
 .process-grid {
