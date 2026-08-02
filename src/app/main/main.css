@@ -670,9 +670,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-top: 12px;
+  position: relative;
+  padding-top: 58px;
 }
 .quick-filters button {
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
   height: 42px;
   padding: 0 20px;
   border: 1px solid #dce3ec;
@@ -684,6 +687,24 @@
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+}
+
+.quick-filters > .quick-filter-close:hover {
+  background: #e4dcf7;
+  color: #111827;
+}
+
+.quick-filters > .quick-filter-close:active {
+  transform: scale(0.95);
+}
+
+.quick-filters > button:not(.quick-filter-close):hover {
+  background: #451a8f;
+  color: #ffffff;
+}
+
+.quick-filters > button:not(.quick-filter-close):active {
+  transform: translateY(1px);
 }
 .search-footer {
   position: relative;
@@ -1594,10 +1615,7 @@
   }
 }
 
-/* Final mobile layout: keep this after the desktop refinement rules. */
-<<<<<<< HEAD
-/* Single authoritative phone composition */
-=======
+
 @media (max-width: 650px) {
   :host {
     overflow-x: clip;
@@ -1899,7 +1917,6 @@
 }
 
 /* Single authoritative phone composition. */
->>>>>>> 14ed005eebd7427e86dc0f2d9cc9fce13a51257c
 @media (max-width: 650px) {
   :host,
   .home-page,
@@ -2813,7 +2830,6 @@
   background: #dfe5ee;
 }
 
-<<<<<<< HEAD
 .budget-sliders input {
   appearance: none;
   pointer-events: none;

@@ -409,8 +409,16 @@ fieldset input,
   cursor: pointer;
   font-size: 14px;
   font-weight: 700;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.hero-actions button:hover {
+  background: var(--match-blue-hover, #5845c7);
+  transform: translateY(-1px);
+  box-shadow: 0 9px 22px 5845c7;
+
+
+}
 .hero-actions a {
   color: var(--match-blue);
   font-size: 14px;
