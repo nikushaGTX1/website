@@ -1049,3 +1049,38 @@ textarea {
   color: #4d3eaa;
 }
 
+/* Keep mobile Safari on the visual viewport's horizontal origin. Full-screen
+   pickers scroll vertically inside their own fixed layer. */
+@media (max-width: 768px) {
+  html,
+  body,
+  app-root,
+  .route-content,
+  app-main,
+  app-explore-property {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-x: none;
+  }
+
+  html:has(.location-modal-backdrop),
+  body:has(.location-modal-backdrop) {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  .location-modal-backdrop,
+  .location-picker-dialog,
+  .location-modal-header,
+  .location-modal-body,
+  .location-modal-footer,
+  .area-picker-column,
+  .street-picker-column,
+  .location-map-preview {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+

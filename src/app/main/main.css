@@ -2199,7 +2199,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 24px;
-    margin-right: 6px;
+    margin-inline: 0;
   }
 
   .featured-area-grid button {
@@ -2226,7 +2226,7 @@
   .all-area-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 9px;
-    margin-right: 6px;
+    margin-inline: 0;
   }
 
   .all-area-grid button {
@@ -2421,26 +2421,34 @@
     z-index: 9999 !important;
     inset: 0 !important;
     display: block !important;
-    width: 100vw !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
     height: 100dvh !important;
+    max-height: none !important;
     padding: 0 !important;
-    overflow-x: hidden;
+    overflow-x: clip !important;
     overflow-y: auto;
-    overscroll-behavior-y: auto;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: contain;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
     background: #fff !important;
+    contain: layout paint;
   }
 
   .location-picker-dialog {
     position: relative !important;
     inset: auto !important;
     width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     min-height: 100dvh !important;
     height: auto !important;
     max-height: none !important;
     display: block;
-    overflow: visible !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
     padding-bottom: env(safe-area-inset-bottom);
     border: 0 !important;
     border-radius: 0 !important;
@@ -2479,10 +2487,14 @@
   .area-picker-column,
   .street-picker-column,
   .street-choice-list {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     min-height: 0;
     height: auto;
     max-height: none;
-    overflow: visible;
+    overflow-x: clip;
+    overflow-y: visible;
     touch-action: auto;
   }
 
