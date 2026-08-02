@@ -1921,15 +1921,11 @@
     padding: 42px 16px 28px;
     overflow: hidden;
     border-radius: 0;
-    background-position: 62% center;
+    background: #fff !important;
   }
 
   .hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(90deg, rgba(255,255,255,.98) 0%, rgba(255,255,255,.88) 54%, rgba(255,255,255,.18) 100%);
+    display: none;
   }
 
   .hero-copy {
@@ -2421,9 +2417,9 @@
     z-index: 9999 !important;
     inset: 0 !important;
     display: block !important;
-    width: auto !important;
+    width: 100% !important;
     min-width: 0 !important;
-    max-width: none !important;
+    max-width: 100% !important;
     height: 100dvh !important;
     max-height: none !important;
     padding: 0 !important;
@@ -2433,8 +2429,15 @@
     overscroll-behavior-y: contain;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     background: #fff !important;
     contain: layout paint;
+  }
+
+  .location-modal-backdrop::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   .location-picker-dialog {
@@ -2453,6 +2456,8 @@
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    margin: 0 !important;
+    transform: none !important;
   }
 
   .location-modal-header {
