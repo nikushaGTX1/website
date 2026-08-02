@@ -104,7 +104,7 @@
 .map-location-trigger:hover,.map-location-trigger:focus-visible{border-color:#451a8f;box-shadow:0 0 0 3px rgba(69,26,143,.1);outline:0;transform:translateY(-1px)}
 .map-location-trigger input{cursor:pointer;pointer-events:none}.location-map-icon{margin-right:14px;color:#451a8f;font-size:14px;transition:transform .25s ease}.map-location-trigger:hover .location-map-icon{transform:scale(1.12)}
 
-/* Explore layout and location-picker alignment */
+/* Explore search-control alignment. The location picker is shared with Main. */
 .explore-wrapper .search-inputs-bar > .input-group{min-width:0}
 .explore-wrapper .input-group>span{min-height:15px;display:flex;align-items:center}
 .explore-wrapper .location-control,
@@ -116,40 +116,6 @@
 .explore-wrapper .budget-trigger>span,
 .explore-wrapper .bedroom-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .explore-wrapper .btn-primary-search{align-self:end}
-.explore-wrapper .location-picker-dialog{width:min(1180px,calc(100vw - 32px))}
-.explore-wrapper .location-modal-body{grid-template-columns:minmax(360px,1.15fr) minmax(330px,1fr) minmax(260px,.8fr)}
-.explore-wrapper .street-picker-column{display:flex;min-height:0;flex-direction:column}
-.explore-wrapper .street-choice-list{max-height:none;flex:1;overflow-y:auto}
-.explore-wrapper .street-choice-list button{min-height:54px;padding:8px 4px;align-items:flex-start}
-.explore-wrapper .street-choice-list button>i{margin-top:3px;flex:0 0 auto}
-.explore-wrapper .street-row-text{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;line-height:1.35}
-.explore-wrapper .street-row-text small{justify-self:start;padding:3px 7px;border-radius:999px;background:#f2f4f7;font-size:9px;line-height:1.2}
-.explore-wrapper .selected-location{min-width:0}
-.explore-wrapper .selected-location>span{max-width:240px;display:flex;align-items:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.explore-wrapper .selected-location>span button{flex:0 0 auto}
+.explore-wrapper .search-card.location-dialog-open{z-index:auto;backdrop-filter:none}
 .explore-wrapper .group-title i{color:#7a8495;font-size:10px}
 .explore-wrapper .show-more i{margin-left:5px;font-size:9px}
-
-@media(max-width:1150px){
-  .explore-wrapper .location-modal-body{grid-template-columns:minmax(0,1fr) minmax(320px,.9fr)}
-  .explore-wrapper .location-map-preview{grid-column:1/-1;min-height:320px}
-  .explore-wrapper .inline-google-draw{min-height:320px}
-}
-
-@media(max-width:760px){
-  .explore-wrapper .location-picker-dialog{inset:0;width:100%!important;max-width:100%!important;height:100dvh;max-height:100dvh;margin:0;border-radius:0}
-  .explore-wrapper .location-modal-header{align-items:flex-start}
-  .explore-wrapper .location-modal-header>.location-modal-close{position:absolute;top:max(12px,env(safe-area-inset-top))!important;right:max(16px,env(safe-area-inset-right))!important;left:auto!important;margin:0!important;transform:none!important}
-  .explore-wrapper .location-steps{gap:7px;flex-wrap:nowrap}
-  .explore-wrapper .location-steps i{width:clamp(22px,9vw,42px)}
-  .explore-wrapper .location-modal-body{display:block}
-  .explore-wrapper .location-modal-body{width:100%;max-width:100%;overflow-x:hidden}
-  .explore-wrapper .location-modal-body>*{padding:18px 14px}
-  .explore-wrapper .area-picker-column{max-height:none;overflow:visible}
-  .explore-wrapper .featured-area-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .explore-wrapper .all-area-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .explore-wrapper .street-choice-list{max-height:none;overflow:visible}
-  .explore-wrapper .location-map-preview{height:clamp(390px,58dvh,540px);min-height:clamp(390px,58dvh,540px);padding:0}
-  .explore-wrapper .inline-google-draw{height:clamp(390px,58dvh,540px);min-height:clamp(390px,58dvh,540px)}
-  .explore-wrapper .location-modal-footer>div:last-child{width:100%}
-}

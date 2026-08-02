@@ -765,6 +765,11 @@ textarea {
 }
 
 @media (max-width: 768px) {
+  body:has(.location-modal-backdrop) app-navigation {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   html,
   body,
   app-root,

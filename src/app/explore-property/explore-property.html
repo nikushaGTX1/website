@@ -5,7 +5,7 @@
       <p>Find your perfect home from thousands of verified listings.</p>
     </div>
 
-    <div class="search-card">
+    <div class="search-card" [class.location-dialog-open]="locationOpen">
       <div class="search-tabs">
         <button type="button" class="tab-btn" [class.active]="selectedType !== 'For Sale'"
           (click)="selectedType = 'For Rent'; onSearch()"><span class="tab-home home-svg" aria-hidden="true"></span> Rent</button>
@@ -69,7 +69,7 @@
               </div>
               <footer class="location-modal-footer">
                 <div class="selected-location" *ngIf="selectedLocationAreas.length > 0"><b>Selected:</b><span *ngFor="let area of selectedLocationAreas">{{ area }} <button type="button" [attr.aria-label]="'Remove ' + area" (click)="removeModalArea(area)">×</button></span><button type="button" class="clear-location" (click)="clearModalLocation()">Clear all</button></div>
-                <div><button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button><button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply locations</button></div>
+                <div><button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button><button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply changes</button></div>
               </footer>
             </div>
           </div>

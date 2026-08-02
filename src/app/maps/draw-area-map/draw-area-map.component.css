@@ -67,8 +67,4 @@ h3{font-size:12px;letter-spacing:.07em}
 @media(max-width:650px){
   :host.is-compact .compact-draw-map{pointer-events:none;touch-action:pan-y}
   :host.is-compact .compact-map-shell.interactive .compact-draw-map{pointer-events:auto;touch-action:none}
-  .compact-map-actions{position:absolute;z-index:5;right:12px;bottom:12px;left:12px;display:grid;grid-template-columns:1fr 1.4fr;gap:9px;padding:10px;border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 6px 20px rgba(15,27,50,.2)}
-  .compact-map-actions button{min-height:46px;border:1px solid #dce2ea;border-radius:8px;background:#fff;color:#596378;font-weight:800}
-  .compact-map-actions .apply-button{border-color:#451a8f;background:#451a8f;color:#fff}
-  .compact-map-actions .apply-button:disabled{opacity:.45}
 }

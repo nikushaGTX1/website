@@ -1,11 +1,11 @@
 <main class="home-page">
-  <section class="hero">
+  <section class="hero" [class.location-dialog-open]="locationOpen">
     <div class="hero-copy">
       <span class="eyebrow">Verified homes. Smarter search.</span>
       <h1>Find a home <br>that fits <em>your</em> life</h1>
     </div>
 
-    <form class="property-search" (submit)="searchHomes(); $event.preventDefault()">
+    <form class="property-search" [class.location-dialog-open]="locationOpen" (submit)="searchHomes(); $event.preventDefault()">
       <div class="search-tabs" role="tablist" aria-label="Property type">
         <button type="button" [class.active]="searchMode === 'rent'" (click)="searchMode = 'rent'"><span class="home-icon home-svg" aria-hidden="true"></span><span>Rent</span></button>
         <button type="button" [class.active]="searchMode === 'buy'" (click)="searchMode = 'buy'"><span class="home-icon home-svg" aria-hidden="true"></span><span>Buy</span></button>
@@ -109,7 +109,7 @@
                 </div>
                 <div>
                   <button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button>
-                  <button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply locations</button>
+                  <button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply changes</button>
                 </div>
               </footer>
             </div>

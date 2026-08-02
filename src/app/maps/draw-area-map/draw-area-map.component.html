@@ -1,10 +1,6 @@
 <div class="compact-map-shell" [class.interactive]="compactMapInteractive" *ngIf="compact">
   <div #compactMapContainer class="compact-draw-map" aria-label="Draw an area on Google Maps"></div>
   <button class="draw-tool-button" type="button" (click)="enableCompactMap()" title="Draw a custom area"><i class="fa-solid fa-pencil"></i> {{ compactMapInteractive ? 'Drawing enabled' : 'Draw' }}</button>
-  <div class="compact-map-actions" *ngIf="compactMapInteractive">
-    <button type="button" (click)="clearArea()">Clear</button>
-    <button type="button" class="apply-button" (click)="applyCompactMapChanges()" [disabled]="!hasPolygon">Apply changes</button>
-  </div>
   <a class="osm-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Boundary data © OpenStreetMap</a>
   <div class="map-message" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading Google Maps...</div>
   <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>

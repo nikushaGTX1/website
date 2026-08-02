@@ -76,6 +76,14 @@
   backdrop-filter: blur(10px);
 }
 
+.hero.location-dialog-open {
+  z-index: 10000;
+}
+
+.property-search.location-dialog-open {
+  backdrop-filter: none;
+}
+
 .search-footer-left {
   display: flex;
   gap: 10px;
@@ -2364,7 +2372,7 @@
 
 .date-control{position:relative}.date-control>i{position:absolute;z-index:1;top:50%;right:14px;color:#657084;transform:translateY(-50%);pointer-events:none}.search-fields .date-control input{padding-right:38px}.date-control input::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer}.main-budget-trigger>span>i,.main-bedroom-trigger>span>i{width:17px;margin-right:5px;color:#607088}.main-budget-trigger>b,.main-bedroom-trigger>b{font-size:11px}.main-budget-reset,.more-filters-toggle,.ai-home-link,.quick-filters button{gap:8px}
 
-/* Simple mobile location sheet: one native scroll container, no nested locks. */
+/* Mobile location sheet: one ordinary top-to-bottom scroll. */
 @media (max-width: 650px) {
   .location-modal-backdrop {
     position: fixed !important;
@@ -2376,7 +2384,7 @@
     padding: 0 !important;
     overflow-x: hidden;
     overflow-y: auto;
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: auto;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
     background: #fff !important;
@@ -2387,36 +2395,36 @@
     inset: auto !important;
     width: 100% !important;
     min-height: 100dvh !important;
-    height: auto;
-    max-height: none;
+    height: auto !important;
+    max-height: none !important;
     display: block;
-    overflow: visible;
-    padding-bottom: calc(116px + env(safe-area-inset-bottom));
+    overflow: visible !important;
+    padding-bottom: env(safe-area-inset-bottom);
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
   }
 
   .location-modal-header {
-    position: sticky !important;
+    position: relative !important;
     z-index: 10001 !important;
-    top: 0 !important;
+    top: auto !important;
     right: auto !important;
     bottom: auto !important;
     left: auto !important;
     background: #fff !important;
-    box-shadow: 0 4px 14px rgba(20, 32, 58, .08);
+    box-shadow: none;
   }
 
   .location-modal-footer {
-    position: fixed !important;
+    position: relative !important;
     z-index: 10002 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    max-height: 34dvh;
-    overflow-y: auto;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-height: none;
+    overflow: visible;
     padding-bottom: max(10px, env(safe-area-inset-bottom));
     display: flex !important;
     visibility: visible !important;
@@ -2442,9 +2450,9 @@
   }
 
   .location-map-preview {
-    min-height: 320px;
-    height: 42dvh;
-    max-height: 390px;
+    min-height: clamp(390px, 58dvh, 540px);
+    height: clamp(390px, 58dvh, 540px);
+    max-height: none;
     touch-action: pan-y;
   }
 
@@ -2461,7 +2469,21 @@
   }
 
   .location-modal-header > .location-modal-close {
-    right: max(24px, env(safe-area-inset-right)) !important;
+    position: fixed !important;
+    z-index: 20000 !important;
+    top: max(12px, env(safe-area-inset-top)) !important;
+    right: max(16px, env(safe-area-inset-right)) !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    padding: 0 !important;
+    background: #f5f3fb !important;
+    box-shadow: 0 4px 14px rgba(20, 32, 58, .14);
+    transform: none !important;
   }
 
   .location-modal-footer {
