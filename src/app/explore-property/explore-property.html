@@ -5,7 +5,7 @@
       <p>Find your perfect home from thousands of verified listings.</p>
     </div>
 
-    <div class="search-card">
+    <div class="search-card" [class.location-dialog-open]="locationOpen">
       <div class="search-tabs">
         <button type="button" class="tab-btn" [class.active]="selectedType !== 'For Sale'"
           (click)="selectedType = 'For Rent'; onSearch()"><span class="tab-home home-svg" aria-hidden="true"></span> Rent</button>
@@ -27,7 +27,7 @@
             <div class="location-picker-dialog" role="dialog" aria-modal="true" aria-label="Choose your location" (click)="$event.stopPropagation()">
               <header class="location-modal-header">
                 <div><h2>Choose your location</h2><div class="location-steps"><span class="active"><b>1</b> Areas</span><i></i><span [class.active]="selectedModalStreets.length > 0"><b>2</b> Streets <small>(optional)</small></span></div></div>
-                <button type="button" aria-label="Close location picker" (click)="cancelLocationPicker()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="location-modal-close" type="button" aria-label="Close location picker" (click)="cancelLocationPicker()"><i class="fa-solid fa-xmark"></i></button>
               </header>
               <div class="location-modal-body">
                 <section class="area-picker-column">
@@ -46,11 +46,11 @@
                     <button type="button" class="more-areas-trigger" [class.selected]="moreAreasOpen" [attr.aria-expanded]="moreAreasOpen" (click)="moreAreasOpen = !moreAreasOpen">{{ moreAreasOpen ? 'Fewer areas' : 'More areas' }} <i class="fa-solid fa-chevron-down"></i></button>
                   </div>
                 </section>
-                <section class="street-picker-column">
+                <section class="street-picker-column" *ngIf="selectedLocationAreas.length > 0">
                   <h3>{{ streetAreaTitle }}</h3>
                   <label class="street-search"><input name="exploreStreetSearch" [(ngModel)]="streetSearch" placeholder="Search street..."><i class="fa-solid fa-magnifying-glass"></i></label>
                   <div class="street-choice-list">
-                    <button type="button" *ngFor="let street of modalStreetSuggestions" [class.selected]="isStreetSelected(street.label)" (click)="toggleModalStreet(street.label)">
+                    <button type="button" *ngFor="let street of modalStreetSuggestions" [class.selected]="isStreetSelected(street.label)" (click)="toggleModalStreet(street)">
                       <i class="fa-solid" [class.fa-circle-check]="isStreetSelected(street.label)" [class.fa-circle]="!isStreetSelected(street.label)"></i>
                       <span class="street-row-text">{{ street.label }} <small>{{ street.district }}</small></span>
                     </button>
@@ -63,13 +63,13 @@
                   </button>
                 </section>
                 <aside class="location-map-preview">
-                  <app-draw-area-map class="inline-google-draw" [visible]="true" [compact]="true" [selectedAreaInput]="selectedLocationArea" [selectedAreasInput]="selectedLocationAreas" (polygonChange)="onInlinePolygon($event)"></app-draw-area-map>
+                  <app-draw-area-map class="inline-google-draw" [visible]="true" [compact]="true" [selectedAreaInput]="selectedLocationArea" [selectedAreasInput]="selectedLocationAreas" [selectedStreetsInput]="selectedModalStreetDetails" (polygonChange)="onInlinePolygon($event)"></app-draw-area-map>
                   <div class="area-map-card"><i class="fa-solid fa-city"></i><span><b>{{ selectedLocationArea || 'Tbilisi' }}</b><small>{{ selectedAreaDescription }}</small></span></div>
                 </aside>
               </div>
               <footer class="location-modal-footer">
-                <div class="selected-location"><b>Selected:</b><span *ngFor="let area of selectedLocationAreas">{{ area }} <button type="button" [attr.aria-label]="'Remove ' + area" (click)="removeModalArea(area)">×</button></span><button type="button" class="clear-location" (click)="clearModalLocation()">Clear all</button></div>
-                <div><button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button><button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply locations</button></div>
+                <div class="selected-location" *ngIf="selectedLocationAreas.length > 0"><b>Selected:</b><span *ngFor="let area of selectedLocationAreas">{{ area }} <button type="button" [attr.aria-label]="'Remove ' + area" (click)="removeModalArea(area)">×</button></span><button type="button" class="clear-location" (click)="clearModalLocation()">Clear all</button></div>
+                <div><button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button><button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply changes</button></div>
               </footer>
             </div>
           </div>
@@ -82,6 +82,7 @@
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
           <div class="property-type-menu" role="listbox" *ngIf="propertyTypeOpen">
+            <button class="mobile-popover-close" type="button" aria-label="Close property type" (click)="propertyTypeOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Property Type</h3>
             <div class="property-type-options">
               <button type="button" role="option" *ngFor="let option of propertyTypeOptions"
@@ -103,6 +104,7 @@
           </button>
           <div class="budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen"
             (click)="$event.stopPropagation()">
+            <button class="mobile-popover-close" type="button" aria-label="Close price filter" (click)="budgetOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Choose your price range</h3>
             <div class="budget-presets">
               <button type="button" *ngFor="let range of budgetRanges"
@@ -140,6 +142,7 @@
           </button>
           <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen"
             (click)="$event.stopPropagation()">
+            <button class="mobile-popover-close" type="button" aria-label="Close bedroom filter" (click)="bedroomOpen = false"><i class="fa-solid fa-xmark"></i></button>
             <h3>Bedrooms</h3>
             <div class="bedroom-options">
               <button type="button" *ngFor="let option of headerBedroomOptions"

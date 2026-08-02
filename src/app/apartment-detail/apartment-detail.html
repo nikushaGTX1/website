@@ -92,14 +92,15 @@
       </article>
 
       <article class="panel agent-card">
-        <img [src]="agentImage" [alt]="agentName" />
+        <div class="agent-avatar">
+          <img *ngIf="agentImage; else uploaderInitials" [src]="agentImage" [alt]="agentName" (error)="handleAgentImageError()" />
+          <ng-template #uploaderInitials><span aria-hidden="true">{{ agentInitials }}</span></ng-template>
+        </div>
         <div class="agent-details">
           <h3>{{ agentName }}</h3>
           <span>{{ agentRole }}</span>
           <small class="agent-rating">★ {{ agentRating }} <em>{{ agentRatingCount }}</em></small>
           <div class="phone-reveal" *ngIf="phoneNumber">
-            <span><i class="fa-solid fa-phone"></i> {{ phoneRevealed ? phoneNumber : maskedPhoneNumber }}</span>
-            <button type="button" class="reveal-number" *ngIf="!phoneRevealed" (click)="$event.preventDefault(); $event.stopPropagation(); phoneRevealed = true">Reveal number</button>
           </div>
           <p class="agent-bio">{{ agentBio }}</p>
           <div class="agent-actions"><button *ngIf="!phoneRevealed" type="button" (click)="$event.preventDefault(); $event.stopPropagation(); phoneRevealed = true"><i class="fa-solid fa-phone"></i> Reveal Number</button><span *ngIf="phoneRevealed" class="agent-phone-text"><i class="fa-solid fa-phone"></i> {{ phoneNumber || 'No phone number provided' }}</span><button type="button" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button></div>

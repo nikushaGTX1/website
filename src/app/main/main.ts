@@ -33,6 +33,7 @@ export class Main implements OnInit {
   selectedLocationValue = '';
   streetSearch = '';
   selectedModalStreets: string[] = [];
+  selectedModalStreetDetails: Array<{ street: string; district: string }> = [];
   moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
@@ -325,7 +326,6 @@ export class Main implements OnInit {
     this.selectedLocationArea = area;
     this.showAllStreets = false;
     this.inlineDrawnPolygon = null;
-    this.selectedModalStreets = [];
     this.streetSearch = '';
   }
 
@@ -335,9 +335,10 @@ export class Main implements OnInit {
 
   public removeModalArea(area: string): void {
     this.selectedLocationAreas = this.selectedLocationAreas.filter((item) => item !== area);
+    this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter((item) => item.district !== area);
+    this.selectedModalStreets = this.selectedModalStreetDetails.map((item) => item.street);
     if (this.selectedLocationArea === area) {
       this.selectedLocationArea = this.selectedLocationAreas.at(-1) || '';
-      this.selectedModalStreets = [];
       this.inlineDrawnPolygon = null;
     }
   }
@@ -346,16 +347,21 @@ export class Main implements OnInit {
     return this.selectedModalStreets.includes(street);
   }
 
-  public toggleModalStreet(street: string): void {
-    this.selectedModalStreets = this.isStreetSelected(street)
-      ? this.selectedModalStreets.filter((item) => item !== street)
-      : [...this.selectedModalStreets, street];
+  public toggleModalStreet(street: LocationSuggestion): void {
+    if (this.isStreetSelected(street.label)) {
+      this.selectedModalStreets = this.selectedModalStreets.filter((item) => item !== street.label);
+      this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter((item) => item.street !== street.label);
+    } else {
+      this.selectedModalStreets = [...this.selectedModalStreets, street.label];
+      this.selectedModalStreetDetails = [...this.selectedModalStreetDetails, { street: street.label, district: street.district || '' }];
+    }
   }
 
   public clearModalLocation(): void {
     this.selectedLocationArea = '';
     this.selectedLocationAreas = [];
     this.selectedModalStreets = [];
+    this.selectedModalStreetDetails = [];
     this.streetSearch = '';
     this.inlineDrawnPolygon = null;
   }
@@ -652,4 +658,5 @@ export class Main implements OnInit {
   private normalizedSliderValue(value: number | null): number {
     return Math.min(100, Math.max(0, Number(value || 0) / 50));
   }
+
 }

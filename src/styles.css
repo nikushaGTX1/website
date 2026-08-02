@@ -6,14 +6,19 @@
 }
 
 html {
+  width: 100%;
+  max-width: 100%;
   scroll-behavior: smooth;
   text-size-adjust: 100%;
+  overflow-x: hidden;
   overflow-x: clip;
 }
 
 body {
   width: 100%;
+  max-width: 100%;
   min-width: 0;
+  overflow-x: hidden;
   overflow-x: clip;
   color: #111827;
   background: #fff;
@@ -54,6 +59,14 @@ article,
 aside,
 form {
   min-width: 0;
+}
+
+app-root {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .home-svg {
@@ -108,6 +121,16 @@ form {
 
   body {
     min-height: 100dvh;
+  }
+
+  /* Routed Angular component hosts otherwise size to wide children on phones. */
+  app-root > *:not(router-outlet),
+  .route-content,
+  .route-content > * {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   button,
@@ -189,6 +212,62 @@ form {
   .draw-backdrop,
   .user-editor-backdrop {
     padding: 6px;
+  }
+}
+
+/* Shared mobile usability layer. Component styles still control visual design;
+   these rules prevent common overflow, keyboard and touch issues site-wide. */
+@media (max-width: 768px) {
+  .route-content {
+    isolation: isolate;
+  }
+
+  main {
+    width: 100%;
+  }
+
+  textarea,
+  input,
+  select {
+    min-width: 0;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .form-actions,
+  .modal-actions,
+  .dialog-actions {
+    gap: 10px;
+  }
+
+  .form-actions > button,
+  .form-actions > a,
+  .modal-actions > button,
+  .dialog-actions > button {
+    flex: 1 1 140px;
+  }
+
+  [class*='grid'] > *,
+  [class*='layout'] > *,
+  [class*='row'] > * {
+    min-width: 0;
+  }
+
+  .breadcrumbs,
+  [class*='breadcrumb'] {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .breadcrumbs::-webkit-scrollbar,
+  [class*='breadcrumb']::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -506,6 +585,127 @@ form {
   color: #6748db;
 }
 
+/* Shared Main and Explore search-control interactions. */
+:is(.property-search, .search-card) :is(
+  .field-control,
+  .location-control,
+  .property-type-trigger,
+  .main-budget-trigger,
+  .main-bedroom-trigger,
+  .budget-trigger,
+  .bedroom-trigger,
+  .street-search,
+  input:not([type='range']):not([type='checkbox']),
+  select
+),
+.explore-wrapper :is(.price-inputs input, .sort-by select, .pagination select) {
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :is(.property-search, .search-card) :is(
+    .field-control,
+    .location-control,
+    .property-type-trigger,
+    .main-budget-trigger,
+    .main-bedroom-trigger,
+    .budget-trigger,
+    .bedroom-trigger,
+    .street-search,
+    input:not([type='range']):not([type='checkbox']),
+    select
+  ):hover,
+  .explore-wrapper :is(.price-inputs input, .sort-by select, .pagination select):hover {
+    border-color: #9b86f8;
+    background-color: #faf8ff;
+    color: #451a8f;
+    box-shadow: 0 4px 14px rgba(69, 26, 143, .09);
+  }
+
+  :is(.property-search, .search-card) :is(
+    .field-control,
+    .location-control,
+    .property-type-trigger,
+    .main-budget-trigger,
+    .main-bedroom-trigger,
+    .budget-trigger,
+    .bedroom-trigger
+  ):hover :is(i, .location-svg, .layers-svg) {
+    color: #7657f6;
+  }
+}
+
+:is(.property-search, .search-card) :is(
+  .field-control,
+  .location-control,
+  .property-type-trigger,
+  .main-budget-trigger,
+  .main-bedroom-trigger,
+  .budget-trigger,
+  .bedroom-trigger,
+  input:not([type='range']):not([type='checkbox']),
+  select
+):focus-visible,
+:is(.property-search, .search-card) .street-search:focus-within,
+.explore-wrapper :is(.price-inputs input, .sort-by select, .pagination select):focus-visible {
+  outline: none;
+  border-color: #451a8f;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, .13);
+}
+
+.mobile-popover-close {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  .property-type-menu {
+    position: fixed;
+    z-index: 1300;
+    top: 50%;
+    right: 14px;
+    left: 14px;
+    width: auto;
+    min-width: 0;
+    max-height: calc(100dvh - 28px);
+    padding: 22px 18px 18px;
+    overflow-y: auto;
+    border-radius: 18px;
+    transform: translateY(-50%);
+  }
+
+  .property-type-menu h3 {
+    min-height: 44px;
+    margin: 0 52px 10px 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-popover-close {
+    position: absolute;
+    z-index: 5;
+    top: 10px;
+    right: 12px;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #f3f0fb;
+    color: #273249;
+    font-size: 19px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .mobile-popover-close i {
+    margin: 0;
+    line-height: 1;
+  }
+}
+
 /* Primary purple stays strong; interactive hover uses a lighter violet. */
 .btn-primary-search:hover,
 .search-submit:hover,
@@ -571,7 +771,7 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -582,7 +782,7 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -594,12 +794,20 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
   }
 }
 
+/* A transformed ancestor traps position:fixed overlays on iOS Safari. */
+@media (max-width: 768px) {
+  app-root[ng-version] .home-page > section {
+    animation: none;
+    transform: none;
+  }
+}
+
 /* Phone-wide safety rules (iPhone and Galaxy class devices). */
 html,
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 app-root {
@@ -607,7 +815,7 @@ app-root {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 img,
@@ -626,6 +834,11 @@ textarea {
 }
 
 @media (max-width: 768px) {
+  body:has(.location-modal-backdrop) app-navigation {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   html,
   body,
   app-root,
@@ -633,7 +846,19 @@ textarea {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
+  }
+
+  html {
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto;
+  }
+
+  body,
+  app-root,
+  .route-content {
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto;
   }
 
   app-main,
@@ -660,7 +885,7 @@ textarea {
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   main,
@@ -679,11 +904,6 @@ textarea {
   }
   h1 {
     overflow-wrap: anywhere;
-  }
-
-  button,
-  a {
-    touch-action: manipulation;
   }
 
   button {
@@ -827,5 +1047,40 @@ textarea {
 .nearest-summary b {
   font-size: 11px;
   color: #4d3eaa;
+}
+
+/* Keep mobile Safari on the visual viewport's horizontal origin. Full-screen
+   pickers scroll vertically inside their own fixed layer. */
+@media (max-width: 768px) {
+  html,
+  body,
+  app-root,
+  .route-content,
+  app-main,
+  app-explore-property {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-x: none;
+  }
+
+  html:has(.location-modal-backdrop),
+  body:has(.location-modal-backdrop) {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  .location-modal-backdrop,
+  .location-picker-dialog,
+  .location-modal-header,
+  .location-modal-body,
+  .location-modal-footer,
+  .area-picker-column,
+  .street-picker-column,
+  .location-map-preview {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
 }
 

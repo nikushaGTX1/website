@@ -1,5 +1,7 @@
-<div class="compact-map-shell" *ngIf="compact">
+<div class="compact-map-shell" [class.interactive]="compactMapInteractive" *ngIf="compact">
   <div #compactMapContainer class="compact-draw-map" aria-label="Draw an area on Google Maps"></div>
+  <button class="draw-tool-button" type="button" (click)="enableCompactMap()" title="Draw a custom area"><i class="fa-solid fa-pencil"></i> {{ compactMapInteractive ? 'Drawing enabled' : 'Draw' }}</button>
+  <a class="osm-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Boundary data © OpenStreetMap</a>
   <div class="map-message" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading Google Maps...</div>
   <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
   <div class="map-tip" *ngIf="!loading && !errorMessage && !hasPolygon"><i class="fa-solid fa-draw-polygon"></i> Click points to draw your area</div>
@@ -80,6 +82,8 @@
       <aside class="map-column">
         <div class="map-shell">
           <div #mapContainer class="draw-map" aria-label="Interactive map of Tbilisi"></div>
+          <button class="draw-tool-button" type="button" (click)="startDrawing()" title="Draw a custom area"><i class="fa-solid fa-pencil"></i> Draw</button>
+          <a class="osm-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Boundary data © OpenStreetMap</a>
           <div class="map-message" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading map…</div>
           <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
           <div class="map-tip" *ngIf="!loading && !errorMessage && !hasPolygon"><i class="fa-solid fa-draw-polygon"></i> Click points to draw your own area</div>
