@@ -95,6 +95,7 @@
   border-bottom: 1px solid #dfe5ee;
 }
 .search-tabs button {
+  position: relative;
   min-width: 110px;
   border: 0;
   border-bottom: 3px solid transparent;
@@ -106,9 +107,32 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: color .18s ease, background-color .18s ease, box-shadow .18s ease;
 }
 .search-tabs button.active {
   color: #451a8f;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-tabs button:hover {
+    color: #7657f6;
+    background: #f7f4ff;
+    box-shadow: inset 0 0 0 1px rgba(155, 134, 248, .28);
+  }
+
+  .search-tabs button.active:hover {
+    color: #451a8f;
+    background: #f3efff;
+  }
+}
+
+.search-tabs button:focus-visible {
+  outline: none;
+  color: #451a8f;
+  background: #f7f4ff;
+  box-shadow: inset 0 0 0 1px #451a8f, 0 0 0 3px rgba(69, 26, 143, .13);
 }
 .search-tabs .home-icon {
   display: inline-block;
