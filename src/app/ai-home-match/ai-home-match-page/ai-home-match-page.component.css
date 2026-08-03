@@ -534,7 +534,10 @@ fieldset input,
 
 .question {
   min-width: 0;
+  min-height: 560px;
   padding: 8px 38px 24px 0;
+  display: flex;
+  flex-direction: column;
   border: 0;
   border-right: 1px solid #e6eaf0;
   border-radius: 0;
@@ -609,6 +612,15 @@ fieldset {
   border: 1px solid #dfe4ec;
   border-radius: 5px !important;
   background: #fff;
+}
+
+.question > .actions {
+  position: sticky;
+  z-index: 4;
+  bottom: 0;
+  margin-top: auto;
+  padding: 20px 0 4px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), #fff 24%);
 }
 
 .profile-card {
@@ -803,5 +815,13 @@ fieldset {
 
   .lifestyle-strip app-velven-lifestyle-avatar {
     height: 160px;
+  }
+
+  .question {
+    min-height: 540px;
+  }
+
+  .question > .actions {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
   }
 }

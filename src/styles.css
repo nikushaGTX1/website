@@ -89,28 +89,19 @@ app-root {
   mask: url('/location.svg?v=20260730-2') center / contain no-repeat;
 }
 
-.location-field .location-svg {
+:is(.location-field, .location-control) .location-svg {
   width: 22px;
   height: 22px;
   color: #475569;
 }
 
-.location-control .location-svg {
-  width: 22px;
-  height: 22px;
-  color: #475569;
-}
-
-.location-search {
+.location-search,
+.location-control {
   position: relative;
 }
 
 .form-location-picker > input {
   width: 100%;
-}
-
-.location-control {
-  position: relative;
 }
 
 /* Site-wide phone and tablet safety layer */
@@ -164,7 +155,6 @@ app-root {
     max-height: calc(100dvh - 20px);
   }
 
-  .modal-backdrop,
   .location-modal-backdrop,
   .draw-backdrop,
   .user-editor-backdrop,
@@ -175,9 +165,7 @@ app-root {
   }
 
   .page-shell,
-  .page-container,
-  .content-container,
-  .container {
+  .page-container {
     max-width: 100%;
   }
 
@@ -195,29 +183,13 @@ app-root {
 
   table {
     display: block;
+    width: 100%;
+    min-width: 0;
     max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-}
 
-@media (max-width: 420px) {
-  [role='dialog'] {
-    max-width: calc(100vw - 12px);
-    max-height: calc(100dvh - 12px);
-  }
-
-  .modal-backdrop,
-  .location-modal-backdrop,
-  .draw-backdrop,
-  .user-editor-backdrop {
-    padding: 6px;
-  }
-}
-
-/* Shared mobile usability layer. Component styles still control visual design;
-   these rules prevent common overflow, keyboard and touch issues site-wide. */
-@media (max-width: 768px) {
   .route-content {
     isolation: isolate;
   }
@@ -236,16 +208,12 @@ app-root {
     resize: vertical;
   }
 
-  .form-actions,
-  .modal-actions,
-  .dialog-actions {
+  .form-actions {
     gap: 10px;
   }
 
   .form-actions > button,
-  .form-actions > a,
-  .modal-actions > button,
-  .dialog-actions > button {
+  .form-actions > a {
     flex: 1 1 140px;
   }
 
@@ -268,6 +236,19 @@ app-root {
   .breadcrumbs::-webkit-scrollbar,
   [class*='breadcrumb']::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  [role='dialog'] {
+    max-width: calc(100vw - 12px);
+    max-height: calc(100dvh - 12px);
+  }
+
+  .location-modal-backdrop,
+  .draw-backdrop,
+  .user-editor-backdrop {
+    padding: 6px;
   }
 }
 
@@ -403,16 +384,6 @@ app-root {
   }
 }
 
-.listing-svg {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  background-color: currentColor;
-  -webkit-mask: url('/listing.svg') center / contain no-repeat;
-  mask: url('/listing.svg') center / contain no-repeat;
-  filter: drop-shadow(0 0 0.7px #344054);
-}
-
 .layers-svg {
   display: inline-block;
   width: 22px;
@@ -546,11 +517,6 @@ app-root {
   text-align: left;
   cursor: pointer;
   transition: .18s;
-}
-
-.property-type-options button .listing-svg {
-  width: 27px;
-  height: 27px;
 }
 
 .property-type-options button:hover {
@@ -722,10 +688,6 @@ app-root {
 }
 
 /* Reload entrance */
-app-root[ng-version] {
-  display: block;
-}
-
 app-root[ng-version] > app-navigation {
   display: block;
   animation: reload-slide-down 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -794,46 +756,20 @@ app-root[ng-version] .home-page > section:nth-child(n + 5) {
   }
 }
 
-/* A transformed ancestor traps position:fixed overlays on iOS Safari. */
-@media (max-width: 768px) {
-  app-root[ng-version] .home-page > section {
-    animation: none;
-    transform: none;
-  }
-}
-
 /* Phone-wide safety rules (iPhone and Galaxy class devices). */
-html,
-body {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: clip;
-}
-
-app-root {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: clip;
-}
-
-img,
 video,
 canvas,
 svg {
   max-width: 100%;
 }
 
-button,
-a,
-input,
-select,
-textarea {
-  -webkit-tap-highlight-color: transparent;
-}
-
 @media (max-width: 768px) {
+  /* A transformed ancestor traps position:fixed overlays on iOS Safari. */
+  app-root[ng-version] .home-page > section {
+    animation: none;
+    transform: none;
+  }
+
   body:has(.location-modal-backdrop) app-navigation {
     visibility: hidden;
     pointer-events: none;
@@ -842,11 +778,14 @@ textarea {
   html,
   body,
   app-root,
-  .route-content {
+  .route-content,
+  app-main,
+  app-explore-property {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    overflow-x: clip !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-x: none;
   }
 
   html {
@@ -861,20 +800,7 @@ textarea {
     overscroll-behavior-y: auto;
   }
 
-  app-main,
-  app-explore-property,
-  app-apartment-detail,
-  app-agent-profile,
-  app-services,
-  app-about-us,
-  app-blog,
-  app-login,
-  app-upload-apartment,
-  app-my-profile,
-  app-my-listings,
-  app-admin-panel,
-  app-ai-home-match-page,
-  app-ai-concierge-page,
+  .route-content > :not(router-outlet),
   app-home-match-results,
   app-home-profile-summary,
   app-concierge-results,
@@ -888,11 +814,6 @@ textarea {
     overflow-x: clip;
   }
 
-  main,
-  section,
-  article,
-  aside,
-  form,
   fieldset,
   header,
   footer,
@@ -902,21 +823,12 @@ textarea {
   li {
     min-width: 0;
   }
-  h1 {
-    overflow-wrap: anywhere;
-  }
-
-  button {
-    max-width: 100%;
-  }
-
   pre,
   code {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
 
-  .route-content,
   .route-content > * {
     min-width: 0;
     max-width: 100%;
@@ -934,81 +846,27 @@ textarea {
     min-height: 44px;
   }
 
-  app-root > main {
-    min-width: 0;
-  }
-
   app-root > app-footer {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .modal,
-  .dialog,
-  .modal-content,
-  .dialog-content {
-    width: calc(100vw - 24px) !important;
-    max-width: calc(100vw - 24px) !important;
-    max-height: calc(100dvh - 24px);
-    overflow: auto;
+  html:has(.location-modal-backdrop),
+  body:has(.location-modal-backdrop) {
+    overflow: hidden !important;
+    overscroll-behavior: none;
   }
 
-  table {
-    display: block;
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    overflow-x: auto;
+  .location-modal-backdrop,
+  .location-picker-dialog,
+  .location-modal-header,
+  .location-modal-body,
+  .location-modal-footer,
+  .area-picker-column,
+  .street-picker-column,
+  .location-map-preview {
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
-
-  .table-wrapper,
-  .table-container {
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-.ai-home-cta {
-  margin-top: 18px;
-  width: min(100%, 560px);
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 14px 17px;
-  border: 1px solid #ffffff80;
-  border-radius: 18px;
-  color: #fff;
-  background: #1f1a4bc2;
-  box-shadow: 0 12px 30px #120f313b;
-  backdrop-filter: blur(10px);
-  text-decoration: none;
-  transition: 0.2s;
-}
-.ai-home-cta:hover {
-  transform: translateY(-2px);
-  background: #2a2366e6;
-}
-.ai-home-cta:focus-visible {
-  outline: 3px solid #fff;
-  outline-offset: 3px;
-}
-.ai-sparkle {
-  font-size: 26px;
-}
-.ai-home-cta strong,
-.ai-home-cta small {
-  display: block;
-}
-.ai-home-cta strong {
-  font-size: 16px;
-}
-.ai-home-cta small {
-  margin-top: 3px;
-  opacity: 0.75;
-}
-.ai-arrow {
-  margin-left: auto;
-  font-size: 23px;
 }
 
 .nearest-summary {
@@ -1048,39 +906,3 @@ textarea {
   font-size: 11px;
   color: #4d3eaa;
 }
-
-/* Keep mobile Safari on the visual viewport's horizontal origin. Full-screen
-   pickers scroll vertically inside their own fixed layer. */
-@media (max-width: 768px) {
-  html,
-  body,
-  app-root,
-  .route-content,
-  app-main,
-  app-explore-property {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-    overscroll-behavior-x: none;
-  }
-
-  html:has(.location-modal-backdrop),
-  body:has(.location-modal-backdrop) {
-    overflow: hidden !important;
-    overscroll-behavior: none;
-  }
-
-  .location-modal-backdrop,
-  .location-picker-dialog,
-  .location-modal-header,
-  .location-modal-body,
-  .location-modal-footer,
-  .area-picker-column,
-  .street-picker-column,
-  .location-map-preview {
-    min-width: 0 !important;
-    max-width: 100% !important;
-  }
-}
-

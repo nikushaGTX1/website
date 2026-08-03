@@ -96,6 +96,7 @@
 }
 .search-tabs button {
   position: relative;
+  isolation: isolate;
   min-width: 110px;
   border: 0;
   border-bottom: 3px solid transparent;
@@ -111,6 +112,18 @@
   cursor: pointer;
   transition: color .18s ease, background-color .18s ease, box-shadow .18s ease;
 }
+
+.search-tabs button::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  pointer-events: none;
+  transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+}
 .search-tabs button.active {
   color: #451a8f;
 }
@@ -118,12 +131,22 @@
 @media (hover: hover) and (pointer: fine) {
   .search-tabs button:hover {
     color: #7657f6;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .search-tabs button:hover::before {
+    border-color: rgba(155, 134, 248, .28);
     background: #f7f4ff;
-    box-shadow: inset 0 0 0 1px rgba(155, 134, 248, .28);
+    box-shadow: 0 3px 9px rgba(69, 26, 143, .08);
   }
 
   .search-tabs button.active:hover {
     color: #451a8f;
+    background: transparent;
+  }
+
+  .search-tabs button.active:hover::before {
     background: #f3efff;
   }
 }
@@ -131,8 +154,14 @@
 .search-tabs button:focus-visible {
   outline: none;
   color: #451a8f;
+  background: transparent;
+  box-shadow: none;
+}
+
+.search-tabs button:focus-visible::before {
+  border-color: #451a8f;
   background: #f7f4ff;
-  box-shadow: inset 0 0 0 1px #451a8f, 0 0 0 3px rgba(69, 26, 143, .13);
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, .13);
 }
 .search-tabs .home-icon {
   display: inline-block;

@@ -407,7 +407,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.persist();
     if (this.step < this.questions.length - 1) this.step++;
     else this.view = 'review';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   back(): void {
     if (this.step > 0) this.step--;
