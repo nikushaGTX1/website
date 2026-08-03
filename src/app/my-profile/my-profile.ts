@@ -19,6 +19,7 @@ export class MyProfile implements OnInit, OnDestroy {
   phoneNumber = '';
   profilePicture: File | null = null;
   profilePreview = '';
+  isDragging = false;
 
   loading = false;
   saving = false;
@@ -35,10 +36,7 @@ export class MyProfile implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = this.authService.currentUser$.subscribe((user) => {
       this.user = user;
-      this.fullName = user?.fullName || '';
-      this.bio = user?.bio || '';
-      this.phoneNumber = user?.phoneNumber || '';
-      this.profilePreview = '';
+      this.syncFormWithUser();
     });
 
     this.loading = true;
@@ -49,17 +47,14 @@ export class MyProfile implements OnInit, OnDestroy {
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'Could not load profile.';
+        this.errorMessage = 'We could not load your profile. Please try again.';
       },
     });
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
-
-    if (this.profilePreview) {
-      URL.revokeObjectURL(this.profilePreview);
-    }
+    this.clearLocalPreview();
   }
 
   logout(): void {
@@ -69,18 +64,32 @@ export class MyProfile implements OnInit, OnDestroy {
 
   onProfilePictureSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] || null;
+    this.setProfilePicture(input.files?.[0] || null);
+    input.value = '';
+  }
 
-    this.profilePicture = file;
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+  }
 
-    if (this.profilePreview) {
-      URL.revokeObjectURL(this.profilePreview);
-      this.profilePreview = '';
-    }
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = false;
+  }
 
-    if (file) {
-      this.profilePreview = URL.createObjectURL(file);
-    }
+  onFileDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragging = false;
+    this.setProfilePicture(event.dataTransfer?.files?.[0] || null);
+  }
+
+  resetForm(): void {
+    this.syncFormWithUser();
+    this.profilePicture = null;
+    this.clearLocalPreview();
+    this.successMessage = '';
+    this.errorMessage = '';
   }
 
   saveSettings(): void {
@@ -90,7 +99,7 @@ export class MyProfile implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     if (!this.fullName.trim()) {
-      this.errorMessage = 'Full name is required.';
+      this.errorMessage = 'Please enter your full name before saving.';
       return;
     }
 
@@ -105,15 +114,36 @@ export class MyProfile implements OnInit, OnDestroy {
       next: () => {
         this.saving = false;
         this.profilePicture = null;
-        this.profilePreview = '';
-        this.successMessage = 'Profile settings updated.';
+        this.clearLocalPreview();
+        this.successMessage = 'Your profile changes have been saved.';
       },
       error: (err) => {
         this.saving = false;
         console.error(err);
-        this.errorMessage = 'Could not update profile settings.';
+        this.errorMessage = 'We could not save your changes. Please try again.';
       },
     });
+  }
+
+  get userInitials(): string {
+    const source = this.user?.fullName?.trim() || this.user?.userName?.trim() || 'V';
+    return source
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('');
+  }
+
+  get accountType(): string {
+    if (this.user?.isAdmin || this.user?.roles?.includes('Admin')) return 'Admin';
+    if (this.user?.isAgent || this.user?.roles?.includes('Agent')) return 'Agent';
+    return 'Member';
+  }
+
+  get selectedFileDetails(): string {
+    if (!this.profilePicture) return '';
+    const sizeInMb = this.profilePicture.size / (1024 * 1024);
+    return `${sizeInMb < 0.1 ? '< 0.1' : sizeInMb.toFixed(1)} MB · Ready to upload`;
   }
 
   get profileImage(): string {
@@ -122,5 +152,41 @@ export class MyProfile implements OnInit, OnDestroy {
 
   fixProfileImage(event: Event): void {
     tryNextProfileImageUrl(event);
+  }
+
+  private syncFormWithUser(): void {
+    this.fullName = this.user?.fullName || '';
+    this.bio = this.user?.bio || '';
+    this.phoneNumber = this.user?.phoneNumber || '';
+  }
+
+  private setProfilePicture(file: File | null): void {
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.errorMessage = 'Please choose a JPG, PNG or WebP image.';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.errorMessage = 'Please choose an image smaller than 5 MB.';
+      return;
+    }
+
+    this.clearLocalPreview();
+    this.profilePicture = file;
+    this.profilePreview = URL.createObjectURL(file);
+  }
+
+  private clearLocalPreview(): void {
+    if (this.profilePreview) {
+      URL.revokeObjectURL(this.profilePreview);
+      this.profilePreview = '';
+    }
   }
 }

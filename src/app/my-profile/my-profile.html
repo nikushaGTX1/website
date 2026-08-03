@@ -1,90 +1,214 @@
-<div class="profile-page">
-  <div class="profile-card">
-    <div class="profile-header">
-      <div class="avatar">
-        <img
-          *ngIf="profilePreview || profileImage"
-          [src]="profilePreview || profileImage"
-          alt="Profile"
-          (error)="fixProfileImage($event)"
-        />
-
-        <svg *ngIf="!profilePreview && !profileImage" viewBox="0 0 24 24" fill="none" stroke-width="2">
-          <circle cx="12" cy="8" r="4"></circle>
-          <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
-        </svg>
-      </div>
-
+<main class="profile-page">
+  <div class="profile-shell">
+    <header class="page-heading">
       <div>
-        <h1>{{ user?.fullName || 'My Profile' }}</h1>
-        <p class="username">@{{ user?.userName }}</p>
-      </div>
-    </div>
-
-    <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
-    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
-
-    <div class="profile-details">
-      <div class="detail-row">
-        <span class="label">Full name</span>
-        <span class="value">{{ user?.fullName }}</span>
+        <p class="eyebrow">Account</p>
+        <h1>Profile settings</h1>
+        <p class="heading-copy">Manage how your information appears across Velven.</p>
       </div>
 
-      <div class="detail-row">
-        <span class="label">Email</span>
-        <span class="value">{{ user?.email }}</span>
-      </div>
+      <span class="account-status">
+        <span class="status-dot" aria-hidden="true"></span>
+        Profile active
+      </span>
+    </header>
 
-      <div class="detail-row" *ngIf="user?.bio">
-        <span class="label">Bio</span>
-        <span class="value">{{ user?.bio }}</span>
-      </div>
+    <div class="profile-layout">
+      <aside class="account-panel" aria-label="Account summary">
+        <div class="identity-block">
+          <div class="initials-avatar" aria-hidden="true">{{ userInitials }}</div>
+          <div class="identity-copy">
+            <h2>{{ user?.fullName || 'Your account' }}</h2>
+            <p>{{ user?.email || 'Loading account…' }}</p>
+          </div>
+        </div>
 
-      <div class="detail-row" *ngIf="user?.phoneNumber">
-        <span class="label">Phone number</span>
-        <span class="value">{{ user?.phoneNumber }}</span>
-      </div>
-    </div>
+        <div class="account-meta">
+          <div class="meta-row">
+            <span>Username</span>
+            <strong>@{{ user?.userName || '—' }}</strong>
+          </div>
+          <div class="meta-row">
+            <span>Account type</span>
+            <strong>{{ accountType }}</strong>
+          </div>
+        </div>
 
-    <form class="settings-form" (ngSubmit)="saveSettings()">
-      <div class="form-group">
-        <label for="fullName">Full name</label>
-        <input id="fullName" type="text" name="fullName" [(ngModel)]="fullName" required />
-      </div>
+        <nav class="account-links" aria-label="Account navigation">
+          <a class="account-link active" routerLink="/my-profile" aria-current="page">
+            <span class="link-mark">01</span>
+            <span>
+              <strong>Personal details</strong>
+              <small>Name and contact information</small>
+            </span>
+          </a>
+          <a class="account-link" routerLink="/saved-listings">
+            <span class="link-mark">02</span>
+            <span>
+              <strong>Saved homes</strong>
+              <small>View your shortlisted properties</small>
+            </span>
+          </a>
+          <a class="account-link" routerLink="/my-listings">
+            <span class="link-mark">03</span>
+            <span>
+              <strong>My listings</strong>
+              <small>Manage your published properties</small>
+            </span>
+          </a>
+        </nav>
 
-      <div class="form-group">
-        <label for="bio">Bio</label>
-        <textarea id="bio" name="bio" rows="4" [(ngModel)]="bio"></textarea>
-      </div>
+        <button type="button" class="logout-button" (click)="logout()">
+          <span>Log out</span>
+          <span aria-hidden="true">→</span>
+        </button>
+      </aside>
 
-      <div class="form-group">
-        <label for="phoneNumber">Phone number</label>
-        <input
-          id="phoneNumber"
-          type="tel"
-          name="phoneNumber"
-          [(ngModel)]="phoneNumber"
-        />
-      </div>
+      <section class="settings-card" aria-labelledby="personal-details-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Personal information</p>
+            <h2 id="personal-details-title">The essentials, kept up to date.</h2>
+            <p>These details help agents and property owners know how to reach you.</p>
+          </div>
+          <span class="required-note"><i aria-hidden="true"></i> Required field</span>
+        </div>
 
-      <div class="form-group">
-        <label for="profilePicture">Profile picture</label>
-        <input
-          id="profilePicture"
-          type="file"
-          name="profilePicture"
-          accept="image/*"
-          (change)="onProfilePictureSelected($event)"
-        />
-      </div>
+        <div class="notice success" role="status" aria-live="polite" *ngIf="successMessage">
+          <span class="notice-symbol" aria-hidden="true">✓</span>
+          <span>{{ successMessage }}</span>
+        </div>
 
-      <button type="submit" class="save-btn" [disabled]="saving || loading">
-        {{ saving ? 'Saving...' : 'Save settings' }}
-      </button>
-    </form>
+        <div class="notice error" role="alert" *ngIf="errorMessage">
+          <span class="notice-symbol" aria-hidden="true">!</span>
+          <span>{{ errorMessage }}</span>
+        </div>
 
-    <div class="profile-actions">
-      <button type="button" class="logout-btn" (click)="logout()">Log out</button>
+        <div class="loading-state" *ngIf="loading" aria-live="polite">
+          <span class="loader" aria-hidden="true"></span>
+          Loading your profile…
+        </div>
+
+        <form class="settings-form" (ngSubmit)="saveSettings()" *ngIf="!loading">
+          <div class="fields-grid">
+            <div class="form-field">
+              <label for="fullName">Full name <span aria-hidden="true">*</span></label>
+              <input
+                id="fullName"
+                type="text"
+                name="fullName"
+                [(ngModel)]="fullName"
+                autocomplete="name"
+                placeholder="Your full name"
+                required
+              />
+            </div>
+
+            <div class="form-field">
+              <label for="phoneNumber">Phone number</label>
+              <input
+                id="phoneNumber"
+                type="tel"
+                name="phoneNumber"
+                [(ngModel)]="phoneNumber"
+                autocomplete="tel"
+                placeholder="+995 555 00 00 00"
+              />
+            </div>
+
+            <div class="form-field readonly-field">
+              <label for="email">Email address</label>
+              <input id="email" type="email" [value]="user?.email || ''" readonly />
+              <small>Contact support if you need to change your email.</small>
+            </div>
+
+            <div class="form-field readonly-field">
+              <label for="username">Username</label>
+              <div class="prefixed-input">
+                <span aria-hidden="true">@</span>
+                <input id="username" type="text" [value]="user?.userName || ''" readonly />
+              </div>
+              <small>Your username is linked to your account.</small>
+            </div>
+
+            <div class="form-field bio-field">
+              <div class="label-row">
+                <label for="bio">About you</label>
+                <span>{{ bio.length }}/240</span>
+              </div>
+              <textarea
+                id="bio"
+                name="bio"
+                rows="5"
+                maxlength="240"
+                [(ngModel)]="bio"
+                placeholder="Share a little about what you are looking for or the properties you represent."
+              ></textarea>
+              <small>A short introduction makes conversations with agents more personal.</small>
+            </div>
+          </div>
+
+          <div class="image-section">
+            <div class="image-section-copy">
+              <p class="field-label">Profile image</p>
+              <p>Add an optional image to help people recognize you. It will not replace the clean initials shown on this page.</p>
+            </div>
+
+            <input
+              #profilePictureInput
+              class="visually-hidden"
+              id="profilePicture"
+              type="file"
+              name="profilePicture"
+              accept="image/jpeg,image/png,image/webp"
+              (change)="onProfilePictureSelected($event)"
+            />
+
+            <label
+              class="image-dropzone"
+              [class.dragging]="isDragging"
+              [class.has-image]="profilePreview || profileImage"
+              for="profilePicture"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onFileDrop($event)"
+            >
+              <span class="image-preview" *ngIf="profilePreview || profileImage">
+                <img
+                  [src]="profilePreview || profileImage"
+                  alt="Selected profile preview"
+                  (error)="fixProfileImage($event)"
+                />
+              </span>
+
+              <span class="upload-visual" *ngIf="!profilePreview && !profileImage" aria-hidden="true">
+                <span>IMG</span>
+              </span>
+
+              <span class="upload-copy">
+                <strong>{{ profilePicture ? profilePicture.name : ((profilePreview || profileImage) ? 'Choose a new image' : 'Choose an image') }}</strong>
+                <span>{{ profilePicture ? selectedFileDetails : 'Drop it here or browse from your device' }}</span>
+                <small>JPG, PNG or WebP · up to 5 MB</small>
+              </span>
+
+              <span class="browse-button">Browse files</span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <p>Your changes are only visible after you save them.</p>
+            <div class="action-buttons">
+              <button type="button" class="secondary-button" (click)="resetForm()" [disabled]="saving">
+                Reset
+              </button>
+              <button type="submit" class="save-button" [disabled]="saving">
+                <span>{{ saving ? 'Saving changes…' : 'Save changes' }}</span>
+                <span aria-hidden="true">{{ saving ? '' : '→' }}</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
     </div>
   </div>
-</div>
+</main>
