@@ -73,6 +73,120 @@ app-root {
   overflow-x: clip;
 }
 
+/* SweetAlert2 is mounted outside Angular component boundaries. These narrowly
+ * scoped classes keep account confirmations aligned with the Velven UI. */
+.swal2-popup.velven-alert {
+  width: min(430px, calc(100vw - 32px));
+  padding: 34px 34px 28px;
+  color: #17131f;
+  background: #fff;
+  border: 1px solid #e8e4ed;
+  border-radius: 24px;
+  box-shadow: 0 26px 90px rgba(38, 25, 53, 0.2);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.swal2-popup.velven-alert .swal2-icon {
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 22px;
+  border-width: 2px;
+}
+
+.swal2-title.velven-alert__title {
+  padding: 0;
+  color: #17131f;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.swal2-html-container.velven-alert__copy {
+  margin: 11px 0 0;
+  padding: 0;
+  color: #716b7b;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.swal2-actions.velven-alert__actions {
+  width: 100%;
+  gap: 10px;
+  margin: 26px 0 0;
+}
+
+.velven-alert__confirm,
+.velven-alert__cancel {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin: 0;
+  padding: 0 18px;
+  border-radius: 11px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.velven-alert__confirm {
+  color: #fff;
+  background: #a03c47;
+  border: 1px solid #a03c47;
+  box-shadow: 0 8px 20px rgba(160, 60, 71, 0.2);
+}
+
+.velven-alert__confirm:hover {
+  background: #8d303b;
+  border-color: #8d303b;
+  transform: translateY(-1px);
+}
+
+.velven-alert__cancel {
+  color: #514958;
+  background: #fff;
+  border: 1px solid #dcd7e2;
+}
+
+.velven-alert__cancel:hover {
+  background: #f8f6f9;
+  border-color: #c9c2cf;
+}
+
+.swal2-validation-message {
+  margin: 18px 0 0;
+  color: #9f3240;
+  background: #fff5f5;
+  border-radius: 10px;
+  font-size: 0.76rem;
+}
+
+.swal2-timer-progress-bar.velven-alert__progress {
+  background: #2f9967;
+}
+
+@media (max-width: 480px) {
+  .swal2-popup.velven-alert {
+    padding: 28px 20px 22px;
+    border-radius: 19px;
+  }
+
+  .swal2-actions.velven-alert__actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .velven-alert__confirm,
+  .velven-alert__cancel {
+    width: 100%;
+    flex: none;
+  }
+}
+
 @media (max-width: 768px) {
   html {
     scroll-padding-top: 72px;

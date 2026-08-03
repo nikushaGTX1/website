@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models/user';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
@@ -23,6 +23,7 @@ export class MyProfile implements OnInit, OnDestroy {
 
   loading = false;
   saving = false;
+  removingImage = false;
   successMessage = '';
   errorMessage = '';
 
@@ -90,6 +91,85 @@ export class MyProfile implements OnInit, OnDestroy {
     this.clearLocalPreview();
     this.successMessage = '';
     this.errorMessage = '';
+  }
+
+  clearSelectedProfilePicture(): void {
+    this.profilePicture = null;
+    this.clearLocalPreview();
+    this.successMessage = '';
+    this.errorMessage = '';
+  }
+
+  async removeProfilePicture(): Promise<void> {
+    if (this.removingImage || !this.profileImage) return;
+
+    const { default: Swal } = await import('sweetalert2');
+
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    const result = await Swal.fire({
+      title: 'Remove profile image?',
+      text: 'Your current image will be permanently deleted from your account.',
+      icon: 'warning',
+      iconColor: '#a03c47',
+      showCancelButton: true,
+      reverseButtons: true,
+      focusCancel: true,
+      confirmButtonText: 'Remove image',
+      cancelButtonText: 'Keep image',
+      showLoaderOnConfirm: true,
+      buttonsStyling: false,
+      heightAuto: false,
+      customClass: {
+        popup: 'velven-alert',
+        title: 'velven-alert__title',
+        htmlContainer: 'velven-alert__copy',
+        actions: 'velven-alert__actions',
+        confirmButton: 'velven-alert__confirm',
+        cancelButton: 'velven-alert__cancel',
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+      allowEscapeKey: () => !Swal.isLoading(),
+      preConfirm: async () => {
+        this.removingImage = true;
+        this.profilePicture = null;
+        this.clearLocalPreview();
+
+        try {
+          await firstValueFrom(this.authService.deleteProfilePicture());
+          return true;
+        } catch (err) {
+          console.error(err);
+          this.errorMessage = 'We could not remove your profile image. Please try again.';
+          Swal.showValidationMessage(this.errorMessage);
+          return false;
+        } finally {
+          this.removingImage = false;
+        }
+      },
+    });
+
+    if (result.isConfirmed) {
+      this.successMessage = 'Your profile image has been removed.';
+
+      await Swal.fire({
+        title: 'Image removed',
+        text: 'Your profile image was deleted successfully.',
+        icon: 'success',
+        iconColor: '#2f9967',
+        timer: 1800,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        heightAuto: false,
+        customClass: {
+          popup: 'velven-alert velven-alert--success',
+          title: 'velven-alert__title',
+          htmlContainer: 'velven-alert__copy',
+          timerProgressBar: 'velven-alert__progress',
+        },
+      });
+    }
   }
 
   saveSettings(): void {

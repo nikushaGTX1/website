@@ -164,44 +164,73 @@
               (change)="onProfilePictureSelected($event)"
             />
 
-            <label
-              class="image-dropzone"
-              [class.dragging]="isDragging"
-              [class.has-image]="profilePreview || profileImage"
-              for="profilePicture"
-              (dragover)="onDragOver($event)"
-              (dragleave)="onDragLeave($event)"
-              (drop)="onFileDrop($event)"
-            >
-              <span class="image-preview" *ngIf="profilePreview || profileImage">
-                <img
-                  [src]="profilePreview || profileImage"
-                  alt="Selected profile preview"
-                  (error)="fixProfileImage($event)"
-                />
-              </span>
+            <div class="image-control">
+              <label
+                class="image-dropzone"
+                [class.dragging]="isDragging"
+                [class.has-image]="profilePreview || profileImage"
+                for="profilePicture"
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onFileDrop($event)"
+              >
+                <span class="image-preview" *ngIf="profilePreview || profileImage">
+                  <img
+                    [src]="profilePreview || profileImage"
+                    alt="Selected profile preview"
+                    (error)="fixProfileImage($event)"
+                  />
+                </span>
 
-              <span class="upload-visual" *ngIf="!profilePreview && !profileImage" aria-hidden="true">
-                <span>IMG</span>
-              </span>
+                <span class="upload-visual" *ngIf="!profilePreview && !profileImage" aria-hidden="true">
+                  <span>IMG</span>
+                </span>
 
-              <span class="upload-copy">
-                <strong>{{ profilePicture ? profilePicture.name : ((profilePreview || profileImage) ? 'Choose a new image' : 'Choose an image') }}</strong>
-                <span>{{ profilePicture ? selectedFileDetails : 'Drop it here or browse from your device' }}</span>
-                <small>JPG, PNG or WebP · up to 5 MB</small>
-              </span>
+                <span class="upload-copy">
+                  <strong>{{ profilePicture ? profilePicture.name : ((profilePreview || profileImage) ? 'Choose a new image' : 'Choose an image') }}</strong>
+                  <span>{{ profilePicture ? selectedFileDetails : 'Drop it here or browse from your device' }}</span>
+                  <small>JPG, PNG or WebP · up to 5 MB</small>
+                </span>
 
-              <span class="browse-button">Browse files</span>
-            </label>
+                <span class="browse-button">{{ (profilePreview || profileImage) ? 'Replace image' : 'Browse files' }}</span>
+              </label>
+
+              <div class="image-toolbar" *ngIf="profilePicture || profileImage">
+                <p *ngIf="profilePicture">Changed your mind? Your saved image is still untouched.</p>
+                <p *ngIf="!profilePicture && profileImage">This permanently removes the image from your account.</p>
+
+                <button
+                  *ngIf="profilePicture"
+                  type="button"
+                  class="remove-image-button"
+                  (click)="clearSelectedProfilePicture()"
+                  [disabled]="saving || removingImage"
+                >
+                  <span class="remove-icon" aria-hidden="true">×</span>
+                  Cancel selection
+                </button>
+
+                <button
+                  *ngIf="!profilePicture && profileImage"
+                  type="button"
+                  class="remove-image-button"
+                  (click)="removeProfilePicture()"
+                  [disabled]="saving || removingImage"
+                >
+                  <span class="remove-icon" aria-hidden="true">×</span>
+                  {{ removingImage ? 'Removing image…' : 'Remove image' }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="form-actions">
             <p>Your changes are only visible after you save them.</p>
             <div class="action-buttons">
-              <button type="button" class="secondary-button" (click)="resetForm()" [disabled]="saving">
+              <button type="button" class="secondary-button" (click)="resetForm()" [disabled]="saving || removingImage">
                 Reset
               </button>
-              <button type="submit" class="save-button" [disabled]="saving">
+              <button type="submit" class="save-button" [disabled]="saving || removingImage">
                 <span>{{ saving ? 'Saving changes…' : 'Save changes' }}</span>
                 <span aria-hidden="true">{{ saving ? '' : '→' }}</span>
               </button>

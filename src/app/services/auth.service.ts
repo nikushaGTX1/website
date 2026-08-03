@@ -98,6 +98,12 @@ export class AuthService {
     );
   }
 
+  deleteProfilePicture(): Observable<User> {
+    return this.http.delete<ProfileSettingsResponse>(`${this.profileUrl}/picture`).pipe(
+      switchMap(() => this.getProfile())
+    );
+  }
+
   saveLogin(response: AuthResponse): void {
     localStorage.setItem('token', response.token);
     this.saveUser(response.user);
