@@ -1,0 +1,22 @@
+.home-svg,
+.measurement-svg {
+  display: inline-block;
+  flex: 0 0 auto;
+  background-color: currentColor;
+}
+
+.home-svg {
+  width: 1em;
+  height: 1em;
+  -webkit-mask: url('/home.svg') center / contain no-repeat;
+  mask: url('/home.svg') center / contain no-repeat;
+}
+
+.measurement-svg {
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: -2px;
+  -webkit-mask: url('/measurement.svg') center / contain no-repeat;
+  mask: url('/measurement.svg') center / contain no-repeat;
+}

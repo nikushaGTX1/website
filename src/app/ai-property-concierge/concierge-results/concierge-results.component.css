@@ -1,6 +1,16 @@
 :host {
   display: block;
 }
+.measurement-svg {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: -2px;
+  background-color: currentColor;
+  -webkit-mask: url('/measurement.svg') center / contain no-repeat;
+  mask: url('/measurement.svg') center / contain no-repeat;
+}
 .results {
   max-width: 1180px;
   margin: auto;

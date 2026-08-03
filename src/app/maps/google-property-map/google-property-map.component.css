@@ -2,6 +2,37 @@
   display: block;
   height: 100%;
 }
+.nearest-summary {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 10px;
+  overflow: auto;
+}
+.nearest-summary article {
+  min-width: 145px;
+  padding: 9px 11px;
+  border: 1px solid #e2deea;
+  border-radius: 11px;
+  cursor: pointer;
+  background: #faf9fc;
+}
+.nearest-summary article:hover { border-color: #7767cf; }
+.nearest-summary :is(span, strong, b) { display: block; }
+.nearest-summary span {
+  color: #777;
+  font-size: 10px;
+}
+.nearest-summary strong {
+  margin: 3px 0;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nearest-summary b {
+  color: #4d3eaa;
+  font-size: 11px;
+}
 .google-property-map {
   height: 100%;
   min-height: 520px;

@@ -19,3 +19,28 @@
 .route-content {
   min-width: 0;
 }
+
+.route-content {
+  animation: route-reload-fade 520ms ease-out both;
+}
+
+@keyframes route-reload-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  :host,
+  .route-content,
+  .route-content > * {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .route-content { isolation: isolate; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-content { animation: none; }
+}

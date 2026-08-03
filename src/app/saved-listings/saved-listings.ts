@@ -9,7 +9,7 @@ import { toMediaUrl } from '../utils/api-media';
   selector: 'app-saved-listings',
   standalone: false,
   templateUrl: './saved-listings.html',
-  styleUrl: './saved-listings.css',
+  styleUrls: ['./saved-listings.css', './saved-listings.icons.css'],
 })
 export class SavedListings implements OnInit {
   apartments: Apartment[] = [];

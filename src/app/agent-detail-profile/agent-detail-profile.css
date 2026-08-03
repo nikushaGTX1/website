@@ -4,6 +4,16 @@
   color: #142038;
   font-family: 'Segoe UI', Arial, sans-serif;
 }
+.measurement-svg {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: -2px;
+  background-color: currentColor;
+  -webkit-mask: url('/measurement.svg') center / contain no-repeat;
+  mask: url('/measurement.svg') center / contain no-repeat;
+}
 .agent-page {
   width: min(1450px, calc(100% - 48px));
   min-height: 80vh;

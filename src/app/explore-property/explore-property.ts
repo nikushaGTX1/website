@@ -12,7 +12,7 @@ import { TranslationService } from '../services/translation.service';
   selector: 'app-explore-property',
   standalone: false,
   templateUrl: './explore-property.html',
-  styleUrls: ['./explore-property.css', '../main/main.css'],
+  styleUrl: './explore-property.css',
 })
 export class ExploreProperty implements OnInit {
   apartments: Apartment[] = [];

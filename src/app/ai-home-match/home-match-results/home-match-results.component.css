@@ -4,6 +4,16 @@
   padding: 60px 22px 90px;
   color: #211d35;
 }
+.measurement-svg {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: -2px;
+  background-color: currentColor;
+  -webkit-mask: url('/measurement.svg') center / contain no-repeat;
+  mask: url('/measurement.svg') center / contain no-repeat;
+}
 .results > header {
   text-align: center;
   max-width: 720px;

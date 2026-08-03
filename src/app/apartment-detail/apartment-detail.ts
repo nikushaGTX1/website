@@ -27,7 +27,7 @@ interface SimilarApartment {
   selector: 'app-apartment-detail',
   standalone: false,
   templateUrl: './apartment-detail.html',
-  styleUrl: './apartment-detail.css',
+  styleUrls: ['./apartment-detail.css', './apartment-detail.icons.css'],
 })
 export class ApartmentDetail implements OnInit {
   apartment: Apartment | null = null;

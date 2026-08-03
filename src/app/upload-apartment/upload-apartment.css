@@ -2,6 +2,113 @@
   display: block;
 }
 
+/* Component-owned location autocomplete. */
+.location-search {
+  position: relative;
+}
+.form-location-picker > input {
+  width: 100%;
+}
+.location-suggestions {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 9px);
+  left: 0;
+  width: 100%;
+  min-width: 320px;
+  max-height: 470px;
+  padding: 10px;
+  overflow-y: auto;
+  border: 1px solid #dfe5ee;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 22px 55px #15294d30;
+}
+.location-suggestions section + section {
+  margin-top: 8px;
+  padding-top: 9px;
+  border-top: 1px solid #edf0f4;
+}
+.location-suggestions h3 {
+  margin: 0;
+  padding: 5px 9px 7px;
+  color: #788397;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.location-suggestions button {
+  width: 100%;
+  min-height: 48px;
+  padding: 7px 9px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #344054;
+  text-align: left;
+  cursor: pointer;
+}
+.location-suggestions button:hover,
+.location-suggestions button:focus-visible {
+  background: #eef4ff;
+  color: #2459d6;
+}
+.location-suggestions button > i {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: 9px;
+  color: #3f6fcf;
+  background: #f0f5ff;
+}
+.location-suggestions button :is(span, b, small) {
+  display: block;
+}
+.location-suggestions button b {
+  overflow: hidden;
+  color: inherit;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.location-suggestions button em {
+  margin-left: 7px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  color: #5375ad;
+  background: #edf2fa;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+}
+.location-suggestions button small {
+  margin-top: 2px;
+  color: #8a94a6;
+  font-size: 10px;
+  font-weight: 600;
+}
+.location-status {
+  padding: 18px 12px;
+  color: #69758a;
+  font-size: 12px;
+  text-align: center;
+}
+.location-status.error {
+  color: #b42318;
+}
+@media (max-width: 520px) {
+  .location-suggestions {
+    min-width: 0;
+    max-height: min(430px, 65vh);
+  }
+}
+
 .upload-page {
   min-height: calc(100vh - 123px);
   padding: 42px 24px 70px;
