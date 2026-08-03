@@ -2860,6 +2860,7 @@
     padding: max(14px, env(safe-area-inset-top)) 16px 12px;
     align-items: flex-start;
     background: #fff;
+    margin-top: 30%;
   }
 
   .location-modal-header > div {
@@ -3393,6 +3394,7 @@
     right: auto !important;
     bottom: auto !important;
     left: auto !important;
+    border-bottom: 0 !important;
     background: #fff !important;
     box-shadow: none;
   }

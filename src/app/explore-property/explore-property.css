@@ -2008,13 +2008,49 @@
   position: relative;
   overflow: hidden;
   padding: 0 !important;
-  background: #eef2ed;
+  background:
+    linear-gradient(28deg, transparent 48%, rgba(255,255,255,.75) 49% 51%, transparent 52%),
+    linear-gradient(102deg, transparent 48%, rgba(255,255,255,.72) 49% 51%, transparent 52%),
+    repeating-linear-gradient(14deg, #edf2ed 0 2px, #f7f8f5 2px 26px);
 }
 .inline-google-draw {
   display: block;
   width: 100%;
   height: 100%;
   min-height: 510px;
+}
+.area-map-card {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 6px 18px #1d2a401b;
+}
+.area-map-card > i {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #eee9ff;
+  color: #451a8f;
+  font-size: 21px;
+}
+.area-map-card span,
+.area-map-card b,
+.area-map-card small { display: block; }
+.area-map-card b { font-size: 12px; }
+.area-map-card small {
+  margin-top: 5px;
+  color: #677287;
+  font-size: 9px;
+  line-height: 1.45;
 }
 .location-modal-footer {
   min-height: 78px;
@@ -2166,4 +2202,309 @@
     min-width: 0;
     padding: 0 12px;
   }
+}
+
+/* Keep Explore's location picker in lockstep with Main's mobile sheet. */
+@media (max-width: 650px) {
+  .location-modal-backdrop {
+    position: fixed !important;
+    z-index: 9999 !important;
+    inset: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    padding: 0 !important;
+    overflow-x: clip !important;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    background: #fff !important;
+    contain: layout paint;
+  }
+
+  .location-modal-backdrop::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .location-picker-dialog {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 100dvh !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom);
+    display: block;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .location-modal-header {
+    position: relative !important;
+    z-index: 10001 !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    min-height: 94px;
+    margin-top: 30%;
+    padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+    align-items: flex-start;
+    border-bottom: 0 !important;
+    background: #fff !important;
+    box-shadow: none;
+  }
+
+  .location-modal-header > div {
+    width: calc(100% - 52px);
+    min-width: 0;
+  }
+
+  .location-modal-header h2 {
+    margin-bottom: 10px;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .location-modal-header > .location-modal-close {
+    position: fixed !important;
+    z-index: 20000 !important;
+    top: max(12px, env(safe-area-inset-top)) !important;
+    right: max(16px, env(safe-area-inset-right)) !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid;
+    place-items: center;
+    overflow: visible;
+    border-radius: 50%;
+    background: #f5f3fb !important;
+    color: #273249;
+    box-shadow: 0 4px 14px rgba(20, 32, 58, .14);
+    transform: none !important;
+  }
+
+  .location-modal-close i {
+    display: block;
+    margin: 0;
+    font-size: 20px;
+    line-height: 1;
+    transform: none !important;
+  }
+
+  .location-steps {
+    width: min(100%, 330px);
+    gap: 7px;
+  }
+
+  .location-steps span {
+    min-width: 0;
+    flex: 0 1 auto;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .location-steps span:last-child { flex: 1; }
+
+  .location-steps i {
+    width: clamp(22px, 9vw, 42px);
+    flex: 0 1 42px;
+  }
+
+  .location-steps small { font-size: 9px; }
+
+  .location-modal-body,
+  .area-picker-column,
+  .street-picker-column,
+  .street-choice-list {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    overflow-x: clip;
+    overflow-y: visible;
+    touch-action: auto;
+  }
+
+  .location-modal-body { display: block; }
+
+  .location-modal-body > * { padding: 18px 14px; }
+
+  .featured-area-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0 0 24px;
+  }
+
+  .featured-area-grid button {
+    min-height: 86px;
+    padding: 12px 10px;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .featured-area-grid button > i:first-child { font-size: 23px; }
+  .featured-area-grid b { font-size: 13px; }
+  .featured-area-grid small {
+    margin-top: 4px;
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .all-area-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-inline: 0;
+  }
+
+  .all-area-grid button {
+    min-height: 48px;
+    padding: 8px 8px 8px 30px;
+    font-size: 12px;
+  }
+
+  .all-area-grid button i { left: 10px; }
+
+  .street-picker-column { min-height: 380px; }
+
+  .street-search {
+    position: sticky;
+    z-index: 2;
+    top: -18px;
+    height: 50px;
+    margin-inline: -2px;
+    background: #fff;
+  }
+
+  .street-choice-list button {
+    min-height: 52px;
+    padding-block: 7px;
+    font-size: 12px;
+  }
+
+  .street-row-text {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .street-row-text small { font-size: 9px; }
+
+  .location-map-preview,
+  .inline-google-draw { display: block; }
+
+  .location-map-preview {
+    min-height: clamp(390px, 58dvh, 540px);
+    height: clamp(390px, 58dvh, 540px);
+    max-height: none;
+    touch-action: pan-y;
+  }
+
+  .inline-google-draw {
+    min-height: 320px;
+    height: 100%;
+  }
+
+  .area-map-card {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    padding: 10px;
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .area-map-card > i {
+    width: 38px;
+    height: 38px;
+  }
+
+  .location-modal-footer {
+    position: relative !important;
+    z-index: 10002 !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    min-height: 0;
+    max-height: none;
+    padding: 10px max(18px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)) !important;
+    display: flex !important;
+    gap: 8px;
+    overflow: visible;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: #fff !important;
+    box-shadow: 0 -8px 24px rgba(20, 32, 58, .14);
+  }
+
+  .location-modal-footer > div { width: 100%; }
+
+  .selected-location {
+    max-width: 100%;
+    min-height: 38px;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap;
+    gap: 8px !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .selected-location::-webkit-scrollbar { display: none; }
+
+  .selected-location > b,
+  .selected-location > span,
+  .clear-location { flex: 0 0 auto; }
+
+  .selected-location > span {
+    padding: 7px 9px;
+    white-space: nowrap;
+  }
+
+  .location-modal-footer > div:last-child {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr) !important;
+    gap: 9px;
+  }
+
+  .cancel-location,
+  .apply-location {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .featured-area-grid { grid-template-columns: 1fr; }
+  .featured-area-grid button { min-height: 72px; }
+  .location-steps small { display: none; }
 }
