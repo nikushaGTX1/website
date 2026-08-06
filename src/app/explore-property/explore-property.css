@@ -1553,9 +1553,36 @@
   font-size: 11px;
   transition: transform .18s;
 }
-.property-type-trigger.is-open {
+
+.property-type-trigger.is-open,
+.input-group select:focus,
+.input-group input:focus,
+.location-control input:focus {
   border-color: #451a8f;
-  box-shadow: 0 0 0 3px #451a8f1f;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.15);
+  outline: none;
+}
+
+.property-type-clear:hover,
+.btn-clear:hover,
+.show-more:hover {
+  color: #311168;
+}
+
+.explore-search-footer a:hover {
+  border-color: #451a8f;
+  color: #451a8f;
+  background: #fdfaff;
+}
+
+
+.checkbox-list input[type="checkbox"] {
+  accent-color: #451a8f;
+}
+
+.checkbox-list input[type="checkbox"]:focus-visible {
+  outline: 2px solid #451a8f;
+  outline-offset: 2px;
 }
 .property-type-trigger.is-open > i {
   transform: rotate(180deg);
@@ -1597,17 +1624,18 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: .18s;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  
 }
 .property-type-options button:hover {
-  border-color: #9b86f8;
-  background: #f2eeff;
-  color: #7657f6;
+  color: #451a8f;
+ background-color: #f3ebff; 
+  color: #451a8f;
 }
 .property-type-options button.active {
   border-color: #451a8f;
-  background: #ebe6ff;
-  color: #451a8f;
+  background-color: #451a8f;
+  color: #ffffff;
   font-weight: 700;
   box-shadow: inset 0 0 0 1px #451a8f;
 }
