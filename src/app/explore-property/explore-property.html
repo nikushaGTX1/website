@@ -128,8 +128,8 @@
             <h3>Property Type</h3>
             <div class="property-type-options">
               <button type="button" role="option" *ngFor="let option of propertyTypeOptions"
-              [class.active]="homeType === option" [attr.aria-selected]="homeType === option"
-              (click)="selectHeaderPropertyType(option)"><span class="property-option-svg"
+                [class.active]="homeType === option" [attr.aria-selected]="homeType === option"
+                (click)="selectHeaderPropertyType(option)"><span class="property-option-svg"
                 [class.flats-svg]="option === 'Apartament'"
                 [class.shop-svg]="option === 'Commercial Place'" [class.house-option-svg]="option === 'House'"
                 [class.country-house-svg]="option === 'Country house'" aria-hidden="true"></span>{{ option }}</button>
@@ -197,6 +197,16 @@
         <button class="btn-primary-search" type="button" (click)="onSearch()">Search Homes <i class="fa-solid fa-magnifying-glass"></i></button>
       </div>
 
+      <!-- Visible Results Header inside the search card -->
+      <div class="results-header">
+        <span class="count"><strong>{{ filteredApartments.length | number }}</strong>
+          {{ drawnAreaActive ? 'homes found in your selected area' : 'properties found' }}</span>
+        <div class="sort-by"><label>Sort by:</label>
+          <select (change)="onSortChange($event)"><option value="newest">Newest</option>
+            <option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option></select>
+        </div>
+      </div>
+
       <div class="explore-search-footer">
         <div class="explore-footer-actions">
           <button class="btn-secondary" type="button" (click)="focusFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
@@ -207,15 +217,6 @@
   </section>
 
   <div class="page-shell">
-    <div class="results-header">
-      <span class="count"><strong>{{ filteredApartments.length | number }}</strong>
-        {{ drawnAreaActive ? 'homes found in your selected area' : 'properties found' }}</span>
-      <div class="sort-by"><label>Sort by:</label>
-        <select (change)="onSortChange($event)"><option value="newest">Newest</option>
-          <option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option></select>
-      </div>
-    </div>
-
     <main class="explore-content">
       <aside class="sidebar-filters">
         <div class="filter-header"><h3>Filters</h3><button type="button" class="btn-clear" (click)="clearFilters()">Clear all</button></div>
