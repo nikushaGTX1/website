@@ -57,6 +57,17 @@
   align-items: start;
 }
 .question {
+  min-width: 0;
+  max-height: 580px; 
+  height: 100%;
+  padding: 8px 38px 24px 0;
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-right: 1px solid #e6eaf0;
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
   background: white;
   border: 1px solid #e7e4ec;
   border-radius: 27px;
@@ -213,22 +224,26 @@ fieldset input,
   min-height: 110px;
   resize: vertical;
 }
-/* Container holding your form content and action bar */
 section {
   position: relative;
-  min-height: 500px; /* Set your fixed modal height */
-  padding-bottom: 70px; /* Space reserved for bottom buttons */
+  display: flex;
+  min-height: 600px; /* Set your fixed modal height */
+  flex-direction: column;
+}
+
+.content-area, 
+ng-container {
+  flex: 1; /* Pushes .actions to the very bottom */
+  overflow-y: auto; /* Allows content to scroll if it exceeds max height */
 }
 
 .actions {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   justify-content: space-between;
-  padding: 1rem;
-  background: #ffffff;
+  align-items: center;
+  margin-top: auto; /* Guarantees position at the bottom */
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
 }
 .actions button {
   padding: 13px 20px;
@@ -631,16 +646,26 @@ fieldset {
   border-radius: 5px !important;
   background: #fff;
 }
-
-.question > .actions {
-  position: sticky;
-  z-index: 4;
-  bottom: 0;
-  margin-top: auto;
-  padding: 20px 0 4px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), #fff 24%);
+.question > [ngswitchcase],
+.question > div:not(.question-title):not(.actions),
+.question > form {
+  flex: 1 1 auto;
+  min-height: 0; /* Critical for flex child scrolling */
+  overflow-y: auto;
+  padding-right: 8px; /* Adds space so custom scrollbar doesn't clip content */
 }
 
+.question > .actions {
+  position: relative; /* Removes need for sticky position */
+  z-index: 4;
+  margin-top: auto;   /* Pushes actions container to the bottom */
+  padding: 20px 0 4px;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .profile-card {
   width: 100%;
   box-sizing: border-box;
