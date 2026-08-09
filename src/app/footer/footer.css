@@ -114,10 +114,14 @@
   place-items: center;
   border-radius: 50%;
   color: #fff;
-  background: #526176;
   font-size: 11px;
   font-weight: 700;
   text-decoration: none;
+}
+
+.socials a:hover {
+  transform: translateY(-3px);
+  transition: transform 0.2s ease-in-out;
 }
 
 .footer-column {
