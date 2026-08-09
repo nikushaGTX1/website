@@ -1,15 +1,61 @@
 <section class="upload-page">
   <header class="page-intro">
     <div>
-      <span class="page-eyebrow"><i class="fa-solid fa-shield-check"></i> VERIFIED LISTING</span>
-      <h1>Create a property listing</h1>
-      <p>Present your property professionally and connect with serious buyers and renters.</p>
+      <span class="page-eyebrow"><i class="fa-solid fa-shield-check"></i> CHOOSE YOUR PLAN</span>
+      <h1>List <em>your</em> property your way.</h1>
+      <p>Choose the listing option that fits your property and your goals.</p>
     </div>
     <div class="intro-trust"><i class="fa-solid fa-lock"></i><span><strong>Secure submission</strong><small>Your listing is reviewed before publishing</small></span></div>
   </header>
 
-  <div class="upload-layout">
+  <section class="plan-choice" *ngIf="!selectedListingPlan" aria-label="Choose listing plan">
+    <article
+      *ngFor="let plan of listingPlans"
+      class="plan-card"
+      [class.exclusive]="plan.id === 'exclusive'"
+    >
+      <span class="popular-ribbon" *ngIf="plan.popular"><i class="fa-solid fa-star"></i> Most popular</span>
+      <div class="plan-card-head">
+        <span class="plan-icon"><i [class]="plan.icon"></i></span>
+        <div>
+          <h2>{{ plan.title }}</h2>
+          <p>{{ plan.description }}</p>
+        </div>
+      </div>
+      <ul>
+        <li *ngFor="let benefit of plan.benefits">
+          <i class="fa-solid fa-check"></i>
+          <span>{{ benefit }}</span>
+        </li>
+      </ul>
+      <button
+        type="button"
+        class="plan-select"
+        [class.primary]="plan.id === 'exclusive'"
+        (click)="chooseListingPlan(plan.id)"
+      >
+        {{ plan.cta }}
+      </button>
+    </article>
+  </section>
+
+  <p class="plan-trust" *ngIf="!selectedListingPlan">
+    <i class="fa-regular fa-shield-check"></i>
+    All properties are verified. We protect your privacy and your time.
+  </p>
+
+  <div class="upload-layout" *ngIf="selectedListingPlan">
     <aside class="upload-sidebar" aria-label="Listing progress">
+      <div class="chosen-plan-card" [class.exclusive]="isExclusivePlan">
+        <span><i [class]="selectedListingPlanOption?.icon"></i></span>
+        <div>
+          <small>Selected plan</small>
+          <strong>{{ selectedListingPlanOption?.title }}</strong>
+          <em *ngIf="isExclusivePlan"><i class="fa-solid fa-gem"></i> Exclusive listing</em>
+        </div>
+        <button type="button" (click)="changeListingPlan()">Change</button>
+      </div>
+
       <div class="progress-card">
         <div class="sidebar-title"><span>Listing progress</span><small>Complete all required fields</small></div>
         <button
@@ -35,6 +81,7 @@
           <span class="short"></span>
         </div>
         <strong>{{ previewTitle }}</strong>
+        <span class="exclusive-preview-badge" *ngIf="isExclusivePlan"><i class="fa-solid fa-gem"></i> Velven Exclusive</span>
         <small>{{ previewLocation }}</small>
         <b>{{ previewPrice }}</b>
         <em *ngIf="uploadedImageCount">{{ uploadedImageCount }} / {{ maxImages }} photos</em>

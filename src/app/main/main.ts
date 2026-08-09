@@ -540,6 +540,12 @@ export class Main implements OnInit {
     return apartment.title?.trim() || `Apartment #${apartment.id}`;
   }
 
+  isExclusiveListing(apartment: Apartment): boolean {
+    return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(
+      apartment.description || '',
+    );
+  }
+
   getApartmentAddress(apartment: Apartment): string {
     return apartment.address?.trim() || 'Address not provided';
   }

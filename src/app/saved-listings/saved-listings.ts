@@ -72,14 +72,10 @@ export class SavedListings implements OnInit {
     return [apartment.city || 'Tbilisi', apartment.district].filter(Boolean).join(', ');
   }
 
-  getBadge(index: number): { label: string; icon: string } {
-    const badges = [
-      { label: 'Premium', icon: 'fa-solid fa-crown' },
-      { label: 'Hot', icon: 'fa-solid fa-fire' },
-      { label: 'Featured', icon: 'fa-solid fa-star' },
-      { label: 'New', icon: 'fa-solid fa-star' },
-    ];
-    return badges[index % badges.length];
+  isExclusiveListing(apartment: Apartment): boolean {
+    return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(
+      apartment.description || '',
+    );
   }
 
   private applySort(): void {

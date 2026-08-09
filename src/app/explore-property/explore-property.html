@@ -254,7 +254,7 @@
         <article class="property-card" *ngFor="let apartment of paginatedApartments; let index = index"
           [routerLink]="['/apartments', apartment.id]">
           <div class="property-image">
-            <span class="badge" [class.hot]="index % 3 === 2">{{ index % 4 === 0 ? 'Premium' : index % 3 === 0 ? 'Hot' : 'New' }}</span>
+            <span class="badge exclusive" *ngIf="isExclusiveListing(apartment)"><i class="fa-regular fa-gem"></i> Exclusive</span>
             <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'" [alt]="apartment.title">
             <button class="favorite-btn" type="button" [class.active]="favoriteService.isFavorite(apartment.id)"
               [attr.aria-label]="favoriteService.isFavorite(apartment.id) ? 'Remove from saved properties' : 'Save property'"

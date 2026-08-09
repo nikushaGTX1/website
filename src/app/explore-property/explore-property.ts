@@ -742,6 +742,12 @@ export class ExploreProperty implements OnInit {
     return address ? address.split(',')[0].trim() : 'Tbilisi, Georgia';
   }
 
+  isExclusiveListing(apartment: Apartment): boolean {
+    return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(
+      apartment.description || '',
+    );
+  }
+
   getApartmentStreet(apartment: Apartment): string {
     const storedStreet =
       apartment.street?.trim() || apartment.address?.split(',')[0]?.trim();

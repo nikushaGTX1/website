@@ -61,6 +61,18 @@ type BooleanFeature =
   | 'hasView'
   | 'isFurnished';
 
+type ListingPlan = 'basic' | 'exclusive';
+
+interface ListingPlanOption {
+  id: ListingPlan;
+  title: string;
+  icon: string;
+  description: string;
+  cta: string;
+  popular?: boolean;
+  benefits: string[];
+}
+
 interface PreparedImage {
   previewUrl: string;
   file: File;
@@ -74,6 +86,39 @@ interface PreparedImage {
 })
 export class UploadApartment implements OnInit, OnDestroy {
   readonly maxImages = 15;
+  readonly listingPlans: ListingPlanOption[] = [
+    {
+      id: 'basic',
+      title: 'Basic List',
+      icon: 'fa-solid fa-house',
+      description: 'A simple listing with agent support and essential closing help.',
+      cta: 'Choose Basic',
+      benefits: [
+        'Property listing',
+        'Agent service',
+        'AI Property Match',
+        'Client check & appointment confirmation',
+        'Contract & legal service',
+      ],
+    },
+    {
+      id: 'exclusive',
+      title: 'Velven Exclusive',
+      icon: 'fa-regular fa-gem',
+      description: 'Exclusive representation with stronger promotion and full showing support.',
+      cta: 'Choose Exclusive',
+      popular: true,
+      benefits: [
+        'Everything in Basic',
+        'Exclusive representation',
+        'Professional photography',
+        'Premium marketing on all platforms',
+        'Key management & showing service',
+        'Tenant screening & verification',
+        'One-time re-rental service',
+      ],
+    },
+  ];
 
   readonly steps = [
     'Property Status',
@@ -161,6 +206,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   };
 
   loading = false;
+  selectedListingPlan: ListingPlan | null = null;
   successMessage = '';
   errorMessage = '';
   userMessages: PendingApartment[] = [];
@@ -349,6 +395,26 @@ export class UploadApartment implements OnInit, OnDestroy {
     (this.form[field] as string) = value;
   }
 
+  chooseListingPlan(plan: ListingPlan): void {
+    this.selectedListingPlan = plan;
+    this.successMessage = '';
+    this.errorMessage = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  changeListingPlan(): void {
+    this.selectedListingPlan = null;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  get selectedListingPlanOption(): ListingPlanOption | undefined {
+    return this.listingPlans.find((plan) => plan.id === this.selectedListingPlan);
+  }
+
+  get isExclusivePlan(): boolean {
+    return this.selectedListingPlan === 'exclusive';
+  }
+
   setCurrency(currency: '$' | 'GEL'): void {
     this.form.currency = currency;
   }
@@ -517,7 +583,9 @@ export class UploadApartment implements OnInit, OnDestroy {
     const addressParts = [street, this.form.streetNumber, district].filter(Boolean);
     const title = this.form.title.trim() || `${this.form.realEstateType} ${this.form.dealType}`;
     const currentUser = this.authService.currentUser;
+    const planLabel = this.isExclusivePlan ? 'Velven Exclusive' : 'Basic List';
     const meta = [
+      `Listing plan: ${planLabel}`,
       `Type: ${this.form.realEstateType}`,
       `Deal: ${this.form.dealType}`,
       `Status: ${this.form.buildingStatus}`,

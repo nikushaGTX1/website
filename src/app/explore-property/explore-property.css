@@ -311,9 +311,13 @@
   font-weight: 800;
   box-shadow: 0 2px 8px #0001;
 }
-.badge.hot {
-  background: #eaaa37;
+.badge i {
+  margin-right: 6px;
+}
+.badge.exclusive {
+  background: linear-gradient(135deg, #451a8f, #7435d3);
   color: #fff;
+  box-shadow: 0 8px 18px rgba(69,26,143,.28);
 }
 .favorite-btn {
   position: absolute;

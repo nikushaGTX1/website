@@ -216,10 +216,14 @@ export class ApartmentDetail implements OnInit {
   }
 
   get visibleDescription(): string {
-    const clean = this.description.split(/\r?\n\s*\r?\nType:/i)[0].trim();
+    const clean = this.description.split(/\r?\n\s*\r?\n(?:Listing plan|Type):/i)[0].trim();
     return this.descriptionExpanded || clean.length <= 360
       ? clean
       : `${clean.slice(0, 360).trim()}…`;
+  }
+
+  get isExclusiveListing(): boolean {
+    return this.getListingMetadata('Listing plan').toLowerCase() === 'velven exclusive';
   }
 
   get keyFeatures(): Array<{ icon: string; label: string; value: string }> {
