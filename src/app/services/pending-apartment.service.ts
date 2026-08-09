@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { CreateApartment } from '../models/apartment';
 import { User } from '../models/user';
+import { AuthService } from './auth.service';
 
 export type PendingApartmentStatus = 'pending' | 'approved' | 'declined';
 
@@ -31,7 +33,10 @@ export class PendingApartmentService {
 
   pendingApartments$ = this.pendingSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService,
+  ) {
     window.addEventListener('storage', (event) => {
       if (event.key === this.storageKey) {
         this.refresh();
@@ -47,6 +52,10 @@ export class PendingApartmentService {
   refresh(): void {
     const localItems = this.readAll();
     this.pendingSubject.next(localItems);
+    if (!this.authService.isLoggedIn) {
+      return;
+    }
+
     this.http.get<PendingApartment[]>(this.apiUrl).subscribe({
       next: (remoteItems) => this.save(this.merge(remoteItems, localItems)),
       error: () => {
@@ -77,7 +86,7 @@ export class PendingApartmentService {
     });
   }
 
-  submit(apartment: CreateApartment, user: User | null): PendingApartment {
+  submit(apartment: CreateApartment, user: User | null): Observable<PendingApartment> {
     const request: PendingApartment = {
       id: this.createId(),
       apartment,
@@ -89,16 +98,16 @@ export class PendingApartmentService {
     };
 
     this.save([request, ...this.getAll()]);
-    this.http.post<PendingApartment>(this.apiUrl, request).subscribe({
-      next: (savedRequest) => {
+    return this.http.post<PendingApartment>(this.apiUrl, request).pipe(
+      tap((savedRequest) => {
         const withoutTemporary = this.getAll().filter((item) => item.id !== request.id);
         this.save([savedRequest, ...withoutTemporary]);
-      },
-      error: () => {
-        // The local request remains visible and can be retried after reconnecting.
-      },
-    });
-    return request;
+      }),
+      catchError((error) => {
+        this.remove(request.id);
+        return throwError(() => error);
+      }),
+    );
   }
 
   markApproved(

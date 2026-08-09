@@ -407,17 +407,11 @@
   font-weight: 800;
   box-shadow: 0 2px 8px #0001;
 }
-<<<<<<< HEAD
 .badge i {
   margin-right: 6px;
 }
 .badge.exclusive {
   background: linear-gradient(135deg, #451a8f, #7435d3);
-=======
-
-.badge.hot {
-  background: #eaaa37;
->>>>>>> 0c1874e69a082e9a96c0b7e81ad9cc551fe052a3
   color: #fff;
   box-shadow: 0 8px 18px rgba(69,26,143,.28);
 }

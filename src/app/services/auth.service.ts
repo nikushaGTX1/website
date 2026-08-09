@@ -121,7 +121,14 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+
+    if (token && this.isTokenExpired(token)) {
+      this.logout();
+      return null;
+    }
+
+    return token;
   }
 
   hasAnyRole(roles: string[]): boolean {
@@ -159,14 +166,12 @@ export class AuthService {
       return [];
     }
 
-    const payload = token.split('.')[1];
-    if (!payload) {
+    const parsed = this.readTokenPayload(token);
+    if (!parsed) {
       return [];
     }
 
     try {
-      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-      const parsed = JSON.parse(atob(normalized)) as Record<string, unknown>;
       const roleClaims = [
         parsed['role'],
         parsed['roles'],
@@ -182,6 +187,32 @@ export class AuthService {
       });
     } catch {
       return [];
+    }
+  }
+
+  private isTokenExpired(token: string): boolean {
+    const payload = this.readTokenPayload(token);
+    const expiresAt = Number(payload?.['exp']);
+
+    if (!Number.isFinite(expiresAt)) {
+      return false;
+    }
+
+    return Date.now() >= expiresAt * 1000;
+  }
+
+  private readTokenPayload(token: string): Record<string, unknown> | null {
+    const payload = token.split('.')[1];
+    if (!payload) {
+      return null;
+    }
+
+    try {
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+      return JSON.parse(atob(padded)) as Record<string, unknown>;
+    } catch {
+      return null;
     }
   }
 }
