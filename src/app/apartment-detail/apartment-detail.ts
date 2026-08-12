@@ -345,6 +345,22 @@ export class ApartmentDetail implements OnInit {
     });
   }
 
+  get storedNearbyPlaces(): Array<{ label: string; icon: string; minutes: number }> {
+    const apartment = this.apartment;
+    if (!apartment) return [];
+    const places = [
+      { label: 'Nearest metro', icon: 'fa-train-subway', minutes: apartment.metroDistanceMinutes },
+      { label: 'Nearest school', icon: 'fa-graduation-cap', minutes: apartment.schoolDistanceMinutes },
+      { label: 'Nearest gym', icon: 'fa-dumbbell', minutes: apartment.gymDistanceMinutes },
+      { label: 'Nearest park', icon: 'fa-tree', minutes: apartment.parkDistanceMinutes },
+      { label: 'Nearest kindergarten', icon: 'fa-children', minutes: apartment.kindergartenDistanceMinutes },
+      { label: 'Nearest university', icon: 'fa-building-columns', minutes: apartment.universityDistanceMinutes },
+    ];
+    return places.filter((place): place is { label: string; icon: string; minutes: number } =>
+      Number.isFinite(place.minutes),
+    );
+  }
+
   viewSimilar(index: number): void {
     const apartment = this.apartment;
     this.apartmentService.getApartments().subscribe((apartments) => {

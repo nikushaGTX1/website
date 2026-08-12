@@ -2,7 +2,6 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { HomeMatchResult } from '../models/home-match-result';
 import { MatchTradeOff } from '../models/home-match-result';
 import { toMediaUrl } from '../../utils/api-media';
-import { GoogleNearbyTimeService } from '../../maps/services/google-nearby-time.service';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { applyPriorityScoring } from '../services/priority-scoring';
 @Component({
@@ -17,10 +16,10 @@ export class HomeMatchResultsComponent implements OnChanges {
   @Output() edit = new EventEmitter<void>();
   readonly enrichingApartmentIds = new Set<number>();
 
-  constructor(private nearbyTimeService: GoogleNearbyTimeService) {}
-
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['matches']) void this.enrichVisibleMatches();
+    if (changes['matches']) {
+      this.matches.forEach((result) => Object.assign(result, applyPriorityScoring(result, this.profile)));
+    }
   }
   get sorted(): HomeMatchResult[] {
     return [...this.matches].sort(
@@ -71,20 +70,4 @@ export class HomeMatchResultsComponent implements OnChanges {
     });
   }
 
-  private async enrichVisibleMatches(): Promise<void> {
-    await Promise.all(
-      this.sorted.slice(0, 6).map(async (result) => {
-        const address = result.apartment.address || result.apartment.district;
-        if (!address) return;
-        this.enrichingApartmentIds.add(result.apartment.id);
-        try {
-          const times = await this.nearbyTimeService.getWalkingTimes(address);
-          Object.assign(result.apartment, times);
-          Object.assign(result, applyPriorityScoring(result, this.profile));
-        } finally {
-          this.enrichingApartmentIds.delete(result.apartment.id);
-        }
-      }),
-    );
-  }
 }

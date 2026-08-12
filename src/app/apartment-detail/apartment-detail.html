@@ -73,11 +73,11 @@
           <div><h2>What’s nearby</h2><p>Real walking times from this apartment.</p></div>
           <i class="fa-solid fa-wand-magic-sparkles"></i>
         </div>
-        <div class="nearby-grid" *ngIf="nearbyPlaces.length; else nearbyLoading">
-          <button type="button" *ngFor="let place of nearbyPlaces" (click)="openWalkingDirections(place)">
-            <i class="fa-solid" [class.fa-train-subway]="place.category === 'transit_station'" [class.fa-graduation-cap]="place.category === 'school'" [class.fa-dumbbell]="place.category === 'gym'" [class.fa-tree]="place.category === 'park'" [class.fa-cart-shopping]="place.category === 'supermarket'" [class.fa-location-dot]="!['transit_station','school','gym','park','supermarket'].includes(place.category)"></i>
-            <span><b>{{ place.name }}</b><small>{{ place.walkingMinutes }} min walk</small></span>
-          </button>
+        <div class="nearby-grid" *ngIf="storedNearbyPlaces.length; else nearbyLoading">
+          <div *ngFor="let place of storedNearbyPlaces">
+            <i class="fa-solid {{ place.icon }}"></i>
+            <span><b>{{ place.label }}</b><small>{{ place.minutes }} min walk</small></span>
+          </div>
         </div>
         <ng-template #nearbyLoading><p class="nearby-loading">Calculating nearby walking times…</p></ng-template>
       </article>
@@ -121,7 +121,7 @@
           [latitude]="apartment.latitude"
           [longitude]="apartment.longitude"
           [compact]="true"
-          (nearbyPlacesChange)="setNearbyPlaces($event)">
+          [loadNearby]="false">
         </app-google-property-map>
       </article>
 

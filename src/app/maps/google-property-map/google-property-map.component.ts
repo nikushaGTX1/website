@@ -39,6 +39,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
   @Input() latitude?: number;
   @Input() longitude?: number;
   @Input() compact = false;
+  @Input() loadNearby = true;
   @Output() nearbyPlacesChange = new EventEmitter<NearbyPlace[]>();
   @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('directionsPanel') directionsPanel?: ElementRef<HTMLDivElement>;
@@ -225,7 +226,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         title: this.apartmentTitle,
         label: { text: 'H', color: '#fff', fontWeight: '700' },
       });
-      await this.findNearby();
+      if (this.loadNearby) await this.findNearby();
     } catch {
       this.errorMessage =
         'Google Maps could not locate this apartment. Check the address and API configuration.';
