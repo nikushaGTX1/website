@@ -115,14 +115,10 @@
           <div><h2>Location &amp; Map</h2><p>{{ address }}</p></div>
           <button type="button" class="open-map" (click)="openMaps()">Open in Maps <i class="fa-solid fa-arrow-up-right-from-square"></i></button>
         </div>
-        <app-google-property-map
-          [address]="address"
-          [apartmentTitle]="title"
-          [latitude]="apartment.latitude"
-          [longitude]="apartment.longitude"
-          [compact]="true"
-          [loadNearby]="false">
-        </app-google-property-map>
+        <div class="saved-location-summary">
+          <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+          <div><b>{{ address }}</b><small>Location saved with this listing</small></div>
+        </div>
       </article>
 
       <article class="panel similar-section">
