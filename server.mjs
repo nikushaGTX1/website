@@ -69,11 +69,21 @@ app.use((_request, response, next) => {
 
 app.get('/map-data/street', async (request, response) => {
   const street = typeof request.query.street === 'string' ? request.query.street.trim() : '';
+  const requestedBbox = typeof request.query.bbox === 'string'
+    ? request.query.bbox.split(',').map(Number)
+    : [];
+  const validBbox = requestedBbox.length === 4
+    && requestedBbox.every(Number.isFinite)
+    && requestedBbox[0] >= 41.50 && requestedBbox[2] <= 41.92
+    && requestedBbox[1] >= 44.55 && requestedBbox[3] <= 45.10
+    && requestedBbox[0] < requestedBbox[2] && requestedBbox[1] < requestedBbox[3];
+  const bbox = validBbox ? requestedBbox : [41.50, 44.55, 41.92, 45.10];
   if (!street || street.length > 120) {
     response.status(400).json({ message: 'A valid street name is required.' });
     return;
   }
-  const cached = streetGeometryCache.get(street.toLowerCase());
+  const cacheKey = `${street.toLowerCase()}:${bbox.join(',')}`;
+  const cached = streetGeometryCache.get(cacheKey);
   if (cached) {
     response.setHeader('Cache-Control', 'public, max-age=86400');
     response.json(cached);
@@ -84,7 +94,7 @@ app.get('/map-data/street', async (request, response) => {
       .filter((token) => token.length >= 4 && !/^(street|avenue|road|lane)$/i.test(token))
       .sort((left, right) => right.length - left.length);
     const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
-    const query = `[out:json][timeout:20];way["highway"][~"^(name|name:en)$"~"${searchToken}",i](41.50,44.55,41.92,45.10);out geom;`;
+    const query = `[out:json][timeout:10];way["highway"][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
     const upstream = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`, {
       signal: AbortSignal.timeout(8000),
     });
@@ -95,7 +105,7 @@ app.get('/map-data/street', async (request, response) => {
         (element.geometry || []).map((point) => [point.lon, point.lat]),
       ).filter((line) => line.length >= 2),
     };
-    streetGeometryCache.set(street.toLowerCase(), result);
+    streetGeometryCache.set(cacheKey, result);
     if (streetGeometryCache.size > 500) streetGeometryCache.delete(streetGeometryCache.keys().next().value);
     response.setHeader('Cache-Control', 'public, max-age=86400');
     response.json(result);

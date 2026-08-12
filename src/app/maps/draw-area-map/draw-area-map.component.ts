@@ -191,7 +191,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   async chooseAreas(areas: string[]): Promise<void> {
     if (!this.draw || !this.map) return;
     const revision = ++this.selectionRevision;
-    if (areas.length === 1) void this.preloadDistrictStreets(areas[0]);
     // Remove the old district immediately. Otherwise it remains visible while
     // the newly selected OSM boundary is being downloaded.
     this.draw.clear();
@@ -376,9 +375,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     // API street labels commonly contain initials and "st./street/avenue" while
     // OSM stores the full name. The longest meaningful word (usually the
     // surname) gives a safe, district-scoped match.
-    // Never block a click on the much larger district preload. Use its index
-    // when ready; otherwise immediately run the small single-street lookup.
-    void this.preloadDistrictStreets(district).catch(() => undefined);
     const indexed = DrawAreaMapComponent.sharedStreetCache.get(
       `${district.toLowerCase()}:${this.normalizeStreetName(street)}`,
     );
@@ -386,11 +382,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
     let lines: number[][][];
     try {
-      const response = await fetch(`/map-data/street?street=${encodeURIComponent(street)}`);
+      const bbox = this.districtBoundingBox(district);
+      const bboxQuery = bbox ? `&bbox=${bbox.join(',')}` : '';
+      const response = await fetch(`/map-data/street?street=${encodeURIComponent(street)}${bboxQuery}`);
       if (!response.ok) throw new Error(`Street geometry service returned ${response.status}`);
       lines = ((await response.json() as { lines?: number[][][] }).lines || []);
     } catch {
-      lines = await this.loadStreetLinesFromOverpass(street);
+      lines = await this.loadStreetLinesFromOverpass(street, district);
     }
     const districtPolygons = this.boundaryCache.get(`area:${district.toLowerCase()}`) || [];
     if (districtPolygons.length) {
@@ -434,17 +432,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private async fetchDistrictStreets(relationId: number): Promise<Array<{ names: string[]; line: number[][] }>> {
-    let response: Response | undefined;
-    try {
-      response = await fetch(`/map-data/district-streets?relationId=${relationId}`);
-    } catch {
-      response = undefined;
-    }
-    if (!response?.ok || !response.headers.get('content-type')?.includes('application/json')) {
-      const query = `[out:json][timeout:40];rel(${relationId})->.district;map_to_area.district->.districtArea;way(area.districtArea)["highway"]["name"];out tags geom;`;
-      response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
-    }
+    const response = await fetch(`/map-data/district-streets?relationId=${relationId}`, {
+      signal: AbortSignal.timeout(8000),
+    });
     if (!response.ok) throw new Error(`District street service returned ${response.status}`);
+    if (!response.headers.get('content-type')?.includes('application/json')) {
+      throw new Error('District street service is unavailable.');
+    }
     const payload = await response.json() as {
       streets?: Array<{ names: string[]; line: number[][] }>;
       elements?: Array<{
@@ -471,14 +465,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       .trim();
   }
 
-  private async loadStreetLinesFromOverpass(street: string): Promise<number[][][]> {
+  private async loadStreetLinesFromOverpass(street: string, district: string): Promise<number[][][]> {
     const tokens = street.replace(/[.,]/g, ' ').split(/\s+/)
       .filter((token) => token.length >= 4 && !/^(street|avenue|road|lane)$/i.test(token))
       .sort((left, right) => right.length - left.length);
     const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
-    const query = `[out:json][timeout:20];way["highway"][~"^(name|name:en)$"~"${searchToken}",i](41.50,44.55,41.92,45.10);out geom;`;
+    const bbox = this.districtBoundingBox(district) || [41.50, 44.55, 41.92, 45.10];
+    const query = `[out:json][timeout:10];way["highway"][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
     const response = await fetch(
-      `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`,
+      `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`,
+      { signal: AbortSignal.timeout(12000) },
     );
     if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
     const payload = await response.json() as {
@@ -487,6 +483,20 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     return (payload.elements || [])
       .map((element) => (element.geometry || []).map((point) => [point.lon, point.lat]))
       .filter((line) => line.length >= 2);
+  }
+
+  private districtBoundingBox(district: string): [number, number, number, number] | null {
+    const polygons = this.boundaryCache.get(`area:${district.toLowerCase()}`) || [];
+    const points = polygons.flatMap((polygon) => polygon.flatMap((ring) => ring));
+    if (!points.length) return null;
+    const longitudes = points.map(([longitude]) => longitude);
+    const latitudes = points.map(([, latitude]) => latitude);
+    return [
+      Math.min(...latitudes),
+      Math.min(...longitudes),
+      Math.max(...latitudes),
+      Math.max(...longitudes),
+    ];
   }
 
   private pointInRing([x, y]: number[], ring: number[][]): boolean {
