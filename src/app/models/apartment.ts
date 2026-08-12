@@ -95,6 +95,12 @@ export interface CreateApartment {
   hasView?: boolean;
   isFurnished?: boolean;
   apartmentStyle?: string;
+  metroDistanceMinutes?: number;
+  gymDistanceMinutes?: number;
+  parkDistanceMinutes?: number;
+  schoolDistanceMinutes?: number;
+  kindergartenDistanceMinutes?: number;
+  universityDistanceMinutes?: number;
   imageUrl?: string;
   imageUrls?: string[];
   imageFile?: File;

@@ -317,8 +317,8 @@
           <div class="nearby">
             <span class="nearby-label">Nearby</span>
             <div class="nearby-grid">
-              <span><i class="fa-solid fa-train-subway"></i><b>Metro</b><small>4 min walk</small></span>
-              <span><i class="fa-solid fa-graduation-cap"></i><b>School</b><small>5 min</small></span>
+              <span><i class="fa-solid fa-train-subway"></i><b>Metro</b><small>{{ apartment.metroDistanceMinutes != null ? apartment.metroDistanceMinutes + ' min walk' : 'Not nearby' }}</small></span>
+              <span><i class="fa-solid fa-graduation-cap"></i><b>School</b><small>{{ apartment.schoolDistanceMinutes != null ? apartment.schoolDistanceMinutes + ' min walk' : 'Not nearby' }}</small></span>
               <span><i class="fa-solid fa-car"></i><b>Parking</b><small>Available</small></span>
             </div>
           </div>

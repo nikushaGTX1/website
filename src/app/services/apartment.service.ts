@@ -240,6 +240,12 @@ export class ApartmentService {
       ['sizeSquareMeters', 'SizeSquareMeters'],
       ['floor', 'Floor'],
       ['totalFloors', 'TotalFloors'],
+      ['metroDistanceMinutes', 'MetroDistanceMinutes'],
+      ['gymDistanceMinutes', 'GymDistanceMinutes'],
+      ['parkDistanceMinutes', 'ParkDistanceMinutes'],
+      ['schoolDistanceMinutes', 'SchoolDistanceMinutes'],
+      ['kindergartenDistanceMinutes', 'KindergartenDistanceMinutes'],
+      ['universityDistanceMinutes', 'UniversityDistanceMinutes'],
     ];
     const booleanFields: Array<[keyof CreateApartment, string]> = [
       ['hasElevator', 'HasElevator'],

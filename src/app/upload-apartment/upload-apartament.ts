@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
+import { GoogleNearbyTimeService, NearbyWalkingTimes } from '../maps/services/google-nearby-time.service';
 
 type UploadForm = {
   realEstateType: string;
@@ -228,6 +229,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     private authService: AuthService,
     private pendingService: PendingApartmentService,
     private locationService: LocationService,
+    private nearbyTimeService: GoogleNearbyTimeService,
   ) {
     this.dismissedNotificationIds = this.readDismissedNotificationIds();
     this.subscriptions.add(
@@ -527,7 +529,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.form.imageUrl = this.form.imageUrls[0] || '';
   }
 
-  publish(): void {
+  async publish(): Promise<void> {
     this.successMessage = '';
     this.errorMessage = '';
 
@@ -552,9 +554,21 @@ export class UploadApartment implements OnInit, OnDestroy {
     }
 
     this.loading = true;
+    const calculationAddress = [
+      this.selectedStreetValue,
+      this.form.streetNumber,
+      this.selectedDistrictValue,
+      'Tbilisi',
+    ].filter(Boolean).join(', ');
+    let nearbyTimes: NearbyWalkingTimes = {};
+    try {
+      nearbyTimes = await this.nearbyTimeService.getWalkingTimes(calculationAddress);
+    } catch (error) {
+      console.error('Could not calculate nearby walking times:', error);
+    }
 
     if (!this.authService.isAdmin) {
-      this.pendingService.submit(this.toCreateApartment(false), this.authService.currentUser).subscribe({
+      this.pendingService.submit(this.toCreateApartment(false, nearbyTimes), this.authService.currentUser).subscribe({
         next: () => {
           this.pendingDebug = this.pendingService.getStorageDebug();
           this.loading = false;
@@ -572,7 +586,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       return;
     }
 
-    this.apartmentService.createApartment(this.toCreateApartment(true)).subscribe({
+    this.apartmentService.createApartment(this.toCreateApartment(true, nearbyTimes)).subscribe({
       next: () => {
         this.loading = false;
         this.successMessage = 'Apartment listing published successfully.';
@@ -593,7 +607,10 @@ export class UploadApartment implements OnInit, OnDestroy {
     });
   }
 
-  private toCreateApartment(includeImageFile: boolean): CreateApartment {
+  private toCreateApartment(
+    includeImageFile: boolean,
+    nearbyTimes: NearbyWalkingTimes = {},
+  ): CreateApartment {
     const district = this.selectedDistrictValue || this.form.location;
     const street = this.selectedStreetValue || this.form.street;
     const addressParts = [street, this.form.streetNumber, district].filter(Boolean);
@@ -650,6 +667,12 @@ export class UploadApartment implements OnInit, OnDestroy {
       hasView: this.form.hasView,
       isFurnished: this.form.isFurnished,
       apartmentStyle: this.form.apartmentStyle,
+      metroDistanceMinutes: nearbyTimes.metroDistanceMinutes,
+      gymDistanceMinutes: nearbyTimes.gymDistanceMinutes,
+      parkDistanceMinutes: nearbyTimes.parkDistanceMinutes,
+      schoolDistanceMinutes: nearbyTimes.schoolDistanceMinutes,
+      kindergartenDistanceMinutes: nearbyTimes.kindergartenDistanceMinutes,
+      universityDistanceMinutes: nearbyTimes.universityDistanceMinutes,
       imageUrl: this.form.imageUrls[0] || undefined,
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };
