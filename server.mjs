@@ -35,6 +35,8 @@ const apartmentImageCache = new Map();
 const apartmentImageRequests = new Map();
 const translationCache = new Map();
 const streetGeometryCache = new Map();
+const boundaryGeometryCache = new Map();
+const districtStreetCache = new Map();
 const approvalDataDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'data');
 const approvalDataFile = path.join(approvalDataDirectory, 'apartment-approval-requests.json');
 const publicCacheLifetimeMs = 60_000;
@@ -100,6 +102,75 @@ app.get('/map-data/street', async (request, response) => {
   } catch (error) {
     console.error('Street geometry proxy error:', error);
     response.status(502).json({ message: 'Street geometry is temporarily unavailable.' });
+  }
+});
+
+app.get('/map-data/boundary', async (request, response) => {
+  const relationId = Number(request.query.relationId);
+  if (!Number.isSafeInteger(relationId) || relationId <= 0) {
+    response.status(400).json({ message: 'A valid OpenStreetMap relation ID is required.' });
+    return;
+  }
+  const cached = boundaryGeometryCache.get(relationId);
+  if (cached) {
+    response.setHeader('Cache-Control', 'public, max-age=604800');
+    response.json(cached);
+    return;
+  }
+  try {
+    const upstream = await fetch(
+      `https://polygons.openstreetmap.fr/get_geojson.py?id=${relationId}&params=0`,
+      { signal: AbortSignal.timeout(15000) },
+    );
+    if (!upstream.ok) throw new Error(`Boundary service returned HTTP ${upstream.status}.`);
+    const geometry = await upstream.json();
+    if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) {
+      throw new Error('Boundary service returned invalid geometry.');
+    }
+    boundaryGeometryCache.set(relationId, geometry);
+    response.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=2592000');
+    response.json(geometry);
+  } catch (error) {
+    console.error('Boundary geometry proxy error:', error);
+    response.status(502).json({ message: 'Boundary geometry is temporarily unavailable.' });
+  }
+});
+
+app.get('/map-data/district-streets', async (request, response) => {
+  const relationId = Number(request.query.relationId);
+  if (!Number.isSafeInteger(relationId) || relationId <= 0) {
+    response.status(400).json({ message: 'A valid OpenStreetMap relation ID is required.' });
+    return;
+  }
+  const cached = districtStreetCache.get(relationId);
+  if (cached) {
+    response.setHeader('Cache-Control', 'public, max-age=604800');
+    response.json(cached);
+    return;
+  }
+  try {
+    const query = `[out:json][timeout:40];rel(${relationId})->.district;map_to_area.district->.districtArea;way(area.districtArea)["highway"]["name"];out tags geom;`;
+    const upstream = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`, {
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!upstream.ok) throw new Error(`Overpass returned HTTP ${upstream.status}.`);
+    const payload = await upstream.json();
+    const result = {
+      streets: (payload.elements || []).map((element) => ({
+        names: [...new Set([
+          element.tags?.name,
+          element.tags?.['name:en'],
+          element.tags?.['name:ka'],
+        ].filter(Boolean))],
+        line: (element.geometry || []).map((point) => [point.lon, point.lat]),
+      })).filter((street) => street.names.length && street.line.length >= 2),
+    };
+    districtStreetCache.set(relationId, result);
+    response.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=2592000');
+    response.json(result);
+  } catch (error) {
+    console.error('District street geometry proxy error:', error);
+    response.status(502).json({ message: 'District streets are temporarily unavailable.' });
   }
 });
 

@@ -316,8 +316,12 @@ export class ExploreProperty implements OnInit {
       this.removeModalArea(area);
       return;
     }
-    this.selectedLocationAreas = [...this.selectedLocationAreas, area];
+    // The map is intentionally single-district: changing area must discard
+    // every street and polygon belonging to the previous district.
+    this.selectedLocationAreas = [area];
     this.selectedLocationArea = area;
+    this.selectedModalStreetDetails = [];
+    this.selectedModalStreets = [];
     this.showAllStreets = false;
     this.streetSearch = '';
     this.inlineDrawnPolygon = null;
