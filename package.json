@@ -6,6 +6,7 @@
   "scripts": {
     "ng": "ng",
     "start": "node server.mjs",
+    "dev": "node dev.mjs",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

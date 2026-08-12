@@ -95,11 +95,54 @@ app.get('/map-data/street', async (request, response) => {
       .sort((left, right) => right.length - left.length);
     const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
     const query = `[out:json][timeout:10];way["highway"][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
-    const upstream = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`, {
-      signal: AbortSignal.timeout(8000),
+    const nominatimParams = new URLSearchParams({
+      q: `${street}, Tbilisi, Georgia`,
+      format: 'jsonv2',
+      limit: '8',
+      countrycodes: 'ge',
+      polygon_geojson: '1',
+      viewbox: `${bbox[1]},${bbox[2]},${bbox[3]},${bbox[0]}`,
+      bounded: '1',
     });
-    if (!upstream.ok) throw new Error(`Overpass returned HTTP ${upstream.status}.`);
-    const payload = await upstream.json();
+    const nominatim = await fetch(`https://nominatim.openstreetmap.org/search?${nominatimParams}`, {
+      headers: { 'Accept-Language': 'ka,en;q=0.9', 'User-Agent': 'VelvenRealEstate/1.0' },
+      signal: AbortSignal.timeout(8000),
+    }).catch(() => undefined);
+    if (nominatim?.ok) {
+      const matches = await nominatim.json();
+      const lines = matches.flatMap((match) => {
+        if (match.geojson?.type === 'LineString') return [match.geojson.coordinates];
+        if (match.geojson?.type === 'MultiLineString') return match.geojson.coordinates;
+        return [];
+      }).filter((line) => line.length >= 2);
+      if (lines.length) {
+        const result = { lines };
+        streetGeometryCache.set(cacheKey, result);
+        response.setHeader('Cache-Control', 'public, max-age=86400');
+        response.json(result);
+        return;
+      }
+    }
+    const encodedQuery = encodeURIComponent(query);
+    // For guaranteed coverage, point this at a managed or self-hosted
+    // Overpass instance. Public community instances may rate-limit any IP.
+    const providers = process.env.OVERPASS_API_URL
+      ? [process.env.OVERPASS_API_URL.replace(/\/$/, '')]
+      : [
+          'https://overpass.private.coffee/api/interpreter',
+          'https://overpass-api.de/api/interpreter',
+        ];
+    const payload = await Promise.any(providers.map(async (provider) => {
+      const upstream = await fetch(`${provider}?data=${encodedQuery}`, {
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!upstream.ok) throw new Error(`${provider} returned HTTP ${upstream.status}.`);
+      const candidate = await upstream.json();
+      if (!(candidate.elements || []).some((element) => (element.geometry || []).length >= 2)) {
+        throw new Error(`${provider} returned no street geometry.`);
+      }
+      return candidate;
+    }));
     const result = {
       lines: (payload.elements || []).map((element) =>
         (element.geometry || []).map((point) => [point.lon, point.lat]),

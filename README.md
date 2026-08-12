@@ -57,3 +57,16 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+# Reliable street geometry
+
+The location map can use an owned or managed Overpass endpoint for complete,
+predictable street geometry. Set `OVERPASS_API_URL` before starting the server:
+
+```powershell
+$env:OVERPASS_API_URL='https://your-overpass-host/api/interpreter'
+npm run dev
+```
+
+Without this setting the server uses community Overpass instances as a
+best-effort fallback. Those services can return HTTP 429 and are not suitable
+for guaranteed production coverage.

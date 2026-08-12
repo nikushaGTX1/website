@@ -309,12 +309,19 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const bounds = new google.maps.LatLngBounds();
     const paths = (await Promise.all(this.selectedStreetsInput.map(async (selection) => {
       const parts = selection.street.split(/\s+[—–-]\s+/).map((part) => part.trim()).filter(Boolean);
-      const street = parts.at(-1) || selection.street;
       const district = selection.district;
       try {
-        return await this.loadStreetLines(street, district);
+        // Location rows contain Georgian and English aliases. OSM coverage is
+        // inconsistent about which language tag is present, so resolve both
+        // names concurrently and use the first one with real way geometry.
+        const aliases = [...new Set(parts.length ? parts : [selection.street])];
+        return await Promise.any(aliases.map(async (street) => {
+          const lines = await this.loadStreetLines(street, district);
+          if (!lines.length) throw new Error(`No geometry for ${street}`);
+          return lines;
+        }));
       } catch (error) {
-        console.error(`Could not draw ${street}:`, error);
+        console.error(`Could not draw ${selection.street}:`, error);
         return [];
       }
     }))).flat();
@@ -390,7 +397,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       if (!response.ok) throw new Error(`Street geometry service returned ${response.status}`);
       lines = ((await response.json() as { lines?: number[][][] }).lines || []);
     } catch {
-      lines = await this.loadStreetLinesFromOverpass(street, district);
+      lines = [];
     }
     const districtPolygons = this.boundaryCache.get(`area:${district.toLowerCase()}`) || [];
     if (districtPolygons.length) {
@@ -468,9 +475,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const query = `[out:json][timeout:10];way["highway"][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
     const encodedQuery = encodeURIComponent(query);
     const providers = [
+      'https://overpass.private.coffee/api/interpreter',
       'https://overpass-api.de/api/interpreter',
-      'https://overpass.kumi.systems/api/interpreter',
-      'https://overpass.nchc.org.tw/api/interpreter',
     ];
     const requests = providers.map(async (provider) => {
       const response = await fetch(`${provider}?data=${encodedQuery}`, {
