@@ -310,20 +310,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const paths = (await Promise.all(this.selectedStreetsInput.map(async (selection) => {
       const parts = selection.street.split(/\s+[—–-]\s+/).map((part) => part.trim()).filter(Boolean);
       const district = selection.district;
-      try {
-        // Location rows contain Georgian and English aliases. OSM coverage is
-        // inconsistent about which language tag is present, so resolve both
-        // names concurrently and use the first one with real way geometry.
-        const aliases = [...new Set(parts.length ? parts : [selection.street])];
-        return await Promise.any(aliases.map(async (street) => {
-          const lines = await this.loadStreetLines(street, district);
-          if (!lines.length) throw new Error(`No geometry for ${street}`);
-          return lines;
-        }));
-      } catch (error) {
-        console.error(`Could not draw ${selection.street}:`, error);
-        return [];
-      }
+      // Resolve both language aliases concurrently. Empty provider responses
+      // are normal and must not surface as an AggregateError in production.
+      const aliases = [...new Set(parts.length ? parts : [selection.street])];
+      const results = await Promise.all(aliases.map((street) =>
+        this.loadStreetLines(street, district).catch(() => []),
+      ));
+      return results.find((lines) => lines.length) || [];
     }))).flat();
     if (revision !== this.streetRevision) return;
     for (const path of paths) {
@@ -464,35 +457,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       .replace(/\b(street|st|avenue|ave|road|rd|lane)\b/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-  }
-
-  private async loadStreetLinesFromOverpass(street: string, district: string): Promise<number[][][]> {
-    const tokens = street.replace(/[.,]/g, ' ').split(/\s+/)
-      .filter((token) => token.length >= 4 && !/^(street|avenue|road|lane)$/i.test(token))
-      .sort((left, right) => right.length - left.length);
-    const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
-    const bbox = this.districtBoundingBox(district) || [41.50, 44.55, 41.92, 45.10];
-    const query = `[out:json][timeout:10];way["highway"][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
-    const encodedQuery = encodeURIComponent(query);
-    const providers = [
-      'https://overpass.private.coffee/api/interpreter',
-      'https://overpass-api.de/api/interpreter',
-    ];
-    const requests = providers.map(async (provider) => {
-      const response = await fetch(`${provider}?data=${encodedQuery}`, {
-        signal: AbortSignal.timeout(9000),
-      });
-      if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
-      const payload = await response.json() as {
-        elements?: Array<{ geometry?: Array<{ lon: number; lat: number }> }>;
-      };
-      const lines = (payload.elements || [])
-        .map((element) => (element.geometry || []).map((point) => [point.lon, point.lat]))
-        .filter((line) => line.length >= 2);
-      if (!lines.length) throw new Error('Overpass returned no matching road geometry.');
-      return lines;
-    });
-    return Promise.any(requests);
   }
 
   private districtBoundingBox(district: string): [number, number, number, number] | null {
