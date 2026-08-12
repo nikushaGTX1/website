@@ -363,7 +363,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (pending) return pending;
     const request = this.fetchStreetLines(street, district)
       .then((lines) => {
-        DrawAreaMapComponent.sharedStreetCache.set(cacheKey, lines);
+        // An overloaded provider may return no ways. Never make that temporary
+        // failure permanent for the lifetime of the page.
+        if (lines.length) DrawAreaMapComponent.sharedStreetCache.set(cacheKey, lines);
         return lines;
       })
       .finally(() => DrawAreaMapComponent.streetRequests.delete(cacheKey));
@@ -396,15 +398,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         districtPolygons.some((polygon) => this.pointInRing(point, polygon[0])),
       ));
     }
-    if (lines.length) return lines;
-
-    // Retain a geocoding fallback for streets whose OSM way has no translated
-    // name tag.
-    const results = await this.searchOpenStreetMap(`${street}, ${district}, Tbilisi, Georgia`, false);
-    const candidate = results.find((result) =>
-      result.geojson?.type === 'LineString' || result.geojson?.type === 'MultiLineString',
-    );
-    return this.geoJsonLines(candidate?.geojson);
+    return lines;
   }
 
   private preloadDistrictStreets(district: string): Promise<void> {
@@ -472,17 +466,27 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
     const bbox = this.districtBoundingBox(district) || [41.50, 44.55, 41.92, 45.10];
     const query = `[out:json][timeout:10];way["highway"][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
-    const response = await fetch(
-      `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`,
-      { signal: AbortSignal.timeout(12000) },
-    );
-    if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
-    const payload = await response.json() as {
-      elements?: Array<{ geometry?: Array<{ lon: number; lat: number }> }>;
-    };
-    return (payload.elements || [])
-      .map((element) => (element.geometry || []).map((point) => [point.lon, point.lat]))
-      .filter((line) => line.length >= 2);
+    const encodedQuery = encodeURIComponent(query);
+    const providers = [
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter',
+      'https://overpass.nchc.org.tw/api/interpreter',
+    ];
+    const requests = providers.map(async (provider) => {
+      const response = await fetch(`${provider}?data=${encodedQuery}`, {
+        signal: AbortSignal.timeout(9000),
+      });
+      if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
+      const payload = await response.json() as {
+        elements?: Array<{ geometry?: Array<{ lon: number; lat: number }> }>;
+      };
+      const lines = (payload.elements || [])
+        .map((element) => (element.geometry || []).map((point) => [point.lon, point.lat]))
+        .filter((line) => line.length >= 2);
+      if (!lines.length) throw new Error('Overpass returned no matching road geometry.');
+      return lines;
+    });
+    return Promise.any(requests);
   }
 
   private districtBoundingBox(district: string): [number, number, number, number] | null {
