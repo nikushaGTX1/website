@@ -68,7 +68,14 @@ app.use((_request, response, next) => {
 });
 
 app.get('/map-data/street', async (request, response) => {
-  const street = typeof request.query.street === 'string' ? request.query.street.trim() : '';
+  const requestedStreet = typeof request.query.street === 'string' ? request.query.street.trim() : '';
+  const streetCorrections = new Map([
+    ['a.kalandaze st.', 'Ana Kalandadze Street'],
+    ['a. kalandaze st.', 'Ana Kalandadze Street'],
+    ['a.kalandadze st.', 'Ana Kalandadze Street'],
+    ['ა.კალანდაძე ქუჩა', 'ანა კალანდაძის ქუჩა'],
+  ]);
+  const street = streetCorrections.get(requestedStreet.toLowerCase()) || requestedStreet;
   const requestedBbox = typeof request.query.bbox === 'string'
     ? request.query.bbox.split(',').map(Number)
     : [];
@@ -154,7 +161,8 @@ app.get('/map-data/street', async (request, response) => {
     response.json(result);
   } catch (error) {
     console.error('Street geometry proxy error:', error);
-    response.status(502).json({ message: 'Street geometry is temporarily unavailable.' });
+    response.setHeader('Cache-Control', 'no-store');
+    response.json({ lines: [] });
   }
 });
 
