@@ -33,6 +33,19 @@ body {
   overflow-x: clip;
 }
 
+html[lang='ka'] body,
+html[lang='ka'] button,
+html[lang='ka'] input,
+html[lang='ka'] select,
+html[lang='ka'] textarea {
+  font-family: "Noto Sans Georgian", "Segoe UI", Arial, sans-serif;
+}
+
+html[lang='ka'] :is(h1, h2, h3, h4, h5, h6) {
+  font-family: "Noto Serif Georgian", Georgia, serif;
+  letter-spacing: 0;
+}
+
 button,
 input,
 select,

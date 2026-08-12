@@ -8,6 +8,8 @@ type TextState = {
   translated?: string;
 };
 
+type GeorgianTranslator = (value: string) => string | undefined;
+
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
   readonly language$ = new BehaviorSubject<AppLanguage>(this.savedLanguage());
@@ -16,6 +18,8 @@ export class TranslationService {
   private observer?: MutationObserver;
   private timer?: number;
   private generation = 0;
+  private georgianTranslator?: GeorgianTranslator;
+  private georgianTranslatorRequest?: Promise<GeorgianTranslator>;
 
   constructor(private zone: NgZone) {
     document.documentElement.lang = this.language$.value;
@@ -87,6 +91,10 @@ export class TranslationService {
     if (language === 'en') return;
 
     const generation = this.generation;
+    if (language === 'ka') {
+      await this.loadGeorgianTranslator();
+      if (generation !== this.generation || language !== this.language$.value) return;
+    }
     const targets = this.collectTargets();
     const unique = [...new Set(targets.map((target) => target.state.original))];
     const translations = await this.translateStrings(unique, language);
@@ -156,6 +164,7 @@ export class TranslationService {
   }
 
   private shouldTranslate(value: string): boolean {
+    if (this.georgianTranslator?.(value)) return true;
     return /[A-Za-z]/.test(value) && !/^(https?:|\/|[\w.+-]+@[\w.-]+$)/.test(value);
   }
 
@@ -164,6 +173,18 @@ export class TranslationService {
     language: Exclude<AppLanguage, 'en'>,
   ): Promise<Map<string, string>> {
     const result = new Map<string, string>();
+
+    // Georgian is curated in-repo. Never send Georgian UI copy to the
+    // machine-translation endpoint, and leave unknown content unchanged.
+    if (language === 'ka') {
+      const translate = await this.loadGeorgianTranslator();
+      for (const value of values) {
+        const translated = translate(value);
+        if (translated) result.set(value, translated);
+      }
+      return result;
+    }
+
     const missing: string[] = [];
 
     for (const value of values) {
@@ -228,6 +249,19 @@ export class TranslationService {
     );
 
     return result;
+  }
+
+  private loadGeorgianTranslator(): Promise<GeorgianTranslator> {
+    if (this.georgianTranslator) {
+      return Promise.resolve(this.georgianTranslator);
+    }
+
+    this.georgianTranslatorRequest ??= import('../i18n/georgian-translations')
+      .then((module) => {
+        this.georgianTranslator = module.georgianTranslation;
+        return this.georgianTranslator;
+      });
+    return this.georgianTranslatorRequest;
   }
 
   private async translateOne(
