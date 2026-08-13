@@ -26,7 +26,7 @@ export class LocationService {
     return this.locations$;
   }
 
-  languageForQuery(...values: Array<string | undefined>): Exclude<AppLanguage, 'ru'> {
+  languageForQuery(...values: Array<string | undefined>): AppLanguage {
     for (const value of values) {
       const query = value?.trim() || '';
       if (/[\u10A0-\u10FF]/.test(query)) return 'ka';

@@ -33,7 +33,6 @@ const publicApiCache = new Map();
 const publicApiRequests = new Map();
 const apartmentImageCache = new Map();
 const apartmentImageRequests = new Map();
-const translationCache = new Map();
 const streetGeometryCache = new Map();
 const boundaryGeometryCache = new Map();
 const districtStreetCache = new Map();
@@ -512,64 +511,6 @@ app.get('/media/apartment-image', async (request, response) => {
     response.status(404).sendFile(path.join(browserDirectory, 'property-placeholder.svg'));
   }
 });
-
-app.post(
-  '/translation',
-  express.json({ limit: '32kb' }),
-  async (request, response) => {
-    try {
-      const language = request.body?.language;
-      const text = request.body?.text;
-      if (!['ka', 'ru'].includes(language) || typeof text !== 'string' || !text.trim()) {
-        response.status(400).json({ message: 'Invalid translation request.' });
-        return;
-      }
-      if (text.length > 5000) {
-        response.status(413).json({ message: 'Translation request is too large.' });
-        return;
-      }
-
-      const cacheKey = `${language}:${text}`;
-      const cached = translationCache.get(cacheKey);
-      if (cached) {
-        response.json({ translatedText: cached });
-        return;
-      }
-
-      const params = new URLSearchParams({
-        client: 'gtx',
-        sl: 'en',
-        tl: language,
-        dt: 't',
-        q: text,
-      });
-      const upstream = await fetch(
-        `https://translate.googleapis.com/translate_a/single?${params}`,
-      );
-      if (!upstream.ok) {
-        throw new Error(`Translation service returned HTTP ${upstream.status}.`);
-      }
-
-      const payload = await upstream.json();
-      const translatedText = payload[0]
-        .map((part) => part?.[0] || '')
-        .join('');
-      if (!translatedText) {
-        throw new Error('Translation service returned an empty response.');
-      }
-
-      translationCache.set(cacheKey, translatedText);
-      if (translationCache.size > 1000) {
-        translationCache.delete(translationCache.keys().next().value);
-      }
-      response.setHeader('Cache-Control', 'private, max-age=86400');
-      response.json({ translatedText });
-    } catch (error) {
-      console.error('Translation proxy error:', error);
-      response.status(502).json({ message: 'Translation is temporarily unavailable.' });
-    }
-  },
-);
 
 function pointInsideRing(longitude, latitude, ring) {
   let inside = false;

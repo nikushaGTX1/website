@@ -345,7 +345,7 @@
   display: block;
   margin: 0;
   color: #451a8f;
-  font-size: 12px;
+  font-size: 5px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1875,7 +1875,7 @@
   width: min(740px, 58vw);
 }
 .hero h1 {
-  font-size: clamp(48px, 4.25vw, 66px);
+  font-size: clamp(28px, 4.25vw, 54px);
   line-height: 1.08;
 }
 .eyebrow {
@@ -2344,7 +2344,6 @@
     padding: 42px 16px 28px;
     overflow: hidden;
     border-radius: 0;
-    background: #fff !important;
   }
 
   .hero::before {
@@ -3394,6 +3393,13 @@
   margin-left: auto !important;
 }
 .date-control{position:relative}.date-control>i{position:absolute;z-index:1;top:50%;right:14px;color:#657084;transform:translateY(-50%);pointer-events:none}.search-fields .date-control input{padding-right:38px}.date-control input::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer}.main-budget-trigger>span>i,.main-bedroom-trigger>span>i{width:17px;margin-right:5px;color:#607088}.main-budget-trigger>b,.main-bedroom-trigger>b{font-size:11px}.main-budget-reset,.more-filters-toggle,.ai-home-link,.quick-filters button{gap:8px}
+
+/* Keep the original centered layout; only lift the hero image in its frame. */
+@media (min-width: 651px) {
+  .hero {
+    background-position: center 88%;
+  }
+}
 
 /* Mobile location sheet: one ordinary top-to-bottom scroll. */
 @media (max-width: 650px) {

@@ -1,11 +1,13 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type AppLanguage = 'en' | 'ka' | 'ru';
+export type AppLanguage = 'en' | 'ka';
 
 type TextState = {
   original: string;
   translated?: string;
+  leadingWhitespace?: string;
+  trailingWhitespace?: string;
 };
 
 type GeorgianTranslator = (value: string) => string | undefined;
@@ -53,12 +55,12 @@ export class TranslationService {
   }
 
   label(language: AppLanguage = this.language$.value): string {
-    return language === 'ka' ? 'GE' : language === 'ru' ? 'RU' : 'EN';
+    return language === 'ka' ? 'GE' : 'EN';
   }
 
   private savedLanguage(): AppLanguage {
     const saved = localStorage.getItem('velven-language');
-    return saved === 'ka' || saved === 'ru' ? saved : 'en';
+    return saved === 'ka' ? saved : 'en';
   }
 
   private schedule(): void {
@@ -72,7 +74,7 @@ export class TranslationService {
       const node = walker.currentNode as Text;
       const state = this.textStates.get(node);
       if (state) {
-        node.data = state.original;
+        node.data = `${state.leadingWhitespace ?? ''}${state.original}${state.trailingWhitespace ?? ''}`;
         state.translated = undefined;
       }
     }
@@ -121,17 +123,24 @@ export class TranslationService {
       const current = node.data.trim();
       if (!this.shouldTranslate(current)) continue;
 
+      const leading = node.data.match(/^\s*/)?.[0] ?? '';
+      const trailing = node.data.match(/\s*$/)?.[0] ?? '';
+
       let state = this.textStates.get(node);
       if (!state) {
-        state = { original: current };
+        state = {
+          original: current,
+          leadingWhitespace: leading,
+          trailingWhitespace: trailing,
+        };
         this.textStates.set(node, state);
       } else if (state.translated && current !== state.translated && current !== state.original) {
         state.original = current;
+        state.leadingWhitespace = leading;
+        state.trailingWhitespace = trailing;
         state.translated = undefined;
       }
 
-      const leading = node.data.match(/^\s*/)?.[0] ?? '';
-      const trailing = node.data.match(/\s*$/)?.[0] ?? '';
       targets.push({
         state,
         write: (value) => (node.data = `${leading}${value}${trailing}`),
@@ -174,80 +183,11 @@ export class TranslationService {
   ): Promise<Map<string, string>> {
     const result = new Map<string, string>();
 
-    // Georgian is curated in-repo. Never send Georgian UI copy to the
-    // machine-translation endpoint, and leave unknown content unchanged.
-    if (language === 'ka') {
-      const translate = await this.loadGeorgianTranslator();
-      for (const value of values) {
-        const translated = translate(value);
-        if (translated) result.set(value, translated);
-      }
-      return result;
-    }
-
-    const missing: string[] = [];
-
+    const translate = await this.loadGeorgianTranslator();
     for (const value of values) {
-      const key = `velven-translation:v2:${language}:${value}`;
-      const cached = localStorage.getItem(key);
-      cached ? result.set(value, cached) : missing.push(value);
+      const translated = translate(value);
+      if (translated) result.set(value, translated);
     }
-
-    const delimiter = ' __VELVEN_TRANSLATION_SPLIT__ ';
-    const batches: string[][] = [];
-    let batch: string[] = [];
-    let length = 0;
-    for (const value of missing) {
-      if (length + value.length > 1400 && batch.length) {
-        batches.push(batch);
-        batch = [];
-        length = 0;
-      }
-      batch.push(value);
-      length += value.length + delimiter.length;
-    }
-    if (batch.length) batches.push(batch);
-
-    await Promise.all(
-      batches.map(async (items) => {
-        try {
-          const response = await fetch('/translation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              language,
-              text: items.join(delimiter),
-            }),
-          });
-          if (!response.ok) return;
-          const payload = await response.json();
-          const combined = payload.translatedText as string;
-          let translated = combined.split(delimiter);
-          if (translated.length !== items.length) {
-            translated = await Promise.all(
-              items.map((item) => this.translateOne(item, language)),
-            );
-          }
-
-          items.forEach((original, index) => {
-            const value = translated[index].trim();
-            if (!value) return;
-            result.set(original, value);
-            try {
-              localStorage.setItem(
-                `velven-translation:v2:${language}:${original}`,
-                value,
-              );
-            } catch {
-              // Translation still works when storage is full or unavailable.
-            }
-          });
-        } catch {
-          // Leave the English text in place if the translation service is unavailable.
-        }
-      }),
-    );
-
     return result;
   }
 
@@ -264,21 +204,4 @@ export class TranslationService {
     return this.georgianTranslatorRequest;
   }
 
-  private async translateOne(
-    value: string,
-    language: Exclude<AppLanguage, 'en'>,
-  ): Promise<string> {
-    try {
-      const response = await fetch('/translation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language, text: value }),
-      });
-      if (!response.ok) return '';
-      const payload = await response.json();
-      return payload.translatedText || '';
-    } catch {
-      return '';
-    }
-  }
 }

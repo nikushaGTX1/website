@@ -64,7 +64,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   // Home and search
   ['Verified Homes, Personalized Search.', 'გადამოწმებული სახლები, თქვენზე მორგებული ძიება.'],
   ['Verified homes, ', 'გადამოწმებული სახლები'],
-  ['Smarter search', 'პერსონალიზირებული ძიება'],
+  ['Personalized Search.', 'პერსონალიზირებული ძიება'],
   ['Find a home', 'იპოვეთ სახლი'],
   ['that fits', 'რომელიც შეესაბამება'],
   ['your', 'თქვენს'],
@@ -305,7 +305,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Expert support', 'ექსპერტების მხარდაჭერა'],
   ['We’re here to help', 'ჩვენ მზად ვართ დაგეხმაროთ'],
   ['AI matched for you', 'AI-ის მიერ თქვენთვის შერჩეული'],
-  ['Smarter search, better results', 'უფრო ჭკვიანი ძიება, უკეთესი შედეგები'],
+  ['Personalized  search, better results', 'უფრო ჭკვიანი ძიება, უკეთესი შედეგები'],
   ['Loading apartment details…', 'ბინის დეტალები იტვირთება…'],
   ['Preparing the listing, location, and nearby places.', 'მზადდება განცხადება, მდებარეობა და ახლომდებარე ობიექტები.'],
   ['Apartment details unavailable', 'ბინის დეტალები მიუწვდომელია'],
