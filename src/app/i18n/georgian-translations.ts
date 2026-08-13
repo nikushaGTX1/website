@@ -62,8 +62,8 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['New Listing', 'ახალი განცხადება'],
 
   // Home and search
-  ['Verified homes. Smarter search.', 'გადამოწმებული სახლები. უფრო ჭკვიანი ძიება.'],
-  ['Verified homes', 'გადამოწმებული სახლები'],
+  ['Verified Homes, Personalized Search.', 'გადამოწმებული სახლები, თქვენზე მორგებული ძიება.'],
+  ['Verified homes, ', 'გადამოწმებული სახლები'],
   ['Smarter search', 'პერსონალიზირებული ძიება'],
   ['Find a home', 'იპოვეთ სახლი'],
   ['that fits', 'რომელიც შეესაბამება'],
