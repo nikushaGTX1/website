@@ -1195,9 +1195,9 @@
   background: #fff;
   color: #451a8f;
 }
-.property-badge.exclusive,
-.property-card:first-child .property-badge.exclusive,
-.property-card:nth-child(3) .property-badge.exclusive {
+.property-badge.verified,
+.property-card:first-child .property-badge.verified,
+.property-card:nth-child(3) .property-badge.verified {
   background: linear-gradient(135deg, #451a8f, #7435d3);
   color: #fff;
   box-shadow: 0 8px 18px rgba(69,26,143,.28);

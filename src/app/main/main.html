@@ -295,7 +295,7 @@
       <p class="empty-apartments" *ngIf="!loading && topApartments.length === 0">No published apartments yet.</p>
       <article class="property-card" *ngFor="let apartment of topApartments; let index = index" [routerLink]="['/apartments', apartment.id]">
         <div class="property-image">
-          <span class="property-badge exclusive" *ngIf="isExclusiveListing(apartment)"><i class="fa-regular fa-gem"></i> Exclusive</span>
+          <span class="property-badge verified" *ngIf="isExclusiveListing(apartment)"><i class="fa-solid fa-circle-check"></i> Verified</span>
           <img [src]="getApartmentImage(apartment)" [alt]="getApartmentTitle(apartment)"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'" [attr.fetchpriority]="index === 0 ? 'high' : 'auto'" decoding="async">
           <button type="button" class="favorite" [class.active]="favoriteService.isFavorite(apartment.id)"
