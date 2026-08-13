@@ -94,6 +94,14 @@
   font: 700 20px / 1 Arial Black, Arial;
 }
 
+:host-context(html:lang(ka)) .tab-btn {
+  min-width: 148px;
+  height: 67px;
+  padding-inline: 14px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
 .search-inputs-bar {
   display: grid;
   grid-template-columns: 1.35fr 0.9fr 1.05fr 0.75fr auto;
@@ -1018,6 +1026,12 @@
     flex: 1;
     min-width: 0;
     padding: 0 8px;
+  }
+
+  :host-context(html:lang(ka)) .tab-btn {
+    min-width: 0;
+    height: 58px;
+    font-size: 13px;
   }
   .search-inputs-bar {
     display: flex;

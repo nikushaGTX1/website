@@ -482,6 +482,20 @@
   line-height: 1;
 }
 
+/* Keep the translated deal type and its icon together inside the tab pill. */
+:host-context(html:lang(ka)) .search-tabs button {
+  min-width: 148px;
+  height: 62px;
+  padding-inline: 14px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+:host-context(html:lang(ka)) .search-tabs button > span:last-child {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .search-fields {
   display: grid;
   grid-template-columns: 1.55fr 0.9fr 1fr 0.8fr auto;
@@ -1824,6 +1838,13 @@
   .search-tabs button {
     min-width: 0;
     flex: 1;
+  }
+
+  :host-context(html:lang(ka)) .search-tabs button {
+    min-width: 0;
+    height: 52px;
+    padding-inline: 8px;
+    font-size: 13px;
   }
 
   .search-fields {

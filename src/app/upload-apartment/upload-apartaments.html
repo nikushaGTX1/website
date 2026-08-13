@@ -64,27 +64,35 @@
           type="button"
           [class.active]="index === currentStepIndex"
           [class.completed]="isStepComplete(index)"
+          (click)="openStep(index)"
         >
           <span class="step-dot"><i *ngIf="isStepComplete(index)" class="fa-solid fa-check"></i></span>
           <span>{{ step }}</span>
         </button>
+        <div class="progress-summary">
+          <span>{{ completionPercentage }}% complete</span>
+          <div><i [style.width.%]="completionPercentage"></i></div>
+        </div>
       </div>
 
       <div class="preview-card">
-        <div class="preview-heading"><span>Live preview</span><small>Updates automatically</small></div>
+        <div class="preview-heading"><span>Live preview</span><small><i class="fa-solid fa-bolt"></i> Live</small></div>
         <div class="preview-photo">
           <img *ngIf="primaryImage" [src]="primaryImage" alt="Listing preview" />
           <span *ngIf="!primaryImage" class="camera-icon"></span>
-        </div>
-        <div class="preview-lines">
-          <span></span>
-          <span class="short"></span>
+          <span class="exclusive-preview-badge" *ngIf="isExclusivePlan"><i class="fa-regular fa-gem"></i> Velven signature</span>
+          <span class="photo-counter"><i class="fa-regular fa-images"></i> {{ uploadedImageCount || 0 }} / {{ maxImages }}</span>
         </div>
         <strong>{{ previewTitle }}</strong>
-        <span class="exclusive-preview-badge" *ngIf="isExclusivePlan"><i class="fa-solid fa-gem"></i> Velven Exclusive</span>
-        <small>{{ previewLocation }}</small>
-        <b>{{ previewPrice }}</b>
-        <em *ngIf="uploadedImageCount">{{ uploadedImageCount }} / {{ maxImages }} photos</em>
+        <b>{{ previewPrice }} <small *ngIf="form.dealType === 'For Rent'">/ month</small></b>
+        <div class="preview-facts">
+          <span><i class="fa-solid fa-ruler-combined"></i> {{ form.area || '—' }} m²</span>
+          <span><i class="fa-solid fa-bed"></i> {{ form.bedrooms || '—' }} beds</span>
+          <span><i class="fa-solid fa-bath"></i> {{ form.bathrooms || '—' }} baths</span>
+        </div>
+        <small class="preview-location"><i class="fa-solid fa-location-dot"></i> {{ previewLocation }}, Tbilisi</small>
+        <div class="preview-meta"><span><small>Deal type</small>{{ form.dealType }}</span><span><small>Property type</small>{{ form.realEstateType }}</span><span><small>Condition</small>{{ form.condition }}</span></div>
+        <p class="preview-caption">This preview updates as you build your listing.</p>
       </div>
     </aside>
 
@@ -111,8 +119,8 @@
         </button>
       </div>
 
-      <section class="form-section">
-        <header class="section-header"><span>01</span><div><h2>Property details</h2><p>Choose the options that best describe the property.</p></div></header>
+      <section class="form-section" id="listing-step-0" [class.collapsed]="activeStep !== 0">
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(0)" (keydown.enter)="openStep(0)"><span>01</span><div><h2>Property details</h2><p>Choose the options that best describe the property.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
         <div class="field-group">
           <label class="field-label">Real estate type <span class="req">*</span></label>
           <div class="chip-grid">
@@ -174,8 +182,8 @@
         </div>
       </section>
 
-      <section class="form-section">
-        <header class="section-header"><span>02</span><div><h2>Property location</h2><p>Add an accurate address to help clients find the listing.</p></div></header>
+      <section class="form-section" id="listing-step-1" [class.collapsed]="activeStep !== 1">
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(1)" (keydown.enter)="openStep(1)"><span>02</span><div><h2>Property location</h2><p>Add an accurate address to help clients find the listing.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
         <div class="field-group">
           <label class="field-label">Location <span class="req">*</span></label>
           <div class="input-row location-row">
@@ -220,8 +228,8 @@
         </label>
       </section>
 
-      <section class="form-section">
-        <header class="section-header"><span>03</span><div><h2>Pricing</h2><p>Set a clear price and preferred currency.</p></div></header>
+      <section class="form-section" id="listing-step-2" [class.collapsed]="activeStep !== 2">
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(2)" (keydown.enter)="openStep(2)"><span>03</span><div><h2>Pricing</h2><p>Set a clear price and preferred currency.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
         <div class="field-group">
           <label class="field-label">Price <span class="req">*</span></label>
           <div class="price-table">
@@ -245,41 +253,41 @@
         </div>
       </section>
 
-      <section class="form-section">
-        <header class="section-header"><span>04</span><div><h2>Features &amp; amenities</h2><p>Detailed listings receive more relevant enquiries.</p></div></header>
-        <div class="field-group">
-          <label class="field-label">Features</label>
-          <div class="input-row input-row-3">
-            <input type="number" name="area" placeholder="Area m2" [(ngModel)]="form.area" />
-            <input type="number" name="rooms" placeholder="Rooms" [(ngModel)]="form.rooms" />
-            <input type="number" name="bedrooms" placeholder="Bedrooms" [(ngModel)]="form.bedrooms" />
-            <input type="number" name="bathrooms" placeholder="Bathrooms" [(ngModel)]="form.bathrooms" />
-            <input type="number" name="floor" placeholder="Floor" [(ngModel)]="form.floor" />
-            <input type="number" name="totalFloors" placeholder="Total floors" [(ngModel)]="form.totalFloors" />
+      <section class="form-section" id="listing-step-3" [class.collapsed]="activeStep !== 3">
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(3)" (keydown.enter)="openStep(3)"><span>04</span><div><h2>Features &amp; amenities</h2><p>Detailed listings receive more relevant enquiries.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+        <div class="feature-block">
+          <div class="feature-block-title"><div><span>Property specifications</span><small>The essentials buyers compare first</small></div><i class="fa-solid fa-ruler-combined"></i></div>
+          <div class="metric-grid">
+            <label class="metric-field"><span><i class="fa-solid fa-vector-square"></i> Living area</span><div><input type="number" name="area" min="0" placeholder="0" [(ngModel)]="form.area" /><b>m²</b></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-door-open"></i> Rooms</span><div><input type="number" name="rooms" min="0" placeholder="0" [(ngModel)]="form.rooms" /></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-bed"></i> Bedrooms</span><div><input type="number" name="bedrooms" min="0" placeholder="0" [(ngModel)]="form.bedrooms" /></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-bath"></i> Bathrooms</span><div><input type="number" name="bathrooms" min="0" placeholder="0" [(ngModel)]="form.bathrooms" /></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-stairs"></i> Property floor</span><div><input type="number" name="floor" min="0" placeholder="0" [(ngModel)]="form.floor" /></div></label>
+            <label class="metric-field"><span><i class="fa-regular fa-building"></i> Building floors</span><div><input type="number" name="totalFloors" min="0" placeholder="0" [(ngModel)]="form.totalFloors" /></div></label>
           </div>
         </div>
 
-        <div class="field-group">
-          <label class="field-label">Apartment amenities</label>
-          <div class="chip-grid chip-grid-wide">
+        <div class="feature-block amenities-block">
+          <div class="feature-block-title"><div><span>Amenities</span><small>Select everything included with the property</small></div><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div class="amenity-grid">
             <button
               *ngFor="let option of featureOptions"
               type="button"
-              class="chip"
+              class="amenity-card"
               [class.selected]="form[option.field]"
               [attr.aria-pressed]="form[option.field]"
               (click)="toggle(option.field)"
             >
-              {{ option.label }}
+              <i [class]="option.icon"></i><span>{{ option.label }}</span><b><i class="fa-solid fa-check"></i></b>
             </button>
           </div>
         </div>
 
-        <div class="field-group">
-          <label class="field-label">Lifestyle matching information</label>
-          <div class="input-row input-row-3">
-            <label>
-              Apartment style
+        <div class="lifestyle-panel">
+          <span class="lifestyle-icon"><i class="fa-solid fa-sparkles"></i></span>
+          <div class="lifestyle-copy"><strong>Help us understand the atmosphere</strong><small>This improves how your home appears in lifestyle-based search.</small></div>
+          <label class="style-select">
+              <span>Interior style</span>
               <select name="apartmentStyle" [(ngModel)]="form.apartmentStyle">
                 <option value="Modern">Modern</option>
                 <option value="Luxury">Luxury</option>
@@ -287,16 +295,13 @@
                 <option value="Classic">Classic</option>
                 <option value="Industrial">Industrial</option>
               </select>
-            </label>
-          </div>
-          <p class="image-upload-message">
-            Nearby school, metro, gym, park, kindergarten, and university walking times are calculated automatically by the backend from the address.
-          </p>
+          </label>
         </div>
+        <p class="smart-location-note"><i class="fa-solid fa-location-crosshairs"></i><span><strong>Neighbourhood insights included</strong> Walking times to transit, parks, schools and daily essentials are calculated automatically from the address.</span></p>
       </section>
 
-      <section class="form-section">
-        <header class="section-header"><span>05</span><div><h2>Presentation</h2><p>Add a compelling title, description, and high-quality photos.</p></div></header>
+      <section class="form-section" id="listing-step-4" [class.collapsed]="activeStep !== 4">
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(4)" (keydown.enter)="openStep(4)"><span>05</span><div><h2>Photos &amp; presentation</h2><p>Add a compelling title, description, and high-quality photos.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
         <div class="field-group">
           <label class="field-label">Description / Photos</label>
           <input type="text" name="title" placeholder="Listing title" [(ngModel)]="form.title" />
@@ -336,8 +341,8 @@
         </div>
       </section>
 
-      <section class="form-section">
-        <header class="section-header"><span>06</span><div><h2>Contact information</h2><p>Clients will use these details to contact you about the property.</p></div></header>
+      <section class="form-section" id="listing-step-5" [class.collapsed]="activeStep !== 5">
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(5)" (keydown.enter)="openStep(5)"><span>06</span><div><h2>Owner contact information</h2><p>Clients will use these details to contact you about the property.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
         <div class="field-group">
           <label class="field-label">Contact Information <span class="req">*</span></label>
           <div class="input-row">
@@ -360,10 +365,11 @@
       <p *ngIf="pendingDebug" class="form-debug">{{ pendingDebug }}</p>
 
       <div class="form-actions">
-        <button class="btn-back" type="button" routerLink="/main"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="btn-back" type="button" (click)="saveDraft()"><i class="fa-regular fa-bookmark"></i> {{ draftSaved ? 'Draft saved' : 'Save draft' }}</button>
+        <span class="autosave-note"><i class="fa-regular fa-circle-check"></i> Your progress stays on this device</span>
         <button class="btn-publish" type="submit" [disabled]="loading">
           <i [class]="loading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-paper-plane'"></i>
-          {{ loading ? 'Submitting...' : 'Submit Listing' }}
+          {{ loading ? 'Submitting...' : 'Review & publish' }}
         </button>
       </div>
     </form>

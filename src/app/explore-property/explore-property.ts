@@ -127,6 +127,27 @@ export class ExploreProperty implements OnInit {
     this.locationOpen = false;
   }
 
+  toggleSearchMenu(menu: 'location' | 'propertyType' | 'budget' | 'bedroom'): void {
+    const willOpen = !this.searchMenuOpen(menu);
+    this.locationOpen = false;
+    this.propertyTypeOpen = false;
+    this.budgetOpen = false;
+    this.bedroomOpen = false;
+    if (willOpen) {
+      if (menu === 'location') this.locationOpen = true;
+      if (menu === 'propertyType') this.propertyTypeOpen = true;
+      if (menu === 'budget') this.budgetOpen = true;
+      if (menu === 'bedroom') this.bedroomOpen = true;
+    }
+  }
+
+  private searchMenuOpen(menu: 'location' | 'propertyType' | 'budget' | 'bedroom'): boolean {
+    return menu === 'location' ? this.locationOpen
+      : menu === 'propertyType' ? this.propertyTypeOpen
+      : menu === 'budget' ? this.budgetOpen
+      : this.bedroomOpen;
+  }
+
   selectBudgetRange(range: { label: string; min: number; max: number }): void {
     this.selectedBudgetRange = range.label;
     this.budgetCurrency = 'USD';
@@ -242,10 +263,7 @@ export class ExploreProperty implements OnInit {
   }
 
   openLocationSearch(): void {
-    this.locationOpen = true;
-    this.budgetOpen = false;
-    this.bedroomOpen = false;
-    this.propertyTypeOpen = false;
+    this.toggleSearchMenu('location');
   }
 
   get modalStreetSuggestions(): LocationSuggestion[] {

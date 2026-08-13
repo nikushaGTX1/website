@@ -266,6 +266,29 @@
   display: none;
 }
 
+/* Georgian navigation labels are longer than their English equivalents. */
+:host-context(html:lang(ka)) .navigation {
+  gap: clamp(16px, 1.6vw, 26px);
+}
+
+:host-context(html:lang(ka)) .nav-links {
+  gap: clamp(14px, 1.45vw, 26px);
+}
+
+:host-context(html:lang(ka)) .nav-links a,
+:host-context(html:lang(ka)) .nav-actions a,
+:host-context(html:lang(ka)) .nav-actions button {
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+:host-context(html:lang(ka)) .list-property {
+  max-width: 190px;
+  padding-inline: 16px;
+  text-align: center;
+  white-space: normal;
+}
+
 @media (max-width: 1240px) {
   .navigation {
     gap: 24px;
@@ -362,6 +385,77 @@
   .nav-actions {
     padding-top: 18px;
     border-top: 1px solid #edf0f5;
+  }
+}
+
+/* Switch translated navigation to the roomy menu before labels collide. */
+@media (min-width: 1021px) and (max-width: 1180px) {
+  :host-context(html:lang(ka)) .navigation {
+    min-height: 68px;
+    justify-content: space-between;
+  }
+
+  :host-context(html:lang(ka)) .menu-toggle {
+    width: 42px;
+    height: 42px;
+    padding: 10px;
+    border: 1px solid #e2e7ef;
+    border-radius: 9px;
+    display: flex;
+    flex: 0 0 42px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  :host-context(html:lang(ka)) .menu-toggle span {
+    width: 100%;
+    height: 2px;
+    border-radius: 2px;
+    background: #111827;
+  }
+
+  :host-context(html:lang(ka)) .navigation-content {
+    position: absolute;
+    top: calc(100% + 1px);
+    right: 0;
+    left: 0;
+    padding: 20px 24px 24px;
+    display: none;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 20px;
+    background: #fff;
+    border-bottom: 1px solid #e8edf4;
+    box-shadow: 0 18px 30px rgba(16, 32, 62, 0.1);
+  }
+
+  :host-context(html:lang(ka)) .navigation-content.is-open {
+    display: flex;
+  }
+
+  :host-context(html:lang(ka)) .nav-links {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px 18px;
+  }
+
+  :host-context(html:lang(ka)) .nav-links a {
+    width: 100%;
+    height: auto;
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  :host-context(html:lang(ka)) .nav-actions {
+    padding-top: 18px;
+    border-top: 1px solid #edf0f5;
+  }
+
+  :host-context(html:lang(ka)) .list-property {
+    max-width: none;
   }
 }
 

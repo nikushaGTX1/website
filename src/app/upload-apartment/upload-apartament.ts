@@ -152,18 +152,18 @@ export class UploadApartment implements OnInit, OnDestroy {
     'White Plus',
   ];
 
-  readonly featureOptions: Array<{ label: string; field: BooleanFeature }> = [
-    { label: 'Elevator', field: 'hasElevator' },
-    { label: 'Parking', field: 'hasParking' },
-    { label: 'Balcony', field: 'hasBalcony' },
-    { label: 'Bathtub', field: 'hasBathtub' },
-    { label: 'Air conditioning', field: 'hasAirConditioning' },
-    { label: 'Dishwasher', field: 'hasDishwasher' },
-    { label: 'Pet friendly', field: 'isPetFriendly' },
-    { label: 'Home office space', field: 'hasHomeOfficeSpace' },
-    { label: 'Large kitchen', field: 'hasLargeKitchen' },
-    { label: 'View', field: 'hasView' },
-    { label: 'Furnished', field: 'isFurnished' },
+  readonly featureOptions: Array<{ label: string; field: BooleanFeature; icon: string }> = [
+    { label: 'Elevator', field: 'hasElevator', icon: 'fa-solid fa-elevator' },
+    { label: 'Parking', field: 'hasParking', icon: 'fa-solid fa-square-parking' },
+    { label: 'Balcony', field: 'hasBalcony', icon: 'fa-solid fa-building' },
+    { label: 'Bathtub', field: 'hasBathtub', icon: 'fa-solid fa-bath' },
+    { label: 'Air conditioning', field: 'hasAirConditioning', icon: 'fa-solid fa-snowflake' },
+    { label: 'Dishwasher', field: 'hasDishwasher', icon: 'fa-solid fa-kitchen-set' },
+    { label: 'Pet friendly', field: 'isPetFriendly', icon: 'fa-solid fa-paw' },
+    { label: 'Home office', field: 'hasHomeOfficeSpace', icon: 'fa-solid fa-laptop' },
+    { label: 'Large kitchen', field: 'hasLargeKitchen', icon: 'fa-solid fa-utensils' },
+    { label: 'Scenic view', field: 'hasView', icon: 'fa-solid fa-mountain-sun' },
+    { label: 'Furnished', field: 'isFurnished', icon: 'fa-solid fa-couch' },
   ];
 
   form: UploadForm = {
@@ -207,7 +207,9 @@ export class UploadApartment implements OnInit, OnDestroy {
   };
 
   loading = false;
-  selectedListingPlan: ListingPlan | null = null;
+  selectedListingPlan: ListingPlan | null = 'exclusive';
+  activeStep = 0;
+  draftSaved = false;
   successMessage = '';
   errorMessage = '';
   userMessages: PendingApartment[] = [];
@@ -402,6 +404,31 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.successMessage = '';
     this.errorMessage = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  openStep(index: number): void {
+    this.activeStep = index;
+    requestAnimationFrame(() => {
+      document.getElementById(`listing-step-${index}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
+  }
+
+  get completionPercentage(): number {
+    return Math.round((this.steps.filter((_, index) => this.isStepComplete(index)).length / this.steps.length) * 100);
+  }
+
+  saveDraft(): void {
+    try {
+      const draft = { ...this.form, imageUrl: '', imageUrls: [] };
+      localStorage.setItem('velvenListingDraft', JSON.stringify(draft));
+      this.draftSaved = true;
+      window.setTimeout(() => (this.draftSaved = false), 2200);
+    } catch {
+      this.errorMessage = 'This browser could not save the draft locally.';
+    }
   }
 
   changeListingPlan(): void {

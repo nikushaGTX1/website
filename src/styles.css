@@ -231,3 +231,62 @@ app-root {
     min-height: 44px;
   }
 }
+
+/* Language-aware layout ---------------------------------------------------
+ * Translated copy is often wider than its English source. Keep controls and
+ * grid/flex children shrinkable, and allow action text to use a second line
+ * when the document language needs it. The translation service keeps the
+ * `lang` attribute on <html> in sync with the selected language.
+ */
+html:lang(ka),
+html:lang(ru) {
+  overflow-wrap: anywhere;
+}
+
+html:lang(ka) body {
+  /* System fonts provide reliable Georgian glyph coverage on every screen. */
+  font-family: Arial, "Noto Sans Georgian", "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+html:lang(ka) :is(h1, h2, h3, h4, h5, h6),
+html:lang(ru) :is(h1, h2, h3, h4, h5, h6) {
+  line-height: 1.22;
+  text-wrap: balance;
+}
+
+html:lang(ka) :is(button, a, label, span, strong, small),
+html:lang(ru) :is(button, a, label, span, strong, small) {
+  min-width: 0;
+}
+
+html:lang(ka) :is(button, [role='button']),
+html:lang(ru) :is(button, [role='button']) {
+  height: auto;
+  min-height: 44px;
+  white-space: normal;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+html:lang(ka) :is(input, select, textarea),
+html:lang(ru) :is(input, select, textarea) {
+  min-width: 0;
+}
+
+html:lang(ka) :is(input, textarea)::placeholder,
+html:lang(ru) :is(input, textarea)::placeholder {
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  html:lang(ka) :is(button, [role='button']),
+  html:lang(ru) :is(button, [role='button']) {
+    padding-inline: clamp(10px, 3vw, 18px);
+  }
+
+  html:lang(ka) :is(h1, h2),
+  html:lang(ru) :is(h1, h2) {
+    overflow-wrap: anywhere;
+  }
+}

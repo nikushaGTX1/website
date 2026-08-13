@@ -119,7 +119,7 @@
         <label class="input-group property-type-filter" (click)="$event.stopPropagation()"><span>Property Type</span>
           <button class="property-type-trigger" type="button" [class.is-open]="propertyTypeOpen"
             [attr.aria-expanded]="propertyTypeOpen" aria-haspopup="listbox"
-            (click)="propertyTypeOpen = !propertyTypeOpen; budgetOpen = false; bedroomOpen = false">
+            (click)="toggleSearchMenu('propertyType')">
             <span><span class="layers-svg" aria-hidden="true"></span>{{ homeType || 'Any property type' }}</span>
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
@@ -141,7 +141,7 @@
           <span>Budget</span>
           <button class="budget-trigger" type="button" [class.is-open]="budgetOpen"
             [attr.aria-expanded]="budgetOpen" aria-haspopup="dialog"
-            (click)="$event.stopPropagation(); budgetOpen = !budgetOpen; bedroomOpen = false">
+            (click)="$event.stopPropagation(); toggleSearchMenu('budget')">
             <span><i class="fa-solid fa-wallet"></i> {{ budgetSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div class="budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen"
@@ -179,7 +179,7 @@
         <div class="input-group bedroom-filter"><span>Bedrooms</span>
           <button class="bedroom-trigger" type="button" [class.is-open]="bedroomOpen"
             [attr.aria-expanded]="bedroomOpen" aria-haspopup="dialog"
-            (click)="$event.stopPropagation(); bedroomOpen = !bedroomOpen; budgetOpen = false">
+            (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')">
             <span><i class="fa-solid fa-bed"></i> {{ headerBedroomSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen"
