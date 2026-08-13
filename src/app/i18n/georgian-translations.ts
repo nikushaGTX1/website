@@ -184,7 +184,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Great Views', 'კარგი ხედები'],
   ['Handpicked for you', 'თქვენთვის შერჩეული'],
   ['Featured Properties', 'შემოწმებული საცხოვრებლები'],
-  ['View all properties', 'ყველა ობიექტის ნახვა'],
+  ['View all properties', 'ყველას ნახვა'],
   ['No published apartments yet.', 'გამოქვეყნებული ბინები ჯერ არ არის.'],
   ['Beds', 'საძინებელი'],
   ['Baths', 'სააბაზანო'],
