@@ -30,7 +30,7 @@
 
     <section class="hero-layout">
       <div class="gallery-column">
-        <div class="main-photo">
+        <div class="main-photo" data-protected-image>
           <img [src]="activePhoto" [alt]="title" />
           <button type="button" class="photo-nav previous" (click)="previousPhoto()" *ngIf="photoCount > 1" aria-label="Previous photo">‹</button>
           <button type="button" class="photo-nav next" (click)="nextPhoto()" *ngIf="photoCount > 1" aria-label="Next photo">›</button>
@@ -139,10 +139,10 @@
       <span><i class="fa-solid fa-wand-magic-sparkles"></i><b>AI matched for you</b><small>Smarter search, better results</small></span>
     </section>
 
-    <div class="photo-viewer" *ngIf="photoViewerOpen" (click)="closePhotoViewer()">
+    <div class="photo-viewer" data-protected-image *ngIf="photoViewerOpen" (click)="closePhotoViewer()">
       <button type="button" class="viewer-close" (click)="closePhotoViewer()" aria-label="Close photos">×</button>
       <button type="button" class="viewer-nav previous" (click)="$event.stopPropagation(); previousPhoto()">‹</button>
-      <img [src]="activePhoto" [alt]="title + ' full photo'" (click)="$event.stopPropagation()" />
+      <img data-protected-photo [src]="activePhoto" [alt]="title + ' full photo'" (click)="$event.stopPropagation()" />
       <button type="button" class="viewer-nav next" (click)="$event.stopPropagation(); nextPhoto()">›</button>
       <span>{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
     </div>

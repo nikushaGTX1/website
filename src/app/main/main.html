@@ -294,7 +294,7 @@
       </article>
       <p class="empty-apartments" *ngIf="!loading && topApartments.length === 0">No published apartments yet.</p>
       <article class="property-card" *ngFor="let apartment of topApartments; let index = index" [routerLink]="['/apartments', apartment.id]">
-        <div class="property-image">
+        <div class="property-image" data-protected-image>
           <span class="property-badge verified" *ngIf="isExclusiveListing(apartment)"><i class="fa-solid fa-circle-check"></i> Verified</span>
           <img [src]="getApartmentImage(apartment)" [alt]="getApartmentTitle(apartment)"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'" [attr.fetchpriority]="index === 0 ? 'high' : 'auto'" decoding="async">
@@ -354,7 +354,7 @@
     </div>
     <div class="ai-orb">✦</div>
     <div class="ai-preview">
-      <img [src]="topApartments.length ? getApartmentImage(topApartments[0]) : '/property-placeholder.svg'" alt="Recommended apartment">
+      <img data-protected-photo [src]="topApartments.length ? getApartmentImage(topApartments[0]) : '/property-placeholder.svg'" alt="Recommended apartment">
       <div><small>Best match for you</small><strong>{{ topApartments.length ? getApartmentTitle(topApartments[0]) : 'Your ideal home' }}</strong><span>{{ topApartments.length ? getApartmentAddress(topApartments[0]) : 'Tbilisi, Georgia' }}</span></div>
     </div>
     <ul><li>Near Metro <b>✓</b></li><li>Pet Friendly <b>✓</b></li><li>2–3 Bedrooms <b>✓</b></li><li>Within Budget <b>✓</b></li></ul>

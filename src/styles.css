@@ -73,6 +73,12 @@ img {
   height: auto;
 }
 
+[data-protected-image] img,
+img[data-protected-photo] {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 :focus-visible {
   outline: 3px solid #451a8f;
   outline-offset: 3px;

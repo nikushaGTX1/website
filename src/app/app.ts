@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostListener, OnDestroy, signal } from '@angular/core';
+import { AfterViewInit, Component, HostListener, signal } from '@angular/core';
 import { TranslationService } from './services/translation.service';
 import { SeoService } from './services/seo.service';
 
@@ -8,10 +8,8 @@ import { SeoService } from './services/seo.service';
   standalone: false,
   styleUrl: './app.css'
 })
-export class App implements AfterViewInit, OnDestroy {
+export class App implements AfterViewInit {
   protected readonly title = signal('site');
-  protected screenshotWarningVisible = false;
-  private screenshotWarningTimer?: number;
 
   constructor(
     private translation: TranslationService,
@@ -24,53 +22,20 @@ export class App implements AfterViewInit, OnDestroy {
     this.translation.start();
   }
 
-  ngOnDestroy(): void {
-    window.clearTimeout(this.screenshotWarningTimer);
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  @HostListener('document:keyup', ['$event'])
-  onScreenshotShortcut(event: KeyboardEvent): void {
-    const key = event.key.toLowerCase();
-    const screenshotShortcut =
-      key === 'printscreen' ||
-      ((event.metaKey || event.ctrlKey) && event.shiftKey && key === 's') ||
-      (event.metaKey && event.altKey && key === 's');
-
-    if (!screenshotShortcut) return;
-    event.preventDefault();
-    this.showScreenshotWarning();
-  }
-
-  @HostListener('window:blur')
-  onWindowBlur(): void {
-    this.showScreenshotWarning(false);
-  }
-
-  @HostListener('window:focus')
-  onWindowFocus(): void {
-    this.scheduleScreenshotWarningClose();
-  }
-
-  @HostListener('document:visibilitychange')
-  onVisibilityChange(): void {
-    if (document.hidden) {
-      this.showScreenshotWarning(false);
-    } else {
-      this.scheduleScreenshotWarningClose();
+  @HostListener('document:contextmenu', ['$event'])
+  preventProtectedImageMenu(event: MouseEvent): void {
+    const target = event.target as Element | null;
+    if (target?.closest('[data-protected-image], [data-protected-photo]')) {
+      event.preventDefault();
     }
   }
 
-  private showScreenshotWarning(autoClose = true): void {
-    window.clearTimeout(this.screenshotWarningTimer);
-    this.screenshotWarningVisible = true;
-    if (autoClose) this.scheduleScreenshotWarningClose();
+  @HostListener('document:dragstart', ['$event'])
+  preventProtectedImageDrag(event: DragEvent): void {
+    const target = event.target as Element | null;
+    if (target?.closest('[data-protected-image], [data-protected-photo]')) {
+      event.preventDefault();
+    }
   }
 
-  private scheduleScreenshotWarningClose(): void {
-    window.clearTimeout(this.screenshotWarningTimer);
-    this.screenshotWarningTimer = window.setTimeout(() => {
-      this.screenshotWarningVisible = false;
-    }, 1800);
-  }
 }
