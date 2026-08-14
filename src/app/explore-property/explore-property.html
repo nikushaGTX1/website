@@ -110,7 +110,7 @@
                 </div>
                 <div>
                   <button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button>
-                  <button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply changes</button>
+                  <button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length && !inlineDrawnPolygon" (click)="applyModalLocation()">Apply changes</button>
                 </div>
               </footer>
             </div>
@@ -176,7 +176,7 @@
             </div>
           </div>
         </div>
-        <div class="input-group bedroom-filter"><span>Bedrooms</span>
+        <div class="input-group bedroom-filter"><span>Rooms</span>
           <button class="bedroom-trigger" type="button" [class.is-open]="bedroomOpen"
             [attr.aria-expanded]="bedroomOpen" aria-haspopup="dialog"
             (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')">
@@ -185,12 +185,22 @@
           <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen"
             (click)="$event.stopPropagation()">
             <button class="mobile-popover-close" type="button" aria-label="Close bedroom filter" (click)="bedroomOpen = false"><i class="fa-solid fa-xmark"></i></button>
-            <h3>Bedrooms</h3>
-            <div class="bedroom-options">
-              <button type="button" *ngFor="let option of headerBedroomOptions"
-                [class.active]="headerBedrooms === option.value"
-                (click)="selectHeaderBedrooms(option.value)"><i [class]="option.icon"></i><span>{{ option.label }}</span></button>
-            </div>
+            <ng-container *ngIf="bedroomStep === 'rooms'; else exploreBedroomStep">
+              <h3>Rooms</h3>
+              <div class="bedroom-options">
+                <button type="button" *ngFor="let option of headerRoomOptions"
+                  [class.active]="headerRooms === option.value"
+                  (click)="selectHeaderRooms(option.value)"><i [class]="option.icon"></i><span>{{ option.label }}</span></button>
+              </div>
+            </ng-container>
+            <ng-template #exploreBedroomStep>
+              <h3><button type="button" class="bedroom-step-back" (click)="bedroomStep = 'rooms'">←</button> Bedrooms</h3>
+              <div class="bedroom-options">
+                <button type="button" *ngFor="let option of availableHeaderBedroomOptions"
+                  [class.active]="headerBedrooms === option.value"
+                  (click)="selectHeaderBedrooms(option.value)"><i [class]="option.icon"></i><span>{{ option.label }}</span></button>
+              </div>
+            </ng-template>
             <button class="bedroom-clear" type="button" (click)="clearHeaderBedrooms()">Clear</button>
           </div>
         </div>

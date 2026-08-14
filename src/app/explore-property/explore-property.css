@@ -1259,7 +1259,8 @@
   position: absolute;
   z-index: 30;
   top: calc(100% + 12px);
-  left: 0;
+  right: 0;
+  left: auto;
   border: 1px solid #e2e7ef;
   background: #fff;
 }
@@ -1267,7 +1268,8 @@
   content: '';
   position: absolute;
   top: -8px;
-  left: 46px;
+  right: 46px;
+  left: auto;
   width: 15px;
   height: 15px;
   border-top: 1px solid #e2e7ef;
@@ -2651,4 +2653,13 @@
   .featured-area-grid { grid-template-columns: 1fr; }
   .featured-area-grid button { min-height: 72px; }
   .location-steps small { display: none; }
+}
+.bedroom-step-back {
+  margin-right: 8px;
+  padding: 0;
+  border: 0;
+  color: #451a8f;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
 }

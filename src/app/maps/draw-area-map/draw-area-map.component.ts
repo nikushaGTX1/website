@@ -132,7 +132,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.selectedArea = '';
     this.selectedStreet = '';
     this.streetStep = false;
-    this.draw?.setMode('polygon');
+    this.draw?.setMode('polyline');
     this.polygonChange.emit(null);
     this.clearStreetLines();
     this.map?.setOptions({ styles: null });
@@ -249,7 +249,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.clearStreetLines();
     this.selectedArea = '';
     this.hasPolygon = false;
-    this.draw?.setMode('polygon');
+    this.draw?.setMode('polyline');
     this.polygonChange.emit(null);
     this.map?.setOptions({ styles: null });
   }
@@ -566,7 +566,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         import('terra-draw'),
         import('terra-draw-google-maps-adapter'),
       ]);
-      const { TerraDraw, TerraDrawPolygonMode, TerraDrawSelectMode } = terraDraw;
+      const { TerraDraw, TerraDrawPolygonMode, TerraDrawPolyLineMode, TerraDrawSelectMode } = terraDraw;
       const { TerraDrawGoogleMapsAdapter } = googleAdapter;
       this.map = new Map(mapElement.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
@@ -591,16 +591,48 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           new TerraDrawPolygonMode({
             styles: {
               fillColor: '#451a8f',
-              fillOpacity: 0.18,
+              fillOpacity: 0,
               outlineColor: '#451a8f',
               outlineWidth: 3,
+            },
+          }),
+          new TerraDrawPolyLineMode({
+            validation: (feature, context) => {
+              const distinctPoints = this.distinctPolygonPointCount(feature);
+              return {
+                valid: context.updateType !== 'finish'
+                  || feature.geometry.type !== 'Polygon'
+                  || distinctPoints >= 4,
+                reason: 'Choose at least four points to draw an area.',
+              };
+            },
+            styles: {
+              lineStringColor: '#451a8f',
+              lineStringWidth: 3,
+              polygonFillColor: '#451a8f',
+              polygonFillOpacity: 0,
+              polygonOutlineColor: '#451a8f',
+              polygonOutlineWidth: 3,
               closingPointColor: '#ffffff',
-              closingPointWidth: 7,
+              closingPointWidth: 8,
+              closingPointOutlineColor: '#451a8f',
+              closingPointOutlineWidth: 2,
             },
           }),
           new TerraDrawSelectMode({
+            styles: {
+              selectedPolygonFillOpacity: 0,
+              selectedPolygonOutlineColor: '#451a8f',
+              selectedPolygonOutlineWidth: 3,
+            },
             flags: {
               polygon: {
+                feature: {
+                  draggable: true,
+                  coordinates: { midpoints: true, draggable: true, deletable: true },
+                },
+              },
+              polyline: {
                 feature: {
                   draggable: true,
                   coordinates: { midpoints: true, draggable: true, deletable: true },
@@ -611,11 +643,19 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         ],
       });
       this.draw.start();
-      this.draw.setMode('polygon');
+      this.draw.setMode('polyline');
       this.draw.on('finish', () => {
         const polygons = this.draw?.getSnapshot().filter((feature) => feature.geometry?.type === 'Polygon') || [];
         if (polygons.length > 1) this.draw?.removeFeatures(polygons.slice(0, -1).map((feature) => feature.id));
         const latest = this.draw?.getSnapshot().find((feature) => feature.geometry?.type === 'Polygon');
+        if (latest && this.distinctPolygonPointCount(latest) < 4) {
+          this.draw?.removeFeatures([latest.id]);
+          this.draw?.setMode('polyline');
+          this.hasPolygon = false;
+          this.polygonChange.emit(null);
+          this.cdr.detectChanges();
+          return;
+        }
         this.hasPolygon = !!latest;
         if (latest) this.draw?.selectFeature(latest.id);
         this.polygonChange.emit(this.currentPolygon());
@@ -671,5 +711,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           streetName: this.selectedStreet || undefined,
         }
       : null;
+  }
+
+  private distinctPolygonPointCount(feature: { geometry?: { type?: string; coordinates?: unknown } }): number {
+    if (feature.geometry?.type !== 'Polygon' || !Array.isArray(feature.geometry.coordinates)) return 0;
+    const ring = feature.geometry.coordinates[0];
+    if (!Array.isArray(ring)) return 0;
+    return new Set(
+      ring
+        .filter((point): point is number[] => Array.isArray(point) && point.length >= 2)
+        .map((point) => `${point[0]},${point[1]}`),
+    ).size;
   }
 }

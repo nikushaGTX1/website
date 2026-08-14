@@ -22,8 +22,8 @@
 
     <div class="navigation-content" id="mobile-navigation" [class.is-open]="menuOpen">
       <div class="nav-links">
-        <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'buy' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Buy</a>
-        <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'rent' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Rent</a>
+        <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'buy' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Buy</a>
+        <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Rent</a>
         <a class="ai-link" routerLink="/ai-home-match" routerLinkActive="active" (click)="closeMenu()">
           AI Match <span aria-hidden="true">✦</span>
         </a>

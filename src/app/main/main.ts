@@ -41,6 +41,7 @@ export class Main implements OnInit {
   searchBudget = '';
   budgetOpen = false;
   bedroomOpen = false;
+  bedroomStep: 'rooms' | 'bedrooms' = 'rooms';
   propertyTypeOpen = false;
   budgetCurrency: 'GEL' | 'USD' = 'GEL';
   budgetMin: number | null = 0;
@@ -54,13 +55,17 @@ export class Main implements OnInit {
     { label: '$1,500 – $3,000', min: 1500, max: 3000 },
     { label: '$3,000 – $5,000', min: 3000, max: 5000 },
   ];
+  readonly roomOptions = [1, 2, 3, 4, 5].map((value) => ({
+    label: `${value} ${value === 1 ? 'Room' : 'Rooms'}`,
+    value: String(value),
+    icon: 'fa-solid fa-door-open',
+  }));
   readonly bedroomOptions = [
-    { label: 'Studio', value: '0', icon: 'fa-solid fa-building' },
-    { label: '1 Bed', value: '1', icon: 'fa-solid fa-bed' },
-    { label: '2 Beds', value: '2', icon: 'fa-solid fa-bed' },
-    { label: '3 Beds', value: '3', icon: 'fa-solid fa-bed' },
-    { label: '4 Beds', value: '4', icon: 'fa-solid fa-bed' },
-    { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
+    { label: '1 Bedroom', value: '1', icon: 'fa-solid fa-bed' },
+    { label: '2 Bedrooms', value: '2', icon: 'fa-solid fa-bed' },
+    { label: '3 Bedrooms', value: '3', icon: 'fa-solid fa-bed' },
+    { label: '4 Bedrooms', value: '4', icon: 'fa-solid fa-bed' },
+    { label: '4+ Bedrooms', value: '4+', icon: 'fa-solid fa-layer-group' },
   ];
   readonly propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
   readonly popularLocationAreas = ['Vake', 'Saburtalo', 'Vera', 'Mtatsminda', 'Didi Digomi', 'Digomi'];
@@ -72,6 +77,7 @@ export class Main implements OnInit {
   ];
   readonly allLocationAreas = ['Didube', 'Digomi', 'Didi Digomi', 'Gldani', 'Nadzaladevi', 'Isani', 'Samgori', 'Avlabari', 'Sololaki', 'Chugureti', 'Krtsanisi', 'Vashlijvari'];
   searchBedrooms = '';
+  searchRooms = '';
   public advancedFiltersOpen = false;
   drawAreaOpen = false;
   drawAreaInitialized = false;
@@ -121,7 +127,16 @@ export class Main implements OnInit {
   }
 
   get bedroomSummary(): string {
-    return this.bedroomOptions.find((option) => option.value === this.searchBedrooms)?.label || 'Any';
+    if (!this.searchRooms) return 'Rooms';
+    const rooms = `${this.searchRooms} ${this.searchRooms === '1' ? 'Room' : 'Rooms'}`;
+    if (!this.searchBedrooms) return rooms;
+    const bedrooms = `${this.searchBedrooms} ${this.searchBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
+    return `${rooms}, ${bedrooms}`;
+  }
+
+  get availableBedroomOptions() {
+    const rooms = Number(this.searchRooms || 0);
+    return this.bedroomOptions.filter((option) => Number(option.value.replace('+', '')) <= rooms);
   }
 
   get budgetMinPercent(): number {
@@ -185,13 +200,21 @@ export class Main implements OnInit {
     this.budgetOpen = false;
   }
 
+  selectRooms(value: string): void {
+    this.searchRooms = value;
+    this.searchBedrooms = '';
+    this.bedroomStep = 'bedrooms';
+  }
+
   selectBedrooms(value: string): void {
     this.searchBedrooms = value;
     this.bedroomOpen = false;
   }
 
   clearBedrooms(): void {
+    this.searchRooms = '';
     this.searchBedrooms = '';
+    this.bedroomStep = 'rooms';
     this.bedroomOpen = false;
   }
 
@@ -397,14 +420,18 @@ export class Main implements OnInit {
   }
 
   public applyModalLocation(): void {
-    if (!this.selectedLocationAreas.length) return;
-    this.searchLocation = this.selectedModalStreets.length
-      ? `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
-      : this.selectedLocationAreas.join(', ');
-    this.selectedLocationValue = this.selectedModalStreets.length
-      ? this.selectedModalStreets.join(',')
-      : this.selectedLocationAreas.join(',');
-    if (this.inlineDrawnPolygon && this.selectedLocationAreas.length === 1) {
+    if (!this.selectedLocationAreas.length && !this.inlineDrawnPolygon) return;
+    this.searchLocation = this.selectedLocationAreas.length
+      ? (this.selectedModalStreets.length
+        ? `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
+        : this.selectedLocationAreas.join(', '))
+      : 'Selected map area';
+    this.selectedLocationValue = this.selectedLocationAreas.length
+      ? (this.selectedModalStreets.length
+        ? this.selectedModalStreets.join(',')
+        : this.selectedLocationAreas.join(','))
+      : '';
+    if (this.inlineDrawnPolygon) {
       sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
     } else {
       sessionStorage.removeItem('white-tower-drawn-area');
@@ -617,13 +644,15 @@ export class Main implements OnInit {
     void this.router.navigate(['/ExploreProperty'], {
       queryParams: {
         mode: this.searchMode,
-        location: this.selectedLocationValue || this.searchLocation || null,
+        area: this.inlineDrawnPolygon ? 'drawn' : null,
+        location: this.inlineDrawnPolygon ? null : (this.selectedLocationValue || this.searchLocation || null),
         locationLanguage: this.locationService.languageForQuery(this.searchLocation),
         propertyType: this.searchPropertyType || null,
         budget: this.toUsd(this.appliedBudgetMax),
         budgetMin: this.toUsd(this.appliedBudgetMin),
         budgetCurrency: this.budgetCurrency,
         bedrooms: this.searchBedrooms || null,
+        rooms: this.searchRooms || null,
       },
     });
   }

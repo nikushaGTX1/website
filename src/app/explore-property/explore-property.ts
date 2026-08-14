@@ -31,6 +31,7 @@ export class ExploreProperty implements OnInit {
   priceRange = '';
   budgetOpen = false;
   bedroomOpen = false;
+  bedroomStep: 'rooms' | 'bedrooms' = 'rooms';
   propertyTypeOpen = false;
   budgetCurrency: 'GEL' | 'USD' = 'GEL';
   budgetMin: number | null = 0;
@@ -45,13 +46,17 @@ export class ExploreProperty implements OnInit {
     { label: '$3,000 – $5,000', min: 3000, max: 5000 },
   ];
   readonly headerBedroomOptions = [
-    { label: 'Studio', value: '0', icon: 'fa-solid fa-building' },
-    { label: '1 Bed', value: '1', icon: 'fa-solid fa-bed' },
-    { label: '2 Beds', value: '2', icon: 'fa-solid fa-bed' },
-    { label: '3 Beds', value: '3', icon: 'fa-solid fa-bed' },
-    { label: '4 Beds', value: '4', icon: 'fa-solid fa-bed' },
-    { label: '4+ Beds', value: '4+', icon: 'fa-solid fa-layer-group' },
+    { label: '1 Bedroom', value: '1', icon: 'fa-solid fa-bed' },
+    { label: '2 Bedrooms', value: '2', icon: 'fa-solid fa-bed' },
+    { label: '3 Bedrooms', value: '3', icon: 'fa-solid fa-bed' },
+    { label: '4 Bedrooms', value: '4', icon: 'fa-solid fa-bed' },
+    { label: '4+ Bedrooms', value: '4+', icon: 'fa-solid fa-layer-group' },
   ];
+  readonly headerRoomOptions = [1, 2, 3, 4, 5].map((value) => ({
+    label: `${value} ${value === 1 ? 'Room' : 'Rooms'}`,
+    value: String(value),
+    icon: 'fa-solid fa-door-open',
+  }));
   homeType = '';
   location = '';
   locationOpen = false;
@@ -76,6 +81,7 @@ export class ExploreProperty implements OnInit {
   readonly allLocationAreas = ['Didube', 'Digomi', 'Didi Digomi', 'Gldani', 'Nadzaladevi', 'Isani', 'Samgori', 'Avlabari', 'Sololaki', 'Chugureti', 'Krtsanisi', 'Vashlijvari'];
   locationDisplayLanguage: 'en' | 'ka' = 'ka';
   headerBedrooms = '';
+  headerRooms = '';
   featureFilter = '';
   drawnAreaActive = false;
   drawAreaOpen = false;
@@ -108,7 +114,16 @@ export class ExploreProperty implements OnInit {
   }
 
   get headerBedroomSummary(): string {
-    return this.headerBedroomOptions.find((option) => option.value === this.headerBedrooms)?.label || 'Any';
+    if (!this.headerRooms) return 'Rooms';
+    const rooms = `${this.headerRooms} ${this.headerRooms === '1' ? 'Room' : 'Rooms'}`;
+    if (!this.headerBedrooms) return rooms;
+    const bedrooms = `${this.headerBedrooms} ${this.headerBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
+    return `${rooms}, ${bedrooms}`;
+  }
+
+  get availableHeaderBedroomOptions() {
+    const rooms = Number(this.headerRooms || 0);
+    return this.headerBedroomOptions.filter((option) => Number(option.value.replace('+', '')) <= rooms);
   }
 
   get budgetMinPercent(): number {
@@ -176,6 +191,12 @@ export class ExploreProperty implements OnInit {
     this.onSearch();
   }
 
+  selectHeaderRooms(value: string): void {
+    this.headerRooms = value;
+    this.headerBedrooms = '';
+    this.bedroomStep = 'bedrooms';
+  }
+
   selectHeaderBedrooms(value: string): void {
     this.headerBedrooms = value;
     this.bedroomOpen = false;
@@ -183,7 +204,9 @@ export class ExploreProperty implements OnInit {
   }
 
   clearHeaderBedrooms(): void {
+    this.headerRooms = '';
     this.headerBedrooms = '';
+    this.bedroomStep = 'rooms';
     this.bedroomOpen = false;
     this.onSearch();
   }
@@ -391,21 +414,25 @@ export class ExploreProperty implements OnInit {
   }
 
   applyModalLocation(): void {
-    if (!this.selectedLocationAreas.length) return;
-    this.location = this.selectedModalStreets.length
-      ? `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
-      : this.selectedLocationAreas.join(', ');
-    this.selectedLocationValue = this.selectedModalStreets.length
-      ? this.selectedModalStreets.join(',')
-      : this.selectedLocationAreas.join(',');
-    this.drawnAreaActive = !!this.inlineDrawnPolygon && this.selectedLocationAreas.length === 1;
-    if (this.inlineDrawnPolygon && this.selectedLocationAreas.length === 1) {
+    if (!this.selectedLocationAreas.length && !this.inlineDrawnPolygon) return;
+    this.location = this.selectedLocationAreas.length
+      ? (this.selectedModalStreets.length
+        ? `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
+        : this.selectedLocationAreas.join(', '))
+      : 'Selected map area';
+    this.selectedLocationValue = this.selectedLocationAreas.length
+      ? (this.selectedModalStreets.length
+        ? this.selectedModalStreets.join(',')
+        : this.selectedLocationAreas.join(','))
+      : '';
+    this.drawnAreaActive = !!this.inlineDrawnPolygon;
+    if (this.inlineDrawnPolygon) {
       sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
     } else {
       sessionStorage.removeItem('white-tower-drawn-area');
     }
     this.locationOpen = false;
-    this.onSearch();
+    this.loadApartments();
   }
 
   selectLocation(suggestion: LocationSuggestion): void {
@@ -508,6 +535,7 @@ export class ExploreProperty implements OnInit {
     this.locationDisplayLanguage = params.get('locationLanguage') === 'en' ? 'en' : 'ka';
     this.homeType = params.get('propertyType') || '';
     this.headerBedrooms = params.get('bedrooms') || '';
+    this.headerRooms = params.get('rooms') || '';
     this.featureFilter = params.get('feature') || '';
     this.drawnAreaActive = params.get('area') === 'drawn';
     const budget = Number(params.get('budget'));
@@ -517,6 +545,12 @@ export class ExploreProperty implements OnInit {
     this.favoriteService.loadFavorites().subscribe({
       next: () => this.cdr.detectChanges(),
       error: () => undefined,
+    });
+    this.route.queryParamMap.subscribe((queryParams) => {
+      const nextType = queryParams.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
+      if (nextType === this.selectedType) return;
+      this.selectedType = nextType;
+      this.onSearch();
     });
   }
 
@@ -619,7 +653,9 @@ export class ExploreProperty implements OnInit {
   
   onSearch(): void {
     const query = this.searchQuery.trim().toLowerCase();
-    const loc = (this.selectedLocationValue || this.location).trim().toLowerCase();
+    const loc = this.drawnAreaActive
+      ? ''
+      : (this.selectedLocationValue || this.location).trim().toLowerCase();
     const home = this.homeType.trim().toLowerCase();
 
     this.filteredApartments = this.apartments.filter((apartment) => {
@@ -637,9 +673,11 @@ export class ExploreProperty implements OnInit {
         .toLowerCase();
 
       const matchesQuery = !query || haystack.includes(query);
+      const matchesDealType = this.matchesSelectedDealType(apartment);
       const matchesHome = this.matchesHeaderPropertyType(apartment, home);
       const matchesLocation = this.matchesLocationFilter(apartment, loc);
       const matchesHeaderBedrooms = this.matchesHeaderBedroom(apartment);
+      const matchesHeaderRooms = this.matchesHeaderRoom(apartment);
 
       const matchesHeaderPrice = this.matchesPriceRange(apartment.price);
       const matchesCustomBudget = this.matchesCustomBudget(apartment.price);
@@ -652,9 +690,11 @@ export class ExploreProperty implements OnInit {
 
       return (
         matchesQuery &&
+        matchesDealType &&
         matchesHome &&
         matchesLocation &&
         matchesHeaderBedrooms &&
+        matchesHeaderRooms &&
         matchesHeaderPrice &&
         matchesCustomBudget &&
         matchesSliderPrice &&
@@ -704,6 +744,8 @@ export class ExploreProperty implements OnInit {
     this.selectedLocationValue = '';
     this.selectedLocationArea = '';
     this.headerBedrooms = '';
+    this.headerRooms = '';
+    this.bedroomStep = 'rooms';
 
     this.selectedPriceMax = 3000;
     this.selectedBedrooms = [];
@@ -901,6 +943,24 @@ export class ExploreProperty implements OnInit {
     }
 
     return false;
+  }
+
+  private matchesSelectedDealType(apartment: Apartment): boolean {
+    const text = `${apartment.title || ''} ${apartment.description || ''}`.toLowerCase();
+    const dealMatch = text.match(/deal:\s*([^|\n]+)/i)?.[1]?.trim() || '';
+
+    if (this.selectedType === 'For Sale') {
+      return dealMatch === 'for sale' || (!dealMatch && text.includes('for sale'));
+    }
+
+    return ['for rent', 'daily rent', 'lease'].includes(dealMatch)
+      || (!dealMatch && (text.includes('for rent') || text.includes('daily rent')));
+  }
+
+  private matchesHeaderRoom(apartment: Apartment): boolean {
+    if (!this.headerRooms) return true;
+    const match = (apartment.description || '').match(/Rooms:\s*(\d+)/i);
+    return !!match && Number(match[1]) === Number(this.headerRooms);
   }
 
   private matchesHeaderPropertyType(apartment: Apartment, selectedType: string): boolean {

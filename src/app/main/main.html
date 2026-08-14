@@ -109,7 +109,7 @@
                 </div>
                 <div>
                   <button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button>
-                  <button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length" (click)="applyModalLocation()">Apply changes</button>
+                  <button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length && !inlineDrawnPolygon" (click)="applyModalLocation()">Apply changes</button>
                 </div>
               </footer>
             </div>
@@ -250,12 +250,22 @@
           </button>
           <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen">
             <button class="mobile-popover-close" type="button" aria-label="Close room filter" (click)="bedroomOpen = false"><i class="fa-solid fa-xmark"></i></button>
-            <h3>Rooms</h3>
-            <div class="bedroom-options">
-              <button type="button" *ngFor="let option of bedroomOptions"
-                [class.active]="searchBedrooms === option.value"
-                (click)="selectBedrooms(option.value)"><i [class]="option.icon"></i> {{ option.label }}</button>
-            </div>
+            <ng-container *ngIf="bedroomStep === 'rooms'; else mainBedroomStep">
+              <h3>Rooms</h3>
+              <div class="bedroom-options">
+                <button type="button" *ngFor="let option of roomOptions"
+                  [class.active]="searchRooms === option.value"
+                  (click)="selectRooms(option.value)"><i [class]="option.icon"></i> {{ option.label }}</button>
+              </div>
+            </ng-container>
+            <ng-template #mainBedroomStep>
+              <h3><button type="button" class="bedroom-step-back" (click)="bedroomStep = 'rooms'">←</button> Bedrooms</h3>
+              <div class="bedroom-options">
+                <button type="button" *ngFor="let option of availableBedroomOptions"
+                  [class.active]="searchBedrooms === option.value"
+                  (click)="selectBedrooms(option.value)"><i [class]="option.icon"></i> {{ option.label }}</button>
+              </div>
+            </ng-template>
             <button class="bedroom-clear" type="button" (click)="clearBedrooms()">Clear</button>
           </div>
         </label>
@@ -352,6 +362,7 @@
       <p>Tell us what you’re looking for and our AI will do the hard work. Get personalized matches that feel just right.</p>
       <a routerLink="/ai-home-match">Try AI Match <span>✦</span></a>
     </div>
+    <img class="ai-sportsman" src="/sportsmen.png" alt="" aria-hidden="true">
     <div class="ai-orb">✦</div>
     <div class="ai-preview">
       <img data-protected-photo [src]="topApartments.length ? getApartmentImage(topApartments[0]) : '/property-placeholder.svg'" alt="Recommended apartment">
