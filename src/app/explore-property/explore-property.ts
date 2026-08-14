@@ -437,6 +437,10 @@ export class ExploreProperty implements OnInit {
 
   onDetectedDrawnArea(area: string): void {
     this.drawnDetectedArea = area;
+    if (area) {
+      this.selectedLocationArea = area;
+      this.selectedLocationAreas = [area];
+    }
     this.selectedModalStreetDetails = [];
     this.selectedModalStreets = [];
   }

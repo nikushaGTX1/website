@@ -24,5 +24,13 @@
     "pathRewrite": {
       "^/overpass-api-alt": "/api/interpreter"
     }
+  },
+  "/overpass-api-backup": {
+    "target": "https://overpass.private.coffee",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/overpass-api-backup": "/api/interpreter"
+    }
   }
 }

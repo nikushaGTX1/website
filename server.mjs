@@ -242,7 +242,11 @@ app.get('/overpass-api', async (request, response) => {
   }
   try {
     let upstream;
-    for (const baseUrl of ['https://overpass.kumi.systems', 'https://overpass-api.de']) {
+    for (const baseUrl of [
+      'https://overpass.kumi.systems',
+      'https://overpass.private.coffee',
+      'https://overpass-api.de',
+    ]) {
       try {
         const candidate = await fetch(`${baseUrl}/api/interpreter?data=${encodeURIComponent(query)}`, {
           signal: AbortSignal.timeout(30000),

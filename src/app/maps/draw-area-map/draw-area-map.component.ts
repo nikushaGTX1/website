@@ -80,6 +80,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private streetLines: google.maps.Polyline[] = [];
   private selectionRevision = 0;
   private streetRevision = 0;
+  private preserveDrawnPolygonOnInputChange = false;
   private readonly boundaryCache = DrawAreaMapComponent.sharedBoundaryCache;
   // Stable OSM relation IDs remove the ambiguity and rate limits of free-text
   // geocoding. Each picker button now resolves to exactly one mapped area.
@@ -116,9 +117,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedAreasInput'] && this.draw && this.map) {
+    const preserveDrawnPolygon = this.preserveDrawnPolygonOnInputChange;
+    this.preserveDrawnPolygonOnInputChange = false;
+    if (changes['selectedAreasInput'] && this.draw && this.map && !preserveDrawnPolygon) {
       void this.chooseAreas(this.selectedAreasInput);
-    } else if (changes['selectedAreaInput'] && this.selectedAreaInput && this.draw && this.map) {
+    } else if (changes['selectedAreaInput'] && this.selectedAreaInput && this.draw && this.map && !preserveDrawnPolygon) {
       void this.chooseArea(this.selectedAreaInput);
     }
     if (changes['selectedStreetsInput'] && this.map) void this.drawSelectedStreets();
@@ -742,6 +745,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private async emitDrawnAreaStreets(polygon: GeoJsonPolygon): Promise<void> {
     const districtPromise = this.detectDistrictForPolygon(polygon);
+    void districtPromise.then((district) => {
+      this.preserveDrawnPolygonOnInputChange = !!district;
+      this.detectedAreaChange.emit(district);
+    });
     try {
       const ring = polygon.coordinates[0];
       let streets: Array<{ names: string[]; line: number[][] }>;
@@ -766,8 +773,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     } catch {
       this.drawnStreetsChange.emit([]);
     }
-    const district = await districtPromise;
-    this.detectedAreaChange.emit(district);
   }
 
   private async fetchPolygonStreets(ring: number[][]): Promise<Array<{ names: string[]; line: number[][] }>> {
@@ -794,7 +799,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private async fetchOverpass<T>(query: string): Promise<T> {
     let lastStatus = 0;
-    for (const endpoint of ['/overpass-api', '/overpass-api-alt']) {
+    for (const endpoint of ['/overpass-api', '/overpass-api-backup', '/overpass-api-alt']) {
       try {
         const response = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, {
           signal: AbortSignal.timeout(30000),

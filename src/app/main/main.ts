@@ -439,6 +439,10 @@ export class Main implements OnInit {
 
   public onDetectedDrawnArea(area: string): void {
     this.drawnDetectedArea = area;
+    if (area) {
+      this.selectedLocationArea = area;
+      this.selectedLocationAreas = [area];
+    }
     this.selectedModalStreetDetails = [];
     this.selectedModalStreets = [];
   }
