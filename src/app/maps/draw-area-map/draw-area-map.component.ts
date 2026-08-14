@@ -27,6 +27,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private static readonly sharedBoundaryCache = new Map<string, number[][][][]>();
   private static readonly boundaryRequests = new Map<string, Promise<number[][][][]>>();
   private static readonly sharedStreetCache = new Map<string, number[][][]>();
+  private static readonly previewStreetKeys = new Set<string>();
+  private static readonly drawnAreaRings = new Map<string, number[][]>();
   private static readonly streetRequests = new Map<string, Promise<number[][][]>>();
   private static readonly districtStreetRequests = new Map<string, Promise<void>>();
   private static readonly loadedStreetDistricts = new Set<string>();
@@ -80,6 +82,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private streetLines: google.maps.Polyline[] = [];
   private selectionRevision = 0;
   private streetRevision = 0;
+  private drawnAreaRevision = 0;
   private preserveDrawnPolygonOnInputChange = false;
   private readonly boundaryCache = DrawAreaMapComponent.sharedBoundaryCache;
   // Stable OSM relation IDs remove the ambiguity and rate limits of free-text
@@ -132,6 +135,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   clearArea(): void {
+    this.drawnAreaRevision++;
     this.draw?.clear();
     this.hasPolygon = false;
     this.selectedArea = '';
@@ -196,6 +200,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   async chooseAreas(areas: string[]): Promise<void> {
     if (!this.draw || !this.map) return;
+    this.drawnAreaRevision++;
     const revision = ++this.selectionRevision;
     // Remove the old district immediately. Otherwise it remains visible while
     // the newly selected OSM boundary is being downloaded.
@@ -250,6 +255,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   startDrawing(): void {
+    this.drawnAreaRevision++;
     this.selectionRevision++;
     this.draw?.clear();
     this.clearStreetLines();
@@ -313,7 +319,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const revision = ++this.streetRevision;
     this.clearStreetLines();
     if (!this.selectedStreetsInput.length) return;
-    const bounds = new google.maps.LatLngBounds();
     const paths = (await Promise.all(this.selectedStreetsInput.map(async (selection) => {
       const parts = selection.street.split(/\s+[—–-]\s+/).map((part) => part.trim()).filter(Boolean);
       const district = selection.district;
@@ -326,6 +331,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       return results.find((lines) => lines.length) || [];
     }))).flat();
     if (revision !== this.streetRevision) return;
+    this.clearStreetLines();
+    this.renderStreetPaths(paths, fitToStreets);
+  }
+
+  private renderStreetPaths(paths: number[][][], fitToStreets: boolean): void {
+    if (!this.map) return;
+    const bounds = new google.maps.LatLngBounds();
     for (const path of paths) {
       const googlePath = path.map(([lng, lat]) => ({ lat, lng }));
       googlePath.forEach((point) => bounds.extend(point));
@@ -365,14 +377,20 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private async loadStreetLines(street: string, district: string): Promise<number[][][]> {
     const cacheKey = `${district.toLowerCase()}:${street.toLowerCase()}`;
     const cached = DrawAreaMapComponent.sharedStreetCache.get(cacheKey);
-    if (cached) return cached;
+    if (cached && !DrawAreaMapComponent.previewStreetKeys.has(cacheKey)) return cached;
     const pending = DrawAreaMapComponent.streetRequests.get(cacheKey);
     if (pending) return pending;
     const request = this.fetchStreetLines(street, district)
       .then((lines) => {
         // An overloaded provider may return no ways. Never make that temporary
         // failure permanent for the lifetime of the page.
-        if (lines.length) DrawAreaMapComponent.sharedStreetCache.set(cacheKey, lines);
+        if (lines.length) {
+          DrawAreaMapComponent.sharedStreetCache.set(cacheKey, lines);
+          DrawAreaMapComponent.previewStreetKeys.delete(cacheKey);
+          DrawAreaMapComponent.previewStreetKeys.delete(
+            `${district.toLowerCase()}:${this.normalizeStreetName(street)}`,
+          );
+        }
         return lines;
       })
       .finally(() => DrawAreaMapComponent.streetRequests.delete(cacheKey));
@@ -387,7 +405,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const indexed = DrawAreaMapComponent.sharedStreetCache.get(
       `${district.toLowerCase()}:${this.normalizeStreetName(street)}`,
     );
-    if (indexed?.length) return indexed;
+    const indexedKey = `${district.toLowerCase()}:${this.normalizeStreetName(street)}`;
+    if (indexed?.length && !DrawAreaMapComponent.previewStreetKeys.has(indexedKey)) return indexed;
 
     let lines: number[][][];
     try {
@@ -398,6 +417,27 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       lines = ((await response.json() as { lines?: number[][][] }).lines || []);
     } catch {
       lines = [];
+    }
+    const drawnRing = DrawAreaMapComponent.drawnAreaRings.get(district.toLowerCase());
+    if (!lines.length && drawnRing?.length) {
+      try {
+        const longitudes = drawnRing.map(([longitude]) => longitude);
+        const latitudes = drawnRing.map(([, latitude]) => latitude);
+        const bbox = [Math.min(...latitudes), Math.min(...longitudes), Math.max(...latitudes), Math.max(...longitudes)];
+        const tokens = street.replace(/[.,]/g, ' ').split(/\s+/)
+          .filter((token) => token.length >= 4 && !/^(street|avenue|road|lane)$/i.test(token))
+          .sort((left, right) => right.length - left.length);
+        const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
+        const query = `[out:json][timeout:20];way[highway][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
+        const payload = await this.fetchOverpass<{
+          elements?: Array<{ geometry?: Array<{ lon: number; lat: number }> }>;
+        }>(query);
+        lines = (payload.elements || [])
+          .map((element) => (element.geometry || []).map((point) => [point.lon, point.lat]))
+          .filter((line) => line.length >= 2 && this.lineIntersectsRing(line, drawnRing));
+      } catch {
+        lines = [];
+      }
     }
     const districtPolygons = this.boundaryCache.get(`area:${district.toLowerCase()}`) || [];
     if (districtPolygons.length) {
@@ -751,8 +791,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private async emitDrawnAreaStreets(polygon: GeoJsonPolygon): Promise<void> {
+    const revision = ++this.drawnAreaRevision;
     const districtPromise = this.detectDistrictForPolygon(polygon);
     void districtPromise.then((district) => {
+      if (revision !== this.drawnAreaRevision) return;
       this.preserveDrawnPolygonOnInputChange = !!district;
       this.detectedAreaChange.emit(district);
     });
@@ -767,15 +809,18 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         streets = relationId ? await this.fetchDistrictStreets(relationId) : [];
       }
       const detectedArea = await districtPromise;
+      if (revision !== this.drawnAreaRevision) return;
       if (detectedArea) {
+        DrawAreaMapComponent.drawnAreaRings.set(detectedArea.toLowerCase(), ring);
         for (const street of streets) {
           for (const name of street.names) {
             const lines = [street.line];
-            DrawAreaMapComponent.sharedStreetCache.set(`${detectedArea.toLowerCase()}:${name.toLowerCase()}`, lines);
-            DrawAreaMapComponent.sharedStreetCache.set(
-              `${detectedArea.toLowerCase()}:${this.normalizeStreetName(name)}`,
-              lines,
-            );
+            const rawKey = `${detectedArea.toLowerCase()}:${name.toLowerCase()}`;
+            const normalizedKey = `${detectedArea.toLowerCase()}:${this.normalizeStreetName(name)}`;
+            DrawAreaMapComponent.sharedStreetCache.set(rawKey, lines);
+            DrawAreaMapComponent.sharedStreetCache.set(normalizedKey, lines);
+            DrawAreaMapComponent.previewStreetKeys.add(rawKey);
+            DrawAreaMapComponent.previewStreetKeys.add(normalizedKey);
           }
         }
       }
@@ -791,7 +836,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         .sort((left, right) => left.label.localeCompare(right.label, useGeorgian ? 'ka' : 'en'));
       this.drawnStreetsChange.emit(matches);
       this.cdr.detectChanges();
+      if (detectedArea) {
+        void Promise.all(matches.map((street) =>
+          this.loadStreetLines(street.value, detectedArea).catch(() => []),
+        ));
+      }
     } catch {
+      if (revision !== this.drawnAreaRevision) return;
       this.drawnStreetsChange.emit([]);
       this.cdr.detectChanges();
     }
@@ -850,10 +901,17 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         Math.abs(candidate[0] - point[0]) < 0.00001 && Math.abs(candidate[1] - point[1]) < 0.00001) === index)
       .slice(0, 9);
     const geocoder = new google.maps.Geocoder();
-    const results = await Promise.allSettled(uniqueSamples.map(async ([longitude, latitude]) => ({
-      point: [longitude, latitude],
-      response: await geocoder.geocode({ location: { lat: latitude, lng: longitude } }),
-    })));
+    const results: Array<PromiseSettledResult<{
+      point: number[];
+      response: google.maps.GeocoderResponse;
+    }>> = [];
+    for (let index = 0; index < uniqueSamples.length; index += 3) {
+      const batch = uniqueSamples.slice(index, index + 3);
+      results.push(...await Promise.allSettled(batch.map(async ([longitude, latitude]) => ({
+        point: [longitude, latitude],
+        response: await this.reverseGeocodeWithRetry(geocoder, latitude, longitude),
+      }))));
+    }
     const streets = results.flatMap((result) => {
       if (result.status !== 'fulfilled') return [];
       return result.value.response.results.flatMap((address) => {
@@ -876,6 +934,23 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     });
     return streets.filter((street, index, list) =>
       list.findIndex((candidate) => candidate.names[0].toLowerCase() === street.names[0].toLowerCase()) === index);
+  }
+
+  private async reverseGeocodeWithRetry(
+    geocoder: google.maps.Geocoder,
+    latitude: number,
+    longitude: number,
+  ): Promise<google.maps.GeocoderResponse> {
+    try {
+      return await geocoder.geocode({ location: { lat: latitude, lng: longitude } });
+    } catch (error) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 180));
+      try {
+        return await geocoder.geocode({ location: { lat: latitude, lng: longitude } });
+      } catch {
+        throw error;
+      }
+    }
   }
 
   private async fetchOverpass<T>(query: string): Promise<T> {
@@ -932,6 +1007,24 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       [0, 0],
     ).map((coordinate) => coordinate / uniquePoints.length);
 
+    const areaCenters: Record<string, number[]> = {
+      'Airport Settlement': [44.955, 41.675], Varketili: [44.88, 41.70],
+      Vazisubani: [44.855, 41.705], Samgori: [44.85, 41.69], Lilo: [44.96, 41.735],
+      Navtlughi: [44.835, 41.68], Ortachala: [44.82, 41.675], Isani: [44.83, 41.69],
+      Mukhiani: [44.82, 41.805], Gldani: [44.815, 41.79], Sanzona: [44.79, 41.78],
+      Temqa: [44.805, 41.79], Nadzaladevi: [44.79, 41.77], 'Didi Digomi': [44.70, 41.79],
+      Digomi: [44.735, 41.78], Didube: [44.778, 41.749], Vashlijvari: [44.72, 41.76],
+      Delisi: [44.725, 41.725], Vedzisi: [44.755, 41.735], Nutsubidze: [44.715, 41.73],
+      Saburtalo: [44.75, 41.725], Bagebi: [44.72, 41.70], Tskneti: [44.70, 41.695],
+      Vake: [44.75, 41.71], Vera: [44.785, 41.71], Mtatsminda: [44.79, 41.695],
+      Sololaki: [44.80, 41.69], Marjanishvili: [44.80, 41.715], Chugureti: [44.80, 41.72],
+      Avlabari: [44.815, 41.693], Ponichala: [44.90, 41.63], Krtsanisi: [44.82, 41.67],
+    };
+    const distanceFromCenter = ([longitude, latitude]: number[]) =>
+      (longitude - center[0]) ** 2 + (latitude - center[1]) ** 2;
+    const nearestArea = Object.entries(areaCenters)
+      .sort(([, left], [, right]) => distanceFromCenter(left) - distanceFromCenter(right))[0];
+
     try {
       const result = await new google.maps.Geocoder().geocode({
         location: { lat: center[1], lng: center[0] },
@@ -970,29 +1063,32 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         { area: 'Ponichala', aliases: ['ponichala', 'ფონიჭალა'] },
         { area: 'Krtsanisi', aliases: ['krtsanisi', 'კრწანისი'] },
       ];
-      for (const address of result.results) {
-        const normalizedParts = address.address_components
-          .flatMap((component) => [component.long_name, component.short_name])
-          .map((part) => part.toLowerCase());
-        const detected = areaAliases.find(({ aliases }) => aliases.some((alias) =>
-          normalizedParts.some((part) => part.includes(alias))))?.area;
-        if (detected) return detected;
+      const normalizedParts = result.results
+        .flatMap((address) => address.address_components)
+        .flatMap((component) => [component.long_name, component.short_name])
+        .map((part) => part.toLowerCase());
+      const specificAreaOrder = [
+        'Airport Settlement', 'Varketili', 'Vazisubani', 'Lilo', 'Navtlughi', 'Ortachala',
+        'Mukhiani', 'Sanzona', 'Temqa', 'Vashlijvari', 'Delisi', 'Vedzisi', 'Nutsubidze',
+        'Bagebi', 'Tskneti', 'Marjanishvili', 'Ponichala', 'Didi Digomi',
+      ];
+      const orderedAliases = [
+        ...specificAreaOrder.flatMap((area) => areaAliases.filter((entry) => entry.area === area)),
+        ...areaAliases.filter((entry) => !specificAreaOrder.includes(entry.area)),
+      ];
+      const detected = orderedAliases.find(({ aliases }) => aliases.some((alias) =>
+        normalizedParts.some((part) => part.includes(alias))))?.area;
+      if (detected) {
+        const detectedCenter = areaCenters[detected];
+        const detectedDistance = detectedCenter ? distanceFromCenter(detectedCenter) : Number.POSITIVE_INFINITY;
+        const nearestDistance = nearestArea ? distanceFromCenter(nearestArea[1]) : Number.POSITIVE_INFINITY;
+        // Reject a stale/broad geocoder result when it is kilometres away
+        // from the polygon and another known locality is clearly closer.
+        if (detectedDistance <= 0.0004 || detectedDistance <= nearestDistance * 2.5) return detected;
       }
     } catch {
       // Street lookup uses the polygon directly, so district naming is optional.
     }
-    const districtCenters: Record<string, number[]> = {
-      Vake: [44.75, 41.71], Saburtalo: [44.74, 41.725], Vera: [44.785, 41.71],
-      Mtatsminda: [44.79, 41.695], Didube: [44.778, 41.749], Digomi: [44.735, 41.78],
-      'Didi Digomi': [44.70, 41.79], Gldani: [44.815, 41.79], Nadzaladevi: [44.79, 41.77],
-      Isani: [44.82, 41.69], Samgori: [44.87, 41.70], Avlabari: [44.815, 41.693],
-      Sololaki: [44.80, 41.69], Chugureti: [44.80, 41.72], Krtsanisi: [44.82, 41.67],
-      Vashlijvari: [44.72, 41.76],
-    };
-    return Object.entries(districtCenters).sort(([, left], [, right]) => {
-      const leftDistance = (left[0] - center[0]) ** 2 + (left[1] - center[1]) ** 2;
-      const rightDistance = (right[0] - center[0]) ** 2 + (right[1] - center[1]) ** 2;
-      return leftDistance - rightDistance;
-    })[0]?.[0] || '';
+    return nearestArea?.[0] || '';
   }
 }
