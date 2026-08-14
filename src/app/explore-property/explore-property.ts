@@ -74,6 +74,7 @@ export class ExploreProperty implements OnInit {
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
   drawnStreetSuggestions: Array<{ label: string; value: string }> = [];
   drawnDetectedArea = '';
+  drawnStreetsLoading = false;
   readonly featuredLocationAreas = [
     { name: 'Vake', description: 'Premium central area', icon: 'fa-regular fa-building' },
     { name: 'Saburtalo', description: 'Central & convenient', icon: 'fa-solid fa-city' },
@@ -422,6 +423,7 @@ export class ExploreProperty implements OnInit {
 
   onInlinePolygon(polygon: GeoJsonPolygon | null): void {
     this.inlineDrawnPolygon = polygon;
+    this.drawnStreetsLoading = !!polygon;
     if (!polygon) {
       this.drawnStreetSuggestions = [];
       this.drawnDetectedArea = '';
@@ -430,6 +432,7 @@ export class ExploreProperty implements OnInit {
 
   onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
     this.drawnStreetSuggestions = streets;
+    this.drawnStreetsLoading = false;
   }
 
   onDetectedDrawnArea(area: string): void {

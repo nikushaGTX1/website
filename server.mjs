@@ -234,6 +234,40 @@ app.get('/map-data/district-streets', async (request, response) => {
   }
 });
 
+app.get('/overpass-api', async (request, response) => {
+  const query = typeof request.query.data === 'string' ? request.query.data.trim() : '';
+  if (!query || query.length > 12000) {
+    response.status(400).json({ message: 'A valid OpenStreetMap query is required.' });
+    return;
+  }
+  try {
+    let upstream;
+    for (const baseUrl of ['https://overpass.kumi.systems', 'https://overpass-api.de']) {
+      try {
+        const candidate = await fetch(`${baseUrl}/api/interpreter?data=${encodeURIComponent(query)}`, {
+          signal: AbortSignal.timeout(30000),
+        });
+        if (candidate.ok) {
+          upstream = candidate;
+          break;
+        }
+        upstream = candidate;
+      } catch {
+        // Try the next independent mirror.
+      }
+    }
+    if (!upstream) throw new Error('Every OpenStreetMap mirror failed.');
+    const body = await upstream.text();
+    response.status(upstream.status);
+    response.type(upstream.headers.get('content-type') || 'application/json');
+    response.setHeader('Cache-Control', 'public, max-age=3600');
+    response.send(body);
+  } catch (error) {
+    console.error('OpenStreetMap query proxy error:', error);
+    response.status(502).json({ message: 'OpenStreetMap data is temporarily unavailable.' });
+  }
+});
+
 async function readApprovalRequests() {
   try {
     const requests = JSON.parse(await readFile(approvalDataFile, 'utf8'));

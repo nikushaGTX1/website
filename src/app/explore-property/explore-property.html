@@ -81,7 +81,7 @@
                       <span class="street-row-text">{{ street.label }} <small>{{ street.district }}</small></span>
                     </button>
                     <p *ngIf="!modalStreetSuggestions.length">
-                      {{ inlineDrawnPolygon ? 'No named streets were found inside this drawing.' : 'Choose an area to see its streets.' }}
+                      {{ drawnStreetsLoading ? 'Finding streets inside your drawing...' : (inlineDrawnPolygon ? 'No named streets were found inside this drawing.' : 'Choose an area to see its streets.') }}
                     </p>
                   </div>
                   <button class="show-streets" type="button" *ngIf="modalStreetSuggestions.length"

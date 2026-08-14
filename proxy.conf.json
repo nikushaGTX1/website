@@ -8,5 +8,21 @@
     "target": "https://website-production-ab09.up.railway.app",
     "secure": true,
     "changeOrigin": true
+  },
+  "/overpass-api": {
+    "target": "https://overpass.kumi.systems",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/overpass-api": "/api/interpreter"
+    }
+  },
+  "/overpass-api-alt": {
+    "target": "https://overpass-api.de",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/overpass-api-alt": "/api/interpreter"
+    }
   }
 }

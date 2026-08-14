@@ -39,6 +39,7 @@ export class Main implements OnInit {
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
   drawnStreetSuggestions: Array<{ label: string; value: string }> = [];
   drawnDetectedArea = '';
+  drawnStreetsLoading = false;
   searchPropertyType = '';
   searchBudget = '';
   budgetOpen = false;
@@ -424,6 +425,7 @@ export class Main implements OnInit {
 
   public onInlinePolygon(polygon: GeoJsonPolygon | null): void {
     this.inlineDrawnPolygon = polygon;
+    this.drawnStreetsLoading = !!polygon;
     if (!polygon) {
       this.drawnStreetSuggestions = [];
       this.drawnDetectedArea = '';
@@ -432,6 +434,7 @@ export class Main implements OnInit {
 
   public onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
     this.drawnStreetSuggestions = streets;
+    this.drawnStreetsLoading = false;
   }
 
   public onDetectedDrawnArea(area: string): void {

@@ -450,14 +450,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
     if (!payload?.streets?.length && !payload?.elements?.length) {
       const query = `[out:json][timeout:25];rel(${relationId});map_to_area->.district;way(area.district)[highway][name];out tags geom;`;
-      const response = await fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-        body: new URLSearchParams({ data: query }),
-        signal: AbortSignal.timeout(30000),
-      });
-      if (!response.ok) throw new Error(`OpenStreetMap street service returned ${response.status}`);
-      payload = await response.json();
+      payload = await this.fetchOverpass(query);
     }
 
     if (payload?.streets?.length) return payload.streets;
@@ -748,17 +741,17 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private async emitDrawnAreaStreets(polygon: GeoJsonPolygon): Promise<void> {
-    const district = await this.detectDistrictForPolygon(polygon);
-    const relationId = district ? this.areaRelationIds[district] : undefined;
-    if (!relationId) {
-      this.detectedAreaChange.emit('');
-      this.drawnStreetsChange.emit([]);
-      return;
-    }
-    this.detectedAreaChange.emit(district);
+    const districtPromise = this.detectDistrictForPolygon(polygon);
     try {
-      const streets = await this.fetchDistrictStreets(relationId);
       const ring = polygon.coordinates[0];
+      let streets: Array<{ names: string[]; line: number[][] }>;
+      try {
+        streets = await this.fetchPolygonStreets(ring);
+      } catch {
+        const fallbackDistrict = await districtPromise;
+        const relationId = fallbackDistrict ? this.areaRelationIds[fallbackDistrict] : undefined;
+        streets = relationId ? await this.fetchDistrictStreets(relationId) : [];
+      }
       const useGeorgian = document.documentElement.lang === 'ka';
       const matches = streets
         .filter((street) => this.lineIntersectsRing(street.line, ring))
@@ -773,6 +766,48 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     } catch {
       this.drawnStreetsChange.emit([]);
     }
+    const district = await districtPromise;
+    this.detectedAreaChange.emit(district);
+  }
+
+  private async fetchPolygonStreets(ring: number[][]): Promise<Array<{ names: string[]; line: number[][] }>> {
+    const points = ring.filter((point, index) =>
+      point.length >= 2 && (index !== ring.length - 1 || point[0] !== ring[0][0] || point[1] !== ring[0][1]));
+    if (points.length < 3) return [];
+    const overpassPolygon = points.map(([longitude, latitude]) => `${latitude} ${longitude}`).join(' ');
+    const query = `[out:json][timeout:25];way(poly:"${overpassPolygon}")[highway][name];out tags geom;`;
+    const payload = await this.fetchOverpass(query) as {
+      elements?: Array<{
+        tags?: Record<string, string>;
+        geometry?: Array<{ lon: number; lat: number }>;
+      }>;
+    };
+    return (payload.elements || []).map((element) => ({
+      names: [...new Set([
+        element.tags?.['name'],
+        element.tags?.['name:en'],
+        element.tags?.['name:ka'],
+      ].filter((name): name is string => !!name))],
+      line: (element.geometry || []).map((point) => [point.lon, point.lat]),
+    })).filter((street) => street.names.length > 0 && street.line.length >= 2);
+  }
+
+  private async fetchOverpass<T>(query: string): Promise<T> {
+    let lastStatus = 0;
+    for (const endpoint of ['/overpass-api', '/overpass-api-alt']) {
+      try {
+        const response = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, {
+          signal: AbortSignal.timeout(30000),
+        });
+        lastStatus = response.status;
+        if (response.ok && response.headers.get('content-type')?.includes('json')) {
+          return await response.json() as T;
+        }
+      } catch {
+        // Try the next independent OpenStreetMap mirror.
+      }
+    }
+    throw new Error(`OpenStreetMap street services are unavailable (${lastStatus || 'network error'}).`);
   }
 
   private lineIntersectsRing(line: number[][], ring: number[][]): boolean {
@@ -811,24 +846,19 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       [0, 0],
     ).map((coordinate) => coordinate / uniquePoints.length);
 
-    const candidates = await Promise.all(Object.keys(this.areaRelationIds).map(async (area) => {
-      try {
-        const polygons = await this.loadBoundary(area);
-        const contains = (point: number[]) => polygons.some((districtPolygon) =>
-          districtPolygon[0]?.length && this.pointInRing(point, districtPolygon[0]));
-        const includedPoints = uniquePoints.filter(contains).length;
-        return { area, includedPoints, containsCenter: contains(center) };
-      } catch {
-        return { area, includedPoints: 0, containsCenter: false };
-      }
-    }));
-
-    return candidates
-      .filter((candidate) => candidate.includedPoints > 0 || candidate.containsCenter)
-      .sort((left, right) =>
-        right.includedPoints - left.includedPoints || Number(right.containsCenter) - Number(left.containsCenter))[0]?.area
-      || this.selectedAreaInput
-      || this.selectedAreasInput[0]
-      || '';
+    try {
+      const result = await new google.maps.Geocoder().geocode({
+        location: { lat: center[1], lng: center[0] },
+      });
+      const addressParts = result.results.flatMap((item) =>
+        item.address_components.flatMap((component) => [component.long_name, component.short_name]));
+      const normalizedParts = addressParts.map((part) => part.toLowerCase());
+      const detected = Object.keys(this.areaRelationIds).find((area) =>
+        normalizedParts.some((part) => part.includes(area.toLowerCase())));
+      if (detected) return detected;
+    } catch {
+      // Street lookup uses the polygon directly, so district naming is optional.
+    }
+    return this.selectedAreaInput || this.selectedAreasInput[0] || '';
   }
 }
