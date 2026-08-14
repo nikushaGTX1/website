@@ -936,9 +936,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       const result = await new google.maps.Geocoder().geocode({
         location: { lat: center[1], lng: center[0] },
       });
-      const addressParts = result.results.flatMap((item) =>
-        item.address_components.flatMap((component) => [component.long_name, component.short_name]));
-      const normalizedParts = addressParts.map((part) => part.toLowerCase());
       const areaAliases: Array<{ area: string; aliases: string[] }> = [
         { area: 'Airport Settlement', aliases: ['airport settlement', 'აეროპორტის დასახლება'] },
         { area: 'Varketili', aliases: ['varketili', 'ვარკეთილი'] },
@@ -973,9 +970,14 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         { area: 'Ponichala', aliases: ['ponichala', 'ფონიჭალა'] },
         { area: 'Krtsanisi', aliases: ['krtsanisi', 'კრწანისი'] },
       ];
-      const detected = areaAliases.find(({ aliases }) => aliases.some((alias) =>
-        normalizedParts.some((part) => part.includes(alias))))?.area;
-      if (detected) return detected;
+      for (const address of result.results) {
+        const normalizedParts = address.address_components
+          .flatMap((component) => [component.long_name, component.short_name])
+          .map((part) => part.toLowerCase());
+        const detected = areaAliases.find(({ aliases }) => aliases.some((alias) =>
+          normalizedParts.some((part) => part.includes(alias))))?.area;
+        if (detected) return detected;
+      }
     } catch {
       // Street lookup uses the polygon directly, so district naming is optional.
     }
