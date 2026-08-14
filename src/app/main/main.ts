@@ -37,6 +37,7 @@ export class Main implements OnInit {
   moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
+  drawnStreetSuggestions: Array<{ label: string; value: string }> = [];
   searchPropertyType = '';
   searchBudget = '';
   budgetOpen = false;
@@ -296,6 +297,13 @@ export class Main implements OnInit {
   }
 
   public get modalStreetSuggestions(): LocationSuggestion[] {
+    if (this.inlineDrawnPolygon && this.drawnStreetSuggestions.length) {
+      const query = this.streetSearch.trim().toLowerCase();
+      const streets = this.drawnStreetSuggestions
+        .filter((street) => !query || street.label.toLowerCase().includes(query) || street.value.toLowerCase().includes(query))
+        .map((street) => ({ ...street, type: 'Street' as const, city: 'Tbilisi', district: this.selectedLocationArea }));
+      return this.showAllStreets ? streets : streets.slice(0, 8);
+    }
     if (!this.selectedLocationAreas.length) return [];
     const query = this.streetSearch.trim().toLowerCase();
     const streetGroups = this.selectedLocationAreas.map((selectedArea) =>
@@ -413,6 +421,11 @@ export class Main implements OnInit {
 
   public onInlinePolygon(polygon: GeoJsonPolygon | null): void {
     this.inlineDrawnPolygon = polygon;
+    if (!polygon) this.drawnStreetSuggestions = [];
+  }
+
+  public onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
+    this.drawnStreetSuggestions = streets;
   }
 
   public cancelLocationPicker(): void {

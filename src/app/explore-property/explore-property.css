@@ -2014,7 +2014,8 @@
   font-size: 13px;
   font-weight: 750;
   text-align: center;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
   cursor: pointer;
 }
 .all-area-grid button > i {
@@ -2662,4 +2663,15 @@
   background: transparent;
   font: inherit;
   cursor: pointer;
+}
+
+:host-context(html:lang(ka)) .all-area-grid button:not(.more-areas-trigger) {
+  padding-right: 5px;
+  padding-left: 28px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+:host-context(html:lang(ka)) .all-area-grid button:not(.more-areas-trigger) > i {
+  left: 9px;
 }

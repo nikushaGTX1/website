@@ -72,6 +72,7 @@ export class ExploreProperty implements OnInit {
   moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
+  drawnStreetSuggestions: Array<{ label: string; value: string }> = [];
   readonly featuredLocationAreas = [
     { name: 'Vake', description: 'Premium central area', icon: 'fa-regular fa-building' },
     { name: 'Saburtalo', description: 'Central & convenient', icon: 'fa-solid fa-city' },
@@ -290,6 +291,13 @@ export class ExploreProperty implements OnInit {
   }
 
   get modalStreetSuggestions(): LocationSuggestion[] {
+    if (this.inlineDrawnPolygon && this.drawnStreetSuggestions.length) {
+      const query = this.streetSearch.trim().toLowerCase();
+      const streets = this.drawnStreetSuggestions
+        .filter((street) => !query || street.label.toLowerCase().includes(query) || street.value.toLowerCase().includes(query))
+        .map((street) => ({ ...street, type: 'Street' as const, city: 'Tbilisi', district: this.selectedLocationArea }));
+      return this.showAllStreets ? streets : streets.slice(0, 8);
+    }
     if (!this.selectedLocationAreas.length) return [];
     const query = this.streetSearch.trim().toLowerCase();
     const streetGroups = this.selectedLocationAreas.map((selectedArea) =>
@@ -411,6 +419,11 @@ export class ExploreProperty implements OnInit {
 
   onInlinePolygon(polygon: GeoJsonPolygon | null): void {
     this.inlineDrawnPolygon = polygon;
+    if (!polygon) this.drawnStreetSuggestions = [];
+  }
+
+  onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
+    this.drawnStreetSuggestions = streets;
   }
 
   applyModalLocation(): void {

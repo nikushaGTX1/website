@@ -95,7 +95,8 @@
                     [selectedAreaInput]="selectedLocationArea"
                     [selectedAreasInput]="selectedLocationAreas"
                     [selectedStreetsInput]="selectedModalStreetDetails"
-                    (polygonChange)="onInlinePolygon($event)">
+                    (polygonChange)="onInlinePolygon($event)"
+                    (drawnStreetsChange)="onDrawnStreets($event)">
                   </app-draw-area-map>
                   <div class="area-map-card"><i class="fa-solid fa-city"></i><span><b>{{ selectedLocationArea || 'Tbilisi' }}</b><small>{{ selectedAreaDescription }}</small></span></div>
                 </aside>

@@ -42,6 +42,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   @Output() close = new EventEmitter<void>();
   @Output() apply = new EventEmitter<GeoJsonPolygon>();
   @Output() polygonChange = new EventEmitter<GeoJsonPolygon | null>();
+  @Output() drawnStreetsChange = new EventEmitter<Array<{ label: string; value: string }>>();
 
   loading = true;
   errorMessage = '';
@@ -134,6 +135,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.streetStep = false;
     this.draw?.setMode('polyline');
     this.polygonChange.emit(null);
+    this.drawnStreetsChange.emit([]);
     this.clearStreetLines();
     this.map?.setOptions({ styles: null });
   }
@@ -251,6 +253,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.hasPolygon = false;
     this.draw?.setMode('polyline');
     this.polygonChange.emit(null);
+    this.drawnStreetsChange.emit([]);
     this.map?.setOptions({ styles: null });
   }
 
@@ -659,7 +662,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         }
         this.hasPolygon = !!latest;
         if (latest) this.draw?.selectFeature(latest.id);
-        this.polygonChange.emit(this.currentPolygon());
+        const polygon = this.currentPolygon();
+        this.polygonChange.emit(polygon);
+        if (polygon) void this.emitDrawnAreaStreets(polygon);
         this.cdr.detectChanges();
       });
       this.draw.on('change', () => {
@@ -723,5 +728,31 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         .filter((point): point is number[] => Array.isArray(point) && point.length >= 2)
         .map((point) => `${point[0]},${point[1]}`),
     ).size;
+  }
+
+  private async emitDrawnAreaStreets(polygon: GeoJsonPolygon): Promise<void> {
+    const district = this.selectedAreaInput || this.selectedAreasInput[0];
+    const relationId = district ? this.areaRelationIds[district] : undefined;
+    if (!relationId) {
+      this.drawnStreetsChange.emit([]);
+      return;
+    }
+    try {
+      const streets = await this.fetchDistrictStreets(relationId);
+      const ring = polygon.coordinates[0];
+      const useGeorgian = document.documentElement.lang === 'ka';
+      const matches = streets
+        .filter((street) => street.line.some((point) => this.pointInRing(point, ring)))
+        .map((street) => {
+          const english = street.names.find((name) => /[A-Za-z]/.test(name)) || street.names[0];
+          const georgian = street.names.find((name) => /[\u10A0-\u10FF]/.test(name));
+          return { label: useGeorgian && georgian ? georgian : english, value: english };
+        })
+        .filter((street, index, list) => list.findIndex((item) => item.value === street.value) === index)
+        .sort((left, right) => left.label.localeCompare(right.label, useGeorgian ? 'ka' : 'en'));
+      this.drawnStreetsChange.emit(matches);
+    } catch {
+      this.drawnStreetsChange.emit([]);
+    }
   }
 }
