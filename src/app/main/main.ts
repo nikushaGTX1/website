@@ -38,6 +38,7 @@ export class Main implements OnInit {
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
   drawnStreetSuggestions: Array<{ label: string; value: string }> = [];
+  drawnDetectedArea = '';
   searchPropertyType = '';
   searchBudget = '';
   budgetOpen = false;
@@ -301,7 +302,7 @@ export class Main implements OnInit {
       const query = this.streetSearch.trim().toLowerCase();
       const streets = this.drawnStreetSuggestions
         .filter((street) => !query || street.label.toLowerCase().includes(query) || street.value.toLowerCase().includes(query))
-        .map((street) => ({ ...street, type: 'Street' as const, city: 'Tbilisi', district: this.selectedLocationArea }));
+        .map((street) => ({ ...street, type: 'Street' as const, city: 'Tbilisi', district: this.drawnDetectedArea || this.selectedLocationArea }));
       return this.showAllStreets ? streets : streets.slice(0, 8);
     }
     if (!this.selectedLocationAreas.length) return [];
@@ -340,6 +341,7 @@ export class Main implements OnInit {
   }
 
   public get streetAreaTitle(): string {
+    if (this.inlineDrawnPolygon && this.drawnDetectedArea) return `Streets in ${this.drawnDetectedArea}`;
     if (!this.selectedLocationAreas.length) return 'Streets in selected areas';
     return `Streets in ${this.selectedLocationAreas.join(' + ')}`;
   }
@@ -379,6 +381,7 @@ export class Main implements OnInit {
     this.selectedModalStreets = [];
     this.showAllStreets = false;
     this.inlineDrawnPolygon = null;
+    this.drawnDetectedArea = '';
     this.streetSearch = '';
   }
 
@@ -421,11 +424,20 @@ export class Main implements OnInit {
 
   public onInlinePolygon(polygon: GeoJsonPolygon | null): void {
     this.inlineDrawnPolygon = polygon;
-    if (!polygon) this.drawnStreetSuggestions = [];
+    if (!polygon) {
+      this.drawnStreetSuggestions = [];
+      this.drawnDetectedArea = '';
+    }
   }
 
   public onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
     this.drawnStreetSuggestions = streets;
+  }
+
+  public onDetectedDrawnArea(area: string): void {
+    this.drawnDetectedArea = area;
+    this.selectedModalStreetDetails = [];
+    this.selectedModalStreets = [];
   }
 
   public cancelLocationPicker(): void {
@@ -434,15 +446,18 @@ export class Main implements OnInit {
 
   public applyModalLocation(): void {
     if (!this.selectedLocationAreas.length && !this.inlineDrawnPolygon) return;
-    this.searchLocation = this.selectedLocationAreas.length
+    const effectiveAreas = this.inlineDrawnPolygon && this.drawnDetectedArea
+      ? [this.drawnDetectedArea]
+      : this.selectedLocationAreas;
+    this.searchLocation = effectiveAreas.length
       ? (this.selectedModalStreets.length
-        ? `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
-        : this.selectedLocationAreas.join(', '))
+        ? `${effectiveAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
+        : effectiveAreas.join(', '))
       : 'Selected map area';
-    this.selectedLocationValue = this.selectedLocationAreas.length
+    this.selectedLocationValue = effectiveAreas.length
       ? (this.selectedModalStreets.length
         ? this.selectedModalStreets.join(',')
-        : this.selectedLocationAreas.join(','))
+        : effectiveAreas.join(','))
       : '';
     if (this.inlineDrawnPolygon) {
       sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));

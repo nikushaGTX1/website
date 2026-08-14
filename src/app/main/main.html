@@ -66,7 +66,7 @@
                   </div>
                 </section>
 
-                <section class="street-picker-column" *ngIf="selectedLocationAreas.length > 0">
+                <section class="street-picker-column" *ngIf="selectedLocationAreas.length > 0 || inlineDrawnPolygon">
                   <h3>{{ streetAreaTitle }}</h3>
                   <label class="street-search">
                     <input name="streetSearch" [(ngModel)]="streetSearch" placeholder="Search street...">
@@ -79,7 +79,9 @@
                         [class.fa-circle]="!isStreetSelected(street.label)" aria-hidden="true"></i>
                       <span class="street-row-text">{{ street.label }} <small>{{ street.district }}</small></span>
                     </button>
-                    <p *ngIf="!modalStreetSuggestions.length">Choose an area to see its streets.</p>
+                    <p *ngIf="!modalStreetSuggestions.length">
+                      {{ inlineDrawnPolygon ? 'No named streets were found inside this drawing.' : 'Choose an area to see its streets.' }}
+                    </p>
                   </div>
                   <button class="show-streets" type="button" *ngIf="modalStreetSuggestions.length"
                     [class.expanded]="showAllStreets" [attr.aria-expanded]="showAllStreets"
@@ -96,7 +98,8 @@
                     [selectedAreasInput]="selectedLocationAreas"
                     [selectedStreetsInput]="selectedModalStreetDetails"
                     (polygonChange)="onInlinePolygon($event)"
-                    (drawnStreetsChange)="onDrawnStreets($event)">
+                    (drawnStreetsChange)="onDrawnStreets($event)"
+                    (detectedAreaChange)="onDetectedDrawnArea($event)">
                   </app-draw-area-map>
                   <div class="area-map-card"><i class="fa-solid fa-city"></i><span><b>{{ selectedLocationArea || 'Tbilisi' }}</b><small>{{ selectedAreaDescription }}</small></span></div>
                 </aside>

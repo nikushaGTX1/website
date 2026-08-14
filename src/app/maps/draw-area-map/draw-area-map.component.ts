@@ -43,6 +43,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   @Output() apply = new EventEmitter<GeoJsonPolygon>();
   @Output() polygonChange = new EventEmitter<GeoJsonPolygon | null>();
   @Output() drawnStreetsChange = new EventEmitter<Array<{ label: string; value: string }>>();
+  @Output() detectedAreaChange = new EventEmitter<string>();
 
   loading = true;
   errorMessage = '';
@@ -429,22 +430,38 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private async fetchDistrictStreets(relationId: number): Promise<Array<{ names: string[]; line: number[][] }>> {
-    const response = await fetch(`/map-data/district-streets?relationId=${relationId}`, {
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!response.ok) throw new Error(`District street service returned ${response.status}`);
-    if (!response.headers.get('content-type')?.includes('application/json')) {
-      throw new Error('District street service is unavailable.');
-    }
-    const payload = await response.json() as {
+    let payload: {
       streets?: Array<{ names: string[]; line: number[][] }>;
       elements?: Array<{
         tags?: Record<string, string>;
         geometry?: Array<{ lon: number; lat: number }>;
       }>;
-    };
-    if (payload.streets) return payload.streets;
-    return (payload.elements || []).map((element) => ({
+    } | undefined;
+    try {
+      const response = await fetch(`/map-data/district-streets?relationId=${relationId}`, {
+        signal: AbortSignal.timeout(8000),
+      });
+      if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+        payload = await response.json();
+      }
+    } catch {
+      payload = undefined;
+    }
+
+    if (!payload?.streets?.length && !payload?.elements?.length) {
+      const query = `[out:json][timeout:25];rel(${relationId});map_to_area->.district;way(area.district)[highway][name];out tags geom;`;
+      const response = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: new URLSearchParams({ data: query }),
+        signal: AbortSignal.timeout(30000),
+      });
+      if (!response.ok) throw new Error(`OpenStreetMap street service returned ${response.status}`);
+      payload = await response.json();
+    }
+
+    if (payload?.streets?.length) return payload.streets;
+    return (payload?.elements || []).map((element) => ({
       names: [...new Set([
         element.tags?.['name'],
         element.tags?.['name:en'],
@@ -731,18 +748,20 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private async emitDrawnAreaStreets(polygon: GeoJsonPolygon): Promise<void> {
-    const district = this.selectedAreaInput || this.selectedAreasInput[0];
+    const district = await this.detectDistrictForPolygon(polygon);
     const relationId = district ? this.areaRelationIds[district] : undefined;
     if (!relationId) {
+      this.detectedAreaChange.emit('');
       this.drawnStreetsChange.emit([]);
       return;
     }
+    this.detectedAreaChange.emit(district);
     try {
       const streets = await this.fetchDistrictStreets(relationId);
       const ring = polygon.coordinates[0];
       const useGeorgian = document.documentElement.lang === 'ka';
       const matches = streets
-        .filter((street) => street.line.some((point) => this.pointInRing(point, ring)))
+        .filter((street) => this.lineIntersectsRing(street.line, ring))
         .map((street) => {
           const english = street.names.find((name) => /[A-Za-z]/.test(name)) || street.names[0];
           const georgian = street.names.find((name) => /[\u10A0-\u10FF]/.test(name));
@@ -754,5 +773,62 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     } catch {
       this.drawnStreetsChange.emit([]);
     }
+  }
+
+  private lineIntersectsRing(line: number[][], ring: number[][]): boolean {
+    if (line.some((point) => this.pointInRing(point, ring))) return true;
+    for (let lineIndex = 1; lineIndex < line.length; lineIndex++) {
+      for (let ringIndex = 0; ringIndex < ring.length; ringIndex++) {
+        const nextRingIndex = (ringIndex + 1) % ring.length;
+        if (this.segmentsIntersect(line[lineIndex - 1], line[lineIndex], ring[ringIndex], ring[nextRingIndex])) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private segmentsIntersect(firstStart: number[], firstEnd: number[], secondStart: number[], secondEnd: number[]): boolean {
+    const orientation = (start: number[], end: number[], point: number[]) =>
+      (end[0] - start[0]) * (point[1] - start[1]) - (end[1] - start[1]) * (point[0] - start[0]);
+    const firstSide = orientation(firstStart, firstEnd, secondStart);
+    const secondSide = orientation(firstStart, firstEnd, secondEnd);
+    const thirdSide = orientation(secondStart, secondEnd, firstStart);
+    const fourthSide = orientation(secondStart, secondEnd, firstEnd);
+    return ((firstSide <= 0 && secondSide >= 0) || (firstSide >= 0 && secondSide <= 0))
+      && ((thirdSide <= 0 && fourthSide >= 0) || (thirdSide >= 0 && fourthSide <= 0));
+  }
+
+  private async detectDistrictForPolygon(polygon: GeoJsonPolygon): Promise<string> {
+    const ring = polygon.coordinates[0].filter((point) => point.length >= 2);
+    if (!ring.length) return '';
+
+    const uniquePoints = ring.filter((point, index) =>
+      index !== ring.length - 1 || point[0] !== ring[0][0] || point[1] !== ring[0][1]);
+    const center = uniquePoints.reduce(
+      ([longitude, latitude], [pointLongitude, pointLatitude]) =>
+        [longitude + pointLongitude, latitude + pointLatitude],
+      [0, 0],
+    ).map((coordinate) => coordinate / uniquePoints.length);
+
+    const candidates = await Promise.all(Object.keys(this.areaRelationIds).map(async (area) => {
+      try {
+        const polygons = await this.loadBoundary(area);
+        const contains = (point: number[]) => polygons.some((districtPolygon) =>
+          districtPolygon[0]?.length && this.pointInRing(point, districtPolygon[0]));
+        const includedPoints = uniquePoints.filter(contains).length;
+        return { area, includedPoints, containsCenter: contains(center) };
+      } catch {
+        return { area, includedPoints: 0, containsCenter: false };
+      }
+    }));
+
+    return candidates
+      .filter((candidate) => candidate.includedPoints > 0 || candidate.containsCenter)
+      .sort((left, right) =>
+        right.includedPoints - left.includedPoints || Number(right.containsCenter) - Number(left.containsCenter))[0]?.area
+      || this.selectedAreaInput
+      || this.selectedAreasInput[0]
+      || '';
   }
 }

@@ -1,12 +1,12 @@
 {
   "/api": {
-    "target": "http://127.0.0.1:3000",
-    "secure": false,
+    "target": "https://websiteapi-production-c970.up.railway.app",
+    "secure": true,
     "changeOrigin": true
   },
   "/map-data": {
-    "target": "http://127.0.0.1:3000",
-    "secure": false,
+    "target": "https://website-production-ab09.up.railway.app",
+    "secure": true,
     "changeOrigin": true
   }
 }

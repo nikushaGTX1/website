@@ -104,7 +104,32 @@ export class ApartmentService {
       })
       .pipe(
         map((apartments) => apartments.map((apartment) => this.normalizeImages(apartment))),
+        catchError(() => this.getApartments().pipe(
+          map((apartments) => apartments.filter((apartment) => {
+            const latitude = Number(apartment.latitude);
+            const longitude = Number(apartment.longitude);
+            return Number.isFinite(latitude)
+              && Number.isFinite(longitude)
+              && this.pointInsidePolygon(longitude, latitude, polygon.coordinates);
+          })),
+        )),
       );
+  }
+
+  private pointInsidePolygon(longitude: number, latitude: number, coordinates: number[][][]): boolean {
+    const insideRing = (ring: number[][]): boolean => {
+      let inside = false;
+      for (let current = 0, previous = ring.length - 1; current < ring.length; previous = current++) {
+        const [currentX, currentY] = ring[current];
+        const [previousX, previousY] = ring[previous];
+        const crosses = (currentY > latitude) !== (previousY > latitude)
+          && longitude < ((previousX - currentX) * (latitude - currentY)) / (previousY - currentY) + currentX;
+        if (crosses) inside = !inside;
+      }
+      return inside;
+    };
+    return !!coordinates[0] && insideRing(coordinates[0])
+      && coordinates.slice(1).every((hole) => !insideRing(hole));
   }
 
   createApartment(data: CreateApartment): Observable<ApartmentMutationResponse> {
