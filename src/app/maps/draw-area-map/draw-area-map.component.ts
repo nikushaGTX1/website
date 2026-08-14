@@ -779,6 +779,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const points = ring.filter((point, index) =>
       point.length >= 2 && (index !== ring.length - 1 || point[0] !== ring[0][0] || point[1] !== ring[0][1]));
     if (points.length < 3) return [];
+    const googleStreets = await this.fetchGoogleStreetsInPolygon(points);
+    if (googleStreets.length) return googleStreets;
     const overpassPolygon = points.map(([longitude, latitude]) => `${latitude} ${longitude}`).join(' ');
     const query = `[out:json][timeout:25];way(poly:"${overpassPolygon}")[highway][name];out tags geom;`;
     const payload = await this.fetchOverpass(query) as {
@@ -795,6 +797,47 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       ].filter((name): name is string => !!name))],
       line: (element.geometry || []).map((point) => [point.lon, point.lat]),
     })).filter((street) => street.names.length > 0 && street.line.length >= 2);
+  }
+
+  private async fetchGoogleStreetsInPolygon(ring: number[][]): Promise<Array<{ names: string[]; line: number[][] }>> {
+    const longitudes = ring.map(([longitude]) => longitude);
+    const latitudes = ring.map(([, latitude]) => latitude);
+    const minimumLongitude = Math.min(...longitudes);
+    const maximumLongitude = Math.max(...longitudes);
+    const minimumLatitude = Math.min(...latitudes);
+    const maximumLatitude = Math.max(...latitudes);
+    const samples: number[][] = [...ring];
+
+    for (let row = 1; row <= 4; row++) {
+      for (let column = 1; column <= 4; column++) {
+        const point = [
+          minimumLongitude + (maximumLongitude - minimumLongitude) * column / 5,
+          minimumLatitude + (maximumLatitude - minimumLatitude) * row / 5,
+        ];
+        if (this.pointInRing(point, ring)) samples.push(point);
+      }
+    }
+
+    const uniqueSamples = samples
+      .filter((point, index, list) => list.findIndex((candidate) =>
+        Math.abs(candidate[0] - point[0]) < 0.00001 && Math.abs(candidate[1] - point[1]) < 0.00001) === index)
+      .slice(0, 24);
+    const geocoder = new google.maps.Geocoder();
+    const results = await Promise.allSettled(uniqueSamples.map(async ([longitude, latitude]) => ({
+      point: [longitude, latitude],
+      response: await geocoder.geocode({ location: { lat: latitude, lng: longitude } }),
+    })));
+    const streets = results.flatMap((result) => {
+      if (result.status !== 'fulfilled') return [];
+      const routeNames = result.value.response.results.flatMap((address) =>
+        address.address_components
+          .filter((component) => component.types.includes('route'))
+          .flatMap((component) => [component.long_name, component.short_name])
+          .filter((name) => !!name));
+      return routeNames.map((name) => ({ names: [name], line: [result.value.point, result.value.point] }));
+    });
+    return streets.filter((street, index, list) =>
+      list.findIndex((candidate) => candidate.names[0].toLowerCase() === street.names[0].toLowerCase()) === index);
   }
 
   private async fetchOverpass<T>(query: string): Promise<T> {
