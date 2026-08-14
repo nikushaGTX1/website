@@ -610,7 +610,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
               lineStringColor: '#451a8f',
               lineStringWidth: 3,
               polygonFillColor: '#451a8f',
-              polygonFillOpacity: 0,
+              polygonFillOpacity: 0.16,
               polygonOutlineColor: '#451a8f',
               polygonOutlineWidth: 3,
               closingPointColor: '#ffffff',
@@ -621,7 +621,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           }),
           new TerraDrawSelectMode({
             styles: {
-              selectedPolygonFillOpacity: 0,
+              selectedPolygonColor: '#451a8f',
+              selectedPolygonFillOpacity: 0.16,
               selectedPolygonOutlineColor: '#451a8f',
               selectedPolygonOutlineWidth: 3,
             },
