@@ -759,6 +759,19 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         const relationId = fallbackDistrict ? this.areaRelationIds[fallbackDistrict] : undefined;
         streets = relationId ? await this.fetchDistrictStreets(relationId) : [];
       }
+      const detectedArea = await districtPromise;
+      if (detectedArea) {
+        for (const street of streets) {
+          for (const name of street.names) {
+            const lines = [street.line];
+            DrawAreaMapComponent.sharedStreetCache.set(`${detectedArea.toLowerCase()}:${name.toLowerCase()}`, lines);
+            DrawAreaMapComponent.sharedStreetCache.set(
+              `${detectedArea.toLowerCase()}:${this.normalizeStreetName(name)}`,
+              lines,
+            );
+          }
+        }
+      }
       const useGeorgian = document.documentElement.lang === 'ka';
       const matches = streets
         .filter((street) => this.lineIntersectsRing(street.line, ring))
@@ -770,8 +783,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         .filter((street, index, list) => list.findIndex((item) => item.value === street.value) === index)
         .sort((left, right) => left.label.localeCompare(right.label, useGeorgian ? 'ka' : 'en'));
       this.drawnStreetsChange.emit(matches);
+      this.cdr.detectChanges();
     } catch {
       this.drawnStreetsChange.emit([]);
+      this.cdr.detectChanges();
     }
   }
 
@@ -806,13 +821,18 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const maximumLongitude = Math.max(...longitudes);
     const minimumLatitude = Math.min(...latitudes);
     const maximumLatitude = Math.max(...latitudes);
-    const samples: number[][] = [...ring];
+    const center = [
+      ring.reduce((total, [longitude]) => total + longitude, 0) / ring.length,
+      ring.reduce((total, [, latitude]) => total + latitude, 0) / ring.length,
+    ];
+    const ringStep = Math.max(1, Math.ceil(ring.length / 4));
+    const samples: number[][] = [center, ...ring.filter((_, index) => index % ringStep === 0)];
 
-    for (let row = 1; row <= 4; row++) {
-      for (let column = 1; column <= 4; column++) {
+    for (let row = 1; row <= 2; row++) {
+      for (let column = 1; column <= 2; column++) {
         const point = [
-          minimumLongitude + (maximumLongitude - minimumLongitude) * column / 5,
-          minimumLatitude + (maximumLatitude - minimumLatitude) * row / 5,
+          minimumLongitude + (maximumLongitude - minimumLongitude) * column / 3,
+          minimumLatitude + (maximumLatitude - minimumLatitude) * row / 3,
         ];
         if (this.pointInRing(point, ring)) samples.push(point);
       }
@@ -821,7 +841,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const uniqueSamples = samples
       .filter((point, index, list) => list.findIndex((candidate) =>
         Math.abs(candidate[0] - point[0]) < 0.00001 && Math.abs(candidate[1] - point[1]) < 0.00001) === index)
-      .slice(0, 24);
+      .slice(0, 9);
     const geocoder = new google.maps.Geocoder();
     const results = await Promise.allSettled(uniqueSamples.map(async ([longitude, latitude]) => ({
       point: [longitude, latitude],
@@ -829,12 +849,23 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     })));
     const streets = results.flatMap((result) => {
       if (result.status !== 'fulfilled') return [];
-      const routeNames = result.value.response.results.flatMap((address) =>
-        address.address_components
+      return result.value.response.results.flatMap((address) => {
+        const addressPoint = [address.geometry.location.lng(), address.geometry.location.lat()];
+        if (!this.pointInRing(addressPoint, ring)) return [];
+        return address.address_components
           .filter((component) => component.types.includes('route'))
           .flatMap((component) => [component.long_name, component.short_name])
-          .filter((name) => !!name));
-      return routeNames.map((name) => ({ names: [name], line: [result.value.point, result.value.point] }));
+          .filter((name) => !!name)
+          .map((name) => {
+            const samplePoint = result.value.point;
+            const hasVisibleLength = Math.abs(samplePoint[0] - addressPoint[0]) > 0.00001
+              || Math.abs(samplePoint[1] - addressPoint[1]) > 0.00001;
+            const secondPoint = hasVisibleLength
+              ? samplePoint
+              : [addressPoint[0] + 0.00012, addressPoint[1]];
+            return { names: [name], line: [addressPoint, secondPoint] };
+          });
+      });
     });
     return streets.filter((street, index, list) =>
       list.findIndex((candidate) => candidate.names[0].toLowerCase() === street.names[0].toLowerCase()) === index);
@@ -901,12 +932,58 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       const addressParts = result.results.flatMap((item) =>
         item.address_components.flatMap((component) => [component.long_name, component.short_name]));
       const normalizedParts = addressParts.map((part) => part.toLowerCase());
-      const detected = Object.keys(this.areaRelationIds).find((area) =>
-        normalizedParts.some((part) => part.includes(area.toLowerCase())));
+      const areaAliases: Array<{ area: string; aliases: string[] }> = [
+        { area: 'Airport Settlement', aliases: ['airport settlement', 'აეროპორტის დასახლება'] },
+        { area: 'Varketili', aliases: ['varketili', 'ვარკეთილი'] },
+        { area: 'Vazisubani', aliases: ['vazisubani', 'ვაზისუბანი'] },
+        { area: 'Samgori', aliases: ['samgori', 'სამგორი'] },
+        { area: 'Lilo', aliases: ['lilo', 'ლილო'] },
+        { area: 'Navtlughi', aliases: ['navtlughi', 'ნავთლუღი'] },
+        { area: 'Ortachala', aliases: ['ortachala', 'ორთაჭალა'] },
+        { area: 'Isani', aliases: ['isani', 'ისანი'] },
+        { area: 'Mukhiani', aliases: ['mukhiani', 'მუხიანი'] },
+        { area: 'Gldani', aliases: ['gldani', 'გლდანი'] },
+        { area: 'Sanzona', aliases: ['sanzona', 'სანზონა'] },
+        { area: 'Temqa', aliases: ['temqa', 'თემქა'] },
+        { area: 'Nadzaladevi', aliases: ['nadzaladevi', 'ნაძალადევი'] },
+        { area: 'Didi Digomi', aliases: ['didi digomi', 'great digomi', 'დიდი დიღომი'] },
+        { area: 'Digomi', aliases: ['digomi', 'დიღომი'] },
+        { area: 'Didube', aliases: ['didube', 'დიდუბე'] },
+        { area: 'Vashlijvari', aliases: ['vashlijvari', 'ვაშლიჯვარი'] },
+        { area: 'Delisi', aliases: ['delisi', 'დელისი'] },
+        { area: 'Vedzisi', aliases: ['vedzisi', 'ვეძისი'] },
+        { area: 'Nutsubidze', aliases: ['nutsubidze', 'ნუცუბიძე'] },
+        { area: 'Saburtalo', aliases: ['saburtalo', 'საბურთალო'] },
+        { area: 'Bagebi', aliases: ['bagebi', 'ბაგები'] },
+        { area: 'Tskneti', aliases: ['tskneti', 'წყნეთი'] },
+        { area: 'Vake', aliases: ['vake', 'ვაკე'] },
+        { area: 'Vera', aliases: ['vera', 'ვერა'] },
+        { area: 'Mtatsminda', aliases: ['mtatsminda', 'მთაწმინდა'] },
+        { area: 'Sololaki', aliases: ['sololaki', 'სოლოლაკი'] },
+        { area: 'Marjanishvili', aliases: ['marjanishvili', 'მარჯანიშვილი'] },
+        { area: 'Chugureti', aliases: ['chugureti', 'ჩუღურეთი'] },
+        { area: 'Avlabari', aliases: ['avlabari', 'ავლაბარი'] },
+        { area: 'Ponichala', aliases: ['ponichala', 'ფონიჭალა'] },
+        { area: 'Krtsanisi', aliases: ['krtsanisi', 'კრწანისი'] },
+      ];
+      const detected = areaAliases.find(({ aliases }) => aliases.some((alias) =>
+        normalizedParts.some((part) => part.includes(alias))))?.area;
       if (detected) return detected;
     } catch {
       // Street lookup uses the polygon directly, so district naming is optional.
     }
-    return this.selectedAreaInput || this.selectedAreasInput[0] || '';
+    const districtCenters: Record<string, number[]> = {
+      Vake: [44.75, 41.71], Saburtalo: [44.74, 41.725], Vera: [44.785, 41.71],
+      Mtatsminda: [44.79, 41.695], Didube: [44.778, 41.749], Digomi: [44.735, 41.78],
+      'Didi Digomi': [44.70, 41.79], Gldani: [44.815, 41.79], Nadzaladevi: [44.79, 41.77],
+      Isani: [44.82, 41.69], Samgori: [44.87, 41.70], Avlabari: [44.815, 41.693],
+      Sololaki: [44.80, 41.69], Chugureti: [44.80, 41.72], Krtsanisi: [44.82, 41.67],
+      Vashlijvari: [44.72, 41.76],
+    };
+    return Object.entries(districtCenters).sort(([, left], [, right]) => {
+      const leftDistance = (left[0] - center[0]) ** 2 + (left[1] - center[1]) ** 2;
+      const rightDistance = (right[0] - center[0]) ** 2 + (right[1] - center[1]) ** 2;
+      return leftDistance - rightDistance;
+    })[0]?.[0] || '';
   }
 }

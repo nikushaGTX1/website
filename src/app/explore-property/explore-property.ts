@@ -433,6 +433,7 @@ export class ExploreProperty implements OnInit {
   onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
     this.drawnStreetSuggestions = streets;
     this.drawnStreetsLoading = false;
+    this.cdr.detectChanges();
   }
 
   onDetectedDrawnArea(area: string): void {
@@ -443,6 +444,7 @@ export class ExploreProperty implements OnInit {
     }
     this.selectedModalStreetDetails = [];
     this.selectedModalStreets = [];
+    this.cdr.detectChanges();
   }
 
   applyModalLocation(): void {

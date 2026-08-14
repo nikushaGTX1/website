@@ -435,6 +435,7 @@ export class Main implements OnInit {
   public onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
     this.drawnStreetSuggestions = streets;
     this.drawnStreetsLoading = false;
+    this.cdr.detectChanges();
   }
 
   public onDetectedDrawnArea(area: string): void {
@@ -445,6 +446,7 @@ export class Main implements OnInit {
     }
     this.selectedModalStreetDetails = [];
     this.selectedModalStreets = [];
+    this.cdr.detectChanges();
   }
 
   public cancelLocationPicker(): void {
