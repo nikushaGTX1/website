@@ -587,6 +587,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.map = new Map(mapElement.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
         zoom: 12,
+        minZoom: 9,
+        maxZoom: 20,
+        gestureHandling: 'greedy',
+        scrollwheel: true,
+        zoomControl: true,
+        disableDoubleClickZoom: true,
+        keyboardShortcuts: true,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
