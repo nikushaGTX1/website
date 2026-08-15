@@ -37,6 +37,18 @@ const routes: Routes = [
   { path: 'blog', component: Blog, title: 'Tbilisi Property Blog | Velven' },
   { path: 'upload-apartment', component: UploadApartment, title: 'List Your Property | Velven', canActivate: [authGuard] },
   { path: 'admin', component: AdminPanel, title: 'Dashboard | Velven', canActivate: [authGuard, agentGuard] },
+  {
+    path: 'crm',
+    loadComponent: () => import('./crm/crm-dashboard/crm-dashboard').then((module) => module.CrmDashboard),
+    title: 'Lead Pipeline | Velven',
+    canActivate: [authGuard, agentGuard],
+  },
+  {
+    path: 'crm/leads/:id',
+    loadComponent: () => import('./crm/lead-detail/lead-detail').then((module) => module.CrmLeadDetail),
+    title: 'Lead Details | Velven',
+    canActivate: [authGuard, agentGuard],
+  },
   { path: 'my-profile', component: MyProfile, title: 'My Profile | Velven', canActivate: [authGuard] },
   { path: 'my-listings', component: MyListings, title: 'My Listings | Velven', canActivate: [authGuard] },
   { path: 'saved-listings', component: SavedListings, title: 'Saved Listings | Velven', canActivate: [authGuard] },

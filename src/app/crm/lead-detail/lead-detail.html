@@ -1,0 +1,167 @@
+<main class="lead-page">
+  <div class="page-shell">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a routerLink="/crm"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Lead pipeline</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ lead?.fullName || 'Lead details' }}</span>
+    </nav>
+
+    <section class="loading-state" *ngIf="loading" aria-label="Loading lead">
+      <div class="skeleton hero-skeleton"></div>
+      <div class="skeleton-grid"><div class="skeleton"></div><div class="skeleton"></div></div>
+    </section>
+
+    <section class="error-state" *ngIf="!loading && pageError && !lead">
+      <span><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+      <h1>Lead unavailable</h1>
+      <p>{{ pageError }}</p>
+      <div><a routerLink="/crm">Back to pipeline</a><button type="button" (click)="loadLead()">Try again</button></div>
+    </section>
+
+    <ng-container *ngIf="!loading && lead as currentLead">
+      <p class="page-message success" role="status" *ngIf="successMessage">
+        <i class="fa-regular fa-circle-check" aria-hidden="true"></i>{{ successMessage }}
+      </p>
+      <p class="page-message error" role="alert" *ngIf="pageError">
+        <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ pageError }}
+        <button type="button" (click)="pageError = ''" aria-label="Dismiss error">×</button>
+      </p>
+
+      <header class="lead-hero">
+        <div class="identity-group">
+          <span class="lead-avatar" aria-hidden="true">{{ initials(currentLead.fullName) }}</span>
+          <div>
+            <div class="identity-meta"><span class="source-pill">{{ currentLead.source || 'manual' }}</span><span>Lead #{{ currentLead.id }}</span></div>
+            <h1>{{ currentLead.fullName }}</h1>
+            <p>
+              <span *ngIf="currentLead.phoneNumber"><i class="fa-solid fa-phone" aria-hidden="true"></i>{{ currentLead.phoneNumber }}</span>
+              <span *ngIf="currentLead.email"><i class="fa-regular fa-envelope" aria-hidden="true"></i>{{ currentLead.email }}</span>
+              <span><i class="fa-regular fa-clock" aria-hidden="true"></i>Added {{ formatDate(currentLead.createdAt) }}</span>
+            </p>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a *ngIf="currentLead.phoneNumber" [href]="'tel:' + currentLead.phoneNumber"><i class="fa-solid fa-phone" aria-hidden="true"></i> Call</a>
+          <a *ngIf="currentLead.email" [href]="'mailto:' + currentLead.email"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Email</a>
+          <button type="button" class="primary-button" (click)="beginEditing()"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>Edit details</button>
+        </div>
+      </header>
+
+      <section class="stage-panel" aria-labelledby="stage-heading">
+        <div class="section-heading compact"><div><p>PIPELINE</p><h2 id="stage-heading">Current stage</h2></div><span *ngIf="statusSaving">Saving stage…</span></div>
+        <div class="stage-track">
+          <button
+            type="button"
+            *ngFor="let status of statuses; let index = index"
+            [class.active]="currentLead.status === status"
+            [class.past]="statuses.indexOf(currentLead.status) > index && currentLead.status !== 'lost'"
+            [class.lost]="status === 'lost'"
+            [attr.aria-pressed]="currentLead.status === status"
+            [disabled]="statusSaving"
+            (click)="updateStatus(status)"
+          >
+            <span>{{ index + 1 }}</span><b>{{ statusLabel(status) }}</b>
+          </button>
+        </div>
+      </section>
+
+      <div class="workspace-grid">
+        <div class="main-column">
+          <section class="panel details-panel" aria-labelledby="details-heading">
+            <header class="panel-heading">
+              <div><p>CONTACT &amp; PREFERENCES</p><h2 id="details-heading">Lead profile</h2></div>
+              <button type="button" *ngIf="!editing" (click)="beginEditing()">Edit</button>
+            </header>
+
+            <form *ngIf="editing; else leadSummary" class="lead-form" (ngSubmit)="saveLead()">
+              <label class="wide"><span>Full name *</span><input type="text" name="detailName" [(ngModel)]="leadForm.fullName" autocomplete="name" required /></label>
+              <label><span>Email</span><input type="email" name="detailEmail" [(ngModel)]="leadForm.email" autocomplete="email" /></label>
+              <label><span>Phone number</span><input type="tel" name="detailPhone" [(ngModel)]="leadForm.phoneNumber" autocomplete="tel" /></label>
+              <label><span>Preferred contact</span><select name="detailContact" [(ngModel)]="leadForm.preferredContactMethod"><option value="">Not specified</option><option value="phone">Phone</option><option value="email">Email</option><option value="whatsapp">WhatsApp</option></select></label>
+              <label><span>Source</span><select name="detailSource" [(ngModel)]="leadForm.source"><option value="manual">Manual</option><option value="website">Website</option><option value="phone">Phone</option><option value="referral">Referral</option><option value="ai-match">AI match</option></select></label>
+              <label><span>Budget currency</span><select name="detailCurrency" [(ngModel)]="leadForm.currency"><option value="USD">USD — US dollar</option><option value="GEL">GEL — Georgian lari</option><option value="EUR">EUR — Euro</option></select></label>
+              <label><span>Minimum budget</span><div class="money-input"><span>{{ leadForm.currency || 'USD' }}</span><input type="number" min="0" max="9999999999999999" name="detailBudgetMin" [(ngModel)]="leadForm.budgetMin" /></div></label>
+              <label><span>Maximum budget</span><div class="money-input"><span>{{ leadForm.currency || 'USD' }}</span><input type="number" min="0" max="9999999999999999" name="detailBudgetMax" [(ngModel)]="leadForm.budgetMax" /></div></label>
+              <label><span>Property type</span><input type="text" name="detailPropertyType" [(ngModel)]="leadForm.preferredPropertyType" placeholder="Apartment, house…" /></label>
+              <label><span>Bedrooms</span><input type="number" min="0" name="detailBedrooms" [(ngModel)]="leadForm.bedrooms" /></label>
+              <label class="wide"><span>Preferred districts</span><input type="text" name="detailDistricts" [(ngModel)]="preferredDistrictsText" placeholder="Vake, Saburtalo, Vera" /><small>Separate districts with commas.</small></label>
+              <label class="wide"><span>Needs and preferences</span><textarea rows="4" name="detailPreferences" [(ngModel)]="leadForm.preferences" placeholder="Must-haves, timing, lifestyle or deal notes"></textarea></label>
+              <div class="form-actions wide"><button type="button" class="secondary-button" (click)="cancelEditing()" [disabled]="savingLead">Cancel</button><button type="submit" class="primary-button" [disabled]="savingLead">{{ savingLead ? 'Saving…' : 'Save changes' }}</button></div>
+            </form>
+
+            <ng-template #leadSummary>
+              <div class="profile-grid">
+                <div><span>Email</span><strong>{{ currentLead.email || 'Not provided' }}</strong></div>
+                <div><span>Phone</span><strong>{{ currentLead.phoneNumber || 'Not provided' }}</strong></div>
+                <div><span>Preferred contact</span><strong>{{ currentLead.preferredContactMethod || 'Not specified' }}</strong></div>
+                <div><span>Budget</span><strong><ng-container *ngIf="currentLead.budgetMin !== undefined || currentLead.budgetMax !== undefined; else noBudget"><span *ngIf="currentLead.budgetMin !== undefined">{{ formatMoney(currentLead.budgetMin, currentLead.currency) }}</span><span *ngIf="currentLead.budgetMin !== undefined && currentLead.budgetMax !== undefined"> – </span><span *ngIf="currentLead.budgetMax !== undefined">{{ formatMoney(currentLead.budgetMax, currentLead.currency) }}</span></ng-container><ng-template #noBudget>Not set</ng-template></strong></div>
+                <div><span>Property type</span><strong>{{ currentLead.preferredPropertyType || 'Open' }}</strong></div>
+                <div><span>Bedrooms</span><strong>{{ currentLead.bedrooms !== undefined && currentLead.bedrooms !== null ? currentLead.bedrooms : 'Open' }}</strong></div>
+                <div class="wide"><span>Preferred districts</span><strong>{{ currentLead.preferredDistricts?.length ? currentLead.preferredDistricts?.join(', ') : 'No preferred district yet' }}</strong></div>
+                <div class="wide notes-summary"><span>Needs and preferences</span><p>{{ currentLead.preferences || currentLead.message || 'No preference notes have been added.' }}</p></div>
+              </div>
+            </ng-template>
+
+            <aside class="inquiry-context" *ngIf="currentLead.message || currentLead.requestedViewingAt || currentLead.apartmentId">
+              <div><span><i class="fa-regular fa-envelope" aria-hidden="true"></i></span><div><b>Original website inquiry</b><p *ngIf="currentLead.message">{{ currentLead.message }}</p><small *ngIf="currentLead.requestedViewingAt">Requested viewing: {{ formatDate(currentLead.requestedViewingAt) }}</small></div></div>
+              <a *ngIf="currentLead.apartmentId" [routerLink]="['/apartments', currentLead.apartmentId]">{{ currentLead.apartmentTitle || 'View property' }} <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+            </aside>
+          </section>
+
+          <section class="panel timeline-panel" aria-labelledby="timeline-heading">
+            <header class="panel-heading"><div><p>ACTIVITY</p><h2 id="timeline-heading">Conversation timeline</h2></div><span>{{ activities.length }} update{{ activities.length === 1 ? '' : 's' }}</span></header>
+            <form class="note-composer" (ngSubmit)="addNote()">
+              <span class="mini-avatar" aria-hidden="true">{{ initials(authService.currentUser?.fullName || authService.currentUser?.userName || '') }}</span>
+              <label><span class="sr-only">Add a note</span><textarea name="leadNote" [(ngModel)]="noteBody" rows="3" maxlength="4000" placeholder="Add a call note, customer update, or useful context…"></textarea></label>
+              <button type="submit" [disabled]="noteSaving || !noteBody.trim()"><i class="fa-regular fa-note-sticky" aria-hidden="true"></i>{{ noteSaving ? 'Adding…' : 'Add note' }}</button>
+            </form>
+            <div class="timeline" *ngIf="activities.length; else emptyTimeline">
+              <article *ngFor="let activity of activities; trackBy: identifyActivity">
+                <span class="timeline-icon"><i [class]="activityIcon(activity.type)" aria-hidden="true"></i></span>
+                <div><header><b>{{ activityLabel(activity.type) }}</b><time>{{ formatDate(activity.createdAt) }}</time></header><p>{{ activity.body }}</p><small>{{ activity.createdByName || (activity.type === 'inquiry' ? currentLead.fullName : 'Velven CRM') }}</small></div>
+              </article>
+            </div>
+            <ng-template #emptyTimeline><p class="empty-copy">No activity yet. Add the first note after contacting this lead.</p></ng-template>
+          </section>
+        </div>
+
+        <aside class="side-column">
+          <section class="panel owner-panel" aria-labelledby="owner-heading">
+            <header class="panel-heading"><div><p>OWNERSHIP</p><h2 id="owner-heading">Assigned agent</h2></div></header>
+            <div class="owner-card"><span class="mini-avatar">{{ initials(currentLead.assignedAgentName || 'U') }}</span><div><b>{{ currentLead.assignedAgentName || 'Unassigned' }}</b><small>{{ currentLead.assignedAgentName ? 'Lead owner' : 'Admin action needed' }}</small></div></div>
+            <label *ngIf="isAdmin" class="assignment-control"><span>Change assignment</span><select [(ngModel)]="selectedAgentId" name="assignedAgent"><option value="">Unassigned</option><option *ngFor="let agent of agents" [value]="agentId(agent)">{{ agentName(agent) }}</option></select></label>
+            <button type="button" class="assignment-button" *ngIf="isAdmin" (click)="assignLead()" [disabled]="assignmentSaving || selectedAgentId === (currentLead.assignedAgentId || '')">{{ assignmentSaving ? 'Assigning…' : 'Save assignment' }}</button>
+            <p class="permission-note" *ngIf="!isAdmin"><i class="fa-solid fa-lock" aria-hidden="true"></i>Only an administrator can reassign this lead.</p>
+          </section>
+
+          <section class="panel tasks-panel" aria-labelledby="tasks-heading">
+            <header class="panel-heading"><div><p>NEXT ACTIONS</p><h2 id="tasks-heading">Tasks &amp; viewings</h2></div><span class="task-count">{{ openTasks.length }}</span></header>
+            <div class="task-list" *ngIf="openTasks.length; else emptyTasks">
+              <article *ngFor="let task of openTasks; trackBy: identifyTask" [class.overdue]="isOverdue(task)">
+                <button type="button" class="task-check" (click)="toggleTask(task)" [disabled]="taskActionId === task.id" [attr.aria-label]="'Complete task ' + task.title"><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                <div><header><span>{{ taskTypeLabel(task.type) }}</span><small *ngIf="isOverdue(task)">Overdue</small></header><b>{{ task.title }}</b><p *ngIf="task.description">{{ task.description }}</p><time><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ formatDate(task.dueAt) }}</time></div>
+              </article>
+            </div>
+            <ng-template #emptyTasks><p class="empty-copy">No open tasks. Add the next follow-up below.</p></ng-template>
+
+            <form class="task-form" (ngSubmit)="createTask()">
+              <h3>Add next action</h3>
+              <label><span>Type</span><select name="taskType" [(ngModel)]="taskForm.type"><option *ngFor="let type of taskTypes" [value]="type">{{ taskTypeLabel(type) }}</option></select></label>
+              <label><span>Title *</span><input type="text" name="taskTitle" [(ngModel)]="taskForm.title" placeholder="Call about viewing availability" required /></label>
+              <label><span>Due date *</span><input type="datetime-local" name="taskDueAt" [(ngModel)]="taskForm.dueAt" required /></label>
+              <label><span>Details</span><textarea rows="2" name="taskDescription" [(ngModel)]="taskForm.description" placeholder="Optional context"></textarea></label>
+              <button type="submit" [disabled]="taskSaving">{{ taskSaving ? 'Adding…' : 'Add task' }}</button>
+            </form>
+
+            <details class="completed-tasks" *ngIf="completedTasks.length"><summary>{{ completedTasks.length }} completed</summary><article *ngFor="let task of completedTasks; trackBy: identifyTask"><button type="button" (click)="toggleTask(task)" [disabled]="taskActionId === task.id" aria-label="Reopen task"><i class="fa-solid fa-check" aria-hidden="true"></i></button><div><s>{{ task.title }}</s><small>{{ formatDate(task.completedAt) }}</small></div></article></details>
+          </section>
+
+          <section class="panel privacy-panel">
+            <span [class.confirmed]="currentLead.consentGiven"><i [class]="currentLead.consentGiven ? 'fa-solid fa-shield-halved' : 'fa-solid fa-circle-exclamation'" aria-hidden="true"></i></span>
+            <div><b>{{ currentLead.consentGiven ? 'Contact consent recorded' : 'Consent not recorded' }}</b><p>{{ currentLead.consentGiven ? ('Recorded ' + formatDate(currentLead.consentGivenAt)) : 'Confirm permission before sending marketing messages.' }}</p></div>
+          </section>
+        </aside>
+      </div>
+    </ng-container>
+  </div>
+</main>

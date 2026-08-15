@@ -20,12 +20,22 @@ interface MenuItem {
 export class ProfileBurgerMenu implements OnInit, OnDestroy {
   isOpen = false;
   user: User | null = null;
+  canOpenCrm = false;
 
-  menuItems: MenuItem[] = [
+  readonly accountMenuItems: MenuItem[] = [
     { label: 'My Profile', route: '/my-profile', icon: 'fa-regular fa-user' },
     { label: 'My listings', route: '/my-listings', icon: 'fa-solid fa-list' },
     { label: 'Saved listings', route: '/saved-listings', icon: 'fa-regular fa-heart' },
   ];
+
+  get menuItems(): MenuItem[] {
+    return this.canOpenCrm
+      ? [
+          { label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-address-book' },
+          ...this.accountMenuItems,
+        ]
+      : this.accountMenuItems;
+  }
 
   private subscription?: Subscription;
 
@@ -38,6 +48,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = this.authService.currentUser$.subscribe((user) => {
       this.user = user;
+      this.canOpenCrm = this.authService.isAgent;
     });
   }
 

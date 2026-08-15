@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
@@ -6,6 +7,7 @@ import { AgentService } from '../services/agent.service';
 import { ApartmentService } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
+import { CrmService } from '../services/crm.service';
 import { toMediaUrl } from '../utils/api-media';
 import { NearbyPlace } from '../maps/google-property-map/google-property-map.component';
 
@@ -23,6 +25,16 @@ interface SimilarApartment {
   imageUrl: string;
 }
 
+interface ViewingInquiryForm {
+  name: string;
+  email: string;
+  phone: string;
+  requestedViewingAt: string;
+  message: string;
+  consentToContact: boolean;
+  website: string;
+}
+
 @Component({
   selector: 'app-apartment-detail',
   standalone: false,
@@ -30,6 +42,8 @@ interface SimilarApartment {
   styleUrls: ['./apartment-detail.css', './apartment-detail.icons.css'],
 })
 export class ApartmentDetail implements OnInit {
+  @ViewChild('viewingDialog') private viewingDialog?: ElementRef<HTMLElement>;
+
   apartment: Apartment | null = null;
   selectedAgent: Agent | null = null;
   similarApartments: SimilarApartment[] = [];
@@ -45,7 +59,13 @@ export class ApartmentDetail implements OnInit {
   descriptionExpanded = false;
   agentImageFailed = false;
   nearbyPlaces: NearbyPlace[] = [];
+  viewingDialogOpen = false;
+  inquirySubmitting = false;
+  inquirySubmitted = false;
+  inquiryError = '';
+  inquiryForm: ViewingInquiryForm = this.emptyInquiryForm();
   private realPhotoCount = 0;
+  private previouslyFocusedElement: HTMLElement | null = null;
 
   reviews: Review[] = [
     {
@@ -70,6 +90,7 @@ export class ApartmentDetail implements OnInit {
     private router: Router,
     private favoriteService: FavoriteService,
     private authService: AuthService,
+    private crmService: CrmService,
   ) {}
 
   ngOnInit(): void {
@@ -311,7 +332,138 @@ export class ApartmentDetail implements OnInit {
   }
 
   scheduleViewing(): void {
-    location.href = `mailto:${this.agentEmail}?subject=${encodeURIComponent(`Schedule a viewing: ${this.title}`)}&body=${encodeURIComponent(`I would like to schedule a viewing for ${this.title} at ${this.address}.`)}`;
+    this.previouslyFocusedElement = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const user = this.authService.currentUser;
+    this.inquiryForm = {
+      ...this.emptyInquiryForm(),
+      name: user?.fullName || user?.userName || '',
+      email: user?.email || '',
+      phone: user?.phoneNumber || '',
+      message: `I would like to schedule a viewing for ${this.title}.`,
+    };
+    this.inquiryError = '';
+    this.inquirySubmitted = false;
+    this.viewingDialogOpen = true;
+    setTimeout(() => this.focusInitialControl(this.viewingDialog?.nativeElement));
+  }
+
+  closeViewingDialog(): void {
+    if (this.inquirySubmitting) return;
+    const focusTarget = this.previouslyFocusedElement;
+    this.viewingDialogOpen = false;
+    this.inquiryError = '';
+    this.inquirySubmitted = false;
+    this.previouslyFocusedElement = null;
+    setTimeout(() => focusTarget?.focus());
+  }
+
+  submitViewingRequest(): void {
+    if (!this.apartment || this.inquirySubmitting) return;
+
+    const name = this.inquiryForm.name.trim();
+    const email = this.inquiryForm.email.trim();
+    const phone = this.inquiryForm.phone.trim();
+    const requestedViewingAt = this.toIsoDate(this.inquiryForm.requestedViewingAt);
+
+    if (!name) {
+      this.inquiryError = 'Please enter your name.';
+      return;
+    }
+    if (!email && !phone) {
+      this.inquiryError = 'Add an email address or phone number.';
+      return;
+    }
+    if (!requestedViewingAt || Date.parse(requestedViewingAt) <= Date.now()) {
+      this.inquiryError = 'Choose a future date and time for the viewing.';
+      return;
+    }
+    if (!this.inquiryForm.consentToContact) {
+      this.inquiryError = 'Please confirm that Velven may contact you about this property.';
+      return;
+    }
+
+    this.inquirySubmitting = true;
+    this.inquiryError = '';
+    this.crmService.submitInquiry({
+      apartmentId: this.apartment.id,
+      name,
+      email: email || undefined,
+      phone: phone || undefined,
+      requestedViewingAt,
+      message: this.inquiryForm.message.trim() || undefined,
+      consentToContact: true,
+      website: this.inquiryForm.website,
+    }).subscribe({
+      next: () => {
+        this.inquirySubmitting = false;
+        this.inquirySubmitted = true;
+        this.cdr.detectChanges();
+        setTimeout(() => this.focusInitialControl(this.viewingDialog?.nativeElement));
+      },
+      error: (error: HttpErrorResponse) => {
+        this.inquirySubmitting = false;
+        this.inquiryError = error.status === 429
+          ? 'Too many requests were sent. Please wait a few minutes and try again.'
+          : error.error?.message || 'Your request could not be sent. Please try again.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  get minimumViewingDate(): string {
+    const date = new Date(Date.now() + 60 * 60 * 1000);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+      .toISOString().slice(0, 16);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleDialogKeydown(event: KeyboardEvent): void {
+    if (!this.viewingDialogOpen) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeViewingDialog();
+      return;
+    }
+
+    if (event.key === 'Tab') {
+      this.trapDialogFocus(event, this.viewingDialog?.nativeElement);
+    }
+  }
+
+  private focusInitialControl(dialog?: HTMLElement): void {
+    if (!dialog) return;
+    const preferred = dialog.querySelector<HTMLElement>('[data-initial-focus]');
+    (preferred || this.focusableElements(dialog)[0] || dialog).focus();
+  }
+
+  private trapDialogFocus(event: KeyboardEvent, dialog?: HTMLElement): void {
+    if (!dialog) return;
+    const focusable = this.focusableElements(dialog);
+    if (!focusable.length) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !dialog.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  private focusableElements(dialog: HTMLElement): HTMLElement[] {
+    return Array.from(dialog.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )).filter((element) => element.offsetParent !== null);
   }
 
   openMaps(): void {
@@ -449,6 +601,27 @@ export class ApartmentDetail implements OnInit {
     this.phoneRevealed = false;
     this.agentImageFailed = false;
     this.galleryImages = this.getApartmentImages(apartment);
+  }
+
+  private emptyInquiryForm(): ViewingInquiryForm {
+    const date = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    date.setMinutes(Math.ceil(date.getMinutes() / 15) * 15, 0, 0);
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+      .toISOString().slice(0, 16);
+    return {
+      name: '',
+      email: '',
+      phone: '',
+      requestedViewingAt: localDate,
+      message: '',
+      consentToContact: false,
+      website: '',
+    };
+  }
+
+  private toIsoDate(value: string): string | undefined {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
   }
 
   private yesNo(value?: boolean): string {

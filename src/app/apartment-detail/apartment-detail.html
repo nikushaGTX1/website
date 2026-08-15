@@ -1,4 +1,5 @@
 <section class="detail-page">
+  <div class="detail-page-content" [attr.inert]="viewingDialogOpen ? '' : null" [attr.aria-hidden]="viewingDialogOpen ? 'true' : null">
   <p class="status-message" *ngIf="errorMessage">{{ errorMessage }}</p>
 
   <ng-container *ngIf="apartment; else detailState">
@@ -152,4 +153,40 @@
     <section class="detail-empty-state" *ngIf="loading"><h1>Loading apartment details…</h1><p>Preparing the listing, location, and nearby places.</p></section>
     <section class="detail-empty-state" *ngIf="!loading"><h1>Apartment details unavailable</h1><p>Select a published apartment to view its details.</p><button type="button" routerLink="/main">Back to home</button></section>
   </ng-template>
+
+  </div>
+
+  <div class="viewing-backdrop" *ngIf="viewingDialogOpen" (click)="closeViewingDialog()">
+    <section #viewingDialog class="viewing-dialog" role="dialog" aria-modal="true" aria-labelledby="viewing-dialog-title" tabindex="-1" (click)="$event.stopPropagation()">
+      <header>
+        <div><p>PRIVATE VIEWING</p><h2 id="viewing-dialog-title">{{ inquirySubmitted ? 'Request received' : 'Schedule a viewing' }}</h2><span>{{ title }}</span></div>
+        <button type="button" aria-label="Close viewing request" (click)="closeViewingDialog()" [disabled]="inquirySubmitting"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </header>
+
+      <div class="viewing-success" *ngIf="inquirySubmitted; else viewingForm">
+        <span><i class="fa-regular fa-circle-check" aria-hidden="true"></i></span>
+        <h3>Thank you, {{ inquiryForm.name }}.</h3>
+        <p>Your viewing request is now with the Velven team. We’ll contact you using the details you provided to confirm the time.</p>
+        <div><b><i class="fa-regular fa-calendar" aria-hidden="true"></i>{{ inquiryForm.requestedViewingAt | date:'medium' }}</b><small>{{ address }}</small></div>
+        <button data-initial-focus type="button" (click)="closeViewingDialog()">Done</button>
+      </div>
+
+      <ng-template #viewingForm>
+        <form (ngSubmit)="submitViewingRequest()">
+          <p class="viewing-intro">Tell us when you would like to visit. An agent will follow up to confirm availability.</p>
+          <p class="viewing-error" role="alert" *ngIf="inquiryError"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ inquiryError }}</p>
+          <div class="viewing-grid">
+            <label class="wide"><span>Full name *</span><input data-initial-focus type="text" name="viewingName" [(ngModel)]="inquiryForm.name" autocomplete="name" required /></label>
+            <label><span>Email</span><input type="email" name="viewingEmail" [(ngModel)]="inquiryForm.email" autocomplete="email" /></label>
+            <label><span>Phone number</span><input type="tel" name="viewingPhone" [(ngModel)]="inquiryForm.phone" autocomplete="tel" /></label>
+            <label class="wide"><span>Preferred date and time *</span><input type="datetime-local" name="viewingDate" [(ngModel)]="inquiryForm.requestedViewingAt" [min]="minimumViewingDate" required /></label>
+            <label class="wide"><span>Message</span><textarea name="viewingMessage" rows="3" maxlength="4000" [(ngModel)]="inquiryForm.message"></textarea></label>
+            <input class="viewing-honeypot" type="text" name="website" [(ngModel)]="inquiryForm.website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <label class="consent-field wide"><input type="checkbox" name="viewingConsent" [(ngModel)]="inquiryForm.consentToContact" required /><span>I agree that Velven may contact me about this property and viewing request.</span></label>
+          </div>
+          <footer><button type="button" class="viewing-cancel" (click)="closeViewingDialog()" [disabled]="inquirySubmitting">Cancel</button><button type="submit" class="viewing-submit" [disabled]="inquirySubmitting"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i>{{ inquirySubmitting ? 'Sending request…' : 'Request viewing' }}</button></footer>
+        </form>
+      </ng-template>
+    </section>
+  </div>
 </section>
