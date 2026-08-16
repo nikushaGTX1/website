@@ -39,6 +39,7 @@ h1 {
 }
 
 .refresh-btn,
+.mrc-btn,
 .data-row button,
 .row-actions button {
   min-height: 40px;
@@ -50,6 +51,19 @@ h1 {
   cursor: pointer;
   font: inherit;
   font-weight: 700;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mrc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 button:disabled {
@@ -550,8 +564,14 @@ button:disabled {
   }
 
   .admin-search button,
-  .refresh-btn {
+  .refresh-btn,
+  .mrc-btn {
     width: 100%;
+  }
+
+  .header-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .admin-header,

@@ -4,9 +4,12 @@
       <p class="eyebrow">Admin panel</p>
       <h1>Property approvals and system control</h1>
     </div>
-    <button type="button" class="refresh-btn" (click)="loadDashboard()" [disabled]="loading">
-      {{ loading ? 'Loading...' : 'Refresh' }}
-    </button>
+    <div class="header-actions">
+      <a class="mrc-btn" routerLink="/crm">CRM</a>
+      <button type="button" class="refresh-btn" (click)="loadDashboard()" [disabled]="loading">
+        {{ loading ? 'Loading...' : 'Refresh' }}
+      </button>
+    </div>
   </header>
 
   <div class="stats-grid">
