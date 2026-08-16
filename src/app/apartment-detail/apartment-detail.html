@@ -94,12 +94,18 @@
       </article>
 
       <article class="panel agent-card">
-        <div class="agent-avatar">
-          <img *ngIf="agentImage; else uploaderInitials" [src]="agentImage" [alt]="agentName" (error)="handleAgentImageError()" />
-          <ng-template #uploaderInitials><span aria-hidden="true">{{ agentInitials }}</span></ng-template>
-        </div>
+        <a *ngIf="agentProfileId; else staticAgentAvatar" class="agent-avatar agent-profile-link" [routerLink]="['/agent-profile', agentProfileId]" [attr.aria-label]="'View ' + agentName + ' profile'">
+          <img *ngIf="agentImage; else linkedAgentInitials" [src]="agentImage" [alt]="agentName" (error)="handleAgentImageError()" />
+          <ng-template #linkedAgentInitials><span aria-hidden="true">{{ agentInitials }}</span></ng-template>
+        </a>
+        <ng-template #staticAgentAvatar>
+          <div class="agent-avatar">
+            <img *ngIf="agentImage; else uploaderInitials" [src]="agentImage" [alt]="agentName" (error)="handleAgentImageError()" />
+            <ng-template #uploaderInitials><span aria-hidden="true">{{ agentInitials }}</span></ng-template>
+          </div>
+        </ng-template>
         <div class="agent-details">
-          <h3>{{ agentName }}</h3>
+          <h3><a *ngIf="agentProfileId; else staticAgentName" class="agent-name-link" [routerLink]="['/agent-profile', agentProfileId]">{{ agentName }}</a><ng-template #staticAgentName>{{ agentName }}</ng-template></h3>
           <span>{{ agentRole }}</span>
           <small class="agent-rating">★ {{ agentRating }} <em>{{ agentRatingCount }}</em></small>
           <div class="phone-reveal" *ngIf="phoneNumber">

@@ -532,6 +532,10 @@ export class ApartmentDetail implements OnInit {
           'Listing owner';
   }
 
+  get agentProfileId(): string {
+    return this.selectedAgent?.id || this.selectedAgent?.userId || '';
+  }
+
   get agentRole(): string {
     return this.selectedAgent ? 'Real estate professional' : 'Property uploader';
   }
