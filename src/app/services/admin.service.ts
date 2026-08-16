@@ -62,6 +62,10 @@ export class AdminService {
     return this.http.post(`${this.adminUrl}/remove-agent/${userId}`, {});
   }
 
+  setCrmRole(userId: string, role: string): Observable<unknown> {
+    return this.http.put(`${this.adminUrl}/users/${userId}/crm-role`, { role });
+  }
+
   getAgents(): Observable<Agent[]> {
     return this.http.get<Agent[]>(this.agentsUrl);
   }

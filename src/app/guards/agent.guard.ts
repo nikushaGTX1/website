@@ -12,3 +12,13 @@ export const agentGuard: CanActivateFn = () => {
 
   return router.createUrlTree(['/main']);
 };
+
+/** CRM is available to managers, working agents, and read-only uploaders. */
+export const crmGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  return authService.canOpenCrm
+    ? true
+    : router.createUrlTree(['/main']);
+};

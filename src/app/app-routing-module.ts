@@ -8,7 +8,7 @@ import { Login } from './login/login';
 import { Blog } from './blog/blog';
 import { MyProfile } from './my-profile/my-profile';
 import { authGuard } from './guards/auth.guard';
-import { agentGuard } from './guards/agent.guard';
+import { agentGuard, crmGuard } from './guards/agent.guard';
 import { guestGuard } from './guards/guest.guard';
 import { UploadApartment } from './upload-apartment/upload-apartament';
 import { AdminPanel } from './admin-panel/admin-panel';
@@ -41,13 +41,13 @@ const routes: Routes = [
     path: 'crm',
     loadComponent: () => import('./crm/crm-dashboard/crm-dashboard').then((module) => module.CrmDashboard),
     title: 'Lead Pipeline | Velven',
-    canActivate: [authGuard, agentGuard],
+    canActivate: [authGuard, crmGuard],
   },
   {
     path: 'crm/leads/:id',
     loadComponent: () => import('./crm/lead-detail/lead-detail').then((module) => module.CrmLeadDetail),
     title: 'Lead Details | Velven',
-    canActivate: [authGuard, agentGuard],
+    canActivate: [authGuard, crmGuard],
   },
   { path: 'my-profile', component: MyProfile, title: 'My Profile | Velven', canActivate: [authGuard] },
   { path: 'my-listings', component: MyListings, title: 'My Listings | Velven', canActivate: [authGuard] },

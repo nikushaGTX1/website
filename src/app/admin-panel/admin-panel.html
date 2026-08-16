@@ -117,7 +117,15 @@
       </div>
       <div class="user-admin-actions">
         <button type="button" class="edit-user" (click)="openUserEditor(user)" [disabled]="!user.id"><i class="fa-solid fa-pen"></i> Edit account</button>
-        <button type="button" (click)="makeAgent(user)" [disabled]="!user.id || actionId === user.id">Make agent</button>
+        <label>
+          <span class="sr-only">CRM role for {{ user.fullName || user.userName }}</span>
+          <select [ngModel]="crmRole(user)" (ngModelChange)="setCrmRole(user, $event)" [disabled]="!user.id || actionId === user.id || user.roles?.includes('Admin') === true">
+            <option value="" disabled>Choose CRM role</option>
+            <option value="Manager">Manager</option>
+            <option value="Agent">Agent</option>
+            <option value="Uploader">Uploader</option>
+          </select>
+        </label>
       </div>
     </div>
   </section>

@@ -48,7 +48,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = this.authService.currentUser$.subscribe((user) => {
       this.user = user;
-      this.canOpenCrm = this.authService.isAgent;
+      this.canOpenCrm = this.authService.canOpenCrm;
     });
   }
 

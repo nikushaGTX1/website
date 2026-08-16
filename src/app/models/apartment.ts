@@ -67,6 +67,7 @@ export interface Apartment {
 }
 
 export interface CreateApartment {
+  uploadedByUserId?: string;
   title: string;
   description: string;
   price: number;

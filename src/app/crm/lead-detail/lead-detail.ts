@@ -89,6 +89,18 @@ export class CrmLeadDetail implements OnInit {
     return this.authService.isAdmin;
   }
 
+  get isManager(): boolean {
+    return this.authService.isCrmManager;
+  }
+
+  get isUploader(): boolean {
+    return this.authService.isCrmUploader && !this.isManager;
+  }
+
+  get canWorkLead(): boolean {
+    return this.authService.canWorkCrmLeads;
+  }
+
   get openTasks(): CrmTask[] {
     return (this.lead?.tasks || [])
       .filter((task) => task.status !== 'completed')
@@ -114,11 +126,18 @@ export class CrmLeadDetail implements OnInit {
 
     forkJoin({
       lead: this.crmService.getLead(leadId),
-      agents: this.isAdmin
+      agents: this.isManager
         ? this.agentService.getAgents().pipe(catchError(() => of([] as Agent[])))
         : of([] as Agent[]),
     }).subscribe({
       next: ({ lead, agents }) => {
+        if (!this.canAccessLead(lead)) {
+          this.loading = false;
+          this.lead = null;
+          this.pageError = 'You do not have access to this lead.';
+          this.cdr.detectChanges();
+          return;
+        }
         this.lead = lead;
         this.agents = agents;
         this.selectedAgentId = lead.assignedAgentId || '';
@@ -135,7 +154,7 @@ export class CrmLeadDetail implements OnInit {
   }
 
   beginEditing(): void {
-    if (!this.lead) return;
+    if (!this.canWorkLead || !this.lead) return;
     this.populateLeadForm(this.lead);
     this.editing = true;
     this.successMessage = '';
@@ -148,7 +167,7 @@ export class CrmLeadDetail implements OnInit {
   }
 
   saveLead(): void {
-    if (!this.lead || this.savingLead) return;
+    if (!this.canWorkLead || !this.lead || this.savingLead) return;
 
     const fullName = this.leadForm.fullName.trim();
     const email = this.leadForm.email?.trim() || '';
@@ -210,7 +229,7 @@ export class CrmLeadDetail implements OnInit {
   }
 
   updateStatus(status: CrmLeadStatus): void {
-    if (!this.lead || this.statusSaving || status === this.lead.status) return;
+    if (!this.canWorkLead || !this.lead || this.statusSaving || status === this.lead.status) return;
 
     const previousStatus = this.lead.status;
     this.lead = { ...this.lead, status };
@@ -233,7 +252,7 @@ export class CrmLeadDetail implements OnInit {
   }
 
   assignLead(): void {
-    if (!this.isAdmin || !this.lead || this.assignmentSaving) return;
+    if (!this.isManager || !this.lead || this.assignmentSaving) return;
 
     this.assignmentSaving = true;
     this.pageError = '';
@@ -257,7 +276,7 @@ export class CrmLeadDetail implements OnInit {
   }
 
   addNote(): void {
-    if (!this.lead || this.noteSaving) return;
+    if (!this.canWorkLead || !this.lead || this.noteSaving) return;
     const body = this.noteBody.trim();
     if (!body) return;
 
@@ -286,7 +305,7 @@ export class CrmLeadDetail implements OnInit {
   }
 
   createTask(): void {
-    if (!this.lead || this.taskSaving) return;
+    if (!this.canWorkLead || !this.lead || this.taskSaving) return;
     const title = this.taskForm.title.trim();
     const dueAt = this.toIsoDate(this.taskForm.dueAt);
     if (!title || !dueAt) {
@@ -324,7 +343,7 @@ export class CrmLeadDetail implements OnInit {
   }
 
   toggleTask(task: CrmTask): void {
-    if (!this.lead || this.taskActionId) return;
+    if (!this.canWorkLead || !this.lead || this.taskActionId) return;
     const status = task.status === 'completed' ? 'open' : 'completed';
     this.taskActionId = task.id;
     this.pageError = '';
@@ -448,6 +467,19 @@ export class CrmLeadDetail implements OnInit {
       apartmentId: lead.apartmentId ?? null,
     };
     this.preferredDistrictsText = (lead.preferredDistricts || []).join(', ');
+  }
+
+  private canAccessLead(lead: CrmLead): boolean {
+    if (this.isManager) return true;
+
+    const userId = (this.authService.currentUser?.id || '').toLowerCase();
+    if (!userId) return false;
+
+    if (this.authService.isCrmAgent) {
+      return (lead.assignedAgentId || '').toLowerCase() === userId;
+    }
+
+    return (lead.uploaderUserId || '').toLowerCase() === userId;
   }
 
   private emptyLeadForm(): UpdateCrmLeadRequest {

@@ -230,6 +230,10 @@ export class ApartmentService {
   private toApartmentFormData(data: Partial<CreateApartment>): FormData {
     const formData = new FormData();
 
+    if (data.uploadedByUserId !== undefined) {
+      formData.append('UploadedByUserId', data.uploadedByUserId || '');
+    }
+
     if (data.title !== undefined) {
       formData.append('Title', data.title);
     }

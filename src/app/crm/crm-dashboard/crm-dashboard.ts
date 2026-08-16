@@ -85,6 +85,18 @@ export class CrmDashboard implements OnInit {
     return this.authService.isAdmin;
   }
 
+  get isManager(): boolean {
+    return this.authService.isCrmManager;
+  }
+
+  get isUploader(): boolean {
+    return this.authService.isCrmUploader && !this.isManager;
+  }
+
+  get canCreateLead(): boolean {
+    return this.authService.canWorkCrmLeads;
+  }
+
   get metricCards(): Array<{
     label: string;
     value: string;
@@ -179,14 +191,16 @@ export class CrmDashboard implements OnInit {
     forkJoin({
       leads: this.crmService.getLeads(),
       metrics: this.crmService.getMetrics().pipe(catchError(() => of(null))),
-      agents: this.isAdmin
+      agents: this.isManager
         ? this.agentService.getAgents().pipe(catchError(() => of([] as Agent[])))
         : of([] as Agent[]),
     }).subscribe({
       next: ({ leads, metrics, agents }) => {
-        this.leads = leads;
+        this.leads = this.scopeLeads(leads);
         this.agents = agents;
-        this.metrics = metrics || this.calculateMetrics(leads);
+        this.metrics = this.isManager && metrics
+          ? metrics
+          : this.calculateMetrics(this.leads);
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -214,6 +228,7 @@ export class CrmDashboard implements OnInit {
   }
 
   openCreateDialog(): void {
+    if (!this.canCreateLead) return;
     this.previouslyFocusedElement = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
@@ -234,7 +249,7 @@ export class CrmDashboard implements OnInit {
   }
 
   createLead(): void {
-    if (this.creatingLead) return;
+    if (!this.canCreateLead || this.creatingLead) return;
 
     const fullName = this.manualLeadForm.fullName.trim();
     const email = this.manualLeadForm.email?.trim() || '';
@@ -416,6 +431,23 @@ export class CrmDashboard implements OnInit {
       wonLeads,
       conversionRate: closedLeads ? (wonLeads / closedLeads) * 100 : 0,
     };
+  }
+
+  private scopeLeads(leads: CrmLead[]): CrmLead[] {
+    if (this.isManager) return leads;
+
+    const userId = (this.authService.currentUser?.id || '').toLowerCase();
+    if (!userId) return [];
+
+    if (this.authService.isCrmAgent) {
+      return leads.filter((lead) =>
+        (lead.assignedAgentId || '').toLowerCase() === userId,
+      );
+    }
+
+    return leads.filter((lead) =>
+      (lead.uploaderUserId || '').toLowerCase() === userId,
+    );
   }
 
   private leadSortValue(lead: CrmLead): number {

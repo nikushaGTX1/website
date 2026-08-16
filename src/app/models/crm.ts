@@ -77,6 +77,8 @@ export interface CrmLead {
   consentGivenAt?: string;
   customerUserId?: string;
   createdByUserId?: string;
+  /** Account that uploaded the property which generated this lead. */
+  uploaderUserId?: string;
   closedAt?: string;
   createdAt: string;
   updatedAt?: string;

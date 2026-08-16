@@ -16,6 +16,8 @@ export interface User {
   roles?: string[];
   isAgent?: boolean;
   isAdmin?: boolean;
+  /** Optional CRM-specific role returned by newer API versions. */
+  crmRole?: 'Manager' | 'Agent' | 'Uploader' | string;
 }
 
 export interface AuthResponse {

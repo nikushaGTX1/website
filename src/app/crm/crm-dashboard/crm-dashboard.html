@@ -4,7 +4,8 @@
     <div>
       <p class="eyebrow">VELVEN CRM</p>
       <h1>Lead pipeline</h1>
-      <p class="header-copy">Keep every inquiry, follow-up, and viewing moving toward the right home.</p>
+      <p class="header-copy" *ngIf="!isUploader">Keep every inquiry, follow-up, and viewing moving toward the right home.</p>
+      <p class="header-copy" *ngIf="isUploader">Track the progress of leads connected to your property uploads.</p>
     </div>
     <div class="header-actions">
       <a class="admin-shortcut" routerLink="/admin" *ngIf="isAdmin">
@@ -15,7 +16,7 @@
         <i class="fa-solid fa-rotate" aria-hidden="true"></i>
         {{ loading ? 'Refreshing…' : 'Refresh' }}
       </button>
-      <button type="button" class="primary-button" (click)="openCreateDialog()">
+      <button type="button" class="primary-button" *ngIf="canCreateLead" (click)="openCreateDialog()">
         <i class="fa-solid fa-plus" aria-hidden="true"></i>
         Add lead
       </button>
@@ -60,7 +61,7 @@
       </select>
     </label>
 
-    <label>
+    <label *ngIf="isManager">
       <span>Assignment</span>
       <select [(ngModel)]="assignmentFilter">
         <option value="all">All visible leads</option>
@@ -77,7 +78,8 @@
   <section class="pipeline-section" [attr.aria-busy]="loading">
     <div class="pipeline-heading">
       <div><h2>Pipeline board</h2><p>{{ filteredLeads.length }} lead{{ filteredLeads.length === 1 ? '' : 's' }} shown</p></div>
-      <span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Move a lead from its detail page</span>
+      <span *ngIf="!isUploader"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Move a lead from its detail page</span>
+      <span *ngIf="isUploader"><i class="fa-regular fa-eye" aria-hidden="true"></i> Read-only progress view</span>
     </div>
 
     <div class="pipeline-loading" *ngIf="loading">
@@ -89,9 +91,9 @@
     <div class="pipeline-empty" *ngIf="!loading && !errorMessage && filteredLeads.length === 0">
       <span><i class="fa-regular fa-address-card" aria-hidden="true"></i></span>
       <h2>{{ hasFilters ? 'No leads match these filters' : 'Your pipeline is ready' }}</h2>
-      <p>{{ hasFilters ? 'Try clearing a filter or searching a different contact.' : 'Add the first lead, or wait for a property viewing request.' }}</p>
+      <p>{{ hasFilters ? 'Try clearing a filter or searching a different contact.' : (isUploader ? 'No leads have been connected to your uploaded properties yet.' : 'Add the first lead, or wait for a property viewing request.') }}</p>
       <button type="button" *ngIf="hasFilters" (click)="resetFilters()">Clear filters</button>
-      <button type="button" *ngIf="!hasFilters" (click)="openCreateDialog()">Add first lead</button>
+      <button type="button" *ngIf="!hasFilters && canCreateLead" (click)="openCreateDialog()">Add first lead</button>
     </div>
 
     <div class="pipeline-scroll" *ngIf="!loading && filteredLeads.length > 0">
@@ -176,7 +178,7 @@
           <label><span>Property type</span><input type="text" name="leadPropertyType" [(ngModel)]="manualLeadForm.preferredPropertyType" placeholder="Apartment, house…" /></label>
           <label><span>Bedrooms</span><input type="number" min="0" name="leadBedrooms" [(ngModel)]="manualLeadForm.bedrooms" /></label>
           <label class="wide"><span>Preferred districts</span><input type="text" name="leadDistricts" [(ngModel)]="preferredDistrictsText" placeholder="Vake, Saburtalo, Vera" /><small>Separate multiple districts with commas.</small></label>
-          <label class="wide" *ngIf="isAdmin"><span>Assign agent</span><select name="leadAgent" [(ngModel)]="manualLeadForm.assignedAgentId"><option [ngValue]="null">Leave unassigned</option><option *ngFor="let agent of agents" [value]="agentId(agent)">{{ agentName(agent) }}</option></select></label>
+          <label class="wide" *ngIf="isManager"><span>Assign agent</span><select name="leadAgent" [(ngModel)]="manualLeadForm.assignedAgentId"><option [ngValue]="null">Leave unassigned</option><option *ngFor="let agent of agents" [value]="agentId(agent)">{{ agentName(agent) }}</option></select></label>
         </div>
 
         <footer>

@@ -253,7 +253,10 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.cdr.detectChanges();
 
-    this.apartmentService.createApartment(item.apartment).subscribe({
+    this.apartmentService.createApartment({
+      ...item.apartment,
+      uploadedByUserId: item.submittedByUserId,
+    }).subscribe({
       next: (result) => {
         this.pendingService.markApproved(
           item.id,
@@ -320,6 +323,34 @@ export class AdminPanel implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  setCrmRole(user: User, role: string): void {
+    if (!this.isAdmin || !user.id || this.actionId) return;
+
+    this.actionId = user.id;
+    this.successMessage = '';
+    this.errorMessage = '';
+    this.adminService.setCrmRole(user.id, role).subscribe({
+      next: () => {
+        this.successMessage = `${user.fullName || user.userName} is now a CRM ${role}.`;
+        this.actionId = '';
+        this.loadDashboard();
+      },
+      error: (err) => {
+        console.error('Set CRM role error:', err);
+        this.errorMessage = err?.error?.message || 'Could not change the CRM role.';
+        this.actionId = '';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  crmRole(user: User): string {
+    const roles = [user.role, user.crmRole, ...(user.roles || [])]
+      .filter((role): role is string => !!role);
+    return ['Manager', 'Agent', 'Uploader']
+      .find((expected) => roles.some((role) => role.toLowerCase() === expected.toLowerCase())) || '';
   }
 
   openUserEditor(user: User): void {

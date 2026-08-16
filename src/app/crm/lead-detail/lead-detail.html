@@ -43,7 +43,7 @@
         <div class="hero-actions">
           <a *ngIf="currentLead.phoneNumber" [href]="'tel:' + currentLead.phoneNumber"><i class="fa-solid fa-phone" aria-hidden="true"></i> Call</a>
           <a *ngIf="currentLead.email" [href]="'mailto:' + currentLead.email"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Email</a>
-          <button type="button" class="primary-button" (click)="beginEditing()"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>Edit details</button>
+          <button type="button" class="primary-button" *ngIf="canWorkLead" (click)="beginEditing()"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>Edit details</button>
         </div>
       </header>
 
@@ -57,7 +57,7 @@
             [class.past]="statuses.indexOf(currentLead.status) > index && currentLead.status !== 'lost'"
             [class.lost]="status === 'lost'"
             [attr.aria-pressed]="currentLead.status === status"
-            [disabled]="statusSaving"
+            [disabled]="statusSaving || !canWorkLead"
             (click)="updateStatus(status)"
           >
             <span>{{ index + 1 }}</span><b>{{ statusLabel(status) }}</b>
@@ -70,7 +70,7 @@
           <section class="panel details-panel" aria-labelledby="details-heading">
             <header class="panel-heading">
               <div><p>CONTACT &amp; PREFERENCES</p><h2 id="details-heading">Lead profile</h2></div>
-              <button type="button" *ngIf="!editing" (click)="beginEditing()">Edit</button>
+              <button type="button" *ngIf="!editing && canWorkLead" (click)="beginEditing()">Edit</button>
             </header>
 
             <form *ngIf="editing; else leadSummary" class="lead-form" (ngSubmit)="saveLead()">
@@ -110,7 +110,7 @@
 
           <section class="panel timeline-panel" aria-labelledby="timeline-heading">
             <header class="panel-heading"><div><p>ACTIVITY</p><h2 id="timeline-heading">Conversation timeline</h2></div><span>{{ activities.length }} update{{ activities.length === 1 ? '' : 's' }}</span></header>
-            <form class="note-composer" (ngSubmit)="addNote()">
+            <form class="note-composer" *ngIf="canWorkLead" (ngSubmit)="addNote()">
               <span class="mini-avatar" aria-hidden="true">{{ initials(authService.currentUser?.fullName || authService.currentUser?.userName || '') }}</span>
               <label><span class="sr-only">Add a note</span><textarea name="leadNote" [(ngModel)]="noteBody" rows="3" maxlength="4000" placeholder="Add a call note, customer update, or useful context…"></textarea></label>
               <button type="submit" [disabled]="noteSaving || !noteBody.trim()"><i class="fa-regular fa-note-sticky" aria-hidden="true"></i>{{ noteSaving ? 'Adding…' : 'Add note' }}</button>
@@ -129,22 +129,22 @@
           <section class="panel owner-panel" aria-labelledby="owner-heading">
             <header class="panel-heading"><div><p>OWNERSHIP</p><h2 id="owner-heading">Assigned agent</h2></div></header>
             <div class="owner-card"><span class="mini-avatar">{{ initials(currentLead.assignedAgentName || 'U') }}</span><div><b>{{ currentLead.assignedAgentName || 'Unassigned' }}</b><small>{{ currentLead.assignedAgentName ? 'Lead owner' : 'Admin action needed' }}</small></div></div>
-            <label *ngIf="isAdmin" class="assignment-control"><span>Change assignment</span><select [(ngModel)]="selectedAgentId" name="assignedAgent"><option value="">Unassigned</option><option *ngFor="let agent of agents" [value]="agentId(agent)">{{ agentName(agent) }}</option></select></label>
-            <button type="button" class="assignment-button" *ngIf="isAdmin" (click)="assignLead()" [disabled]="assignmentSaving || selectedAgentId === (currentLead.assignedAgentId || '')">{{ assignmentSaving ? 'Assigning…' : 'Save assignment' }}</button>
-            <p class="permission-note" *ngIf="!isAdmin"><i class="fa-solid fa-lock" aria-hidden="true"></i>Only an administrator can reassign this lead.</p>
+            <label *ngIf="isManager" class="assignment-control"><span>Change assignment</span><select [(ngModel)]="selectedAgentId" name="assignedAgent"><option value="">Unassigned</option><option *ngFor="let agent of agents" [value]="agentId(agent)">{{ agentName(agent) }}</option></select></label>
+            <button type="button" class="assignment-button" *ngIf="isManager" (click)="assignLead()" [disabled]="assignmentSaving || selectedAgentId === (currentLead.assignedAgentId || '')">{{ assignmentSaving ? 'Assigning…' : 'Save assignment' }}</button>
+            <p class="permission-note" *ngIf="!isManager"><i class="fa-solid fa-lock" aria-hidden="true"></i>{{ isUploader ? 'Read-only progress access.' : 'Only a CRM manager can reassign this lead.' }}</p>
           </section>
 
           <section class="panel tasks-panel" aria-labelledby="tasks-heading">
             <header class="panel-heading"><div><p>NEXT ACTIONS</p><h2 id="tasks-heading">Tasks &amp; viewings</h2></div><span class="task-count">{{ openTasks.length }}</span></header>
             <div class="task-list" *ngIf="openTasks.length; else emptyTasks">
               <article *ngFor="let task of openTasks; trackBy: identifyTask" [class.overdue]="isOverdue(task)">
-                <button type="button" class="task-check" (click)="toggleTask(task)" [disabled]="taskActionId === task.id" [attr.aria-label]="'Complete task ' + task.title"><i class="fa-solid fa-check" aria-hidden="true"></i></button>
+                <button type="button" class="task-check" *ngIf="canWorkLead" (click)="toggleTask(task)" [disabled]="taskActionId === task.id" [attr.aria-label]="'Complete task ' + task.title"><i class="fa-solid fa-check" aria-hidden="true"></i></button>
                 <div><header><span>{{ taskTypeLabel(task.type) }}</span><small *ngIf="isOverdue(task)">Overdue</small></header><b>{{ task.title }}</b><p *ngIf="task.description">{{ task.description }}</p><time><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ formatDate(task.dueAt) }}</time></div>
               </article>
             </div>
             <ng-template #emptyTasks><p class="empty-copy">No open tasks. Add the next follow-up below.</p></ng-template>
 
-            <form class="task-form" (ngSubmit)="createTask()">
+            <form class="task-form" *ngIf="canWorkLead" (ngSubmit)="createTask()">
               <h3>Add next action</h3>
               <label><span>Type</span><select name="taskType" [(ngModel)]="taskForm.type"><option *ngFor="let type of taskTypes" [value]="type">{{ taskTypeLabel(type) }}</option></select></label>
               <label><span>Title *</span><input type="text" name="taskTitle" [(ngModel)]="taskForm.title" placeholder="Call about viewing availability" required /></label>
@@ -153,7 +153,7 @@
               <button type="submit" [disabled]="taskSaving">{{ taskSaving ? 'Adding…' : 'Add task' }}</button>
             </form>
 
-            <details class="completed-tasks" *ngIf="completedTasks.length"><summary>{{ completedTasks.length }} completed</summary><article *ngFor="let task of completedTasks; trackBy: identifyTask"><button type="button" (click)="toggleTask(task)" [disabled]="taskActionId === task.id" aria-label="Reopen task"><i class="fa-solid fa-check" aria-hidden="true"></i></button><div><s>{{ task.title }}</s><small>{{ formatDate(task.completedAt) }}</small></div></article></details>
+            <details class="completed-tasks" *ngIf="completedTasks.length"><summary>{{ completedTasks.length }} completed</summary><article *ngFor="let task of completedTasks; trackBy: identifyTask"><button type="button" *ngIf="canWorkLead" (click)="toggleTask(task)" [disabled]="taskActionId === task.id" aria-label="Reopen task"><i class="fa-solid fa-check" aria-hidden="true"></i></button><div><s>{{ task.title }}</s><small>{{ formatDate(task.completedAt) }}</small></div></article></details>
           </section>
 
           <section class="panel privacy-panel">

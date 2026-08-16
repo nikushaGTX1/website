@@ -58,6 +58,34 @@ export class AuthService {
     return this.hasAnyRole(['admin']);
   }
 
+  /** Manager and Admin are the full-access CRM roles. */
+  get isCrmManager(): boolean {
+    return this.hasAnyRole(['manager', 'crm-manager', 'crm_manager', 'admin']);
+  }
+
+  get isCrmAgent(): boolean {
+    return this.hasAnyRole(['agent']);
+  }
+
+  get isCrmUploader(): boolean {
+    return this.hasAnyRole(['uploader']);
+  }
+
+  get canOpenCrm(): boolean {
+    return this.isCrmManager || this.isCrmAgent || this.isCrmUploader;
+  }
+
+  get canWorkCrmLeads(): boolean {
+    return this.isCrmManager || this.isCrmAgent;
+  }
+
+  get crmRoleLabel(): 'Manager' | 'Agent' | 'Uploader' | '' {
+    if (this.isCrmManager) return 'Manager';
+    if (this.isCrmAgent) return 'Agent';
+    if (this.isCrmUploader) return 'Uploader';
+    return '';
+  }
+
   register(data: RegisterRequest): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, data);
   }
@@ -136,6 +164,7 @@ export class AuthService {
     const user = this.currentUser;
     const userRoles = [
       user?.role,
+      user?.crmRole,
       ...(user?.roles || []),
       user?.isAgent ? 'agent' : '',
       user?.isAdmin ? 'admin' : '',
