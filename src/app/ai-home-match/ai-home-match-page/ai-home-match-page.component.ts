@@ -232,6 +232,22 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   get progress(): number {
     return ((this.step + 1) / this.questions.length) * 100;
   }
+  get budgetSliderMax(): number {
+    const buying = this.profile.propertyGoal === 'Buy';
+    if (this.budgetForm.controls.currency.value === 'GEL') {
+      return buying ? 5_000_000 : 50_000;
+    }
+    return buying ? 2_000_000 : 20_000;
+  }
+  get budgetSliderStep(): number {
+    return this.profile.propertyGoal === 'Buy' ? 5_000 : 50;
+  }
+  get budgetRangeStart(): number {
+    return this.budgetPercent(this.budgetForm.controls.min.value);
+  }
+  get budgetRangeEnd(): number {
+    return this.budgetPercent(this.budgetForm.controls.max.value);
+  }
   get currentPhase(): number {
     return Math.min(
       this.phaseLabels.length - 1,
@@ -255,6 +271,50 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get suggestedPriorities(): HomeMatchOption[] {
     return this.generateSuggestedPriorities();
+  }
+  get currentStepIcon(): string {
+    return [
+      'home', 'location', 'budget', 'family', 'family', 'bed', 'calendar',
+      'car', 'social', 'pet', 'home', 'spark', 'check',
+    ][this.step] || 'spark';
+  }
+  optionIcon(value: unknown, label = ''): string {
+    const raw = typeof value === 'number' ? label : (value ?? label);
+    const key = String(raw).replace(/[^a-z0-9]/gi, '').toLowerCase();
+    const icons: Record<string, string> = {
+      rent: 'home', buy: 'home', studio: 'home',
+      justme: 'solo', couple: 'couple', parentwithchildren: 'family',
+      familywithchildren: 'family', friends: 'friends', relatives: 'family',
+      roommates: 'friends', corporatehousing: 'company',
+      car: 'car', metro: 'metro', walking: 'walk', publictransport: 'bus',
+      taxi: 'taxi', multiplemethods: 'multi',
+      athlete: 'athlete', remoteworker: 'laptop', businessprofessional: 'company',
+      student: 'student', familyfocused: 'family', quietlifestyle: 'quiet',
+      sociallifestyle: 'social', hostsguests: 'guest', frequenttraveler: 'multi',
+      schoolnearby: 'school', kindergartennearby: 'school', parknearby: 'park',
+      gymnearby: 'gym', metronearby: 'metro', balcony: 'balcony',
+      naturallight: 'light', quietstreet: 'quiet', largelivingroom: 'home',
+      largekitchen: 'kitchen', separateworkspace: 'office', goodview: 'view',
+      multiplebathrooms: 'bath', bedroomairconditioning: 'spark',
+      securityorconcierge: 'security', elevator: 'elevator', yardorterrace: 'park',
+      newbuilding: 'home', additionalstorage: 'storage', lowfloor: 'elevator',
+      highfloor: 'elevator', largeelevator: 'elevator', replacefurniture: 'furniture',
+      removefurniture: 'furniture', separatekitchen: 'kitchen', isolatedbedrooms: 'bed',
+      companycontract: 'company', security24hours: 'security', generator: 'spark',
+      waterreservoir: 'water', homeoffice: 'office', guestroom: 'guest', both: 'multi',
+      no: 'no', true: 'check', false: 'no', immediately: 'calendar',
+      specificdate: 'calendar', flexible: 'calendar', exploring: 'ai', unknown: 'ai',
+      selectonmap: 'location', otherdistrict: 'location', other: 'spark',
+    };
+    if (icons[key]) return icons[key];
+    if (/bedroom|age/.test(key)) return 'bed';
+    if (/month|week|date|year/.test(key)) return 'calendar';
+    if (/minute/.test(key)) return 'metro';
+    if (/location|district|vake|saburtalo|vera|mtatsminda|dighomi|isani|ortachala/.test(key)) return 'location';
+    if (/office/.test(key)) return 'office';
+    if (/guest/.test(key)) return 'guest';
+    if (/ai|decide|matter/.test(key)) return 'ai';
+    return 'spark';
   }
   opts(labels: string[], values?: string[]): HomeMatchOption[] {
     return labels.map((label, index) => ({ label, value: values?.[index] || label }));
@@ -340,6 +400,27 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     value: string,
   ): boolean {
     return this.profile[key].includes(value);
+  }
+  updateBudgetFromSlider(bound: 'min' | 'max', event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    if (!Number.isFinite(value)) return;
+
+    const minControl = this.budgetForm.controls.min;
+    const maxControl = this.budgetForm.controls.max;
+    if (bound === 'min') {
+      minControl.setValue(Math.min(value, maxControl.value));
+      minControl.markAsDirty();
+    } else {
+      maxControl.setValue(Math.max(value, minControl.value));
+      maxControl.markAsDirty();
+    }
+  }
+  formatBudget(value: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: this.budgetForm.controls.currency.value,
+      maximumFractionDigits: 0,
+    }).format(value || 0);
   }
   canContinue(): boolean {
     switch (this.step) {
@@ -589,6 +670,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     }
 
     return [...suggestions.values()];
+  }
+  private budgetPercent(value: number): number {
+    const safeValue = Math.max(0, Math.min(Number(value) || 0, this.budgetSliderMax));
+    return (safeValue / this.budgetSliderMax) * 100;
   }
   private startLoadingMessages(): void {
     const messages = [

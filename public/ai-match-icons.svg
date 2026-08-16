@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>.l{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.a{fill:#f2b84b;stroke:currentColor;stroke-width:2.5;stroke-linejoin:round}.s{fill:#eee9ff;stroke:currentColor;stroke-width:2.5;stroke-linejoin:round}</style>
+  </defs>
+  <symbol id="home" viewBox="0 0 64 64"><path class="s" d="M10 29 32 10l22 19v25H10Z"/><path class="l" d="M6 31 32 8l26 23M25 54V37h14v17"/></symbol>
+  <symbol id="location" viewBox="0 0 64 64"><path class="s" d="M32 57S14 40 14 25a18 18 0 1 1 36 0c0 15-18 32-18 32Z"/><circle class="a" cx="32" cy="25" r="7"/></symbol>
+  <symbol id="budget" viewBox="0 0 64 64"><rect class="s" x="8" y="17" width="48" height="34" rx="7"/><path class="l" d="M8 27h48M39 38h10"/><circle class="a" cx="22" cy="39" r="7"/></symbol>
+  <symbol id="solo" viewBox="0 0 64 64"><circle class="a" cx="32" cy="20" r="9"/><path class="s" d="M14 54c1-14 8-22 18-22s17 8 18 22Z"/></symbol>
+  <symbol id="couple" viewBox="0 0 64 64"><circle class="a" cx="22" cy="21" r="8"/><circle class="a" cx="43" cy="21" r="8"/><path class="s" d="M8 54c1-13 6-20 14-20s13 7 14 20M29 54c1-13 6-20 14-20s13 7 14 20"/></symbol>
+  <symbol id="family" viewBox="0 0 64 64"><circle class="a" cx="18" cy="19" r="7"/><circle class="a" cx="46" cy="19" r="7"/><circle class="a" cx="32" cy="32" r="6"/><path class="l" d="M6 53c1-12 5-19 12-19 5 0 8 3 10 8M58 53c-1-12-5-19-12-19-5 0-8 3-10 8"/><path class="s" d="M21 55c1-11 4-17 11-17s10 6 11 17Z"/></symbol>
+  <symbol id="friends" viewBox="0 0 64 64"><circle class="a" cx="20" cy="23" r="8"/><circle class="a" cx="44" cy="23" r="8"/><path class="s" d="M6 54c1-13 6-20 14-20 6 0 10 4 12 11 2-7 6-11 12-11 8 0 13 7 14 20Z"/><path class="l" d="m27 14 5-5 5 5"/></symbol>
+  <symbol id="company" viewBox="0 0 64 64"><rect class="s" x="12" y="14" width="40" height="40" rx="3"/><path class="l" d="M24 54V42h16v12M21 24h4m7 0h4m7 0h1M21 33h4m7 0h4m7 0h1"/><path class="a" d="M27 14V8h10v6Z"/></symbol>
+  <symbol id="bed" viewBox="0 0 64 64"><path class="s" d="M8 30h48v18H8Z"/><path class="l" d="M8 54V20m48 34V28M8 38h48M15 30v-9h16v9"/><path class="a" d="M34 24h16v6H34Z"/></symbol>
+  <symbol id="office" viewBox="0 0 64 64"><rect class="s" x="10" y="35" width="44" height="8" rx="2"/><path class="l" d="M17 43v12m30-12v12M32 35V22m-12 0h24"/><rect class="a" x="18" y="9" width="28" height="18" rx="3"/></symbol>
+  <symbol id="guest" viewBox="0 0 64 64"><path class="s" d="M8 32h48v18H8Z"/><path class="l" d="M8 55V21m48 34V31M8 41h48M15 32V22h16v10"/><circle class="a" cx="46" cy="18" r="7"/><path class="l" d="M43 18h6m-3-3v6"/></symbol>
+  <symbol id="ai" viewBox="0 0 64 64"><path class="s" d="M14 18h36v32H14Z"/><path class="l" d="M24 18v-6m16 6v-6M8 28h6M8 40h6m36-12h6m-6 12h6"/><circle class="a" cx="25" cy="32" r="4"/><circle class="a" cx="39" cy="32" r="4"/><path class="l" d="M24 42h16"/></symbol>
+  <symbol id="calendar" viewBox="0 0 64 64"><rect class="s" x="9" y="13" width="46" height="42" rx="6"/><path class="l" d="M9 25h46M20 8v10m24-10v10"/><path class="a" d="m23 39 6 6 13-14"/></symbol>
+  <symbol id="car" viewBox="0 0 64 64"><path class="s" d="m11 38 5-14c1-4 4-6 8-6h17c4 0 7 2 9 6l5 14v10H9V38Z"/><path class="a" d="m20 25-4 12h33l-5-12Z"/><path class="l" d="M9 39h46M15 48v6m34-6v6"/><circle cx="19" cy="43" r="3" fill="currentColor"/><circle cx="45" cy="43" r="3" fill="currentColor"/></symbol>
+  <symbol id="metro" viewBox="0 0 64 64"><rect class="s" x="15" y="8" width="34" height="42" rx="8"/><path class="l" d="M15 34h34M24 50l-7 7m23-7 7 7"/><circle class="a" cx="24" cy="41" r="4"/><circle class="a" cx="40" cy="41" r="4"/><path class="l" d="M24 19h16"/></symbol>
+  <symbol id="walk" viewBox="0 0 64 64"><circle class="a" cx="35" cy="11" r="6"/><path class="l" d="m31 20-7 14 10 6 5 15m-5-28 10 8 8-2M24 34l-9 17m12-30 10 1"/></symbol>
+  <symbol id="bus" viewBox="0 0 64 64"><rect class="s" x="12" y="8" width="40" height="44" rx="7"/><path class="l" d="M12 34h40M20 17h24M18 52v5m28-5v5"/><circle class="a" cx="21" cy="43" r="4"/><circle class="a" cx="43" cy="43" r="4"/></symbol>
+  <symbol id="taxi" viewBox="0 0 64 64"><path class="s" d="m9 38 6-15c1-3 4-5 8-5h18c4 0 7 2 8 5l6 15v11H9Z"/><path class="l" d="M9 39h46M18 49v6m28-6v6"/><path class="a" d="M25 18v-7h14v7Z"/><circle cx="19" cy="43" r="3" fill="currentColor"/><circle cx="45" cy="43" r="3" fill="currentColor"/></symbol>
+  <symbol id="multi" viewBox="0 0 64 64"><circle class="s" cx="32" cy="32" r="22"/><path class="l" d="M13 26h38M20 48 44 16M17 17l9 9m12 12 9 9"/><circle class="a" cx="32" cy="32" r="6"/></symbol>
+  <symbol id="athlete" viewBox="0 0 64 64"><circle class="a" cx="32" cy="12" r="6"/><path class="l" d="m31 20-7 13 9 7 8 15m-9-28 11 8 10-4M24 33 12 48"/></symbol>
+  <symbol id="laptop" viewBox="0 0 64 64"><rect class="s" x="13" y="10" width="38" height="30" rx="3"/><path class="a" d="M7 43h50l-5 9H12Z"/><path class="l" d="M27 47h10"/></symbol>
+  <symbol id="student" viewBox="0 0 64 64"><path class="a" d="m7 23 25-12 25 12-25 12Z"/><path class="l" d="M17 29v13c8 7 22 7 30 0V29M55 24v18"/><circle class="s" cx="55" cy="47" r="4"/></symbol>
+  <symbol id="quiet" viewBox="0 0 64 64"><path class="s" d="M13 42c14 0 26-10 29-26 8 13 5 29-7 36-9 6-20 3-22-10Z"/><path class="l" d="M19 47c8-1 14-5 19-12"/><path class="a" d="M48 12h8m-5 8h7"/></symbol>
+  <symbol id="social" viewBox="0 0 64 64"><circle class="a" cx="19" cy="20" r="7"/><circle class="a" cx="45" cy="20" r="7"/><circle class="a" cx="32" cy="34" r="7"/><path class="l" d="M7 53c1-11 5-17 12-17m38 17c-1-11-5-17-12-17M20 56c1-10 5-15 12-15s11 5 12 15"/></symbol>
+  <symbol id="pet" viewBox="0 0 64 64"><path class="s" d="M18 41c0-8 6-14 14-14s14 6 14 14c0 9-7 13-14 13s-14-4-14-13Z"/><circle class="a" cx="14" cy="26" r="6"/><circle class="a" cx="25" cy="17" r="6"/><circle class="a" cx="39" cy="17" r="6"/><circle class="a" cx="50" cy="26" r="6"/></symbol>
+  <symbol id="no" viewBox="0 0 64 64"><circle class="s" cx="32" cy="32" r="23"/><path class="l" d="m16 48 32-32"/></symbol>
+  <symbol id="school" viewBox="0 0 64 64"><path class="a" d="m7 25 25-14 25 14-25 14Z"/><path class="s" d="M14 32v21h36V32M27 53V41h10v12"/></symbol>
+  <symbol id="park" viewBox="0 0 64 64"><path class="s" d="M32 8c-11 0-18 9-14 18-8 3-7 17 3 19h22c10-2 11-16 3-19 4-9-3-18-14-18Z"/><path class="l" d="M32 34v22m-9 0h18"/></symbol>
+  <symbol id="gym" viewBox="0 0 64 64"><path class="l" d="M17 32h30M8 24v16m8-21v26m40-21v16m-8-21v26"/><path class="a" d="M25 27h14v10H25Z"/></symbol>
+  <symbol id="balcony" viewBox="0 0 64 64"><path class="s" d="M13 10h38v24H13Z"/><path class="l" d="M8 35h48M13 35v20m10-20v20m18-20v20m10-20v20M8 55h48M32 10v24"/></symbol>
+  <symbol id="light" viewBox="0 0 64 64"><circle class="a" cx="32" cy="28" r="15"/><path class="l" d="M32 5v7M8 28H3m53 0h5M15 11l5 5m24 0 5-5M25 47h14m-12 7h10"/></symbol>
+  <symbol id="kitchen" viewBox="0 0 64 64"><path class="s" d="M10 10h44v44H10Z"/><path class="l" d="M10 31h44M32 10v44M17 20h8m14 0h8M17 42h8m14 0h8"/></symbol>
+  <symbol id="view" viewBox="0 0 64 64"><path class="s" d="M5 32s10-17 27-17 27 17 27 17-10 17-27 17S5 32 5 32Z"/><circle class="a" cx="32" cy="32" r="9"/></symbol>
+  <symbol id="bath" viewBox="0 0 64 64"><path class="s" d="M8 31h48v9c0 8-7 14-15 14H23c-8 0-15-6-15-14Z"/><path class="l" d="M15 31V17c0-6 4-9 9-9 4 0 7 2 8 5M6 31h52M18 54l-3 4m31-4 3 4"/></symbol>
+  <symbol id="security" viewBox="0 0 64 64"><path class="s" d="M32 7 51 14v16c0 13-8 22-19 28-11-6-19-15-19-28V14Z"/><path class="a" d="m22 31 7 7 14-16-14 16Z"/></symbol>
+  <symbol id="elevator" viewBox="0 0 64 64"><rect class="s" x="13" y="7" width="38" height="50" rx="3"/><path class="l" d="M32 18v30M23 14l-5 7h10Zm18 0-5 7h10Z"/></symbol>
+  <symbol id="storage" viewBox="0 0 64 64"><path class="s" d="M8 20h48v34H8Z"/><path class="a" d="M12 10h40l4 10H8Z"/><path class="l" d="M25 36h14"/></symbol>
+  <symbol id="furniture" viewBox="0 0 64 64"><path class="s" d="M10 31h44v19H10Z"/><path class="l" d="M15 31V20h14v11m6 0V20h14v11M14 50v6m36-6v6"/><path class="a" d="M7 30h7v14H7Zm43 0h7v14h-7Z"/></symbol>
+  <symbol id="water" viewBox="0 0 64 64"><path class="s" d="M32 7S16 27 16 39a16 16 0 0 0 32 0C48 27 32 7 32 7Z"/><path class="l" d="M25 42c2 5 6 7 11 6"/></symbol>
+  <symbol id="check" viewBox="0 0 64 64"><circle class="s" cx="32" cy="32" r="23"/><path class="l" d="m20 33 8 8 17-19"/></symbol>
+  <symbol id="spark" viewBox="0 0 64 64"><path class="a" d="m32 6 5 17 17 5-17 5-5 17-5-17-17-5 17-5Z"/><path class="l" d="m50 44 2 7 7 2-7 2-2 7-2-7-7-2 7-2Z"/></symbol>
+</svg>
