@@ -18,6 +18,7 @@ import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { PersistentDataCache } from '../../utils/persistent-data-cache';
 import { firstValueFrom } from 'rxjs';
+import { Apartment } from '../../models/apartment';
 
 @Component({
   selector: 'app-draw-area-map',
@@ -38,6 +39,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   @Input() selectedAreaInput = '';
   @Input() selectedAreasInput: string[] = [];
   @Input() selectedStreetsInput: Array<{ streetId: number; street: string; district: string }> = [];
+  @Input() apartments: Apartment[] = [];
   @HostBinding('class.is-hidden') get isHidden(): boolean { return !this.visible; }
   @HostBinding('class.is-compact') get isCompact(): boolean { return this.compact; }
   @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLDivElement>;
@@ -75,6 +77,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private map?: google.maps.Map;
   private draw?: import('terra-draw').TerraDraw;
   private streetLines: google.maps.Polyline[] = [];
+  private countOverlays: google.maps.OverlayView[] = [];
   private selectionRevision = 0;
   private streetRevision = 0;
   private drawnAreaRevision = 0;
@@ -103,10 +106,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       void this.chooseArea(this.selectedAreaInput);
     }
     if (changes['selectedStreetsInput'] && this.map) void this.drawSelectedStreets();
+    if (changes['apartments'] && this.map && this.hasPolygon) this.refreshApartmentCountOverlays();
   }
 
   ngOnDestroy(): void {
     this.draw?.stop();
+    this.clearApartmentCountOverlays();
   }
 
   private setLegacyMapStyles(styles: google.maps.MapTypeStyle[] | null): void {
@@ -127,6 +132,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.polygonChange.emit(null);
     this.drawnStreetsChange.emit([]);
     this.clearStreetLines();
+    this.clearApartmentCountOverlays();
     this.setLegacyMapStyles(null);
   }
 
@@ -206,6 +212,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     // the newly selected OSM boundary is being downloaded.
     this.draw.clear();
     this.clearStreetLines();
+    this.clearApartmentCountOverlays();
     this.hasPolygon = false;
     this.selectedArea = '';
     this.selectedStreet = '';
@@ -249,6 +256,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       ),
       );
       this.map.fitBounds(bounds, 48);
+      this.renderApartmentCountOverlays(drawableAreas);
       await this.drawSelectedStreets(false);
       this.cdr.detectChanges();
       this.polygonChange.emit(this.currentPolygon());
@@ -262,6 +270,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.selectionRevision++;
     this.draw?.clear();
     this.clearStreetLines();
+    this.clearApartmentCountOverlays();
     this.selectedArea = '';
     this.selectedStreet = '';
     this.selectedStreetId = null;
@@ -482,7 +491,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           new TerraDrawPolygonMode({
             styles: {
               fillColor: '#451a8f',
-              fillOpacity: 0,
+              fillOpacity: 0.18,
               outlineColor: '#451a8f',
               outlineWidth: 3,
             },
@@ -605,6 +614,89 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           streetName: this.selectedStreet || undefined,
         }
       : null;
+  }
+
+  private refreshApartmentCountOverlays(): void {
+    const selected = this.selectedArea.split(',').map((area) => area.trim()).filter(Boolean);
+    if (!selected.length) return;
+    void Promise.all(selected.map(async (area) => ({ area, polygons: await this.loadBoundary(area) })))
+      .then((areas) => this.renderApartmentCountOverlays(areas.filter((item) => item.polygons.length)));
+  }
+
+  private renderApartmentCountOverlays(
+    areas: Array<{ area: string; polygons: number[][][][] }>,
+  ): void {
+    if (!this.map) return;
+    this.clearApartmentCountOverlays();
+
+    for (const { area, polygons } of areas) {
+      // Use the largest outer ring and its visual bounds. Averaging vertices
+      // biases the marker toward detailed edges instead of the district center.
+      const points = polygons
+        .map((polygon) => polygon[0] || [])
+        .sort((left, right) => right.length - left.length)[0] || [];
+      if (!points.length) continue;
+      const extent = points.reduce(
+        (bounds, [lng, lat]) => ({
+          minLat: Math.min(bounds.minLat, lat), maxLat: Math.max(bounds.maxLat, lat),
+          minLng: Math.min(bounds.minLng, lng), maxLng: Math.max(bounds.maxLng, lng),
+        }),
+        { minLat: Infinity, maxLat: -Infinity, minLng: Infinity, maxLng: -Infinity },
+      );
+      const center = {
+        lat: (extent.minLat + extent.maxLat) / 2,
+        lng: (extent.minLng + extent.maxLng) / 2,
+      };
+      const count = this.apartments.filter(
+        (apartment) => (apartment.district || '').trim().toLowerCase() === area.trim().toLowerCase(),
+      ).length;
+
+      const overlay = new google.maps.OverlayView();
+      let badge: HTMLDivElement | undefined;
+      overlay.onAdd = () => {
+        badge = document.createElement('div');
+        badge.setAttribute('role', 'status');
+        badge.setAttribute('aria-label', `${count} apartments in ${area}`);
+        badge.innerHTML = `<strong>${count}</strong><span>განცხადება</span><i></i>`;
+        Object.assign(badge.style, {
+          position: 'absolute', transform: 'translate(-50%, -100%) scale(.66)', transformOrigin: 'bottom center',
+          width: '112px', height: '106px',
+          color: '#fff', filter: 'drop-shadow(0 7px 9px rgba(69, 26, 143, .3))',
+          textAlign: 'center', fontFamily: 'inherit', pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: '10',
+        });
+        const strong = badge.querySelector('strong') as HTMLElement;
+        const label = badge.querySelector('span') as HTMLElement;
+        const tail = badge.querySelector('i') as HTMLElement;
+        Object.assign(strong.style, {
+          position: 'absolute', top: '0', left: '20px', display: 'grid', placeItems: 'center',
+          width: '72px', height: '72px', borderRadius: '50%', background: '#5b21d1',
+          fontSize: '34px', lineHeight: '1', fontWeight: '500', zIndex: '1',
+        });
+        Object.assign(label.style, {
+          position: 'absolute', top: '62px', left: '0', display: 'grid', placeItems: 'center',
+          width: '112px', height: '32px', borderRadius: '18px', background: '#5b21d1',
+          fontSize: '12px', lineHeight: '1', fontWeight: '700', zIndex: '2',
+        });
+        Object.assign(tail.style, {
+          position: 'absolute', top: '87px', left: '44px', display: 'block', width: '0', height: '0',
+          borderLeft: '12px solid transparent', borderRight: '12px solid transparent',
+          borderTop: '17px solid #5b21d1', zIndex: '1',
+        });
+        overlay.getPanes()?.floatPane.appendChild(badge);
+      };
+      overlay.draw = () => {
+        const pixel = overlay.getProjection().fromLatLngToDivPixel(center);
+        if (badge && pixel) { badge.style.left = `${pixel.x}px`; badge.style.top = `${pixel.y}px`; }
+      };
+      overlay.onRemove = () => { badge?.remove(); badge = undefined; };
+      overlay.setMap(this.map);
+      this.countOverlays.push(overlay);
+    }
+  }
+
+  private clearApartmentCountOverlays(): void {
+    this.countOverlays.forEach((overlay) => overlay.setMap(null));
+    this.countOverlays = [];
   }
 
   private distinctPolygonPointCount(feature: { geometry?: { type?: string; coordinates?: unknown } }): number {

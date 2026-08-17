@@ -95,6 +95,7 @@
                   <app-draw-area-map class="inline-google-draw"
                     [visible]="true"
                     [compact]="true"
+                    [apartments]="apartments"
                     [selectedAreaInput]="selectedLocationArea"
                     [selectedAreasInput]="selectedLocationAreas"
                     [selectedStreetsInput]="selectedModalStreetDetails"
@@ -321,6 +322,7 @@
 <app-draw-area-map
   *ngIf="drawAreaInitialized"
   [visible]="drawAreaOpen"
+  [apartments]="apartments"
   (close)="closeDrawArea()"
   (apply)="applyDrawnArea($event)">
 </app-draw-area-map>
