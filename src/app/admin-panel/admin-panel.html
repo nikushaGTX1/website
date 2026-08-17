@@ -107,12 +107,15 @@
     <app-street-validation-map></app-street-validation-map>
   </section>
 
-  <section class="admin-section" *ngIf="activeTab === 'users' && isAdmin">
+  <section class="admin-section users-section" *ngIf="activeTab === 'users' && isAdmin">
     <div class="section-title">
-      <h2>Users</h2>
-      <span>{{ filteredUsers.length }} loaded</span>
+      <div><p class="section-kicker">Access &amp; permissions</p><h2>User management</h2></div>
+      <span class="user-count"><i class="fa-solid fa-users" aria-hidden="true"></i>{{ filteredUsers.length }} users</span>
     </div>
     <div class="empty-state" *ngIf="filteredUsers.length === 0">No users found.</div>
+    <div class="user-table-head" *ngIf="filteredUsers.length">
+      <span>User</span><span>CRM access</span><span>Actions</span>
+    </div>
     <div class="data-row user-admin-row" *ngFor="let user of filteredUsers; trackBy: identifyUser">
       <div class="user-admin-identity">
         <span class="user-admin-avatar">
@@ -125,9 +128,8 @@
         </span>
       </div>
       <div class="user-admin-actions">
-        <button type="button" class="edit-user" (click)="openUserEditor(user)" [disabled]="!user.id"><i class="fa-solid fa-pen"></i> Edit account</button>
-        <label>
-          <span class="sr-only">CRM role for {{ user.fullName || user.userName }}</span>
+        <label class="role-control">
+          <span>CRM role</span>
           <select [ngModel]="crmRole(user)" (ngModelChange)="setCrmRole(user, $event)" [disabled]="!user.id || actionId === user.id || user.roles?.includes('Admin') === true">
             <option value="" disabled>Choose CRM role</option>
             <option value="Manager">Manager</option>
@@ -135,6 +137,7 @@
             <option value="Uploader">Uploader</option>
           </select>
         </label>
+        <button type="button" class="edit-user" (click)="openUserEditor(user)" [disabled]="!user.id"><i class="fa-solid fa-user-pen"></i><span>Manage user</span><i class="fa-solid fa-chevron-right arrow" aria-hidden="true"></i></button>
       </div>
     </div>
   </section>
@@ -156,11 +159,12 @@
       </div>
 
       <form class="user-editor-form" (ngSubmit)="saveUserChanges()">
-        <label><span>Full name</span><input name="adminFullName" [(ngModel)]="editUserForm.fullName" required></label>
-        <label><span>Username</span><input name="adminUserName" [(ngModel)]="editUserForm.userName" required></label>
-        <label><span>Email</span><input name="adminEmail" type="email" [(ngModel)]="editUserForm.email" required></label>
-        <label><span>Phone number</span><input name="adminPhone" type="tel" [(ngModel)]="editUserForm.phoneNumber"></label>
-        <label class="wide"><span>Bio</span><textarea name="adminBio" rows="3" [(ngModel)]="editUserForm.bio"></textarea></label>
+        <div class="form-heading wide"><h3>Account information</h3><p>Update the user's public details and contact information.</p></div>
+        <label><span>Full name</span><div class="editor-input"><i class="fa-regular fa-user"></i><input name="adminFullName" [(ngModel)]="editUserForm.fullName" placeholder="Enter full name" required></div></label>
+        <label><span>Username</span><div class="editor-input"><i class="fa-solid fa-at"></i><input name="adminUserName" [(ngModel)]="editUserForm.userName" placeholder="Enter username" autocomplete="off" required></div></label>
+        <label><span>Email address</span><div class="editor-input"><i class="fa-regular fa-envelope"></i><input name="adminEmail" type="email" [(ngModel)]="editUserForm.email" placeholder="name@example.com" autocomplete="email" required></div></label>
+        <label><span>Phone number</span><div class="editor-input"><i class="fa-solid fa-phone"></i><input name="adminPhone" type="tel" [(ngModel)]="editUserForm.phoneNumber" placeholder="+995 5XX XX XX XX" autocomplete="tel"></div></label>
+        <label class="wide"><span>Bio</span><textarea name="adminBio" rows="3" [(ngModel)]="editUserForm.bio" placeholder="Add a short profile description"></textarea></label>
         <div class="user-editor-actions wide">
           <button type="button" class="cancel" (click)="closeUserEditor()">Cancel</button>
           <button type="submit" [disabled]="savingUser">{{ savingUser ? 'Saving…' : 'Save account' }}</button>
