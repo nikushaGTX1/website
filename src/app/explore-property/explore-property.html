@@ -7,92 +7,131 @@
 
     <div class="search-card" [class.location-dialog-open]="locationOpen">
       <div class="search-tabs">
-        <button type="button" class="tab-btn" [class.active]="selectedType !== 'For Sale'"
-          (click)="selectedType = 'For Rent'; onSearch()"><span class="tab-home home-svg" aria-hidden="true"></span> Rent</button>
-        <button type="button" class="tab-btn" [class.active]="selectedType === 'For Sale'"
-          (click)="selectedType = 'For Sale'; onSearch()"><span class="tab-home home-svg" aria-hidden="true"></span> Buy</button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="selectedType !== 'For Sale'"
+          (click)="selectedType = 'For Rent'; onSearch()"
+        >
+          <span class="tab-home home-svg" aria-hidden="true"></span> Rent
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="selectedType === 'For Sale'"
+          (click)="selectedType = 'For Sale'; onSearch()"
+        >
+          <span class="tab-home home-svg" aria-hidden="true"></span> Buy
+        </button>
       </div>
 
       <div class="search-inputs-bar">
-        <div class="input-group location-search" (click)="$event.stopPropagation()"><span>Location</span>
-          <button class="location-control location-panel-trigger" type="button"
-            [class.is-open]="locationOpen" [attr.aria-expanded]="locationOpen"
-            aria-haspopup="dialog" (click)="openLocationSearch()">
+        <div class="input-group location-search" (click)="$event.stopPropagation()">
+          <span>Location</span>
+          <button
+            class="location-control location-panel-trigger"
+            type="button"
+            [class.is-open]="locationOpen"
+            [attr.aria-expanded]="locationOpen"
+            aria-haspopup="dialog"
+            (click)="openLocationSearch()"
+          >
             <b><span class="location-svg" aria-hidden="true"></span></b>
-            <span class="location-trigger-text">{{ location || 'Search area, street, building or landmark...' }}</span>
+            <span class="location-trigger-text">{{
+              location || 'Search area, street, building or landmark...'
+            }}</span>
             <i class="fa-solid fa-chevron-down location-chevron" aria-hidden="true"></i>
           </button>
 
-          <div class="location-modal-backdrop" *ngIf="locationOpen" (click)="cancelLocationPicker()">
-            <div class="location-picker-dialog" role="dialog" aria-modal="true" aria-label="Choose your location"
-              (click)="$event.stopPropagation()">
+          <div
+            class="location-modal-backdrop"
+            *ngIf="locationOpen"
+            (click)="cancelLocationPicker()"
+          >
+            <div
+              class="location-picker-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Choose your location"
+              (click)="$event.stopPropagation()"
+            >
               <header class="location-modal-header">
                 <div>
                   <h2>Choose your location</h2>
                   <div class="location-steps">
                     <span class="active"><b>1</b> Areas</span><i></i>
-                    <span [class.active]="selectedModalStreets.length > 0"><b>2</b> Streets <small>(optional)</small></span>
+                    <span [class.active]="selectedModalStreets.length > 0"
+                      ><b>2</b> Streets <small>(optional)</small></span
+                    >
                   </div>
                 </div>
-                <button class="location-modal-close" type="button" aria-label="Close location picker" (click)="cancelLocationPicker()"><i class="fa-solid fa-xmark"></i></button>
+                <button
+                  class="location-modal-close"
+                  type="button"
+                  aria-label="Close location picker"
+                  (click)="cancelLocationPicker()"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
               </header>
 
-              <div class="location-modal-body" [class.has-street-column]="selectedLocationAreas.length > 0 || inlineDrawnPolygon">
+              <div class="location-modal-body">
                 <section class="area-picker-column">
                   <h3>Popular areas</h3>
                   <div class="featured-area-grid">
-                    <button type="button" *ngFor="let area of featuredLocationAreas"
-                      [class.selected]="isAreaSelected(area.name)" (click)="chooseAreaForModal(area.name)">
+                    <button
+                      type="button"
+                      *ngFor="let area of featuredLocationAreas"
+                      [class.selected]="isAreaSelected(area.name)"
+                      (click)="chooseAreaForModal(area.name)"
+                    >
                       <i [class]="area.icon" aria-hidden="true"></i>
-                      <span><b>{{ area.name }}</b><small>{{ area.description }}</small></span>
-                      <i class="fa-solid fa-circle-check area-check" *ngIf="isAreaSelected(area.name)"></i>
+                      <span
+                        ><b>{{ area.name }}</b
+                        ><small>{{ area.description }}</small></span
+                      >
+                      <i
+                        class="fa-solid fa-circle-check area-check"
+                        *ngIf="isAreaSelected(area.name)"
+                      ></i>
                     </button>
                   </div>
                   <h3>All areas</h3>
                   <div class="all-area-grid">
-                    <button type="button" *ngFor="let area of allLocationAreas"
-                      [class.selected]="isAreaSelected(area)" (click)="chooseAreaForModal(area)">
+                    <button
+                      type="button"
+                      *ngFor="let area of allLocationAreas"
+                      [class.selected]="isAreaSelected(area)"
+                      (click)="chooseAreaForModal(area)"
+                    >
                       <i class="fa-solid fa-building" aria-hidden="true"></i>{{ area }}
                     </button>
                     <ng-container *ngIf="moreAreasOpen">
-                      <button type="button" *ngFor="let area of additionalTbilisiAreas"
-                        [class.selected]="isAreaSelected(area)" (click)="chooseAreaForModal(area)">
+                      <button
+                        type="button"
+                        *ngFor="let area of additionalTbilisiAreas"
+                        [class.selected]="isAreaSelected(area)"
+                        (click)="chooseAreaForModal(area)"
+                      >
                         <i class="fa-solid fa-building" aria-hidden="true"></i>{{ area }}
                       </button>
                     </ng-container>
-                    <button type="button" class="more-areas-trigger" [class.selected]="moreAreasOpen"
-                      [attr.aria-expanded]="moreAreasOpen" (click)="moreAreasOpen = !moreAreasOpen">
-                      {{ moreAreasOpen ? 'Fewer areas' : 'More areas' }} <i class="fa-solid fa-chevron-down"></i>
+                    <button
+                      type="button"
+                      class="more-areas-trigger"
+                      [class.selected]="moreAreasOpen"
+                      [attr.aria-expanded]="moreAreasOpen"
+                      (click)="moreAreasOpen = !moreAreasOpen"
+                    >
+                      {{ moreAreasOpen ? 'Fewer areas' : 'More areas' }}
+                      <i class="fa-solid fa-chevron-down"></i>
                     </button>
                   </div>
-                </section>
-
-                <section class="street-picker-column" *ngIf="selectedLocationAreas.length > 0 || inlineDrawnPolygon">
-                  <h3>{{ streetAreaTitle }}</h3>
-                  <label class="street-search">
-                    <input name="exploreStreetSearch" [(ngModel)]="streetSearch" placeholder="Search street...">
-                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                  </label>
-                  <div class="street-choice-list">
-                    <button type="button" *ngFor="let street of modalStreetSuggestions"
-                      [class.selected]="isStreetSelected(street.label)" (click)="toggleModalStreet(street)">
-                      <i class="fa-solid" [class.fa-circle-check]="isStreetSelected(street.label)"
-                        [class.fa-circle]="!isStreetSelected(street.label)" aria-hidden="true"></i>
-                      <span class="street-row-text">{{ street.label }} <small>{{ street.district }}</small></span>
-                    </button>
-                    <p *ngIf="!modalStreetSuggestions.length">
-                      {{ drawnStreetsLoading ? 'Finding streets inside your drawing...' : (inlineDrawnPolygon ? 'No named streets were found inside this drawing.' : 'Choose an area to see its streets.') }}
-                    </p>
-                  </div>
-                  <button class="show-streets" type="button" *ngIf="modalStreetSuggestions.length"
-                    [class.expanded]="showAllStreets" [attr.aria-expanded]="showAllStreets"
-                    (click)="showAllStreets = !showAllStreets">
-                    {{ showAllStreets ? 'Show fewer streets' : 'Show all streets' }} <i class="fa-solid fa-chevron-down"></i>
-                  </button>
                 </section>
 
                 <aside class="location-map-preview">
-                  <app-draw-area-map class="inline-google-draw"
+                  <app-draw-area-map
+                    class="inline-google-draw"
                     [visible]="true"
                     [compact]="true"
                     [apartments]="apartments"
@@ -101,132 +140,301 @@
                     [selectedStreetsInput]="selectedModalStreetDetails"
                     (polygonChange)="onInlinePolygon($event)"
                     (drawnStreetsChange)="onDrawnStreets($event)"
-                    (detectedAreaChange)="onDetectedDrawnArea($event)">
+                    (detectedAreaChange)="onDetectedDrawnArea($event)"
+                    (streetSelected)="toggleModalStreet($event)"
+                  >
                   </app-draw-area-map>
-                  <div class="area-map-card"><i class="fa-solid fa-city"></i><span><b>{{ selectedLocationArea || 'Tbilisi' }}</b><small>{{ selectedAreaDescription }}</small></span></div>
+                  <div class="area-map-card">
+                    <i class="fa-solid fa-city"></i
+                    ><span
+                      ><b>{{ selectedLocationArea || 'Tbilisi' }}</b
+                      ><small>{{ selectedAreaDescription }}</small></span
+                    >
+                  </div>
                 </aside>
               </div>
 
               <footer class="location-modal-footer">
                 <div class="selected-location" *ngIf="selectedLocationAreas.length > 0">
                   <b>Selected:</b>
-                  <span *ngFor="let area of selectedLocationAreas">{{ area }} <button type="button" [attr.aria-label]="'Remove ' + area" (click)="removeModalArea(area)">×</button></span>
-                  <button type="button" class="clear-location" (click)="clearModalLocation()">Clear all</button>
+                  <span *ngFor="let area of selectedLocationAreas"
+                    >{{ area }}
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Remove ' + area"
+                      (click)="removeModalArea(area)"
+                    >
+                      ×
+                    </button></span
+                  >
+                  <button type="button" class="clear-location" (click)="clearModalLocation()">
+                    Clear all
+                  </button>
                 </div>
                 <div>
-                  <button type="button" class="cancel-location" (click)="cancelLocationPicker()">Cancel</button>
-                  <button type="button" class="apply-location" [disabled]="!selectedLocationAreas.length && !inlineDrawnPolygon" (click)="applyModalLocation()">Apply changes</button>
+                  <button type="button" class="cancel-location" (click)="cancelLocationPicker()">
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="apply-location"
+                    [disabled]="!selectedLocationAreas.length && !inlineDrawnPolygon"
+                    (click)="applyModalLocation()"
+                  >
+                    Apply changes
+                  </button>
                 </div>
               </footer>
             </div>
           </div>
         </div>
-        <label class="input-group property-type-filter" (click)="$event.stopPropagation()"><span>Property Type</span>
-          <button class="property-type-trigger" type="button" [class.is-open]="propertyTypeOpen"
-            [attr.aria-expanded]="propertyTypeOpen" aria-haspopup="listbox"
-            (click)="toggleSearchMenu('propertyType')">
-            <span><span class="layers-svg" aria-hidden="true"></span>{{ homeType || 'Any property type' }}</span>
+        <label class="input-group property-type-filter" (click)="$event.stopPropagation()"
+          ><span>Property Type</span>
+          <button
+            class="property-type-trigger"
+            type="button"
+            [class.is-open]="propertyTypeOpen"
+            [attr.aria-expanded]="propertyTypeOpen"
+            aria-haspopup="listbox"
+            (click)="toggleSearchMenu('propertyType')"
+          >
+            <span
+              ><span class="layers-svg" aria-hidden="true"></span
+              >{{ homeType || 'Any property type' }}</span
+            >
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
           <div class="property-type-menu" role="listbox" *ngIf="propertyTypeOpen">
-            <button class="mobile-popover-close" type="button" aria-label="Close property type" (click)="propertyTypeOpen = false"><i class="fa-solid fa-xmark"></i></button>
+            <button
+              class="mobile-popover-close"
+              type="button"
+              aria-label="Close property type"
+              (click)="propertyTypeOpen = false"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <h3>Property Type</h3>
             <div class="property-type-options">
-              <button type="button" role="option" *ngFor="let option of propertyTypeOptions"
-                [class.active]="homeType === option" [attr.aria-selected]="homeType === option"
-                (click)="selectHeaderPropertyType(option)"><span class="property-option-svg"
-                [class.flats-svg]="option === 'Apartament'"
-                [class.shop-svg]="option === 'Commercial Place'" [class.house-option-svg]="option === 'House'"
-                [class.country-house-svg]="option === 'Country house'" aria-hidden="true"></span>{{ option }}</button>
+              <button
+                type="button"
+                role="option"
+                *ngFor="let option of propertyTypeOptions"
+                [class.active]="homeType === option"
+                [attr.aria-selected]="homeType === option"
+                (click)="selectHeaderPropertyType(option)"
+              >
+                <span
+                  class="property-option-svg"
+                  [class.flats-svg]="option === 'Apartament'"
+                  [class.shop-svg]="option === 'Commercial Place'"
+                  [class.house-option-svg]="option === 'House'"
+                  [class.country-house-svg]="option === 'Country house'"
+                  aria-hidden="true"
+                ></span
+                >{{ option }}
+              </button>
             </div>
-            <button class="property-type-clear" type="button" (click)="selectHeaderPropertyType('')">Clear</button>
+            <button
+              class="property-type-clear"
+              type="button"
+              (click)="selectHeaderPropertyType('')"
+            >
+              Clear
+            </button>
           </div>
         </label>
         <div class="input-group budget-filter">
           <span>Budget</span>
-          <button class="budget-trigger" type="button" [class.is-open]="budgetOpen"
-            [attr.aria-expanded]="budgetOpen" aria-haspopup="dialog"
-            (click)="$event.stopPropagation(); toggleSearchMenu('budget')">
-            <span><i class="fa-solid fa-wallet"></i> {{ budgetSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
+          <button
+            class="budget-trigger"
+            type="button"
+            [class.is-open]="budgetOpen"
+            [attr.aria-expanded]="budgetOpen"
+            aria-haspopup="dialog"
+            (click)="$event.stopPropagation(); toggleSearchMenu('budget')"
+          >
+            <span><i class="fa-solid fa-wallet"></i> {{ budgetSummary }}</span
+            ><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
-          <div class="budget-popover" role="dialog" aria-label="Price filter" *ngIf="budgetOpen"
-            (click)="$event.stopPropagation()">
-            <button class="mobile-popover-close" type="button" aria-label="Close price filter" (click)="budgetOpen = false"><i class="fa-solid fa-xmark"></i></button>
+          <div
+            class="budget-popover"
+            role="dialog"
+            aria-label="Price filter"
+            *ngIf="budgetOpen"
+            (click)="$event.stopPropagation()"
+          >
+            <button
+              class="mobile-popover-close"
+              type="button"
+              aria-label="Close price filter"
+              (click)="budgetOpen = false"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <h3>Choose your price range</h3>
             <div class="budget-presets">
-              <button type="button" *ngFor="let range of budgetRanges"
+              <button
+                type="button"
+                *ngFor="let range of budgetRanges"
                 [class.active]="selectedBudgetRange === range.label"
-                (click)="selectBudgetRange(range)">{{ range.label }}</button>
+                (click)="selectBudgetRange(range)"
+              >
+                {{ range.label }}
+              </button>
             </div>
             <div class="filter-divider"></div>
             <h4>Custom range</h4>
             <div class="budget-fields">
-              <label><span>Min price</span><input type="number" min="0" inputmode="numeric"
-                [(ngModel)]="budgetMin" (ngModelChange)="selectedBudgetRange = ''" placeholder="$ 0"></label>
+              <label
+                ><span>Min price</span
+                ><input
+                  type="number"
+                  min="0"
+                  inputmode="numeric"
+                  [(ngModel)]="budgetMin"
+                  (ngModelChange)="selectedBudgetRange = ''"
+                  placeholder="$ 0"
+              /></label>
               <b aria-hidden="true">–</b>
-              <label><span>Max price</span><input type="number" min="0" inputmode="numeric"
-                [(ngModel)]="budgetMax" (ngModelChange)="selectedBudgetRange = ''" placeholder="$ 5,000"></label>
+              <label
+                ><span>Max price</span
+                ><input
+                  type="number"
+                  min="0"
+                  inputmode="numeric"
+                  [(ngModel)]="budgetMax"
+                  (ngModelChange)="selectedBudgetRange = ''"
+                  placeholder="$ 5,000"
+              /></label>
             </div>
-            <div class="budget-slider-stack" [style.--range-start]="budgetMinPercent + '%'" [style.--range-end]="budgetMaxPercent + '%'">
+            <div
+              class="budget-slider-stack"
+              [style.--range-start]="budgetMinPercent + '%'"
+              [style.--range-end]="budgetMaxPercent + '%'"
+            >
               <span class="range-fill" aria-hidden="true"></span>
-              <input type="range" min="0" max="5000" step="100" [(ngModel)]="budgetMin"
-                (ngModelChange)="selectedBudgetRange = ''">
-              <input type="range" min="0" max="5000" step="100" [(ngModel)]="budgetMax"
-                (ngModelChange)="selectedBudgetRange = ''">
+              <input
+                type="range"
+                min="0"
+                max="5000"
+                step="100"
+                [(ngModel)]="budgetMin"
+                (ngModelChange)="selectedBudgetRange = ''"
+              />
+              <input
+                type="range"
+                min="0"
+                max="5000"
+                step="100"
+                [(ngModel)]="budgetMax"
+                (ngModelChange)="selectedBudgetRange = ''"
+              />
             </div>
-            <div class="budget-scale"><span>$0</span><span>$1K</span><span>$2K</span><span>$5K+</span></div>
+            <div class="budget-scale">
+              <span>$0</span><span>$1K</span><span>$2K</span><span>$5K+</span>
+            </div>
             <div class="budget-actions">
-              <button class="budget-reset" type="button" (click)="resetBudget()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+              <button class="budget-reset" type="button" (click)="resetBudget()">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+              </button>
               <button class="budget-apply" type="button" (click)="applyBudget()">Apply</button>
             </div>
           </div>
         </div>
-        <div class="input-group bedroom-filter"><span>Rooms</span>
-          <button class="bedroom-trigger" type="button" [class.is-open]="bedroomOpen"
-            [attr.aria-expanded]="bedroomOpen" aria-haspopup="dialog"
-            (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')">
-            <span><i class="fa-solid fa-bed"></i> {{ headerBedroomSummary }}</span><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
+        <div class="input-group bedroom-filter">
+          <span>Rooms</span>
+          <button
+            class="bedroom-trigger"
+            type="button"
+            [class.is-open]="bedroomOpen"
+            [attr.aria-expanded]="bedroomOpen"
+            aria-haspopup="dialog"
+            (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')"
+          >
+            <span><i class="fa-solid fa-bed"></i> {{ headerBedroomSummary }}</span
+            ><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
-          <div class="bedroom-popover" role="dialog" aria-label="Bedroom filter" *ngIf="bedroomOpen"
-            (click)="$event.stopPropagation()">
-            <button class="mobile-popover-close" type="button" aria-label="Close bedroom filter" (click)="bedroomOpen = false"><i class="fa-solid fa-xmark"></i></button>
+          <div
+            class="bedroom-popover"
+            role="dialog"
+            aria-label="Bedroom filter"
+            *ngIf="bedroomOpen"
+            (click)="$event.stopPropagation()"
+          >
+            <button
+              class="mobile-popover-close"
+              type="button"
+              aria-label="Close bedroom filter"
+              (click)="bedroomOpen = false"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <ng-container *ngIf="bedroomStep === 'rooms'; else exploreBedroomStep">
               <h3>Rooms</h3>
               <div class="bedroom-options">
-                <button type="button" *ngFor="let option of headerRoomOptions"
+                <button
+                  type="button"
+                  *ngFor="let option of headerRoomOptions"
                   [class.active]="headerRooms === option.value"
-                  (click)="selectHeaderRooms(option.value)"><i [class]="option.icon"></i><span>{{ option.label }}</span></button>
+                  (click)="selectHeaderRooms(option.value)"
+                >
+                  <i [class]="option.icon"></i><span>{{ option.label }}</span>
+                </button>
               </div>
             </ng-container>
             <ng-template #exploreBedroomStep>
-              <h3><button type="button" class="bedroom-step-back" (click)="bedroomStep = 'rooms'">←</button> Bedrooms</h3>
+              <h3>
+                <button type="button" class="bedroom-step-back" (click)="bedroomStep = 'rooms'">
+                  ←
+                </button>
+                Bedrooms
+              </h3>
               <div class="bedroom-options">
-                <button type="button" *ngFor="let option of availableHeaderBedroomOptions"
+                <button
+                  type="button"
+                  *ngFor="let option of availableHeaderBedroomOptions"
                   [class.active]="headerBedrooms === option.value"
-                  (click)="selectHeaderBedrooms(option.value)"><i [class]="option.icon"></i><span>{{ option.label }}</span></button>
+                  (click)="selectHeaderBedrooms(option.value)"
+                >
+                  <i [class]="option.icon"></i><span>{{ option.label }}</span>
+                </button>
               </div>
             </ng-template>
-            <button class="bedroom-clear" type="button" (click)="clearHeaderBedrooms()">Clear</button>
+            <button class="bedroom-clear" type="button" (click)="clearHeaderBedrooms()">
+              Clear
+            </button>
           </div>
         </div>
-        <button class="btn-primary-search" type="button" (click)="onSearch()">Search Homes <i class="fa-solid fa-magnifying-glass"></i></button>
+        <button class="btn-primary-search" type="button" (click)="onSearch()">
+          Search Homes <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
       </div>
 
       <!-- Visible Results Header inside the search card -->
       <div class="results-header">
-        <span class="count"><strong>{{ filteredApartments.length | number }}</strong>
-          {{ drawnAreaActive ? 'homes found in your selected area' : 'properties found' }}</span>
-        <div class="sort-by"><label>Sort by:</label>
-          <select (change)="onSortChange($event)"><option value="newest">Newest</option>
-            <option value="price-asc">Price: Low to High</option><option value="price-desc">Price: High to Low</option></select>
+        <span class="count"
+          ><strong>{{ filteredApartments.length | number }}</strong>
+          {{ drawnAreaActive ? 'homes found in your selected area' : 'properties found' }}</span
+        >
+        <div class="sort-by">
+          <label>Sort by:</label>
+          <select (change)="onSortChange($event)">
+            <option value="newest">Newest</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
         </div>
       </div>
 
       <div class="explore-search-footer">
         <div class="explore-footer-actions">
-          <button class="btn-secondary" type="button" (click)="focusFilters()"><i class="fa-solid fa-sliders"></i> More Filters</button>
+          <button class="btn-secondary" type="button" (click)="focusFilters()">
+            <i class="fa-solid fa-sliders"></i> More Filters
+          </button>
         </div>
-        <a routerLink="/ai-home-match"><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</a>
+        <a routerLink="/ai-home-match"
+          ><i class="fa-solid fa-wand-magic-sparkles"></i> Let AI find my home</a
+        >
       </div>
     </div>
   </section>
@@ -234,57 +442,157 @@
   <div class="page-shell">
     <main class="explore-content">
       <aside class="sidebar-filters">
-        <div class="filter-header"><h3>Filters</h3><button type="button" class="btn-clear" (click)="clearFilters()">Clear all</button></div>
+        <div class="filter-header">
+          <h3>Filters</h3>
+          <button type="button" class="btn-clear" (click)="clearFilters()">Clear all</button>
+        </div>
         <div class="filter-group">
-          <div class="group-title"><span>Price range</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i></div>
-          <input class="price-range" type="range" min="0" max="3000" [(ngModel)]="selectedPriceMax" />
+          <div class="group-title">
+            <span>Price range</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+          </div>
+          <input
+            class="price-range"
+            type="range"
+            min="0"
+            max="3000"
+            [(ngModel)]="selectedPriceMax"
+          />
           <div class="price-labels"><span>$600</span><span>$2,000+</span></div>
-          <div class="price-inputs"><label><span>Min</span><input value="$600" readonly></label>
-            <label><span>Max</span><input [value]="'$' + selectedPriceMax" readonly></label></div>
+          <div class="price-inputs">
+            <label><span>Min</span><input value="$600" readonly /></label>
+            <label><span>Max</span><input [value]="'$' + selectedPriceMax" readonly /></label>
+          </div>
         </div>
-        <div class="filter-group"><div class="group-title"><span>Bedrooms</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i></div>
-          <div class="checkbox-list"><label *ngFor="let option of bedroomOptions"><input type="checkbox"
-            [checked]="isFilterActive(selectedBedrooms, option)" (change)="toggleFilterItem(selectedBedrooms, option); onSearch()"> {{ option }}</label></div>
+        <div class="filter-group">
+          <div class="group-title">
+            <span>Bedrooms</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+          </div>
+          <div class="checkbox-list">
+            <label *ngFor="let option of bedroomOptions"
+              ><input
+                type="checkbox"
+                [checked]="isFilterActive(selectedBedrooms, option)"
+                (change)="toggleFilterItem(selectedBedrooms, option); onSearch()"
+              />
+              {{ option }}</label
+            >
+          </div>
         </div>
-        <div class="filter-group"><div class="group-title"><span>Bathrooms</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i></div>
-          <div class="checkbox-list"><label *ngFor="let option of bathroomOptions"><input type="checkbox"
-            [checked]="isFilterActive(selectedBathrooms, option)" (change)="toggleFilterItem(selectedBathrooms, option); onSearch()"> {{ option }}</label></div>
+        <div class="filter-group">
+          <div class="group-title">
+            <span>Bathrooms</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+          </div>
+          <div class="checkbox-list">
+            <label *ngFor="let option of bathroomOptions"
+              ><input
+                type="checkbox"
+                [checked]="isFilterActive(selectedBathrooms, option)"
+                (change)="toggleFilterItem(selectedBathrooms, option); onSearch()"
+              />
+              {{ option }}</label
+            >
+          </div>
         </div>
-        <div class="filter-group"><div class="group-title"><span>Property type</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i></div>
-          <div class="checkbox-list"><label *ngFor="let option of propertyTypeOptions"><input type="checkbox"
-            [checked]="isFilterActive(selectedPropertyTypes, option)" (change)="toggleFilterItem(selectedPropertyTypes, option); onSearch()"> {{ option }}</label></div>
+        <div class="filter-group">
+          <div class="group-title">
+            <span>Property type</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+          </div>
+          <div class="checkbox-list">
+            <label *ngFor="let option of propertyTypeOptions"
+              ><input
+                type="checkbox"
+                [checked]="isFilterActive(selectedPropertyTypes, option)"
+                (change)="toggleFilterItem(selectedPropertyTypes, option); onSearch()"
+              />
+              {{ option }}</label
+            >
+          </div>
         </div>
-        <div class="filter-group"><div class="group-title"><span>Amenities</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i></div>
-          <div class="checkbox-list"><label *ngFor="let option of amenityOptions"><input type="checkbox"
-            [checked]="isFilterActive(selectedAmenities, option)" (change)="toggleFilterItem(selectedAmenities, option); onSearch()"> {{ option }}</label></div>
-          <button class="show-more" type="button">Show more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+        <div class="filter-group">
+          <div class="group-title">
+            <span>Amenities</span><i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+          </div>
+          <div class="checkbox-list">
+            <label *ngFor="let option of amenityOptions"
+              ><input
+                type="checkbox"
+                [checked]="isFilterActive(selectedAmenities, option)"
+                (change)="toggleFilterItem(selectedAmenities, option); onSearch()"
+              />
+              {{ option }}</label
+            >
+          </div>
+          <button class="show-more" type="button">
+            Show more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
         </div>
       </aside>
 
       <section class="cards-grid-view">
-        <ng-container *ngIf="loading"><div *ngFor="let card of propertiesPlaceholder" class="property-card skeleton-card">
-          <div class="skeleton-image"></div><div class="skeleton-lines"></div></div></ng-container>
+        <ng-container *ngIf="loading"
+          ><div *ngFor="let card of propertiesPlaceholder" class="property-card skeleton-card">
+            <div class="skeleton-image"></div>
+            <div class="skeleton-lines"></div></div
+        ></ng-container>
         <p class="property-message error" *ngIf="!loading && errorMessage">{{ errorMessage }}</p>
-        <p class="property-message" *ngIf="!loading && !errorMessage && filteredApartments.length === 0">No apartments match your filters.</p>
+        <p
+          class="property-message"
+          *ngIf="!loading && !errorMessage && filteredApartments.length === 0"
+        >
+          No apartments match your filters.
+        </p>
 
-        <article class="property-card" *ngFor="let apartment of paginatedApartments; let index = index"
-          [routerLink]="['/apartments', apartment.id]">
+        <article
+          class="property-card"
+          *ngFor="let apartment of paginatedApartments; let index = index"
+          [routerLink]="['/apartments', apartment.id]"
+        >
           <div class="property-image" data-protected-image>
-            <span class="badge exclusive" *ngIf="isExclusiveListing(apartment)"><i class="fa-regular fa-gem"></i> Exclusive</span>
-            <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'" [alt]="apartment.title">
-            <button class="favorite-btn" type="button" [class.active]="favoriteService.isFavorite(apartment.id)"
-              [attr.aria-label]="favoriteService.isFavorite(apartment.id) ? 'Remove from saved properties' : 'Save property'"
+            <span class="badge exclusive" *ngIf="isExclusiveListing(apartment)"
+              ><i class="fa-regular fa-gem"></i> Exclusive</span
+            >
+            <img
+              [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'"
+              [alt]="apartment.title"
+            />
+            <button
+              class="favorite-btn"
+              type="button"
+              [class.active]="favoriteService.isFavorite(apartment.id)"
+              [attr.aria-label]="
+                favoriteService.isFavorite(apartment.id)
+                  ? 'Remove from saved properties'
+                  : 'Save property'
+              "
               [attr.aria-pressed]="favoriteService.isFavorite(apartment.id)"
-              (click)="toggleFavorite($event, apartment)">
-              <i [class]="favoriteService.isFavorite(apartment.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+              (click)="toggleFavorite($event, apartment)"
+            >
+              <i
+                [class]="
+                  favoriteService.isFavorite(apartment.id)
+                    ? 'fa-solid fa-heart'
+                    : 'fa-regular fa-heart'
+                "
+              ></i>
             </button>
           </div>
           <div class="property-card-body">
-            <div class="property-price"><app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price></div>
+            <div class="property-price">
+              <app-currency-price
+                [usdPrice]="apartment.price"
+                suffix="/ month"
+              ></app-currency-price>
+            </div>
             <h3>{{ apartment.title || getApartmentLocation(apartment) }}</h3>
             <p class="property-address">⌖ &nbsp;{{ getApartmentStreet(apartment) }}</p>
-            <div class="property-specs"><span>♙ {{ apartment.bedrooms || '—' }} Beds</span>
-              <span>♨ {{ apartment.bathrooms || '—' }} Baths</span><span><span class="measurement-svg" aria-hidden="true"></span>{{ apartment.sizeSquareMeters || '—' }} m²</span></div>
+            <div class="property-specs">
+              <span>♙ {{ apartment.bedrooms || '—' }} Beds</span>
+              <span>♨ {{ apartment.bathrooms || '—' }} Baths</span
+              ><span
+                ><span class="measurement-svg" aria-hidden="true"></span
+                >{{ apartment.sizeSquareMeters || '—' }} m²</span
+              >
+            </div>
             <small>{{ index % 2 ? '1 day ago' : '2 days ago' }}</small>
           </div>
         </article>
@@ -292,29 +600,87 @@
     </main>
 
     <div class="pagination" *ngIf="filteredApartments.length">
-      <button type="button" aria-label="Previous page" [disabled]="currentPage === 1"
-        (click)="goToPage(currentPage - 1)">‹</button>
-      <button type="button" *ngFor="let page of visiblePages" [class.active]="page === currentPage"
-        [attr.aria-current]="page === currentPage ? 'page' : null" (click)="goToPage(page)">{{ page }}</button>
+      <button
+        type="button"
+        aria-label="Previous page"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)"
+      >
+        ‹
+      </button>
+      <button
+        type="button"
+        *ngFor="let page of visiblePages"
+        [class.active]="page === currentPage"
+        [attr.aria-current]="page === currentPage ? 'page' : null"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
       <span *ngIf="totalPages > 4 && currentPage < totalPages - 2">…</span>
-      <button type="button" *ngIf="totalPages > 4 && !visiblePages.includes(totalPages)"
-        [class.active]="currentPage === totalPages" (click)="goToPage(totalPages)">{{ totalPages }}</button>
-      <button type="button" aria-label="Next page" [disabled]="currentPage === totalPages"
-        (click)="goToPage(currentPage + 1)">›</button>
-      <label>Show
+      <button
+        type="button"
+        *ngIf="totalPages > 4 && !visiblePages.includes(totalPages)"
+        [class.active]="currentPage === totalPages"
+        (click)="goToPage(totalPages)"
+      >
+        {{ totalPages }}
+      </button>
+      <button
+        type="button"
+        aria-label="Next page"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)"
+      >
+        ›
+      </button>
+      <label
+        >Show
         <select [value]="pageSize" (change)="onPageSizeChange($event)">
-          <option value="6">6</option><option value="12">12</option><option value="24">24</option>
+          <option value="6">6</option>
+          <option value="12">12</option>
+          <option value="24">24</option>
         </select>
         per page
       </label>
     </div>
 
     <section class="features-banner">
-      <article><i>♢</i><div><h4>Verified listings</h4><p>Every property is verified for your peace of mind.</p></div></article>
-      <article><i>▣</i><div><h4>No duplicate listings</h4><p>We remove duplicates so you only see real, unique options.</p></div></article>
-      <article><i>⌕</i><div><h4>Smart search</h4><p>Advanced filters help you find the right home faster.</p></div></article>
-      <article><i>✦</i><div><h4>AI property match</h4><p>Our AI learns your preferences to match you with better homes.</p></div></article>
-      <article><i>♙</i><div><h4>Professional agents</h4><p>Experienced agents to guide you every step of the way.</p></div></article>
+      <article>
+        <i>♢</i>
+        <div>
+          <h4>Verified listings</h4>
+          <p>Every property is verified for your peace of mind.</p>
+        </div>
+      </article>
+      <article>
+        <i>▣</i>
+        <div>
+          <h4>No duplicate listings</h4>
+          <p>We remove duplicates so you only see real, unique options.</p>
+        </div>
+      </article>
+      <article>
+        <i>⌕</i>
+        <div>
+          <h4>Smart search</h4>
+          <p>Advanced filters help you find the right home faster.</p>
+        </div>
+      </article>
+      <article>
+        <i>✦</i>
+        <div>
+          <h4>AI property match</h4>
+          <p>Our AI learns your preferences to match you with better homes.</p>
+        </div>
+      </article>
+      <article>
+        <i>♙</i>
+        <div>
+          <h4>Professional agents</h4>
+          <p>Experienced agents to guide you every step of the way.</p>
+        </div>
+      </article>
     </section>
   </div>
 </div>
@@ -324,5 +690,6 @@
   [visible]="drawAreaOpen"
   [apartments]="apartments"
   (close)="closeDrawArea()"
-  (apply)="applyDrawnArea($event)">
+  (apply)="applyDrawnArea($event)"
+>
 </app-draw-area-map>
