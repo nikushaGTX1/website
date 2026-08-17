@@ -135,7 +135,7 @@
           </section>
 
           <section class="panel tasks-panel" aria-labelledby="tasks-heading">
-            <header class="panel-heading"><div><p>NEXT ACTIONS</p><h2 id="tasks-heading">Tasks &amp; viewings</h2></div><span class="task-count">{{ openTasks.length }}</span></header>
+            <header class="panel-heading"><div><p>NEXT ACTIONS</p><h2 id="tasks-heading">Tasks - viewings</h2></div><span class="task-count">{{ openTasks.length }}</span></header>
             <div class="task-list" *ngIf="openTasks.length; else emptyTasks">
               <article *ngFor="let task of openTasks; trackBy: identifyTask" [class.overdue]="isOverdue(task)">
                 <button type="button" class="task-check" *ngIf="canWorkLead" (click)="toggleTask(task)" [disabled]="taskActionId === task.id" [attr.aria-label]="'Complete task ' + task.title"><i class="fa-solid fa-check" aria-hidden="true"></i></button>

@@ -67,6 +67,9 @@ export class CrmDashboard implements OnInit {
   creatingLead = false;
   createErrorMessage = '';
   preferredDistrictsText = '';
+  leadMenu: 'budget' | 'property' | 'rooms' | 'bedrooms' | null = null;
+  readonly propertyTypes = ['Apartment', 'House', 'Commercial space', 'Country house', 'Land'];
+  readonly roomOptions = [1, 2, 3, 4, 5, 6, 7, 8];
   manualLeadForm: CreateCrmLeadRequest = this.emptyLeadForm();
   private previouslyFocusedElement: HTMLElement | null = null;
 
@@ -94,7 +97,33 @@ export class CrmDashboard implements OnInit {
   }
 
   get canCreateLead(): boolean {
-    return this.authService.canWorkCrmLeads;
+    return this.authService.canWorkCrmLeads || this.isUploader;
+  }
+
+  get allowedLeadSources(): Array<{ value: string; label: string }> {
+    if (this.isUploader) return [{ value: 'referral', label: 'Referral' }];
+    if (this.authService.isCrmAgent && !this.isManager) return [{ value: 'manual', label: 'Manual' }];
+    return [
+      { value: 'manual', label: 'Manual' }, { value: 'referral', label: 'Referral' },
+      { value: 'phone', label: 'Phone' }, { value: 'website', label: 'Website' },
+      { value: 'ai-match', label: 'AI match' },
+    ];
+  }
+
+  get bedroomOptions(): number[] {
+    const rooms = this.manualLeadForm.rooms || 0;
+    return Array.from({ length: rooms }, (_, index) => index + 1);
+  }
+
+  toggleLeadMenu(menu: 'budget' | 'property' | 'rooms' | 'bedrooms'): void {
+    if (menu === 'bedrooms' && !this.manualLeadForm.rooms) return;
+    this.leadMenu = this.leadMenu === menu ? null : menu;
+  }
+
+  selectRooms(rooms: number): void {
+    this.manualLeadForm.rooms = rooms;
+    if ((this.manualLeadForm.bedrooms || 0) > rooms) this.manualLeadForm.bedrooms = undefined;
+    this.leadMenu = 'bedrooms';
   }
 
   get metricCards(): Array<{
@@ -233,6 +262,7 @@ export class CrmDashboard implements OnInit {
       ? document.activeElement
       : null;
     this.manualLeadForm = this.emptyLeadForm();
+    this.manualLeadForm.source = this.allowedLeadSources[0].value;
     this.preferredDistrictsText = '';
     this.createErrorMessage = '';
     this.createDialogOpen = true;
@@ -265,8 +295,17 @@ export class CrmDashboard implements OnInit {
       return;
     }
 
+    const budgetMin = this.positiveNumber(this.manualLeadForm.budgetMin);
+    const budgetMax = this.positiveNumber(this.manualLeadForm.budgetMax);
+    if (budgetMin !== undefined && budgetMax !== undefined && budgetMin > budgetMax) {
+      this.createErrorMessage = 'Minimum budget cannot be greater than maximum budget.';
+      this.leadMenu = 'budget';
+      return;
+    }
+
     const request: CreateCrmLeadRequest = {
       ...this.manualLeadForm,
+      source: this.isUploader ? 'referral' : (this.authService.isCrmAgent && !this.isManager ? 'manual' : this.manualLeadForm.source),
       fullName,
       email: email || undefined,
       phoneNumber: phoneNumber || undefined,
@@ -274,8 +313,10 @@ export class CrmDashboard implements OnInit {
         .split(',')
         .map((district) => district.trim())
         .filter(Boolean),
-      budgetMin: this.positiveNumber(this.manualLeadForm.budgetMin),
-      budgetMax: this.positiveNumber(this.manualLeadForm.budgetMax),
+      preferences: this.manualLeadForm.preferences?.trim() || undefined,
+      budgetMin,
+      budgetMax,
+      rooms: this.nonNegativeNumber(this.manualLeadForm.rooms),
       bedrooms: this.nonNegativeNumber(this.manualLeadForm.bedrooms),
       assignedAgentId: this.manualLeadForm.assignedAgentId || null,
     };
@@ -392,6 +433,9 @@ export class CrmDashboard implements OnInit {
       email: '',
       phoneNumber: '',
       preferredContactMethod: 'phone',
+      // Role-specific source is applied in openCreateDialog(), after Angular
+      // has initialized injected services. This method also runs during field
+      // initialization, when authService is not available yet.
       source: 'manual',
       status: 'new',
       currency: 'USD',

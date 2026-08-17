@@ -66,6 +66,7 @@ export interface CrmLead {
   budgetMax?: number;
   preferredDistricts?: string[];
   preferredPropertyType?: string;
+  rooms?: number;
   bedrooms?: number;
   apartmentId?: number;
   apartmentTitle?: string;
@@ -120,6 +121,7 @@ export interface CreateCrmLeadRequest {
   budgetMax?: number;
   preferredDistricts?: string[];
   preferredPropertyType?: string;
+  rooms?: number;
   bedrooms?: number;
   apartmentId?: number;
 }
@@ -137,6 +139,7 @@ export interface UpdateCrmLeadRequest {
   budgetMax?: number;
   preferredDistricts?: string[];
   preferredPropertyType?: string;
+  rooms?: number;
   bedrooms?: number;
   apartmentId?: number | null;
 }
