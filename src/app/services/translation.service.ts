@@ -31,7 +31,18 @@ export class TranslationService {
     if (this.observer) return;
 
     this.zone.runOutsideAngular(() => {
-      this.observer = new MutationObserver(() => this.schedule());
+      this.observer = new MutationObserver((records) => {
+        if (this.language$.value !== 'ka') return;
+
+        // Once the dictionary is loaded, translate only the nodes Angular
+        // actually changed. Scheduling a full-document pass here causes our
+        // own DOM writes to trigger another pass and can create NG0103 loops.
+        if (this.georgianTranslator) {
+          this.translateMutationsImmediately(records);
+        } else {
+          this.schedule();
+        }
+      });
       this.observer.observe(document.body, {
         childList: true,
         subtree: true,
@@ -66,6 +77,116 @@ export class TranslationService {
   private schedule(): void {
     window.clearTimeout(this.timer);
     this.timer = window.setTimeout(() => void this.translatePage(), 50);
+  }
+
+  /**
+   * Angular can replace an interpolated Georgian text node with its English
+   * source value during a click/change detection cycle. Restore translations
+   * inside the same mutation checkpoint so the English value is never painted.
+   */
+  private translateMutationsImmediately(records: MutationRecord[]): void {
+    if (this.language$.value !== 'ka' || !this.georgianTranslator) return;
+
+    for (const record of records) {
+      if (record.type === 'characterData') {
+        this.translateTextImmediately(record.target as Text);
+        continue;
+      }
+
+      if (record.type === 'attributes' && record.target instanceof Element) {
+        this.translateAttributesImmediately(record.target);
+        continue;
+      }
+
+      for (const node of Array.from(record.addedNodes)) {
+        this.translateNodeImmediately(node);
+      }
+    }
+  }
+
+  private translateNodeImmediately(node: Node): void {
+    if (node instanceof Text) {
+      this.translateTextImmediately(node);
+      return;
+    }
+    if (!(node instanceof Element) || node.matches('script, style, svg, [data-no-translate]')) {
+      return;
+    }
+
+    this.translateAttributesImmediately(node);
+    for (const element of Array.from(node.querySelectorAll('*'))) {
+      if (!element.closest('script, style, svg, [data-no-translate]')) {
+        this.translateAttributesImmediately(element);
+      }
+    }
+
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      this.translateTextImmediately(walker.currentNode as Text);
+    }
+  }
+
+  private translateTextImmediately(node: Text): void {
+    const parent = node.parentElement;
+    if (!parent || parent.closest('script, style, svg, [data-no-translate]')) return;
+
+    const current = node.data.trim();
+    if (!current) return;
+
+    const leading = node.data.match(/^\s*/)?.[0] ?? '';
+    const trailing = node.data.match(/\s*$/)?.[0] ?? '';
+    let state = this.textStates.get(node);
+
+    if (state?.translated && current === state.original) {
+      node.data = `${leading}${state.translated}${trailing}`;
+      return;
+    }
+
+    const translated = this.georgianTranslator?.(current);
+    if (!translated || translated === current) return;
+
+    if (!state) {
+      state = { original: current };
+      this.textStates.set(node, state);
+    } else {
+      state.original = current;
+    }
+    state.leadingWhitespace = leading;
+    state.trailingWhitespace = trailing;
+    state.translated = translated;
+    node.data = `${leading}${translated}${trailing}`;
+  }
+
+  private translateAttributesImmediately(element: Element): void {
+    if (element.closest('script, style, svg, [data-no-translate]')) return;
+
+    for (const name of ['placeholder', 'title', 'aria-label']) {
+      const current = element.getAttribute(name)?.trim();
+      if (!current) continue;
+
+      let states = this.attributeStates.get(element);
+      let state = states?.get(name);
+      if (state?.translated && current === state.original) {
+        element.setAttribute(name, state.translated);
+        continue;
+      }
+
+      const translated = this.georgianTranslator?.(current);
+      if (!translated || translated === current) continue;
+
+      if (!states) {
+        states = new Map();
+        this.attributeStates.set(element, states);
+      }
+      if (!state) {
+        state = { original: current };
+        states.set(name, state);
+      } else {
+        state.original = current;
+      }
+      state.translated = translated;
+      element.setAttribute(name, translated);
+    }
   }
 
   private restoreEnglish(): void {

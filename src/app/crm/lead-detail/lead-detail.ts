@@ -479,7 +479,8 @@ export class CrmLeadDetail implements OnInit {
       return (lead.assignedAgentId || '').toLowerCase() === userId;
     }
 
-    return (lead.uploaderUserId || '').toLowerCase() === userId;
+    return (lead.uploaderUserId || '').toLowerCase() === userId ||
+      (lead.createdByUserId || '').toLowerCase() === userId;
   }
 
   private emptyLeadForm(): UpdateCrmLeadRequest {

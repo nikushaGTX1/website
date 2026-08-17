@@ -68,8 +68,20 @@ export class CrmDashboard implements OnInit {
   createErrorMessage = '';
   preferredDistrictsText = '';
   leadMenu: 'budget' | 'property' | 'rooms' | 'bedrooms' | null = null;
+  readonly leadBudgetMinimum = 0;
+  readonly leadBudgetMaximum = 5000;
+  readonly leadBudgetStep = 100;
   readonly propertyTypes = ['Apartment', 'House', 'Commercial space', 'Country house', 'Land'];
   readonly roomOptions = [1, 2, 3, 4, 5, 6, 7, 8];
+  private readonly uploaderLeadSources = [{ value: 'referral', label: 'Referral' }];
+  private readonly agentLeadSources = [{ value: 'manual', label: 'Manual' }];
+  private readonly managerLeadSources = [
+    { value: 'manual', label: 'Manual' },
+    { value: 'referral', label: 'Referral' },
+    { value: 'phone', label: 'Phone' },
+    { value: 'website', label: 'Website' },
+    { value: 'ai-match', label: 'AI match' },
+  ];
   manualLeadForm: CreateCrmLeadRequest = this.emptyLeadForm();
   private previouslyFocusedElement: HTMLElement | null = null;
 
@@ -101,13 +113,9 @@ export class CrmDashboard implements OnInit {
   }
 
   get allowedLeadSources(): Array<{ value: string; label: string }> {
-    if (this.isUploader) return [{ value: 'referral', label: 'Referral' }];
-    if (this.authService.isCrmAgent && !this.isManager) return [{ value: 'manual', label: 'Manual' }];
-    return [
-      { value: 'manual', label: 'Manual' }, { value: 'referral', label: 'Referral' },
-      { value: 'phone', label: 'Phone' }, { value: 'website', label: 'Website' },
-      { value: 'ai-match', label: 'AI match' },
-    ];
+    if (this.isUploader) return this.uploaderLeadSources;
+    if (this.authService.isCrmAgent && !this.isManager) return this.agentLeadSources;
+    return this.managerLeadSources;
   }
 
   get bedroomOptions(): number[] {
@@ -124,6 +132,20 @@ export class CrmDashboard implements OnInit {
     this.manualLeadForm.rooms = rooms;
     if ((this.manualLeadForm.bedrooms || 0) > rooms) this.manualLeadForm.bedrooms = undefined;
     this.leadMenu = 'bedrooms';
+  }
+
+  trackLeadSource(_index: number, source: { value: string }): string {
+    return source.value;
+  }
+
+  clampLeadBudget(field: 'budgetMin' | 'budgetMax'): void {
+    const value = this.manualLeadForm[field];
+    if (value === undefined || value === null || String(value).trim() === '') return;
+
+    const numericValue = Number(value);
+    this.manualLeadForm[field] = Number.isFinite(numericValue)
+      ? Math.min(this.leadBudgetMaximum, Math.max(this.leadBudgetMinimum, numericValue))
+      : this.leadBudgetMinimum;
   }
 
   get metricCards(): Array<{
@@ -231,14 +253,14 @@ export class CrmDashboard implements OnInit {
           ? metrics
           : this.calculateMetrics(this.leads);
         this.loading = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (error: HttpErrorResponse) => {
         this.leads = [];
         this.metrics = this.emptyMetrics();
         this.loading = false;
         this.errorMessage = this.apiError(error, 'Could not load the CRM pipeline.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -281,6 +303,11 @@ export class CrmDashboard implements OnInit {
   createLead(): void {
     if (!this.canCreateLead || this.creatingLead) return;
 
+    if (this.manualLeadForm.goal !== 'rent' && this.manualLeadForm.goal !== 'buy') {
+      this.createErrorMessage = 'Please choose a deal type.';
+      return;
+    }
+
     const fullName = this.manualLeadForm.fullName.trim();
     const email = this.manualLeadForm.email?.trim() || '';
     const phoneNumber = this.manualLeadForm.phoneNumber?.trim() || '';
@@ -295,8 +322,10 @@ export class CrmDashboard implements OnInit {
       return;
     }
 
-    const budgetMin = this.positiveNumber(this.manualLeadForm.budgetMin);
-    const budgetMax = this.positiveNumber(this.manualLeadForm.budgetMax);
+    this.clampLeadBudget('budgetMin');
+    this.clampLeadBudget('budgetMax');
+    const budgetMin = this.nonNegativeNumber(this.manualLeadForm.budgetMin);
+    const budgetMax = this.nonNegativeNumber(this.manualLeadForm.budgetMax);
     if (budgetMin !== undefined && budgetMax !== undefined && budgetMin > budgetMax) {
       this.createErrorMessage = 'Minimum budget cannot be greater than maximum budget.';
       this.leadMenu = 'budget';
@@ -332,12 +361,12 @@ export class CrmDashboard implements OnInit {
         this.creatingLead = false;
         this.closeCreateDialog();
         this.successMessage = `${createdLead.fullName} was added to the pipeline.`;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (error: HttpErrorResponse) => {
         this.creatingLead = false;
         this.createErrorMessage = this.apiError(error, 'Could not create this lead.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -438,7 +467,10 @@ export class CrmDashboard implements OnInit {
       // initialization, when authService is not available yet.
       source: 'manual',
       status: 'new',
+      goal: '',
       currency: 'USD',
+      budgetMin: this.leadBudgetMinimum,
+      budgetMax: this.leadBudgetMaximum,
       assignedAgentId: null,
       preferredPropertyType: '',
     };
@@ -489,9 +521,11 @@ export class CrmDashboard implements OnInit {
       );
     }
 
-    return leads.filter((lead) =>
-      (lead.uploaderUserId || '').toLowerCase() === userId,
-    );
+    return leads.filter((lead) => {
+      const uploaderUserId = (lead.uploaderUserId || '').toLowerCase();
+      const createdByUserId = (lead.createdByUserId || '').toLowerCase();
+      return uploaderUserId === userId || createdByUserId === userId;
+    });
   }
 
   private leadSortValue(lead: CrmLead): number {
@@ -518,7 +552,7 @@ export class CrmDashboard implements OnInit {
     this.crmService.getMetrics().subscribe({
       next: (metrics) => {
         this.metrics = metrics;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => undefined,
     });
