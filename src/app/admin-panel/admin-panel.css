@@ -620,3 +620,10 @@ button:disabled {
     min-height: 62px;
   }
 }
+
+
+.btn-live{
+  background-color: #451a8f;
+  color: #fff;
+
+}
