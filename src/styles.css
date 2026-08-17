@@ -42,7 +42,7 @@ html[lang='ka'] textarea {
 }
 
 html[lang='ka'] :is(h1, h2, h3, h4, h5, h6) {
-  font-family: "Noto Serif Georgian", Georgia, serif;
+  font-family: "Noto Sans Georgian", "Segoe UI", Arial, sans-serif;
   letter-spacing: 0;
 }
 
