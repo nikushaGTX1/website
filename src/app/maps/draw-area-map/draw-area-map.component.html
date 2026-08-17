@@ -5,30 +5,39 @@
   *ngIf="compact"
 >
   <div #compactMapContainer class="compact-draw-map" aria-label="Draw an area on Google Maps"></div>
-  <button
-    class="draw-tool-button"
-    type="button"
-    (click)="enableCompactMap()"
-    title="Draw a custom area"
-  >
-    <i class="fa-solid fa-pencil"></i> {{ compactMapInteractive ? 'Drawing enabled' : 'Draw' }}
-  </button>
-  <div class="compact-street-search">
-    <label>
-      <i class="fa-solid fa-road" aria-hidden="true"></i>
-      <input [(ngModel)]="streetSearch" placeholder="Type a street name..." autocomplete="off" />
-      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-    </label>
-    <div class="compact-street-results" *ngIf="streetSearch.trim().length >= 2">
-      <button
-        type="button"
-        *ngFor="let street of manualStreetSuggestions"
-        (click)="selectManualStreet(street)"
-      >
-        <i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ street.label }}</span
-        ><small>{{ street.district }}</small>
-      </button>
-      <p *ngIf="!manualStreetSuggestions.length">No matching approved street.</p>
+  <div class="compact-map-controls">
+    <button
+      class="draw-tool-button"
+      [class.active]="drawingEnabled"
+      type="button"
+      (click)="enableCompactMap()"
+      [attr.aria-pressed]="drawingEnabled"
+      [title]="drawingEnabled ? 'Turn drawing off' : 'Draw a custom area'"
+    >
+      <i
+        class="fa-solid"
+        [class.fa-pencil]="!drawingEnabled"
+        [class.fa-xmark]="drawingEnabled"
+      ></i>
+      {{ drawingEnabled ? 'Stop drawing' : 'Draw' }}
+    </button>
+    <div class="compact-street-search">
+      <label>
+        <i class="fa-solid fa-road" aria-hidden="true"></i>
+        <input [(ngModel)]="streetSearch" placeholder="Type a street name..." autocomplete="off" />
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      </label>
+      <div class="compact-street-results" *ngIf="streetSearch.trim().length >= 2">
+        <button
+          type="button"
+          *ngFor="let street of manualStreetSuggestions"
+          (click)="selectManualStreet(street)"
+        >
+          <i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ street.label }}</span
+          ><small>{{ street.district }}</small>
+        </button>
+        <p *ngIf="!manualStreetSuggestions.length">No matching approved street.</p>
+      </div>
     </div>
   </div>
   <a
@@ -148,11 +157,11 @@
           <button
             type="button"
             *ngFor="let area of popularAreas"
-            [class.selected]="selectedArea === area"
+            [class.selected]="isAreaSelected(area)"
             (click)="chooseArea(area)"
           >
             <i class="fa-solid fa-location-dot"></i>{{ area
-            }}<i *ngIf="selectedArea === area" class="fa-solid fa-circle-check check"></i>
+            }}<i *ngIf="isAreaSelected(area)" class="fa-solid fa-circle-check check"></i>
           </button>
         </div>
         <h3>ALL TBILISI AREAS</h3>
@@ -162,7 +171,7 @@
             <button
               type="button"
               *ngFor="let area of group.areas"
-              [class.selected]="selectedArea === area"
+              [class.selected]="isAreaSelected(area)"
               (click)="chooseArea(area)"
             >
               <i class="fa-solid fa-location-dot"></i><span>{{ area }}</span
@@ -177,11 +186,18 @@
           <div #mapContainer class="draw-map" aria-label="Interactive map of Tbilisi"></div>
           <button
             class="draw-tool-button"
+            [class.active]="drawingEnabled"
             type="button"
             (click)="startDrawing()"
-            title="Draw a custom area"
+            [attr.aria-pressed]="drawingEnabled"
+            [title]="drawingEnabled ? 'Turn drawing off' : 'Draw a custom area'"
           >
-            <i class="fa-solid fa-pencil"></i> Draw
+            <i
+              class="fa-solid"
+              [class.fa-pencil]="!drawingEnabled"
+              [class.fa-xmark]="drawingEnabled"
+            ></i>
+            {{ drawingEnabled ? 'Stop drawing' : 'Draw' }}
           </button>
           <a
             class="osm-credit"
@@ -194,7 +210,7 @@
             <span>V</span><strong>Loading map…</strong>
           </div>
           <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
-          <div class="map-tip" *ngIf="!loading && !errorMessage && !hasPolygon">
+          <div class="map-tip" *ngIf="!loading && !errorMessage && drawingEnabled">
             <i class="fa-solid fa-draw-polygon"></i> Click points to draw your own area
           </div>
         </div>

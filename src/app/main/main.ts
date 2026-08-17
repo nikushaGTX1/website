@@ -443,12 +443,8 @@ export class Main implements OnInit {
       this.removeModalArea(area);
       return;
     }
-    // The map is intentionally single-district: changing area must discard
-    // every street and polygon belonging to the previous district.
-    this.selectedLocationAreas = [area];
+    this.selectedLocationAreas = [...this.selectedLocationAreas, area];
     this.selectedLocationArea = area;
-    this.selectedModalStreetDetails = [];
-    this.selectedModalStreets = [];
     this.showAllStreets = false;
     this.inlineDrawnPolygon = null;
     this.drawnDetectedArea = '';

@@ -27,6 +27,12 @@ import { Apartment } from '../../models/apartment';
   styleUrl: './draw-area-map.component.css',
 })
 export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private static readonly tbilisiMapBounds: google.maps.LatLngBoundsLiteral = {
+    south: 41.55,
+    west: 44.58,
+    north: 41.9,
+    east: 45.08,
+  };
   private static readonly persistentMapCache = new PersistentDataCache(
     // v2 ignores broad street-search results cached by the previous matcher.
     'map-geometry-v3',
@@ -68,9 +74,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   errorMessage = '';
   hasPolygon = false;
   compactMapInteractive = false;
+  drawingEnabled = false;
   areaSearch = '';
   streetSearch = '';
   selectedArea = '';
+  selectedAreas: string[] = [];
   selectedStreet = '';
   selectedStreetId: number | null = null;
   streetStep = false;
@@ -94,6 +102,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private countOverlays: google.maps.OverlayView[] = [];
   private priceOverlays: google.maps.OverlayView[] = [];
   private streetFocusOverlay?: google.maps.OverlayView;
+  private drawnDeleteOverlay?: google.maps.OverlayView;
+  private isCustomDrawing = false;
   private activeStreetPaths: number[][][] = [];
   private activePriceAreas: string[] = [];
   private zoomListener?: google.maps.MapsEventListener;
@@ -131,7 +141,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.map &&
       !preserveDrawnPolygon
     ) {
-      void this.chooseArea(this.selectedAreaInput);
+      void this.chooseAreas([this.selectedAreaInput]);
     }
     if (changes['selectedStreetsInput'] && this.map) void this.drawSelectedStreets();
     if (changes['apartments'] && this.map && this.hasPolygon) this.refreshApartmentCountOverlays();
@@ -143,6 +153,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.clearApartmentPriceOverlays();
     this.zoomListener?.remove();
     this.clearStreetFocus();
+    this.clearDrawDeleteControl();
   }
 
   private setLegacyMapStyles(styles: google.maps.MapTypeStyle[] | null): void {
@@ -156,22 +167,24 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.draw?.clear();
     this.hasPolygon = false;
     this.selectedArea = '';
+    this.selectedAreas = [];
     this.selectedStreet = '';
     this.selectedStreetId = null;
     this.streetStep = false;
-    this.draw?.setMode('polyline');
+    this.isCustomDrawing = false;
+    this.setDrawingEnabled(false);
     this.polygonChange.emit(null);
     this.drawnStreetsChange.emit([]);
     this.clearStreetLines();
     this.activeStreetPaths = [];
     this.clearStreetFocus();
+    this.clearDrawDeleteControl();
     this.clearApartmentCountOverlays();
     this.clearApartmentPriceOverlays();
     this.setLegacyMapStyles(null);
   }
 
   enableCompactMap(): void {
-    this.compactMapInteractive = true;
     this.startDrawing();
   }
 
@@ -179,7 +192,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const polygon = this.currentPolygon();
     if (!polygon) return;
     this.polygonChange.emit(polygon);
-    this.compactMapInteractive = false;
+    this.setDrawingEnabled(false);
   }
 
   get filteredAreaGroups(): { title: string; areas: string[] }[] {
@@ -295,17 +308,44 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.streetStep = false;
     this.selectedStreet = '';
     this.selectedStreetId = null;
+    this.isCustomDrawing = false;
+    this.clearDrawDeleteControl();
     this.streetSearch = '';
     this.activeStreetPaths = [];
     this.clearStreetFocus();
   }
 
   chooseArea(area: string): void {
-    void this.chooseAreas([area]);
+    const normalizedArea = area.trim().toLowerCase();
+    const nextAreas = this.selectedAreas.some(
+      (selected) => selected.trim().toLowerCase() === normalizedArea,
+    )
+      ? this.selectedAreas.filter(
+          (selected) => selected.trim().toLowerCase() !== normalizedArea,
+        )
+      : [...this.selectedAreas, area];
+    void this.chooseAreas(nextAreas);
+  }
+
+  isAreaSelected(area: string): boolean {
+    return this.selectedAreas.some(
+      (selected) => selected.trim().toLowerCase() === area.trim().toLowerCase(),
+    );
   }
 
   async chooseAreas(areas: string[]): Promise<void> {
     if (!this.draw || !this.map) return;
+    const requestedAreas = areas.filter(
+      (area, index, list) =>
+        area.trim() &&
+        list.findIndex(
+          (candidate) => candidate.trim().toLowerCase() === area.trim().toLowerCase(),
+        ) === index,
+    );
+    this.selectedAreas = requestedAreas;
+    this.setDrawingEnabled(false);
+    this.isCustomDrawing = false;
+    this.clearDrawDeleteControl();
     this.drawnAreaRevision++;
     const revision = ++this.selectionRevision;
     // Remove the old district immediately. Otherwise it remains visible while
@@ -324,7 +364,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.setLegacyMapStyles(null);
     const drawableAreas = (
       await Promise.all(
-        areas.map(async (area) => ({
+        requestedAreas.map(async (area) => ({
           area,
           polygons: await this.loadBoundary(area),
         })),
@@ -333,6 +373,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (revision !== this.selectionRevision) return;
     if (!drawableAreas.length) {
       this.selectedArea = '';
+      this.selectedAreas = [];
       this.hasPolygon = false;
       this.polygonChange.emit(null);
       this.cdr.detectChanges();
@@ -354,6 +395,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const validFeatures = features.filter((_, index) => results[index]?.valid);
     if (validFeatures.length) {
       this.selectedArea = drawableAreas.map((item) => item.area).join(', ');
+      this.selectedAreas = drawableAreas.map((item) => item.area);
       this.selectedStreet = '';
       this.streetSearch = '';
       // Keep approved street geometry available without exposing the old
@@ -378,6 +420,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   startDrawing(): void {
+    if (this.drawingEnabled) {
+      this.setDrawingEnabled(false);
+      return;
+    }
     this.drawnAreaRevision++;
     this.selectionRevision++;
     this.draw?.clear();
@@ -387,13 +433,23 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.clearApartmentCountOverlays();
     this.clearApartmentPriceOverlays();
     this.selectedArea = '';
+    this.selectedAreas = [];
     this.selectedStreet = '';
     this.selectedStreetId = null;
     this.hasPolygon = false;
-    this.draw?.setMode('polyline');
+    this.isCustomDrawing = true;
+    this.clearDrawDeleteControl();
+    this.setDrawingEnabled(true);
     this.polygonChange.emit(null);
     this.drawnStreetsChange.emit([]);
     this.setLegacyMapStyles(null);
+  }
+
+  private setDrawingEnabled(enabled: boolean): void {
+    this.drawingEnabled = enabled;
+    this.compactMapInteractive = this.compact && enabled;
+    this.draw?.setMode(enabled ? 'polyline' : 'render');
+    this.cdr.detectChanges();
   }
 
   private async loadBoundary(area: string): Promise<number[][][][]> {
@@ -622,15 +678,24 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         import('terra-draw'),
         import('terra-draw-google-maps-adapter'),
       ]);
-      const { TerraDraw, TerraDrawPolygonMode, TerraDrawPolyLineMode, TerraDrawSelectMode } =
-        terraDraw;
+      const {
+        TerraDraw,
+        TerraDrawPolygonMode,
+        TerraDrawPolyLineMode,
+        TerraDrawSelectMode,
+        TerraDrawRenderMode,
+      } = terraDraw;
       const { TerraDrawGoogleMapsAdapter } = googleAdapter;
       this.map = new Map(mapElement.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
         zoom: 12,
         ...(mapId ? { mapId } : {}),
-        minZoom: 9,
+        minZoom: 11,
         maxZoom: 20,
+        restriction: {
+          latLngBounds: DrawAreaMapComponent.tbilisiMapBounds,
+          strictBounds: true,
+        },
         gestureHandling: 'greedy',
         scrollwheel: true,
         zoomControl: true,
@@ -710,10 +775,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
               },
             },
           }),
+          new TerraDrawRenderMode({ modeName: 'render', styles: {} }),
         ],
       });
       this.draw.start();
-      this.draw.setMode('polyline');
+      this.setDrawingEnabled(false);
       this.draw.on('finish', () => {
         const polygons =
           this.draw?.getSnapshot().filter((feature) => feature.geometry?.type === 'Polygon') || [];
@@ -731,16 +797,23 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           return;
         }
         this.hasPolygon = !!latest;
-        if (latest) this.draw?.selectFeature(latest.id);
         const polygon = this.currentPolygon();
         this.polygonChange.emit(polygon);
         if (polygon) void this.emitDrawnAreaStreets(polygon);
+        if (polygon) {
+          this.isCustomDrawing = true;
+          this.renderDrawDeleteControl(polygon);
+          this.setDrawingEnabled(false);
+        }
         this.cdr.detectChanges();
       });
       this.draw.on('change', () => {
         this.hasPolygon = !!this.currentPolygon();
         if (!this.hasPolygon) this.selectedArea = '';
-        this.polygonChange.emit(this.currentPolygon());
+        const polygon = this.currentPolygon();
+        this.polygonChange.emit(polygon);
+        if (this.isCustomDrawing && polygon) this.renderDrawDeleteControl(polygon);
+        else if (!polygon) this.clearDrawDeleteControl();
         this.cdr.detectChanges();
       });
       this.loading = false;
@@ -1180,6 +1253,91 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private clearStreetFocus(): void {
     this.streetFocusOverlay?.setMap(null);
     this.streetFocusOverlay = undefined;
+  }
+
+  private renderDrawDeleteControl(polygon: GeoJsonPolygon): void {
+    if (!this.map) return;
+    this.clearDrawDeleteControl();
+    const ring = polygon.coordinates[0];
+    if (!ring?.length) return;
+    const [lng, lat] = ring.reduce((best, point) =>
+      point[0] + point[1] > best[0] + best[1] ? point : best,
+    );
+    const position = { lat, lng };
+    const overlay = new google.maps.OverlayView();
+    let button: HTMLButtonElement | undefined;
+    overlay.onAdd = () => {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.setAttribute('aria-label', 'Delete drawn area');
+      button.title = 'Delete drawn area';
+      button.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+      Object.assign(button.style, {
+        position: 'absolute',
+        width: '32px',
+        minWidth: '32px',
+        maxWidth: '32px',
+        height: '32px',
+        minHeight: '32px',
+        maxHeight: '32px',
+        boxSizing: 'border-box',
+        appearance: 'none',
+        display: 'grid',
+        placeItems: 'center',
+        padding: '0',
+        margin: '0',
+        lineHeight: '1',
+        border: '2px solid #6d28d9',
+        borderRadius: '50%',
+        background: 'rgba(255, 255, 255, .98)',
+        color: '#5b21b6',
+        boxShadow: '0 4px 12px rgba(69, 26, 143, .24), 0 0 0 3px rgba(255, 255, 255, .72)',
+        fontSize: '12px',
+        cursor: 'pointer',
+        transform: 'translate(-50%, -50%)',
+        transition: 'transform .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease',
+        zIndex: '20',
+      });
+      button.addEventListener('pointerdown', (event) => event.stopPropagation());
+      button.addEventListener('mouseenter', () => {
+        if (!button) return;
+        button.style.background = '#5b21b6';
+        button.style.color = '#fff';
+        button.style.transform = 'translate(-50%, -50%) scale(1.08)';
+        button.style.boxShadow =
+          '0 6px 16px rgba(69, 26, 143, .34), 0 0 0 3px rgba(255, 255, 255, .82)';
+      });
+      button.addEventListener('mouseleave', () => {
+        if (!button) return;
+        button.style.background = 'rgba(255, 255, 255, .98)';
+        button.style.color = '#5b21b6';
+        button.style.transform = 'translate(-50%, -50%)';
+        button.style.boxShadow =
+          '0 4px 12px rgba(69, 26, 143, .24), 0 0 0 3px rgba(255, 255, 255, .72)';
+      });
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.clearArea();
+      });
+      overlay.getPanes()?.floatPane.appendChild(button);
+    };
+    overlay.draw = () => {
+      const point = overlay.getProjection().fromLatLngToDivPixel(position);
+      if (!button || !point) return;
+      button.style.left = `${point.x}px`;
+      button.style.top = `${point.y}px`;
+    };
+    overlay.onRemove = () => {
+      button?.remove();
+      button = undefined;
+    };
+    overlay.setMap(this.map);
+    this.drawnDeleteOverlay = overlay;
+  }
+
+  private clearDrawDeleteControl(): void {
+    this.drawnDeleteOverlay?.setMap(null);
+    this.drawnDeleteOverlay = undefined;
   }
 
   private distinctPolygonPointCount(feature: {
