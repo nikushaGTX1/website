@@ -11,8 +11,8 @@ export class LocationService {
   private readonly catalogUrl = `${API_URL}/locations/catalog`;
   private readonly streetsUrl = `${API_URL}/Streets`;
   private readonly persistentCache = new PersistentDataCache(
-    'verified-location-catalog-v2',
-    30 * 24 * 60 * 60 * 1000,
+    'verified-location-catalog-v3',
+    5 * 60 * 1000,
   );
   private locations$?: Observable<ApiLocation[]>;
   private readonly georgianStreetNames = new Map<string, string>();
@@ -37,8 +37,8 @@ export class LocationService {
     id: number;
     nameKa: string;
     nameEn: string;
-    geometry: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] };
-    geometryStatus: 'approved';
+    geometry?: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] };
+    geometryStatus: string;
   }> {
     return this.http.get<any>(`${this.catalogUrl}/${id}`);
   }
@@ -97,6 +97,7 @@ export class LocationService {
         city: city?.nameEn || 'Tbilisi',
         cityKa: city?.nameKa || 'თბილისი',
         district: district.nameEn,
+        geometryStatus: district.geometryStatus,
         districtKa: district.nameKa,
         region: '',
         streetNames: streets

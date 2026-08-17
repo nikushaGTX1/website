@@ -308,13 +308,22 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         location.district.toLowerCase() === area.toLowerCase() ||
         this.locationService.districtName(location, 'ka').toLowerCase() === area.toLowerCase());
       if (!areaRecord) return [];
+      if (areaRecord.geometryStatus !== 'approved') {
+        this.errorMessage = `${area} boundary is awaiting verification.`;
+        return [];
+      }
       const response = await firstValueFrom(this.locationService.getArea(areaRecord.id));
+      if (!response.geometry) {
+        this.errorMessage = `${area} boundary is awaiting verification.`;
+        return [];
+      }
       const geometry = response.geometry;
       const polygons = this.geoJsonPolygons(geometry);
+      this.errorMessage = '';
       this.boundaryCache.set(cacheKey, polygons);
       return polygons;
-    } catch (error) {
-      console.error(`Could not load the exact boundary for ${area}:`, error);
+    } catch {
+      this.errorMessage = `${area} boundary could not be loaded.`;
       return [];
     }
   }

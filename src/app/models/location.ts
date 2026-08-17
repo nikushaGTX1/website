@@ -2,6 +2,7 @@ export interface ApiLocation {
   id: number;
   city: string;
   district: string;
+  geometryStatus?: string;
   region: string;
   streetNames: string[];
   cityKa?: string;
