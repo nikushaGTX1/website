@@ -54,6 +54,13 @@ export interface AdminAreaDetail {
   geometry?: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] };
 }
 
+export interface BulkGeometryApprovalResult {
+  approvedDistricts: number;
+  approvedStreets: number;
+  skippedDistricts: Array<{ id: number; nameEn: string; reason: string }>;
+  skippedStreets: Array<{ id: number; nameEn: string; reason: string }>;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -138,6 +145,10 @@ export class AdminService {
 
   approveReviewArea(id: number): Observable<unknown> {
     return this.http.post(`${this.adminUrl}/streets/areas/${id}/approve`, {});
+  }
+
+  approveAllVerifiedGeometry(): Observable<BulkGeometryApprovalResult> {
+    return this.http.post<BulkGeometryApprovalResult>(`${this.adminUrl}/streets/approve-all-verified`, {});
   }
 
   approveStreet(id: number, notes = '', allowOutsideDistrict = false): Observable<unknown> {

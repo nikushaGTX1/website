@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { AdminAreaDetail, AdminService, AdminStreetDetail, AdminStreetSummary } from '../services/admin.service';
 
@@ -74,6 +74,39 @@ export class StreetValidationMapComponent implements AfterViewInit, OnDestroy {
         this.reload(); this.loadAudit();
       },
       error: (error) => { this.loading = false; this.errorMessage = error?.error?.detail || 'Import failed.'; },
+    });
+  }
+
+  async importAll(): Promise<void> {
+    this.loading = true; this.message = ''; this.errorMessage = '';
+    let imported = 0;
+    const failed: string[] = [];
+    for (const district of this.districts) {
+      try {
+        await firstValueFrom(this.admin.importDistrictStreets(district));
+        imported++;
+      } catch {
+        failed.push(district);
+      }
+    }
+    this.loading = false;
+    this.message = `${imported} districts imported for review.`;
+    if (failed.length) this.errorMessage = `Import failed: ${failed.join(', ')}`;
+    this.reload(); this.loadAudit(); this.cdr.detectChanges();
+  }
+
+  approveAll(): void {
+    this.loading = true; this.message = ''; this.errorMessage = '';
+    this.admin.approveAllVerifiedGeometry().subscribe({
+      next: (result) => {
+        this.loading = false;
+        this.message = `Approved ${result.approvedDistricts} districts and ${result.approvedStreets} streets.`;
+        const skipped = result.skippedDistricts.length + result.skippedStreets.length;
+        if (skipped) this.errorMessage = `${skipped} invalid or incomplete records were safely skipped.`;
+        this.selected = undefined; this.reviewArea = undefined; this.clearGeometry();
+        this.reload(); this.loadAudit(); this.cdr.detectChanges();
+      },
+      error: (error) => { this.loading = false; this.errorMessage = error?.error?.message || 'Bulk approval failed.'; },
     });
   }
 
