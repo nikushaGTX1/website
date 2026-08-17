@@ -468,16 +468,16 @@ export class ApartmentDetail implements OnInit {
 
   openMaps(): void {
     const destination =
-      Number.isFinite(this.apartment?.latitude) && Number.isFinite(this.apartment?.longitude)
-        ? `${this.apartment!.latitude},${this.apartment!.longitude}`
+      Number.isFinite(this.apartment?.propertyLatitude ?? this.apartment?.latitude) && Number.isFinite(this.apartment?.propertyLongitude ?? this.apartment?.longitude)
+        ? `${this.apartment!.propertyLatitude ?? this.apartment!.latitude},${this.apartment!.propertyLongitude ?? this.apartment!.longitude}`
         : this.address;
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`, '_blank', 'noopener');
   }
 
   openWalkingDirections(place: NearbyPlace): void {
     const origin =
-      Number.isFinite(this.apartment?.latitude) && Number.isFinite(this.apartment?.longitude)
-        ? `${this.apartment!.latitude},${this.apartment!.longitude}`
+      Number.isFinite(this.apartment?.propertyLatitude ?? this.apartment?.latitude) && Number.isFinite(this.apartment?.propertyLongitude ?? this.apartment?.longitude)
+        ? `${this.apartment!.propertyLatitude ?? this.apartment!.latitude},${this.apartment!.propertyLongitude ?? this.apartment!.longitude}`
         : this.address;
     const destination = `${place.location.lat()},${place.location.lng()}`;
     window.open(

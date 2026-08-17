@@ -37,7 +37,7 @@
                 <button class="location-modal-close" type="button" aria-label="Close location picker" (click)="cancelLocationPicker()"><i class="fa-solid fa-xmark"></i></button>
               </header>
 
-              <div class="location-modal-body">
+              <div class="location-modal-body" [class.has-street-column]="selectedLocationAreas.length > 0 || inlineDrawnPolygon">
                 <section class="area-picker-column">
                   <h3>Popular areas</h3>
                   <div class="featured-area-grid">

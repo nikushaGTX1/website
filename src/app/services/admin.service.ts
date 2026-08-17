@@ -14,6 +14,46 @@ export interface AdminUserSettings {
   profilePicture?: File | null;
 }
 
+export interface AdminStreetSummary {
+  id: number;
+  nameKa: string;
+  nameEn: string;
+  aliases: string[];
+  cityId: number;
+  districtId: number;
+  district: string;
+  source: string;
+  externalSourceId: string;
+  geometryStatus: 'geometry_missing' | 'pending_review' | 'approved' | 'rejected';
+  hasGeometry: boolean;
+  reviewNotes?: string;
+}
+
+export interface AdminStreetDetail extends AdminStreetSummary {
+  geometry: { type: 'LineString' | 'MultiLineString'; coordinates: number[][] | number[][][] };
+  bounds?: { type: 'Polygon'; coordinates: number[][][] };
+  centroid?: { lat: number; lng: number };
+}
+
+export interface AdminStreetImportResult {
+  districtId: number;
+  district: string;
+  candidateCount: number;
+  createdCount: number;
+  updatedCount: number;
+  missingNameCount: number;
+}
+
+export interface AdminAreaDetail {
+  id: number;
+  nameKa: string;
+  nameEn: string;
+  source: string;
+  externalSourceId: string;
+  geometryStatus: string;
+  geometry?: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] };
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -76,5 +116,51 @@ export class AdminService {
 
   rateAgent(agentId: string, rating: number): Observable<unknown> {
     return this.http.post(`${this.agentsUrl}/${agentId}/ratings`, { rating });
+  }
+
+  getStreets(status = 'pending_review', search = ''): Observable<AdminStreetSummary[]> {
+    return this.http.get<AdminStreetSummary[]>(`${this.adminUrl}/streets`, {
+      params: { status, ...(search.trim() ? { search: search.trim() } : {}) },
+    });
+  }
+
+  getStreet(id: number): Observable<AdminStreetDetail> {
+    return this.http.get<AdminStreetDetail>(`${this.adminUrl}/streets/${id}`);
+  }
+
+  importDistrictStreets(district: string): Observable<AdminStreetImportResult> {
+    return this.http.post<AdminStreetImportResult>(`${this.adminUrl}/streets/import/${encodeURIComponent(district)}`, {});
+  }
+
+  getReviewArea(id: number): Observable<AdminAreaDetail> {
+    return this.http.get<AdminAreaDetail>(`${this.adminUrl}/streets/areas/${id}`);
+  }
+
+  approveReviewArea(id: number): Observable<unknown> {
+    return this.http.post(`${this.adminUrl}/streets/areas/${id}/approve`, {});
+  }
+
+  approveStreet(id: number, notes = '', allowOutsideDistrict = false): Observable<unknown> {
+    return this.http.post(`${this.adminUrl}/streets/${id}/approve`, { notes, allowOutsideDistrict });
+  }
+
+  rejectStreet(id: number, notes = ''): Observable<unknown> {
+    return this.http.post(`${this.adminUrl}/streets/${id}/reject`, { notes });
+  }
+
+  replaceStreetGeometry(id: number, payload: {
+    geometry: unknown;
+    source: string;
+    externalSourceId: string;
+    nameKa?: string;
+    nameEn?: string;
+    aliases?: string[];
+    notes?: string;
+  }): Observable<AdminStreetDetail> {
+    return this.http.put<AdminStreetDetail>(`${this.adminUrl}/streets/${id}/geometry`, payload);
+  }
+
+  getStreetAudit(): Observable<any> {
+    return this.http.get(`${this.adminUrl}/streets/audit`);
   }
 }

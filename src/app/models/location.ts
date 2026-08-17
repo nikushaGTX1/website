@@ -25,14 +25,17 @@ export interface ApiLocation {
   regionNameKa?: string;
   streetNameKa?: string[];
   streets?: Array<{
+    id: number;
     english: string;
     georgian?: string | null;
+    geometryStatus?: string;
   }>;
 }
 
 export type LocationSuggestionType = 'City' | 'Area' | 'Street';
 
 export interface LocationSuggestion {
+  id?: number;
   label: string;
   value?: string;
   type: LocationSuggestionType;

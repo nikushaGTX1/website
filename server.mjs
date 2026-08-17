@@ -36,8 +36,12 @@ const apartmentImageRequests = new Map();
 const streetGeometryCache = new Map();
 const boundaryGeometryCache = new Map();
 const districtStreetCache = new Map();
+const districtStreetRequests = new Map();
 const approvalDataDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'data');
 const approvalDataFile = path.join(approvalDataDirectory, 'apartment-approval-requests.json');
+const districtStreetDataFile = path.join(approvalDataDirectory, 'district-street-geometry.json');
+let districtStreetDataLoaded;
+let districtStreetWriteQueue = Promise.resolve();
 const publicCacheLifetimeMs = 60_000;
 const publicCacheStaleLifetimeMs = 5 * 60_000;
 const browserDirectory = path.join(
@@ -97,8 +101,10 @@ app.get('/map-data/street', async (request, response) => {
   }
   try {
     const tokens = street.replace(/[.,]/g, ' ').split(/\s+/)
-      .filter((token) => token.length >= 4 && !/^(street|avenue|road|lane)$/i.test(token))
-      .sort((left, right) => right.length - left.length);
+      .filter((token) => token.length >= 2 && !/^(street|st|avenue|ave|road|rd|lane|alley|square|i|ii|iii|iv)$/i.test(token))
+      .reverse();
+    // Names commonly begin with a person's first name, so search using the
+    // final meaningful token (normally the distinctive surname).
     const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
     const query = `[out:json][timeout:10];way["highway"][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
     const nominatimParams = new URLSearchParams({
@@ -196,36 +202,95 @@ app.get('/map-data/boundary', async (request, response) => {
   }
 });
 
-app.get('/map-data/district-streets', async (request, response) => {
-  const relationId = Number(request.query.relationId);
-  if (!Number.isSafeInteger(relationId) || relationId <= 0) {
-    response.status(400).json({ message: 'A valid OpenStreetMap relation ID is required.' });
-    return;
+async function loadSavedDistrictStreets() {
+  if (!districtStreetDataLoaded) {
+    districtStreetDataLoaded = (async () => {
+      try {
+        const saved = JSON.parse(await readFile(districtStreetDataFile, 'utf8'));
+        for (const [relationId, result] of Object.entries(saved)) {
+          if (Array.isArray(result?.streets) && result.streets.length) {
+            districtStreetCache.set(Number(relationId), result);
+          }
+        }
+      } catch (error) {
+        if (error?.code !== 'ENOENT') console.error('Could not read saved street geometry:', error);
+      }
+    })();
   }
-  const cached = districtStreetCache.get(relationId);
-  if (cached) {
-    response.setHeader('Cache-Control', 'public, max-age=604800');
-    response.json(cached);
-    return;
-  }
-  try {
-    const query = `[out:json][timeout:40];rel(${relationId})->.district;map_to_area.district->.districtArea;way(area.districtArea)["highway"]["name"];out tags geom;`;
-    const upstream = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`, {
-      signal: AbortSignal.timeout(30000),
-    });
-    if (!upstream.ok) throw new Error(`Overpass returned HTTP ${upstream.status}.`);
-    const payload = await upstream.json();
-    const result = {
-      streets: (payload.elements || []).map((element) => ({
+  await districtStreetDataLoaded;
+}
+
+function saveDistrictStreets() {
+  districtStreetWriteQueue = districtStreetWriteQueue.then(async () => {
+    await mkdir(approvalDataDirectory, { recursive: true });
+    const temporaryFile = `${districtStreetDataFile}.${process.pid}.tmp`;
+    await writeFile(
+      temporaryFile,
+      JSON.stringify(Object.fromEntries(districtStreetCache)),
+      'utf8',
+    );
+    await rename(temporaryFile, districtStreetDataFile);
+  }).catch((error) => console.error('Could not save street geometry:', error));
+  return districtStreetWriteQueue;
+}
+
+async function downloadDistrictStreets(relationId) {
+  const query = `[out:json][timeout:40];rel(${relationId});map_to_area->.districtArea;way(area.districtArea)["highway"]["name"];out tags geom;`;
+  const providers = process.env.OVERPASS_API_URL
+    ? [process.env.OVERPASS_API_URL.replace(/\/$/, '')]
+    : [
+        'https://overpass.kumi.systems/api/interpreter',
+        'https://overpass.private.coffee/api/interpreter',
+        'https://overpass-api.de/api/interpreter',
+      ];
+  let lastError;
+  for (const provider of providers) {
+    try {
+      const upstream = await fetch(`${provider}?data=${encodeURIComponent(query)}`, {
+        signal: AbortSignal.timeout(35000),
+      });
+      if (!upstream.ok) throw new Error(`${provider} returned HTTP ${upstream.status}.`);
+      const payload = await upstream.json();
+      const streets = (payload.elements || []).map((element) => ({
         names: [...new Set([
           element.tags?.name,
           element.tags?.['name:en'],
           element.tags?.['name:ka'],
         ].filter(Boolean))],
         line: (element.geometry || []).map((point) => [point.lon, point.lat]),
-      })).filter((street) => street.names.length && street.line.length >= 2),
-    };
-    districtStreetCache.set(relationId, result);
+      })).filter((street) => street.names.length && street.line.length >= 2);
+      if (!streets.length) throw new Error(`${provider} returned no district streets.`);
+      return { streets };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Every street geometry provider failed.');
+}
+
+async function getDistrictStreets(relationId) {
+  await loadSavedDistrictStreets();
+  if (districtStreetCache.has(relationId)) return districtStreetCache.get(relationId);
+  if (districtStreetRequests.has(relationId)) return districtStreetRequests.get(relationId);
+  const pending = downloadDistrictStreets(relationId)
+    .then(async (result) => {
+      districtStreetCache.set(relationId, result);
+      await saveDistrictStreets();
+      return result;
+    })
+    .finally(() => districtStreetRequests.delete(relationId));
+  districtStreetRequests.set(relationId, pending);
+  return pending;
+}
+
+app.get('/map-data/district-streets', async (request, response) => {
+  const relationId = Number(request.query.relationId);
+  if (!Number.isSafeInteger(relationId) || relationId <= 0) {
+    response.status(400).json({ message: 'A valid OpenStreetMap relation ID is required.' });
+    return;
+  }
+  try {
+    const result = await getDistrictStreets(relationId);
     response.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=2592000');
     response.json(result);
   } catch (error) {

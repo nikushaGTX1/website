@@ -1,7 +1,8 @@
 <div class="avatar" [class.gym-active]="wearsGymOutfit">
   <div class="character-stage">
-    <img src="/" alt="Your personalized lifestyle character" />
-    <div class="gym-shirt" *ngIf="wearsGymOutfit" aria-label="Gym outfit">
+    <img *ngIf="characterSrc; else chooseGender" [src]="characterSrc" [alt]="profile.gender + ' personalized lifestyle character'" />
+    <ng-template #chooseGender><span class="avatar-placeholder">Choose Male or Female</span></ng-template>
+    <div class="gym-shirt" *ngIf="characterSrc && wearsGymOutfit" aria-label="Gym outfit">
       <span>GYM</span>
     </div>
   </div>

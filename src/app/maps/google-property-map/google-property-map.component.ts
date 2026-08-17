@@ -44,6 +44,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
   @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('directionsPanel') directionsPanel?: ElementRef<HTMLDivElement>;
   loading = true;
+  mapReady = false;
   searching = false;
   errorMessage = '';
   searchQuery = '';
@@ -179,10 +180,14 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
   private async initialize(): Promise<void> {
     if (!this.mapContainer || !this.address.trim()) return;
     this.loading = true;
+    this.mapReady = false;
     this.errorMessage = '';
     this.allPlaces = [];
     const apiKey = document
       .querySelector<HTMLMetaElement>('meta[name="google-maps-api-key"]')
+      ?.content.trim();
+    const mapId = document
+      .querySelector<HTMLMetaElement>('meta[name="google-maps-map-id"]')
       ?.content.trim();
     if (!apiKey) {
       this.loading = false;
@@ -199,7 +204,11 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.refreshView();
     }, 12000);
     try {
-      setOptions({ key: apiKey, v: 'weekly' });
+      setOptions({
+        key: apiKey,
+        v: 'weekly',
+        ...(mapId ? { mapIds: [mapId] } : {}),
+      });
       const [{ Map }, { Geocoder }] = await Promise.all([
         importLibrary('maps') as Promise<google.maps.MapsLibrary>,
         importLibrary('geocoding') as Promise<google.maps.GeocodingLibrary>,
@@ -215,6 +224,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.map = new Map(this.mapContainer.nativeElement, {
         center: location,
         zoom: 14,
+        ...(mapId ? { mapId } : {}),
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,
@@ -226,6 +236,11 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         title: this.apartmentTitle,
         label: { text: 'H', color: '#fff', fontWeight: '700' },
       });
+      await new Promise<void>((resolve) => {
+        google.maps.event.addListenerOnce(this.map!, 'idle', () => resolve());
+      });
+      this.mapReady = true;
+      this.refreshView();
       if (this.loadNearby) await this.findNearby();
     } catch {
       this.errorMessage =

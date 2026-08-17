@@ -10,6 +10,12 @@ export class VelvenLifestyleAvatarComponent {
   @Input({ required: true }) profile!: HomeMatchProfile;
   @Input() showSummary = false;
 
+  get characterSrc(): string {
+    if (this.profile.gender === 'Male') return '/husband%20svg.svg';
+    if (this.profile.gender === 'Female') return '/wife%20svg.svg';
+    return '';
+  }
+
   get wearsGymOutfit(): boolean {
     return (
       this.profile.lifestyles.includes('Athlete') ||

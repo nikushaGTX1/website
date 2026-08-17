@@ -24,6 +24,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     'Review',
   ];
   readonly questions: HomeMatchQuestion[] = [
+    { title: 'Select your gender' },
     { title: 'What are you looking for?' },
     { title: 'Where would you like to live?', subtitle: 'Choose one or more locations.' },
     { title: 'What is your budget?' },
@@ -216,7 +217,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     private service: HomeMatchService,
     private cdr: ChangeDetectorRef,
   ) {
-    this.profile = { ...service.profile, topPriorities: service.profile.topPriorities || [] };
+    this.profile = {
+      ...service.profile,
+      gender: service.profile.gender || '',
+      topPriorities: service.profile.topPriorities || [],
+    };
     this.budgetForm.setValue({
       min: this.profile.budgetMin,
       max: this.profile.budgetMax,
@@ -274,7 +279,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get currentStepIcon(): string {
     return [
-      'home', 'location', 'budget', 'family', 'family', 'bed', 'calendar',
+      'solo', 'home', 'location', 'budget', 'family', 'family', 'bed', 'calendar',
       'car', 'social', 'pet', 'home', 'spark', 'check',
     ][this.step] || 'spark';
   }
@@ -322,6 +327,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   choose(
     key:
       | 'propertyGoal'
+      | 'gender'
       | 'householdType'
       | 'additionalRoom'
       | 'rentalDuration'
@@ -425,50 +431,52 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   canContinue(): boolean {
     switch (this.step) {
       case 0:
-        return !!this.profile.propertyGoal;
+        return !!this.profile.gender;
       case 1:
+        return !!this.profile.propertyGoal;
+      case 2:
         return (
           (this.profile.locationFlexible || !!this.profile.districts.length) &&
           (!this.profile.proximityTarget ||
             this.profile.proximityTarget === 'No' ||
             !!this.profile.proximityAddress?.trim())
         );
-      case 2:
+      case 3:
         return (
           this.budgetForm.valid &&
           this.budgetForm.controls.max.value >= this.budgetForm.controls.min.value &&
           this.profile.includesUtilities !== undefined
         );
-      case 3:
-        return !!this.profile.householdType;
       case 4:
+        return !!this.profile.householdType;
+      case 5:
         return (
           this.profile.adults >= 1 &&
           (this.profile.children === 0 || !!this.profile.childrenAgeGroups.length)
         );
-      case 5:
-        return this.profile.bedrooms !== undefined && !!this.profile.additionalRoom;
       case 6:
+        return this.profile.bedrooms !== undefined && !!this.profile.additionalRoom;
+      case 7:
         return this.profile.propertyGoal === 'Rent'
           ? !!this.profile.rentalDuration &&
               !!this.profile.moveInTiming &&
               (this.profile.moveInTiming !== 'SpecificDate' || !!this.profile.moveInDate)
           : !!this.profile.purchaseTiming;
-      case 7:
+      case 8:
         return (
           !!this.profile.transportation.length &&
           (!this.profile.transportation.includes('Metro') ||
             this.profile.metroDistanceMinutes !== undefined)
         );
-      case 8:
-        return !!this.profile.lifestyles.length;
       case 9:
-        return this.profile.hasPet !== null;
+        return !!this.profile.lifestyles.length;
       case 10:
-        return this.profile.mainPreferences.length > 0 && this.profile.mainPreferences.length <= 5;
+        return this.profile.hasPet !== null;
       case 11:
-        return true;
+        return this.profile.mainPreferences.length > 0 && this.profile.mainPreferences.length <= 5;
       case 12:
+        return true;
+      case 13:
         return this.profile.topPriorities.length === 3;
       default:
         return false;
@@ -476,12 +484,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   next(): void {
     if (!this.canContinue()) return;
-    if (this.step === 2) {
+    if (this.step === 3) {
       this.profile.budgetMin = this.budgetForm.controls.min.value;
       this.profile.budgetMax = this.budgetForm.controls.max.value;
       this.profile.currency = this.budgetForm.controls.currency.value;
     }
-    if (this.step === 11) {
+    if (this.step === 12) {
       const suggestions = new Set(this.generateSuggestedPriorities().map((option) => option.value));
       this.profile.topPriorities = this.profile.topPriorities.filter((value) => suggestions.has(value));
     }

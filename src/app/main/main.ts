@@ -31,13 +31,14 @@ export class Main implements OnInit {
   selectedLocationArea = '';
   selectedLocationAreas: string[] = [];
   selectedLocationValue = '';
+  selectedStreetId: number | null = null;
   streetSearch = '';
   selectedModalStreets: string[] = [];
-  selectedModalStreetDetails: Array<{ street: string; district: string }> = [];
+  selectedModalStreetDetails: Array<{ streetId: number; street: string; district: string }> = [];
   moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
-  drawnStreetSuggestions: Array<{ label: string; value: string }> = [];
+  drawnStreetSuggestions: Array<{ id: number; label: string; value: string; district: string }> = [];
   drawnDetectedArea = '';
   drawnStreetsLoading = false;
   searchPropertyType = '';
@@ -241,6 +242,7 @@ export class Main implements OnInit {
       .sort((left, right) => this.locationAreaRank(left.district) - this.locationAreaRank(right.district))
       .slice(0, 8)
       .map((entry) => ({
+        id: entry.id,
         label: this.locationService.districtName(entry, language),
         value: entry.district,
         type: 'Area',
@@ -265,6 +267,7 @@ export class Main implements OnInit {
           street.label.toLowerCase().includes(query)
         ) {
           suggestions.push({
+            id: street.id,
             label: street.label,
             value: street.value,
             type: 'Street',
@@ -408,9 +411,12 @@ export class Main implements OnInit {
     if (this.isStreetSelected(street.label)) {
       this.selectedModalStreets = this.selectedModalStreets.filter((item) => item !== street.label);
       this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter((item) => item.street !== street.label);
+      this.selectedStreetId = this.selectedModalStreetDetails.at(-1)?.streetId ?? null;
     } else {
+      if (!street.id) return;
       this.selectedModalStreets = [...this.selectedModalStreets, street.label];
-      this.selectedModalStreetDetails = [...this.selectedModalStreetDetails, { street: street.label, district: street.district || '' }];
+      this.selectedModalStreetDetails = [...this.selectedModalStreetDetails, { streetId: street.id, street: street.label, district: street.district || '' }];
+      this.selectedStreetId = street.id;
     }
   }
 
@@ -419,6 +425,7 @@ export class Main implements OnInit {
     this.selectedLocationAreas = [];
     this.selectedModalStreets = [];
     this.selectedModalStreetDetails = [];
+    this.selectedStreetId = null;
     this.streetSearch = '';
     this.inlineDrawnPolygon = null;
   }
@@ -432,7 +439,7 @@ export class Main implements OnInit {
     }
   }
 
-  public onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
+  public onDrawnStreets(streets: Array<{ id: number; label: string; value: string; district: string }>): void {
     this.drawnStreetSuggestions = streets;
     this.drawnStreetsLoading = false;
     this.cdr.detectChanges();
@@ -468,6 +475,7 @@ export class Main implements OnInit {
         ? this.selectedModalStreets.join(',')
         : effectiveAreas.join(','))
       : '';
+    this.selectedStreetId = this.selectedModalStreetDetails.at(-1)?.streetId ?? null;
     if (this.inlineDrawnPolygon) {
       sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
     } else {
@@ -483,6 +491,7 @@ export class Main implements OnInit {
   selectPopularArea(area: string): void {
     const entry = this.locationEntries.find((item) => item.district.toLowerCase() === area.toLowerCase());
     this.selectLocation({
+      id: entry?.id,
       label: entry ? this.locationService.districtName(entry, 'en') : area,
       value: entry?.district || area,
       type: 'Area',
@@ -496,6 +505,7 @@ export class Main implements OnInit {
         .find((item) => item.label.toLowerCase().includes(label.toLowerCase()));
       if (street) {
         this.selectLocation({
+          id: street.id,
           label: street.label,
           value: street.value,
           type: 'Street',
@@ -518,6 +528,7 @@ export class Main implements OnInit {
   selectLocation(suggestion: LocationSuggestion): void {
     this.searchLocation = suggestion.label;
     this.selectedLocationValue = suggestion.value || suggestion.label;
+    this.selectedStreetId = suggestion.type === 'Street' && suggestion.id ? suggestion.id : null;
     this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
     this.showLocationResults = false;
     this.locationOpen = false;
@@ -526,6 +537,7 @@ export class Main implements OnInit {
   onLocationInput(): void {
     this.selectedLocationArea = '';
     this.selectedLocationValue = '';
+    this.selectedStreetId = null;
     this.showLocationResults = true;
     this.locationOpen = true;
   }
@@ -683,6 +695,7 @@ export class Main implements OnInit {
         mode: this.searchMode,
         area: this.inlineDrawnPolygon ? 'drawn' : null,
         location: this.inlineDrawnPolygon ? null : (this.selectedLocationValue || this.searchLocation || null),
+        street_id: this.selectedStreetId || null,
         locationLanguage: this.locationService.languageForQuery(this.searchLocation),
         propertyType: this.searchPropertyType || null,
         budget: this.toUsd(this.appliedBudgetMax),
@@ -728,6 +741,7 @@ export class Main implements OnInit {
         mode: polygon.searchMode || this.searchMode,
         area: 'drawn',
         location: polygon.streetName || null,
+        street_id: polygon.streetId || null,
         propertyType: polygon.propertyType || this.searchPropertyType || null,
         budget: polygon.budget || this.toUsd(this.appliedBudgetMax),
         bedrooms: polygon.bedrooms || this.searchBedrooms || null,

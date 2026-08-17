@@ -1,29 +1,118 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, shareReplay, tap } from 'rxjs';
+import { firstValueFrom, from, Observable, shareReplay, tap } from 'rxjs';
 import { ApiLocation } from '../models/location';
 import { API_URL } from '../utils/api-config';
 import { AppLanguage } from './translation.service';
+import { PersistentDataCache } from '../utils/persistent-data-cache';
 
 @Injectable({ providedIn: 'root' })
 export class LocationService {
-  private readonly locationsUrl = `${API_URL}/Locations`;
+  private readonly catalogUrl = `${API_URL}/locations/catalog`;
+  private readonly streetsUrl = `${API_URL}/Streets`;
+  private readonly persistentCache = new PersistentDataCache(
+    'verified-location-catalog-v2',
+    30 * 24 * 60 * 60 * 1000,
+  );
   private locations$?: Observable<ApiLocation[]>;
   private readonly georgianStreetNames = new Map<string, string>();
   private readonly streetTranslations: Array<{ english: string; georgian: string }> = [];
 
   constructor(private http: HttpClient) {}
 
+  getStreet(id: number): Observable<{
+    id: number;
+    nameKa: string;
+    nameEn: string;
+    districtId: number;
+    district: string;
+    geometry: { type: 'LineString' | 'MultiLineString'; coordinates: number[][] | number[][][] };
+    bounds: { type: 'Polygon'; coordinates: number[][][] };
+    geometryStatus: 'approved';
+  }> {
+    return this.http.get<any>(`${this.streetsUrl}/${id}`);
+  }
+
+  getArea(id: number): Observable<{
+    id: number;
+    nameKa: string;
+    nameEn: string;
+    geometry: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] };
+    geometryStatus: 'approved';
+  }> {
+    return this.http.get<any>(`${this.catalogUrl}/${id}`);
+  }
+
+  resolvePoint(latitude: number, longitude: number): Observable<{
+    id: number; nameKa: string; nameEn: string; slug: string;
+  }> {
+    return this.http.post<any>(`${this.catalogUrl}/resolve-point`, { latitude, longitude });
+  }
+
+  getIntersectingStreets(coordinates: number[][][]): Observable<Array<{
+    id: number; nameKa: string; nameEn: string; districtId: number; district: string;
+  }>> {
+    return this.http.post<any>(`${this.streetsUrl}/intersecting`, { coordinates });
+  }
+
   getLocations(): Observable<ApiLocation[]> {
     if (!this.locations$) {
-      this.locations$ = this.http
-        .get<ApiLocation[]>(this.locationsUrl)
-        .pipe(
+      this.locations$ = from(this.loadLocations()).pipe(
           tap((locations) => this.indexApiStreetTranslations(locations)),
           shareReplay({ bufferSize: 1, refCount: false }),
-        );
+      );
     }
     return this.locations$;
+  }
+
+  private async loadLocations(): Promise<ApiLocation[]> {
+    const cached = await this.persistentCache.get<ApiLocation[]>('all');
+    if (cached?.length) return cached;
+    const [areas, streets] = await Promise.all([
+      firstValueFrom(this.http.get<Array<{
+        id: number;
+        parentId?: number;
+        type: 'city' | 'district';
+        nameKa: string;
+        nameEn: string;
+        slug: string;
+        geometryStatus: string;
+      }>>(this.catalogUrl)),
+      firstValueFrom(this.http.get<Array<{
+        id: number;
+        nameKa: string;
+        nameEn: string;
+        aliases: string[];
+        cityId: number;
+        districtId: number;
+        district: string;
+        geometryStatus: string;
+      }>>(this.streetsUrl)),
+    ]);
+    const city = areas.find((area) => area.type === 'city');
+    const locations: ApiLocation[] = areas
+      .filter((area) => area.type === 'district')
+      .map((district) => ({
+        id: district.id,
+        city: city?.nameEn || 'Tbilisi',
+        cityKa: city?.nameKa || 'თბილისი',
+        district: district.nameEn,
+        districtKa: district.nameKa,
+        region: '',
+        streetNames: streets
+          .filter((street) => street.districtId === district.id)
+          .map((street) => street.nameEn),
+        streets: streets
+          .filter((street) => street.districtId === district.id)
+          .map((street) => ({
+            id: street.id,
+            english: street.nameEn,
+            georgian: street.nameKa,
+            geometryStatus: street.geometryStatus,
+          })),
+      }));
+    if (locations.length) await this.persistentCache.set('all', locations);
+    return locations;
   }
 
   languageForQuery(...values: Array<string | undefined>): AppLanguage {
@@ -59,9 +148,10 @@ export class LocationService {
       : location.region;
   }
 
-  streetNames(location: ApiLocation, language: AppLanguage): Array<{ label: string; value: string }> {
+  streetNames(location: ApiLocation, language: AppLanguage): Array<{ id: number; label: string; value: string }> {
     if (location.streets?.length) {
       return location.streets.map((street) => ({
+        id: street.id,
         value: street.english,
         label:
           language === 'ka'
@@ -78,6 +168,7 @@ export class LocationService {
         : undefined;
 
     return (location.streetNames || []).map((value, index) => ({
+      id: 0,
       value,
       label:
         localized?.[index] ||

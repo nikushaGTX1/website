@@ -15,6 +15,7 @@ export interface GeoJsonPolygon {
   type: 'Polygon';
   coordinates: number[][][];
   areaName?: string;
+  streetId?: number;
   streetName?: string;
   searchMode?: 'rent' | 'buy';
   propertyType?: string;
@@ -92,6 +93,21 @@ export class ApartmentService {
     );
   }
 
+  getApartmentsByStreetId(streetId: number): Observable<Apartment[]> {
+    const pageSize = 100;
+    return this.http.get<Apartment[]>(this.apiUrl, {
+      params: { page: 1, pageSize, street_id: streetId },
+    }).pipe(
+      expand((page, index) => page.length === pageSize
+        ? this.http.get<Apartment[]>(this.apiUrl, {
+            params: { page: index + 2, pageSize, street_id: streetId },
+          })
+        : EMPTY),
+      reduce((all, page) => [...all, ...page], [] as Apartment[]),
+      map((apartments) => apartments.map((apartment) => this.normalizeImages(apartment)),
+    ));
+  }
+
   getApartmentsWithinArea(polygon: GeoJsonPolygon): Observable<Apartment[]> {
     return this.http
       .post<Apartment[]>(`${API_URL}/apartments/within-area`, {
@@ -106,8 +122,8 @@ export class ApartmentService {
         map((apartments) => apartments.map((apartment) => this.normalizeImages(apartment))),
         catchError(() => this.getApartments().pipe(
           map((apartments) => apartments.filter((apartment) => {
-            const latitude = Number(apartment.latitude);
-            const longitude = Number(apartment.longitude);
+            const latitude = Number(apartment.propertyLatitude ?? apartment.latitude);
+            const longitude = Number(apartment.propertyLongitude ?? apartment.longitude);
             return Number.isFinite(latitude)
               && Number.isFinite(longitude)
               && this.pointInsidePolygon(longitude, latitude, polygon.coordinates);
@@ -259,11 +275,15 @@ export class ApartmentService {
       ['region', 'Region'],
       ['district', 'District'],
       ['street', 'Street'],
+      ['buildingNumber', 'BuildingNumber'],
       ['apartmentStyle', 'ApartmentStyle'],
     ];
     const numberFields: Array<[keyof CreateApartment, string]> = [
       ['latitude', 'Latitude'],
       ['longitude', 'Longitude'],
+      ['streetId', 'StreetId'],
+      ['propertyLatitude', 'PropertyLatitude'],
+      ['propertyLongitude', 'PropertyLongitude'],
       ['bedrooms', 'Bedrooms'],
       ['bathrooms', 'Bathrooms'],
       ['sizeSquareMeters', 'SizeSquareMeters'],

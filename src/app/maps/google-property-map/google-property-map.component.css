@@ -115,6 +115,41 @@
 .map-canvas {
   position: absolute;
   inset: 0;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.map-area.map-ready .map-canvas {
+  opacity: 1;
+}
+.map-loading-cover {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  color: #451a8f;
+  background: linear-gradient(135deg, rgba(69, 26, 143, 0.05), rgba(69, 26, 143, 0.01)), #f8f7fb;
+}
+.map-loading-cover strong {
+  font-size: 12px;
+}
+.map-loading-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #fff;
+  background: #451a8f;
+  box-shadow: 0 8px 20px rgba(69, 26, 143, 0.22);
+  font-family: Georgia, serif;
+  font-size: 20px;
+  animation: map-loading-pulse 1s ease-in-out infinite alternate;
+}
+@keyframes map-loading-pulse {
+  to { transform: translateY(-3px); opacity: 0.76; }
 }
 .map-message {
   position: absolute;

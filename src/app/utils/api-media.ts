@@ -33,6 +33,9 @@ export function toMediaUrl(value?: string | null): string {
   if (normalizedValue.startsWith('http://') || normalizedValue.startsWith('https://')) {
     try {
       const mediaUrl = new URL(normalizedValue);
+      if (/\/uploads\/profiles\/(apartment-image|profile-image)\/?$/i.test(mediaUrl.pathname)) {
+        return '';
+      }
       if (
         mediaUrl.hostname === 'zhijxljnddhvlxzhrckz.supabase.co' &&
         mediaUrl.pathname.startsWith('/storage/v1/object/sign/apartments/')
@@ -47,6 +50,12 @@ export function toMediaUrl(value?: string | null): string {
   }
 
   let cleanValue = normalizedValue.replace(/^\/+/, '');
+
+  // Some legacy apartment records expose their upload field name as though it
+  // were a profile filename. It is not a real media object and always 404s.
+  if (/^(apartment-image|profile-image)$/i.test(cleanValue)) {
+    return '';
+  }
 
   if (cleanValue.startsWith('wwwroot/')) {
     cleanValue = cleanValue.replace(/^wwwroot\//, '');

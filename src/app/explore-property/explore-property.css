@@ -1851,14 +1851,14 @@
   position: fixed;
   z-index: 1000;
   inset: 0;
-  padding: 22px;
+  padding: 10px;
   display: grid;
   place-items: center;
   background: rgba(15, 23, 42, .42);
 }
 .location-picker-dialog {
-  width: min(1180px, 100%);
-  max-height: calc(100dvh - 44px);
+  width: min(1220px, 100%);
+  max-height: calc(100dvh - 20px);
   overflow: hidden;
   border: 1px solid #e4e7ed;
   border-radius: 18px;
@@ -1925,8 +1925,11 @@
 .location-steps small { font-weight: 500; }
 .location-modal-body {
   display: grid;
-  grid-template-columns: 46% 26% 28%;
+  grid-template-columns: minmax(0, 46%) minmax(0, 54%);
   min-height: 510px;
+}
+.location-modal-body.has-street-column {
+  grid-template-columns: minmax(0, 46%) minmax(0, 26%) minmax(0, 28%);
 }
 .location-modal-body > * {
   min-width: 0;
@@ -1943,6 +1946,7 @@
 }
 .area-picker-column {
   max-height: 510px;
+  padding: 18px 24px 16px;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: none;
@@ -1951,13 +1955,13 @@
 .featured-area-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 26px;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 .featured-area-grid button {
   position: relative;
-  min-height: 92px;
-  padding: 16px;
+  min-height: 82px;
+  padding: 12px;
   display: grid;
   grid-template-columns: 38px 1fr;
   align-items: center;
@@ -2002,7 +2006,7 @@
 .all-area-grid button {
   position: relative;
   min-width: 0;
-  min-height: 52px;
+  min-height: 48px;
   padding: 10px 12px 10px 35px;
   display: flex;
   align-items: center;
@@ -2165,6 +2169,11 @@
   width: 100%;
   height: 100%;
   min-height: 510px;
+}
+@media (min-width: 901px) {
+  .location-map-preview {
+    margin-right: 16px;
+  }
 }
 .area-map-card {
   position: absolute;

@@ -16,6 +16,8 @@ import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
+import { PersistentDataCache } from '../../utils/persistent-data-cache';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-draw-area-map',
@@ -24,19 +26,18 @@ import { LocationService } from '../../services/location.service';
   styleUrl: './draw-area-map.component.css',
 })
 export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private static readonly persistentMapCache = new PersistentDataCache(
+    // v2 ignores broad street-search results cached by the previous matcher.
+    'map-geometry-v3',
+    180 * 24 * 60 * 60 * 1000,
+  );
   private static readonly sharedBoundaryCache = new Map<string, number[][][][]>();
   private static readonly boundaryRequests = new Map<string, Promise<number[][][][]>>();
-  private static readonly sharedStreetCache = new Map<string, number[][][]>();
-  private static readonly previewStreetKeys = new Set<string>();
-  private static readonly drawnAreaRings = new Map<string, number[][]>();
-  private static readonly streetRequests = new Map<string, Promise<number[][][]>>();
-  private static readonly districtStreetRequests = new Map<string, Promise<void>>();
-  private static readonly loadedStreetDistricts = new Set<string>();
   @Input() visible = false;
   @Input() compact = false;
   @Input() selectedAreaInput = '';
   @Input() selectedAreasInput: string[] = [];
-  @Input() selectedStreetsInput: Array<{ street: string; district: string }> = [];
+  @Input() selectedStreetsInput: Array<{ streetId: number; street: string; district: string }> = [];
   @HostBinding('class.is-hidden') get isHidden(): boolean { return !this.visible; }
   @HostBinding('class.is-compact') get isCompact(): boolean { return this.compact; }
   @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLDivElement>;
@@ -44,7 +45,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   @Output() close = new EventEmitter<void>();
   @Output() apply = new EventEmitter<GeoJsonPolygon>();
   @Output() polygonChange = new EventEmitter<GeoJsonPolygon | null>();
-  @Output() drawnStreetsChange = new EventEmitter<Array<{ label: string; value: string }>>();
+  @Output() drawnStreetsChange = new EventEmitter<Array<{ id: number; label: string; value: string; district: string }>>();
   @Output() detectedAreaChange = new EventEmitter<string>();
 
   loading = true;
@@ -55,6 +56,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   streetSearch = '';
   selectedArea = '';
   selectedStreet = '';
+  selectedStreetId: number | null = null;
   streetStep = false;
   locations: ApiLocation[] = [];
   searchMode: 'rent' | 'buy' = 'rent';
@@ -63,13 +65,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   bedrooms = '';
   validationMessage = '';
   readonly propertyTypes = ['Apartament', 'House', 'Commercial Place', 'Country house'];
-  readonly bedroomChoices = [
-    { value: '0', label: 'Studio' },
-    { value: '1', label: '1 bedroom' },
-    { value: '2', label: '2 bedrooms' },
-    { value: '3', label: '3 bedrooms' },
-    { value: '4+', label: '4+ bedrooms' },
-  ];
   readonly popularAreas = ['Vake', 'Saburtalo', 'Vera', 'Mtatsminda', 'Digomi', 'Didi Digomi'];
   readonly areaGroups = [
     { title: 'VAKE DISTRICT', areas: ['Vake', 'Bagebi', 'Nutsubidze Plateau', 'Chavchavadze'] },
@@ -84,28 +79,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private streetRevision = 0;
   private drawnAreaRevision = 0;
   private preserveDrawnPolygonOnInputChange = false;
+  private usesCloudMapStyle = false;
   private readonly boundaryCache = DrawAreaMapComponent.sharedBoundaryCache;
-  // Stable OSM relation IDs remove the ambiguity and rate limits of free-text
-  // geocoding. Each picker button now resolves to exactly one mapped area.
-  private readonly areaRelationIds: Record<string, number> = {
-    Vake: 14900501,
-    Saburtalo: 5469869,
-    Vera: 13949830,
-    Mtatsminda: 2073140,
-    Didube: 16749659,
-    Digomi: 16356610,
-    'Didi Digomi': 18183807,
-    Gldani: 13438812,
-    Nadzaladevi: 10790351,
-    Isani: 18467266,
-    Samgori: 11300436,
-    Avlabari: 18467265,
-    Sololaki: 2073133,
-    Chugureti: 18466649,
-    Krtsanisi: 18467369,
-    Vashlijvari: 20111730,
-  };
-
   constructor(private cdr: ChangeDetectorRef, private locationService: LocationService) {}
 
   ngAfterViewInit(): void {
@@ -134,18 +109,25 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.draw?.stop();
   }
 
+  private setLegacyMapStyles(styles: google.maps.MapTypeStyle[] | null): void {
+    // A map ID receives its style from Google Cloud. Passing JSON styles as
+    // well is unsupported and causes the Maps API warning seen in development.
+    if (!this.usesCloudMapStyle) this.map?.setOptions({ styles });
+  }
+
   clearArea(): void {
     this.drawnAreaRevision++;
     this.draw?.clear();
     this.hasPolygon = false;
     this.selectedArea = '';
     this.selectedStreet = '';
+    this.selectedStreetId = null;
     this.streetStep = false;
     this.draw?.setMode('polyline');
     this.polygonChange.emit(null);
     this.drawnStreetsChange.emit([]);
     this.clearStreetLines();
-    this.map?.setOptions({ styles: null });
+    this.setLegacyMapStyles(null);
   }
 
   enableCompactMap(): void {
@@ -168,7 +150,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       .filter((group) => group.areas.length);
   }
 
-  get selectedAreaStreets(): Array<{ label: string; value: string }> {
+  get selectedAreaStreets(): Array<{ id: number; label: string; value: string }> {
     const entry = this.locations.find((location) =>
       location.district.toLowerCase() === this.selectedArea.toLowerCase(),
     );
@@ -179,18 +161,36 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     );
   }
 
-  get popularStreets(): Array<{ label: string; value: string }> {
+  get popularStreets(): Array<{ id: number; label: string; value: string }> {
     return this.selectedAreaStreets.slice(0, 6);
   }
 
-  selectStreet(street: { label: string; value: string }): void {
+  async selectStreet(street: { id: number; label: string; value: string }): Promise<void> {
+    this.errorMessage = '';
     this.selectedStreet = street.value;
+    this.selectedStreetId = street.id;
     this.streetSearch = '';
+    const revision = ++this.streetRevision;
+    try {
+      const record = await firstValueFrom(this.locationService.getStreet(street.id));
+      if (revision !== this.streetRevision) return;
+      const paths = record.geometry.type === 'LineString'
+        ? [record.geometry.coordinates as number[][]]
+        : record.geometry.coordinates as number[][][];
+      this.clearStreetLines();
+      this.renderStreetPaths(paths, true);
+    } catch {
+      if (revision !== this.streetRevision) return;
+      this.selectedStreet = '';
+      this.selectedStreetId = null;
+      this.errorMessage = 'Street geometry is not approved.';
+    }
   }
 
   backToAreas(): void {
     this.streetStep = false;
     this.selectedStreet = '';
+    this.selectedStreetId = null;
     this.streetSearch = '';
   }
 
@@ -209,9 +209,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.hasPolygon = false;
     this.selectedArea = '';
     this.selectedStreet = '';
-    this.map.setOptions({
-      styles: [{ featureType: 'road', elementType: 'labels', stylers: [{ visibility: 'off' }] }],
-    });
+    this.selectedStreetId = null;
+    this.setLegacyMapStyles([
+      { featureType: 'road', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+    ]);
     const drawableAreas = (await Promise.all(areas.map(async (area) => ({
       area,
       polygons: await this.loadBoundary(area),
@@ -224,6 +225,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.cdr.detectChanges();
       return;
     }
+    // Street geometry is fetched only by canonical street ID after selection.
+    // Selecting a district must not preload or fuzzy-resolve road names.
     // Keep every neighbourhood as its own feature. Joining them with a convex
     // hull also selected the unrequested neighbourhoods between them.
     const features = drawableAreas.flatMap(({ area, polygons }) => polygons.map((coordinates) => ({
@@ -260,11 +263,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.draw?.clear();
     this.clearStreetLines();
     this.selectedArea = '';
+    this.selectedStreet = '';
+    this.selectedStreetId = null;
     this.hasPolygon = false;
     this.draw?.setMode('polyline');
     this.polygonChange.emit(null);
     this.drawnStreetsChange.emit([]);
-    this.map?.setOptions({ styles: null });
+    this.setLegacyMapStyles(null);
   }
 
   private async loadBoundary(area: string): Promise<number[][][][]> {
@@ -273,38 +278,38 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (cached) return cached;
     const pending = DrawAreaMapComponent.boundaryRequests.get(cacheKey);
     if (pending) return pending;
-    const request = this.fetchBoundary(area, cacheKey)
+    const request = this.loadPersistedBoundary(area, cacheKey)
       .finally(() => DrawAreaMapComponent.boundaryRequests.delete(cacheKey));
     DrawAreaMapComponent.boundaryRequests.set(cacheKey, request);
     return request;
   }
 
+  private async loadPersistedBoundary(area: string, cacheKey: string): Promise<number[][][][]> {
+    const persisted = await DrawAreaMapComponent.persistentMapCache.get<number[][][][]>(
+      `boundary:${cacheKey}`,
+    );
+    if (persisted?.length) {
+      this.boundaryCache.set(cacheKey, persisted);
+      return persisted;
+    }
+    const polygons = await this.fetchBoundary(area, cacheKey);
+    if (polygons.length) {
+      await DrawAreaMapComponent.persistentMapCache.set(
+        `boundary:${cacheKey}`,
+        polygons,
+      );
+    }
+    return polygons;
+  }
+
   private async fetchBoundary(area: string, cacheKey: string): Promise<number[][][][]> {
     try {
-      const relationId = this.areaRelationIds[area];
-      let geometry: { type: string; coordinates: unknown } | undefined;
-      if (relationId) {
-        let response: Response | undefined;
-        try {
-          response = await fetch(`/map-data/boundary?relationId=${relationId}`);
-        } catch {
-          response = undefined;
-        }
-        // Angular's standalone dev server may run without the Node map-data
-        // proxy. The direct request is still the same exact OSM relation.
-        if (!response?.ok || !response.headers.get('content-type')?.includes('application/json')) {
-          response = await fetch(
-            `https://polygons.openstreetmap.fr/get_geojson.py?id=${relationId}&params=0`,
-          );
-        }
-        if (!response.ok) throw new Error(`Boundary service returned ${response.status}`);
-        geometry = await response.json();
-      } else {
-        const results = await this.searchOpenStreetMap(`${area}, Tbilisi, Georgia`, true);
-        geometry = results.find((result) =>
-          result.geojson?.type === 'Polygon' || result.geojson?.type === 'MultiPolygon',
-        )?.geojson;
-      }
+      const areaRecord = this.locations.find((location) =>
+        location.district.toLowerCase() === area.toLowerCase() ||
+        this.locationService.districtName(location, 'ka').toLowerCase() === area.toLowerCase());
+      if (!areaRecord) return [];
+      const response = await firstValueFrom(this.locationService.getArea(areaRecord.id));
+      const geometry = response.geometry;
       const polygons = this.geoJsonPolygons(geometry);
       this.boundaryCache.set(cacheKey, polygons);
       return polygons;
@@ -320,15 +325,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.clearStreetLines();
     if (!this.selectedStreetsInput.length) return;
     const paths = (await Promise.all(this.selectedStreetsInput.map(async (selection) => {
-      const parts = selection.street.split(/\s+[—–-]\s+/).map((part) => part.trim()).filter(Boolean);
-      const district = selection.district;
-      // Resolve both language aliases concurrently. Empty provider responses
-      // are normal and must not surface as an AggregateError in production.
-      const aliases = [...new Set(parts.length ? parts : [selection.street])];
-      const results = await Promise.all(aliases.map((street) =>
-        this.loadStreetLines(street, district).catch(() => []),
-      ));
-      return results.find((lines) => lines.length) || [];
+      const street = await firstValueFrom(this.locationService.getStreet(selection.streetId));
+      return street.geometry.type === 'LineString'
+        ? [street.geometry.coordinates as number[][]]
+        : street.geometry.coordinates as number[][][];
     }))).flat();
     if (revision !== this.streetRevision) return;
     this.clearStreetLines();
@@ -374,206 +374,15 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (fitToStreets && !bounds.isEmpty()) this.map.fitBounds(bounds, 70);
   }
 
-  private async loadStreetLines(street: string, district: string): Promise<number[][][]> {
-    const cacheKey = `${district.toLowerCase()}:${street.toLowerCase()}`;
-    const cached = DrawAreaMapComponent.sharedStreetCache.get(cacheKey);
-    if (cached && !DrawAreaMapComponent.previewStreetKeys.has(cacheKey)) return cached;
-    const pending = DrawAreaMapComponent.streetRequests.get(cacheKey);
-    if (pending) return pending;
-    const request = this.fetchStreetLines(street, district)
-      .then((lines) => {
-        // An overloaded provider may return no ways. Never make that temporary
-        // failure permanent for the lifetime of the page.
-        if (lines.length) {
-          DrawAreaMapComponent.sharedStreetCache.set(cacheKey, lines);
-          DrawAreaMapComponent.previewStreetKeys.delete(cacheKey);
-          DrawAreaMapComponent.previewStreetKeys.delete(
-            `${district.toLowerCase()}:${this.normalizeStreetName(street)}`,
-          );
-        }
-        return lines;
-      })
-      .finally(() => DrawAreaMapComponent.streetRequests.delete(cacheKey));
-    DrawAreaMapComponent.streetRequests.set(cacheKey, request);
-    return request;
-  }
-
-  private async fetchStreetLines(street: string, district: string): Promise<number[][][]> {
-    // API street labels commonly contain initials and "st./street/avenue" while
-    // OSM stores the full name. The longest meaningful word (usually the
-    // surname) gives a safe, district-scoped match.
-    const indexed = DrawAreaMapComponent.sharedStreetCache.get(
-      `${district.toLowerCase()}:${this.normalizeStreetName(street)}`,
-    );
-    const indexedKey = `${district.toLowerCase()}:${this.normalizeStreetName(street)}`;
-    if (indexed?.length && !DrawAreaMapComponent.previewStreetKeys.has(indexedKey)) return indexed;
-
-    let lines: number[][][];
-    try {
-      const bbox = this.districtBoundingBox(district);
-      const bboxQuery = bbox ? `&bbox=${bbox.join(',')}` : '';
-      const response = await fetch(`/map-data/street?street=${encodeURIComponent(street)}${bboxQuery}`);
-      if (!response.ok) throw new Error(`Street geometry service returned ${response.status}`);
-      lines = ((await response.json() as { lines?: number[][][] }).lines || []);
-    } catch {
-      lines = [];
-    }
-    const drawnRing = DrawAreaMapComponent.drawnAreaRings.get(district.toLowerCase());
-    if (!lines.length && drawnRing?.length) {
-      try {
-        const longitudes = drawnRing.map(([longitude]) => longitude);
-        const latitudes = drawnRing.map(([, latitude]) => latitude);
-        const bbox = [Math.min(...latitudes), Math.min(...longitudes), Math.max(...latitudes), Math.max(...longitudes)];
-        const tokens = street.replace(/[.,]/g, ' ').split(/\s+/)
-          .filter((token) => token.length >= 4 && !/^(street|avenue|road|lane)$/i.test(token))
-          .sort((left, right) => right.length - left.length);
-        const searchToken = (tokens[0] || street).replace(/[\\"\n\r]/g, (character) => `\\${character}`);
-        const query = `[out:json][timeout:20];way[highway][~"^(name|name:en|name:ka)$"~"${searchToken}",i](${bbox.join(',')});out geom;`;
-        const payload = await this.fetchOverpass<{
-          elements?: Array<{ geometry?: Array<{ lon: number; lat: number }> }>;
-        }>(query);
-        lines = (payload.elements || [])
-          .map((element) => (element.geometry || []).map((point) => [point.lon, point.lat]))
-          .filter((line) => line.length >= 2 && this.lineIntersectsRing(line, drawnRing));
-      } catch {
-        lines = [];
-      }
-    }
-    const districtPolygons = this.boundaryCache.get(`area:${district.toLowerCase()}`) || [];
-    if (districtPolygons.length) {
-      lines = lines.filter((line) => line.some((point) =>
-        districtPolygons.some((polygon) => this.pointInRing(point, polygon[0])),
-      ));
-    }
-    return lines;
-  }
-
-  private preloadDistrictStreets(district: string): Promise<void> {
-    const districtKey = district.toLowerCase();
-    if (DrawAreaMapComponent.loadedStreetDistricts.has(districtKey)) return Promise.resolve();
-    const pending = DrawAreaMapComponent.districtStreetRequests.get(districtKey);
-    if (pending) return pending;
-    const relationId = this.areaRelationIds[district];
-    if (!relationId) return Promise.resolve();
-    const request = this.fetchDistrictStreets(relationId)
-      .then((streets) => {
-        const grouped = new Map<string, number[][][]>();
-        for (const street of streets) {
-          for (const name of street.names) {
-            const key = `${districtKey}:${this.normalizeStreetName(name)}`;
-            grouped.set(key, [...(grouped.get(key) || []), street.line]);
-          }
-        }
-        grouped.forEach((lines, key) => DrawAreaMapComponent.sharedStreetCache.set(key, lines));
-        DrawAreaMapComponent.loadedStreetDistricts.add(districtKey);
-      })
-      .finally(() => DrawAreaMapComponent.districtStreetRequests.delete(districtKey));
-    DrawAreaMapComponent.districtStreetRequests.set(districtKey, request);
-    return request;
-  }
-
-  private async fetchDistrictStreets(relationId: number): Promise<Array<{ names: string[]; line: number[][] }>> {
-    let payload: {
-      streets?: Array<{ names: string[]; line: number[][] }>;
-      elements?: Array<{
-        tags?: Record<string, string>;
-        geometry?: Array<{ lon: number; lat: number }>;
-      }>;
-    } | undefined;
-    try {
-      const response = await fetch(`/map-data/district-streets?relationId=${relationId}`, {
-        signal: AbortSignal.timeout(8000),
-      });
-      if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
-        payload = await response.json();
-      }
-    } catch {
-      payload = undefined;
-    }
-
-    if (!payload?.streets?.length && !payload?.elements?.length) {
-      const query = `[out:json][timeout:25];rel(${relationId});map_to_area->.district;way(area.district)[highway][name];out tags geom;`;
-      payload = await this.fetchOverpass(query);
-    }
-
-    if (payload?.streets?.length) return payload.streets;
-    return (payload?.elements || []).map((element) => ({
-      names: [...new Set([
-        element.tags?.['name'],
-        element.tags?.['name:en'],
-        element.tags?.['name:ka'],
-      ].filter((name): name is string => !!name))],
-      line: (element.geometry || []).map((point) => [point.lon, point.lat]),
-    })).filter((street) => street.names.length > 0 && street.line.length >= 2);
-  }
-
-  private normalizeStreetName(name: string): string {
-    return name.toLowerCase()
-      .replace(/[.,]/g, ' ')
-      .replace(/\b(street|st|avenue|ave|road|rd|lane)\b/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  private districtBoundingBox(district: string): [number, number, number, number] | null {
-    const polygons = this.boundaryCache.get(`area:${district.toLowerCase()}`) || [];
-    const points = polygons.flatMap((polygon) => polygon.flatMap((ring) => ring));
-    if (!points.length) return null;
-    const longitudes = points.map(([longitude]) => longitude);
-    const latitudes = points.map(([, latitude]) => latitude);
-    return [
-      Math.min(...latitudes),
-      Math.min(...longitudes),
-      Math.max(...latitudes),
-      Math.max(...longitudes),
-    ];
-  }
-
-  private pointInRing([x, y]: number[], ring: number[][]): boolean {
-    let inside = false;
-    for (let current = 0, previous = ring.length - 1; current < ring.length; previous = current++) {
-      const [currentX, currentY] = ring[current];
-      const [previousX, previousY] = ring[previous];
-      const crosses = (currentY > y) !== (previousY > y) &&
-        x < ((previousX - currentX) * (y - currentY)) / (previousY - currentY) + currentX;
-      if (crosses) inside = !inside;
-    }
-    return inside;
-  }
-
   private clearStreetLines(): void {
     this.streetLines.forEach((line) => line.setMap(null));
     this.streetLines = [];
-  }
-
-  private async searchOpenStreetMap(query: string, polygon: boolean): Promise<Array<{ geojson?: { type: string; coordinates: unknown } }>> {
-    const params = new URLSearchParams({
-      q: query,
-      format: 'jsonv2',
-      limit: '8',
-      countrycodes: 'ge',
-      viewbox: '44.55,41.92,45.10,41.50',
-      bounded: '1',
-      polygon_geojson: polygon ? '1' : '0',
-    });
-    if (!polygon) params.set('polygon_geojson', '1');
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`,
-      { headers: { 'Accept-Language': 'en,ka;q=0.9' } });
-    if (!response.ok) throw new Error(`OpenStreetMap returned ${response.status}`);
-    return response.json();
   }
 
   private geoJsonPolygons(geometry?: { type: string; coordinates: unknown }): number[][][][] {
     if (!geometry) return [];
     if (geometry.type === 'Polygon') return [geometry.coordinates as number[][][]];
     if (geometry.type === 'MultiPolygon') return geometry.coordinates as number[][][][];
-    return [];
-  }
-
-  private geoJsonLines(geometry?: { type: string; coordinates: unknown }): number[][][] {
-    if (!geometry) return [];
-    if (geometry.type === 'LineString') return [geometry.coordinates as number[][]];
-    if (geometry.type === 'MultiLineString') return geometry.coordinates as number[][][];
     return [];
   }
 
@@ -595,6 +404,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       propertyType: this.propertyType,
       budget: this.budget!,
       bedrooms: this.bedrooms,
+      streetId: this.selectedStreetId || undefined,
       streetName: this.selectedStreet || undefined,
     });
   }
@@ -607,6 +417,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const apiKey = document
       .querySelector<HTMLMetaElement>('meta[name="google-maps-api-key"]')
       ?.content.trim();
+    const mapId = document
+      .querySelector<HTMLMetaElement>('meta[name="google-maps-map-id"]')
+      ?.content.trim();
+    this.usesCloudMapStyle = !!mapId;
 
     const mapElement = this.compact ? this.compactMapContainer : this.mapContainer;
     if (!apiKey || !mapElement) {
@@ -616,7 +430,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
 
     try {
-      setOptions({ key: apiKey, v: 'weekly' });
+      setOptions({
+        key: apiKey,
+        v: 'weekly',
+        ...(mapId ? { mapIds: [mapId] } : {}),
+      });
       const [{ Map }, terraDraw, googleAdapter] = await Promise.all([
         importLibrary('maps') as Promise<google.maps.MapsLibrary>,
         import('terra-draw'),
@@ -627,6 +445,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.map = new Map(mapElement.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
         zoom: 12,
+        ...(mapId ? { mapId } : {}),
         minZoom: 9,
         maxZoom: 20,
         gestureHandling: 'greedy',
@@ -792,55 +611,34 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private async emitDrawnAreaStreets(polygon: GeoJsonPolygon): Promise<void> {
     const revision = ++this.drawnAreaRevision;
-    const districtPromise = this.detectDistrictForPolygon(polygon);
-    void districtPromise.then((district) => {
-      if (revision !== this.drawnAreaRevision) return;
-      this.preserveDrawnPolygonOnInputChange = !!district;
-      this.detectedAreaChange.emit(district);
-    });
     try {
       const ring = polygon.coordinates[0];
-      let streets: Array<{ names: string[]; line: number[][] }>;
-      try {
-        streets = await this.fetchPolygonStreets(ring);
-      } catch {
-        const fallbackDistrict = await districtPromise;
-        const relationId = fallbackDistrict ? this.areaRelationIds[fallbackDistrict] : undefined;
-        streets = relationId ? await this.fetchDistrictStreets(relationId) : [];
-      }
-      const detectedArea = await districtPromise;
+      const center = ring.reduce(
+        (sum, [longitude, latitude]) => [sum[0] + longitude, sum[1] + latitude],
+        [0, 0],
+      ).map((value) => value / ring.length);
+      const [area, streets] = await Promise.all([
+        firstValueFrom(this.locationService.resolvePoint(center[1], center[0])).catch(() => null),
+        firstValueFrom(this.locationService.getIntersectingStreets(polygon.coordinates)),
+      ]);
       if (revision !== this.drawnAreaRevision) return;
-      if (detectedArea) {
-        DrawAreaMapComponent.drawnAreaRings.set(detectedArea.toLowerCase(), ring);
-        for (const street of streets) {
-          for (const name of street.names) {
-            const lines = [street.line];
-            const rawKey = `${detectedArea.toLowerCase()}:${name.toLowerCase()}`;
-            const normalizedKey = `${detectedArea.toLowerCase()}:${this.normalizeStreetName(name)}`;
-            DrawAreaMapComponent.sharedStreetCache.set(rawKey, lines);
-            DrawAreaMapComponent.sharedStreetCache.set(normalizedKey, lines);
-            DrawAreaMapComponent.previewStreetKeys.add(rawKey);
-            DrawAreaMapComponent.previewStreetKeys.add(normalizedKey);
-          }
-        }
-      }
+      const detectedArea = area?.nameEn || '';
+      this.preserveDrawnPolygonOnInputChange = !!detectedArea;
+      this.detectedAreaChange.emit(detectedArea);
       const useGeorgian = document.documentElement.lang === 'ka';
       const matches = streets
-        .filter((street) => this.lineIntersectsRing(street.line, ring))
         .map((street) => {
-          const english = street.names.find((name) => /[A-Za-z]/.test(name)) || street.names[0];
-          const georgian = street.names.find((name) => /[\u10A0-\u10FF]/.test(name));
-          return { label: useGeorgian && georgian ? georgian : english, value: english };
+          return {
+            id: street.id,
+            label: useGeorgian && street.nameKa ? street.nameKa : street.nameEn,
+            value: street.nameEn,
+            district: street.district,
+          };
         })
-        .filter((street, index, list) => list.findIndex((item) => item.value === street.value) === index)
+        .filter((street, index, list) => list.findIndex((item) => item.id === street.id) === index)
         .sort((left, right) => left.label.localeCompare(right.label, useGeorgian ? 'ka' : 'en'));
       this.drawnStreetsChange.emit(matches);
       this.cdr.detectChanges();
-      if (detectedArea) {
-        void Promise.all(matches.map((street) =>
-          this.loadStreetLines(street.value, detectedArea).catch(() => []),
-        ));
-      }
     } catch {
       if (revision !== this.drawnAreaRevision) return;
       this.drawnStreetsChange.emit([]);
@@ -848,247 +646,4 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
-  private async fetchPolygonStreets(ring: number[][]): Promise<Array<{ names: string[]; line: number[][] }>> {
-    const points = ring.filter((point, index) =>
-      point.length >= 2 && (index !== ring.length - 1 || point[0] !== ring[0][0] || point[1] !== ring[0][1]));
-    if (points.length < 3) return [];
-    const googleStreets = await this.fetchGoogleStreetsInPolygon(points);
-    if (googleStreets.length) return googleStreets;
-    const overpassPolygon = points.map(([longitude, latitude]) => `${latitude} ${longitude}`).join(' ');
-    const query = `[out:json][timeout:25];way(poly:"${overpassPolygon}")[highway][name];out tags geom;`;
-    const payload = await this.fetchOverpass(query) as {
-      elements?: Array<{
-        tags?: Record<string, string>;
-        geometry?: Array<{ lon: number; lat: number }>;
-      }>;
-    };
-    return (payload.elements || []).map((element) => ({
-      names: [...new Set([
-        element.tags?.['name'],
-        element.tags?.['name:en'],
-        element.tags?.['name:ka'],
-      ].filter((name): name is string => !!name))],
-      line: (element.geometry || []).map((point) => [point.lon, point.lat]),
-    })).filter((street) => street.names.length > 0 && street.line.length >= 2);
-  }
-
-  private async fetchGoogleStreetsInPolygon(ring: number[][]): Promise<Array<{ names: string[]; line: number[][] }>> {
-    const longitudes = ring.map(([longitude]) => longitude);
-    const latitudes = ring.map(([, latitude]) => latitude);
-    const minimumLongitude = Math.min(...longitudes);
-    const maximumLongitude = Math.max(...longitudes);
-    const minimumLatitude = Math.min(...latitudes);
-    const maximumLatitude = Math.max(...latitudes);
-    const center = [
-      ring.reduce((total, [longitude]) => total + longitude, 0) / ring.length,
-      ring.reduce((total, [, latitude]) => total + latitude, 0) / ring.length,
-    ];
-    const ringStep = Math.max(1, Math.ceil(ring.length / 4));
-    const samples: number[][] = [center, ...ring.filter((_, index) => index % ringStep === 0)];
-
-    for (let row = 1; row <= 2; row++) {
-      for (let column = 1; column <= 2; column++) {
-        const point = [
-          minimumLongitude + (maximumLongitude - minimumLongitude) * column / 3,
-          minimumLatitude + (maximumLatitude - minimumLatitude) * row / 3,
-        ];
-        if (this.pointInRing(point, ring)) samples.push(point);
-      }
-    }
-
-    const uniqueSamples = samples
-      .filter((point, index, list) => list.findIndex((candidate) =>
-        Math.abs(candidate[0] - point[0]) < 0.00001 && Math.abs(candidate[1] - point[1]) < 0.00001) === index)
-      .slice(0, 9);
-    const geocoder = new google.maps.Geocoder();
-    const results: Array<PromiseSettledResult<{
-      point: number[];
-      response: google.maps.GeocoderResponse;
-    }>> = [];
-    for (let index = 0; index < uniqueSamples.length; index += 3) {
-      const batch = uniqueSamples.slice(index, index + 3);
-      results.push(...await Promise.allSettled(batch.map(async ([longitude, latitude]) => ({
-        point: [longitude, latitude],
-        response: await this.reverseGeocodeWithRetry(geocoder, latitude, longitude),
-      }))));
-    }
-    const streets = results.flatMap((result) => {
-      if (result.status !== 'fulfilled') return [];
-      return result.value.response.results.flatMap((address) => {
-        const addressPoint = [address.geometry.location.lng(), address.geometry.location.lat()];
-        if (!this.pointInRing(addressPoint, ring)) return [];
-        return address.address_components
-          .filter((component) => component.types.includes('route'))
-          .flatMap((component) => [component.long_name, component.short_name])
-          .filter((name) => !!name)
-          .map((name) => {
-            const samplePoint = result.value.point;
-            const hasVisibleLength = Math.abs(samplePoint[0] - addressPoint[0]) > 0.00001
-              || Math.abs(samplePoint[1] - addressPoint[1]) > 0.00001;
-            const secondPoint = hasVisibleLength
-              ? samplePoint
-              : [addressPoint[0] + 0.00012, addressPoint[1]];
-            return { names: [name], line: [addressPoint, secondPoint] };
-          });
-      });
-    });
-    return streets.filter((street, index, list) =>
-      list.findIndex((candidate) => candidate.names[0].toLowerCase() === street.names[0].toLowerCase()) === index);
-  }
-
-  private async reverseGeocodeWithRetry(
-    geocoder: google.maps.Geocoder,
-    latitude: number,
-    longitude: number,
-  ): Promise<google.maps.GeocoderResponse> {
-    try {
-      return await geocoder.geocode({ location: { lat: latitude, lng: longitude } });
-    } catch (error) {
-      await new Promise<void>((resolve) => setTimeout(resolve, 180));
-      try {
-        return await geocoder.geocode({ location: { lat: latitude, lng: longitude } });
-      } catch {
-        throw error;
-      }
-    }
-  }
-
-  private async fetchOverpass<T>(query: string): Promise<T> {
-    let lastStatus = 0;
-    for (const endpoint of ['/overpass-api', '/overpass-api-backup', '/overpass-api-alt']) {
-      try {
-        const response = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, {
-          signal: AbortSignal.timeout(30000),
-        });
-        lastStatus = response.status;
-        if (response.ok && response.headers.get('content-type')?.includes('json')) {
-          return await response.json() as T;
-        }
-      } catch {
-        // Try the next independent OpenStreetMap mirror.
-      }
-    }
-    throw new Error(`OpenStreetMap street services are unavailable (${lastStatus || 'network error'}).`);
-  }
-
-  private lineIntersectsRing(line: number[][], ring: number[][]): boolean {
-    if (line.some((point) => this.pointInRing(point, ring))) return true;
-    for (let lineIndex = 1; lineIndex < line.length; lineIndex++) {
-      for (let ringIndex = 0; ringIndex < ring.length; ringIndex++) {
-        const nextRingIndex = (ringIndex + 1) % ring.length;
-        if (this.segmentsIntersect(line[lineIndex - 1], line[lineIndex], ring[ringIndex], ring[nextRingIndex])) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private segmentsIntersect(firstStart: number[], firstEnd: number[], secondStart: number[], secondEnd: number[]): boolean {
-    const orientation = (start: number[], end: number[], point: number[]) =>
-      (end[0] - start[0]) * (point[1] - start[1]) - (end[1] - start[1]) * (point[0] - start[0]);
-    const firstSide = orientation(firstStart, firstEnd, secondStart);
-    const secondSide = orientation(firstStart, firstEnd, secondEnd);
-    const thirdSide = orientation(secondStart, secondEnd, firstStart);
-    const fourthSide = orientation(secondStart, secondEnd, firstEnd);
-    return ((firstSide <= 0 && secondSide >= 0) || (firstSide >= 0 && secondSide <= 0))
-      && ((thirdSide <= 0 && fourthSide >= 0) || (thirdSide >= 0 && fourthSide <= 0));
-  }
-
-  private async detectDistrictForPolygon(polygon: GeoJsonPolygon): Promise<string> {
-    const ring = polygon.coordinates[0].filter((point) => point.length >= 2);
-    if (!ring.length) return '';
-
-    const uniquePoints = ring.filter((point, index) =>
-      index !== ring.length - 1 || point[0] !== ring[0][0] || point[1] !== ring[0][1]);
-    const center = uniquePoints.reduce(
-      ([longitude, latitude], [pointLongitude, pointLatitude]) =>
-        [longitude + pointLongitude, latitude + pointLatitude],
-      [0, 0],
-    ).map((coordinate) => coordinate / uniquePoints.length);
-
-    const areaCenters: Record<string, number[]> = {
-      'Airport Settlement': [44.955, 41.675], Varketili: [44.88, 41.70],
-      Vazisubani: [44.855, 41.705], Samgori: [44.85, 41.69], Lilo: [44.96, 41.735],
-      Navtlughi: [44.835, 41.68], Ortachala: [44.82, 41.675], Isani: [44.83, 41.69],
-      Mukhiani: [44.82, 41.805], Gldani: [44.815, 41.79], Sanzona: [44.79, 41.78],
-      Temqa: [44.805, 41.79], Nadzaladevi: [44.79, 41.77], 'Didi Digomi': [44.70, 41.79],
-      Digomi: [44.735, 41.78], Didube: [44.778, 41.749], Vashlijvari: [44.72, 41.76],
-      Delisi: [44.725, 41.725], Vedzisi: [44.755, 41.735], Nutsubidze: [44.715, 41.73],
-      Saburtalo: [44.75, 41.725], Bagebi: [44.72, 41.70], Tskneti: [44.70, 41.695],
-      Vake: [44.75, 41.71], Vera: [44.785, 41.71], Mtatsminda: [44.79, 41.695],
-      Sololaki: [44.80, 41.69], Marjanishvili: [44.80, 41.715], Chugureti: [44.80, 41.72],
-      Avlabari: [44.815, 41.693], Ponichala: [44.90, 41.63], Krtsanisi: [44.82, 41.67],
-    };
-    const distanceFromCenter = ([longitude, latitude]: number[]) =>
-      (longitude - center[0]) ** 2 + (latitude - center[1]) ** 2;
-    const nearestArea = Object.entries(areaCenters)
-      .sort(([, left], [, right]) => distanceFromCenter(left) - distanceFromCenter(right))[0];
-
-    try {
-      const result = await new google.maps.Geocoder().geocode({
-        location: { lat: center[1], lng: center[0] },
-      });
-      const areaAliases: Array<{ area: string; aliases: string[] }> = [
-        { area: 'Airport Settlement', aliases: ['airport settlement', 'აეროპორტის დასახლება'] },
-        { area: 'Varketili', aliases: ['varketili', 'ვარკეთილი'] },
-        { area: 'Vazisubani', aliases: ['vazisubani', 'ვაზისუბანი'] },
-        { area: 'Samgori', aliases: ['samgori', 'სამგორი'] },
-        { area: 'Lilo', aliases: ['lilo', 'ლილო'] },
-        { area: 'Navtlughi', aliases: ['navtlughi', 'ნავთლუღი'] },
-        { area: 'Ortachala', aliases: ['ortachala', 'ორთაჭალა'] },
-        { area: 'Isani', aliases: ['isani', 'ისანი'] },
-        { area: 'Mukhiani', aliases: ['mukhiani', 'მუხიანი'] },
-        { area: 'Gldani', aliases: ['gldani', 'გლდანი'] },
-        { area: 'Sanzona', aliases: ['sanzona', 'სანზონა'] },
-        { area: 'Temqa', aliases: ['temqa', 'თემქა'] },
-        { area: 'Nadzaladevi', aliases: ['nadzaladevi', 'ნაძალადევი'] },
-        { area: 'Didi Digomi', aliases: ['didi digomi', 'great digomi', 'დიდი დიღომი'] },
-        { area: 'Digomi', aliases: ['digomi', 'დიღომი'] },
-        { area: 'Didube', aliases: ['didube', 'დიდუბე'] },
-        { area: 'Vashlijvari', aliases: ['vashlijvari', 'ვაშლიჯვარი'] },
-        { area: 'Delisi', aliases: ['delisi', 'დელისი'] },
-        { area: 'Vedzisi', aliases: ['vedzisi', 'ვეძისი'] },
-        { area: 'Nutsubidze', aliases: ['nutsubidze', 'ნუცუბიძე'] },
-        { area: 'Saburtalo', aliases: ['saburtalo', 'საბურთალო'] },
-        { area: 'Bagebi', aliases: ['bagebi', 'ბაგები'] },
-        { area: 'Tskneti', aliases: ['tskneti', 'წყნეთი'] },
-        { area: 'Vake', aliases: ['vake', 'ვაკე'] },
-        { area: 'Vera', aliases: ['vera', 'ვერა'] },
-        { area: 'Mtatsminda', aliases: ['mtatsminda', 'მთაწმინდა'] },
-        { area: 'Sololaki', aliases: ['sololaki', 'სოლოლაკი'] },
-        { area: 'Marjanishvili', aliases: ['marjanishvili', 'მარჯანიშვილი'] },
-        { area: 'Chugureti', aliases: ['chugureti', 'ჩუღურეთი'] },
-        { area: 'Avlabari', aliases: ['avlabari', 'ავლაბარი'] },
-        { area: 'Ponichala', aliases: ['ponichala', 'ფონიჭალა'] },
-        { area: 'Krtsanisi', aliases: ['krtsanisi', 'კრწანისი'] },
-      ];
-      const normalizedParts = result.results
-        .flatMap((address) => address.address_components)
-        .flatMap((component) => [component.long_name, component.short_name])
-        .map((part) => part.toLowerCase());
-      const specificAreaOrder = [
-        'Airport Settlement', 'Varketili', 'Vazisubani', 'Lilo', 'Navtlughi', 'Ortachala',
-        'Mukhiani', 'Sanzona', 'Temqa', 'Vashlijvari', 'Delisi', 'Vedzisi', 'Nutsubidze',
-        'Bagebi', 'Tskneti', 'Marjanishvili', 'Ponichala', 'Didi Digomi',
-      ];
-      const orderedAliases = [
-        ...specificAreaOrder.flatMap((area) => areaAliases.filter((entry) => entry.area === area)),
-        ...areaAliases.filter((entry) => !specificAreaOrder.includes(entry.area)),
-      ];
-      const detected = orderedAliases.find(({ aliases }) => aliases.some((alias) =>
-        normalizedParts.some((part) => part.includes(alias))))?.area;
-      if (detected) {
-        const detectedCenter = areaCenters[detected];
-        const detectedDistance = detectedCenter ? distanceFromCenter(detectedCenter) : Number.POSITIVE_INFINITY;
-        const nearestDistance = nearestArea ? distanceFromCenter(nearestArea[1]) : Number.POSITIVE_INFINITY;
-        // Reject a stale/broad geocoder result when it is kilometres away
-        // from the polygon and another known locality is clearly closer.
-        if (detectedDistance <= 0.0004 || detectedDistance <= nearestDistance * 2.5) return detected;
-      }
-    } catch {
-      // Street lookup uses the polygon directly, so district naming is optional.
-    }
-    return nearestArea?.[0] || '';
-  }
 }

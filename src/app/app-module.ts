@@ -34,6 +34,8 @@ import { Services } from './services/services';
 import { CurrencyPrice } from './currency-price/currency-price';
 import { SavedListings } from './saved-listings/saved-listings';
 import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile';
+import { PropertyPointPickerComponent } from './maps/property-point-picker/property-point-picker.component';
+import { StreetValidationMapComponent } from './admin-panel/street-validation-map.component';
 
 @NgModule({
   declarations: [
@@ -65,6 +67,8 @@ import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile'
     CurrencyPrice,
     SavedListings,
     AgentDetailProfile,
+    PropertyPointPickerComponent,
+    StreetValidationMapComponent,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
   providers: [

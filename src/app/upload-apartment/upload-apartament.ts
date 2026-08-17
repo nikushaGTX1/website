@@ -7,7 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
-import { GoogleNearbyTimeService, NearbyWalkingTimes } from '../maps/services/google-nearby-time.service';
+import { NearbyWalkingTimes } from '../maps/services/google-nearby-time.service';
 
 type UploadForm = {
   realEstateType: string;
@@ -17,6 +17,8 @@ type UploadForm = {
   location: string;
   street: string;
   streetNumber: string;
+  propertyLatitude: number | null;
+  propertyLongitude: number | null;
   cadastralCode: string;
   hideAddress: boolean;
   totalPrice: number | null;
@@ -174,6 +176,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     location: '',
     street: '',
     streetNumber: '',
+    propertyLatitude: null,
+    propertyLongitude: null,
     cadastralCode: '',
     hideAddress: false,
     totalPrice: null,
@@ -222,6 +226,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   locationPicker: 'area' | 'street' | null = null;
   selectedDistrictValue = '';
   selectedStreetValue = '';
+  selectedStreetId: number | null = null;
   private readonly dismissedNotificationsKey = 'dismissedApartmentApprovalNotifications';
   private readonly subscriptions = new Subscription();
   private dismissedNotificationIds = new Set<string>();
@@ -231,7 +236,6 @@ export class UploadApartment implements OnInit, OnDestroy {
     private authService: AuthService,
     private pendingService: PendingApartmentService,
     private locationService: LocationService,
-    private nearbyTimeService: GoogleNearbyTimeService,
   ) {
     this.dismissedNotificationIds = this.readDismissedNotificationIds();
     this.subscriptions.add(
@@ -309,6 +313,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       )
       .slice(0, 10)
       .map((entry) => ({
+        id: entry.id,
         label: this.locationService.districtName(entry, language),
         value: entry.district,
         type: 'Area',
@@ -343,6 +348,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         ) {
           seen.add(key);
           suggestions.push({
+            id: street.id,
             label: street.label,
             value: street.value,
             type: 'Street',
@@ -370,6 +376,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   onStreetInput(): void {
     this.selectedStreetValue = '';
+    this.selectedStreetId = null;
     this.openLocationPicker('street');
   }
 
@@ -378,12 +385,14 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.selectedDistrictValue = suggestion.value || suggestion.label;
     this.form.street = '';
     this.selectedStreetValue = '';
+    this.selectedStreetId = null;
     this.locationPicker = null;
   }
 
   selectUploadStreet(suggestion: LocationSuggestion): void {
     this.form.street = suggestion.label;
     this.selectedStreetValue = suggestion.value || suggestion.label;
+    this.selectedStreetId = suggestion.id || null;
     this.selectedDistrictValue = suggestion.districtValue || '';
     this.form.location = suggestion.district || suggestion.districtValue || '';
     this.locationPicker = null;
@@ -488,8 +497,10 @@ export class UploadApartment implements OnInit, OnDestroy {
       case 1:
         return !!(
           this.selectedDistrictValue &&
-          this.selectedStreetValue &&
-          this.form.streetNumber.trim()
+          this.selectedStreetId &&
+          this.form.streetNumber.trim() &&
+          this.form.propertyLatitude !== null &&
+          this.form.propertyLongitude !== null
         );
       case 2:
         return !!this.form.totalPrice;
@@ -570,8 +581,13 @@ export class UploadApartment implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.selectedStreetValue) {
-      this.errorMessage = 'Please select a street from the selected district.';
+    if (!this.selectedStreetId) {
+      this.errorMessage = 'Please select an approved street from the selected district.';
+      return;
+    }
+
+    if (this.form.propertyLatitude === null || this.form.propertyLongitude === null) {
+      this.errorMessage = 'Please place the exact property pin on the map.';
       return;
     }
 
@@ -581,18 +597,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     }
 
     this.loading = true;
-    const calculationAddress = [
-      this.selectedStreetValue,
-      this.form.streetNumber,
-      this.selectedDistrictValue,
-      'Tbilisi',
-    ].filter(Boolean).join(', ');
     let nearbyTimes: NearbyWalkingTimes = {};
-    try {
-      nearbyTimes = await this.nearbyTimeService.getWalkingTimes(calculationAddress);
-    } catch (error) {
-      console.error('Could not calculate nearby walking times:', error);
-    }
 
     if (!this.authService.isAdmin) {
       this.pendingService.submit(this.toCreateApartment(false, nearbyTimes), this.authService.currentUser).subscribe({
@@ -677,6 +682,10 @@ export class UploadApartment implements OnInit, OnDestroy {
         this.locationEntries.find((entry) => entry.district === district)?.region || '',
       district,
       street,
+      streetId: this.selectedStreetId || undefined,
+      buildingNumber: this.form.streetNumber.trim(),
+      propertyLatitude: this.form.propertyLatitude ?? undefined,
+      propertyLongitude: this.form.propertyLongitude ?? undefined,
       bedrooms: this.form.bedrooms ?? 0,
       bathrooms: this.form.bathrooms ?? 0,
       sizeSquareMeters: this.form.area ?? 0,

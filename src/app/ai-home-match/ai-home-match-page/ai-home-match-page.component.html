@@ -44,7 +44,15 @@
         </div>
       </div>
       <ng-container [ngSwitch]="step">
-        <div class="options" *ngSwitchCase="0">
+        <div class="options gender-first-step" *ngSwitchCase="0">
+          <button type="button" [class.selected]="profile.gender === 'Male'" [attr.aria-pressed]="profile.gender === 'Male'" (click)="choose('gender', 'Male')">
+            <img class="gender-option-image" src="/husband%20svg.svg" alt="" />Male
+          </button>
+          <button type="button" [class.selected]="profile.gender === 'Female'" [attr.aria-pressed]="profile.gender === 'Female'" (click)="choose('gender', 'Female')">
+            <img class="gender-option-image" src="/wife%20svg.svg" alt="" />Female
+          </button>
+        </div>
+        <div class="options" *ngSwitchCase="1">
           <button
             type="button"
             [class.selected]="profile.propertyGoal === 'Rent'"
@@ -61,7 +69,7 @@
             <svg class="option-icon" aria-hidden="true"><use href="/ai-match-icons.svg#home"></use></svg>Buy an apartment
           </button>
         </div>
-        <div *ngSwitchCase="1">
+        <div *ngSwitchCase="2">
           <div class="options compact">
             <button
               type="button"
@@ -111,7 +119,7 @@
             /></label>
           </div>
         </div>
-        <form class="budget" *ngSwitchCase="2" [formGroup]="budgetForm">
+        <form class="budget" *ngSwitchCase="3" [formGroup]="budgetForm">
           <label>Minimum amount<input type="number" min="0" formControlName="min" /></label
           ><label>Maximum amount<input type="number" min="0" formControlName="max" /></label
           ><label
@@ -163,18 +171,20 @@
             </button>
           </fieldset>
         </form>
-        <div class="options" *ngSwitchCase="3">
-          <button
-            type="button"
-            *ngFor="let option of household"
-            [class.selected]="profile.householdType === option.value"
-            [attr.aria-pressed]="profile.householdType === option.value"
-            (click)="choose('householdType', option.value)"
-          >
-            <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
-          </button>
+        <div class="household-step" *ngSwitchCase="4">
+          <div class="options">
+            <button
+              type="button"
+              *ngFor="let option of household"
+              [class.selected]="profile.householdType === option.value"
+              [attr.aria-pressed]="profile.householdType === option.value"
+              (click)="choose('householdType', option.value)"
+            >
+              <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
+            </button>
+          </div>
         </div>
-        <div *ngSwitchCase="4" class="people">
+        <div *ngSwitchCase="5" class="people">
           <div class="counter">
             <span><svg class="counter-icon" aria-hidden="true"><use href="/ai-match-icons.svg#solo"></use></svg>Adults</span
             ><button
@@ -214,7 +224,7 @@
             </button>
           </fieldset>
         </div>
-        <div *ngSwitchCase="5">
+        <div *ngSwitchCase="6">
           <div class="options">
             <button
               type="button"
@@ -251,7 +261,7 @@
             </button>
           </fieldset>
         </div>
-        <div *ngSwitchCase="6">
+        <div *ngSwitchCase="7">
           <ng-container *ngIf="profile.propertyGoal === 'Rent'; else buyTiming"
             ><fieldset>
               <legend>How long would you like to stay?</legend>
@@ -338,7 +348,7 @@
             </fieldset></ng-template
           >
         </div>
-        <div *ngSwitchCase="7">
+        <div *ngSwitchCase="8">
           <div class="options transport-options">
             <button
               type="button"
@@ -372,7 +382,7 @@
             Parking has been automatically prioritized.
           </p>
         </div>
-        <div class="options" *ngSwitchCase="8">
+        <div class="options" *ngSwitchCase="9">
           <button
             type="button"
             *ngFor="let option of lifestyles"
@@ -383,7 +393,7 @@
             <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
           </button>
         </div>
-        <div class="options" *ngSwitchCase="9">
+        <div class="options" *ngSwitchCase="10">
           <button type="button" [class.selected]="profile.hasPet === true" (click)="setPet(true)">
             <svg class="option-icon" aria-hidden="true"><use href="/ai-match-icons.svg#pet"></use></svg>Yes</button
           ><button
@@ -394,7 +404,7 @@
             <svg class="option-icon" aria-hidden="true"><use href="/ai-match-icons.svg#no"></use></svg>No
           </button>
         </div>
-        <div *ngSwitchCase="10">
+        <div *ngSwitchCase="11">
           <p class="selection-count" aria-live="polite">
             {{ profile.mainPreferences.length }} of 5 selected
           </p>
@@ -413,7 +423,7 @@
             </button>
           </div>
         </div>
-        <div *ngSwitchCase="11">
+        <div *ngSwitchCase="12">
           <div class="options compact">
             <button
               type="button"
@@ -433,7 +443,7 @@
             ></textarea>
           </label>
         </div>
-        <div *ngSwitchCase="12">
+        <div *ngSwitchCase="13">
           <p class="selection-count" aria-live="polite">
             {{ profile.topPriorities.length }} of 3 ranked
           </p>
@@ -474,6 +484,7 @@
       <dl>
         <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#location"></use></svg>Location</dt><dd>{{ locationLabel }}</dd></div>
         <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#family"></use></svg>Who will live</dt><dd>{{ householdLabel }}</dd></div>
+        <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#solo"></use></svg>Gender</dt><dd>{{ profile.gender || 'Not selected yet' }}</dd></div>
         <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#pet"></use></svg>Pets</dt><dd>{{ profile.hasPet === null ? 'Not answered' : profile.hasPet ? 'Pet owner' : 'No pets' }}</dd></div>
         <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#social"></use></svg>Lifestyle</dt><dd>{{ profile.lifestyles.length ? profile.lifestyles.join(', ') : 'Building your profile' }}</dd></div>
         <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#car"></use></svg>Transport</dt><dd>{{ profile.transportation.length ? profile.transportation.join(', ') : 'Not selected yet' }}</dd></div>

@@ -221,6 +221,11 @@
           </div>
         </div>
 
+        <app-property-point-picker
+          [(latitude)]="form.propertyLatitude"
+          [(longitude)]="form.propertyLongitude">
+        </app-property-point-picker>
+
         <label class="checkbox-row">
           <input type="checkbox" name="hideAddress" [(ngModel)]="form.hideAddress" />
           <span>Hide the exact street address from the public listing</span>

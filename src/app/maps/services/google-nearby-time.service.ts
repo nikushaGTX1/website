@@ -244,8 +244,15 @@ export class GoogleNearbyTimeService {
     const apiKey = document
       .querySelector<HTMLMetaElement>('meta[name="google-maps-api-key"]')
       ?.content.trim();
+    const mapId = document
+      .querySelector<HTMLMetaElement>('meta[name="google-maps-map-id"]')
+      ?.content.trim();
     if (!apiKey) throw new Error('Google Maps API key is not configured.');
-    setOptions({ key: apiKey, v: 'weekly' });
+    setOptions({
+      key: apiKey,
+      v: 'weekly',
+      ...(mapId ? { mapIds: [mapId] } : {}),
+    });
     this.configured = true;
   }
 

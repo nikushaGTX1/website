@@ -37,10 +37,14 @@
       ><b *ngIf="place.walkingMinutes === undefined">{{ distance(place.distanceMeters) }} away</b>
     </article>
   </div>
-  <div class="map-area">
+  <div class="map-area" [class.map-ready]="mapReady">
     <div #mapContainer class="map-canvas"></div>
-    <div class="map-message" *ngIf="loading || searching">
-      {{ loading ? 'Loading Google Maps…' : 'Searching nearby…' }}
+    <div class="map-loading-cover" *ngIf="!mapReady && !errorMessage">
+      <span class="map-loading-mark">V</span>
+      <strong>Loading map…</strong>
+    </div>
+    <div class="map-message" *ngIf="mapReady && searching">
+      Searching nearby…
     </div>
     <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
   </div>

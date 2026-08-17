@@ -1,5 +1,6 @@
 export type PropertyGoal = 'Rent' | 'Buy';
 export type Currency = 'USD' | 'GEL' | 'EUR';
+export type Gender = 'Male' | 'Female' | '';
 export interface HomeMatchProfile {
   propertyGoal: PropertyGoal | '';
   districts: string[];
@@ -12,6 +13,7 @@ export interface HomeMatchProfile {
   budgetMax: number;
   currency: Currency;
   includesUtilities?: boolean | null;
+  gender: Gender;
   householdType: string;
   adults: number;
   children: number;
@@ -41,6 +43,7 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   budgetMax: 1800,
   currency: 'USD',
   includesUtilities: null,
+  gender: '',
   householdType: '',
   adults: 1,
   children: 0,

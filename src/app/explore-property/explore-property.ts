@@ -66,13 +66,14 @@ export class ExploreProperty implements OnInit {
   selectedLocationArea = '';
   selectedLocationAreas: string[] = [];
   selectedLocationValue = '';
+  selectedStreetId: number | null = null;
   streetSearch = '';
   selectedModalStreets: string[] = [];
-  selectedModalStreetDetails: Array<{ street: string; district: string }> = [];
+  selectedModalStreetDetails: Array<{ streetId: number; street: string; district: string }> = [];
   moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
-  drawnStreetSuggestions: Array<{ label: string; value: string }> = [];
+  drawnStreetSuggestions: Array<{ id: number; label: string; value: string; district: string }> = [];
   drawnDetectedArea = '';
   drawnStreetsLoading = false;
   readonly featuredLocationAreas = [
@@ -235,6 +236,7 @@ export class ExploreProperty implements OnInit {
       .sort((left, right) => this.locationAreaRank(left.district) - this.locationAreaRank(right.district))
       .slice(0, 8)
       .map((entry) => ({
+        id: entry.id,
         label: this.locationService.districtName(entry, language),
         value: entry.district,
         type: 'Area',
@@ -259,6 +261,7 @@ export class ExploreProperty implements OnInit {
           street.label.toLowerCase().includes(query)
         ) {
           suggestions.push({
+            id: street.id,
             label: street.label,
             value: street.value,
             type: 'Street',
@@ -402,9 +405,12 @@ export class ExploreProperty implements OnInit {
     if (this.isStreetSelected(street.label)) {
       this.selectedModalStreets = this.selectedModalStreets.filter((item) => item !== street.label);
       this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter((item) => item.street !== street.label);
+      this.selectedStreetId = this.selectedModalStreetDetails.at(-1)?.streetId ?? null;
     } else {
+      if (!street.id) return;
       this.selectedModalStreets = [...this.selectedModalStreets, street.label];
-      this.selectedModalStreetDetails = [...this.selectedModalStreetDetails, { street: street.label, district: street.district || '' }];
+      this.selectedModalStreetDetails = [...this.selectedModalStreetDetails, { streetId: street.id, street: street.label, district: street.district || '' }];
+      this.selectedStreetId = street.id;
     }
   }
 
@@ -413,6 +419,7 @@ export class ExploreProperty implements OnInit {
     this.selectedLocationAreas = [];
     this.selectedModalStreets = [];
     this.selectedModalStreetDetails = [];
+    this.selectedStreetId = null;
     this.streetSearch = '';
     this.inlineDrawnPolygon = null;
   }
@@ -430,7 +437,7 @@ export class ExploreProperty implements OnInit {
     }
   }
 
-  onDrawnStreets(streets: Array<{ label: string; value: string }>): void {
+  onDrawnStreets(streets: Array<{ id: number; label: string; value: string; district: string }>): void {
     this.drawnStreetSuggestions = streets;
     this.drawnStreetsLoading = false;
     this.cdr.detectChanges();
@@ -462,6 +469,7 @@ export class ExploreProperty implements OnInit {
         ? this.selectedModalStreets.join(',')
         : effectiveAreas.join(','))
       : '';
+    this.selectedStreetId = this.selectedModalStreetDetails.at(-1)?.streetId ?? null;
     this.drawnAreaActive = !!this.inlineDrawnPolygon;
     if (this.inlineDrawnPolygon) {
       sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
@@ -469,6 +477,12 @@ export class ExploreProperty implements OnInit {
       sessionStorage.removeItem('white-tower-drawn-area');
     }
     this.locationOpen = false;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { street_id: this.selectedStreetId || null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
     this.loadApartments();
   }
 
@@ -476,6 +490,7 @@ export class ExploreProperty implements OnInit {
     this.location = suggestion.label;
     this.locationDisplayLanguage = this.locationService.languageForQuery(suggestion.label);
     this.selectedLocationValue = suggestion.value || suggestion.label;
+    this.selectedStreetId = suggestion.type === 'Street' && suggestion.id ? suggestion.id : null;
     this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
     this.locationOpen = false;
     this.onSearch();
@@ -575,6 +590,7 @@ export class ExploreProperty implements OnInit {
     this.headerRooms = params.get('rooms') || '';
     this.featureFilter = params.get('feature') || '';
     this.drawnAreaActive = params.get('area') === 'drawn';
+    this.selectedStreetId = Number(params.get('street_id')) || null;
     const budget = Number(params.get('budget'));
     if (budget > 0) this.selectedPriceMax = budget;
     this.loadApartments();
@@ -614,7 +630,9 @@ export class ExploreProperty implements OnInit {
     const polygon = this.readDrawnArea();
     const apartmentsRequest = this.drawnAreaActive && polygon
       ? this.apartmentService.getApartmentsWithinArea(polygon)
-      : this.apartmentService.getApartments();
+      : this.selectedStreetId
+        ? this.apartmentService.getApartmentsByStreetId(this.selectedStreetId)
+        : this.apartmentService.getApartments();
 
     apartmentsRequest.subscribe({
       next: (apartments) => {
@@ -663,6 +681,7 @@ export class ExploreProperty implements OnInit {
     this.drawnAreaActive = true;
     this.location = polygon.streetName || polygon.areaName || 'Selected map area';
     this.selectedLocationValue = polygon.streetName || '';
+    this.selectedStreetId = polygon.streetId || null;
     if (polygon.searchMode) this.selectedType = polygon.searchMode === 'buy' ? 'For Sale' : 'For Rent';
     if (polygon.propertyType) this.homeType = polygon.propertyType;
     if (polygon.budget) {
@@ -676,6 +695,7 @@ export class ExploreProperty implements OnInit {
       queryParams: {
         area: 'drawn',
         location: polygon.streetName || null,
+        street_id: polygon.streetId || null,
         mode: polygon.searchMode || null,
         propertyType: polygon.propertyType || null,
         budget: polygon.budget || null,

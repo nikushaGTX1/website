@@ -33,6 +33,9 @@
       <span>Blog</span>
       <strong>{{ blogPosts.length }}</strong>
     </button>
+    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'streets'" (click)="activeTab = 'streets'">
+      <span>Street geometry</span><strong>✓</strong>
+    </button>
   </div>
 
   <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
@@ -96,6 +99,11 @@
         </button>
       </div>
     </article>
+  </section>
+
+  <section class="admin-section" *ngIf="activeTab === 'streets' && isAdmin">
+    <div class="section-title"><h2>Canonical street geometry review</h2><span>Only approved real road paths become public</span></div>
+    <app-street-validation-map></app-street-validation-map>
   </section>
 
   <section class="admin-section" *ngIf="activeTab === 'users' && isAdmin">
