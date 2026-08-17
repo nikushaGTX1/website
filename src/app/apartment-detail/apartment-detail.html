@@ -114,6 +114,15 @@
           <div class="agent-actions"><button *ngIf="!phoneRevealed" type="button" (click)="$event.preventDefault(); $event.stopPropagation(); phoneRevealed = true"><i class="fa-solid fa-phone"></i> Reveal Number</button><span *ngIf="phoneRevealed" class="agent-phone-text"><i class="fa-solid fa-phone"></i> {{ phoneNumber || 'No phone number provided' }}</span><button type="button" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button></div>
         </div>
       </article>
+      <article class="panel owner-contact-card" *ngIf="canViewOwnerContact && (ownerName || ownerPhoneNumber)">
+        <span class="owner-lock"><i class="fa-solid fa-lock"></i></span>
+        <div>
+          <small>Private owner contact · Staff only</small>
+          <h3>{{ ownerName || 'Owner name not provided' }}</h3>
+          <a *ngIf="ownerPhoneNumber" [href]="'tel:' + ownerPhoneNumber"><i class="fa-solid fa-phone"></i> {{ ownerPhoneNumber }}</a>
+          <span *ngIf="!ownerPhoneNumber">Phone number not provided</span>
+        </div>
+      </article>
     </section>
 
     <section class="lower-layout">

@@ -97,6 +97,23 @@
     </aside>
 
     <form class="upload-main" (ngSubmit)="publish()">
+      <section class="folder-import-card">
+        <div class="folder-import-copy">
+          <span><i class="fa-solid fa-folder-open"></i></span>
+          <div>
+            <strong>Import listing folder</strong>
+            <small>Select a folder containing data.json and an images folder. Its form fields and photos will be filled automatically.</small>
+          </div>
+        </div>
+        <label class="folder-import-button" [class.disabled]="importingFolder">
+          <input type="file" webkitdirectory directory multiple (change)="onListingFolderSelected($event)" [disabled]="importingFolder" />
+          <i class="fa-solid" [class.fa-spinner]="importingFolder" [class.fa-spin]="importingFolder" [class.fa-upload]="!importingFolder"></i>
+          {{ importingFolder ? 'Importing…' : 'Choose folder' }}
+        </label>
+        <p *ngIf="folderImportMessage" class="folder-import-status success">{{ folderImportMessage }}</p>
+        <p *ngIf="folderImportError" class="folder-import-status error">{{ folderImportError }}</p>
+      </section>
+
       <div
         class="review-message"
         role="alert"
@@ -222,8 +239,7 @@
         </div>
 
         <app-property-point-picker
-          [(latitude)]="form.propertyLatitude"
-          [(longitude)]="form.propertyLongitude">
+          [address]="locationPreviewAddress">
         </app-property-point-picker>
 
         <label class="checkbox-row">
@@ -336,31 +352,49 @@
 
           <p *ngIf="imageUploadMessage" class="image-upload-message">{{ imageUploadMessage }}</p>
 
-          <div class="uploaded-image-grid" *ngIf="uploadedImageCount">
-            <article *ngFor="let image of form.imageUrls; let index = index" class="uploaded-image">
+          <div class="gallery-tip" *ngIf="uploadedImageCount > 1"><i class="fa-solid fa-hand-pointer"></i><span>Drag photos to reorder them. The first photo is your listing cover.</span></div>
+          <div class="uploaded-image-grid" *ngIf="uploadedImageCount" (dragend)="finishImageDrag()">
+            <article *ngFor="let image of form.imageUrls; let index = index" class="uploaded-image"
+              [class.is-cover]="index === 0" [class.is-dragging]="draggedImageIndex === index"
+              [class.is-drop-target]="imageDropIndex === index && draggedImageIndex !== index" draggable="true"
+              (dragstart)="startImageDrag(index, $event)" (dragover)="hoverImageDrop(index, $event)" (drop)="dropImageAt(index, $event)">
               <img [src]="image" [alt]="'Uploaded apartment photo ' + (index + 1)" />
-              <span *ngIf="index === 0">Cover photo</span>
+              <div class="image-position">{{ index + 1 }}</div>
+              <div class="image-drag-overlay"><i class="fa-solid fa-grip-vertical"></i><strong>Drag to reorder</strong></div>
+              <span class="cover-badge" *ngIf="index === 0"><i class="fa-solid fa-star"></i> Cover</span>
               <button type="button" (click)="removeImage(index)" aria-label="Remove image">×</button>
+              <div class="image-actions" *ngIf="index !== 0">
+                <button type="button" (click)="makeCoverImage(index)" aria-label="Make cover photo"><i class="fa-solid fa-star"></i><span>Make cover</span></button>
+                <button type="button" (click)="moveImage(index, index - 1)" aria-label="Move photo left"><i class="fa-solid fa-arrow-left"></i></button>
+                <button type="button" *ngIf="index < uploadedImageCount - 1" (click)="moveImage(index, index + 1)" aria-label="Move photo right"><i class="fa-solid fa-arrow-right"></i></button>
+              </div>
             </article>
           </div>
         </div>
       </section>
 
       <section class="form-section" id="listing-step-5" [class.collapsed]="activeStep !== 5">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(5)" (keydown.enter)="openStep(5)"><span>06</span><div><h2>Owner contact information</h2><p>Clients will use these details to contact you about the property.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(5)" (keydown.enter)="openStep(5)"><span>06</span><div><h2>Listing contacts</h2><p>Agent details are public. Owner details are restricted to agents and managers.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
         <div class="field-group">
-          <label class="field-label">Contact Information <span class="req">*</span></label>
-          <div class="input-row">
-            <input type="text" name="contactName" placeholder="Name" [(ngModel)]="form.contactName" />
+          <label class="field-label"><i class="fa-solid fa-lock"></i> Owner information <span class="req">*</span> <small>Private — visible only to agents and higher roles</small></label>
+          <div class="input-row contact-fields">
+            <input type="text" name="contactName" placeholder="Owner's full name" required [(ngModel)]="form.contactName" />
             <input
               type="tel"
               name="contactPhone"
-              placeholder="Phone number"
+              placeholder="Owner's phone number"
               autocomplete="tel"
               inputmode="tel"
               required
               [(ngModel)]="form.contactPhone"
             />
+          </div>
+        </div>
+        <div class="field-group agent-contact-group">
+          <label class="field-label"><i class="fa-solid fa-user-tie"></i> Agent information <span class="req">*</span> <small>Public — shown to everyone on the listing</small></label>
+          <div class="input-row contact-fields">
+            <input type="text" name="agentName" placeholder="Agent's full name" required [(ngModel)]="form.agentName" />
+            <input type="tel" name="agentPhone" placeholder="Agent's phone number" autocomplete="tel" inputmode="tel" required [(ngModel)]="form.agentPhone" />
           </div>
         </div>
       </section>

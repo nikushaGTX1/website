@@ -15,6 +15,9 @@ export interface Apartment {
   price: number;
   address?: string;
   phoneNumber?: string;
+  ownerName?: string;
+  ownerPhoneNumber?: string;
+  agentPhoneNumber?: string;
   city?: string;
   region?: string;
   district?: string;
@@ -65,7 +68,6 @@ export interface Apartment {
   uploadedByEmail?: string;
   agentName?: string;
   uploadedByName?: string;
-  ownerName?: string;
   agentProfilePictureUrl?: string;
   uploaderProfilePictureUrl?: string;
 }
@@ -77,6 +79,10 @@ export interface CreateApartment {
   price: number;
   address?: string;
   phoneNumber?: string;
+  ownerName?: string;
+  ownerPhoneNumber?: string;
+  agentName?: string;
+  agentPhoneNumber?: string;
   city?: string;
   region?: string;
   district?: string;
