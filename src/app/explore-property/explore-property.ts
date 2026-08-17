@@ -328,6 +328,7 @@ export class ExploreProperty implements OnInit {
       .sort((first, second) => first.label.localeCompare(second.label, 'ka'));
     return (this.showAllStreets ? streets : streets.slice(0, 8))
       .map((street) => ({
+        id: street.id,
         label: street.label === street.value
           ? street.value
           : `${street.label} — ${street.value}`,
