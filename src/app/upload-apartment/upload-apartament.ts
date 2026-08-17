@@ -49,6 +49,8 @@ type UploadForm = {
   imageUrls: string[];
   contactName: string;
   contactPhone: string;
+  agentName: string;
+  agentPhone: string;
 };
 
 type BooleanFeature =
@@ -80,6 +82,8 @@ interface PreparedImage {
   previewUrl: string;
   file: File;
 }
+
+type FolderListingData = Record<string, unknown>;
 
 @Component({
   selector: 'app-upload-apartment',
@@ -208,6 +212,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     imageUrls: [],
     contactName: '',
     contactPhone: '',
+    agentName: '',
+    agentPhone: '',
   };
 
   loading = false;
@@ -219,7 +225,12 @@ export class UploadApartment implements OnInit, OnDestroy {
   userMessages: PendingApartment[] = [];
   pendingDebug = '';
   imageUploadMessage = '';
+  folderImportMessage = '';
+  folderImportError = '';
+  importingFolder = false;
   selectedImages: File[] = [];
+  draggedImageIndex: number | null = null;
+  imageDropIndex: number | null = null;
   locationEntries: ApiLocation[] = [];
   locationLoading = false;
   locationError = false;
@@ -245,6 +256,9 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const currentUser = this.authService.currentUser;
+    this.form.agentName = currentUser?.fullName || currentUser?.userName || '';
+    this.form.agentPhone = currentUser?.phoneNumber || '';
     this.pendingService.refresh();
     this.locationLoading = true;
     this.locationService.getLocations().subscribe({
@@ -469,6 +483,12 @@ export class UploadApartment implements OnInit, OnDestroy {
     return this.form.location || 'Location';
   }
 
+  get locationPreviewAddress(): string {
+    return [this.form.street, this.form.streetNumber, this.form.location, 'Tbilisi']
+      .filter((part) => part.trim())
+      .join(', ');
+  }
+
   get previewPrice(): string {
     if (!this.form.totalPrice) {
       return 'Price';
@@ -498,9 +518,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         return !!(
           this.selectedDistrictValue &&
           this.selectedStreetId &&
-          this.form.streetNumber.trim() &&
-          this.form.propertyLatitude !== null &&
-          this.form.propertyLongitude !== null
+          this.form.streetNumber.trim()
         );
       case 2:
         return !!this.form.totalPrice;
@@ -509,7 +527,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       case 4:
         return !!(this.form.title.trim() && this.form.description.trim() && this.uploadedImageCount);
       case 5:
-        return !!this.form.contactPhone.trim();
+        return !!(this.form.contactName.trim() && this.form.contactPhone.trim() && this.form.agentName.trim() && this.form.agentPhone.trim());
       default:
         return false;
     }
@@ -567,12 +585,157 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.form.imageUrl = this.form.imageUrls[0] || '';
   }
 
+  startImageDrag(index: number, event: DragEvent): void {
+    this.draggedImageIndex = index;
+    this.imageDropIndex = index;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(index));
+    }
+  }
+
+  hoverImageDrop(index: number, event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.imageDropIndex = index;
+  }
+
+  dropImageAt(index: number, event: DragEvent): void {
+    event.preventDefault();
+    const source = this.draggedImageIndex;
+    if (source !== null && source !== index) this.moveImage(source, index);
+    this.finishImageDrag();
+  }
+
+  finishImageDrag(): void {
+    this.draggedImageIndex = null;
+    this.imageDropIndex = null;
+  }
+
+  moveImage(source: number, target: number): void {
+    if (source === target || source < 0 || target < 0 || source >= this.form.imageUrls.length || target >= this.form.imageUrls.length) return;
+    const previews = [...this.form.imageUrls];
+    const files = [...this.selectedImages];
+    const [preview] = previews.splice(source, 1);
+    const [file] = files.splice(source, 1);
+    previews.splice(target, 0, preview);
+    if (file) files.splice(target, 0, file);
+    this.form.imageUrls = previews;
+    this.selectedImages = files;
+    this.form.imageUrl = previews[0] || '';
+  }
+
+  makeCoverImage(index: number): void {
+    this.moveImage(index, 0);
+  }
+
+  async onListingFolderSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files || []);
+    this.folderImportMessage = '';
+    this.folderImportError = '';
+    if (!files.length) return;
+
+    const dataFile = files.find((file) => /(^|\/)data\.json$/i.test(file.webkitRelativePath || file.name));
+    if (!dataFile) {
+      this.folderImportError = 'The selected folder does not contain data.json.';
+      input.value = '';
+      return;
+    }
+
+    this.importingFolder = true;
+    try {
+      const parsed = JSON.parse(await dataFile.text()) as unknown;
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('data.json must contain one listing object.');
+      this.applyFolderListingData(parsed as FolderListingData);
+      this.resolveImportedLocation();
+
+      const imageFiles = files
+        .filter((file) => /(^|\/)images\//i.test((file.webkitRelativePath || file.name).replace(/\\/g, '/')) && file.type.startsWith('image/'))
+        .sort((a, b) => (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name, undefined, { numeric: true }))
+        .slice(0, this.maxImages);
+      const prepared = await Promise.all(imageFiles.map((file) => this.prepareImage(file).catch(() => null)));
+      const images = prepared.filter((item): item is PreparedImage => item !== null);
+      this.form.imageUrls = images.map((item) => item.previewUrl);
+      this.selectedImages = images.map((item) => item.file);
+      this.form.imageUrl = this.form.imageUrls[0] || '';
+      const skipped = imageFiles.length - images.length;
+      this.folderImportMessage = `Imported data.json and ${images.length} photo${images.length === 1 ? '' : 's'}.${skipped ? ` ${skipped} could not be processed.` : ''}`;
+      this.activeStep = 0;
+    } catch (error) {
+      this.folderImportError = error instanceof Error ? `Could not import folder: ${error.message}` : 'Could not import folder.';
+    } finally {
+      this.importingFolder = false;
+      input.value = '';
+    }
+  }
+
+  private applyFolderListingData(data: FolderListingData): void {
+    const text = (key: string): string => data[key] == null ? '' : String(data[key]).trim();
+    const number = (key: string): number | null => {
+      const raw = data[key];
+      if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
+      const parsed = Number(String(raw ?? '').replace(/[^\d.-]/g, ''));
+      return String(raw ?? '').trim() && Number.isFinite(parsed) ? parsed : null;
+    };
+    const enabled = (key: string): boolean => ['true', 'yes', 'კი', 'არის', '1'].includes(text(key).toLowerCase());
+    const propertyTypes: Record<string, string> = { 'ბინა': 'Apartment', 'კერძო სახლი': 'Private house', 'აგარაკი': 'Country house', 'მიწის ნაკვეთი': 'Plot', 'კომერციული ფართი': 'Commercial area', 'სასტუმრო': 'Hotel' };
+    const dealTypes: Record<string, string> = { 'იყიდება': 'For Sale', 'ქირავდება': 'For Rent', 'გირავდება': 'Lease', 'ქირავდება დღიურად': 'Daily rent' };
+    const statuses: Record<string, string> = { 'ძველი აშენებული': 'Old building', 'ახალი აშენებული': 'New building', 'მშენებარე': 'Under construction' };
+    const conditions: Record<string, string> = { 'ახალი რემონტით': 'Newly Renovated', 'ძველი რემონტით': 'Old renovated', 'მიმდინარე რემონტი': 'Current renovation', 'სარემონტო': 'Repairing', 'თეთრი კარკასი': 'White frame', 'შავი კარკასი': 'Black frame', 'მწვანე კარკასი': 'Green frame', 'თეთრი პლუსი': 'White Plus' };
+    const deal = text('გაყიდვა/ქირა') || text('განცხადების სახეობა');
+    const condition = text('რემონტი') || text('მდგომარეობა');
+
+    this.form.realEstateType = propertyTypes[text('ქონების ტიპი')] || this.form.realEstateType;
+    this.form.dealType = dealTypes[deal] || this.form.dealType;
+    this.form.buildingStatus = statuses[text('სტატუსი')] || this.form.buildingStatus;
+    this.form.condition = conditions[condition] || this.form.condition;
+    this.form.location = text('უბანი');
+    this.form.street = text('მისამართი').replace(/\s+(ქ\.?|ქუჩა)$/i, '').trim();
+    this.form.totalPrice = number('ფასი');
+    this.form.sqPrice = number('ფასი / მ²');
+    this.form.currency = text('ვალუტა').toUpperCase() === 'GEL' ? 'GEL' : '$';
+    this.form.area = number('ფართობი (მ²)') ?? number('კვადრატულობა');
+    this.form.rooms = number('ოთახები');
+    this.form.bedrooms = number('საძინებელი');
+    this.form.floor = number('სართული');
+    this.form.totalFloors = number('სართულიანობა');
+    this.form.description = text('კომენტარი');
+    // Scraped listing JSON contains the source contact, which is always the
+    // property owner for this import workflow—even when a legacy scraper used
+    // an "agent"-labelled key. Never use these values for the website agent.
+    this.form.contactName = text('მესაკუთრის სახელი') || text('აგენტის სახელი');
+    this.form.contactPhone =
+      text('მესაკუთრის ნომერი') ||
+      text('ტელეფონის ნომერი') ||
+      text('აგენტის ნომერი') ||
+      text('აგენტის ტელეფონის ნომერი');
+    this.form.hasElevator = enabled('ლიფტი');
+    this.form.hasParking = enabled('პარკინგი');
+    this.form.hasBalcony = enabled('აივანი');
+    this.form.isFurnished = /ავეჯ|მოწყობილ/i.test(`${text('მდგომარეობა')} ${this.form.description}`);
+    this.form.title = [this.form.realEstateType, this.form.dealType, this.form.location].filter(Boolean).join(' · ');
+  }
+
+  private resolveImportedLocation(): void {
+    const normalize = (value: string): string => value.trim().toLowerCase().replace(/\s+(ქ\.?|ქუჩა)$/i, '').replace(/[^a-z0-9\u10a0-\u10ff]/g, '');
+    const districtQuery = normalize(this.form.location);
+    const district = this.locationEntries.find((entry) => normalize(entry.district) === districtQuery || normalize(this.locationService.districtName(entry, 'ka')) === districtQuery);
+    this.selectedDistrictValue = district?.district || '';
+    if (district) this.form.location = this.locationService.districtName(district, 'ka');
+    const streetQuery = normalize(this.form.street);
+    const street = district ? this.locationService.streetNames(district, 'ka').find((item) => normalize(item.label) === streetQuery || normalize(item.value) === streetQuery) : undefined;
+    this.selectedStreetId = street?.id || null;
+    this.selectedStreetValue = street?.value || '';
+    if (street) this.form.street = street.label;
+  }
+
   async publish(): Promise<void> {
     this.successMessage = '';
     this.errorMessage = '';
 
-    if (!this.form.totalPrice || !this.form.contactPhone.trim()) {
-      this.errorMessage = 'Please fill in street, total price, and phone number before publishing.';
+    if (!this.form.totalPrice || !this.form.contactName.trim() || !this.form.contactPhone.trim() || !this.form.agentName.trim() || !this.form.agentPhone.trim()) {
+      this.errorMessage = 'Please fill in the price and all owner and agent contact fields before publishing.';
       return;
     }
 
@@ -583,11 +746,6 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     if (!this.selectedStreetId) {
       this.errorMessage = 'Please select an approved street from the selected district.';
-      return;
-    }
-
-    if (this.form.propertyLatitude === null || this.form.propertyLongitude === null) {
-      this.errorMessage = 'Please place the exact property pin on the map.';
       return;
     }
 
@@ -664,7 +822,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.sqPrice ? `Sq. price: ${this.form.sqPrice}` : '',
       this.form.exchangePossible ? 'Exchange possible' : '',
       this.form.cadastralCode ? `Cadastral: ${this.form.cadastralCode}` : '',
-      this.form.contactName ? `Contact: ${this.form.contactName}` : '',
+      this.form.agentName ? `Contact: ${this.form.agentName}` : '',
       currentUser?.id ? `Owner ID: ${currentUser.id}` : '',
       currentUser?.email ? `Owner Email: ${currentUser.email}` : '',
     ]
@@ -676,7 +834,11 @@ export class UploadApartment implements OnInit, OnDestroy {
       description: `${this.form.description || 'Apartment listing'}\n\n${meta}`,
       price: this.form.totalPrice || 0,
       address: this.form.hideAddress ? district : addressParts.join(', '),
-      phoneNumber: this.form.contactPhone.trim(),
+      phoneNumber: this.form.agentPhone.trim(),
+      ownerName: this.form.contactName.trim(),
+      ownerPhoneNumber: this.form.contactPhone.trim(),
+      agentName: this.form.agentName.trim(),
+      agentPhoneNumber: this.form.agentPhone.trim(),
       city: 'Tbilisi',
       region:
         this.locationEntries.find((entry) => entry.district === district)?.region || '',
@@ -684,8 +846,6 @@ export class UploadApartment implements OnInit, OnDestroy {
       street,
       streetId: this.selectedStreetId || undefined,
       buildingNumber: this.form.streetNumber.trim(),
-      propertyLatitude: this.form.propertyLatitude ?? undefined,
-      propertyLongitude: this.form.propertyLongitude ?? undefined,
       bedrooms: this.form.bedrooms ?? 0,
       bathrooms: this.form.bathrooms ?? 0,
       sizeSquareMeters: this.form.area ?? 0,

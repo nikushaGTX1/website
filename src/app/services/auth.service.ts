@@ -132,6 +132,12 @@ export class AuthService {
     );
   }
 
+  deleteAccount(password: string): Observable<void> {
+    return this.http.delete<void>(`${this.profileUrl}/account`, {
+      body: { password },
+    });
+  }
+
   saveLogin(response: AuthResponse): void {
     localStorage.setItem('token', response.token);
     this.saveUser(response.user);

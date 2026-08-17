@@ -222,11 +222,24 @@ export class ApartmentDetail implements OnInit {
 
   get phoneNumber(): string {
     return (
+      this.apartment?.agentPhoneNumber?.trim() ||
       this.apartment?.phoneNumber?.trim() ||
       this.getListingMetadata('Phone') ||
       this.selectedAgent?.phoneNumber?.trim() ||
       ''
     );
+  }
+
+  get canViewOwnerContact(): boolean {
+    return this.authService.hasAnyRole(['agent', 'manager', 'crm-manager', 'crm_manager', 'admin']);
+  }
+
+  get ownerName(): string {
+    return this.canViewOwnerContact ? this.apartment?.ownerName?.trim() || '' : '';
+  }
+
+  get ownerPhoneNumber(): string {
+    return this.canViewOwnerContact ? this.apartment?.ownerPhoneNumber?.trim() || '' : '';
   }
 
   get maskedPhoneNumber(): string {
@@ -522,14 +535,13 @@ export class ApartmentDetail implements OnInit {
   }
 
   get agentName(): string {
-    return this.selectedAgent
+    return this.apartment?.agentName?.trim() || (this.selectedAgent
       ? this.selectedAgent.fullName || this.selectedAgent.name || this.selectedAgent.userName || this.selectedAgent.email || 'Agent'
-      : this.apartment?.agentName ||
-          this.apartment?.uploadedByName ||
+      : this.apartment?.uploadedByName ||
           this.apartment?.ownerName ||
           this.getListingMetadata('Contact') ||
           this.getListingMetadata('Owner Email') ||
-          'Listing owner';
+          'Listing agent');
   }
 
   get agentProfileId(): string {

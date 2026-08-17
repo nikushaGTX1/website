@@ -139,6 +139,10 @@ export class TranslationService {
         state.leadingWhitespace = leading;
         state.trailingWhitespace = trailing;
         state.translated = undefined;
+      } else if (state.translated && current === state.original) {
+        // Angular can rewrite an interpolated node back to its source value
+        // after it was translated. Allow the observer pass to translate it again.
+        state.translated = undefined;
       }
 
       targets.push({
@@ -163,6 +167,8 @@ export class TranslationService {
           states.set(name, state);
         } else if (state.translated && current !== state.translated && current !== state.original) {
           state.original = current;
+          state.translated = undefined;
+        } else if (state.translated && current === state.original) {
           state.translated = undefined;
         }
         targets.push({ state, write: (value) => element.setAttribute(name, value) });

@@ -1,11 +1,10 @@
 <section class="point-picker">
   <header>
-    <div><b>Exact property location <span>*</span></b><small>Click the building itself. This pin is stored independently from the street.</small></div>
-    <button type="button" *ngIf="hasPoint" (click)="clear()">Clear pin</button>
+    <div><b>Location preview</b><small>The map updates automatically from the district, street, and building number above.</small></div>
   </header>
-  <div #map class="point-map" aria-label="Choose the exact property location"></div>
+  <div #map class="point-map" aria-label="Property location preview"></div>
   <p class="map-state" *ngIf="loading">Loading map…</p>
   <p class="map-state error" *ngIf="errorMessage">{{ errorMessage }}</p>
-  <p class="coordinates" *ngIf="hasPoint">📍 {{ latitude | number:'1.5-7' }}, {{ longitude | number:'1.5-7' }}</p>
-  <p class="coordinates missing" *ngIf="!hasPoint && !loading">No property point selected.</p>
+  <p class="coordinates" *ngIf="address"><i class="fa-solid fa-location-dot"></i> {{ address }}</p>
+  <p class="coordinates missing" *ngIf="!address && !loading">Choose a district and street to preview the location.</p>
 </section>

@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { Subscription, forkJoin, of } from 'rxjs';
+import { Subscription, firstValueFrom, forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Agent } from '../models/agent';
 import { Apartment } from '../models/apartment';
@@ -52,6 +52,7 @@ export class AdminPanel implements OnInit, OnDestroy {
   editUserPicturePreview = '';
   savingUser = false;
   resettingPassword = false;
+  deletingUser = false;
 
   private subscriptions = new Subscription();
 
@@ -372,7 +373,7 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   closeUserEditor(): void {
-    if (this.savingUser || this.resettingPassword) return;
+    if (this.savingUser || this.resettingPassword || this.deletingUser) return;
     this.releaseUserPicturePreview();
     this.editingUser = null;
     this.editUserPicture = null;
@@ -450,6 +451,57 @@ export class AdminPanel implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  async deleteUserAccount(): Promise<void> {
+    const user = this.editingUser;
+    if (!this.isAdmin || !user?.id || this.deletingUser) return;
+
+    const { default: Swal } = await import('sweetalert2');
+    const displayName = user.fullName || user.userName || user.email || 'this user';
+    const result = await Swal.fire({
+      title: 'Delete user account?',
+      text: `${displayName} will permanently lose access to Velven. This cannot be undone.`,
+      icon: 'warning',
+      iconColor: '#a03c47',
+      showCancelButton: true,
+      reverseButtons: true,
+      focusCancel: true,
+      confirmButtonText: 'Delete user permanently',
+      cancelButtonText: 'Cancel',
+      showLoaderOnConfirm: true,
+      buttonsStyling: false,
+      heightAuto: false,
+      customClass: {
+        popup: 'velven-alert',
+        title: 'velven-alert__title',
+        htmlContainer: 'velven-alert__copy',
+        actions: 'velven-alert__actions',
+        confirmButton: 'velven-alert__confirm',
+        cancelButton: 'velven-alert__cancel',
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+      allowEscapeKey: () => !Swal.isLoading(),
+      preConfirm: async () => {
+        this.deletingUser = true;
+        try {
+          await firstValueFrom(this.adminService.deleteUser(user.id!));
+          return true;
+        } catch (error: any) {
+          Swal.showValidationMessage(
+            error?.error?.message || 'Could not delete this user account.',
+          );
+          return false;
+        } finally {
+          this.deletingUser = false;
+        }
+      },
+    });
+
+    if (!result.isConfirmed) return;
+    this.closeUserEditor();
+    this.successMessage = `${displayName}'s account was deleted.`;
+    this.loadDashboard();
   }
 
   get adminUserPicture(): string {

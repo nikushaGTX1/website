@@ -24,6 +24,7 @@ export class MyProfile implements OnInit, OnDestroy {
   loading = false;
   saving = false;
   removingImage = false;
+  deletingAccount = false;
   successMessage = '';
   errorMessage = '';
 
@@ -61,6 +62,67 @@ export class MyProfile implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  async deleteAccount(): Promise<void> {
+    if (this.deletingAccount) return;
+    const { default: Swal } = await import('sweetalert2');
+    const result = await Swal.fire({
+      title: 'Delete your account?',
+      text: 'This permanently deletes your account, saved homes, ratings, and access to Velven.',
+      icon: 'warning',
+      iconColor: '#a03c47',
+      input: 'password',
+      inputLabel: 'Enter your current password to confirm',
+      inputPlaceholder: 'Current password',
+      inputAttributes: { autocomplete: 'current-password' },
+      showCancelButton: true,
+      reverseButtons: true,
+      focusCancel: true,
+      confirmButtonText: 'Delete account permanently',
+      cancelButtonText: 'Keep my account',
+      showLoaderOnConfirm: true,
+      buttonsStyling: false,
+      heightAuto: false,
+      customClass: {
+        popup: 'velven-alert',
+        title: 'velven-alert__title',
+        htmlContainer: 'velven-alert__copy',
+        actions: 'velven-alert__actions',
+        confirmButton: 'velven-alert__confirm',
+        cancelButton: 'velven-alert__cancel',
+        input: 'velven-alert__input',
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+      allowEscapeKey: () => !Swal.isLoading(),
+      inputValidator: (value) => (!value ? 'Enter your password to continue.' : undefined),
+      preConfirm: async (password) => {
+        this.deletingAccount = true;
+        try {
+          await firstValueFrom(this.authService.deleteAccount(password));
+          return true;
+        } catch (error: any) {
+          Swal.showValidationMessage(
+            error?.error?.message || 'We could not delete your account. Please try again.',
+          );
+          return false;
+        } finally {
+          this.deletingAccount = false;
+        }
+      },
+    });
+
+    if (!result.isConfirmed) return;
+    this.authService.logout();
+    await this.router.navigate(['/']);
+    await Swal.fire({
+      title: 'Account deleted',
+      text: 'Your Velven account has been permanently deleted.',
+      icon: 'success',
+      timer: 2200,
+      showConfirmButton: false,
+      heightAuto: false,
+    });
   }
 
   onProfilePictureSelected(event: Event): void {

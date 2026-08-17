@@ -270,6 +270,11 @@ export class ApartmentService {
       formData.append('PhoneNumber', data.phoneNumber || '');
     }
 
+    if (data.ownerName !== undefined) formData.append('OwnerName', data.ownerName || '');
+    if (data.ownerPhoneNumber !== undefined) formData.append('OwnerPhoneNumber', data.ownerPhoneNumber || '');
+    if (data.agentName !== undefined) formData.append('AgentName', data.agentName || '');
+    if (data.agentPhoneNumber !== undefined) formData.append('AgentPhoneNumber', data.agentPhoneNumber || '');
+
     const textFields: Array<[keyof CreateApartment, string]> = [
       ['city', 'City'],
       ['region', 'Region'],

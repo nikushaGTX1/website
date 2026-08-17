@@ -8,6 +8,7 @@ import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
   styleUrl: './property-point-picker.component.css',
 })
 export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
+  @Input() address = '';
   @Input() latitude: number | null = null;
   @Input() longitude: number | null = null;
   @Output() latitudeChange = new EventEmitter<number | null>();
@@ -15,12 +16,15 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
   @ViewChild('map') mapElement?: ElementRef<HTMLDivElement>;
   private map?: google.maps.Map;
   private marker?: google.maps.Marker;
+  private geocoder?: google.maps.Geocoder;
+  private geocodeRevision = 0;
   loading = true;
   errorMessage = '';
 
   ngAfterViewInit(): void { void this.initialize(); }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['address'] && this.map) void this.showAddress();
     if ((changes['latitude'] || changes['longitude']) && this.map && this.hasPoint) {
       this.setPoint(this.latitude!, this.longitude!, false);
     }
@@ -50,6 +54,8 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
     try {
       setOptions({ key: apiKey, v: 'weekly', ...(mapId ? { mapIds: [mapId] } : {}) });
       const { Map } = await importLibrary('maps') as google.maps.MapsLibrary;
+      const { Geocoder } = await importLibrary('geocoding') as google.maps.GeocodingLibrary;
+      this.geocoder = new Geocoder();
       this.map = new Map(this.mapElement.nativeElement, {
         center: this.hasPoint
           ? { lat: this.latitude!, lng: this.longitude! }
@@ -61,14 +67,38 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
         fullscreenControl: false,
         clickableIcons: false,
       });
-      this.map.addListener('click', (event: google.maps.MapMouseEvent) => {
-        if (event.latLng) this.setPoint(event.latLng.lat(), event.latLng.lng(), true);
-      });
-      if (this.hasPoint) this.setPoint(this.latitude!, this.longitude!, false);
+      if (this.address.trim()) await this.showAddress();
+      else if (this.hasPoint) this.setPoint(this.latitude!, this.longitude!, false);
     } catch {
       this.errorMessage = 'The property point map could not be loaded.';
     } finally {
       this.loading = false;
+    }
+  }
+
+  private async showAddress(): Promise<void> {
+    if (!this.map || !this.geocoder) return;
+    const address = this.address.trim();
+    const revision = ++this.geocodeRevision;
+    if (!address || address === 'Tbilisi') {
+      this.marker?.setMap(null);
+      this.marker = undefined;
+      this.map.setCenter({ lat: 41.7151, lng: 44.7833 });
+      this.map.setZoom(12);
+      return;
+    }
+    try {
+      const result = await this.geocoder.geocode({ address });
+      if (revision !== this.geocodeRevision) return;
+      const match = result.results[0];
+      if (!match) return;
+      const point = match.geometry.location;
+      this.setPoint(point.lat(), point.lng(), false);
+      if (match.geometry.viewport) this.map.fitBounds(match.geometry.viewport);
+      this.map.setZoom(Math.min(this.map.getZoom() || 15, 16));
+      this.errorMessage = '';
+    } catch {
+      if (revision === this.geocodeRevision) this.errorMessage = 'This location could not be previewed on the map.';
     }
   }
 
@@ -79,11 +109,8 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
       this.marker = new google.maps.Marker({
         map: this.map,
         position: point,
-        draggable: true,
-        title: 'Exact property location',
-      });
-      this.marker.addListener('dragend', (event: google.maps.MapMouseEvent) => {
-        if (event.latLng) this.setPoint(event.latLng.lat(), event.latLng.lng(), true);
+        draggable: false,
+        title: 'Property location',
       });
     } else {
       this.marker.setPosition(point);

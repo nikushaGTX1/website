@@ -38,7 +38,8 @@ export class Main implements OnInit {
   moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
-  drawnStreetSuggestions: Array<{ id: number; label: string; value: string; district: string }> = [];
+  drawnStreetSuggestions: Array<{ id: number; label: string; value: string; district: string }> =
+    [];
   drawnDetectedArea = '';
   drawnStreetsLoading = false;
   searchPropertyType = '';
@@ -72,14 +73,34 @@ export class Main implements OnInit {
     { label: '4+ Bedrooms', value: '4+', icon: 'fa-solid fa-layer-group' },
   ];
   readonly propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
-  readonly popularLocationAreas = ['Vake', 'Saburtalo', 'Vera', 'Mtatsminda', 'Didi Digomi', 'Digomi'];
+  readonly popularLocationAreas = [
+    'Vake',
+    'Saburtalo',
+    'Vera',
+    'Mtatsminda',
+    'Didi Digomi',
+    'Digomi',
+  ];
   readonly featuredLocationAreas = [
     { name: 'Vake', description: 'Premium central area', icon: 'fa-regular fa-building' },
     { name: 'Saburtalo', description: 'Central & convenient', icon: 'fa-solid fa-city' },
     { name: 'Vera', description: 'Historic central', icon: 'fa-solid fa-house-chimney' },
     { name: 'Mtatsminda', description: 'Old city & views', icon: 'fa-solid fa-landmark' },
   ];
-  readonly allLocationAreas = ['Didube', 'Digomi', 'Didi Digomi', 'Gldani', 'Nadzaladevi', 'Isani', 'Samgori', 'Avlabari', 'Sololaki', 'Chugureti', 'Krtsanisi', 'Vashlijvari'];
+  readonly allLocationAreas = [
+    'Didube',
+    'Digomi',
+    'Didi Digomi',
+    'Gldani',
+    'Nadzaladevi',
+    'Isani',
+    'Samgori',
+    'Avlabari',
+    'Sololaki',
+    'Chugureti',
+    'Krtsanisi',
+    'Vashlijvari',
+  ];
   searchBedrooms = '';
   searchRooms = '';
   public advancedFiltersOpen = false;
@@ -125,7 +146,8 @@ export class Main implements OnInit {
     const min = this.appliedBudgetMin;
     const max = this.appliedBudgetMax;
     if (min == null && max == null) return 'Any budget';
-    if (min != null && max != null) return `${min.toLocaleString()} – ${max.toLocaleString()} ${this.budgetCurrency}`;
+    if (min != null && max != null)
+      return `${min.toLocaleString()} – ${max.toLocaleString()} ${this.budgetCurrency}`;
     if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
     return `Up to ${max!.toLocaleString()} ${this.budgetCurrency}`;
   }
@@ -144,11 +166,17 @@ export class Main implements OnInit {
   }
 
   get budgetMinPercent(): number {
-    return Math.min(this.normalizedSliderValue(this.budgetMin), this.normalizedSliderValue(this.budgetMax));
+    return Math.min(
+      this.normalizedSliderValue(this.budgetMin),
+      this.normalizedSliderValue(this.budgetMax),
+    );
   }
 
   get budgetMaxPercent(): number {
-    return Math.max(this.normalizedSliderValue(this.budgetMin), this.normalizedSliderValue(this.budgetMax));
+    return Math.max(
+      this.normalizedSliderValue(this.budgetMin),
+      this.normalizedSliderValue(this.budgetMax),
+    );
   }
 
   @HostListener('document:click')
@@ -174,10 +202,13 @@ export class Main implements OnInit {
   }
 
   private searchMenuOpen(menu: 'location' | 'propertyType' | 'budget' | 'bedroom'): boolean {
-    return menu === 'location' ? this.locationOpen
-      : menu === 'propertyType' ? this.propertyTypeOpen
-      : menu === 'budget' ? this.budgetOpen
-      : this.bedroomOpen;
+    return menu === 'location'
+      ? this.locationOpen
+      : menu === 'propertyType'
+        ? this.propertyTypeOpen
+        : menu === 'budget'
+          ? this.budgetOpen
+          : this.bedroomOpen;
   }
 
   selectBudgetRange(range: { label: string; min: number; max: number }): void {
@@ -232,14 +263,18 @@ export class Main implements OnInit {
     const language = this.locationService.languageForQuery(this.searchLocation);
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
-      .filter((entry) =>
-        !query ||
-        entry.district.toLowerCase().includes(query) ||
-        entry.region.toLowerCase().includes(query) ||
-        this.locationService.districtName(entry, language).toLowerCase().includes(query) ||
-        this.locationService.regionName(entry, language).toLowerCase().includes(query),
+      .filter(
+        (entry) =>
+          !query ||
+          entry.district.toLowerCase().includes(query) ||
+          entry.region.toLowerCase().includes(query) ||
+          this.locationService.districtName(entry, language).toLowerCase().includes(query) ||
+          this.locationService.regionName(entry, language).toLowerCase().includes(query),
       )
-      .sort((left, right) => this.locationAreaRank(left.district) - this.locationAreaRank(right.district))
+      .sort(
+        (left, right) =>
+          this.locationAreaRank(left.district) - this.locationAreaRank(right.district),
+      )
       .slice(0, 8)
       .map((entry) => ({
         id: entry.id,
@@ -256,9 +291,10 @@ export class Main implements OnInit {
     if (!this.selectedLocationArea && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
 
-    for (const entry of this.locationEntries.filter((item) =>
-      item.city === 'Tbilisi' &&
-      (!this.selectedLocationArea || item.district === this.selectedLocationArea),
+    for (const entry of this.locationEntries.filter(
+      (item) =>
+        item.city === 'Tbilisi' &&
+        (!this.selectedLocationArea || item.district === this.selectedLocationArea),
     )) {
       for (const street of this.locationService.streetNames(entry, language)) {
         if (
@@ -289,7 +325,9 @@ export class Main implements OnInit {
     if (!this.selectedLocationArea) return 'Streets';
     const entry = this.locationEntries.find((item) => item.district === this.selectedLocationArea);
     const language = this.locationService.languageForQuery(this.searchLocation);
-    const area = entry ? this.locationService.districtName(entry, language) : this.selectedLocationArea;
+    const area = entry
+      ? this.locationService.districtName(entry, language)
+      : this.selectedLocationArea;
     return language === 'ka' ? `${area} — ქუჩები` : `Streets in ${area}`;
   }
 
@@ -302,75 +340,102 @@ export class Main implements OnInit {
   }
 
   public get modalStreetSuggestions(): LocationSuggestion[] {
+    if (this.streetSearch.trim().length < 2) return [];
     if (this.inlineDrawnPolygon && this.drawnStreetSuggestions.length) {
       const query = this.streetSearch.trim().toLowerCase();
       const streets = this.drawnStreetSuggestions
-        .filter((street) => !query || street.label.toLowerCase().includes(query) || street.value.toLowerCase().includes(query))
-        .map((street) => ({ ...street, type: 'Street' as const, city: 'Tbilisi', district: this.drawnDetectedArea || this.selectedLocationArea }));
-      return this.showAllStreets ? streets : streets.slice(0, 8);
+        .filter(
+          (street) =>
+            !query ||
+            street.label.toLowerCase().includes(query) ||
+            street.value.toLowerCase().includes(query),
+        )
+        .map((street) => ({
+          ...street,
+          type: 'Street' as const,
+          city: 'Tbilisi',
+          district: this.drawnDetectedArea || this.selectedLocationArea,
+        }));
+      return streets.slice(0, 6);
     }
     if (!this.selectedLocationAreas.length) return [];
     const query = this.streetSearch.trim().toLowerCase();
     const streetGroups = this.selectedLocationAreas.map((selectedArea) =>
       this.locationEntries
-        .filter((entry) => entry.district.toLowerCase() === selectedArea.toLowerCase() ||
-          this.locationService.districtName(entry, 'en').toLowerCase() === selectedArea.toLowerCase())
-        .flatMap((entry) => this.locationService.streetNames(entry, 'ka').map((street) => ({
-          ...street,
-          city: this.locationService.cityName(entry, 'en'),
-          district: selectedArea,
-        })))
-        .filter((street) => !query ||
-          street.label.toLowerCase().includes(query) ||
-          street.value.toLowerCase().includes(query)),
+        .filter(
+          (entry) =>
+            entry.district.toLowerCase() === selectedArea.toLowerCase() ||
+            this.locationService.districtName(entry, 'en').toLowerCase() ===
+              selectedArea.toLowerCase(),
+        )
+        .flatMap((entry) =>
+          this.locationService.streetNames(entry, 'ka').map((street) => ({
+            ...street,
+            city: this.locationService.cityName(entry, 'en'),
+            district: selectedArea,
+          })),
+        )
+        .filter(
+          (street) =>
+            !query ||
+            street.label.toLowerCase().includes(query) ||
+            street.value.toLowerCase().includes(query),
+        ),
     );
     const streets = Array.from(
       { length: Math.max(0, ...streetGroups.map((group) => group.length)) },
       (_, index) => streetGroups.map((group) => group[index]).filter((street) => !!street),
     )
       .flat()
-      .filter((street, index, list) => list.findIndex((item) =>
-        item.value === street.value && item.district === street.district) === index)
+      .filter(
+        (street, index, list) =>
+          list.findIndex(
+            (item) => item.value === street.value && item.district === street.district,
+          ) === index,
+      )
       .sort((first, second) => first.label.localeCompare(second.label, 'ka'));
-    return (this.showAllStreets ? streets : streets.slice(0, 8))
-      .map((street) => ({
-        id: street.id,
-        label: street.label === street.value
-          ? street.value
-          : `${street.label} — ${street.value}`,
-        value: street.value,
-        type: 'Street',
-        city: street.city,
-        district: street.district,
-      }));
+    return streets.slice(0, 6).map((street) => ({
+      id: street.id,
+      label: street.label === street.value ? street.value : `${street.label} — ${street.value}`,
+      value: street.value,
+      type: 'Street',
+      city: street.city,
+      district: street.district,
+    }));
   }
 
   public get streetAreaTitle(): string {
-    if (this.inlineDrawnPolygon && this.drawnDetectedArea) return `Streets in ${this.drawnDetectedArea}`;
+    if (this.inlineDrawnPolygon && this.drawnDetectedArea)
+      return `Streets in ${this.drawnDetectedArea}`;
     if (!this.selectedLocationAreas.length) return 'Streets in selected areas';
     return `Streets in ${this.selectedLocationAreas.join(' + ')}`;
   }
 
   public get apiTbilisiAreas(): string[] {
-    return [...new Set(
-      this.locationEntries
-        .filter((entry) => entry.city === 'Tbilisi')
-        .map((entry) => this.locationService.districtName(entry, 'en'))
-        .filter((area) => !!area && area !== 'System.Collections.Hashtable'),
-    )].sort((left, right) => left.localeCompare(right));
+    return [
+      ...new Set(
+        this.locationEntries
+          .filter((entry) => entry.city === 'Tbilisi')
+          .map((entry) => this.locationService.districtName(entry, 'en'))
+          .filter((area) => !!area && area !== 'System.Collections.Hashtable'),
+      ),
+    ].sort((left, right) => left.localeCompare(right));
   }
 
   public get additionalTbilisiAreas(): string[] {
-    const visibleAreas = new Set([
-      ...this.featuredLocationAreas.map((area) => area.name),
-      ...this.allLocationAreas,
-    ].map((area) => area.toLowerCase()));
+    const visibleAreas = new Set(
+      [...this.featuredLocationAreas.map((area) => area.name), ...this.allLocationAreas].map(
+        (area) => area.toLowerCase(),
+      ),
+    );
     return this.apiTbilisiAreas.filter((area) => !visibleAreas.has(area.toLowerCase()));
   }
 
   public get selectedAreaDescription(): string {
-    return this.featuredLocationAreas.find((area) => area.name === this.selectedLocationArea)?.description
-      || 'Explore homes, streets and neighborhoods in this area.';
+    return (
+      this.featuredLocationAreas.find((area) => area.name === this.selectedLocationArea)
+        ?.description || 'Explore homes, streets and neighborhoods in this area.'
+    );
   }
 
   public chooseAreaForModal(area: string): void {
@@ -378,12 +443,8 @@ export class Main implements OnInit {
       this.removeModalArea(area);
       return;
     }
-    // The map is intentionally single-district: changing area must discard
-    // every street and polygon belonging to the previous district.
-    this.selectedLocationAreas = [area];
+    this.selectedLocationAreas = [...this.selectedLocationAreas, area];
     this.selectedLocationArea = area;
-    this.selectedModalStreetDetails = [];
-    this.selectedModalStreets = [];
     this.showAllStreets = false;
     this.inlineDrawnPolygon = null;
     this.drawnDetectedArea = '';
@@ -396,7 +457,9 @@ export class Main implements OnInit {
 
   public removeModalArea(area: string): void {
     this.selectedLocationAreas = this.selectedLocationAreas.filter((item) => item !== area);
-    this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter((item) => item.district !== area);
+    this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter(
+      (item) => item.district !== area,
+    );
     this.selectedModalStreets = this.selectedModalStreetDetails.map((item) => item.street);
     if (this.selectedLocationArea === area) {
       this.selectedLocationArea = this.selectedLocationAreas.at(-1) || '';
@@ -411,12 +474,17 @@ export class Main implements OnInit {
   public toggleModalStreet(street: LocationSuggestion): void {
     if (this.isStreetSelected(street.label)) {
       this.selectedModalStreets = this.selectedModalStreets.filter((item) => item !== street.label);
-      this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter((item) => item.street !== street.label);
+      this.selectedModalStreetDetails = this.selectedModalStreetDetails.filter(
+        (item) => item.street !== street.label,
+      );
       this.selectedStreetId = this.selectedModalStreetDetails.at(-1)?.streetId ?? null;
     } else {
       if (!street.id) return;
       this.selectedModalStreets = [...this.selectedModalStreets, street.label];
-      this.selectedModalStreetDetails = [...this.selectedModalStreetDetails, { streetId: street.id, street: street.label, district: street.district || '' }];
+      this.selectedModalStreetDetails = [
+        ...this.selectedModalStreetDetails,
+        { streetId: street.id, street: street.label, district: street.district || '' },
+      ];
       this.selectedStreetId = street.id;
     }
   }
@@ -440,7 +508,9 @@ export class Main implements OnInit {
     }
   }
 
-  public onDrawnStreets(streets: Array<{ id: number; label: string; value: string; district: string }>): void {
+  public onDrawnStreets(
+    streets: Array<{ id: number; label: string; value: string; district: string }>,
+  ): void {
     this.drawnStreetSuggestions = streets;
     this.drawnStreetsLoading = false;
     this.cdr.detectChanges();
@@ -463,18 +533,19 @@ export class Main implements OnInit {
 
   public applyModalLocation(): void {
     if (!this.selectedLocationAreas.length && !this.inlineDrawnPolygon) return;
-    const effectiveAreas = this.inlineDrawnPolygon && this.drawnDetectedArea
-      ? [this.drawnDetectedArea]
-      : this.selectedLocationAreas;
+    const effectiveAreas =
+      this.inlineDrawnPolygon && this.drawnDetectedArea
+        ? [this.drawnDetectedArea]
+        : this.selectedLocationAreas;
     this.searchLocation = effectiveAreas.length
-      ? (this.selectedModalStreets.length
+      ? this.selectedModalStreets.length
         ? `${effectiveAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`
-        : effectiveAreas.join(', '))
+        : effectiveAreas.join(', ')
       : 'Selected map area';
     this.selectedLocationValue = effectiveAreas.length
-      ? (this.selectedModalStreets.length
+      ? this.selectedModalStreets.length
         ? this.selectedModalStreets.join(',')
-        : effectiveAreas.join(','))
+        : effectiveAreas.join(',')
       : '';
     this.selectedStreetId = this.selectedModalStreetDetails.at(-1)?.streetId ?? null;
     if (this.inlineDrawnPolygon) {
@@ -490,7 +561,9 @@ export class Main implements OnInit {
   }
 
   selectPopularArea(area: string): void {
-    const entry = this.locationEntries.find((item) => item.district.toLowerCase() === area.toLowerCase());
+    const entry = this.locationEntries.find(
+      (item) => item.district.toLowerCase() === area.toLowerCase(),
+    );
     this.selectLocation({
       id: entry?.id,
       label: entry ? this.locationService.districtName(entry, 'en') : area,
@@ -502,7 +575,8 @@ export class Main implements OnInit {
 
   chooseLocationByLabel(label: string): void {
     for (const entry of this.locationEntries) {
-      const street = this.locationService.streetNames(entry, 'en')
+      const street = this.locationService
+        .streetNames(entry, 'en')
         .find((item) => item.label.toLowerCase().includes(label.toLowerCase()));
       if (street) {
         this.selectLocation({
@@ -585,7 +659,7 @@ export class Main implements OnInit {
         console.error('Apartment API error:', err);
         this.loading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -612,7 +686,10 @@ export class Main implements OnInit {
   }
 
   getAgentImage(agent: Agent): string {
-    return toMediaUrl(agent.profilePictureUrl || agent.profilePicture || agent.avatarUrl) || '/agent1.jpg';
+    return (
+      toMediaUrl(agent.profilePictureUrl || agent.profilePicture || agent.avatarUrl) ||
+      '/agent1.jpg'
+    );
   }
 
   getAgentRating(agent: Agent): number {
@@ -632,7 +709,9 @@ export class Main implements OnInit {
   }
 
   getApartmentImage(apartment: Apartment): string {
-    return toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg';
+    return (
+      toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg'
+    );
   }
 
   getApartmentTitle(apartment: Apartment): string {
@@ -640,9 +719,7 @@ export class Main implements OnInit {
   }
 
   isExclusiveListing(apartment: Apartment): boolean {
-    return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(
-      apartment.description || '',
-    );
+    return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(apartment.description || '');
   }
 
   getApartmentAddress(apartment: Apartment): string {
@@ -654,31 +731,36 @@ export class Main implements OnInit {
     let district = apartment.district?.trim() || '';
 
     if (!district) {
-      const locationText = [
-        apartment.address,
-        apartment.region,
-        apartment.street,
-      ].filter(Boolean).join(' ').toLowerCase();
+      const locationText = [apartment.address, apartment.region, apartment.street]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
 
       const matchedArea = this.locationEntries.find((entry) => {
         const names = [
           entry.district,
           this.locationService.districtName(entry, 'en'),
           this.locationService.districtName(entry, 'ka'),
-        ].filter(Boolean).map((name) => name.toLowerCase());
+        ]
+          .filter(Boolean)
+          .map((name) => name.toLowerCase());
         if (names.some((name) => locationText.includes(name))) return true;
-        return this.locationService.streetNames(entry, 'en').some((street) =>
-          locationText.includes(street.label.toLowerCase()) ||
-          locationText.includes(street.value.toLowerCase()),
-        );
+        return this.locationService
+          .streetNames(entry, 'en')
+          .some(
+            (street) =>
+              locationText.includes(street.label.toLowerCase()) ||
+              locationText.includes(street.value.toLowerCase()),
+          );
       });
       district = matchedArea ? this.locationService.districtName(matchedArea, 'en') : '';
     }
 
     if (!district) return city;
-    const matchedDistrict = this.locationEntries.find((entry) =>
-      entry.district.toLowerCase() === district.toLowerCase() ||
-      this.locationService.districtName(entry, 'ka').toLowerCase() === district.toLowerCase(),
+    const matchedDistrict = this.locationEntries.find(
+      (entry) =>
+        entry.district.toLowerCase() === district.toLowerCase() ||
+        this.locationService.districtName(entry, 'ka').toLowerCase() === district.toLowerCase(),
     );
     const districtLabel = matchedDistrict
       ? this.locationService.districtName(matchedDistrict, 'en')
@@ -695,7 +777,9 @@ export class Main implements OnInit {
       queryParams: {
         mode: this.searchMode,
         area: this.inlineDrawnPolygon ? 'drawn' : null,
-        location: this.inlineDrawnPolygon ? null : (this.selectedLocationValue || this.searchLocation || null),
+        location: this.inlineDrawnPolygon
+          ? null
+          : this.selectedLocationValue || this.searchLocation || null,
         street_id: this.selectedStreetId || null,
         locationLanguage: this.locationService.languageForQuery(this.searchLocation),
         propertyType: this.searchPropertyType || null,
@@ -767,5 +851,4 @@ export class Main implements OnInit {
   private normalizedSliderValue(value: number | null): number {
     return Math.min(100, Math.max(0, Number(value || 0) / 50));
   }
-
 }
