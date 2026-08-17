@@ -237,6 +237,23 @@
             </div>
           </div>
         </form>
+
+        <section class="danger-zone" aria-labelledby="delete-account-title">
+          <div>
+            <p class="section-kicker">Danger zone</p>
+            <h2 id="delete-account-title">Delete account</h2>
+            <p>Permanently remove your Velven account and personal account data.</p>
+          </div>
+          <button
+            type="button"
+            class="delete-account-button"
+            (click)="deleteAccount()"
+            [disabled]="deletingAccount"
+          >
+            <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+            {{ deletingAccount ? 'Deleting account…' : 'Delete my account' }}
+          </button>
+        </section>
       </section>
     </div>
   </div>

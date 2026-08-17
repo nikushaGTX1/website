@@ -31,7 +31,9 @@
         <button
           type="button"
           *ngFor="let street of manualStreetSuggestions"
-          (click)="selectManualStreet(street)"
+          (pointerdown)="selectManualStreet(street, $event)"
+          (keydown.enter)="selectManualStreet(street, $event)"
+          (keydown.space)="selectManualStreet(street, $event)"
         >
           <i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ street.label }}</span
           ><small>{{ street.district }}</small>
@@ -141,7 +143,9 @@
             <button
               type="button"
               *ngFor="let street of manualStreetSuggestions"
-              (click)="selectManualStreet(street)"
+              (pointerdown)="selectManualStreet(street, $event)"
+              (keydown.enter)="selectManualStreet(street, $event)"
+              (keydown.space)="selectManualStreet(street, $event)"
             >
               <i class="fa-solid fa-location-dot"></i><span>{{ street.label }}</span
               ><small>{{ street.district }}</small>

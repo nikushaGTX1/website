@@ -101,6 +101,10 @@ export class AdminService {
     return this.http.put(`${this.adminUrl}/users/${id}/password`, { newPassword });
   }
 
+  deleteUser(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.adminUrl}/users/${id}`);
+  }
+
   makeAgent(userId: string): Observable<unknown> {
     return this.http.post(`${this.adminUrl}/make-agent/${userId}`, {});
   }

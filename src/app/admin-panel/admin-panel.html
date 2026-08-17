@@ -172,6 +172,14 @@
         <label><span>New password</span><input type="password" minlength="8" autocomplete="new-password" [(ngModel)]="editUserPassword" placeholder="At least 8 characters"></label>
         <button type="button" class="danger" (click)="resetUserPassword()" [disabled]="resettingPassword || editUserPassword.length < 8">{{ resettingPassword ? 'Resetting…' : 'Reset password' }}</button>
       </section>
+
+      <section class="account-delete-admin">
+        <div><h3>Delete account</h3><p>Permanently removes this user and immediately revokes their access.</p></div>
+        <button type="button" class="danger" (click)="deleteUserAccount()" [disabled]="deletingUser || editingUser.id === currentUser?.id">
+          <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+          {{ deletingUser ? 'Deleting…' : 'Delete user' }}
+        </button>
+      </section>
     </section>
   </div>
 

@@ -269,8 +269,14 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     label: string;
     value: string;
     district: string;
-  }): Promise<void> {
-    await this.chooseAreas([street.district]);
+  }, event?: Event): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const districtIsAlreadySelected = this.selectedAreas.some(
+      (area) => area.trim().toLowerCase() === street.district.trim().toLowerCase(),
+    );
+    if (!districtIsAlreadySelected) await this.chooseAreas([street.district]);
     await this.selectStreet(street);
     this.streetStep = false;
     this.streetSelected.emit({ ...street, type: 'Street', city: 'Tbilisi' });
@@ -546,7 +552,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         position: 'absolute',
         pointerEvents: 'none',
         zIndex: '1',
-        filter: 'blur(13px)',
         mixBlendMode: 'multiply',
       });
       glow.getPanes()?.overlayMouseTarget.appendChild(canvas);
@@ -563,13 +568,25 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       const originY = Math.min(northEast.y, southWest.y);
       const width = Math.max(1, Math.abs(northEast.x - southWest.x));
       const height = Math.max(1, Math.abs(southWest.y - northEast.y));
+      const shortestSide = Math.min(map.getDiv().clientWidth || width, map.getDiv().clientHeight || height);
+      const viewportScale = Math.max(0.68, Math.min(1.16, shortestSide / 560));
+      const zoom = map.getZoom() || 15;
+      const zoomScale = Math.max(0.82, Math.min(1.12, 1 + (15 - zoom) * 0.055));
+      const glowScale = viewportScale * zoomScale;
+      const outerWidth = Math.round(70 * glowScale);
+      const middleWidth = Math.round(42 * glowScale);
+      const innerWidth = Math.round(17 * glowScale);
+      const overscan = Math.ceil(outerWidth / 2 + 18 * glowScale);
       const scale = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(width * scale);
-      canvas.height = Math.round(height * scale);
-      canvas.style.left = `${originX}px`;
-      canvas.style.top = `${originY}px`;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      const canvasWidth = width + overscan * 2;
+      const canvasHeight = height + overscan * 2;
+      canvas.width = Math.round(canvasWidth * scale);
+      canvas.height = Math.round(canvasHeight * scale);
+      canvas.style.left = `${originX - overscan}px`;
+      canvas.style.top = `${originY - overscan}px`;
+      canvas.style.width = `${canvasWidth}px`;
+      canvas.style.height = `${canvasHeight}px`;
+      canvas.style.filter = `blur(${Math.max(8, Math.round(13 * glowScale))}px)`;
       const context = canvas.getContext('2d');
       if (!context) return;
       context.scale(scale, scale);
@@ -586,8 +603,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           path.forEach(([lng, lat], index) => {
             const point = glow.getProjection().fromLatLngToDivPixel({ lat, lng });
             if (!point) return;
-            const x = point.x - originX;
-            const y = point.y - originY;
+            const x = point.x - originX + overscan;
+            const y = point.y - originY + overscan;
             if (!hasPoint || index === 0) context.moveTo(x, y);
             else context.lineTo(x, y);
             hasPoint = true;
@@ -596,9 +613,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         }
       };
 
-      drawGlowLayer(72, 0.2, '#ddd6fe');
-      drawGlowLayer(44, 0.28, '#c4b5fd');
-      drawGlowLayer(20, 0.22, '#a78bfa');
+      drawGlowLayer(outerWidth, 0.18, '#ddd6fe');
+      drawGlowLayer(middleWidth, 0.27, '#c4b5fd');
+      drawGlowLayer(innerWidth, 0.2, '#a78bfa');
       context.globalAlpha = 1;
 
     };

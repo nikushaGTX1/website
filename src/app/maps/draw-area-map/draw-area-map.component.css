@@ -932,10 +932,13 @@ h3 {
   white-space: nowrap;
 }
 .compact-map-controls > .compact-street-search {
-  position: relative;
-  inset: auto;
-  flex: 1 1 290px;
-  width: auto;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  flex: 0 1 290px;
+  width: min(290px, calc(100% - 24px));
   max-width: 290px;
   min-width: 180px;
   margin: 0;
@@ -949,14 +952,17 @@ h3 {
   margin-inline: auto;
   width: min(290px, calc(100% - 24px));
 }
-@container (max-width: 480px) {
+@container (max-width: 560px) {
   .compact-map-controls {
     flex-wrap: wrap;
   }
   .compact-map-controls > .compact-street-search {
+    position: static;
+    transform: none;
     flex-basis: 100%;
     width: 100%;
     max-width: none;
+    margin-top: 10px;
   }
 }
 .compact-street-search > label {

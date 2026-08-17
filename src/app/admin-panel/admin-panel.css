@@ -328,6 +328,9 @@ button:disabled {
 .password-reset{margin:0 26px 26px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) 230px auto;align-items:end;gap:14px;border:1px solid #f1c9c6;border-radius:10px;background:#fff8f7}
 .password-reset h3{margin:0 0 4px;font-size:15px}.password-reset p{margin:0;color:#667085;font-size:11px;line-height:1.4}
 .password-reset button.danger{background:#d83c34}
+.account-delete-admin{margin:0 26px 26px;padding:18px;display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid #e8aeb5;border-radius:10px;background:#fff5f6}
+.account-delete-admin h3{margin:0 0 4px;color:#8c1d2d;font-size:15px}.account-delete-admin p{margin:0;color:#667085;font-size:11px;line-height:1.4}
+.account-delete-admin button.danger{min-height:44px;flex:0 0 auto;padding:0 18px;border:0;border-radius:8px;background:#b42335;color:#fff;font-weight:800;cursor:pointer}
 
 @media(max-width:700px){
   .user-admin-row{grid-template-columns:1fr}.user-admin-actions{width:100%;display:grid!important;grid-template-columns:1fr 1fr!important}
@@ -335,6 +338,7 @@ button:disabled {
   .user-editor-form{grid-template-columns:1fr;padding:20px}.user-editor-form .wide{grid-column:auto}
   .user-editor-profile{grid-template-columns:64px 1fr;padding:20px}.user-editor-avatar{width:64px;height:64px}.user-editor-profile small{grid-column:2}
   .password-reset{margin:0 20px 20px;grid-template-columns:1fr}.password-reset button{width:100%}
+  .account-delete-admin{margin:0 20px 20px;align-items:stretch;flex-direction:column}.account-delete-admin button{width:100%}
 }
 
 .agent-rating-summary {
