@@ -234,9 +234,9 @@
   flex-direction: column;
   justify-content: flex-start;
   overflow: hidden;
-  /* High quality villa background matching the design image */
+  /* Keep the hero local so an expiring third-party attachment cannot break it. */
   background-image: linear-gradient(180deg, rgba(239, 246, 255, 0.9) 0%, rgba(239, 246, 255, 0.45) 55%, rgba(0, 0, 0, 0.1) 100%), 
-                    url('https://cdn.discordapp.com/attachments/1530207366195318796/1531384875360190616/f845b915-ab30-4dad-ac93-4e4f1f18f0b1.png?ex=6a6904ce&is=6a67b34e&hm=36bc74735f1bbbc0f556388d634f49cda1873909639d14fc8e9dbb3e71a68461&');
+                    url('/herosss.webp');
   background-size: cover;
   background-position: center bottom;
 }
