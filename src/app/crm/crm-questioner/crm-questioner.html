@@ -1,0 +1,1428 @@
+<div class="questionnaire-page">
+
+  <div class="questionnaire-shell">
+
+    <!-- ================================================= -->
+    <!-- HEADER -->
+    <!-- ================================================= -->
+
+    <header class="questionnaire-header">
+
+      <a class="brand" href="/main">
+
+        <div class="brand-mark">
+          V
+        </div>
+
+        <div>
+
+          <div class="brand-name">
+            Velven
+          </div>
+
+          <div class="brand-caption">
+            Find your perfect home
+          </div>
+
+        </div>
+
+      </a>
+
+      <div class="step-counter">
+        {{ currentStep }} / {{ totalSteps }}
+      </div>
+
+    </header>
+
+
+    <!-- ================================================= -->
+    <!-- PROGRESS -->
+    <!-- ================================================= -->
+
+    <div class="progress-wrapper">
+
+      <div
+        class="progress-bar"
+        [style.width.%]="progress"
+      ></div>
+
+    </div>
+
+
+    <main class="question-card">
+
+
+      <!-- ================================================= -->
+      <!-- STEP 1 - CONTACT -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 1"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 1
+        </div>
+
+        <h1>
+          დავიწყოთ გაცნობით 👋
+        </h1>
+
+        <p class="subtitle">
+          გვითხარით როგორ მოგმართოთ და რომელ ნომერზე
+          დაგიკავშირდეთ საუკეთესო ბინების აღმოჩენისას.
+        </p>
+
+
+        <div class="contact-first-step">
+
+
+          <!-- NAME -->
+
+          <label class="input-group">
+
+            <span>
+              სახელი და გვარი
+            </span>
+
+            <div class="contact-input">
+
+              <span class="contact-input-icon">
+                👤
+              </span>
+
+              <input
+                type="text"
+                placeholder="მაგ: ნიკა გიორგაძე"
+                [(ngModel)]="form.fullName"
+                autocomplete="name"
+              />
+
+            </div>
+
+          </label>
+
+
+          <!-- PHONE -->
+
+          <label class="input-group">
+
+            <span>
+              ტელეფონის ნომერი
+            </span>
+
+            <div class="contact-input phone-field">
+
+              <span class="phone-prefix">
+                🇬🇪 +995
+              </span>
+
+              <input
+                type="tel"
+                inputmode="numeric"
+                placeholder="555 12 34 56"
+                [(ngModel)]="form.phoneNumber"
+                autocomplete="tel"
+              />
+
+            </div>
+
+            <small
+              class="input-helper"
+              *ngIf="
+                form.phoneNumber &&
+                !isPhoneValid()
+              "
+            >
+              შეიყვანეთ სწორი ქართული ტელეფონის ნომერი
+            </small>
+
+          </label>
+
+        </div>
+
+
+        <div class="contact-privacy">
+
+          <span>
+            🔒
+          </span>
+
+          <div>
+
+            <strong>
+              თქვენი ინფორმაცია უსაფრთხოა
+            </strong>
+
+            <p>
+              ნომერს მხოლოდ შესაბამის ბინებთან დაკავშირებით
+              დასაკავშირებლად გამოვიყენებთ.
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 2 - MOVE IN -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 2"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 2
+        </div>
+
+        <h1>
+          როდის გჭირდებათ ბინა?
+        </h1>
+
+        <p class="subtitle">
+          დაგვეხმარეთ გავიგოთ, რამდენად მალე გსურთ გადასვლა.
+        </p>
+
+
+        <div class="option-grid">
+
+          <button
+            type="button"
+            class="choice-card"
+            [class.active]="form.moveIn === 'today'"
+            (click)="selectMoveIn('today')"
+          >
+
+            <span class="choice-icon">
+              ⚡
+            </span>
+
+            <span>
+
+              <strong>
+                დღესვე / 1–3 დღეში
+              </strong>
+
+              <small>
+                სასწრაფოდ ვეძებ
+              </small>
+
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="choice-card"
+            [class.active]="form.moveIn === 'week'"
+            (click)="selectMoveIn('week')"
+          >
+
+            <span class="choice-icon">
+              📅
+            </span>
+
+            <span>
+
+              <strong>
+                1 კვირაში
+              </strong>
+
+              <small>
+                ახლო მომავალში
+              </small>
+
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="choice-card"
+            [class.active]="form.moveIn === '2-4-weeks'"
+            (click)="selectMoveIn('2-4-weeks')"
+          >
+
+            <span class="choice-icon">
+              🗓️
+            </span>
+
+            <span>
+
+              <strong>
+                2–4 კვირაში
+              </strong>
+
+              <small>
+                მაქვს დრო არჩევისთვის
+              </small>
+
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="choice-card"
+            [class.active]="form.moveIn === '1-3-months'"
+            (click)="selectMoveIn('1-3-months')"
+          >
+
+            <span class="choice-icon">
+              🏠
+            </span>
+
+            <span>
+
+              <strong>
+                1–3 თვეში
+              </strong>
+
+              <small>
+                წინასწარ ვგეგმავ
+              </small>
+
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="choice-card full-width"
+            [class.active]="form.moveIn === 'browsing'"
+            (click)="selectMoveIn('browsing')"
+          >
+
+            <span class="choice-icon">
+              👀
+            </span>
+
+            <span>
+
+              <strong>
+                ჯერ ვათვალიერებ
+              </strong>
+
+              <small>
+                მინდა გავიგო რა ვარიანტებია ბაზარზე
+              </small>
+
+            </span>
+
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 3 - BUDGET -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 3"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 3
+        </div>
+
+        <h1>
+          რა არის თქვენი ბიუჯეტი?
+        </h1>
+
+        <p class="subtitle">
+          მიუთითეთ სასურველი თვიური ბიუჯეტის დიაპაზონი.
+        </p>
+
+
+        <div class="budget-row">
+
+          <label class="input-group">
+
+            <span>
+              მინიმალური
+            </span>
+
+            <div class="money-input">
+
+              <span>
+                $
+              </span>
+
+              <input
+                type="number"
+                placeholder="500"
+                [(ngModel)]="form.budgetMin"
+              />
+
+            </div>
+
+          </label>
+
+
+          <div class="range-divider">
+            —
+          </div>
+
+
+          <label class="input-group">
+
+            <span>
+              მაქსიმალური
+            </span>
+
+            <div class="money-input">
+
+              <span>
+                $
+              </span>
+
+              <input
+                type="number"
+                placeholder="1200"
+                [(ngModel)]="form.budgetMax"
+              />
+
+            </div>
+
+          </label>
+
+        </div>
+
+
+        <label class="switch-row">
+
+          <input
+            type="checkbox"
+            [(ngModel)]="form.flexibleBudget"
+          />
+
+          <span class="fake-switch"></span>
+
+          <span>
+
+            <strong>
+              კარგი ვარიანტისთვის შემიძლია მცირედი გაზრდა
+            </strong>
+
+            <small>
+              უფრო კარგი მატჩების პოვნაში დაგვეხმარება
+            </small>
+
+          </span>
+
+        </label>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 4 - DISTRICTS -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 4"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 4
+        </div>
+
+        <h1>
+          რომელი უბნები გაინტერესებთ?
+        </h1>
+
+        <p class="subtitle">
+          შეგიძლიათ რამდენიმე უბანი აირჩიოთ.
+        </p>
+
+
+        <div class="chips">
+
+          <button
+            *ngFor="let district of districts"
+            type="button"
+            class="chip"
+            [class.active]="isDistrictSelected(district)"
+            (click)="toggleDistrict(district)"
+          >
+
+            <span
+              *ngIf="isDistrictSelected(district)"
+            >
+              ✓
+            </span>
+
+            {{ district }}
+
+          </button>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="smart-option"
+          [class.active]="form.chooseDistrictForMe"
+          (click)="toggleChooseDistrictForMe()"
+        >
+
+          <span class="smart-icon">
+            ✨
+          </span>
+
+          <span>
+
+            <strong>
+              არ ვარ დარწმუნებული — შემირჩიეთ
+            </strong>
+
+            <small>
+              Velven შეარჩევს საუკეთესო უბნებს თქვენი
+              მოთხოვნების მიხედვით.
+            </small>
+
+          </span>
+
+        </button>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 5 - BEDROOMS -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 5"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 5
+        </div>
+
+        <h1>
+          რამდენი საძინებელი გჭირდებათ?
+        </h1>
+
+        <p class="subtitle">
+          აირჩიეთ თქვენთვის სასურველი ზომა.
+        </p>
+
+
+        <div class="bedroom-grid">
+
+          <button
+            *ngFor="
+              let bedroom of [
+                'Studio',
+                '1',
+                '2',
+                '3',
+                '4+'
+              ]
+            "
+            type="button"
+            class="number-choice"
+            [class.active]="form.bedrooms === bedroom"
+            (click)="selectBedrooms(bedroom)"
+          >
+            {{ bedroom }}
+          </button>
+
+        </div>
+
+
+        <div class="section-divider"></div>
+
+
+        <label class="input-group">
+
+          <span>
+            მინიმალური ფართი
+            <em>
+              არასავალდებულო
+            </em>
+          </span>
+
+          <div class="area-input">
+
+            <input
+              type="number"
+              placeholder="60"
+              [(ngModel)]="form.minArea"
+            />
+
+            <span>
+              მ²
+            </span>
+
+          </div>
+
+        </label>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 6 - HOUSEHOLD -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 6"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 6
+        </div>
+
+        <h1>
+          ვინ იცხოვრებს ბინაში?
+        </h1>
+
+        <p class="subtitle">
+          ეს დაგვეხმარება მეპატრონის მოთხოვნებთან
+          შეთავსებაში.
+        </p>
+
+
+        <div class="option-grid">
+
+          <button
+            type="button"
+            class="choice-card"
+            [class.active]="form.household === 'alone'"
+            (click)="selectHousehold('alone')"
+          >
+
+            <span class="choice-icon">
+              👤
+            </span>
+
+            <strong>
+              მარტო
+            </strong>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="choice-card"
+            [class.active]="form.household === 'couple'"
+            (click)="selectHousehold('couple')"
+          >
+
+            <span class="choice-icon">
+              👫
+            </span>
+
+            <strong>
+              წყვილი
+            </strong>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="choice-card"
+            [class.active]="form.household === 'family'"
+            (click)="selectHousehold('family')"
+          >
+
+            <span class="choice-icon">
+              👨‍👩‍👧
+            </span>
+
+            <strong>
+              ოჯახი
+            </strong>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="choice-card"
+            [class.active]="form.household === 'friends'"
+            (click)="selectHousehold('friends')"
+          >
+
+            <span class="choice-icon">
+              👥
+            </span>
+
+            <strong>
+              მეგობრები / კოლეგები
+            </strong>
+
+          </button>
+
+        </div>
+
+
+        <!-- PEOPLE COUNT -->
+
+        <div
+          class="conditional-box"
+          *ngIf="
+            form.household === 'family' ||
+            form.household === 'friends'
+          "
+        >
+
+          <label class="input-group">
+
+            <span>
+              რამდენი ადამიანი იცხოვრებს?
+            </span>
+
+            <input
+              class="standard-input"
+              type="number"
+              min="1"
+              placeholder="მაგ: 4"
+              [(ngModel)]="form.peopleCount"
+            />
+
+          </label>
+
+        </div>
+
+
+        <!-- CHILDREN -->
+
+        <div
+          class="conditional-box"
+          *ngIf="form.household === 'family'"
+        >
+
+          <span class="field-title">
+            გყავთ ბავშვები?
+          </span>
+
+
+          <div class="small-options">
+
+            <button
+              type="button"
+              [class.active]="form.hasChildren === true"
+              (click)="form.hasChildren = true"
+            >
+              კი
+            </button>
+
+
+            <button
+              type="button"
+              [class.active]="form.hasChildren === false"
+              (click)="
+                form.hasChildren = false;
+                form.childrenAges = ''
+              "
+            >
+              არა
+            </button>
+
+          </div>
+
+
+          <label
+            *ngIf="form.hasChildren === true"
+            class="input-group nested-input"
+          >
+
+            <span>
+              რა ასაკის არიან?
+            </span>
+
+            <input
+              class="standard-input"
+              type="text"
+              placeholder="მაგ: 4 და 9 წლის"
+              [(ngModel)]="form.childrenAges"
+            />
+
+          </label>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 7 - PETS -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 7"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 7
+        </div>
+
+        <h1>
+          გყავთ შინაური ცხოველი?
+        </h1>
+
+        <p class="subtitle">
+          ზოგი ბინა ცხოველებთან დაკავშირებით სპეციალურ
+          პირობებს ითვალისწინებს.
+        </p>
+
+
+        <div class="pet-options">
+
+          <button
+            type="button"
+            [class.active]="form.petType === 'none'"
+            (click)="selectPet('none')"
+          >
+
+            <span>
+              🚫
+            </span>
+
+            არა
+
+          </button>
+
+
+          <button
+            type="button"
+            [class.active]="form.petType === 'dog'"
+            (click)="selectPet('dog')"
+          >
+
+            <span>
+              🐶
+            </span>
+
+            ძაღლი
+
+          </button>
+
+
+          <button
+            type="button"
+            [class.active]="form.petType === 'cat'"
+            (click)="selectPet('cat')"
+          >
+
+            <span>
+              🐱
+            </span>
+
+            კატა
+
+          </button>
+
+
+          <button
+            type="button"
+            [class.active]="form.petType === 'other'"
+            (click)="selectPet('other')"
+          >
+
+            <span>
+              🐾
+            </span>
+
+            სხვა
+
+          </button>
+
+        </div>
+
+
+        <div
+          class="conditional-box"
+          *ngIf="form.petType !== 'none'"
+        >
+
+          <div class="two-columns">
+
+            <label class="input-group">
+
+              <span>
+                ზომა / დამატებითი ინფორმაცია
+              </span>
+
+              <input
+                class="standard-input"
+                type="text"
+                placeholder="მაგ: პატარა"
+                [(ngModel)]="form.petSize"
+              />
+
+            </label>
+
+
+            <label class="input-group">
+
+              <span>
+                რაოდენობა
+              </span>
+
+              <input
+                class="standard-input"
+                type="number"
+                min="1"
+                [(ngModel)]="form.petCount"
+              />
+
+            </label>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 8 - REQUIREMENTS -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 8"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 8
+        </div>
+
+        <h1>
+          რომელი პირობებია თქვენთვის აუცილებელი?
+        </h1>
+
+        <p class="subtitle">
+          მონიშნეთ ყველა მნიშვნელოვანი პირობა.
+        </p>
+
+
+        <div class="feature-grid">
+
+          <button
+            *ngFor="
+              let option of requirementOptions
+            "
+            type="button"
+            class="feature-card"
+            [class.active]="
+              isRequirementSelected(option)
+            "
+            (click)="toggleRequirement(option)"
+          >
+
+            <span class="feature-checkbox">
+
+              <span
+                *ngIf="
+                  isRequirementSelected(option)
+                "
+              >
+                ✓
+              </span>
+
+            </span>
+
+            {{ option }}
+
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 9 - IMPORTANT LOCATIONS -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 9"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 9
+        </div>
+
+        <h1>
+          არის ადგილი, რომელთან ახლოს ყოფნაც მნიშვნელოვანია?
+        </h1>
+
+        <p class="subtitle">
+          მონიშნეთ თქვენთვის მნიშვნელოვანი ადგილები და
+          მიუთითეთ მისამართები.
+        </p>
+
+
+        <div class="chips location-chips">
+
+          <button
+            *ngFor="
+              let location of locationOptions
+            "
+            type="button"
+            class="chip"
+            [class.active]="
+              isLocationSelected(location)
+            "
+            (click)="
+              toggleLocationType(location)
+            "
+          >
+
+            <span
+              *ngIf="
+                isLocationSelected(location)
+              "
+            >
+              ✓
+            </span>
+
+            {{ location }}
+
+          </button>
+
+        </div>
+
+
+        <div class="location-list">
+
+          <div
+            *ngFor="
+              let entry of locationEntries
+            "
+            class="location-card"
+          >
+
+            <div class="location-card-header">
+
+              <div>
+
+                <strong>
+                  {{ entry.type }}
+                </strong>
+
+                <small>
+                  მიუთითეთ მისამართი ან ადგილი
+                </small>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="remove-location"
+                (click)="
+                  removeLocation(entry)
+                "
+              >
+                ×
+              </button>
+
+            </div>
+
+
+            <div class="location-input-wrapper">
+
+              <span>
+                📍
+              </span>
+
+              <input
+                type="text"
+                placeholder="მაგ: პეკინის გამზირი 12"
+                [(ngModel)]="entry.address"
+              />
+
+            </div>
+
+
+            <button
+              type="button"
+              class="add-another"
+              (click)="
+                addLocation(entry.type)
+              "
+            >
+              + დაამატე კიდევ ერთი {{ entry.type }}
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <button
+          *ngIf="locationEntries.length === 0"
+          type="button"
+          class="no-location-button"
+          (click)="clearLocations()"
+        >
+          კონკრეტულ ადგილთან ახლოს ყოფნა არ არის მნიშვნელოვანი
+        </button>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 10 - RENTAL PERIOD -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 10"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ნაბიჯი 10
+        </div>
+
+        <h1>
+          რამდენი ხნით გსურთ ბინის ქირაობა?
+        </h1>
+
+        <p class="subtitle">
+          გრძელვადიანი ქირაობა ხშირად ზრდის მეპატრონის
+          თანხმობის შანსს.
+        </p>
+
+
+        <div class="rental-grid">
+
+          <button
+            *ngFor="
+              let period of [
+                {
+                  value: '3',
+                  title: '3 თვე'
+                },
+                {
+                  value: '6',
+                  title: '6 თვე'
+                },
+                {
+                  value: '12',
+                  title: '12 თვე'
+                },
+                {
+                  value: '12+',
+                  title: '12+ თვე'
+                }
+              ]
+            "
+            type="button"
+            class="rental-card"
+            [class.active]="
+              form.rentalPeriod === period.value
+            "
+            (click)="
+              selectRentalPeriod(period.value)
+            "
+          >
+
+            {{ period.title }}
+
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 11 - TOP 5 -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 11"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          ბოლო ნაბიჯი
+        </div>
+
+        <h1>
+          დაალაგეთ თქვენი TOP 5 პრიორიტეტი
+        </h1>
+
+        <p class="subtitle">
+          ჯერ აირჩიეთ 5 ყველაზე მნიშვნელოვანი ფაქტორი,
+          შემდეგ გადაათრიეთ სასურველი რიგითობით.
+        </p>
+
+
+        <div class="priority-status">
+
+          <span>
+            არჩეულია
+            <strong>
+              {{ selectedPriorities.length }}/5
+            </strong>
+          </span>
+
+          <div class="mini-progress">
+
+            <div
+              [style.width.%]="
+                selectedPriorities.length * 20
+              "
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <!-- RANKED ITEMS -->
+
+        <div
+          class="ranked-priorities"
+          *ngIf="selectedPriorities.length"
+        >
+
+          <div
+            *ngFor="
+              let priority of selectedPriorities;
+              let index = index
+            "
+            class="ranked-item"
+            draggable="true"
+            (dragstart)="
+              dragStart(priority)
+            "
+            (dragend)="
+              dragEnd()
+            "
+            (dragover)="
+              $event.preventDefault()
+            "
+            (drop)="
+              dropPriority(priority)
+            "
+          >
+
+            <div class="rank-number">
+              #{{ index + 1 }}
+            </div>
+
+            <div class="rank-label">
+              {{ priority.label }}
+            </div>
+
+            <div class="drag-handle">
+              ⋮⋮
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="section-divider"></div>
+
+
+        <h3 class="small-heading">
+          აირჩიეთ პრიორიტეტები
+        </h3>
+
+
+        <div class="priority-picker">
+
+          <button
+            *ngFor="
+              let priority of availablePriorities
+            "
+            type="button"
+            class="priority-option"
+            [class.active]="priority.selected"
+            [class.disabled]="
+              !priority.selected &&
+              selectedPriorities.length >= 5
+            "
+            (click)="
+              togglePriority(priority)
+            "
+          >
+
+            <span class="priority-checkbox">
+
+              <span
+                *ngIf="
+                  priority.selected
+                "
+              >
+                ✓
+              </span>
+
+            </span>
+
+            {{ priority.label }}
+
+          </button>
+
+        </div>
+
+
+        <!-- SUCCESS MESSAGE -->
+
+        <div
+          *ngIf="submitSuccess"
+          class="submit-success"
+        >
+
+          <div class="success-icon">
+            ✓
+          </div>
+
+          <div>
+
+            <strong>
+              მოთხოვნა წარმატებით გაიგზავნა
+            </strong>
+
+            <p>
+              ჩვენ უკვე ვეძებთ თქვენთვის საუკეთესო ბინებს.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- ERROR MESSAGE -->
+
+        <div
+          *ngIf="submitError"
+          class="submit-error"
+        >
+
+          <strong>
+            მოთხოვნის გაგზავნა ვერ მოხერხდა
+          </strong>
+
+          <p>
+            {{ submitError }}
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- FOOTER -->
+      <!-- ================================================= -->
+
+      <footer class="questionnaire-footer">
+
+        <button
+          type="button"
+          class="back-button"
+          [class.hidden]="currentStep === 1"
+          (click)="previousStep()"
+        >
+          ← უკან
+        </button>
+
+
+        <!-- NORMAL CONTINUE -->
+
+        <button
+          *ngIf="currentStep < totalSteps"
+          type="button"
+          class="continue-button"
+          [disabled]="!canContinue"
+          (click)="nextStep()"
+        >
+
+          გაგრძელება
+
+          <span>
+            →
+          </span>
+
+        </button>
+
+
+        <!-- FINAL SUBMIT -->
+
+        <button
+          *ngIf="
+            currentStep === totalSteps &&
+            !submitSuccess
+          "
+          type="button"
+          class="continue-button finish-button"
+          [disabled]="
+            !canContinue ||
+            isSubmitting
+          "
+          (click)="submitQuestionnaire()"
+        >
+
+          <ng-container
+            *ngIf="!isSubmitting"
+          >
+            ✨ ბინების მოძებნა
+          </ng-container>
+
+
+          <ng-container
+            *ngIf="isSubmitting"
+          >
+
+            <span class="button-spinner"></span>
+
+            იგზავნება...
+
+          </ng-container>
+
+        </button>
+
+      </footer>
+
+    </main>
+
+
+    <!-- ================================================= -->
+    <!-- SECURITY NOTE -->
+    <!-- ================================================= -->
+
+    <div class="secure-note">
+
+      <span>
+        🔒
+      </span>
+
+      თქვენი ინფორმაცია უსაფრთხოდ ინახება
+
+    </div>
+
+  </div>
+
+</div>

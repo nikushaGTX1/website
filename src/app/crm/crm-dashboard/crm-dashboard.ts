@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -58,6 +58,9 @@ export class CrmDashboard implements OnInit {
   errorMessage = '';
   successMessage = '';
 
+  generatingQuestionnaireLink = false;
+  linkCopied = false;
+
   searchQuery = '';
   statusFilter: StatusFilter = 'all';
   sourceFilter = 'all';
@@ -87,6 +90,7 @@ export class CrmDashboard implements OnInit {
 
   constructor(
     private crmService: CrmService,
+    private http: HttpClient,
     private agentService: AgentService,
     readonly authService: AuthService,
     private cdr: ChangeDetectorRef,
@@ -110,6 +114,10 @@ export class CrmDashboard implements OnInit {
 
   get canCreateLead(): boolean {
     return this.authService.canWorkCrmLeads || this.isUploader;
+  }
+
+  get canGenerateQuestionnaireLink(): boolean {
+    return this.authService.isCrmAgent;
   }
 
   get allowedLeadSources(): Array<{ value: string; label: string }> {
@@ -599,5 +607,61 @@ export class CrmDashboard implements OnInit {
       ? error.error
       : error.error?.message || error.error?.title;
     return message || fallback;
+  }
+
+
+
+  generateQuestionnaireLink(): void {
+    if (!this.canGenerateQuestionnaireLink || this.generatingQuestionnaireLink) {
+      return;
+    }
+
+    this.generatingQuestionnaireLink = true;
+    this.linkCopied = false;
+    this.errorMessage = '';
+
+    this.http.post<{
+      token: string;
+      path: string;
+    }>(
+      'https://websiteapi-production-c970.up.railway.app/api/Crm/questionnaire-links',
+      {}
+    ).subscribe({
+      next: async (response) => {
+        this.generatingQuestionnaireLink = false;
+
+        const fullUrl = `${window.location.origin}${response.path}`;
+
+        try {
+          await navigator.clipboard.writeText(fullUrl);
+
+          this.linkCopied = true;
+          this.successMessage = 'Questionnaire link copied to clipboard.';
+
+          setTimeout(() => {
+            this.linkCopied = false;
+            this.cdr.markForCheck();
+          }, 2500);
+        } catch (error) {
+          console.error('Could not copy questionnaire link:', error);
+
+          window.prompt(
+            'Copy questionnaire link:',
+            fullUrl
+          );
+        }
+
+        this.cdr.markForCheck();
+      },
+
+      error: (error: HttpErrorResponse) => {
+        this.generatingQuestionnaireLink = false;
+        this.errorMessage = this.apiError(
+          error,
+          'Could not generate questionnaire link.'
+        );
+        this.cdr.markForCheck();
+      },
+    });
   }
 }

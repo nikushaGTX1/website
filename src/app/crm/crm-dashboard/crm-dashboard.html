@@ -1,210 +1,1708 @@
 <main class="crm-page">
-  <div class="crm-page-content" [attr.inert]="createDialogOpen ? '' : null" [attr.aria-hidden]="createDialogOpen ? 'true' : null">
-  <header class="crm-header">
-    <div>
-      <p class="eyebrow">VELVEN CRM</p>
-      <h1>Lead pipeline</h1>
-      <p class="header-copy" *ngIf="!isUploader">Keep every inquiry, follow-up, and viewing moving toward the right home.</p>
-      <p class="header-copy" *ngIf="isUploader">Track the progress of leads connected to your property uploads.</p>
-    </div>
-    <div class="header-actions">
-      <a class="admin-shortcut" routerLink="/admin" *ngIf="isAdmin">
-        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-        System dashboard
-      </a>
-      <button type="button" class="refresh-button" (click)="loadDashboard()" [disabled]="loading">
-        <i class="fa-solid fa-rotate" aria-hidden="true"></i>
-        {{ loading ? 'Refreshing…' : 'Refresh' }}
-      </button>
-      <button type="button" class="primary-button" *ngIf="canCreateLead" (click)="openCreateDialog()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Add lead
-      </button>
-    </div>
-  </header>
+  <div
+    class="crm-page-content"
+    [attr.inert]="createDialogOpen ? '' : null"
+    [attr.aria-hidden]="createDialogOpen ? 'true' : null"
+  >
 
-  <p class="page-message success" role="status" *ngIf="successMessage">
-    <i class="fa-regular fa-circle-check" aria-hidden="true"></i>{{ successMessage }}
-  </p>
-  <p class="page-message error" role="alert" *ngIf="errorMessage">
-    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ errorMessage }}
-    <button type="button" (click)="loadDashboard()">Try again</button>
-  </p>
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
 
-  <section class="metrics-grid" aria-label="CRM overview">
-    <article class="metric-card" *ngFor="let metric of metricCards" [class]="'metric-card ' + metric.tone">
-      <span class="metric-icon"><i [class]="metric.icon" aria-hidden="true"></i></span>
-      <div><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.detail }}</small></div>
-    </article>
-  </section>
+    <header class="crm-header">
 
-  <section class="filter-panel" aria-label="Lead filters">
-    <label class="search-field">
-      <span class="sr-only">Search leads</span>
-      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-      <input type="search" [(ngModel)]="searchQuery" placeholder="Search name, contact, district or property" />
-    </label>
+      <div>
+        <p class="eyebrow">VELVEN CRM</p>
 
-    <label>
-      <span>Status</span>
-      <select [(ngModel)]="statusFilter">
-        <option value="all">All stages</option>
-        <option *ngFor="let status of statuses" [value]="status">{{ statusLabel(status) }}</option>
-      </select>
-    </label>
+        <h1>Lead pipeline</h1>
 
-    <label>
-      <span>Source</span>
-      <select [(ngModel)]="sourceFilter">
-        <option value="all">All sources</option>
-        <option *ngFor="let source of sourceOptions" [value]="source">{{ source }}</option>
-      </select>
-    </label>
-
-    <label *ngIf="isManager">
-      <span>Assignment</span>
-      <select [(ngModel)]="assignmentFilter">
-        <option value="all">All visible leads</option>
-        <option value="mine">Assigned to me</option>
-        <option value="unassigned">Unassigned</option>
-      </select>
-    </label>
-
-    <button class="clear-filters" type="button" (click)="resetFilters()" [disabled]="!hasFilters">
-      Clear filters
-    </button>
-  </section>
-
-  <section class="pipeline-section" [attr.aria-busy]="loading">
-    <div class="pipeline-heading">
-      <div><h2>Pipeline board</h2><p>{{ filteredLeads.length }} lead{{ filteredLeads.length === 1 ? '' : 's' }} shown</p></div>
-      <span *ngIf="!isUploader"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Move a lead from its detail page</span>
-      <span *ngIf="isUploader"><i class="fa-regular fa-eye" aria-hidden="true"></i> Read-only progress view</span>
-    </div>
-
-    <div class="pipeline-loading" *ngIf="loading">
-      <article *ngFor="let item of [1,2,3,4]">
-        <span></span><span></span><span></span>
-      </article>
-    </div>
-
-    <div class="pipeline-empty" *ngIf="!loading && !errorMessage && filteredLeads.length === 0">
-      <span><i class="fa-regular fa-address-card" aria-hidden="true"></i></span>
-      <h2>{{ hasFilters ? 'No leads match these filters' : 'Your pipeline is ready' }}</h2>
-      <p>{{ hasFilters ? 'Try clearing a filter or searching a different contact.' : (isUploader ? 'No leads have been connected to your uploaded properties yet.' : 'Add the first lead, or wait for a property viewing request.') }}</p>
-      <button type="button" *ngIf="hasFilters" (click)="resetFilters()">Clear filters</button>
-      <button type="button" *ngIf="!hasFilters && canCreateLead" (click)="openCreateDialog()">Add first lead</button>
-    </div>
-
-    <div class="pipeline-scroll" *ngIf="!loading && filteredLeads.length > 0">
-      <div class="pipeline-board" [class.filtered]="statusFilter !== 'all'">
-        <section
-          class="pipeline-column"
-          *ngFor="let status of visibleStatuses; trackBy: identifyStatus"
-          [class]="'pipeline-column status-' + status"
-          [attr.aria-labelledby]="'pipeline-' + status"
+        <p
+          class="header-copy"
+          *ngIf="!isUploader"
         >
-          <header>
-            <div><span class="status-dot" aria-hidden="true"></span><h3 [id]="'pipeline-' + status">{{ statusLabel(status) }}</h3></div>
-            <strong>{{ leadsForStatus(status).length }}</strong>
-            <p>{{ statusDescriptions[status] }}</p>
-          </header>
+          Keep every inquiry, follow-up, and viewing moving toward the right home.
+        </p>
 
-          <div class="column-leads">
-            <a
-              class="lead-card"
-              *ngFor="let lead of leadsForStatus(status); trackBy: identifyLead"
-              [routerLink]="['/crm/leads', lead.id]"
-              [attr.aria-label]="'Open lead ' + lead.fullName"
-            >
-              <div class="lead-card-top">
-                <span class="lead-avatar">{{ initials(lead) }}</span>
-                <span class="lead-identity"><strong>{{ lead.fullName }}</strong><small>{{ lead.source || 'manual' }}</small></span>
-                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-              </div>
-
-              <div class="lead-contact">
-                <span *ngIf="lead.phoneNumber"><i class="fa-solid fa-phone" aria-hidden="true"></i>{{ lead.phoneNumber }}</span>
-                <span *ngIf="lead.email"><i class="fa-regular fa-envelope" aria-hidden="true"></i>{{ lead.email }}</span>
-              </div>
-
-              <div class="lead-context">
-                <span><i class="fa-solid fa-wallet" aria-hidden="true"></i>{{ budgetLabel(lead) }}</span>
-                <span *ngIf="lead.apartmentTitle"><i class="fa-regular fa-building" aria-hidden="true"></i>{{ lead.apartmentTitle }}</span>
-                <span *ngIf="lead.preferredDistricts?.length"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ lead.preferredDistricts?.join(', ') }}</span>
-              </div>
-
-              <div class="next-action" *ngIf="nextAction(lead) as task" [class.overdue]="isOverdue(task)">
-                <i [class]="task.type === 'viewing' ? 'fa-regular fa-calendar-check' : 'fa-regular fa-clock'" aria-hidden="true"></i>
-                <span><small>{{ isOverdue(task) ? 'Overdue' : (task.type === 'viewing' ? 'Viewing' : 'Next follow-up') }}</small><b>{{ formatDate(task.dueAt) }}</b></span>
-              </div>
-
-              <footer>
-                <span><i class="fa-regular fa-user" aria-hidden="true"></i>{{ lead.assignedAgentName || 'Unassigned' }}</span>
-                <span>View details</span>
-              </footer>
-            </a>
-
-            <p class="column-empty" *ngIf="leadsForStatus(status).length === 0">No leads in this stage.</p>
-          </div>
-        </section>
+        <p
+          class="header-copy"
+          *ngIf="isUploader"
+        >
+          Track the progress of leads connected to your property uploads.
+        </p>
       </div>
-    </div>
-  </section>
+
+
+      <!-- HEADER ACTIONS -->
+
+      <div class="header-actions">
+
+        <!-- SYSTEM DASHBOARD -->
+
+        <a
+          class="admin-shortcut"
+          routerLink="/admin"
+          *ngIf="isAdmin"
+        >
+          <i
+            class="fa-solid fa-sliders"
+            aria-hidden="true"
+          ></i>
+
+          System dashboard
+        </a>
+
+
+        <!-- GENERATE QUESTIONNAIRE LINK -->
+
+        <button
+          type="button"
+          class="generate-link-button"
+          *ngIf="canGenerateQuestionnaireLink"
+          (click)="generateQuestionnaireLink()"
+          [disabled]="generatingQuestionnaireLink"
+        >
+          <i
+            [class]="
+              linkCopied
+                ? 'fa-solid fa-check'
+                : generatingQuestionnaireLink
+                  ? 'fa-solid fa-spinner fa-spin'
+                  : 'fa-solid fa-link'
+            "
+            aria-hidden="true"
+          ></i>
+
+          {{
+            generatingQuestionnaireLink
+              ? 'Generating…'
+              : linkCopied
+                ? 'Link Copied!'
+                : 'Generate Link'
+          }}
+        </button>
+
+
+        <!-- REFRESH -->
+
+        <button
+          type="button"
+          class="refresh-button"
+          (click)="loadDashboard()"
+          [disabled]="loading"
+        >
+          <i
+            class="fa-solid fa-rotate"
+            aria-hidden="true"
+          ></i>
+
+          {{ loading ? 'Refreshing…' : 'Refresh' }}
+        </button>
+
+
+        <!-- ADD LEAD -->
+
+        <button
+          type="button"
+          class="primary-button"
+          *ngIf="canCreateLead"
+          (click)="openCreateDialog()"
+        >
+          <i
+            class="fa-solid fa-plus"
+            aria-hidden="true"
+          ></i>
+
+          Add lead
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- ===================================================== -->
+    <!-- MESSAGES -->
+    <!-- ===================================================== -->
+
+    <p
+      class="page-message success"
+      role="status"
+      *ngIf="successMessage"
+    >
+      <i
+        class="fa-regular fa-circle-check"
+        aria-hidden="true"
+      ></i>
+
+      {{ successMessage }}
+    </p>
+
+
+    <p
+      class="page-message error"
+      role="alert"
+      *ngIf="errorMessage"
+    >
+      <i
+        class="fa-solid fa-circle-exclamation"
+        aria-hidden="true"
+      ></i>
+
+      {{ errorMessage }}
+
+      <button
+        type="button"
+        (click)="loadDashboard()"
+      >
+        Try again
+      </button>
+    </p>
+
+
+    <!-- ===================================================== -->
+    <!-- METRICS -->
+    <!-- ===================================================== -->
+
+    <section
+      class="metrics-grid"
+      aria-label="CRM overview"
+    >
+
+      <article
+        class="metric-card"
+        *ngFor="let metric of metricCards"
+        [class]="'metric-card ' + metric.tone"
+      >
+
+        <span class="metric-icon">
+          <i
+            [class]="metric.icon"
+            aria-hidden="true"
+          ></i>
+        </span>
+
+        <div>
+          <span>
+            {{ metric.label }}
+          </span>
+
+          <strong>
+            {{ metric.value }}
+          </strong>
+
+          <small>
+            {{ metric.detail }}
+          </small>
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- ===================================================== -->
+    <!-- FILTERS -->
+    <!-- ===================================================== -->
+
+    <section
+      class="filter-panel"
+      aria-label="Lead filters"
+    >
+
+      <!-- SEARCH -->
+
+      <label class="search-field">
+
+        <span class="sr-only">
+          Search leads
+        </span>
+
+        <i
+          class="fa-solid fa-magnifying-glass"
+          aria-hidden="true"
+        ></i>
+
+        <input
+          type="search"
+          [(ngModel)]="searchQuery"
+          placeholder="Search name, contact, district or property"
+        />
+
+      </label>
+
+
+      <!-- STATUS -->
+
+      <label>
+
+        <span>
+          Status
+        </span>
+
+        <select [(ngModel)]="statusFilter">
+
+          <option value="all">
+            All stages
+          </option>
+
+          <option
+            *ngFor="let status of statuses"
+            [value]="status"
+          >
+            {{ statusLabel(status) }}
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <!-- SOURCE -->
+
+      <label>
+
+        <span>
+          Source
+        </span>
+
+        <select [(ngModel)]="sourceFilter">
+
+          <option value="all">
+            All sources
+          </option>
+
+          <option
+            *ngFor="let source of sourceOptions"
+            [value]="source"
+          >
+            {{ source }}
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <!-- ASSIGNMENT -->
+
+      <label *ngIf="isManager">
+
+        <span>
+          Assignment
+        </span>
+
+        <select [(ngModel)]="assignmentFilter">
+
+          <option value="all">
+            All visible leads
+          </option>
+
+          <option value="mine">
+            Assigned to me
+          </option>
+
+          <option value="unassigned">
+            Unassigned
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <!-- CLEAR FILTERS -->
+
+      <button
+        class="clear-filters"
+        type="button"
+        (click)="resetFilters()"
+        [disabled]="!hasFilters"
+      >
+        Clear filters
+      </button>
+
+    </section>
+
+
+    <!-- ===================================================== -->
+    <!-- PIPELINE -->
+    <!-- ===================================================== -->
+
+    <section
+      class="pipeline-section"
+      [attr.aria-busy]="loading"
+    >
+
+      <div class="pipeline-heading">
+
+        <div>
+          <h2>
+            Pipeline board
+          </h2>
+
+          <p>
+            {{ filteredLeads.length }}
+            lead{{ filteredLeads.length === 1 ? '' : 's' }}
+            shown
+          </p>
+        </div>
+
+
+        <span *ngIf="!isUploader">
+          <i
+            class="fa-solid fa-arrow-right"
+            aria-hidden="true"
+          ></i>
+
+          Move a lead from its detail page
+        </span>
+
+
+        <span *ngIf="isUploader">
+          <i
+            class="fa-regular fa-eye"
+            aria-hidden="true"
+          ></i>
+
+          Read-only progress view
+        </span>
+
+      </div>
+
+
+      <!-- LOADING -->
+
+      <div
+        class="pipeline-loading"
+        *ngIf="loading"
+      >
+
+        <article *ngFor="let item of [1,2,3,4]">
+          <span></span>
+          <span></span>
+          <span></span>
+        </article>
+
+      </div>
+
+
+      <!-- EMPTY -->
+
+      <div
+        class="pipeline-empty"
+        *ngIf="
+          !loading &&
+          !errorMessage &&
+          filteredLeads.length === 0
+        "
+      >
+
+        <span>
+          <i
+            class="fa-regular fa-address-card"
+            aria-hidden="true"
+          ></i>
+        </span>
+
+
+        <h2>
+          {{
+            hasFilters
+              ? 'No leads match these filters'
+              : 'Your pipeline is ready'
+          }}
+        </h2>
+
+
+        <p>
+          {{
+            hasFilters
+              ? 'Try clearing a filter or searching a different contact.'
+              : (
+                  isUploader
+                    ? 'No leads have been connected to your uploaded properties yet.'
+                    : 'Add the first lead, or wait for a property viewing request.'
+                )
+          }}
+        </p>
+
+
+        <button
+          type="button"
+          *ngIf="hasFilters"
+          (click)="resetFilters()"
+        >
+          Clear filters
+        </button>
+
+
+        <button
+          type="button"
+          *ngIf="!hasFilters && canCreateLead"
+          (click)="openCreateDialog()"
+        >
+          Add first lead
+        </button>
+
+      </div>
+
+
+      <!-- PIPELINE BOARD -->
+
+      <div
+        class="pipeline-scroll"
+        *ngIf="
+          !loading &&
+          filteredLeads.length > 0
+        "
+      >
+
+        <div
+          class="pipeline-board"
+          [class.filtered]="statusFilter !== 'all'"
+        >
+
+          <section
+            class="pipeline-column"
+            *ngFor="
+              let status of visibleStatuses;
+              trackBy: identifyStatus
+            "
+            [class]="'pipeline-column status-' + status"
+            [attr.aria-labelledby]="'pipeline-' + status"
+          >
+
+            <!-- COLUMN HEADER -->
+
+            <header>
+
+              <div>
+
+                <span
+                  class="status-dot"
+                  aria-hidden="true"
+                ></span>
+
+                <h3 [id]="'pipeline-' + status">
+                  {{ statusLabel(status) }}
+                </h3>
+
+              </div>
+
+
+              <strong>
+                {{ leadsForStatus(status).length }}
+              </strong>
+
+
+              <p>
+                {{ statusDescriptions[status] }}
+              </p>
+
+            </header>
+
+
+            <!-- COLUMN LEADS -->
+
+            <div class="column-leads">
+
+              <a
+                class="lead-card"
+                *ngFor="
+                  let lead of leadsForStatus(status);
+                  trackBy: identifyLead
+                "
+                [routerLink]="[
+                  '/crm/leads',
+                  lead.id
+                ]"
+                [attr.aria-label]="
+                  'Open lead ' +
+                  lead.fullName
+                "
+              >
+
+                <!-- LEAD TOP -->
+
+                <div class="lead-card-top">
+
+                  <span class="lead-avatar">
+                    {{ initials(lead) }}
+                  </span>
+
+
+                  <span class="lead-identity">
+
+                    <strong>
+                      {{ lead.fullName }}
+                    </strong>
+
+                    <small>
+                      {{ lead.source || 'manual' }}
+                    </small>
+
+                  </span>
+
+
+                  <i
+                    class="fa-solid fa-chevron-right"
+                    aria-hidden="true"
+                  ></i>
+
+                </div>
+
+
+                <!-- CONTACT -->
+
+                <div class="lead-contact">
+
+                  <span *ngIf="lead.phoneNumber">
+
+                    <i
+                      class="fa-solid fa-phone"
+                      aria-hidden="true"
+                    ></i>
+
+                    {{ lead.phoneNumber }}
+
+                  </span>
+
+
+                  <span *ngIf="lead.email">
+
+                    <i
+                      class="fa-regular fa-envelope"
+                      aria-hidden="true"
+                    ></i>
+
+                    {{ lead.email }}
+
+                  </span>
+
+                </div>
+
+
+                <!-- CONTEXT -->
+
+                <div class="lead-context">
+
+                  <span>
+
+                    <i
+                      class="fa-solid fa-wallet"
+                      aria-hidden="true"
+                    ></i>
+
+                    {{ budgetLabel(lead) }}
+
+                  </span>
+
+
+                  <span *ngIf="lead.apartmentTitle">
+
+                    <i
+                      class="fa-regular fa-building"
+                      aria-hidden="true"
+                    ></i>
+
+                    {{ lead.apartmentTitle }}
+
+                  </span>
+
+
+                  <span
+                    *ngIf="
+                      lead.preferredDistricts?.length
+                    "
+                  >
+
+                    <i
+                      class="fa-solid fa-location-dot"
+                      aria-hidden="true"
+                    ></i>
+
+                    {{
+                      lead.preferredDistricts?.join(', ')
+                    }}
+
+                  </span>
+
+                </div>
+
+
+                <!-- NEXT ACTION -->
+
+                <div
+                  class="next-action"
+                  *ngIf="nextAction(lead) as task"
+                  [class.overdue]="isOverdue(task)"
+                >
+
+                  <i
+                    [class]="
+                      task.type === 'viewing'
+                        ? 'fa-regular fa-calendar-check'
+                        : 'fa-regular fa-clock'
+                    "
+                    aria-hidden="true"
+                  ></i>
+
+
+                  <span>
+
+                    <small>
+                      {{
+                        isOverdue(task)
+                          ? 'Overdue'
+                          : (
+                              task.type === 'viewing'
+                                ? 'Viewing'
+                                : 'Next follow-up'
+                            )
+                      }}
+                    </small>
+
+                    <b>
+                      {{ formatDate(task.dueAt) }}
+                    </b>
+
+                  </span>
+
+                </div>
+
+
+                <!-- FOOTER -->
+
+                <footer>
+
+                  <span>
+
+                    <i
+                      class="fa-regular fa-user"
+                      aria-hidden="true"
+                    ></i>
+
+                    {{
+                      lead.assignedAgentName ||
+                      'Unassigned'
+                    }}
+
+                  </span>
+
+
+                  <span>
+                    View details
+                  </span>
+
+                </footer>
+
+              </a>
+
+
+              <p
+                class="column-empty"
+                *ngIf="
+                  leadsForStatus(status).length === 0
+                "
+              >
+                No leads in this stage.
+              </p>
+
+            </div>
+
+          </section>
+
+        </div>
+
+      </div>
+
+    </section>
 
   </div>
 
-  <div class="dialog-backdrop" *ngIf="createDialogOpen" (click)="closeCreateDialog()">
-    <section #createLeadDialog class="lead-dialog" role="dialog" aria-modal="true" aria-labelledby="create-lead-title" tabindex="-1" (click)="$event.stopPropagation()">
+
+  <!-- ===================================================== -->
+  <!-- CREATE LEAD DIALOG -->
+  <!-- ===================================================== -->
+
+  <div
+    class="dialog-backdrop"
+    *ngIf="createDialogOpen"
+    (click)="closeCreateDialog()"
+  >
+
+    <section
+      #createLeadDialog
+      class="lead-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-lead-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- DIALOG HEADER -->
+
       <header>
+
         <div class="lead-dialog-title">
-          <span class="lead-dialog-icon"><i class="fa-solid fa-user-plus" aria-hidden="true"></i></span>
-          <div><p>NEW OPPORTUNITY</p><h2 id="create-lead-title">Add a lead</h2><span>Create a contact and place them directly in the pipeline.</span></div>
+
+          <span class="lead-dialog-icon">
+            <i
+              class="fa-solid fa-user-plus"
+              aria-hidden="true"
+            ></i>
+          </span>
+
+
+          <div>
+
+            <p>
+              NEW OPPORTUNITY
+            </p>
+
+            <h2 id="create-lead-title">
+              Add a lead
+            </h2>
+
+            <span>
+              Create a contact and place them directly in the pipeline.
+            </span>
+
+          </div>
+
         </div>
-        <button type="button" aria-label="Close add lead dialog" (click)="closeCreateDialog()" [disabled]="creatingLead">
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+
+
+        <button
+          type="button"
+          aria-label="Close add lead dialog"
+          (click)="closeCreateDialog()"
+          [disabled]="creatingLead"
+        >
+
+          <i
+            class="fa-solid fa-xmark"
+            aria-hidden="true"
+          ></i>
+
         </button>
+
       </header>
 
+
+      <!-- ================================================= -->
+      <!-- CREATE FORM -->
+      <!-- ================================================= -->
+
       <form (ngSubmit)="createLead()">
-        <p class="dialog-error" role="alert" *ngIf="createErrorMessage">{{ createErrorMessage }}</p>
+
+        <p
+          class="dialog-error"
+          role="alert"
+          *ngIf="createErrorMessage"
+        >
+          {{ createErrorMessage }}
+        </p>
+
 
         <div class="form-grid">
+
+
+          <!-- =============================================== -->
+          <!-- DEAL TYPE -->
+          <!-- =============================================== -->
+
           <fieldset class="deal-type-field">
-            <legend><i class="fa-solid fa-handshake" aria-hidden="true"></i> Deal type *</legend>
+
+            <legend>
+
+              <i
+                class="fa-solid fa-handshake"
+                aria-hidden="true"
+              ></i>
+
+              Deal type *
+
+            </legend>
+
+
             <div class="deal-type-options">
-              <label class="deal-type-option"><input data-initial-focus type="radio" name="leadGoal" value="rent" [(ngModel)]="manualLeadForm.goal" required /><span class="deal-icon"><i class="fa-solid fa-key" aria-hidden="true"></i></span><span class="deal-copy"><b>Rent</b><small>Rental opportunity</small></span><i class="fa-solid fa-circle-check selection-check" aria-hidden="true"></i></label>
-              <label class="deal-type-option"><input type="radio" name="leadGoal" value="buy" [(ngModel)]="manualLeadForm.goal" required /><span class="deal-icon"><i class="fa-solid fa-house-circle-check" aria-hidden="true"></i></span><span class="deal-copy"><b>Buy</b><small>Purchase opportunity</small></span><i class="fa-solid fa-circle-check selection-check" aria-hidden="true"></i></label>
+
+
+              <!-- RENT -->
+
+              <label class="deal-type-option">
+
+                <input
+                  data-initial-focus
+                  type="radio"
+                  name="leadGoal"
+                  value="rent"
+                  [(ngModel)]="manualLeadForm.goal"
+                  required
+                />
+
+                <span class="deal-icon">
+
+                  <i
+                    class="fa-solid fa-key"
+                    aria-hidden="true"
+                  ></i>
+
+                </span>
+
+
+                <span class="deal-copy">
+
+                  <b>
+                    Rent
+                  </b>
+
+                  <small>
+                    Rental opportunity
+                  </small>
+
+                </span>
+
+
+                <i
+                  class="fa-solid fa-circle-check selection-check"
+                  aria-hidden="true"
+                ></i>
+
+              </label>
+
+
+              <!-- BUY -->
+
+              <label class="deal-type-option">
+
+                <input
+                  type="radio"
+                  name="leadGoal"
+                  value="buy"
+                  [(ngModel)]="manualLeadForm.goal"
+                  required
+                />
+
+                <span class="deal-icon">
+
+                  <i
+                    class="fa-solid fa-house-circle-check"
+                    aria-hidden="true"
+                  ></i>
+
+                </span>
+
+
+                <span class="deal-copy">
+
+                  <b>
+                    Buy
+                  </b>
+
+                  <small>
+                    Purchase opportunity
+                  </small>
+
+                </span>
+
+
+                <i
+                  class="fa-solid fa-circle-check selection-check"
+                  aria-hidden="true"
+                ></i>
+
+              </label>
+
             </div>
+
           </fieldset>
 
-          <fieldset class="dependent-fields" [disabled]="!manualLeadForm.goal">
-          <div class="form-section-heading wide"><span><i class="fa-solid fa-address-card" aria-hidden="true"></i></span><div><b>Contact details</b><small>Basic lead information</small></div></div>
-          <label class="wide"><span class="field-label"><i class="fa-solid fa-user" aria-hidden="true"></i><span>Full name *</span></span><input type="text" name="leadName" [(ngModel)]="manualLeadForm.fullName" autocomplete="name" required /></label>
-          <label><span class="field-label"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span>Email</span></span><input type="email" name="leadEmail" [(ngModel)]="manualLeadForm.email" autocomplete="email" /></label>
-          <label><span class="field-label"><i class="fa-solid fa-phone" aria-hidden="true"></i><span>Phone number</span></span><input type="tel" name="leadPhone" [(ngModel)]="manualLeadForm.phoneNumber" autocomplete="tel" /></label>
-          <label><span class="field-label"><i class="fa-solid fa-bullseye" aria-hidden="true"></i><span>Lead source</span></span><select name="leadSource" [(ngModel)]="manualLeadForm.source"><option *ngFor="let source of allowedLeadSources; trackBy: trackLeadSource" [value]="source.value">{{ source.label }}</option></select></label>
-          <label><span class="field-label"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>Starting stage</span></span><select name="leadStatus" [(ngModel)]="manualLeadForm.status"><option *ngFor="let status of statuses" [value]="status">{{ statusLabel(status) }}</option></select></label>
-          <div class="form-section-heading wide"><span><i class="fa-solid fa-house" aria-hidden="true"></i></span><div><b>Budget and property</b><small>Financial range and home requirements</small></div></div>
-          <label><span class="field-label"><i class="fa-solid fa-coins" aria-hidden="true"></i><span>Budget currency</span></span><select name="leadCurrency" [(ngModel)]="manualLeadForm.currency"><option value="USD">USD — US dollar</option><option value="GEL">GEL — Georgian lari</option><option value="EUR">EUR — Euro</option></select></label>
-          <div class="preference-field wide"><span class="field-label"><i class="fa-solid fa-money-bill-trend-up" aria-hidden="true"></i><span>Budget range</span></span><button type="button" class="preference-trigger" (click)="toggleLeadMenu('budget')"><b>{{ manualLeadForm.budgetMin ?? leadBudgetMinimum | number }} – {{ manualLeadForm.budgetMax ?? leadBudgetMaximum | number }} {{ manualLeadForm.currency }}</b><i class="fa-solid fa-chevron-down"></i></button><div class="preference-menu budget-menu" *ngIf="leadMenu === 'budget'"><div><label><span>Minimum</span><input type="number" [min]="leadBudgetMinimum" [max]="leadBudgetMaximum" name="leadBudgetMin" [(ngModel)]="manualLeadForm.budgetMin" (ngModelChange)="clampLeadBudget('budgetMin')" /></label><label><span>Maximum</span><input type="number" [min]="leadBudgetMinimum" [max]="leadBudgetMaximum" name="leadBudgetMax" [(ngModel)]="manualLeadForm.budgetMax" (ngModelChange)="clampLeadBudget('budgetMax')" /></label></div><div class="range-track"><input type="range" [min]="leadBudgetMinimum" [max]="leadBudgetMaximum" [step]="leadBudgetStep" name="leadBudgetMinRange" [(ngModel)]="manualLeadForm.budgetMin" /><input type="range" [min]="leadBudgetMinimum" [max]="leadBudgetMaximum" [step]="leadBudgetStep" name="leadBudgetMaxRange" [(ngModel)]="manualLeadForm.budgetMax" /></div><button type="button" class="menu-done" (click)="leadMenu = null">Done</button></div></div>
-          <div class="preference-field"><span class="field-label"><i class="fa-solid fa-building" aria-hidden="true"></i><span>Property type</span></span><button type="button" class="preference-trigger" (click)="toggleLeadMenu('property')"><b>{{ manualLeadForm.preferredPropertyType || 'Choose property type' }}</b><i class="fa-solid fa-chevron-down"></i></button><div class="preference-menu option-menu property-menu" *ngIf="leadMenu === 'property'"><button type="button" *ngFor="let type of propertyTypes" [class.selected]="manualLeadForm.preferredPropertyType === type" (click)="manualLeadForm.preferredPropertyType = type; leadMenu = null"><i class="fa-solid" [ngClass]="type === 'Apartment' ? 'fa-building' : type === 'House' ? 'fa-house' : type === 'Land' ? 'fa-map' : 'fa-store'"></i>{{ type }}</button></div></div>
-          <div class="preference-field"><span class="field-label"><i class="fa-solid fa-door-open" aria-hidden="true"></i><span>Rooms</span></span><button type="button" class="preference-trigger" (click)="toggleLeadMenu('rooms')"><b>{{ manualLeadForm.rooms ? manualLeadForm.rooms + ' rooms' : 'Choose rooms' }}</b><i class="fa-solid fa-chevron-down"></i></button><div class="preference-menu option-menu number-menu" *ngIf="leadMenu === 'rooms'"><button type="button" *ngFor="let rooms of roomOptions" [class.selected]="manualLeadForm.rooms === rooms" (click)="selectRooms(rooms)">{{ rooms }}{{ rooms === 8 ? '+' : '' }}</button></div></div>
-          <div class="preference-field"><span class="field-label"><i class="fa-solid fa-bed" aria-hidden="true"></i><span>Bedrooms</span></span><button type="button" class="preference-trigger" [disabled]="!manualLeadForm.rooms" (click)="toggleLeadMenu('bedrooms')"><b>{{ manualLeadForm.bedrooms ? manualLeadForm.bedrooms + ' bedrooms' : (manualLeadForm.rooms ? 'Choose bedrooms' : 'Choose rooms first') }}</b><i class="fa-solid fa-chevron-down"></i></button><div class="preference-menu option-menu number-menu" *ngIf="leadMenu === 'bedrooms'"><button type="button" *ngFor="let bedrooms of bedroomOptions" [class.selected]="manualLeadForm.bedrooms === bedrooms" (click)="manualLeadForm.bedrooms = bedrooms; leadMenu = null">{{ bedrooms }}</button></div></div>
-          <div class="form-section-heading wide"><span><i class="fa-solid fa-sliders" aria-hidden="true"></i></span><div><b>Preferences and assignment</b><small>Notes, preferred areas and lead ownership</small></div></div>
-          <label class="wide"><span class="field-label"><i class="fa-solid fa-list-check" aria-hidden="true"></i><span>What the client wants</span></span><textarea name="leadPreferences" [(ngModel)]="manualLeadForm.preferences" placeholder="Add details, priorities, special requests, or other commentary…" rows="4"></textarea></label>
-          <label class="wide"><span class="field-label"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Preferred districts</span></span><input type="text" name="leadDistricts" [(ngModel)]="preferredDistrictsText" placeholder="Vake, Saburtalo, Vera" /><small>Separate multiple districts with commas.</small></label>
-          <label class="wide" *ngIf="isManager"><span class="field-label"><i class="fa-solid fa-user-tie" aria-hidden="true"></i><span>Assign agent</span></span><select name="leadAgent" [(ngModel)]="manualLeadForm.assignedAgentId"><option [ngValue]="null">Leave unassigned</option><option *ngFor="let agent of agents" [value]="agentId(agent)">{{ agentName(agent) }}</option></select></label>
+
+          <!-- =============================================== -->
+          <!-- DEPENDENT FIELDS -->
+          <!-- =============================================== -->
+
+          <fieldset
+            class="dependent-fields"
+            [disabled]="!manualLeadForm.goal"
+          >
+
+
+            <!-- ============================================= -->
+            <!-- CONTACT -->
+            <!-- ============================================= -->
+
+            <div class="form-section-heading wide">
+
+              <span>
+
+                <i
+                  class="fa-solid fa-address-card"
+                  aria-hidden="true"
+                ></i>
+
+              </span>
+
+
+              <div>
+
+                <b>
+                  Contact details
+                </b>
+
+                <small>
+                  Basic lead information
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <!-- FULL NAME -->
+
+            <label class="wide">
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-user"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Full name *
+                </span>
+
+              </span>
+
+
+              <input
+                type="text"
+                name="leadName"
+                [(ngModel)]="manualLeadForm.fullName"
+                autocomplete="name"
+                required
+              />
+
+            </label>
+
+
+            <!-- EMAIL -->
+
+            <label>
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-envelope"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Email
+                </span>
+
+              </span>
+
+
+              <input
+                type="email"
+                name="leadEmail"
+                [(ngModel)]="manualLeadForm.email"
+                autocomplete="email"
+              />
+
+            </label>
+
+
+            <!-- PHONE -->
+
+            <label>
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-phone"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Phone number
+                </span>
+
+              </span>
+
+
+              <input
+                type="tel"
+                name="leadPhone"
+                [(ngModel)]="manualLeadForm.phoneNumber"
+                autocomplete="tel"
+              />
+
+            </label>
+
+
+            <!-- SOURCE -->
+
+            <label>
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-bullseye"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Lead source
+                </span>
+
+              </span>
+
+
+              <select
+                name="leadSource"
+                [(ngModel)]="manualLeadForm.source"
+              >
+
+                <option
+                  *ngFor="
+                    let source of allowedLeadSources;
+                    trackBy: trackLeadSource
+                  "
+                  [value]="source.value"
+                >
+                  {{ source.label }}
+                </option>
+
+              </select>
+
+            </label>
+
+
+            <!-- STATUS -->
+
+            <label>
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-layer-group"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Starting stage
+                </span>
+
+              </span>
+
+
+              <select
+                name="leadStatus"
+                [(ngModel)]="manualLeadForm.status"
+              >
+
+                <option
+                  *ngFor="let status of statuses"
+                  [value]="status"
+                >
+                  {{ statusLabel(status) }}
+                </option>
+
+              </select>
+
+            </label>
+
+
+            <!-- ============================================= -->
+            <!-- BUDGET / PROPERTY -->
+            <!-- ============================================= -->
+
+            <div class="form-section-heading wide">
+
+              <span>
+
+                <i
+                  class="fa-solid fa-house"
+                  aria-hidden="true"
+                ></i>
+
+              </span>
+
+
+              <div>
+
+                <b>
+                  Budget and property
+                </b>
+
+                <small>
+                  Financial range and home requirements
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <!-- CURRENCY -->
+
+            <label>
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-coins"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Budget currency
+                </span>
+
+              </span>
+
+
+              <select
+                name="leadCurrency"
+                [(ngModel)]="manualLeadForm.currency"
+              >
+
+                <option value="USD">
+                  USD — US dollar
+                </option>
+
+                <option value="GEL">
+                  GEL — Georgian lari
+                </option>
+
+                <option value="EUR">
+                  EUR — Euro
+                </option>
+
+              </select>
+
+            </label>
+
+
+            <!-- BUDGET -->
+
+            <div class="preference-field wide">
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-money-bill-trend-up"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Budget range
+                </span>
+
+              </span>
+
+
+              <button
+                type="button"
+                class="preference-trigger"
+                (click)="toggleLeadMenu('budget')"
+              >
+
+                <b>
+                  {{
+                    manualLeadForm.budgetMin ??
+                    leadBudgetMinimum | number
+                  }}
+                  –
+                  {{
+                    manualLeadForm.budgetMax ??
+                    leadBudgetMaximum | number
+                  }}
+                  {{ manualLeadForm.currency }}
+                </b>
+
+                <i class="fa-solid fa-chevron-down"></i>
+
+              </button>
+
+
+              <div
+                class="preference-menu budget-menu"
+                *ngIf="leadMenu === 'budget'"
+              >
+
+                <div>
+
+                  <label>
+
+                    <span>
+                      Minimum
+                    </span>
+
+                    <input
+                      type="number"
+                      [min]="leadBudgetMinimum"
+                      [max]="leadBudgetMaximum"
+                      name="leadBudgetMin"
+                      [(ngModel)]="manualLeadForm.budgetMin"
+                      (ngModelChange)="clampLeadBudget('budgetMin')"
+                    />
+
+                  </label>
+
+
+                  <label>
+
+                    <span>
+                      Maximum
+                    </span>
+
+                    <input
+                      type="number"
+                      [min]="leadBudgetMinimum"
+                      [max]="leadBudgetMaximum"
+                      name="leadBudgetMax"
+                      [(ngModel)]="manualLeadForm.budgetMax"
+                      (ngModelChange)="clampLeadBudget('budgetMax')"
+                    />
+
+                  </label>
+
+                </div>
+
+
+                <div class="range-track">
+
+                  <input
+                    type="range"
+                    [min]="leadBudgetMinimum"
+                    [max]="leadBudgetMaximum"
+                    [step]="leadBudgetStep"
+                    name="leadBudgetMinRange"
+                    [(ngModel)]="manualLeadForm.budgetMin"
+                  />
+
+
+                  <input
+                    type="range"
+                    [min]="leadBudgetMinimum"
+                    [max]="leadBudgetMaximum"
+                    [step]="leadBudgetStep"
+                    name="leadBudgetMaxRange"
+                    [(ngModel)]="manualLeadForm.budgetMax"
+                  />
+
+                </div>
+
+
+                <button
+                  type="button"
+                  class="menu-done"
+                  (click)="leadMenu = null"
+                >
+                  Done
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- PROPERTY TYPE -->
+
+            <div class="preference-field">
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-building"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Property type
+                </span>
+
+              </span>
+
+
+              <button
+                type="button"
+                class="preference-trigger"
+                (click)="toggleLeadMenu('property')"
+              >
+
+                <b>
+                  {{
+                    manualLeadForm.preferredPropertyType ||
+                    'Choose property type'
+                  }}
+                </b>
+
+                <i class="fa-solid fa-chevron-down"></i>
+
+              </button>
+
+
+              <div
+                class="preference-menu option-menu property-menu"
+                *ngIf="leadMenu === 'property'"
+              >
+
+                <button
+                  type="button"
+                  *ngFor="let type of propertyTypes"
+                  [class.selected]="
+                    manualLeadForm.preferredPropertyType === type
+                  "
+                  (click)="
+                    manualLeadForm.preferredPropertyType = type;
+                    leadMenu = null
+                  "
+                >
+
+                  <i
+                    class="fa-solid"
+                    [ngClass]="
+                      type === 'Apartment'
+                        ? 'fa-building'
+                        : type === 'House'
+                          ? 'fa-house'
+                          : type === 'Land'
+                            ? 'fa-map'
+                            : 'fa-store'
+                    "
+                  ></i>
+
+                  {{ type }}
+
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- ROOMS -->
+
+            <div class="preference-field">
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-door-open"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Rooms
+                </span>
+
+              </span>
+
+
+              <button
+                type="button"
+                class="preference-trigger"
+                (click)="toggleLeadMenu('rooms')"
+              >
+
+                <b>
+                  {{
+                    manualLeadForm.rooms
+                      ? manualLeadForm.rooms + ' rooms'
+                      : 'Choose rooms'
+                  }}
+                </b>
+
+                <i class="fa-solid fa-chevron-down"></i>
+
+              </button>
+
+
+              <div
+                class="preference-menu option-menu number-menu"
+                *ngIf="leadMenu === 'rooms'"
+              >
+
+                <button
+                  type="button"
+                  *ngFor="let rooms of roomOptions"
+                  [class.selected]="
+                    manualLeadForm.rooms === rooms
+                  "
+                  (click)="selectRooms(rooms)"
+                >
+                  {{ rooms }}{{ rooms === 8 ? '+' : '' }}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- BEDROOMS -->
+
+            <div class="preference-field">
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-bed"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Bedrooms
+                </span>
+
+              </span>
+
+
+              <button
+                type="button"
+                class="preference-trigger"
+                [disabled]="!manualLeadForm.rooms"
+                (click)="toggleLeadMenu('bedrooms')"
+              >
+
+                <b>
+                  {{
+                    manualLeadForm.bedrooms
+                      ? manualLeadForm.bedrooms + ' bedrooms'
+                      : (
+                          manualLeadForm.rooms
+                            ? 'Choose bedrooms'
+                            : 'Choose rooms first'
+                        )
+                  }}
+                </b>
+
+                <i class="fa-solid fa-chevron-down"></i>
+
+              </button>
+
+
+              <div
+                class="preference-menu option-menu number-menu"
+                *ngIf="leadMenu === 'bedrooms'"
+              >
+
+                <button
+                  type="button"
+                  *ngFor="let bedrooms of bedroomOptions"
+                  [class.selected]="
+                    manualLeadForm.bedrooms === bedrooms
+                  "
+                  (click)="
+                    manualLeadForm.bedrooms = bedrooms;
+                    leadMenu = null
+                  "
+                >
+                  {{ bedrooms }}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- ============================================= -->
+            <!-- PREFERENCES -->
+            <!-- ============================================= -->
+
+            <div class="form-section-heading wide">
+
+              <span>
+
+                <i
+                  class="fa-solid fa-sliders"
+                  aria-hidden="true"
+                ></i>
+
+              </span>
+
+
+              <div>
+
+                <b>
+                  Preferences and assignment
+                </b>
+
+                <small>
+                  Notes, preferred areas and lead ownership
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <!-- CLIENT WANTS -->
+
+            <label class="wide">
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-list-check"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  What the client wants
+                </span>
+
+              </span>
+
+
+              <textarea
+                name="leadPreferences"
+                [(ngModel)]="manualLeadForm.preferences"
+                placeholder="Add details, priorities, special requests, or other commentary…"
+                rows="4"
+              ></textarea>
+
+            </label>
+
+
+            <!-- DISTRICTS -->
+
+            <label class="wide">
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-location-dot"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Preferred districts
+                </span>
+
+              </span>
+
+
+              <input
+                type="text"
+                name="leadDistricts"
+                [(ngModel)]="preferredDistrictsText"
+                placeholder="Vake, Saburtalo, Vera"
+              />
+
+
+              <small>
+                Separate multiple districts with commas.
+              </small>
+
+            </label>
+
+
+            <!-- AGENT -->
+
+            <label
+              class="wide"
+              *ngIf="isManager"
+            >
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-user-tie"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Assign agent
+                </span>
+
+              </span>
+
+
+              <select
+                name="leadAgent"
+                [(ngModel)]="manualLeadForm.assignedAgentId"
+              >
+
+                <option [ngValue]="null">
+                  Leave unassigned
+                </option>
+
+                <option
+                  *ngFor="let agent of agents"
+                  [value]="agentId(agent)"
+                >
+                  {{ agentName(agent) }}
+                </option>
+
+              </select>
+
+            </label>
+
           </fieldset>
+
         </div>
 
+
+        <!-- ================================================= -->
+        <!-- DIALOG FOOTER -->
+        <!-- ================================================= -->
+
         <footer>
-          <button class="secondary-button" type="button" (click)="closeCreateDialog()" [disabled]="creatingLead"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Cancel</button>
-          <button class="primary-button" type="submit" [disabled]="creatingLead || !manualLeadForm.goal">
-            <i class="fa-solid fa-plus" aria-hidden="true"></i>{{ creatingLead ? 'Adding lead…' : 'Add to pipeline' }}
+
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="closeCreateDialog()"
+            [disabled]="creatingLead"
+          >
+
+            <i
+              class="fa-solid fa-xmark"
+              aria-hidden="true"
+            ></i>
+
+            Cancel
+
           </button>
+
+
+          <button
+            class="primary-button"
+            type="submit"
+            [disabled]="
+              creatingLead ||
+              !manualLeadForm.goal
+            "
+          >
+
+            <i
+              class="fa-solid fa-plus"
+              aria-hidden="true"
+            ></i>
+
+            {{
+              creatingLead
+                ? 'Adding lead…'
+                : 'Add to pipeline'
+            }}
+
+          </button>
+
         </footer>
+
       </form>
+
     </section>
+
   </div>
+
 </main>

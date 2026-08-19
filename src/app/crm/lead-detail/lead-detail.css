@@ -5,3 +5,315 @@
 @media(max-width:390px){.identity-group{display:grid;grid-template-columns:48px 1fr}.lead-avatar{width:48px;height:48px}.hero-actions{grid-template-columns:1fr}.hero-actions .primary-button{grid-column:auto}.stage-track{grid-template-columns:1fr 1fr}.stage-track button b{font-size:9px}}
 
 .money-input>span{left:11px;font-size:10px;font-weight:800}.money-input input{padding-left:48px}
+
+/* =========================================================
+   QUESTIONNAIRE PREFERENCES
+========================================================= */
+
+.questionnaire-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 9px;
+
+  margin-top: 4px;
+}
+
+
+.preference-item {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+
+  padding: 13px;
+
+  border: 1px solid #ebe7ef;
+  border-radius: 10px;
+
+  background: #faf9fb;
+}
+
+
+.preference-icon {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 9px;
+
+  background: #eee9ff;
+
+  color: #5d3bbe;
+
+  font-size: 12px;
+}
+
+
+.preference-item > div:last-child {
+  min-width: 0;
+}
+
+
+.preference-item small {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #8b8392;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+
+.preference-item strong {
+  display: block;
+
+  color: #302937;
+
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+
+.preference-item p {
+  margin: 4px 0 0;
+
+  color: #716a78;
+
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.preferences-section {
+  margin-top: 14px;
+
+  padding: 15px;
+
+  border: 1px solid #ebe7ef;
+  border-radius: 10px;
+
+  background: #fff;
+}
+
+
+.preference-section-title {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-bottom: 12px;
+
+  color: #574e60;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+
+.preference-section-title i {
+  color: #6847c4;
+}
+
+
+/* =========================================================
+   REQUIREMENT TAGS
+========================================================= */
+
+.preference-tags {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 7px;
+}
+
+
+.preference-tags span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding:
+    7px
+    10px;
+
+  border: 1px solid #ddd5f2;
+  border-radius: 999px;
+
+  background: #f6f2ff;
+
+  color: #5538aa;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+.preference-tags i {
+  font-size: 8px;
+}
+
+
+/* =========================================================
+   IMPORTANT LOCATIONS
+========================================================= */
+
+.important-location-list {
+  display: grid;
+
+  gap: 8px;
+}
+
+
+.important-location {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    10px
+    11px;
+
+  border: 1px solid #ebe7ef;
+  border-radius: 9px;
+
+  background: #faf9fb;
+}
+
+
+.location-icon {
+  width: 31px;
+  height: 31px;
+
+  flex: 0 0 31px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 8px;
+
+  background: #eee9ff;
+
+  color: #6040bd;
+
+  font-size: 11px;
+}
+
+
+.important-location small {
+  display: block;
+
+  margin-bottom: 2px;
+
+  color: #8a8290;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+
+.important-location strong {
+  display: block;
+
+  color: #322b38;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   PRIORITIES
+========================================================= */
+
+.crm-priority-list {
+  display: grid;
+
+  gap: 7px;
+}
+
+
+.crm-priority {
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding:
+    8px
+    11px;
+
+  border: 1px solid #e2daf5;
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #faf7ff,
+      #fff
+    );
+}
+
+
+.crm-priority-rank {
+  width: 34px;
+  height: 27px;
+
+  flex: 0 0 34px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 7px;
+
+  background: #6847c4;
+
+  color: #fff;
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+
+.crm-priority-name {
+  color: #39303f;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .questionnaire-summary {
+    grid-template-columns: 1fr;
+  }
+
+}
