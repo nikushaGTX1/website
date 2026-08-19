@@ -2,13 +2,12 @@
 
   <div class="questionnaire-shell">
 
-    <!-- ================================================= -->
-    <!-- HEADER -->
-    <!-- ================================================= -->
-
     <header class="questionnaire-header">
 
-      <a class="brand" href="/main">
+      <a
+        class="brand"
+        href="/main"
+      >
 
         <div class="brand-mark">
           V
@@ -21,23 +20,47 @@
           </div>
 
           <div class="brand-caption">
-            Find your perfect home
+            {{ t('brandCaption') }}
           </div>
 
         </div>
 
       </a>
 
-      <div class="step-counter">
-        {{ currentStep }} / {{ totalSteps }}
+
+      <div class="header-actions">
+
+        <div class="language-selector">
+
+          <button
+            *ngFor="let lang of languages"
+            type="button"
+            class="language-button"
+            [class.active]="language === lang.code"
+            (click)="setLanguage(lang.code)"
+          >
+
+            <span class="language-flag">
+              {{ lang.flag }}
+            </span>
+
+            <span class="language-label">
+              {{ lang.label }}
+            </span>
+
+          </button>
+
+        </div>
+
+
+        <div class="step-counter">
+          {{ currentStep }} / {{ totalSteps }}
+        </div>
+
       </div>
 
     </header>
 
-
-    <!-- ================================================= -->
-    <!-- PROGRESS -->
-    <!-- ================================================= -->
 
     <div class="progress-wrapper">
 
@@ -53,139 +76,393 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 1 - CONTACT -->
-      <!-- ================================================= -->
+<!-- STEP 1 - PERSONAL INFORMATION -->
+<!-- ================================================= -->
 
-      <section
-        *ngIf="currentStep === 1"
-        class="step-content"
-      >
+<section
+  *ngIf="currentStep === 1"
+  class="step-content"
+>
 
-        <div class="step-label">
-          ნაბიჯი 1
-        </div>
+  <div class="step-label">
+    {{ t('step') }} 1
+  </div>
 
-        <h1>
-          დავიწყოთ გაცნობით 👋
-        </h1>
+  <h1>
+    {{ t('contactTitle') }}
+  </h1>
 
-        <p class="subtitle">
-          გვითხარით როგორ მოგმართოთ და რომელ ნომერზე
-          დაგიკავშირდეთ საუკეთესო ბინების აღმოჩენისას.
-        </p>
-
-
-        <div class="contact-first-step">
+  <p class="subtitle">
+    {{ t('personalInfoSubtitle') }}
+  </p>
 
 
-          <!-- NAME -->
+  <div class="contact-first-step">
 
-          <label class="input-group">
 
-            <span>
-              სახელი და გვარი
-            </span>
+    <!-- ============================================== -->
+    <!-- NATIONALITY -->
+    <!-- ============================================== -->
 
-            <div class="contact-input">
+    <div class="nationality-container">
 
-              <span class="contact-input-icon">
-                👤
+      <label class="input-group">
+
+        <span>
+          {{ t('nationality') }}
+        </span>
+
+
+        <button
+          type="button"
+          class="country-select"
+          [class.open]="countryDropdownOpen"
+          (click)="
+            countryDropdownOpen =
+              !countryDropdownOpen
+          "
+        >
+
+          <ng-container
+            *ngIf="
+              selectedCountry as country;
+              else noCountrySelected
+            "
+          >
+
+            <span class="country-left">
+
+              <span class="country-flag">
+                {{ country.flag }}
               </span>
 
-              <input
-                type="text"
-                placeholder="მაგ: ნიკა გიორგაძე"
-                [(ngModel)]="form.fullName"
-                autocomplete="name"
-              />
-
-            </div>
-
-          </label>
-
-
-          <!-- PHONE -->
-
-          <label class="input-group">
-
-            <span>
-              ტელეფონის ნომერი
-            </span>
-
-            <div class="contact-input phone-field">
-
-              <span class="phone-prefix">
-                🇬🇪 +995
+              <span class="country-name">
+                {{ country.name }}
               </span>
 
-              <input
-                type="tel"
-                inputmode="numeric"
-                placeholder="555 12 34 56"
-                [(ngModel)]="form.phoneNumber"
-                autocomplete="tel"
-              />
-
-            </div>
-
-            <small
-              class="input-helper"
-              *ngIf="
-                form.phoneNumber &&
-                !isPhoneValid()
-              "
-            >
-              შეიყვანეთ სწორი ქართული ტელეფონის ნომერი
-            </small>
-
-          </label>
-
-        </div>
+            </span>
 
 
-        <div class="contact-privacy">
+            <span class="country-code">
+              {{ country.callingCode }}
+            </span>
 
-          <span>
-            🔒
+          </ng-container>
+
+
+          <ng-template
+            #noCountrySelected
+          >
+
+            <span class="country-placeholder">
+              🌍 {{ t('chooseCountry') }}
+            </span>
+
+          </ng-template>
+
+
+          <span class="country-chevron">
+            ▾
           </span>
 
-          <div>
+        </button>
 
-            <strong>
-              თქვენი ინფორმაცია უსაფრთხოა
-            </strong>
 
-            <p>
-              ნომერს მხოლოდ შესაბამის ბინებთან დაკავშირებით
-              დასაკავშირებლად გამოვიყენებთ.
-            </p>
+        <div
+          *ngIf="countryDropdownOpen"
+          class="country-dropdown"
+        >
+
+          <div class="country-search">
+
+            <span>
+              🔎
+            </span>
+
+            <input
+              type="text"
+              [(ngModel)]="countrySearch"
+              [placeholder]="t('searchCountry')"
+              autocomplete="off"
+            />
+
+          </div>
+
+
+          <div class="country-list">
+
+            <button
+              *ngFor="
+                let country
+                of filteredCountries
+              "
+              type="button"
+              class="country-option"
+              [class.active]="
+                form.nationality ===
+                country.code
+              "
+              (click)="
+                selectNationality(
+                  country
+                )
+              "
+            >
+
+              <span class="country-left">
+
+                <span class="country-flag">
+                  {{ country.flag }}
+                </span>
+
+                <span class="country-name">
+                  {{ country.name }}
+                </span>
+
+              </span>
+
+
+              <span class="country-code">
+                {{ country.callingCode }}
+              </span>
+
+            </button>
 
           </div>
 
         </div>
 
-      </section>
+      </label>
 
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- FULL NAME -->
+    <!-- ============================================== -->
+
+    <label class="input-group">
+
+      <span>
+        {{ t('fullName') }}
+      </span>
+
+
+      <div class="contact-input">
+
+        <span class="contact-input-icon">
+          👤
+        </span>
+
+
+        <input
+          type="text"
+          [placeholder]="
+            t('fullNamePlaceholder')
+          "
+          [(ngModel)]="form.fullName"
+          autocomplete="name"
+        />
+
+      </div>
+
+    </label>
+
+
+    <!-- ============================================== -->
+    <!-- PHONE -->
+    <!-- ============================================== -->
+
+    <label class="input-group">
+
+      <span>
+        {{ t('phone') }}
+      </span>
+
+
+      <div class="phone-combined-field">
+
+
+        <div class="phone-country-picker">
+
+          <button
+            type="button"
+            class="phone-prefix-button"
+            (click)="
+              phoneCountryDropdownOpen =
+                !phoneCountryDropdownOpen
+            "
+          >
+
+            <ng-container
+              *ngIf="
+                selectedPhoneCountry
+                as phoneCountry
+              "
+            >
+
+              <span class="phone-flag">
+                {{ phoneCountry.flag }}
+              </span>
+
+              <span>
+                {{ phoneCountry.callingCode }}
+              </span>
+
+              <span class="phone-chevron">
+                ▾
+              </span>
+
+            </ng-container>
+
+          </button>
+
+
+          <div
+            *ngIf="
+              phoneCountryDropdownOpen
+            "
+            class="phone-country-dropdown"
+          >
+
+            <div class="country-search">
+
+              <span>
+                🔎
+              </span>
+
+              <input
+                type="text"
+                [(ngModel)]="
+                  phoneCountrySearch
+                "
+                [placeholder]="
+                  t('searchCountry')
+                "
+                autocomplete="off"
+              />
+
+            </div>
+
+
+            <div class="country-list">
+
+              <button
+                *ngFor="
+                  let country
+                  of filteredPhoneCountries
+                "
+                type="button"
+                class="country-option"
+                [class.active]="
+                  form.phoneCountry ===
+                  country.code
+                "
+                (click)="
+                  selectPhoneCountry(
+                    country
+                  )
+                "
+              >
+
+                <span class="country-left">
+
+                  <span class="country-flag">
+                    {{ country.flag }}
+                  </span>
+
+                  <span class="country-name">
+                    {{ country.name }}
+                  </span>
+
+                </span>
+
+
+                <span class="country-code">
+                  {{ country.callingCode }}
+                </span>
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <input
+          class="phone-number-input"
+          type="tel"
+          inputmode="tel"
+          placeholder="555 12 34 56"
+          [(ngModel)]="
+            form.phoneNumber
+          "
+          autocomplete="tel"
+        />
+
+      </div>
+
+
+      <small
+        class="input-helper"
+        *ngIf="
+          form.phoneNumber &&
+          !isPhoneValid()
+        "
+      >
+        {{ t('invalidPhone') }}
+      </small>
+
+    </label>
+
+  </div>
+
+
+  <div class="contact-privacy">
+
+    <span>
+      🔒
+    </span>
+
+    <div>
+
+      <strong>
+        {{ t('privacyTitle') }}
+      </strong>
+
+      <p>
+        {{ t('privacyText') }}
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
 
       <!-- ================================================= -->
-      <!-- STEP 2 - MOVE IN -->
+      <!-- STEP 3 - MOVE IN -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 2"
+        *ngIf="currentStep === 3"
         class="step-content"
       >
 
         <div class="step-label">
-          ნაბიჯი 2
+          {{ t('step') }} 3
         </div>
 
+
         <h1>
-          როდის გჭირდებათ ბინა?
+          {{ t('moveTitle') }}
         </h1>
 
+
         <p class="subtitle">
-          დაგვეხმარეთ გავიგოთ, რამდენად მალე გსურთ გადასვლა.
+          {{ t('moveSubtitle') }}
         </p>
 
 
@@ -194,8 +471,12 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="form.moveIn === 'today'"
-            (click)="selectMoveIn('today')"
+            [class.active]="
+              form.moveIn === 'today'
+            "
+            (click)="
+              selectMoveIn('today')
+            "
           >
 
             <span class="choice-icon">
@@ -205,11 +486,11 @@
             <span>
 
               <strong>
-                დღესვე / 1–3 დღეში
+                {{ t('moveToday') }}
               </strong>
 
               <small>
-                სასწრაფოდ ვეძებ
+                {{ t('moveTodaySmall') }}
               </small>
 
             </span>
@@ -220,8 +501,12 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="form.moveIn === 'week'"
-            (click)="selectMoveIn('week')"
+            [class.active]="
+              form.moveIn === 'week'
+            "
+            (click)="
+              selectMoveIn('week')
+            "
           >
 
             <span class="choice-icon">
@@ -231,11 +516,11 @@
             <span>
 
               <strong>
-                1 კვირაში
+                {{ t('moveWeek') }}
               </strong>
 
               <small>
-                ახლო მომავალში
+                {{ t('moveWeekSmall') }}
               </small>
 
             </span>
@@ -246,8 +531,15 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="form.moveIn === '2-4-weeks'"
-            (click)="selectMoveIn('2-4-weeks')"
+            [class.active]="
+              form.moveIn ===
+              '2-4-weeks'
+            "
+            (click)="
+              selectMoveIn(
+                '2-4-weeks'
+              )
+            "
           >
 
             <span class="choice-icon">
@@ -257,11 +549,11 @@
             <span>
 
               <strong>
-                2–4 კვირაში
+                {{ t('move24') }}
               </strong>
 
               <small>
-                მაქვს დრო არჩევისთვის
+                {{ t('move24Small') }}
               </small>
 
             </span>
@@ -272,8 +564,15 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="form.moveIn === '1-3-months'"
-            (click)="selectMoveIn('1-3-months')"
+            [class.active]="
+              form.moveIn ===
+              '1-3-months'
+            "
+            (click)="
+              selectMoveIn(
+                '1-3-months'
+              )
+            "
           >
 
             <span class="choice-icon">
@@ -283,11 +582,11 @@
             <span>
 
               <strong>
-                1–3 თვეში
+                {{ t('move13m') }}
               </strong>
 
               <small>
-                წინასწარ ვგეგმავ
+                {{ t('move13mSmall') }}
               </small>
 
             </span>
@@ -298,8 +597,15 @@
           <button
             type="button"
             class="choice-card full-width"
-            [class.active]="form.moveIn === 'browsing'"
-            (click)="selectMoveIn('browsing')"
+            [class.active]="
+              form.moveIn ===
+              'browsing'
+            "
+            (click)="
+              selectMoveIn(
+                'browsing'
+              )
+            "
           >
 
             <span class="choice-icon">
@@ -309,11 +615,11 @@
             <span>
 
               <strong>
-                ჯერ ვათვალიერებ
+                {{ t('moveBrowse') }}
               </strong>
 
               <small>
-                მინდა გავიგო რა ვარიანტებია ბაზარზე
+                {{ t('moveBrowseSmall') }}
               </small>
 
             </span>
@@ -326,24 +632,26 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 3 - BUDGET -->
+      <!-- STEP 4 - BUDGET -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 3"
+        *ngIf="currentStep === 4"
         class="step-content"
       >
 
         <div class="step-label">
-          ნაბიჯი 3
+          {{ t('step') }} 4
         </div>
 
+
         <h1>
-          რა არის თქვენი ბიუჯეტი?
+          {{ t('budgetTitle') }}
         </h1>
 
+
         <p class="subtitle">
-          მიუთითეთ სასურველი თვიური ბიუჯეტის დიაპაზონი.
+          {{ t('budgetSubtitle') }}
         </p>
 
 
@@ -352,7 +660,7 @@
           <label class="input-group">
 
             <span>
-              მინიმალური
+              {{ t('minimum') }}
             </span>
 
             <div class="money-input">
@@ -380,7 +688,7 @@
           <label class="input-group">
 
             <span>
-              მაქსიმალური
+              {{ t('maximum') }}
             </span>
 
             <div class="money-input">
@@ -406,7 +714,9 @@
 
           <input
             type="checkbox"
-            [(ngModel)]="form.flexibleBudget"
+            [(ngModel)]="
+              form.flexibleBudget
+            "
           />
 
           <span class="fake-switch"></span>
@@ -414,11 +724,11 @@
           <span>
 
             <strong>
-              კარგი ვარიანტისთვის შემიძლია მცირედი გაზრდა
+              {{ t('flexibleBudget') }}
             </strong>
 
             <small>
-              უფრო კარგი მატჩების პოვნაში დაგვეხმარება
+              {{ t('flexibleBudgetSmall') }}
             </small>
 
           </span>
@@ -429,44 +739,60 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 4 - DISTRICTS -->
+      <!-- STEP 5 - DISTRICTS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 4"
+        *ngIf="currentStep === 5"
         class="step-content"
       >
 
         <div class="step-label">
-          ნაბიჯი 4
+          {{ t('step') }} 5
         </div>
 
+
         <h1>
-          რომელი უბნები გაინტერესებთ?
+          {{ t('districtsTitle') }}
         </h1>
 
+
         <p class="subtitle">
-          შეგიძლიათ რამდენიმე უბანი აირჩიოთ.
+          {{ t('districtsSubtitle') }}
         </p>
 
 
         <div class="chips">
 
           <button
-            *ngFor="let district of districts"
+            *ngFor="
+              let district of districts
+            "
             type="button"
             class="chip"
-            [class.active]="isDistrictSelected(district)"
-            (click)="toggleDistrict(district)"
+            [class.active]="
+              isDistrictSelected(
+                district
+              )
+            "
+            (click)="
+              toggleDistrict(
+                district
+              )
+            "
           >
 
             <span
-              *ngIf="isDistrictSelected(district)"
+              *ngIf="
+                isDistrictSelected(
+                  district
+                )
+              "
             >
               ✓
             </span>
 
-            {{ district }}
+            {{ translateOption(district) }}
 
           </button>
 
@@ -476,8 +802,12 @@
         <button
           type="button"
           class="smart-option"
-          [class.active]="form.chooseDistrictForMe"
-          (click)="toggleChooseDistrictForMe()"
+          [class.active]="
+            form.chooseDistrictForMe
+          "
+          (click)="
+            toggleChooseDistrictForMe()
+          "
         >
 
           <span class="smart-icon">
@@ -487,12 +817,11 @@
           <span>
 
             <strong>
-              არ ვარ დარწმუნებული — შემირჩიეთ
+              {{ t('chooseForMe') }}
             </strong>
 
             <small>
-              Velven შეარჩევს საუკეთესო უბნებს თქვენი
-              მოთხოვნების მიხედვით.
+              {{ t('chooseForMeSmall') }}
             </small>
 
           </span>
@@ -503,24 +832,26 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 5 - BEDROOMS -->
+      <!-- STEP 6 - BEDROOMS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 5"
+        *ngIf="currentStep === 6"
         class="step-content"
       >
 
         <div class="step-label">
-          ნაბიჯი 5
+          {{ t('step') }} 6
         </div>
 
+
         <h1>
-          რამდენი საძინებელი გჭირდებათ?
+          {{ t('bedroomsTitle') }}
         </h1>
 
+
         <p class="subtitle">
-          აირჩიეთ თქვენთვის სასურველი ზომა.
+          {{ t('bedroomsSubtitle') }}
         </p>
 
 
@@ -538,8 +869,15 @@
             "
             type="button"
             class="number-choice"
-            [class.active]="form.bedrooms === bedroom"
-            (click)="selectBedrooms(bedroom)"
+            [class.active]="
+              form.bedrooms ===
+              bedroom
+            "
+            (click)="
+              selectBedrooms(
+                bedroom
+              )
+            "
           >
             {{ bedroom }}
           </button>
@@ -553,11 +891,13 @@
         <label class="input-group">
 
           <span>
-            მინიმალური ფართი
+            {{ t('minArea') }}
+
             <em>
-              არასავალდებულო
+              {{ t('optional') }}
             </em>
           </span>
+
 
           <div class="area-input">
 
@@ -568,7 +908,7 @@
             />
 
             <span>
-              მ²
+              m²
             </span>
 
           </div>
@@ -579,195 +919,7 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 6 - HOUSEHOLD -->
-      <!-- ================================================= -->
-
-      <section
-        *ngIf="currentStep === 6"
-        class="step-content"
-      >
-
-        <div class="step-label">
-          ნაბიჯი 6
-        </div>
-
-        <h1>
-          ვინ იცხოვრებს ბინაში?
-        </h1>
-
-        <p class="subtitle">
-          ეს დაგვეხმარება მეპატრონის მოთხოვნებთან
-          შეთავსებაში.
-        </p>
-
-
-        <div class="option-grid">
-
-          <button
-            type="button"
-            class="choice-card"
-            [class.active]="form.household === 'alone'"
-            (click)="selectHousehold('alone')"
-          >
-
-            <span class="choice-icon">
-              👤
-            </span>
-
-            <strong>
-              მარტო
-            </strong>
-
-          </button>
-
-
-          <button
-            type="button"
-            class="choice-card"
-            [class.active]="form.household === 'couple'"
-            (click)="selectHousehold('couple')"
-          >
-
-            <span class="choice-icon">
-              👫
-            </span>
-
-            <strong>
-              წყვილი
-            </strong>
-
-          </button>
-
-
-          <button
-            type="button"
-            class="choice-card"
-            [class.active]="form.household === 'family'"
-            (click)="selectHousehold('family')"
-          >
-
-            <span class="choice-icon">
-              👨‍👩‍👧
-            </span>
-
-            <strong>
-              ოჯახი
-            </strong>
-
-          </button>
-
-
-          <button
-            type="button"
-            class="choice-card"
-            [class.active]="form.household === 'friends'"
-            (click)="selectHousehold('friends')"
-          >
-
-            <span class="choice-icon">
-              👥
-            </span>
-
-            <strong>
-              მეგობრები / კოლეგები
-            </strong>
-
-          </button>
-
-        </div>
-
-
-        <!-- PEOPLE COUNT -->
-
-        <div
-          class="conditional-box"
-          *ngIf="
-            form.household === 'family' ||
-            form.household === 'friends'
-          "
-        >
-
-          <label class="input-group">
-
-            <span>
-              რამდენი ადამიანი იცხოვრებს?
-            </span>
-
-            <input
-              class="standard-input"
-              type="number"
-              min="1"
-              placeholder="მაგ: 4"
-              [(ngModel)]="form.peopleCount"
-            />
-
-          </label>
-
-        </div>
-
-
-        <!-- CHILDREN -->
-
-        <div
-          class="conditional-box"
-          *ngIf="form.household === 'family'"
-        >
-
-          <span class="field-title">
-            გყავთ ბავშვები?
-          </span>
-
-
-          <div class="small-options">
-
-            <button
-              type="button"
-              [class.active]="form.hasChildren === true"
-              (click)="form.hasChildren = true"
-            >
-              კი
-            </button>
-
-
-            <button
-              type="button"
-              [class.active]="form.hasChildren === false"
-              (click)="
-                form.hasChildren = false;
-                form.childrenAges = ''
-              "
-            >
-              არა
-            </button>
-
-          </div>
-
-
-          <label
-            *ngIf="form.hasChildren === true"
-            class="input-group nested-input"
-          >
-
-            <span>
-              რა ასაკის არიან?
-            </span>
-
-            <input
-              class="standard-input"
-              type="text"
-              placeholder="მაგ: 4 და 9 წლის"
-              [(ngModel)]="form.childrenAges"
-            />
-
-          </label>
-
-        </div>
-
-      </section>
-
-
-      <!-- ================================================= -->
-      <!-- STEP 7 - PETS -->
+      <!-- STEP 7 - HOUSEHOLD -->
       <!-- ================================================= -->
 
       <section
@@ -776,77 +928,118 @@
       >
 
         <div class="step-label">
-          ნაბიჯი 7
+          {{ t('step') }} 7
         </div>
 
+
         <h1>
-          გყავთ შინაური ცხოველი?
+          {{ t('householdTitle') }}
         </h1>
 
+
         <p class="subtitle">
-          ზოგი ბინა ცხოველებთან დაკავშირებით სპეციალურ
-          პირობებს ითვალისწინებს.
+          {{ t('householdSubtitle') }}
         </p>
 
 
-        <div class="pet-options">
+        <div class="option-grid">
 
           <button
             type="button"
-            [class.active]="form.petType === 'none'"
-            (click)="selectPet('none')"
+            class="choice-card"
+            [class.active]="
+              form.household ===
+              'alone'
+            "
+            (click)="
+              selectHousehold(
+                'alone'
+              )
+            "
           >
 
-            <span>
-              🚫
+            <span class="choice-icon">
+              👤
             </span>
 
-            არა
+            <strong>
+              {{ t('alone') }}
+            </strong>
 
           </button>
 
 
           <button
             type="button"
-            [class.active]="form.petType === 'dog'"
-            (click)="selectPet('dog')"
+            class="choice-card"
+            [class.active]="
+              form.household ===
+              'couple'
+            "
+            (click)="
+              selectHousehold(
+                'couple'
+              )
+            "
           >
 
-            <span>
-              🐶
+            <span class="choice-icon">
+              👫
             </span>
 
-            ძაღლი
+            <strong>
+              {{ t('couple') }}
+            </strong>
 
           </button>
 
 
           <button
             type="button"
-            [class.active]="form.petType === 'cat'"
-            (click)="selectPet('cat')"
+            class="choice-card"
+            [class.active]="
+              form.household ===
+              'family'
+            "
+            (click)="
+              selectHousehold(
+                'family'
+              )
+            "
           >
 
-            <span>
-              🐱
+            <span class="choice-icon">
+              👨‍👩‍👧
             </span>
 
-            კატა
+            <strong>
+              {{ t('family') }}
+            </strong>
 
           </button>
 
 
           <button
             type="button"
-            [class.active]="form.petType === 'other'"
-            (click)="selectPet('other')"
+            class="choice-card"
+            [class.active]="
+              form.household ===
+              'friends'
+            "
+            (click)="
+              selectHousehold(
+                'friends'
+              )
+            "
           >
 
-            <span>
-              🐾
+            <span class="choice-icon">
+              👥
             </span>
 
-            სხვა
+            <strong>
+              {{ t('friends') }}
+            </strong>
 
           </button>
 
@@ -855,7 +1048,234 @@
 
         <div
           class="conditional-box"
-          *ngIf="form.petType !== 'none'"
+          *ngIf="
+            form.household ===
+              'family' ||
+            form.household ===
+              'friends'
+          "
+        >
+
+          <label class="input-group">
+
+            <span>
+              {{ t('peopleCount') }}
+            </span>
+
+            <input
+              class="standard-input"
+              type="number"
+              min="1"
+              [placeholder]="
+                t(
+                  'peopleCountPlaceholder'
+                )
+              "
+              [(ngModel)]="
+                form.peopleCount
+              "
+            />
+
+          </label>
+
+        </div>
+
+
+        <div
+          class="conditional-box"
+          *ngIf="
+            form.household ===
+            'family'
+          "
+        >
+
+          <span class="field-title">
+            {{ t('children') }}
+          </span>
+
+
+          <div class="small-options">
+
+            <button
+              type="button"
+              [class.active]="
+                form.hasChildren ===
+                true
+              "
+              (click)="
+                form.hasChildren =
+                  true
+              "
+            >
+              {{ t('yes') }}
+            </button>
+
+
+            <button
+              type="button"
+              [class.active]="
+                form.hasChildren ===
+                false
+              "
+              (click)="
+                form.hasChildren =
+                  false;
+                form.childrenAges =
+                  ''
+              "
+            >
+              {{ t('no') }}
+            </button>
+
+          </div>
+
+
+          <label
+            *ngIf="
+              form.hasChildren ===
+              true
+            "
+            class="input-group nested-input"
+          >
+
+            <span>
+              {{ t('childrenAges') }}
+            </span>
+
+            <input
+              class="standard-input"
+              type="text"
+              [placeholder]="
+                t(
+                  'childrenAgesPlaceholder'
+                )
+              "
+              [(ngModel)]="
+                form.childrenAges
+              "
+            />
+
+          </label>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 8 - PETS -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 8"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          {{ t('step') }} 8
+        </div>
+
+
+        <h1>
+          {{ t('petsTitle') }}
+        </h1>
+
+
+        <p class="subtitle">
+          {{ t('petsSubtitle') }}
+        </p>
+
+
+        <div class="pet-options">
+
+          <button
+            type="button"
+            [class.active]="
+              form.petType ===
+              'none'
+            "
+            (click)="
+              selectPet('none')
+            "
+          >
+
+            <span>
+              🚫
+            </span>
+
+            {{ t('petNone') }}
+
+          </button>
+
+
+          <button
+            type="button"
+            [class.active]="
+              form.petType ===
+              'dog'
+            "
+            (click)="
+              selectPet('dog')
+            "
+          >
+
+            <span>
+              🐶
+            </span>
+
+            {{ t('petDog') }}
+
+          </button>
+
+
+          <button
+            type="button"
+            [class.active]="
+              form.petType ===
+              'cat'
+            "
+            (click)="
+              selectPet('cat')
+            "
+          >
+
+            <span>
+              🐱
+            </span>
+
+            {{ t('petCat') }}
+
+          </button>
+
+
+          <button
+            type="button"
+            [class.active]="
+              form.petType ===
+              'other'
+            "
+            (click)="
+              selectPet('other')
+            "
+          >
+
+            <span>
+              🐾
+            </span>
+
+            {{ t('petOther') }}
+
+          </button>
+
+        </div>
+
+
+        <div
+          class="conditional-box"
+          *ngIf="
+            form.petType !==
+            'none'
+          "
         >
 
           <div class="two-columns">
@@ -863,14 +1283,20 @@
             <label class="input-group">
 
               <span>
-                ზომა / დამატებითი ინფორმაცია
+                {{ t('petInfo') }}
               </span>
 
               <input
                 class="standard-input"
                 type="text"
-                placeholder="მაგ: პატარა"
-                [(ngModel)]="form.petSize"
+                [placeholder]="
+                  t(
+                    'petInfoPlaceholder'
+                  )
+                "
+                [(ngModel)]="
+                  form.petSize
+                "
               />
 
             </label>
@@ -879,14 +1305,16 @@
             <label class="input-group">
 
               <span>
-                რაოდენობა
+                {{ t('count') }}
               </span>
 
               <input
                 class="standard-input"
                 type="number"
                 min="1"
-                [(ngModel)]="form.petCount"
+                [(ngModel)]="
+                  form.petCount
+                "
               />
 
             </label>
@@ -899,24 +1327,26 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 8 - REQUIREMENTS -->
+      <!-- STEP 9 - REQUIREMENTS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 8"
+        *ngIf="currentStep === 9"
         class="step-content"
       >
 
         <div class="step-label">
-          ნაბიჯი 8
+          {{ t('step') }} 9
         </div>
 
+
         <h1>
-          რომელი პირობებია თქვენთვის აუცილებელი?
+          {{ t('requirementsTitle') }}
         </h1>
 
+
         <p class="subtitle">
-          მონიშნეთ ყველა მნიშვნელოვანი პირობა.
+          {{ t('requirementsSubtitle') }}
         </p>
 
 
@@ -924,21 +1354,30 @@
 
           <button
             *ngFor="
-              let option of requirementOptions
+              let option
+              of requirementOptions
             "
             type="button"
             class="feature-card"
             [class.active]="
-              isRequirementSelected(option)
+              isRequirementSelected(
+                option
+              )
             "
-            (click)="toggleRequirement(option)"
+            (click)="
+              toggleRequirement(
+                option
+              )
+            "
           >
 
             <span class="feature-checkbox">
 
               <span
                 *ngIf="
-                  isRequirementSelected(option)
+                  isRequirementSelected(
+                    option
+                  )
                 "
               >
                 ✓
@@ -946,7 +1385,7 @@
 
             </span>
 
-            {{ option }}
+            {{ translateOption(option) }}
 
           </button>
 
@@ -956,25 +1395,26 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 9 - IMPORTANT LOCATIONS -->
+      <!-- STEP 10 - IMPORTANT LOCATIONS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 9"
+        *ngIf="currentStep === 10"
         class="step-content"
       >
 
         <div class="step-label">
-          ნაბიჯი 9
+          {{ t('step') }} 10
         </div>
 
+
         <h1>
-          არის ადგილი, რომელთან ახლოს ყოფნაც მნიშვნელოვანია?
+          {{ t('locationsTitle') }}
         </h1>
 
+
         <p class="subtitle">
-          მონიშნეთ თქვენთვის მნიშვნელოვანი ადგილები და
-          მიუთითეთ მისამართები.
+          {{ t('locationsSubtitle') }}
         </p>
 
 
@@ -982,27 +1422,34 @@
 
           <button
             *ngFor="
-              let location of locationOptions
+              let location
+              of locationOptions
             "
             type="button"
             class="chip"
             [class.active]="
-              isLocationSelected(location)
+              isLocationSelected(
+                location
+              )
             "
             (click)="
-              toggleLocationType(location)
+              toggleLocationType(
+                location
+              )
             "
           >
 
             <span
               *ngIf="
-                isLocationSelected(location)
+                isLocationSelected(
+                  location
+                )
               "
             >
               ✓
             </span>
 
-            {{ location }}
+            {{ translateOption(location) }}
 
           </button>
 
@@ -1013,7 +1460,8 @@
 
           <div
             *ngFor="
-              let entry of locationEntries
+              let entry
+              of locationEntries
             "
             class="location-card"
           >
@@ -1023,11 +1471,15 @@
               <div>
 
                 <strong>
-                  {{ entry.type }}
+                  {{
+                    translateOption(
+                      entry.type
+                    )
+                  }}
                 </strong>
 
                 <small>
-                  მიუთითეთ მისამართი ან ადგილი
+                  {{ t('enterAddress') }}
                 </small>
 
               </div>
@@ -1037,7 +1489,9 @@
                 type="button"
                 class="remove-location"
                 (click)="
-                  removeLocation(entry)
+                  removeLocation(
+                    entry
+                  )
                 "
               >
                 ×
@@ -1054,8 +1508,14 @@
 
               <input
                 type="text"
-                placeholder="მაგ: პეკინის გამზირი 12"
-                [(ngModel)]="entry.address"
+                [placeholder]="
+                  t(
+                    'addressPlaceholder'
+                  )
+                "
+                [(ngModel)]="
+                  entry.address
+                "
               />
 
             </div>
@@ -1065,10 +1525,17 @@
               type="button"
               class="add-another"
               (click)="
-                addLocation(entry.type)
+                addLocation(
+                  entry.type
+                )
               "
             >
-              + დაამატე კიდევ ერთი {{ entry.type }}
+              {{ t('addAnother') }}
+              {{
+                translateOption(
+                  entry.type
+                )
+              }}
             </button>
 
           </div>
@@ -1077,84 +1544,21 @@
 
 
         <button
-          *ngIf="locationEntries.length === 0"
+          *ngIf="
+            locationEntries.length === 0
+          "
           type="button"
           class="no-location-button"
           (click)="clearLocations()"
         >
-          კონკრეტულ ადგილთან ახლოს ყოფნა არ არის მნიშვნელოვანი
+          {{ t('noLocation') }}
         </button>
 
       </section>
 
 
       <!-- ================================================= -->
-      <!-- STEP 10 - RENTAL PERIOD -->
-      <!-- ================================================= -->
-
-      <section
-        *ngIf="currentStep === 10"
-        class="step-content"
-      >
-
-        <div class="step-label">
-          ნაბიჯი 10
-        </div>
-
-        <h1>
-          რამდენი ხნით გსურთ ბინის ქირაობა?
-        </h1>
-
-        <p class="subtitle">
-          გრძელვადიანი ქირაობა ხშირად ზრდის მეპატრონის
-          თანხმობის შანსს.
-        </p>
-
-
-        <div class="rental-grid">
-
-          <button
-            *ngFor="
-              let period of [
-                {
-                  value: '3',
-                  title: '3 თვე'
-                },
-                {
-                  value: '6',
-                  title: '6 თვე'
-                },
-                {
-                  value: '12',
-                  title: '12 თვე'
-                },
-                {
-                  value: '12+',
-                  title: '12+ თვე'
-                }
-              ]
-            "
-            type="button"
-            class="rental-card"
-            [class.active]="
-              form.rentalPeriod === period.value
-            "
-            (click)="
-              selectRentalPeriod(period.value)
-            "
-          >
-
-            {{ period.title }}
-
-          </button>
-
-        </div>
-
-      </section>
-
-
-      <!-- ================================================= -->
-      <!-- STEP 11 - TOP 5 -->
+      <!-- STEP 11 - RENTAL PERIOD -->
       <!-- ================================================= -->
 
       <section
@@ -1163,33 +1567,137 @@
       >
 
         <div class="step-label">
-          ბოლო ნაბიჯი
+          {{ t('step') }} 11
         </div>
 
+
         <h1>
-          დაალაგეთ თქვენი TOP 5 პრიორიტეტი
+          {{ t('rentalTitle') }}
         </h1>
 
+
         <p class="subtitle">
-          ჯერ აირჩიეთ 5 ყველაზე მნიშვნელოვანი ფაქტორი,
-          შემდეგ გადაათრიეთ სასურველი რიგითობით.
+          {{ t('rentalSubtitle') }}
+        </p>
+
+
+        <div class="rental-grid">
+
+          <button
+            type="button"
+            class="rental-card"
+            [class.active]="
+              form.rentalPeriod ===
+              '3'
+            "
+            (click)="
+              selectRentalPeriod(
+                '3'
+              )
+            "
+          >
+            {{ t('months3') }}
+          </button>
+
+
+          <button
+            type="button"
+            class="rental-card"
+            [class.active]="
+              form.rentalPeriod ===
+              '6'
+            "
+            (click)="
+              selectRentalPeriod(
+                '6'
+              )
+            "
+          >
+            {{ t('months6') }}
+          </button>
+
+
+          <button
+            type="button"
+            class="rental-card"
+            [class.active]="
+              form.rentalPeriod ===
+              '12'
+            "
+            (click)="
+              selectRentalPeriod(
+                '12'
+              )
+            "
+          >
+            {{ t('months12') }}
+          </button>
+
+
+          <button
+            type="button"
+            class="rental-card"
+            [class.active]="
+              form.rentalPeriod ===
+              '12+'
+            "
+            (click)="
+              selectRentalPeriod(
+                '12+'
+              )
+            "
+          >
+            {{ t('months12plus') }}
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================= -->
+      <!-- STEP 12 - TOP 5 -->
+      <!-- ================================================= -->
+
+      <section
+        *ngIf="currentStep === 12"
+        class="step-content"
+      >
+
+        <div class="step-label">
+          {{ t('lastStep') }}
+        </div>
+
+
+        <h1>
+          {{ t('prioritiesTitle') }}
+        </h1>
+
+
+        <p class="subtitle">
+          {{ t('prioritiesSubtitle') }}
         </p>
 
 
         <div class="priority-status">
 
           <span>
-            არჩეულია
+            {{ t('selected') }}
+
             <strong>
-              {{ selectedPriorities.length }}/5
+              {{
+                selectedPriorities.length
+              }}/5
             </strong>
           </span>
+
 
           <div class="mini-progress">
 
             <div
               [style.width.%]="
-                selectedPriorities.length * 20
+                selectedPriorities.length
+                * 20
               "
             ></div>
 
@@ -1198,22 +1706,25 @@
         </div>
 
 
-        <!-- RANKED ITEMS -->
-
         <div
           class="ranked-priorities"
-          *ngIf="selectedPriorities.length"
+          *ngIf="
+            selectedPriorities.length
+          "
         >
 
           <div
             *ngFor="
-              let priority of selectedPriorities;
+              let priority
+              of selectedPriorities;
               let index = index
             "
             class="ranked-item"
             draggable="true"
             (dragstart)="
-              dragStart(priority)
+              dragStart(
+                priority
+              )
             "
             (dragend)="
               dragEnd()
@@ -1222,7 +1733,9 @@
               $event.preventDefault()
             "
             (drop)="
-              dropPriority(priority)
+              dropPriority(
+                priority
+              )
             "
           >
 
@@ -1231,7 +1744,11 @@
             </div>
 
             <div class="rank-label">
-              {{ priority.label }}
+              {{
+                translateOption(
+                  priority.label
+                )
+              }}
             </div>
 
             <div class="drag-handle">
@@ -1247,7 +1764,7 @@
 
 
         <h3 class="small-heading">
-          აირჩიეთ პრიორიტეტები
+          {{ t('choosePriorities') }}
         </h3>
 
 
@@ -1255,17 +1772,22 @@
 
           <button
             *ngFor="
-              let priority of availablePriorities
+              let priority
+              of availablePriorities
             "
             type="button"
             class="priority-option"
-            [class.active]="priority.selected"
+            [class.active]="
+              priority.selected
+            "
             [class.disabled]="
               !priority.selected &&
               selectedPriorities.length >= 5
             "
             (click)="
-              togglePriority(priority)
+              togglePriority(
+                priority
+              )
             "
           >
 
@@ -1281,14 +1803,16 @@
 
             </span>
 
-            {{ priority.label }}
+            {{
+              translateOption(
+                priority.label
+              )
+            }}
 
           </button>
 
         </div>
 
-
-        <!-- SUCCESS MESSAGE -->
 
         <div
           *ngIf="submitSuccess"
@@ -1302,11 +1826,11 @@
           <div>
 
             <strong>
-              მოთხოვნა წარმატებით გაიგზავნა
+              {{ t('successTitle') }}
             </strong>
 
             <p>
-              ჩვენ უკვე ვეძებთ თქვენთვის საუკეთესო ბინებს.
+              {{ t('successText') }}
             </p>
 
           </div>
@@ -1314,15 +1838,13 @@
         </div>
 
 
-        <!-- ERROR MESSAGE -->
-
         <div
           *ngIf="submitError"
           class="submit-error"
         >
 
           <strong>
-            მოთხოვნის გაგზავნა ვერ მოხერხდა
+            {{ t('errorTitle') }}
           </strong>
 
           <p>
@@ -1343,24 +1865,26 @@
         <button
           type="button"
           class="back-button"
-          [class.hidden]="currentStep === 1"
+          [class.hidden]="
+            currentStep === 1
+          "
           (click)="previousStep()"
         >
-          ← უკან
+          ← {{ t('back') }}
         </button>
 
 
-        <!-- NORMAL CONTINUE -->
-
         <button
-          *ngIf="currentStep < totalSteps"
+          *ngIf="
+            currentStep < totalSteps
+          "
           type="button"
           class="continue-button"
           [disabled]="!canContinue"
           (click)="nextStep()"
         >
 
-          გაგრძელება
+          {{ t('continue') }}
 
           <span>
             →
@@ -1368,8 +1892,6 @@
 
         </button>
 
-
-        <!-- FINAL SUBMIT -->
 
         <button
           *ngIf="
@@ -1382,13 +1904,15 @@
             !canContinue ||
             isSubmitting
           "
-          (click)="submitQuestionnaire()"
+          (click)="
+            submitQuestionnaire()
+          "
         >
 
           <ng-container
             *ngIf="!isSubmitting"
           >
-            ✨ ბინების მოძებნა
+            {{ t('findApartments') }}
           </ng-container>
 
 
@@ -1396,9 +1920,10 @@
             *ngIf="isSubmitting"
           >
 
-            <span class="button-spinner"></span>
+            <span class="button-spinner">
+            </span>
 
-            იგზავნება...
+            {{ t('sending') }}
 
           </ng-container>
 
@@ -1409,17 +1934,13 @@
     </main>
 
 
-    <!-- ================================================= -->
-    <!-- SECURITY NOTE -->
-    <!-- ================================================= -->
-
     <div class="secure-note">
 
       <span>
         🔒
       </span>
 
-      თქვენი ინფორმაცია უსაფრთხოდ ინახება
+      {{ t('secure') }}
 
     </div>
 

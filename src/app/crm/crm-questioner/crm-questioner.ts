@@ -1,6 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
+import {
+  CountryCode,
+  getCountries,
+  getCountryCallingCode,
+  parsePhoneNumberFromString,
+} from 'libphonenumber-js';
+
+type AppLanguage = 'ka' | 'en' | 'ru';
 
 interface LocationEntry {
   id: number;
@@ -14,38 +22,33 @@ interface PriorityItem {
   selected: boolean;
 }
 
+interface CountryOption {
+  code: CountryCode;
+  name: string;
+  flag: string;
+  callingCode: string;
+}
+
 interface CrmLeadRequest {
   fullName: string;
   email: string | null;
   phoneNumber: string | null;
-
   source: string;
   status: string;
   goal: string;
-
   preferredContactMethod: string;
-
   preferredDistricts: string[];
-
   preferredPropertyType: string;
-
   bedrooms: number | null;
-
   budgetMin: number | null;
   budgetMax: number | null;
-
   currency: string;
-
   preferences: string;
   message: string;
-
   requestedViewingAt: string | null;
-
   apartmentId: number | null;
-
   customerUserId: string | null;
   assignedAgentId: string | null;
-
   consentGiven: boolean;
 }
 
@@ -56,12 +59,1161 @@ interface CrmLeadRequest {
   styleUrl: './crm-questioner.css',
 })
 export class CrmQuestioner implements OnInit {
-
   private readonly apiBaseUrl =
     'https://websiteapi-production-c970.up.railway.app/api/Crm';
 
   agentToken: string | null = null;
   invalidAgentLink = false;
+
+  currentStep = 1;
+  totalSteps = 11;
+
+  isSubmitting = false;
+  submitSuccess = false;
+  submitError = '';
+
+  draggingPriority: PriorityItem | null = null;
+
+  language: AppLanguage = 'ka';
+
+  countrySearch = '';
+  countryDropdownOpen = false;
+
+  phoneCountryDropdownOpen = false;
+  phoneCountrySearch = '';
+
+  countries: CountryOption[] = [];
+
+  readonly languages: {
+    code: AppLanguage;
+    label: string;
+    flag: string;
+  }[] = [
+    {
+      code: 'ka',
+      label: 'GEO',
+      flag: '🇬🇪',
+    },
+    {
+      code: 'en',
+      label: 'EN',
+      flag: '🇬🇧',
+    },
+    {
+      code: 'ru',
+      label: 'RU',
+      flag: '🇷🇺',
+    },
+  ];
+
+  readonly translations:
+    Record<AppLanguage, Record<string, string>> = {
+      ka: {
+        brandCaption: 'იპოვე შენთვის იდეალური სახლი',
+
+        step: 'ნაბიჯი',
+        lastStep: 'ბოლო ნაბიჯი',
+
+        nationalityTitle:
+          'აირჩიეთ თქვენი ეროვნება 🌍',
+
+        nationalitySubtitle:
+          'აირჩიეთ ქვეყანა. ტელეფონის კოდი ავტომატურად შეივსება.',
+
+        nationality: 'ეროვნება',
+
+        chooseCountry:
+          'აირჩიეთ ქვეყანა',
+
+        searchCountry:
+          'მოძებნეთ ქვეყანა ან კოდი...',
+
+        contactTitle:
+          'დავიწყოთ გაცნობით 👋',
+
+        contactSubtitle:
+          'გვითხარით როგორ მოგმართოთ და რომელ ნომერზე დაგიკავშირდეთ საუკეთესო ბინების აღმოჩენისას.',
+
+        fullName:
+          'სახელი და გვარი',
+
+        fullNamePlaceholder:
+          'მაგ: ნიკა გიორგაძე',
+
+        phone:
+          'ტელეფონის ნომერი',
+
+        invalidPhone:
+          'შეიყვანეთ სწორი ტელეფონის ნომერი',
+
+        privacyTitle:
+          'თქვენი ინფორმაცია უსაფრთხოა',
+
+        privacyText:
+          'ნომერს მხოლოდ შესაბამის ბინებთან დაკავშირებით დასაკავშირებლად გამოვიყენებთ.',
+
+        moveTitle:
+          'როდის გჭირდებათ ბინა?',
+
+        moveSubtitle:
+          'დაგვეხმარეთ გავიგოთ, რამდენად მალე გსურთ გადასვლა.',
+
+        moveToday:
+          'დღესვე / 1–3 დღეში',
+
+        moveTodaySmall:
+          'სასწრაფოდ ვეძებ',
+
+        moveWeek:
+          '1 კვირაში',
+
+        moveWeekSmall:
+          'ახლო მომავალში',
+
+        move24:
+          '2–4 კვირაში',
+
+        move24Small:
+          'მაქვს დრო არჩევისთვის',
+
+        move13m:
+          '1–3 თვეში',
+
+        move13mSmall:
+          'წინასწარ ვგეგმავ',
+
+        moveBrowse:
+          'ჯერ ვათვალიერებ',
+
+        moveBrowseSmall:
+          'მინდა გავიგო რა ვარიანტებია ბაზარზე',
+
+        budgetTitle:
+          'რა არის თქვენი ბიუჯეტი?',
+
+        budgetSubtitle:
+          'მიუთითეთ სასურველი თვიური ბიუჯეტის დიაპაზონი.',
+
+        minimum:
+          'მინიმალური',
+
+        maximum:
+          'მაქსიმალური',
+
+        flexibleBudget:
+          'კარგი ვარიანტისთვის შემიძლია მცირედი გაზრდა',
+
+        flexibleBudgetSmall:
+          'უფრო კარგი მატჩების პოვნაში დაგვეხმარება',
+
+        districtsTitle:
+          'რომელი უბნები გაინტერესებთ?',
+
+        districtsSubtitle:
+          'შეგიძლიათ რამდენიმე უბანი აირჩიოთ.',
+
+        chooseForMe:
+          'არ ვარ დარწმუნებული — შემირჩიეთ',
+
+        chooseForMeSmall:
+          'Velven შეარჩევს საუკეთესო უბნებს თქვენი მოთხოვნების მიხედვით.',
+
+        bedroomsTitle:
+          'რამდენი საძინებელი გჭირდებათ?',
+
+        bedroomsSubtitle:
+          'აირჩიეთ თქვენთვის სასურველი ზომა.',
+
+        minArea:
+          'მინიმალური ფართი',
+
+        optional:
+          'არასავალდებულო',
+
+        householdTitle:
+          'ვინ იცხოვრებს ბინაში?',
+
+        householdSubtitle:
+          'ეს ინფორმაცია დაგვეხმარება თქვენი მოთხოვნების სწორად დამუშავებაში.',
+
+        alone:
+          'მარტო',
+
+        couple:
+          'წყვილი',
+
+        family:
+          'ოჯახი',
+
+        friends:
+          'მეგობრები / კოლეგები',
+
+        peopleCount:
+          'რამდენი ადამიანი იცხოვრებს?',
+
+        peopleCountPlaceholder:
+          'მაგ: 4',
+
+        children:
+          'გყავთ ბავშვები?',
+
+        yes:
+          'კი',
+
+        no:
+          'არა',
+
+        childrenAges:
+          'რა ასაკის არიან?',
+
+        childrenAgesPlaceholder:
+          'მაგ: 4 და 9 წლის',
+
+        petsTitle:
+          'გყავთ შინაური ცხოველი?',
+
+        petsSubtitle:
+          'ზოგი ბინა ცხოველებთან დაკავშირებით სპეციალურ პირობებს ითვალისწინებს.',
+
+        petNone:
+          'არა',
+
+        petDog:
+          'ძაღლი',
+
+        petCat:
+          'კატა',
+
+        petOther:
+          'სხვა',
+
+        petInfo:
+          'ზომა / დამატებითი ინფორმაცია',
+
+        petInfoPlaceholder:
+          'მაგ: პატარა',
+
+        count:
+          'რაოდენობა',
+
+        requirementsTitle:
+          'რომელი პირობებია თქვენთვის აუცილებელი?',
+
+        requirementsSubtitle:
+          'მონიშნეთ ყველა მნიშვნელოვანი პირობა.',
+
+        locationsTitle:
+          'არის ადგილი, რომელთან ახლოს ყოფნაც მნიშვნელოვანია?',
+
+        locationsSubtitle:
+          'მონიშნეთ თქვენთვის მნიშვნელოვანი ადგილები და მიუთითეთ მისამართები.',
+
+        enterAddress:
+          'მიუთითეთ მისამართი ან ადგილი',
+
+        addressPlaceholder:
+          'მაგ: პეკინის გამზირი 12',
+
+        addAnother:
+          '+ დაამატე კიდევ ერთი',
+
+        noLocation:
+          'კონკრეტულ ადგილთან ახლოს ყოფნა არ არის მნიშვნელოვანი',
+
+        rentalTitle:
+          'რამდენი ხნით გსურთ ბინის ქირაობა?',
+
+        rentalSubtitle:
+          'აირჩიეთ თქვენთვის სასურველი ქირაობის პერიოდი.',
+
+        months3:
+          '3 თვე',
+
+        months6:
+          '6 თვე',
+
+        months12:
+          '12 თვე',
+
+        months12plus:
+          '12+ თვე',
+
+        prioritiesTitle:
+          'დაალაგეთ თქვენი TOP 5 პრიორიტეტი',
+
+        prioritiesSubtitle:
+          'ჯერ აირჩიეთ 5 ყველაზე მნიშვნელოვანი ფაქტორი, შემდეგ გადაათრიეთ სასურველი რიგითობით.',
+
+        selected:
+          'არჩეულია',
+
+        choosePriorities:
+          'აირჩიეთ პრიორიტეტები',
+
+        successTitle:
+          'მოთხოვნა წარმატებით გაიგზავნა',
+
+        successText:
+          'ჩვენ უკვე ვეძებთ თქვენთვის საუკეთესო ბინებს.',
+
+        errorTitle:
+          'მოთხოვნის გაგზავნა ვერ მოხერხდა',
+
+        back:
+          'უკან',
+
+        continue:
+          'გაგრძელება',
+
+        findApartments:
+          '✨ ბინების მოძებნა',
+
+        sending:
+          'იგზავნება...',
+
+        secure:
+          'თქვენი ინფორმაცია უსაფრთხოდ ინახება',
+      },
+
+      en: {
+        brandCaption:
+          'Find your perfect home',
+
+        step:
+          'Step',
+
+        lastStep:
+          'Final step',
+
+        nationalityTitle:
+          'Choose your nationality 🌍',
+
+        nationalitySubtitle:
+          'Choose your country. The phone calling code will be selected automatically.',
+
+        nationality:
+          'Nationality',
+
+        chooseCountry:
+          'Choose a country',
+
+        searchCountry:
+          'Search country or calling code...',
+
+        contactTitle:
+          "Let's get to know you 👋",
+
+        contactSubtitle:
+          'Tell us your name and the phone number where we can contact you about suitable apartments.',
+
+        fullName:
+          'Full name',
+
+        fullNamePlaceholder:
+          'Example: Nika Giorgadze',
+
+        phone:
+          'Phone number',
+
+        invalidPhone:
+          'Enter a valid phone number',
+
+        privacyTitle:
+          'Your information is safe',
+
+        privacyText:
+          'We will only use your number to contact you about relevant apartments.',
+
+        moveTitle:
+          'When do you need the apartment?',
+
+        moveSubtitle:
+          'Help us understand how soon you would like to move.',
+
+        moveToday:
+          'Today / within 1–3 days',
+
+        moveTodaySmall:
+          'I need it urgently',
+
+        moveWeek:
+          'Within 1 week',
+
+        moveWeekSmall:
+          'In the near future',
+
+        move24:
+          'Within 2–4 weeks',
+
+        move24Small:
+          'I have time to choose',
+
+        move13m:
+          'Within 1–3 months',
+
+        move13mSmall:
+          'Planning ahead',
+
+        moveBrowse:
+          'Just browsing',
+
+        moveBrowseSmall:
+          'I want to see what is available on the market',
+
+        budgetTitle:
+          'What is your budget?',
+
+        budgetSubtitle:
+          'Enter your preferred monthly budget range.',
+
+        minimum:
+          'Minimum',
+
+        maximum:
+          'Maximum',
+
+        flexibleBudget:
+          'I can increase it slightly for a great option',
+
+        flexibleBudgetSmall:
+          'This helps us find better matches',
+
+        districtsTitle:
+          'Which districts are you interested in?',
+
+        districtsSubtitle:
+          'You can select several districts.',
+
+        chooseForMe:
+          "I'm not sure — choose for me",
+
+        chooseForMeSmall:
+          'Velven will select the best districts based on your requirements.',
+
+        bedroomsTitle:
+          'How many bedrooms do you need?',
+
+        bedroomsSubtitle:
+          'Choose your preferred apartment size.',
+
+        minArea:
+          'Minimum area',
+
+        optional:
+          'Optional',
+
+        householdTitle:
+          'Who will live in the apartment?',
+
+        householdSubtitle:
+          'This information helps us process your requirements correctly.',
+
+        alone:
+          'Alone',
+
+        couple:
+          'Couple',
+
+        family:
+          'Family',
+
+        friends:
+          'Friends / colleagues',
+
+        peopleCount:
+          'How many people will live there?',
+
+        peopleCountPlaceholder:
+          'Example: 4',
+
+        children:
+          'Do you have children?',
+
+        yes:
+          'Yes',
+
+        no:
+          'No',
+
+        childrenAges:
+          'How old are they?',
+
+        childrenAgesPlaceholder:
+          'Example: 4 and 9 years old',
+
+        petsTitle:
+          'Do you have a pet?',
+
+        petsSubtitle:
+          'Some apartments have special conditions regarding pets.',
+
+        petNone:
+          'No',
+
+        petDog:
+          'Dog',
+
+        petCat:
+          'Cat',
+
+        petOther:
+          'Other',
+
+        petInfo:
+          'Size / additional information',
+
+        petInfoPlaceholder:
+          'Example: small',
+
+        count:
+          'Count',
+
+        requirementsTitle:
+          'Which features are essential for you?',
+
+        requirementsSubtitle:
+          'Select all important requirements.',
+
+        locationsTitle:
+          'Is there a place you need to be close to?',
+
+        locationsSubtitle:
+          'Select important places and enter their addresses.',
+
+        enterAddress:
+          'Enter an address or place',
+
+        addressPlaceholder:
+          'Example: Pekini Avenue 12',
+
+        addAnother:
+          '+ Add another',
+
+        noLocation:
+          'Being close to a specific place is not important',
+
+        rentalTitle:
+          'How long do you want to rent?',
+
+        rentalSubtitle:
+          'Choose your preferred rental period.',
+
+        months3:
+          '3 months',
+
+        months6:
+          '6 months',
+
+        months12:
+          '12 months',
+
+        months12plus:
+          '12+ months',
+
+        prioritiesTitle:
+          'Rank your TOP 5 priorities',
+
+        prioritiesSubtitle:
+          'First select the 5 most important factors, then drag them into your preferred order.',
+
+        selected:
+          'Selected',
+
+        choosePriorities:
+          'Choose priorities',
+
+        successTitle:
+          'Request sent successfully',
+
+        successText:
+          'We are already looking for the best apartments for you.',
+
+        errorTitle:
+          'Could not send request',
+
+        back:
+          'Back',
+
+        continue:
+          'Continue',
+
+        findApartments:
+          '✨ Find apartments',
+
+        sending:
+          'Sending...',
+
+        secure:
+          'Your information is stored securely',
+      },
+
+      ru: {
+        brandCaption:
+          'Найдите идеальное жильё',
+
+        step:
+          'Шаг',
+
+        lastStep:
+          'Последний шаг',
+
+        nationalityTitle:
+          'Выберите ваше гражданство 🌍',
+
+        nationalitySubtitle:
+          'Выберите страну. Телефонный код будет установлен автоматически.',
+
+        nationality:
+          'Гражданство',
+
+        chooseCountry:
+          'Выберите страну',
+
+        searchCountry:
+          'Найти страну или код...',
+
+        contactTitle:
+          'Давайте познакомимся 👋',
+
+        contactSubtitle:
+          'Укажите ваше имя и номер телефона, по которому мы сможем связаться с вами по подходящим квартирам.',
+
+        fullName:
+          'Имя и фамилия',
+
+        fullNamePlaceholder:
+          'Например: Ника Гиоргадзе',
+
+        phone:
+          'Номер телефона',
+
+        invalidPhone:
+          'Введите правильный номер телефона',
+
+        privacyTitle:
+          'Ваши данные защищены',
+
+        privacyText:
+          'Мы будем использовать ваш номер только для связи по подходящим квартирам.',
+
+        moveTitle:
+          'Когда вам нужна квартира?',
+
+        moveSubtitle:
+          'Помогите понять, насколько быстро вы хотите переехать.',
+
+        moveToday:
+          'Сегодня / в течение 1–3 дней',
+
+        moveTodaySmall:
+          'Ищу срочно',
+
+        moveWeek:
+          'В течение недели',
+
+        moveWeekSmall:
+          'В ближайшее время',
+
+        move24:
+          'Через 2–4 недели',
+
+        move24Small:
+          'Есть время на выбор',
+
+        move13m:
+          'Через 1–3 месяца',
+
+        move13mSmall:
+          'Планирую заранее',
+
+        moveBrowse:
+          'Пока смотрю',
+
+        moveBrowseSmall:
+          'Хочу понять, какие варианты есть на рынке',
+
+        budgetTitle:
+          'Какой у вас бюджет?',
+
+        budgetSubtitle:
+          'Укажите желаемый диапазон месячного бюджета.',
+
+        minimum:
+          'Минимум',
+
+        maximum:
+          'Максимум',
+
+        flexibleBudget:
+          'Могу немного увеличить бюджет ради хорошего варианта',
+
+        flexibleBudgetSmall:
+          'Это поможет найти более подходящие варианты',
+
+        districtsTitle:
+          'Какие районы вас интересуют?',
+
+        districtsSubtitle:
+          'Можно выбрать несколько районов.',
+
+        chooseForMe:
+          'Не уверен — выберите за меня',
+
+        chooseForMeSmall:
+          'Velven подберёт лучшие районы по вашим требованиям.',
+
+        bedroomsTitle:
+          'Сколько спален вам нужно?',
+
+        bedroomsSubtitle:
+          'Выберите желаемый размер квартиры.',
+
+        minArea:
+          'Минимальная площадь',
+
+        optional:
+          'Необязательно',
+
+        householdTitle:
+          'Кто будет жить в квартире?',
+
+        householdSubtitle:
+          'Эта информация поможет правильно обработать ваши требования.',
+
+        alone:
+          'Один / одна',
+
+        couple:
+          'Пара',
+
+        family:
+          'Семья',
+
+        friends:
+          'Друзья / коллеги',
+
+        peopleCount:
+          'Сколько человек будет жить?',
+
+        peopleCountPlaceholder:
+          'Например: 4',
+
+        children:
+          'Есть дети?',
+
+        yes:
+          'Да',
+
+        no:
+          'Нет',
+
+        childrenAges:
+          'Какого они возраста?',
+
+        childrenAgesPlaceholder:
+          'Например: 4 и 9 лет',
+
+        petsTitle:
+          'Есть домашнее животное?',
+
+        petsSubtitle:
+          'У некоторых квартир есть специальные условия для животных.',
+
+        petNone:
+          'Нет',
+
+        petDog:
+          'Собака',
+
+        petCat:
+          'Кошка',
+
+        petOther:
+          'Другое',
+
+        petInfo:
+          'Размер / дополнительная информация',
+
+        petInfoPlaceholder:
+          'Например: маленькая',
+
+        count:
+          'Количество',
+
+        requirementsTitle:
+          'Какие условия для вас обязательны?',
+
+        requirementsSubtitle:
+          'Отметьте все важные условия.',
+
+        locationsTitle:
+          'Есть место, рядом с которым важно жить?',
+
+        locationsSubtitle:
+          'Выберите важные места и укажите адреса.',
+
+        enterAddress:
+          'Укажите адрес или место',
+
+        addressPlaceholder:
+          'Например: проспект Пекина 12',
+
+        addAnother:
+          '+ Добавить ещё',
+
+        noLocation:
+          'Близость к конкретному месту не важна',
+
+        rentalTitle:
+          'На какой срок вы хотите арендовать?',
+
+        rentalSubtitle:
+          'Выберите желаемый срок аренды.',
+
+        months3:
+          '3 месяца',
+
+        months6:
+          '6 месяцев',
+
+        months12:
+          '12 месяцев',
+
+        months12plus:
+          '12+ месяцев',
+
+        prioritiesTitle:
+          'Расставьте ваши TOP 5 приоритетов',
+
+        prioritiesSubtitle:
+          'Сначала выберите 5 самых важных факторов, затем перетащите их в нужном порядке.',
+
+        selected:
+          'Выбрано',
+
+        choosePriorities:
+          'Выберите приоритеты',
+
+        successTitle:
+          'Запрос успешно отправлен',
+
+        successText:
+          'Мы уже ищем для вас лучшие квартиры.',
+
+        errorTitle:
+          'Не удалось отправить запрос',
+
+        back:
+          'Назад',
+
+        continue:
+          'Продолжить',
+
+        findApartments:
+          '✨ Найти квартиры',
+
+        sending:
+          'Отправляется...',
+
+        secure:
+          'Ваши данные хранятся в безопасности',
+      },
+    };
+
+  readonly districts = [
+    'ვაკე',
+    'საბურთალო',
+    'ვერა',
+    'მთაწმინდა',
+    'ჩუღურეთი',
+    'დიდუბე',
+    'ნაძალადევი',
+    'ისანი',
+    'სამგორი',
+    'გლდანი',
+    'დიღომი',
+    'დიდი დიღომი',
+    'ორთაჭალა',
+    'ავლაბარი',
+  ];
+
+  readonly requirementOptions = [
+    'ახალი კორპუსი',
+    'ახალი რემონტი',
+    'პარკინგი',
+    'აივანი',
+    'კონდიციონერი',
+    'ცენტრალური გათბობა',
+    'წყნარი ქუჩა',
+    'მეტროსთან ახლოს',
+    'კარგი ხედი',
+    'სკოლა/ბაღი ახლოს',
+  ];
+
+  readonly locationOptions = [
+    'სამსახური',
+    'უნივერსიტეტი',
+    'სკოლა',
+    'საბავშვო ბაღი',
+    'სხვა ადგილი',
+  ];
+
+  readonly optionTranslations:
+    Record<AppLanguage, Record<string, string>> = {
+      ka: {},
+
+      en: {
+        'ვაკე': 'Vake',
+        'საბურთალო': 'Saburtalo',
+        'ვერა': 'Vera',
+        'მთაწმინდა': 'Mtatsminda',
+        'ჩუღურეთი': 'Chugureti',
+        'დიდუბე': 'Didube',
+        'ნაძალადევი': 'Nadzaladevi',
+        'ისანი': 'Isani',
+        'სამგორი': 'Samgori',
+        'გლდანი': 'Gldani',
+        'დიღომი': 'Dighomi',
+        'დიდი დიღომი': 'Didi Dighomi',
+        'ორთაჭალა': 'Ortachala',
+        'ავლაბარი': 'Avlabari',
+
+        'ახალი კორპუსი': 'New building',
+        'ახალი რემონტი': 'New renovation',
+        'პარკინგი': 'Parking',
+        'აივანი': 'Balcony',
+        'კონდიციონერი': 'Air conditioning',
+        'ცენტრალური გათბობა': 'Central heating',
+        'წყნარი ქუჩა': 'Quiet street',
+        'მეტროსთან ახლოს': 'Near metro',
+        'კარგი ხედი': 'Good view',
+        'სკოლა/ბაღი ახლოს': 'School/kindergarten nearby',
+
+        'სამსახური': 'Work',
+        'უნივერსიტეტი': 'University',
+        'სკოლა': 'School',
+        'საბავშვო ბაღი': 'Kindergarten',
+        'სხვა ადგილი': 'Other place',
+
+        'სასურველი უბანი': 'Preferred district',
+        'ტრანსპორტთან სიახლოვე': 'Near public transport',
+        'მეტროსთან სიახლოვე': 'Near metro',
+        'ინფრასტრუქტურა': 'Infrastructure',
+        'პარკთან/მწვანე სივრცესთან ახლოს':
+          'Near a park / green space',
+
+        'სამსახურთან ახლოს': 'Near work',
+        'უნივერსიტეტთან ახლოს':
+          'Near university',
+
+        'სკოლასთან ახლოს':
+          'Near school',
+
+        'საბავშვო ბაღთან ახლოს':
+          'Near kindergarten',
+
+        'მნიშვნელოვან ადგილთან ახლოს':
+          'Near an important place',
+      },
+
+      ru: {
+        'ვაკე': 'Ваке',
+        'საბურთალო': 'Сабуртало',
+        'ვერა': 'Вера',
+        'მთაწმინდა': 'Мтацминда',
+        'ჩუღურეთი': 'Чугурети',
+        'დიდუბე': 'Дидубе',
+        'ნაძალადევი': 'Надзаладеви',
+        'ისანი': 'Исани',
+        'სამგორი': 'Самгори',
+        'გლდანი': 'Глдани',
+        'დიღომი': 'Дигоми',
+        'დიდი დიღომი': 'Диди Дигоми',
+        'ორთაჭალა': 'Ортачала',
+        'ავლაბარი': 'Авлабари',
+
+        'ახალი კორპუსი': 'Новостройка',
+        'ახალი რემონტი': 'Новый ремонт',
+        'პარკინგი': 'Парковка',
+        'აივანი': 'Балкон',
+        'კონდიციონერი': 'Кондиционер',
+        'ცენტრალური გათბობა':
+          'Центральное отопление',
+
+        'წყნარი ქუჩა': 'Тихая улица',
+        'მეტროსთან ახლოს': 'Рядом с метро',
+        'კარგი ხედი': 'Хороший вид',
+        'სკოლა/ბაღი ახლოს': 'Школа/сад рядом',
+
+        'სამსახური': 'Работа',
+        'უნივერსიტეტი': 'Университет',
+        'სკოლა': 'Школа',
+        'საბავშვო ბაღი': 'Детский сад',
+        'სხვა ადგილი': 'Другое место',
+
+        'სასურველი უბანი':
+          'Предпочтительный район',
+
+        'ტრანსპორტთან სიახლოვე':
+          'Рядом с транспортом',
+
+        'მეტროსთან სიახლოვე':
+          'Рядом с метро',
+
+        'ინფრასტრუქტურა':
+          'Инфраструктура',
+
+        'პარკთან/მწვანე სივრცესთან ახლოს':
+          'Рядом с парком / зелёной зоной',
+
+        'სამსახურთან ახლოს':
+          'Рядом с работой',
+
+        'უნივერსიტეტთან ახლოს':
+          'Рядом с университетом',
+
+        'სკოლასთან ახლოს':
+          'Рядом со школой',
+
+        'საბავშვო ბაღთან ახლოს':
+          'Рядом с детским садом',
+
+        'მნიშვნელოვან ადგილთან ახლოს':
+          'Рядом с важным местом',
+      },
+    };
+
+  locationEntries: LocationEntry[] = [];
+
+  private locationId = 1;
+
+  readonly basePriorities: PriorityItem[] = [
+    {
+      id: 'district',
+      label: 'სასურველი უბანი',
+      selected: false,
+    },
+    {
+      id: 'transport',
+      label: 'ტრანსპორტთან სიახლოვე',
+      selected: false,
+    },
+    {
+      id: 'metro',
+      label: 'მეტროსთან სიახლოვე',
+      selected: false,
+    },
+    {
+      id: 'quiet',
+      label: 'წყნარი ქუჩა',
+      selected: false,
+    },
+    {
+      id: 'parking',
+      label: 'პარკინგი',
+      selected: false,
+    },
+    {
+      id: 'view',
+      label: 'კარგი ხედი',
+      selected: false,
+    },
+    {
+      id: 'new-building',
+      label: 'ახალი კორპუსი',
+      selected: false,
+    },
+    {
+      id: 'balcony',
+      label: 'აივანი',
+      selected: false,
+    },
+    {
+      id: 'infrastructure',
+      label: 'ინფრასტრუქტურა',
+      selected: false,
+    },
+    {
+      id: 'park',
+      label:
+        'პარკთან/მწვანე სივრცესთან ახლოს',
+      selected: false,
+    },
+  ];
+
+  form = {
+    nationality:
+      '' as CountryCode | '',
+
+    phoneCountry:
+      'GE' as CountryCode,
+
+    fullName:
+      '',
+
+    phoneNumber:
+      '',
+
+    preferredContactMethod:
+      'phone',
+
+    moveIn:
+      '',
+
+    budgetMin:
+      null as number | null,
+
+    budgetMax:
+      null as number | null,
+
+    flexibleBudget:
+      false,
+
+    districts:
+      [] as string[],
+
+    chooseDistrictForMe:
+      false,
+
+    bedrooms:
+      '',
+
+    minArea:
+      null as number | null,
+
+    household:
+      '',
+
+    peopleCount:
+      null as number | null,
+
+    hasChildren:
+      null as boolean | null,
+
+    childrenAges:
+      '',
+
+    petType:
+      'none',
+
+    petSize:
+      '',
+
+    petCount:
+      1,
+
+    requirements:
+      [] as string[],
+
+    locationTypes:
+      [] as string[],
+
+    rentalPeriod:
+      '',
+
+    priorities:
+      [] as PriorityItem[],
+  };
 
   constructor(
     private http: HttpClient,
@@ -69,8 +1221,23 @@ export class CrmQuestioner implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const browserLanguage =
+      (navigator.language || '')
+        .toLowerCase();
+
+    this.language =
+      browserLanguage.startsWith('ru')
+        ? 'ru'
+        : browserLanguage.startsWith('en')
+          ? 'en'
+          : 'ka';
+
+    this.buildCountries();
+
     const routeValue =
-      this.route.snapshot.paramMap.get('agentToken');
+      this.route.snapshot
+        .paramMap
+        .get('agentToken');
 
     if (!routeValue) {
       this.invalidAgentLink = true;
@@ -90,9 +1257,8 @@ export class CrmQuestioner implements OnInit {
     }
 
     const token =
-      normalizedRouteValue.substring(
-        'agent-'.length
-      );
+      normalizedRouteValue
+        .substring('agent-'.length);
 
     if (!token) {
       this.invalidAgentLink = true;
@@ -103,385 +1269,409 @@ export class CrmQuestioner implements OnInit {
     this.invalidAgentLink = false;
   }
 
-  currentStep = 1;
-  totalSteps = 11;
-
-  isSubmitting = false;
-  submitSuccess = false;
-  submitError = '';
-
-  draggingPriority: PriorityItem | null = null;
-
-  form = {
-    /* ==========================================
-       CONTACT
-    ========================================== */
-
-    fullName: '',
-    phoneNumber: '',
-
-    preferredContactMethod: 'phone',
-
-    /* ==========================================
-       QUESTIONNAIRE
-    ========================================== */
-
-    moveIn: '',
-
-    budgetMin: null as number | null,
-    budgetMax: null as number | null,
-
-    flexibleBudget: false,
-
-    districts: [] as string[],
-
-    chooseDistrictForMe: false,
-
-    bedrooms: '',
-
-    minArea: null as number | null,
-
-    household: '',
-
-    peopleCount: null as number | null,
-
-    hasChildren: null as boolean | null,
-
-    childrenAges: '',
-
-    petType: 'none',
-
-    petSize: '',
-
-    petCount: 1,
-
-    requirements: [] as string[],
-
-    locationTypes: [] as string[],
-
-    rentalPeriod: '',
-
-    priorities: [] as PriorityItem[],
-  };
-
-
-  districts = [
-    'ვაკე',
-    'საბურთალო',
-    'ვერა',
-    'მთაწმინდა',
-    'ჩუღურეთი',
-    'დიდუბე',
-    'ნაძალადევი',
-    'ისანი',
-    'სამგორი',
-    'გლდანი',
-    'დიღომი',
-    'დიდი დიღომი',
-    'ორთაჭალა',
-    'ავლაბარი',
-  ];
-
-
-  requirementOptions = [
-    'ახალი კორპუსი',
-    'ახალი რემონტი',
-    'პარკინგი',
-    'აივანი',
-    'კონდიციონერი',
-    'ცენტრალური გათბობა',
-    'წყნარი ქუჩა',
-    'მეტროსთან ახლოს',
-    'კარგი ხედი',
-    'სკოლა/ბაღი ახლოს',
-  ];
-
-
-  locationOptions = [
-    'სამსახური',
-    'უნივერსიტეტი',
-    'სკოლა',
-    'საბავშვო ბაღი',
-    'სხვა ადგილი',
-  ];
-
-
-  locationEntries: LocationEntry[] = [];
-
-  private locationId = 1;
-
-
-  basePriorities: PriorityItem[] = [
-    {
-      id: 'district',
-      label: 'სასურველი უბანი',
-      selected: false,
-    },
-
-    {
-      id: 'transport',
-      label: 'ტრანსპორტთან სიახლოვე',
-      selected: false,
-    },
-
-    {
-      id: 'metro',
-      label: 'მეტროსთან სიახლოვე',
-      selected: false,
-    },
-
-    {
-      id: 'quiet',
-      label: 'წყნარი ქუჩა',
-      selected: false,
-    },
-
-    {
-      id: 'parking',
-      label: 'პარკინგი',
-      selected: false,
-    },
-
-    {
-      id: 'view',
-      label: 'კარგი ხედი',
-      selected: false,
-    },
-
-    {
-      id: 'new-building',
-      label: 'ახალი კორპუსი',
-      selected: false,
-    },
-
-    {
-      id: 'balcony',
-      label: 'აივანი',
-      selected: false,
-    },
-
-    {
-      id: 'infrastructure',
-      label: 'ინფრასტრუქტურა',
-      selected: false,
-    },
-
-    {
-      id: 'park',
-      label: 'პარკთან/მწვანე სივრცესთან ახლოს',
-      selected: false,
-    },
-  ];
-
-
-  /* ==========================================
-     GETTERS
-  ========================================== */
-
-  get progress(): number {
-    return (this.currentStep / this.totalSteps) * 100;
-  }
-
-
-  get selectedPriorities(): PriorityItem[] {
-    return this.form.priorities.filter(
-      item => item.selected
+  t(key: string): string {
+    return (
+      this.translations[this.language]?.[key] ??
+      this.translations.ka[key] ??
+      key
     );
   }
 
+  translateOption(
+    value: string
+  ): string {
+    if (this.language === 'ka') {
+      return value;
+    }
 
-  get availablePriorities(): PriorityItem[] {
+    return (
+      this.optionTranslations[this.language]?.[value] ??
+      value
+    );
+  }
+
+  setLanguage(
+    language: AppLanguage
+  ): void {
+    this.language = language;
+    this.buildCountries();
+  }
+
+  private countryFlag(
+    code: string
+  ): string {
+    return code
+      .toUpperCase()
+      .replace(
+        /./g,
+        char =>
+          String.fromCodePoint(
+            127397 +
+            char.charCodeAt(0)
+          )
+      );
+  }
+
+  private buildCountries(): void {
+    const localeMap:
+      Record<AppLanguage, string> = {
+        ka: 'ka',
+        en: 'en',
+        ru: 'ru',
+      };
+
+    let displayNames:
+      Intl.DisplayNames;
+
+    try {
+      displayNames =
+        new Intl.DisplayNames(
+          [localeMap[this.language]],
+          {
+            type: 'region',
+          }
+        );
+    } catch {
+      displayNames =
+        new Intl.DisplayNames(
+          ['en'],
+          {
+            type: 'region',
+          }
+        );
+    }
+
+    this.countries =
+      getCountries()
+        .map(code => ({
+          code,
+
+          name:
+            displayNames.of(code) ??
+            code,
+
+          flag:
+            this.countryFlag(code),
+
+          callingCode:
+            `+${getCountryCallingCode(code)}`,
+        }))
+        .sort(
+          (a, b) =>
+            a.name.localeCompare(
+              b.name,
+              localeMap[this.language]
+            )
+        );
+  }
+
+  get filteredCountries():
+    CountryOption[] {
+    const search =
+      this.countrySearch
+        .trim()
+        .toLowerCase();
+
+    if (!search) {
+      return this.countries;
+    }
+
+    return this.countries.filter(
+      country =>
+        country.name
+          .toLowerCase()
+          .includes(search) ||
+
+        country.code
+          .toLowerCase()
+          .includes(search) ||
+
+        country.callingCode
+          .includes(search)
+    );
+  }
+
+  get filteredPhoneCountries():
+    CountryOption[] {
+    const search =
+      this.phoneCountrySearch
+        .trim()
+        .toLowerCase();
+
+    if (!search) {
+      return this.countries;
+    }
+
+    return this.countries.filter(
+      country =>
+        country.name
+          .toLowerCase()
+          .includes(search) ||
+
+        country.code
+          .toLowerCase()
+          .includes(search) ||
+
+        country.callingCode
+          .includes(search)
+    );
+  }
+
+  get selectedCountry():
+    CountryOption | null {
+    if (!this.form.nationality) {
+      return null;
+    }
+
+    return (
+      this.countries.find(
+        country =>
+          country.code ===
+          this.form.nationality
+      ) ??
+      null
+    );
+  }
+
+  get selectedPhoneCountry():
+    CountryOption | null {
+    return (
+      this.countries.find(
+        country =>
+          country.code ===
+          this.form.phoneCountry
+      ) ??
+      null
+    );
+  }
+
+  selectNationality(
+    country: CountryOption
+  ): void {
+    this.form.nationality =
+      country.code;
+
+    this.form.phoneCountry =
+      country.code;
+
+    this.countryDropdownOpen =
+      false;
+
+    this.phoneCountryDropdownOpen =
+      false;
+
+    this.countrySearch =
+      '';
+
+    this.phoneCountrySearch =
+      '';
+
+    this.form.phoneNumber =
+      '';
+  }
+
+  selectPhoneCountry(
+    country: CountryOption
+  ): void {
+    this.form.phoneCountry =
+      country.code;
+
+    this.phoneCountryDropdownOpen =
+      false;
+
+    this.phoneCountrySearch =
+      '';
+
+    this.form.phoneNumber =
+      '';
+  }
+
+  get progress(): number {
+    return (
+      this.currentStep /
+      this.totalSteps
+    ) * 100;
+  }
+
+  get selectedPriorities():
+    PriorityItem[] {
+    return this.form.priorities
+      .filter(
+        item =>
+          item.selected
+      );
+  }
+
+  get availablePriorities():
+    PriorityItem[] {
     return this.form.priorities;
   }
 
-
-  /* ==========================================
-     VALIDATION
-  ========================================== */
-
   get canContinue(): boolean {
 
-    switch (this.currentStep) {
+  switch (this.currentStep) {
 
-      /*
-       * STEP 1
-       * Name + phone
-       */
-      case 1:
-        return (
-          this.form.fullName.trim().length >= 2 &&
-          this.isPhoneValid()
-        );
-
-
-      /*
-       * STEP 2
-       * Move in date
-       */
-      case 2:
-        return !!this.form.moveIn;
+    /*
+     * STEP 1
+     * Nationality + name + phone
+     */
+    case 1:
+      return (
+        !!this.form.nationality &&
+        this.form.fullName.trim().length >= 2 &&
+        this.isPhoneValid()
+      );
 
 
-      /*
-       * STEP 3
-       * Budget
-       */
-      case 3:
-        return (
-          this.form.budgetMin !== null &&
-          this.form.budgetMax !== null &&
-          this.form.budgetMin <= this.form.budgetMax
-        );
+    /*
+     * STEP 2
+     * Move in
+     */
+    case 2:
+      return !!this.form.moveIn;
 
 
-      /*
-       * STEP 4
-       * Districts
-       */
-      case 4:
-        return (
-          this.form.chooseDistrictForMe ||
-          this.form.districts.length > 0
-        );
+    /*
+     * STEP 3
+     * Budget
+     */
+    case 3:
+      return (
+        this.form.budgetMin !== null &&
+        this.form.budgetMax !== null &&
+        this.form.budgetMin <= this.form.budgetMax
+      );
 
 
-      /*
-       * STEP 5
-       * Bedrooms
-       */
-      case 5:
-        return !!this.form.bedrooms;
+    /*
+     * STEP 4
+     * District
+     */
+    case 4:
+      return (
+        this.form.chooseDistrictForMe ||
+        this.form.districts.length > 0
+      );
 
 
-      /*
-       * STEP 6
-       * Household
-       */
-      case 6:
+    /*
+     * STEP 5
+     * Bedrooms
+     */
+    case 5:
+      return !!this.form.bedrooms;
 
-        if (!this.form.household) {
-          return false;
-        }
 
-        if (
+    /*
+     * STEP 6
+     * Household
+     */
+    case 6:
+
+      if (!this.form.household) {
+        return false;
+      }
+
+      if (
+        (
           this.form.household === 'family' ||
           this.form.household === 'friends'
-        ) {
+        ) &&
+        (
+          this.form.peopleCount === null ||
+          this.form.peopleCount < 1
+        )
+      ) {
+        return false;
+      }
 
-          if (
-            this.form.peopleCount === null ||
-            this.form.peopleCount < 1
-          ) {
-            return false;
-          }
+      if (this.form.household === 'family') {
 
-        }
-
-        if (this.form.household === 'family') {
-
-          if (this.form.hasChildren === null) {
-            return false;
-          }
-
-          if (
-            this.form.hasChildren === true &&
-            !this.form.childrenAges.trim()
-          ) {
-            return false;
-          }
-
-        }
-
-        return true;
-
-
-      /*
-       * STEP 7
-       * Pets
-       */
-      case 7:
-
-        if (!this.form.petType) {
+        if (this.form.hasChildren === null) {
           return false;
         }
 
         if (
-          this.form.petType !== 'none' &&
-          this.form.petCount < 1
+          this.form.hasChildren === true &&
+          !this.form.childrenAges.trim()
         ) {
           return false;
         }
+      }
 
-        return true;
-
-
-      /*
-       * STEP 8
-       * Requirements
-       */
-      case 8:
-        return true;
+      return true;
 
 
-      /*
-       * STEP 9
-       * Important locations
-       */
-      case 9:
-
-        return this.locationEntries.every(
-          entry =>
-            entry.address.trim().length > 0
-        );
-
-
-      /*
-       * STEP 10
-       * Rental duration
-       */
-      case 10:
-        return !!this.form.rentalPeriod;
+    /*
+     * STEP 7
+     * Pets
+     */
+    case 7:
+      return (
+        !!this.form.petType &&
+        (
+          this.form.petType === 'none' ||
+          this.form.petCount >= 1
+        )
+      );
 
 
-      /*
-       * STEP 11
-       * TOP 5
-       */
-      case 11:
-        return this.selectedPriorities.length === 5;
+    /*
+     * STEP 8
+     * Requirements
+     */
+    case 8:
+      return true;
 
 
-      default:
-        return true;
-    }
+    /*
+     * STEP 9
+     * Locations
+     */
+    case 9:
+      return this.locationEntries.every(
+        entry =>
+          entry.address.trim().length > 0
+      );
+
+
+    /*
+     * STEP 10
+     * Rental period
+     */
+    case 10:
+      return !!this.form.rentalPeriod;
+
+
+    /*
+     * STEP 11
+     * Priorities
+     */
+    case 11:
+      return this.selectedPriorities.length === 5;
+
+
+    default:
+      return true;
   }
-
-
-  /* ==========================================
-     NAVIGATION
-  ========================================== */
+}
 
   nextStep(): void {
-
-    if (!this.canContinue) {
-      return;
-    }
-
-    if (this.currentStep >= this.totalSteps) {
+    if (
+      !this.canContinue ||
+      this.currentStep >=
+        this.totalSteps
+    ) {
       return;
     }
 
     this.currentStep++;
 
-
-    /*
-     * Build dynamic priorities
-     * when entering final step
-     */
-    if (this.currentStep === 11) {
+    if (
+      this.currentStep === 11
+    ) {
       this.buildPriorities();
     }
-
 
     window.scrollTo({
       top: 0,
@@ -489,427 +1679,363 @@ export class CrmQuestioner implements OnInit {
     });
   }
 
-
   previousStep(): void {
-
-    if (this.currentStep <= 1) {
+    if (
+      this.currentStep <= 1
+    ) {
       return;
     }
 
     this.currentStep--;
 
-
     window.scrollTo({
       top: 0,
       behavior: 'smooth',
     });
   }
 
-
-  /* ==========================================
-     PHONE
-  ========================================== */
-
-  private cleanPhone(): string {
-
-    return this.form.phoneNumber
+  private cleanPhone():
+    string {
+    return String(
+      this.form.phoneNumber ||
+      ''
+    )
       .trim()
-      .replace(/[^\d+]/g, '');
+      .replace(
+        /[^\d+]/g,
+        ''
+      );
   }
 
+  isPhoneValid():
+    boolean {
+    const raw =
+      this.cleanPhone();
 
-  isPhoneValid(): boolean {
-
-    let phone = this.cleanPhone();
-
-
-    /*
-     * 555123456
-     */
-    if (/^5\d{8}$/.test(phone)) {
-      return true;
+    if (
+      !raw ||
+      !this.form.phoneCountry
+    ) {
+      return false;
     }
 
+    try {
+      const phone =
+        raw.startsWith('+')
+          ? parsePhoneNumberFromString(
+              raw
+            )
+          : parsePhoneNumberFromString(
+              raw,
+              this.form.phoneCountry
+            );
 
-    /*
-     * 995555123456
-     */
-    if (/^9955\d{8}$/.test(phone)) {
-      return true;
+      return (
+        phone?.isValid() ??
+        false
+      );
+    } catch {
+      return false;
     }
-
-
-    /*
-     * +995555123456
-     */
-    if (/^\+9955\d{8}$/.test(phone)) {
-      return true;
-    }
-
-
-    return false;
   }
 
+  private getFormattedPhone():
+    string | null {
+    const raw =
+      this.cleanPhone();
 
-  private getFormattedPhone(): string | null {
-
-    let phone = this.cleanPhone();
-
-
-    if (!phone) {
+    if (
+      !raw ||
+      !this.form.phoneCountry
+    ) {
       return null;
     }
 
+    try {
+      const phone =
+        raw.startsWith('+')
+          ? parsePhoneNumberFromString(
+              raw
+            )
+          : parsePhoneNumberFromString(
+              raw,
+              this.form.phoneCountry
+            );
 
-    /*
-     * 555123456
-     */
-    if (/^5\d{8}$/.test(phone)) {
-
-      return `+995${phone}`;
-
+      return (
+        phone?.isValid()
+          ? phone.number
+          : null
+      );
+    } catch {
+      return null;
     }
-
-
-    /*
-     * 995555123456
-     */
-    if (/^9955\d{8}$/.test(phone)) {
-
-      return `+${phone}`;
-
-    }
-
-
-    /*
-     * +995555123456
-     */
-    if (/^\+9955\d{8}$/.test(phone)) {
-
-      return phone;
-
-    }
-
-
-    return null;
   }
 
-
-  /* ==========================================
-     STEP 2
-  ========================================== */
-
-  selectMoveIn(value: string): void {
-
-    this.form.moveIn = value;
-
+  selectMoveIn(
+    value: string
+  ): void {
+    this.form.moveIn =
+      value;
   }
 
-
-  /* ==========================================
-     DISTRICTS
-  ========================================== */
-
-  toggleDistrict(district: string): void {
-
-    this.form.chooseDistrictForMe = false;
-
+  toggleDistrict(
+    district: string
+  ): void {
+    this.form.chooseDistrictForMe =
+      false;
 
     const index =
-      this.form.districts.indexOf(district);
+      this.form.districts
+        .indexOf(district);
 
-
-    if (index >= 0) {
-
-      this.form.districts.splice(
-        index,
-        1
-      );
-
+    if (
+      index >= 0
+    ) {
+      this.form.districts
+        .splice(
+          index,
+          1
+        );
     } else {
-
-      this.form.districts.push(
-        district
-      );
-
+      this.form.districts
+        .push(
+          district
+        );
     }
   }
 
-
-  toggleChooseDistrictForMe(): void {
-
+  toggleChooseDistrictForMe():
+    void {
     this.form.chooseDistrictForMe =
       !this.form.chooseDistrictForMe;
 
-
-    if (this.form.chooseDistrictForMe) {
-
-      this.form.districts = [];
-
+    if (
+      this.form.chooseDistrictForMe
+    ) {
+      this.form.districts =
+        [];
     }
   }
-
 
   isDistrictSelected(
     district: string
   ): boolean {
-
-    return this.form.districts.includes(
-      district
+    return (
+      this.form.districts
+        .includes(
+          district
+        )
     );
   }
 
-
-  /* ==========================================
-     BEDROOMS
-  ========================================== */
-
-  selectBedrooms(value: string): void {
-
-    this.form.bedrooms = value;
-
+  selectBedrooms(
+    value: string
+  ): void {
+    this.form.bedrooms =
+      value;
   }
 
-
-  /* ==========================================
-     HOUSEHOLD
-  ========================================== */
-
-  selectHousehold(value: string): void {
-
-    this.form.household = value;
-
+  selectHousehold(
+    value: string
+  ): void {
+    this.form.household =
+      value;
 
     if (
       value === 'alone' ||
       value === 'couple'
     ) {
-
-      this.form.peopleCount = null;
-
+      this.form.peopleCount =
+        null;
     }
 
+    if (
+      value !== 'family'
+    ) {
+      this.form.hasChildren =
+        null;
 
-    if (value !== 'family') {
-
-      this.form.hasChildren = null;
-
-      this.form.childrenAges = '';
-
-    }
-  }
-
-
-  /* ==========================================
-     PET
-  ========================================== */
-
-  selectPet(value: string): void {
-
-    this.form.petType = value;
-
-
-    if (value === 'none') {
-
-      this.form.petSize = '';
-
-      this.form.petCount = 1;
-
+      this.form.childrenAges =
+        '';
     }
   }
 
+  selectPet(
+    value: string
+  ): void {
+    this.form.petType =
+      value;
 
-  /* ==========================================
-     REQUIREMENTS
-  ========================================== */
+    if (
+      value === 'none'
+    ) {
+      this.form.petSize =
+        '';
+
+      this.form.petCount =
+        1;
+    }
+  }
 
   toggleRequirement(
     value: string
   ): void {
-
     const index =
-      this.form.requirements.indexOf(
-        value
-      );
+      this.form.requirements
+        .indexOf(value);
 
-
-    if (index >= 0) {
-
-      this.form.requirements.splice(
-        index,
-        1
-      );
-
+    if (
+      index >= 0
+    ) {
+      this.form.requirements
+        .splice(
+          index,
+          1
+        );
     } else {
-
-      this.form.requirements.push(
-        value
-      );
-
+      this.form.requirements
+        .push(
+          value
+        );
     }
   }
-
 
   isRequirementSelected(
     value: string
   ): boolean {
-
-    return this.form.requirements.includes(
-      value
+    return (
+      this.form.requirements
+        .includes(value)
     );
   }
-
-
-  /* ==========================================
-     LOCATIONS
-  ========================================== */
 
   toggleLocationType(
     type: string
   ): void {
-
     const index =
-      this.form.locationTypes.indexOf(
-        type
-      );
+      this.form.locationTypes
+        .indexOf(type);
 
-
-    if (index >= 0) {
-
-      this.form.locationTypes.splice(
-        index,
-        1
-      );
-
-
-      this.locationEntries =
-        this.locationEntries.filter(
-          entry =>
-            entry.type !== type
+    if (
+      index >= 0
+    ) {
+      this.form.locationTypes
+        .splice(
+          index,
+          1
         );
 
+      this.locationEntries =
+        this.locationEntries
+          .filter(
+            entry =>
+              entry.type !==
+              type
+          );
     } else {
-
-      this.form.locationTypes.push(
-        type
-      );
-
+      this.form.locationTypes
+        .push(type);
 
       this.addLocation(
         type
       );
-
     }
   }
-
 
   isLocationSelected(
     type: string
   ): boolean {
-
-    return this.form.locationTypes.includes(
-      type
+    return (
+      this.form.locationTypes
+        .includes(
+          type
+        )
     );
   }
-
 
   addLocation(
     type: string
   ): void {
-
     this.locationEntries.push({
-
       id:
         this.locationId++,
 
       type,
 
-      address: '',
-
+      address:
+        '',
     });
   }
-
 
   removeLocation(
     entry: LocationEntry
   ): void {
-
     const sameTypeEntries =
-      this.locationEntries.filter(
-        item =>
-          item.type === entry.type
-      );
+      this.locationEntries
+        .filter(
+          item =>
+            item.type ===
+            entry.type
+        );
 
-
-    /*
-     * Keep at least one address
-     * when type is selected
-     */
-    if (sameTypeEntries.length <= 1) {
+    if (
+      sameTypeEntries.length <= 1
+    ) {
       return;
     }
 
+    this.locationEntries =
+      this.locationEntries
+        .filter(
+          item =>
+            item.id !==
+            entry.id
+        );
+  }
+
+  clearLocations():
+    void {
+    this.form.locationTypes =
+      [];
 
     this.locationEntries =
-      this.locationEntries.filter(
-        item =>
-          item.id !== entry.id
-      );
+      [];
   }
-
-
-  clearLocations(): void {
-
-    this.form.locationTypes = [];
-
-    this.locationEntries = [];
-
-  }
-
-
-  /* ==========================================
-     RENTAL PERIOD
-  ========================================== */
 
   selectRentalPeriod(
     value: string
   ): void {
-
-    this.form.rentalPeriod = value;
-
+    this.form.rentalPeriod =
+      value;
   }
 
+  buildPriorities():
+    void {
+    const oldSelectedIds =
+      this.selectedPriorities
+        .map(
+          item =>
+            item.id
+        );
 
-  /* ==========================================
-     PRIORITIES
-  ========================================== */
+    const priorities:
+      PriorityItem[] =
+      this.basePriorities
+        .map(
+          item => ({
+            ...item,
 
-  buildPriorities(): void {
-
-    const oldSelected =
-      this.selectedPriorities.map(
-        item => item.label
-      );
-
-
-    const priorities: PriorityItem[] =
-      this.basePriorities.map(
-        item => ({
-
-          ...item,
-
-          selected:
-            oldSelected.includes(
-              item.label
-            ),
-
-        })
-      );
-
+            selected:
+              oldSelectedIds
+                .includes(
+                  item.id
+                ),
+          })
+        );
 
     const locationLabels:
       Record<string, string> = {
-
         'სამსახური':
           'სამსახურთან ახლოს',
 
@@ -924,154 +2050,126 @@ export class CrmQuestioner implements OnInit {
 
         'სხვა ადგილი':
           'მნიშვნელოვან ადგილთან ახლოს',
-
       };
 
+    this.form.locationTypes
+      .forEach(
+        type => {
+          const label =
+            locationLabels[type] ??
+            `${type}-თან ახლოს`;
 
-    this.form.locationTypes.forEach(
-      type => {
+          const id =
+            `location-${type}`;
 
-        const label =
-          locationLabels[type] ??
-          `${type}-თან ახლოს`;
+          if (
+            !priorities.some(
+              item =>
+                item.id === id
+            )
+          ) {
+            priorities.push({
+              id,
+              label,
 
-
-        const exists =
-          priorities.some(
-            item =>
-              item.label === label
-          );
-
-
-        if (!exists) {
-
-          priorities.push({
-
-            id:
-              `location-${type}`,
-
-            label,
-
-            selected:
-              oldSelected.includes(
-                label
-              ),
-
-          });
-
+              selected:
+                oldSelectedIds
+                  .includes(id),
+            });
+          }
         }
+      );
 
-      }
-    );
+    this.form.requirements
+      .forEach(
+        requirement => {
+          const id =
+            `requirement-${requirement}`;
 
-
-    this.form.requirements.forEach(
-      requirement => {
-
-        const exists =
-          priorities.some(
-            item =>
-              item.label
-                .toLowerCase() ===
-              requirement
-                .toLowerCase()
-          );
-
-
-        if (!exists) {
-
-          priorities.push({
-
-            id:
-              `requirement-${requirement}`,
-
-            label:
-              requirement,
-
-            selected:
-              oldSelected.includes(
+          if (
+            !priorities.some(
+              item =>
+                item.id === id ||
+                item.label
+                  .toLowerCase() ===
                 requirement
-              ),
+                  .toLowerCase()
+            )
+          ) {
+            priorities.push({
+              id,
 
-          });
+              label:
+                requirement,
 
+              selected:
+                oldSelectedIds
+                  .includes(id),
+            });
+          }
         }
-
-      }
-    );
-
+      );
 
     this.form.priorities =
       priorities;
   }
 
-
   togglePriority(
     item: PriorityItem
   ): void {
-
-    if (item.selected) {
-
-      item.selected = false;
+    if (
+      item.selected
+    ) {
+      item.selected =
+        false;
 
       return;
-
     }
-
 
     if (
-      this.selectedPriorities.length >= 5
+      this.selectedPriorities
+        .length >= 5
     ) {
-
       return;
-
     }
 
-
-    item.selected = true;
+    item.selected =
+      true;
   }
-
 
   dragStart(
     item: PriorityItem
   ): void {
-
-    if (!item.selected) {
+    if (
+      !item.selected
+    ) {
       return;
     }
-
 
     this.draggingPriority =
       item;
   }
 
-
-  dragEnd(): void {
-
+  dragEnd():
+    void {
     this.draggingPriority =
       null;
   }
 
-
   dropPriority(
     target: PriorityItem
   ): void {
-
     if (
       !this.draggingPriority ||
       !target.selected ||
       this.draggingPriority.id ===
         target.id
     ) {
-
       return;
-
     }
-
 
     const selected =
       this.selectedPriorities;
-
 
     const fromIndex =
       selected.findIndex(
@@ -1080,7 +2178,6 @@ export class CrmQuestioner implements OnInit {
           this.draggingPriority!.id
       );
 
-
     const toIndex =
       selected.findIndex(
         item =>
@@ -1088,20 +2185,15 @@ export class CrmQuestioner implements OnInit {
           target.id
       );
 
-
     if (
       fromIndex === -1 ||
       toIndex === -1
     ) {
-
       return;
-
     }
-
 
     const reordered =
       [...selected];
-
 
     const [moved] =
       reordered.splice(
@@ -1109,72 +2201,54 @@ export class CrmQuestioner implements OnInit {
         1
       );
 
-
     reordered.splice(
       toIndex,
       0,
       moved
     );
 
-
     const unselected =
-      this.form.priorities.filter(
-        item =>
-          !item.selected
-      );
-
+      this.form.priorities
+        .filter(
+          item =>
+            !item.selected
+        );
 
     this.form.priorities = [
-
       ...reordered,
-
       ...unselected,
-
     ];
-
 
     this.draggingPriority =
       null;
   }
 
-
-  /* ==========================================
-     API HELPERS
-  ========================================== */
-
   private convertBedroomsToNumber():
     number | null {
-
-    if (!this.form.bedrooms) {
-
+    if (
+      !this.form.bedrooms
+    ) {
       return null;
-
     }
 
-
     if (
-      this.form.bedrooms === 'Studio'
+      this.form.bedrooms ===
+      'Studio'
     ) {
-
       return 0;
-
     }
-
 
     if (
-      this.form.bedrooms === '4+'
+      this.form.bedrooms ===
+      '4+'
     ) {
-
       return 4;
-
     }
-
 
     const bedrooms =
       Number(
         this.form.bedrooms
       );
-
 
     return Number.isNaN(
       bedrooms
@@ -1183,33 +2257,64 @@ export class CrmQuestioner implements OnInit {
       : bedrooms;
   }
 
-
   private buildPreferences():
     string {
-
     const preferences = {
+      questionnaireVersion:
+        3,
 
-      questionnaireVersion: 2,
+      language:
+        this.language,
 
+      nationality: {
+        countryCode:
+          this.form.nationality ||
+          null,
+
+        countryName:
+          this.selectedCountry
+            ?.name ??
+          null,
+
+        callingCode:
+          this.selectedCountry
+            ?.callingCode ??
+          null,
+
+        flag:
+          this.selectedCountry
+            ?.flag ??
+          null,
+      },
+
+      phoneCountry: {
+        countryCode:
+          this.form.phoneCountry,
+
+        countryName:
+          this.selectedPhoneCountry
+            ?.name ??
+          null,
+
+        callingCode:
+          this.selectedPhoneCountry
+            ?.callingCode ??
+          null,
+      },
 
       moveIn:
         this.form.moveIn,
 
-
       flexibleBudget:
         this.form.flexibleBudget,
-
 
       chooseDistrictForMe:
         this.form.chooseDistrictForMe,
 
-
       minimumArea:
         this.form.minArea,
 
-
       household: {
-
         type:
           this.form.household,
 
@@ -1221,12 +2326,9 @@ export class CrmQuestioner implements OnInit {
 
         childrenAges:
           this.form.childrenAges,
-
       },
 
-
       pet: {
-
         type:
           this.form.petType,
 
@@ -1235,31 +2337,24 @@ export class CrmQuestioner implements OnInit {
 
         count:
           this.form.petCount,
-
       },
-
 
       requirements:
         this.form.requirements,
 
-
       importantLocations:
         this.locationEntries.map(
           location => ({
-
             type:
               location.type,
 
             address:
               location.address,
-
           })
         ),
 
-
       rentalPeriodMonths:
         this.form.rentalPeriod,
-
 
       priorities:
         this.selectedPriorities.map(
@@ -1267,7 +2362,6 @@ export class CrmQuestioner implements OnInit {
             priority,
             index
           ) => ({
-
             rank:
               index + 1,
 
@@ -1276,282 +2370,245 @@ export class CrmQuestioner implements OnInit {
 
             label:
               priority.label,
-
           })
         ),
-
     };
-
 
     return JSON.stringify(
       preferences
     );
   }
 
-
-  /* ==========================================
-     SUBMIT
-  ========================================== */
-
-  submitQuestionnaire(): void {
-
+  submitQuestionnaire():
+    void {
     if (
       this.currentStep !== 11 ||
-      this.selectedPriorities.length !== 5
+      this.selectedPriorities
+        .length !== 5 ||
+      this.isSubmitting
     ) {
-
       return;
-
     }
 
-
-    if (this.isSubmitting) {
-
-      return;
-
-    }
-
-
-    if (!this.agentToken) {
-
+    if (
+      !this.agentToken
+    ) {
       this.submitError =
-        'ქვიზის ბმული არასწორია ან აგენტთან არ არის დაკავშირებული.';
+        this.language === 'en'
+          ? 'The questionnaire link is invalid or is not connected to an agent.'
+          : this.language === 'ru'
+            ? 'Ссылка анкеты недействительна или не связана с агентом.'
+            : 'ქვიზის ბმული არასწორია ან აგენტთან არ არის დაკავშირებული.';
 
       return;
-
     }
-
 
     const formattedPhone =
       this.getFormattedPhone();
 
-
-    if (!formattedPhone) {
-
+    if (
+      !formattedPhone
+    ) {
       this.submitError =
-        'ტელეფონის ნომერი არასწორია.';
+        this.t(
+          'invalidPhone'
+        );
 
       return;
-
     }
 
+    this.isSubmitting =
+      true;
 
-    this.isSubmitting = true;
+    this.submitSuccess =
+      false;
 
-    this.submitSuccess = false;
-
-    this.submitError = '';
-
+    this.submitError =
+      '';
 
     const submitUrl =
       `${this.apiBaseUrl}/questionnaire-leads/${encodeURIComponent(this.agentToken)}`;
 
-
     const payload:
       CrmLeadRequest = {
+        fullName:
+          this.form.fullName
+            .trim(),
 
-      fullName:
-        this.form.fullName.trim(),
+        email:
+          null,
 
-      /*
-       * We are NOT asking for email,
-       * so send null instead of ""
-       */
-      email:
-        null,
+        phoneNumber:
+          formattedPhone,
 
-      phoneNumber:
-        formattedPhone,
+        source:
+          'website',
 
-      source:
-        'website',
+        status:
+          'new',
 
-      status:
-        'new',
+        goal:
+          'rent',
 
-      goal:
-        'rent',
+        preferredContactMethod:
+          'phone',
 
-      preferredContactMethod:
-        'phone',
+        preferredDistricts:
+          this.form.chooseDistrictForMe
+            ? []
+            : [
+                ...this.form.districts,
+              ],
 
-      preferredDistricts:
-        this.form.chooseDistrictForMe
-          ? []
-          : [...this.form.districts],
+        preferredPropertyType:
+          'Apartment',
 
-      preferredPropertyType:
-        'Apartment',
+        bedrooms:
+          this.convertBedroomsToNumber(),
 
-      bedrooms:
-        this.convertBedroomsToNumber(),
+        budgetMin:
+          this.form.budgetMin,
 
-      budgetMin:
-        this.form.budgetMin,
+        budgetMax:
+          this.form.budgetMax,
 
-      budgetMax:
-        this.form.budgetMax,
+        currency:
+          'USD',
 
-      currency:
-        'USD',
+        preferences:
+          this.buildPreferences(),
 
-      preferences:
-        this.buildPreferences(),
+        message:
+          'Lead created from Velven apartment questionnaire.',
 
-      message:
-        'Lead created from Velven apartment questionnaire.',
+        requestedViewingAt:
+          null,
 
-      requestedViewingAt:
-        null,
+        apartmentId:
+          null,
 
-      apartmentId:
-        null,
+        customerUserId:
+          null,
 
-      customerUserId:
-        null,
+        assignedAgentId:
+          null,
 
-      assignedAgentId:
-        null,
-
-      consentGiven:
-        true,
-
-    };
-
+        consentGiven:
+          true,
+      };
 
     console.log(
       'QUESTIONNAIRE LEAD PAYLOAD:',
       payload
     );
 
+    this.http
+      .post(
+        submitUrl,
+        payload,
+        {
+          responseType:
+            'text',
+        }
+      )
+      .subscribe({
+        next:
+          response => {
+            console.log(
+              'CRM lead created:',
+              response
+            );
 
-    this.http.post(
-      submitUrl,
-      payload,
-      {
-        responseType: 'text',
-      }
-    )
-    .subscribe({
+            this.isSubmitting =
+              false;
 
-      next: response => {
-
-        console.log(
-          'CRM lead created:',
-          response
-        );
-
-
-        this.isSubmitting =
-          false;
-
-        this.submitSuccess =
-          true;
-
-        this.submitError =
-          '';
-
-
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth',
-        });
-
-      },
-
-
-      error: error => {
-
-        console.error(
-          'CRM API ERROR:',
-          error
-        );
-
-
-        this.isSubmitting =
-          false;
-
-        this.submitSuccess =
-          false;
-
-
-        /*
-         * ASP.NET may return JSON
-         * inside a string
-         */
-        if (
-          typeof error?.error ===
-          'string'
-        ) {
-
-          try {
-
-            const parsed =
-              JSON.parse(
-                error.error
-              );
-
-
-            if (
-              parsed?.errors
-            ) {
-
-              const messages =
-                Object.values(
-                  parsed.errors
-                )
-                .flat()
-                .join(' ');
-
-
-              this.submitError =
-                messages ||
-                'მოთხოვნის გაგზავნა ვერ მოხერხდა.';
-
-
-              return;
-
-            }
-
-
-            if (parsed?.message) {
-
-              this.submitError =
-                parsed.message;
-
-              return;
-
-            }
-
-
-            if (parsed?.title) {
-
-              this.submitError =
-                parsed.title;
-
-              return;
-
-            }
-
-          } catch {
+            this.submitSuccess =
+              true;
 
             this.submitError =
-              error.error;
+              '';
 
-            return;
+            window.scrollTo({
+              top: 0,
+              behavior:
+                'smooth',
+            });
+          },
 
-          }
+        error:
+          error => {
+            console.error(
+              'CRM API ERROR:',
+              error
+            );
 
-        }
+            this.isSubmitting =
+              false;
 
+            this.submitSuccess =
+              false;
 
-        this.submitError =
-          error?.error?.message ||
-          error?.error?.title ||
-          'მოთხოვნის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.';
+            if (
+              typeof error?.error ===
+              'string'
+            ) {
+              try {
+                const parsed =
+                  JSON.parse(
+                    error.error
+                  );
 
-      },
+                if (
+                  parsed?.errors
+                ) {
+                  const messages =
+                    Object.values(
+                      parsed.errors
+                    )
+                      .flat()
+                      .join(' ');
 
-    });
+                  this.submitError =
+                    messages ||
+                    this.t(
+                      'errorTitle'
+                    );
+
+                  return;
+                }
+
+                if (
+                  parsed?.message
+                ) {
+                  this.submitError =
+                    parsed.message;
+
+                  return;
+                }
+
+                if (
+                  parsed?.title
+                ) {
+                  this.submitError =
+                    parsed.title;
+
+                  return;
+                }
+              } catch {
+                this.submitError =
+                  error.error;
+
+                return;
+              }
+            }
+
+            this.submitError =
+              error?.error?.message ||
+              error?.error?.title ||
+              this.t(
+                'errorTitle'
+              );
+          },
+      });
   }
 }
