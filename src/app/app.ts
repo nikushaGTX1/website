@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, HostListener, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  HostListener,
+  signal
+} from '@angular/core';
+
+import { Router } from '@angular/router';
+
 import { TranslationService } from './services/translation.service';
 import { SeoService } from './services/seo.service';
 
@@ -9,11 +17,13 @@ import { SeoService } from './services/seo.service';
   styleUrl: './app.css'
 })
 export class App implements AfterViewInit {
+
   protected readonly title = signal('site');
 
   constructor(
     private translation: TranslationService,
     private seo: SeoService,
+    private router: Router
   ) {
     this.seo.start();
   }
@@ -24,18 +34,35 @@ export class App implements AfterViewInit {
 
   @HostListener('document:contextmenu', ['$event'])
   preventProtectedImageMenu(event: MouseEvent): void {
-    const target = event.target as Element | null;
-    if (target?.closest('[data-protected-image], [data-protected-photo]')) {
+    const target =
+      event.target as Element | null;
+
+    if (
+      target?.closest(
+        '[data-protected-image], [data-protected-photo]'
+      )
+    ) {
       event.preventDefault();
     }
   }
 
   @HostListener('document:dragstart', ['$event'])
   preventProtectedImageDrag(event: DragEvent): void {
-    const target = event.target as Element | null;
-    if (target?.closest('[data-protected-image], [data-protected-photo]')) {
+    const target =
+      event.target as Element | null;
+
+    if (
+      target?.closest(
+        '[data-protected-image], [data-protected-photo]'
+      )
+    ) {
       event.preventDefault();
     }
   }
 
+  get showNavigation(): boolean {
+    return !this.router.url.startsWith(
+      '/crm-questioner'
+    );
+  }
 }

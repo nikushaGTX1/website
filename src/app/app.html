@@ -1,7 +1,23 @@
-<a class="skip-link" href="#main-content">Skip to main content</a>
-<app-navigation></app-navigation>
+<a
+  class="skip-link"
+  href="#main-content"
+  *ngIf="showNavigation"
+>
+  Skip to main content
+</a>
 
-<div id="main-content" class="route-content" tabindex="-1">
+<app-navigation
+  *ngIf="showNavigation"
+></app-navigation>
+
+<div
+  id="main-content"
+  class="route-content"
+  tabindex="-1"
+>
   <router-outlet></router-outlet>
 </div>
-<app-footer></app-footer>
+
+<app-footer
+  *ngIf="showNavigation"
+></app-footer>
