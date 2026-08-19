@@ -61,6 +61,35 @@ interface CrmLeadRequest {
 })
 export class CrmQuestioner implements OnInit {
 
+  toggleCountryDropdown(): void {
+  /*
+   * Close phone-country dropdown first.
+   */
+  this.phoneCountryDropdownOpen = false;
+  this.phoneCountrySearch = '';
+
+  /*
+   * Toggle nationality dropdown.
+   */
+  this.countryDropdownOpen =
+    !this.countryDropdownOpen;
+}
+
+
+togglePhoneCountryDropdown(): void {
+  /*
+   * Close nationality dropdown first.
+   */
+  this.countryDropdownOpen = false;
+  this.countrySearch = '';
+
+  /*
+   * Toggle phone-country dropdown.
+   */
+  this.phoneCountryDropdownOpen =
+    !this.phoneCountryDropdownOpen;
+}
+
   get phonePlaceholder(): string {
   const country = this.form.phoneCountry;
 

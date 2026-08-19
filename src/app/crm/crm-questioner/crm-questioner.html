@@ -117,10 +117,7 @@
                 type="button"
                 class="country-select"
                 [class.open]="countryDropdownOpen"
-                (click)="
-                  countryDropdownOpen =
-                    !countryDropdownOpen
-                "
+                (click)="toggleCountryDropdown()"
               >
 
                 <ng-container
@@ -283,10 +280,7 @@
                 <button
                   type="button"
                   class="phone-prefix-button"
-                  (click)="
-                    phoneCountryDropdownOpen =
-                      !phoneCountryDropdownOpen
-                  "
+                  (click)="togglePhoneCountryDropdown()"
                 >
 
                   <ng-container
@@ -452,28 +446,21 @@
           {{ t('step') }} 2
         </div>
 
-
         <h1>
           {{ t('moveTitle') }}
         </h1>
 
-
         <p class="subtitle">
           {{ t('moveSubtitle') }}
         </p>
-
 
         <div class="option-grid">
 
           <button
             type="button"
             class="choice-card"
-            [class.active]="
-              form.moveIn === 'today'
-            "
-            (click)="
-              selectMoveIn('today')
-            "
+            [class.active]="form.moveIn === 'today'"
+            (click)="selectMoveIn('today')"
           >
 
             <span class="choice-icon">
@@ -481,7 +468,6 @@
             </span>
 
             <span>
-
               <strong>
                 {{ t('moveToday') }}
               </strong>
@@ -489,7 +475,6 @@
               <small>
                 {{ t('moveTodaySmall') }}
               </small>
-
             </span>
 
           </button>
@@ -498,12 +483,8 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="
-              form.moveIn === 'week'
-            "
-            (click)="
-              selectMoveIn('week')
-            "
+            [class.active]="form.moveIn === 'week'"
+            (click)="selectMoveIn('week')"
           >
 
             <span class="choice-icon">
@@ -511,7 +492,6 @@
             </span>
 
             <span>
-
               <strong>
                 {{ t('moveWeek') }}
               </strong>
@@ -519,7 +499,6 @@
               <small>
                 {{ t('moveWeekSmall') }}
               </small>
-
             </span>
 
           </button>
@@ -529,13 +508,10 @@
             type="button"
             class="choice-card"
             [class.active]="
-              form.moveIn ===
-              '2-4-weeks'
+              form.moveIn === '2-4-weeks'
             "
             (click)="
-              selectMoveIn(
-                '2-4-weeks'
-              )
+              selectMoveIn('2-4-weeks')
             "
           >
 
@@ -544,7 +520,6 @@
             </span>
 
             <span>
-
               <strong>
                 {{ t('move24') }}
               </strong>
@@ -552,7 +527,6 @@
               <small>
                 {{ t('move24Small') }}
               </small>
-
             </span>
 
           </button>
@@ -562,13 +536,10 @@
             type="button"
             class="choice-card"
             [class.active]="
-              form.moveIn ===
-              '1-3-months'
+              form.moveIn === '1-3-months'
             "
             (click)="
-              selectMoveIn(
-                '1-3-months'
-              )
+              selectMoveIn('1-3-months')
             "
           >
 
@@ -577,7 +548,6 @@
             </span>
 
             <span>
-
               <strong>
                 {{ t('move13m') }}
               </strong>
@@ -585,7 +555,6 @@
               <small>
                 {{ t('move13mSmall') }}
               </small>
-
             </span>
 
           </button>
@@ -595,13 +564,10 @@
             type="button"
             class="choice-card full-width"
             [class.active]="
-              form.moveIn ===
-              'browsing'
+              form.moveIn === 'browsing'
             "
             (click)="
-              selectMoveIn(
-                'browsing'
-              )
+              selectMoveIn('browsing')
             "
           >
 
@@ -610,7 +576,6 @@
             </span>
 
             <span>
-
               <strong>
                 {{ t('moveBrowse') }}
               </strong>
@@ -618,7 +583,6 @@
               <small>
                 {{ t('moveBrowseSmall') }}
               </small>
-
             </span>
 
           </button>
@@ -641,16 +605,13 @@
           {{ t('step') }} 3
         </div>
 
-
         <h1>
           {{ t('budgetTitle') }}
         </h1>
 
-
         <p class="subtitle">
           {{ t('budgetSubtitle') }}
         </p>
-
 
         <div class="budget-row">
 
@@ -669,7 +630,9 @@
               <input
                 type="number"
                 placeholder="500"
-                [(ngModel)]="form.budgetMin"
+                [(ngModel)]="
+                  form.budgetMin
+                "
               />
 
             </div>
@@ -697,7 +660,9 @@
               <input
                 type="number"
                 placeholder="1200"
-                [(ngModel)]="form.budgetMax"
+                [(ngModel)]="
+                  form.budgetMax
+                "
               />
 
             </div>
@@ -716,7 +681,8 @@
             "
           />
 
-          <span class="fake-switch"></span>
+          <span class="fake-switch">
+          </span>
 
           <span>
 
@@ -748,11 +714,9 @@
           {{ t('step') }} 4
         </div>
 
-
         <h1>
           {{ t('districtsTitle') }}
         </h1>
-
 
         <p class="subtitle">
           {{ t('districtsSubtitle') }}
@@ -842,11 +806,9 @@
           {{ t('step') }} 5
         </div>
 
-
         <h1>
           {{ t('bedroomsTitle') }}
         </h1>
-
 
         <p class="subtitle">
           {{ t('bedroomsSubtitle') }}
@@ -868,7 +830,8 @@
             type="button"
             class="number-choice"
             [class.active]="
-              form.bedrooms === bedroom
+              form.bedrooms ===
+              bedroom
             "
             (click)="
               selectBedrooms(
@@ -882,7 +845,8 @@
         </div>
 
 
-        <div class="section-divider"></div>
+        <div class="section-divider">
+        </div>
 
 
         <label class="input-group">
@@ -893,6 +857,7 @@
             <em>
               {{ t('optional') }}
             </em>
+
           </span>
 
 
@@ -901,7 +866,9 @@
             <input
               type="number"
               placeholder="60"
-              [(ngModel)]="form.minArea"
+              [(ngModel)]="
+                form.minArea
+              "
             />
 
             <span>
@@ -928,11 +895,9 @@
           {{ t('step') }} 6
         </div>
 
-
         <h1>
           {{ t('householdTitle') }}
         </h1>
-
 
         <p class="subtitle">
           {{ t('householdSubtitle') }}
@@ -1096,10 +1061,12 @@
             <button
               type="button"
               [class.active]="
-                form.hasChildren === true
+                form.hasChildren ===
+                true
               "
               (click)="
-                form.hasChildren = true
+                form.hasChildren =
+                  true
               "
             >
               {{ t('yes') }}
@@ -1109,11 +1076,14 @@
             <button
               type="button"
               [class.active]="
-                form.hasChildren === false
+                form.hasChildren ===
+                false
               "
               (click)="
-                form.hasChildren = false;
-                form.childrenAges = ''
+                form.hasChildren =
+                  false;
+                form.childrenAges =
+                  ''
               "
             >
               {{ t('no') }}
@@ -1124,7 +1094,8 @@
 
           <label
             *ngIf="
-              form.hasChildren === true
+              form.hasChildren ===
+              true
             "
             class="input-group nested-input"
           >
@@ -1166,11 +1137,9 @@
           {{ t('step') }} 7
         </div>
 
-
         <h1>
           {{ t('petsTitle') }}
         </h1>
-
 
         <p class="subtitle">
           {{ t('petsSubtitle') }}
@@ -1261,7 +1230,8 @@
         <div
           class="conditional-box"
           *ngIf="
-            form.petType !== 'none'
+            form.petType !==
+            'none'
           "
         >
 
@@ -1326,11 +1296,9 @@
           {{ t('step') }} 8
         </div>
 
-
         <h1>
           {{ t('requirementsTitle') }}
         </h1>
-
 
         <p class="subtitle">
           {{ t('requirementsSubtitle') }}
@@ -1394,11 +1362,9 @@
           {{ t('step') }} 9
         </div>
 
-
         <h1>
           {{ t('locationsTitle') }}
         </h1>
-
 
         <p class="subtitle">
           {{ t('locationsSubtitle') }}
@@ -1518,6 +1484,7 @@
               "
             >
               {{ t('addAnother') }}
+
               {{
                 translateOption(
                   entry.type
@@ -1557,11 +1524,9 @@
           {{ t('step') }} 10
         </div>
 
-
         <h1>
           {{ t('rentalTitle') }}
         </h1>
-
 
         <p class="subtitle">
           {{ t('rentalSubtitle') }}
@@ -1643,11 +1608,9 @@
           {{ t('lastStep') }}
         </div>
 
-
         <h1>
           {{ t('prioritiesTitle') }}
         </h1>
-
 
         <p class="subtitle">
           {{ t('prioritiesSubtitle') }}
@@ -1697,7 +1660,9 @@
             class="ranked-item"
             draggable="true"
             (dragstart)="
-              dragStart(priority)
+              dragStart(
+                priority
+              )
             "
             (dragend)="
               dragEnd()
@@ -1706,7 +1671,9 @@
               $event.preventDefault()
             "
             (drop)="
-              dropPriority(priority)
+              dropPriority(
+                priority
+              )
             "
           >
 
@@ -1731,7 +1698,8 @@
         </div>
 
 
-        <div class="section-divider"></div>
+        <div class="section-divider">
+        </div>
 
 
         <h3 class="small-heading">
