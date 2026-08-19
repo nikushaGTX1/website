@@ -76,383 +76,380 @@
 
 
       <!-- ================================================= -->
-<!-- STEP 1 - PERSONAL INFORMATION -->
-<!-- ================================================= -->
+      <!-- STEP 1 - PERSONAL INFORMATION -->
+      <!-- ================================================= -->
 
-<section
-  *ngIf="currentStep === 1"
-  class="step-content"
->
+      <section
+        *ngIf="currentStep === 1"
+        class="step-content"
+      >
 
-  <div class="step-label">
-    {{ t('step') }} 1
-  </div>
-
-  <h1>
-    {{ t('contactTitle') }}
-  </h1>
-
-  <p class="subtitle">
-    {{ t('personalInfoSubtitle') }}
-  </p>
-
-
-  <div class="contact-first-step">
-
-
-    <!-- ============================================== -->
-    <!-- NATIONALITY -->
-    <!-- ============================================== -->
-
-    <div class="nationality-container">
-
-      <label class="input-group">
-
-        <span>
-          {{ t('nationality') }}
-        </span>
-
-
-        <button
-          type="button"
-          class="country-select"
-          [class.open]="countryDropdownOpen"
-          (click)="
-            countryDropdownOpen =
-              !countryDropdownOpen
-          "
-        >
-
-          <ng-container
-            *ngIf="
-              selectedCountry as country;
-              else noCountrySelected
-            "
-          >
-
-            <span class="country-left">
-
-              <span class="country-flag">
-                {{ country.flag }}
-              </span>
-
-              <span class="country-name">
-                {{ country.name }}
-              </span>
-
-            </span>
-
-
-            <span class="country-code">
-              {{ country.callingCode }}
-            </span>
-
-          </ng-container>
-
-
-          <ng-template
-            #noCountrySelected
-          >
-
-            <span class="country-placeholder">
-              🌍 {{ t('chooseCountry') }}
-            </span>
-
-          </ng-template>
-
-
-          <span class="country-chevron">
-            ▾
-          </span>
-
-        </button>
-
-
-        <div
-          *ngIf="countryDropdownOpen"
-          class="country-dropdown"
-        >
-
-          <div class="country-search">
-
-            <span>
-              🔎
-            </span>
-
-            <input
-              type="text"
-              [(ngModel)]="countrySearch"
-              [placeholder]="t('searchCountry')"
-              autocomplete="off"
-            />
-
-          </div>
-
-
-          <div class="country-list">
-
-            <button
-              *ngFor="
-                let country
-                of filteredCountries
-              "
-              type="button"
-              class="country-option"
-              [class.active]="
-                form.nationality ===
-                country.code
-              "
-              (click)="
-                selectNationality(
-                  country
-                )
-              "
-            >
-
-              <span class="country-left">
-
-                <span class="country-flag">
-                  {{ country.flag }}
-                </span>
-
-                <span class="country-name">
-                  {{ country.name }}
-                </span>
-
-              </span>
-
-
-              <span class="country-code">
-                {{ country.callingCode }}
-              </span>
-
-            </button>
-
-          </div>
-
+        <div class="step-label">
+          {{ t('step') }} 1
         </div>
 
-      </label>
 
-    </div>
-
-
-    <!-- ============================================== -->
-    <!-- FULL NAME -->
-    <!-- ============================================== -->
-
-    <label class="input-group">
-
-      <span>
-        {{ t('fullName') }}
-      </span>
+        <h1>
+          {{ t('contactTitle') }}
+        </h1>
 
 
-      <div class="contact-input">
-
-        <span class="contact-input-icon">
-          👤
-        </span>
+        <p class="subtitle">
+          {{ t('personalInfoSubtitle') }}
+        </p>
 
 
-        <input
-          type="text"
-          [placeholder]="
-            t('fullNamePlaceholder')
-          "
-          [(ngModel)]="form.fullName"
-          autocomplete="name"
-        />
-
-      </div>
-
-    </label>
+        <div class="contact-first-step">
 
 
-    <!-- ============================================== -->
-    <!-- PHONE -->
-    <!-- ============================================== -->
+          <!-- NATIONALITY -->
 
-    <label class="input-group">
+          <div class="nationality-container">
 
-      <span>
-        {{ t('phone') }}
-      </span>
-
-
-      <div class="phone-combined-field">
-
-
-        <div class="phone-country-picker">
-
-          <button
-            type="button"
-            class="phone-prefix-button"
-            (click)="
-              phoneCountryDropdownOpen =
-                !phoneCountryDropdownOpen
-            "
-          >
-
-            <ng-container
-              *ngIf="
-                selectedPhoneCountry
-                as phoneCountry
-              "
-            >
-
-              <span class="phone-flag">
-                {{ phoneCountry.flag }}
-              </span>
+            <label class="input-group">
 
               <span>
-                {{ phoneCountry.callingCode }}
+                {{ t('nationality') }}
               </span>
 
-              <span class="phone-chevron">
-                ▾
+
+              <button
+                type="button"
+                class="country-select"
+                [class.open]="countryDropdownOpen"
+                (click)="
+                  countryDropdownOpen =
+                    !countryDropdownOpen
+                "
+              >
+
+                <ng-container
+                  *ngIf="
+                    selectedCountry as country;
+                    else noCountrySelected
+                  "
+                >
+
+                  <span class="country-left">
+
+                    <span class="country-flag">
+                      {{ country.flag }}
+                    </span>
+
+                    <span class="country-name">
+                      {{ country.name }}
+                    </span>
+
+                  </span>
+
+
+                  <span class="country-code">
+                    {{ country.callingCode }}
+                  </span>
+
+                </ng-container>
+
+
+                <ng-template
+                  #noCountrySelected
+                >
+
+                  <span class="country-placeholder">
+                    🌍 {{ t('chooseCountry') }}
+                  </span>
+
+                </ng-template>
+
+
+                <span class="country-chevron">
+                  ▾
+                </span>
+
+              </button>
+
+
+              <div
+                *ngIf="countryDropdownOpen"
+                class="country-dropdown"
+              >
+
+                <div class="country-search">
+
+                  <span>
+                    🔎
+                  </span>
+
+                  <input
+                    type="text"
+                    [(ngModel)]="countrySearch"
+                    [placeholder]="t('searchCountry')"
+                    autocomplete="off"
+                  />
+
+                </div>
+
+
+                <div class="country-list">
+
+                  <button
+                    *ngFor="
+                      let country
+                      of filteredCountries
+                    "
+                    type="button"
+                    class="country-option"
+                    [class.active]="
+                      form.nationality ===
+                      country.code
+                    "
+                    (click)="
+                      selectNationality(
+                        country
+                      )
+                    "
+                  >
+
+                    <span class="country-left">
+
+                      <span class="country-flag">
+                        {{ country.flag }}
+                      </span>
+
+                      <span class="country-name">
+                        {{ country.name }}
+                      </span>
+
+                    </span>
+
+
+                    <span class="country-code">
+                      {{ country.callingCode }}
+                    </span>
+
+                  </button>
+
+                </div>
+
+              </div>
+
+            </label>
+
+          </div>
+
+
+          <!-- FULL NAME -->
+
+          <label class="input-group">
+
+            <span>
+              {{ t('fullName') }}
+            </span>
+
+
+            <div class="contact-input">
+
+              <span class="contact-input-icon">
+                👤
               </span>
 
-            </ng-container>
-
-          </button>
-
-
-          <div
-            *ngIf="
-              phoneCountryDropdownOpen
-            "
-            class="phone-country-dropdown"
-          >
-
-            <div class="country-search">
-
-              <span>
-                🔎
-              </span>
 
               <input
                 type="text"
-                [(ngModel)]="
-                  phoneCountrySearch
-                "
                 [placeholder]="
-                  t('searchCountry')
+                  t('fullNamePlaceholder')
                 "
-                autocomplete="off"
+                [(ngModel)]="form.fullName"
+                autocomplete="name"
+              />
+
+            </div>
+
+          </label>
+
+
+          <!-- PHONE -->
+
+          <label class="input-group">
+
+            <span>
+              {{ t('phone') }}
+            </span>
+
+
+            <div class="phone-combined-field">
+
+              <div class="phone-country-picker">
+
+                <button
+                  type="button"
+                  class="phone-prefix-button"
+                  (click)="
+                    phoneCountryDropdownOpen =
+                      !phoneCountryDropdownOpen
+                  "
+                >
+
+                  <ng-container
+                    *ngIf="
+                      selectedPhoneCountry
+                      as phoneCountry
+                    "
+                  >
+
+                    <span class="phone-flag">
+                      {{ phoneCountry.flag }}
+                    </span>
+
+                    <span>
+                      {{ phoneCountry.callingCode }}
+                    </span>
+
+                    <span class="phone-chevron">
+                      ▾
+                    </span>
+
+                  </ng-container>
+
+                </button>
+
+
+                <div
+                  *ngIf="
+                    phoneCountryDropdownOpen
+                  "
+                  class="phone-country-dropdown"
+                >
+
+                  <div class="country-search">
+
+                    <span>
+                      🔎
+                    </span>
+
+                    <input
+                      type="text"
+                      [(ngModel)]="
+                        phoneCountrySearch
+                      "
+                      [placeholder]="
+                        t('searchCountry')
+                      "
+                      autocomplete="off"
+                    />
+
+                  </div>
+
+
+                  <div class="country-list">
+
+                    <button
+                      *ngFor="
+                        let country
+                        of filteredPhoneCountries
+                      "
+                      type="button"
+                      class="country-option"
+                      [class.active]="
+                        form.phoneCountry ===
+                        country.code
+                      "
+                      (click)="
+                        selectPhoneCountry(
+                          country
+                        )
+                      "
+                    >
+
+                      <span class="country-left">
+
+                        <span class="country-flag">
+                          {{ country.flag }}
+                        </span>
+
+                        <span class="country-name">
+                          {{ country.name }}
+                        </span>
+
+                      </span>
+
+
+                      <span class="country-code">
+                        {{ country.callingCode }}
+                      </span>
+
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <input
+                class="phone-number-input"
+                type="tel"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="15"
+                placeholder="Phone number"
+                [(ngModel)]="form.phoneNumber"
+                (input)="onPhoneInput($event)"
+                autocomplete="tel"
               />
 
             </div>
 
 
-            <div class="country-list">
+            <small
+              class="input-helper"
+              *ngIf="
+                form.phoneNumber &&
+                !isPhoneValid()
+              "
+            >
+              {{ t('invalidPhone') }}
+            </small>
 
-              <button
-                *ngFor="
-                  let country
-                  of filteredPhoneCountries
-                "
-                type="button"
-                class="country-option"
-                [class.active]="
-                  form.phoneCountry ===
-                  country.code
-                "
-                (click)="
-                  selectPhoneCountry(
-                    country
-                  )
-                "
-              >
+          </label>
 
-                <span class="country-left">
-
-                  <span class="country-flag">
-                    {{ country.flag }}
-                  </span>
-
-                  <span class="country-name">
-                    {{ country.name }}
-                  </span>
-
-                </span>
+        </div>
 
 
-                <span class="country-code">
-                  {{ country.callingCode }}
-                </span>
+        <div class="contact-privacy">
 
-              </button>
+          <span>
+            🔒
+          </span>
 
-            </div>
+          <div>
+
+            <strong>
+              {{ t('privacyTitle') }}
+            </strong>
+
+            <p>
+              {{ t('privacyText') }}
+            </p>
 
           </div>
 
         </div>
 
+      </section>
 
-        <input
-          class="phone-number-input"
-          type="tel"
-          inputmode="tel"
-          placeholder="555 12 34 56"
-          [(ngModel)]="
-            form.phoneNumber
-          "
-          autocomplete="tel"
-        />
-
-      </div>
-
-
-      <small
-        class="input-helper"
-        *ngIf="
-          form.phoneNumber &&
-          !isPhoneValid()
-        "
-      >
-        {{ t('invalidPhone') }}
-      </small>
-
-    </label>
-
-  </div>
-
-
-  <div class="contact-privacy">
-
-    <span>
-      🔒
-    </span>
-
-    <div>
-
-      <strong>
-        {{ t('privacyTitle') }}
-      </strong>
-
-      <p>
-        {{ t('privacyText') }}
-      </p>
-
-    </div>
-
-  </div>
-
-</section>
 
       <!-- ================================================= -->
-      <!-- STEP 3 - MOVE IN -->
+      <!-- STEP 2 - MOVE IN -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 3"
+        *ngIf="currentStep === 2"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 3
+          {{ t('step') }} 2
         </div>
 
 
@@ -632,16 +629,16 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 4 - BUDGET -->
+      <!-- STEP 3 - BUDGET -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 4"
+        *ngIf="currentStep === 3"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 4
+          {{ t('step') }} 3
         </div>
 
 
@@ -739,16 +736,16 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 5 - DISTRICTS -->
+      <!-- STEP 4 - DISTRICTS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 5"
+        *ngIf="currentStep === 4"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 5
+          {{ t('step') }} 4
         </div>
 
 
@@ -766,7 +763,8 @@
 
           <button
             *ngFor="
-              let district of districts
+              let district
+              of districts
             "
             type="button"
             class="chip"
@@ -832,16 +830,16 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 6 - BEDROOMS -->
+      <!-- STEP 5 - BEDROOMS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 6"
+        *ngIf="currentStep === 5"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 6
+          {{ t('step') }} 5
         </div>
 
 
@@ -870,8 +868,7 @@
             type="button"
             class="number-choice"
             [class.active]="
-              form.bedrooms ===
-              bedroom
+              form.bedrooms === bedroom
             "
             (click)="
               selectBedrooms(
@@ -919,16 +916,16 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 7 - HOUSEHOLD -->
+      <!-- STEP 6 - HOUSEHOLD -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 7"
+        *ngIf="currentStep === 6"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 7
+          {{ t('step') }} 6
         </div>
 
 
@@ -1099,12 +1096,10 @@
             <button
               type="button"
               [class.active]="
-                form.hasChildren ===
-                true
+                form.hasChildren === true
               "
               (click)="
-                form.hasChildren =
-                  true
+                form.hasChildren = true
               "
             >
               {{ t('yes') }}
@@ -1114,14 +1109,11 @@
             <button
               type="button"
               [class.active]="
-                form.hasChildren ===
-                false
+                form.hasChildren === false
               "
               (click)="
-                form.hasChildren =
-                  false;
-                form.childrenAges =
-                  ''
+                form.hasChildren = false;
+                form.childrenAges = ''
               "
             >
               {{ t('no') }}
@@ -1132,8 +1124,7 @@
 
           <label
             *ngIf="
-              form.hasChildren ===
-              true
+              form.hasChildren === true
             "
             class="input-group nested-input"
           >
@@ -1163,16 +1154,16 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 8 - PETS -->
+      <!-- STEP 7 - PETS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 8"
+        *ngIf="currentStep === 7"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 8
+          {{ t('step') }} 7
         </div>
 
 
@@ -1191,8 +1182,7 @@
           <button
             type="button"
             [class.active]="
-              form.petType ===
-              'none'
+              form.petType === 'none'
             "
             (click)="
               selectPet('none')
@@ -1211,8 +1201,7 @@
           <button
             type="button"
             [class.active]="
-              form.petType ===
-              'dog'
+              form.petType === 'dog'
             "
             (click)="
               selectPet('dog')
@@ -1231,8 +1220,7 @@
           <button
             type="button"
             [class.active]="
-              form.petType ===
-              'cat'
+              form.petType === 'cat'
             "
             (click)="
               selectPet('cat')
@@ -1273,8 +1261,7 @@
         <div
           class="conditional-box"
           *ngIf="
-            form.petType !==
-            'none'
+            form.petType !== 'none'
           "
         >
 
@@ -1327,16 +1314,16 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 9 - REQUIREMENTS -->
+      <!-- STEP 8 - REQUIREMENTS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 9"
+        *ngIf="currentStep === 8"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 9
+          {{ t('step') }} 8
         </div>
 
 
@@ -1395,16 +1382,16 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 10 - IMPORTANT LOCATIONS -->
+      <!-- STEP 9 - IMPORTANT LOCATIONS -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 10"
+        *ngIf="currentStep === 9"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 10
+          {{ t('step') }} 9
         </div>
 
 
@@ -1558,16 +1545,16 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 11 - RENTAL PERIOD -->
+      <!-- STEP 10 - RENTAL PERIOD -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 11"
+        *ngIf="currentStep === 10"
         class="step-content"
       >
 
         <div class="step-label">
-          {{ t('step') }} 11
+          {{ t('step') }} 10
         </div>
 
 
@@ -1587,13 +1574,10 @@
             type="button"
             class="rental-card"
             [class.active]="
-              form.rentalPeriod ===
-              '3'
+              form.rentalPeriod === '3'
             "
             (click)="
-              selectRentalPeriod(
-                '3'
-              )
+              selectRentalPeriod('3')
             "
           >
             {{ t('months3') }}
@@ -1604,13 +1588,10 @@
             type="button"
             class="rental-card"
             [class.active]="
-              form.rentalPeriod ===
-              '6'
+              form.rentalPeriod === '6'
             "
             (click)="
-              selectRentalPeriod(
-                '6'
-              )
+              selectRentalPeriod('6')
             "
           >
             {{ t('months6') }}
@@ -1621,13 +1602,10 @@
             type="button"
             class="rental-card"
             [class.active]="
-              form.rentalPeriod ===
-              '12'
+              form.rentalPeriod === '12'
             "
             (click)="
-              selectRentalPeriod(
-                '12'
-              )
+              selectRentalPeriod('12')
             "
           >
             {{ t('months12') }}
@@ -1638,13 +1616,10 @@
             type="button"
             class="rental-card"
             [class.active]="
-              form.rentalPeriod ===
-              '12+'
+              form.rentalPeriod === '12+'
             "
             (click)="
-              selectRentalPeriod(
-                '12+'
-              )
+              selectRentalPeriod('12+')
             "
           >
             {{ t('months12plus') }}
@@ -1656,11 +1631,11 @@
 
 
       <!-- ================================================= -->
-      <!-- STEP 12 - TOP 5 -->
+      <!-- STEP 11 - TOP 5 -->
       <!-- ================================================= -->
 
       <section
-        *ngIf="currentStep === 12"
+        *ngIf="currentStep === 11"
         class="step-content"
       >
 
@@ -1722,9 +1697,7 @@
             class="ranked-item"
             draggable="true"
             (dragstart)="
-              dragStart(
-                priority
-              )
+              dragStart(priority)
             "
             (dragend)="
               dragEnd()
@@ -1733,9 +1706,7 @@
               $event.preventDefault()
             "
             (drop)="
-              dropPriority(
-                priority
-              )
+              dropPriority(priority)
             "
           >
 

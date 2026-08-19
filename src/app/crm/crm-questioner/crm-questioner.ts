@@ -6,7 +6,8 @@ import {
   getCountries,
   getCountryCallingCode,
   parsePhoneNumberFromString,
-} from 'libphonenumber-js';
+  validatePhoneNumberLength,
+} from 'libphonenumber-js/max';
 
 type AppLanguage = 'ka' | 'en' | 'ru';
 
@@ -59,6 +60,23 @@ interface CrmLeadRequest {
   styleUrl: './crm-questioner.css',
 })
 export class CrmQuestioner implements OnInit {
+
+  get phonePlaceholder(): string {
+  const country = this.form.phoneCountry;
+
+  if (!country) {
+    return 'Phone number';
+  }
+
+  try {
+    const callingCode = getCountryCallingCode(country);
+
+    return `Phone number (+${callingCode})`;
+  } catch {
+    return 'Phone number';
+  }
+}
+
   private readonly apiBaseUrl =
     'https://websiteapi-production-c970.up.railway.app/api/Crm';
 
@@ -1694,83 +1712,266 @@ export class CrmQuestioner implements OnInit {
     });
   }
 
-  private cleanPhone():
-    string {
+  /* ==========================================
+     PHONE — STRICT COUNTRY-AWARE VALIDATION
+  ========================================== */
+
+  private getPhoneDigits(): string {
     return String(
-      this.form.phoneNumber ||
-      ''
-    )
-      .trim()
-      .replace(
-        /[^\d+]/g,
-        ''
-      );
+      this.form.phoneNumber || ''
+    ).replace(/\D/g, '');
   }
 
-  isPhoneValid():
-    boolean {
-    const raw =
-      this.cleanPhone();
+
+  /**
+   * Runs on every phone input change.
+   *
+   * - Digits only
+   * - Uses the currently selected country
+   * - Prevents typing beyond that country's maximum possible
+   *   national-number length
+   * - Does NOT use one global 9/10/11 digit rule
+   */
+  onPhoneInput(
+    event: Event
+  ): void {
+    const input =
+      event.target as HTMLInputElement;
+
+    let digits =
+      String(input.value || '')
+        .replace(/\D/g, '');
+
+    /*
+     * Absolute safety ceiling.
+     * The country-specific logic below is stricter.
+     */
+    digits =
+      digits.slice(0, 15);
+
+    /*
+     * validatePhoneNumberLength() knows the possible lengths
+     * for the selected country's numbering plan.
+     *
+     * Example:
+     * US (+1) national number -> 10 digits.
+     * If the user tries an 11th/12th digit it becomes TOO_LONG
+     * and we immediately remove the extra digit.
+     *
+     * Some countries legitimately have several possible lengths,
+     * so INVALID_LENGTH is NOT treated as "too long" while typing.
+     * Only TOO_LONG is truncated.
+     */
+    if (this.form.phoneCountry) {
+      while (digits.length > 0) {
+        const lengthResult =
+          validatePhoneNumberLength(
+            digits,
+            this.form.phoneCountry
+          );
+
+        if (lengthResult !== 'TOO_LONG') {
+          break;
+        }
+
+        digits =
+          digits.slice(0, -1);
+      }
+    }
+
+    this.form.phoneNumber =
+      digits;
+
+    input.value =
+      digits;
+  }
+
+
+  /**
+   * Gives the current length-state for the selected country.
+   * undefined = length is possible.
+   */
+  getPhoneLengthError():
+    | 'NOT_A_NUMBER'
+    | 'INVALID_COUNTRY'
+    | 'TOO_SHORT'
+    | 'TOO_LONG'
+    | 'INVALID_LENGTH'
+    | null {
+
+    const digits =
+      this.getPhoneDigits();
 
     if (
-      !raw ||
+      !digits ||
+      !this.form.phoneCountry
+    ) {
+      return null;
+    }
+
+    const result =
+      validatePhoneNumberLength(
+        digits,
+        this.form.phoneCountry
+      );
+
+    return (result ?? null) as
+      | 'NOT_A_NUMBER'
+      | 'INVALID_COUNTRY'
+      | 'TOO_SHORT'
+      | 'TOO_LONG'
+      | 'INVALID_LENGTH'
+      | null;
+  }
+
+
+  /**
+   * Strict final validation.
+   *
+   * isPossible() validates country-specific possible lengths.
+   * isValid() validates the actual number pattern using MAX metadata.
+   *
+   * This rejects things such as:
+   * - US +1 with 12 national digits
+   * - numbers that are too short for the selected country
+   * - numbers that have a possible length but invalid digit pattern
+   * - numbers that actually belong to another country sharing
+   *   the same calling code
+   */
+  isPhoneValid(): boolean {
+    const digits =
+      this.getPhoneDigits();
+
+    if (
+      !digits ||
       !this.form.phoneCountry
     ) {
       return false;
     }
 
+    const lengthResult =
+      validatePhoneNumberLength(
+        digits,
+        this.form.phoneCountry
+      );
+
+    /*
+     * TOO_SHORT / TOO_LONG / INVALID_LENGTH etc.
+     */
+    if (lengthResult) {
+      return false;
+    }
+
     try {
       const phone =
-        raw.startsWith('+')
-          ? parsePhoneNumberFromString(
-              raw
-            )
-          : parsePhoneNumberFromString(
-              raw,
-              this.form.phoneCountry
-            );
+        parsePhoneNumberFromString(
+          digits,
+          {
+            defaultCountry:
+              this.form.phoneCountry,
+
+            /*
+             * Don't extract a phone number from random text.
+             * Treat the whole value as the number.
+             */
+            extract: false,
+          }
+        );
+
+      if (!phone) {
+        return false;
+      }
+
+      /*
+       * Important for shared calling codes such as +1.
+       * If a selected-country national number resolves to another
+       * country, do not accept it as the selected country.
+       */
+      if (
+        phone.country &&
+        phone.country !==
+          this.form.phoneCountry
+      ) {
+        return false;
+      }
 
       return (
-        phone?.isValid() ??
-        false
+        phone.isPossible() &&
+        phone.isValid()
       );
+
     } catch {
       return false;
     }
   }
+
 
   private getFormattedPhone():
     string | null {
-    const raw =
-      this.cleanPhone();
+
+    const digits =
+      this.getPhoneDigits();
 
     if (
-      !raw ||
+      !digits ||
       !this.form.phoneCountry
     ) {
       return null;
     }
 
+    const lengthResult =
+      validatePhoneNumberLength(
+        digits,
+        this.form.phoneCountry
+      );
+
+    if (lengthResult) {
+      return null;
+    }
+
     try {
       const phone =
-        raw.startsWith('+')
-          ? parsePhoneNumberFromString(
-              raw
-            )
-          : parsePhoneNumberFromString(
-              raw,
-              this.form.phoneCountry
-            );
+        parsePhoneNumberFromString(
+          digits,
+          {
+            defaultCountry:
+              this.form.phoneCountry,
+            extract: false,
+          }
+        );
 
-      return (
-        phone?.isValid()
-          ? phone.number
-          : null
-      );
+      if (!phone) {
+        return null;
+      }
+
+      if (
+        phone.country &&
+        phone.country !==
+          this.form.phoneCountry
+      ) {
+        return null;
+      }
+
+      if (
+        !phone.isPossible() ||
+        !phone.isValid()
+      ) {
+        return null;
+      }
+
+      /*
+       * Save/send standard E.164 format:
+       * GE -> +995555123456
+       * US -> +12133734253
+       * GB -> +447911123456
+       */
+      return phone.number;
+
     } catch {
       return null;
     }
   }
+
 
   selectMoveIn(
     value: string
