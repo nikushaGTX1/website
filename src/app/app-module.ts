@@ -36,6 +36,8 @@ import { SavedListings } from './saved-listings/saved-listings';
 import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile';
 import { PropertyPointPickerComponent } from './maps/property-point-picker/property-point-picker.component';
 import { StreetValidationMapComponent } from './admin-panel/street-validation-map.component';
+import { CrmQuestioner } from './crm/crm-questioner/crm-questioner';
+import { CrmLink } from './crm/crm-link/crm-link';
 
 @NgModule({
   declarations: [
@@ -69,16 +71,13 @@ import { StreetValidationMapComponent } from './admin-panel/street-validation-ma
     AgentDetailProfile,
     PropertyPointPickerComponent,
     StreetValidationMapComponent,
+    CrmQuestioner,
+    CrmLink,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(
-      withInterceptors([
-        authInterceptor,
-        apiPerformanceInterceptor,
-      ]),
-    ),
+    provideHttpClient(withInterceptors([authInterceptor, apiPerformanceInterceptor])),
   ],
   bootstrap: [App],
 })
