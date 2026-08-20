@@ -1915,6 +1915,13 @@
                 </option>
 
                 <option
+                  *ngIf="selfAssignmentId && !selfIsListedAgent"
+                  [value]="selfAssignmentId"
+                >
+                  {{ selfAssignmentName }} (Me)
+                </option>
+
+                <option
                   *ngFor="
                     let agent of agents
                   "

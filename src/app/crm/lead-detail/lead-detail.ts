@@ -640,6 +640,25 @@ export class CrmLeadDetail implements OnInit {
   }
 
 
+  get selfAssignmentId(): string {
+    return this.authService.currentUser?.id || '';
+  }
+
+
+  get selfAssignmentName(): string {
+    const user = this.authService.currentUser;
+    return user?.fullName || user?.userName || user?.email || 'Me';
+  }
+
+
+  get selfIsListedAgent(): boolean {
+    const selfId = this.selfAssignmentId.toLowerCase();
+    return !!selfId && this.agents.some((agent) =>
+      String(agent.userId || agent.id || '').toLowerCase() === selfId
+    );
+  }
+
+
   get canWorkLead():
     boolean {
 

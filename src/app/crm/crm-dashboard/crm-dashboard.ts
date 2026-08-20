@@ -19,7 +19,7 @@ import { CrmService } from '../../services/crm.service';
 
 type StatusFilter = 'all' | CrmLeadStatus;
 type AssignmentFilter = 'all' | 'mine' | 'unassigned';
-type ManualRentalPeriod = '' | '3' | '6' | '12' | '12+';
+type ManualRentalPeriod = '' | '6' | '12' | '12+';
 type ManualPetType = '' | 'none' | 'dog' | 'cat';
 type ManualPetSize = '' | 'small' | 'medium' | 'large';
 
@@ -86,7 +86,6 @@ export class CrmDashboard implements OnInit {
   readonly propertyTypes = ['Apartment', 'House', 'Commercial space', 'Country house', 'Land'];
   readonly roomOptions = [1, 2, 3, 4, 5, 6, 7, 8];
   readonly rentalPeriodOptions: Array<{ value: Exclude<ManualRentalPeriod, ''>; label: string }> = [
-    { value: '3', label: '3 months' },
     { value: '6', label: '6 months' },
     { value: '12', label: '12 months' },
     { value: '12+', label: '12+ months' },
