@@ -142,7 +142,7 @@ export class CrmDashboard implements OnInit {
   }
 
   get canGenerateQuestionnaireLink(): boolean {
-    return this.authService.isCrmAgent;
+    return this.authService.canOpenCrm;
   }
 
   get allowedLeadSources(): Array<{ value: string; label: string }> {
