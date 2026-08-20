@@ -11,6 +11,7 @@ import {
 import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
 import { ApiLocation, LocationSuggestion } from '../../models/location';
 import { LocationService } from '../../services/location.service';
+import { TranslationService } from '../../services/translation.service';
 polyfillCountryFlagEmojis();
 
 type AppLanguage = 'ka' | 'en' | 'ru';
@@ -1608,7 +1609,8 @@ togglePhoneCountryDropdown(): void {
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -1624,7 +1626,9 @@ togglePhoneCountryDropdown(): void {
         ? 'ru'
         : browserLanguage.startsWith('en')
           ? 'en'
-          : 'ka';
+        : 'ka';
+
+    this.syncGlobalLanguage();
 
     this.buildCountries();
 
@@ -1690,7 +1694,14 @@ togglePhoneCountryDropdown(): void {
     language: AppLanguage
   ): void {
     this.language = language;
+    this.syncGlobalLanguage();
     this.buildCountries();
+  }
+
+  private syncGlobalLanguage(): void {
+    this.translationService.setLanguage(
+      this.language === 'ka' ? 'ka' : 'en'
+    );
   }
 
   private countryFlag(
