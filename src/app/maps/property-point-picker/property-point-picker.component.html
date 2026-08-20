@@ -1,10 +1,11 @@
 <section class="point-picker">
   <header>
-    <div><b>Location preview</b><small>The map updates automatically from the district, street, and building number above.</small></div>
+    <div><b>Exact property location</b><small>Click the building on the map to confirm its exact location.</small></div>
   </header>
   <div #map class="point-map" aria-label="Property location preview"></div>
   <p class="map-state" *ngIf="loading">Loading map…</p>
   <p class="map-state error" *ngIf="errorMessage">{{ errorMessage }}</p>
   <p class="coordinates" *ngIf="address"><i class="fa-solid fa-location-dot"></i> {{ address }}</p>
+  <p class="coordinates confirmed" *ngIf="pointConfirmed"><i class="fa-solid fa-circle-check"></i> Exact location selected</p>
   <p class="coordinates missing" *ngIf="!address && !loading">Choose a district and street to preview the location.</p>
 </section>

@@ -20,12 +20,14 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
   private geocodeRevision = 0;
   loading = true;
   errorMessage = '';
+  pointConfirmed = false;
 
   ngAfterViewInit(): void { void this.initialize(); }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['address'] && this.map) void this.showAddress();
     if ((changes['latitude'] || changes['longitude']) && this.map && this.hasPoint) {
+      this.pointConfirmed = true;
       this.setPoint(this.latitude!, this.longitude!, false);
     }
   }
@@ -66,6 +68,13 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
         streetViewControl: false,
         fullscreenControl: false,
         clickableIcons: false,
+      });
+      this.map.addListener('click', (event: google.maps.MapMouseEvent) => {
+        const point = event.latLng;
+        if (point) {
+          this.pointConfirmed = true;
+          this.setPoint(point.lat(), point.lng(), true);
+        }
       });
       if (this.address.trim()) await this.showAddress();
       else if (this.hasPoint) this.setPoint(this.latitude!, this.longitude!, false);

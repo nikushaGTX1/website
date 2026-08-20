@@ -384,17 +384,20 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   onAreaInput(): void {
+    this.clearPropertyPoint();
     this.selectedDistrictValue = '';
     this.openLocationPicker('area');
   }
 
   onStreetInput(): void {
+    this.clearPropertyPoint();
     this.selectedStreetValue = '';
     this.selectedStreetId = null;
     this.openLocationPicker('street');
   }
 
   selectUploadArea(suggestion: LocationSuggestion): void {
+    this.clearPropertyPoint();
     this.form.location = suggestion.label;
     this.selectedDistrictValue = suggestion.value || suggestion.label;
     this.form.street = '';
@@ -404,12 +407,18 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   selectUploadStreet(suggestion: LocationSuggestion): void {
+    this.clearPropertyPoint();
     this.form.street = suggestion.label;
     this.selectedStreetValue = suggestion.value || suggestion.label;
     this.selectedStreetId = suggestion.id || null;
     this.selectedDistrictValue = suggestion.districtValue || '';
     this.form.location = suggestion.district || suggestion.districtValue || '';
     this.locationPicker = null;
+  }
+
+  clearPropertyPoint(): void {
+    this.form.propertyLatitude = null;
+    this.form.propertyLongitude = null;
   }
 
   uploadLocationText(english: string, georgian: string): string {
@@ -749,6 +758,11 @@ export class UploadApartment implements OnInit, OnDestroy {
       return;
     }
 
+    if (!Number.isFinite(this.form.propertyLatitude) || !Number.isFinite(this.form.propertyLongitude)) {
+      this.errorMessage = 'Please click the exact property location on the map.';
+      return;
+    }
+
     if (!this.authService.isLoggedIn) {
       this.errorMessage = 'Your session expired. Please sign in again before submitting.';
       return;
@@ -783,10 +797,13 @@ export class UploadApartment implements OnInit, OnDestroy {
       },
       error: (error: HttpErrorResponse) => {
         this.loading = false;
+        const validationMessage = error.error?.errors && typeof error.error.errors === 'object'
+          ? Object.values(error.error.errors as Record<string, string[]>).flat().join(' ')
+          : '';
         const apiMessage =
           typeof error.error === 'string'
             ? error.error
-            : error.error?.message || error.error?.title;
+            : error.error?.message || validationMessage || error.error?.title;
 
         this.errorMessage =
           apiMessage ||
@@ -845,6 +862,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       district,
       street,
       streetId: this.selectedStreetId || undefined,
+      propertyLatitude: this.form.propertyLatitude ?? undefined,
+      propertyLongitude: this.form.propertyLongitude ?? undefined,
       buildingNumber: this.form.streetNumber.trim(),
       bedrooms: this.form.bedrooms ?? 0,
       bathrooms: this.form.bathrooms ?? 0,

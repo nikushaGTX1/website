@@ -234,12 +234,14 @@
                 <div class="location-status" *ngIf="!locationLoading && !uploadStreetSuggestions.length">{{ selectedDistrictValue ? uploadLocationText('No matching street found.', 'ქუჩა ვერ მოიძებნა.') : uploadLocationText('Choose a district first.', 'ჯერ აირჩიეთ უბანი.') }}</div>
               </div>
             </div>
-            <input type="text" name="streetNumber" placeholder="Street number" [(ngModel)]="form.streetNumber" />
+            <input type="text" name="streetNumber" placeholder="Street number" [(ngModel)]="form.streetNumber" (ngModelChange)="clearPropertyPoint()" />
           </div>
         </div>
 
         <app-property-point-picker
-          [address]="locationPreviewAddress">
+          [address]="locationPreviewAddress"
+          [(latitude)]="form.propertyLatitude"
+          [(longitude)]="form.propertyLongitude">
         </app-property-point-picker>
 
         <label class="checkbox-row">
