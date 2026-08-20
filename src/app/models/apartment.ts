@@ -62,6 +62,8 @@ export interface Apartment {
   agentId?: string;
   agentUserId?: string;
   uploadedById?: string;
+  uploadedByUserId?: string;
+  uploaderUserId?: string;
   createdByEmail?: string;
   userEmail?: string;
   agentEmail?: string;
@@ -70,6 +72,7 @@ export interface Apartment {
   uploadedByName?: string;
   agentProfilePictureUrl?: string;
   uploaderProfilePictureUrl?: string;
+  uploadedByProfilePictureUrl?: string;
 }
 
 export interface CreateApartment {

@@ -112,6 +112,13 @@ interface QuestionnairePreferences {
 }
 
 
+interface ManualLifestyleDetails {
+  rentalPeriod: string | null;
+  pet: string | null;
+  notes: string;
+}
+
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -367,6 +374,44 @@ export class CrmLeadDetail implements OnInit {
       this.questionnairePreferences !==
       null
     );
+  }
+
+
+  get manualLifestyleDetails(): ManualLifestyleDetails {
+    const preferences = this.lead?.preferences?.trim() || '';
+    const details: ManualLifestyleDetails = {
+      rentalPeriod: null,
+      pet: null,
+      notes: '',
+    };
+
+    const parts = preferences
+      .split(/\s*(?:·|Â·)\s*/)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    const notes: string[] = [];
+
+    for (const part of parts) {
+      const rentalPeriod = part.match(/^Rental period:\s*(.+)$/i);
+      if (rentalPeriod) {
+        details.rentalPeriod = rentalPeriod[1].trim();
+        continue;
+      }
+
+      const pet = part.match(/^Pet:\s*(.+)$/i);
+      if (pet) {
+        const petValue = pet[1].trim();
+        details.pet = /^none$/i.test(petValue)
+          ? 'No pets'
+          : petValue.replace(/\s*\(([^)]+)\)\s*$/, ' · $1');
+        continue;
+      }
+
+      notes.push(part);
+    }
+
+    details.notes = notes.join(' · ');
+    return details;
   }
 
 

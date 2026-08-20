@@ -6,6 +6,10 @@
 
 .money-input>span{left:11px;font-size:10px;font-weight:800}.money-input input{padding-left:48px}
 
+.profile-grid .lifestyle-detail{position:relative;background:linear-gradient(135deg,#fff 55%,#faf7ff)}
+.profile-grid .lifestyle-detail strong{display:flex;align-items:center;gap:9px;color:#35284a}
+.profile-grid .lifestyle-detail strong i{width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;border-radius:9px;background:#eee8ff;color:#6341c1;font-size:13px}
+
 /* =========================================================
    QUESTIONNAIRE PREFERENCES
 ========================================================= */

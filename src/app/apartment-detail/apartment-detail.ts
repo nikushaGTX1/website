@@ -545,7 +545,16 @@ export class ApartmentDetail implements OnInit {
   }
 
   get agentProfileId(): string {
-    return this.selectedAgent?.id || this.selectedAgent?.userId || '';
+    return String(
+      this.selectedAgent?.id ||
+      this.selectedAgent?.userId ||
+      this.apartment?.uploadedByUserId ||
+      this.apartment?.uploaderUserId ||
+      this.apartment?.uploadedById ||
+      this.apartment?.agentUserId ||
+      this.apartment?.agentId ||
+      '',
+    );
   }
 
   get agentRole(): string {
@@ -563,7 +572,8 @@ export class ApartmentDetail implements OnInit {
       this.selectedAgent?.profilePicture ||
       this.selectedAgent?.avatarUrl ||
       this.apartment?.agentProfilePictureUrl ||
-      this.apartment?.uploaderProfilePictureUrl
+      this.apartment?.uploaderProfilePictureUrl ||
+      this.apartment?.uploadedByProfilePictureUrl
     );
   }
 
@@ -662,7 +672,10 @@ export class ApartmentDetail implements OnInit {
       apartment.agentId,
       apartment.agentUserId,
       apartment.uploadedById,
+      apartment.uploadedByUserId,
+      apartment.uploaderUserId,
       this.getListingMetadata('Owner ID'),
+      this.getListingMetadata('Uploader ID'),
     ].filter((value): value is string => !!value);
     const ownerEmails = [
       apartment.userEmail,

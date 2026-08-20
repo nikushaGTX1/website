@@ -921,6 +921,40 @@
                 </div>
 
 
+                <ng-container *ngIf="!hasQuestionnairePreferences">
+
+                  <div
+                    class="lifestyle-detail"
+                    *ngIf="manualLifestyleDetails.rentalPeriod as rentalPeriod"
+                  >
+
+                    <span>Rental period</span>
+
+                    <strong>
+                      <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                      {{ rentalPeriod }}
+                    </strong>
+
+                  </div>
+
+
+                  <div
+                    class="lifestyle-detail"
+                    *ngIf="manualLifestyleDetails.pet as pet"
+                  >
+
+                    <span>Pet</span>
+
+                    <strong>
+                      <i class="fa-solid fa-paw" aria-hidden="true"></i>
+                      {{ pet }}
+                    </strong>
+
+                  </div>
+
+                </ng-container>
+
+
                 <!-- DISTRICTS -->
 
                 <div class="wide">
@@ -1478,7 +1512,7 @@
                     <p>
 
                       {{
-                        currentLead.preferences ||
+                        manualLifestyleDetails.notes ||
                         currentLead.message ||
                         'No preference notes have been added.'
                       }}

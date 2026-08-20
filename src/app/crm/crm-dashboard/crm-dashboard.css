@@ -678,8 +678,19 @@ button:disabled {
 .budget-menu input[type=number] { min-height: 39px; }
 .range-track { position: relative; height: 34px; margin: 13px 2px 2px; }
 .range-track::before { content:""; position:absolute; left:0; right:0; top:15px; height:4px; border-radius:999px; background:#e5dcf1; }
-.range-track input[type=range] { position:absolute; inset:0; min-height:34px; padding:0; border:0; background:transparent; pointer-events:none; appearance:none; }
-.range-track input[type=range]::-webkit-slider-thumb { width:20px; height:20px; border:3px solid #fff; border-radius:50%; background:#6d28d9; box-shadow:0 0 0 2px #6d28d9; appearance:none; pointer-events:auto; cursor:grab; }
+.range-track input[type=range] { position:absolute; inset:0; width:100%; min-height:34px; margin:0; padding:0; border:0; background:transparent; pointer-events:none; -webkit-appearance:none; appearance:none; }
+.range-track input[type=range]::-webkit-slider-runnable-track { height:4px; background:transparent; }
+.range-track input[type=range]::-webkit-slider-thumb { width:20px; height:20px; margin-top:-8px; border:3px solid #fff; border-radius:50%; background:#6d28d9; box-shadow:0 0 0 2px #6d28d9; -webkit-appearance:none; appearance:none; pointer-events:auto; cursor:grab; transition:transform .15s ease, box-shadow .15s ease; }
+.range-track input[type=range]::-moz-range-track { height:4px; border:0; background:transparent; }
+.range-track input[type=range]::-moz-range-thumb { width:14px; height:14px; border:3px solid #fff; border-radius:50%; background:#6d28d9; box-shadow:0 0 0 2px #6d28d9; pointer-events:auto; cursor:grab; transition:transform .15s ease, box-shadow .15s ease; }
+.range-track input[type=range]::-moz-range-progress { background:transparent; }
+.range-track input[type=range]:hover::-webkit-slider-thumb,
+.range-track input[type=range]:focus-visible::-webkit-slider-thumb { transform:scale(1.12); box-shadow:0 0 0 2px #6d28d9, 0 3px 10px rgba(91,34,152,.3); }
+.range-track input[type=range]:hover::-moz-range-thumb,
+.range-track input[type=range]:focus-visible::-moz-range-thumb { transform:scale(1.12); box-shadow:0 0 0 2px #6d28d9, 0 3px 10px rgba(91,34,152,.3); }
+.range-track input[type=range]:active::-webkit-slider-thumb { cursor:grabbing; }
+.range-track input[type=range]:active::-moz-range-thumb { cursor:grabbing; }
+.range-track input[type=range]:focus-visible { outline:2px solid transparent; }
 .menu-done { width:100%; min-height:36px; margin-top:8px; border:0; border-radius:8px; background:#5b2298; color:#fff; cursor:pointer; font-weight:800; }
 
 .form-grid small { color: #8a93a3; font-size: 10px; font-weight: 500; }

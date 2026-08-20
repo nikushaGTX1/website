@@ -186,6 +186,20 @@ export class CrmDashboard implements OnInit {
       : this.leadBudgetMinimum;
   }
 
+  updateLeadBudgetRange(field: 'budgetMin' | 'budgetMax'): void {
+    this.clampLeadBudget(field);
+
+    const minimum = Number(this.manualLeadForm.budgetMin ?? this.leadBudgetMinimum);
+    const maximum = Number(this.manualLeadForm.budgetMax ?? this.leadBudgetMaximum);
+    if (minimum <= maximum) return;
+
+    if (field === 'budgetMin') {
+      this.manualLeadForm.budgetMin = maximum;
+    } else {
+      this.manualLeadForm.budgetMax = minimum;
+    }
+  }
+
   get metricCards(): Array<{
     label: string;
     value: string;
