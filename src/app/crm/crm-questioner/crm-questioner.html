@@ -629,7 +629,7 @@
 
               <input
                 type="number"
-                placeholder="500"
+                placeholder="0"
                 [(ngModel)]="
                   form.budgetMin
                 "
@@ -659,7 +659,7 @@
 
               <input
                 type="number"
-                placeholder="1200"
+                placeholder="0"
                 [(ngModel)]="
                   form.budgetMax
                 "
@@ -723,42 +723,22 @@
         </p>
 
 
-        <div class="chips">
+        <!-- STEP 4 -->
+<div class="chips">
+  <button
+    *ngFor="let district of districts"
+    type="button"
+    class="chip"
+    [class.active]="isDistrictSelected(district)"
+    (click)="toggleDistrict(district)"
+  >
+    <span *ngIf="isDistrictSelected(district)">
+      ✓
+    </span>
 
-          <button
-            *ngFor="
-              let district
-              of districts
-            "
-            type="button"
-            class="chip"
-            [class.active]="
-              isDistrictSelected(
-                district
-              )
-            "
-            (click)="
-              toggleDistrict(
-                district
-              )
-            "
-          >
-
-            <span
-              *ngIf="
-                isDistrictSelected(
-                  district
-                )
-              "
-            >
-              ✓
-            </span>
-
-            {{ translateOption(district) }}
-
-          </button>
-
-        </div>
+    {{ getDistrictLabel(district) }}
+  </button>
+</div>
 
 
         <button
@@ -845,40 +825,6 @@
         </div>
 
 
-        <div class="section-divider">
-        </div>
-
-
-        <label class="input-group">
-
-          <span>
-            {{ t('minArea') }}
-
-            <em>
-              {{ t('optional') }}
-            </em>
-
-          </span>
-
-
-          <div class="area-input">
-
-            <input
-              type="number"
-              placeholder="60"
-              [(ngModel)]="
-                form.minArea
-              "
-            />
-
-            <span>
-              m²
-            </span>
-
-          </div>
-
-        </label>
-
       </section>
 
 
@@ -909,15 +855,8 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="
-              form.household ===
-              'alone'
-            "
-            (click)="
-              selectHousehold(
-                'alone'
-              )
-            "
+            [class.active]="form.household === 'alone'"
+            (click)="selectHousehold('alone')"
           >
 
             <span class="choice-icon">
@@ -934,15 +873,8 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="
-              form.household ===
-              'couple'
-            "
-            (click)="
-              selectHousehold(
-                'couple'
-              )
-            "
+            [class.active]="form.household === 'couple'"
+            (click)="selectHousehold('couple')"
           >
 
             <span class="choice-icon">
@@ -959,15 +891,8 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="
-              form.household ===
-              'family'
-            "
-            (click)="
-              selectHousehold(
-                'family'
-              )
-            "
+            [class.active]="form.household === 'family'"
+            (click)="selectHousehold('family')"
           >
 
             <span class="choice-icon">
@@ -984,15 +909,8 @@
           <button
             type="button"
             class="choice-card"
-            [class.active]="
-              form.household ===
-              'friends'
-            "
-            (click)="
-              selectHousehold(
-                'friends'
-              )
-            "
+            [class.active]="form.household === 'friends'"
+            (click)="selectHousehold('friends')"
           >
 
             <span class="choice-icon">
@@ -1011,10 +929,8 @@
         <div
           class="conditional-box"
           *ngIf="
-            form.household ===
-              'family' ||
-            form.household ===
-              'friends'
+            form.household === 'family' ||
+            form.household === 'friends'
           "
         >
 
@@ -1028,14 +944,8 @@
               class="standard-input"
               type="number"
               min="1"
-              [placeholder]="
-                t(
-                  'peopleCountPlaceholder'
-                )
-              "
-              [(ngModel)]="
-                form.peopleCount
-              "
+              [placeholder]="t('peopleCountPlaceholder')"
+              [(ngModel)]="form.peopleCount"
             />
 
           </label>
@@ -1045,10 +955,7 @@
 
         <div
           class="conditional-box"
-          *ngIf="
-            form.household ===
-            'family'
-          "
+          *ngIf="form.household === 'family'"
         >
 
           <span class="field-title">
@@ -1060,14 +967,8 @@
 
             <button
               type="button"
-              [class.active]="
-                form.hasChildren ===
-                true
-              "
-              (click)="
-                form.hasChildren =
-                  true
-              "
+              [class.active]="form.hasChildren === true"
+              (click)="form.hasChildren = true"
             >
               {{ t('yes') }}
             </button>
@@ -1075,15 +976,10 @@
 
             <button
               type="button"
-              [class.active]="
-                form.hasChildren ===
-                false
-              "
+              [class.active]="form.hasChildren === false"
               (click)="
-                form.hasChildren =
-                  false;
-                form.childrenAges =
-                  ''
+                form.hasChildren = false;
+                form.childrenAges = []
               "
             >
               {{ t('no') }}
@@ -1092,32 +988,39 @@
           </div>
 
 
-          <label
-            *ngIf="
-              form.hasChildren ===
-              true
-            "
-            class="input-group nested-input"
+          <div
+            *ngIf="form.hasChildren === true"
+            class="children-age-section"
           >
 
-            <span>
+            <span class="field-title">
               {{ t('childrenAges') }}
             </span>
 
-            <input
-              class="standard-input"
-              type="text"
-              [placeholder]="
-                t(
-                  'childrenAgesPlaceholder'
-                )
-              "
-              [(ngModel)]="
-                form.childrenAges
-              "
-            />
 
-          </label>
+            <div class="children-age-grid">
+
+              <button
+                *ngFor="let age of childAgeOptions"
+                type="button"
+                class="child-age-card"
+                [class.active]="isChildAgeSelected(age.value)"
+                (click)="toggleChildAge(age.value)"
+              >
+
+                <span class="child-age-icon">
+                  🧑‍🤝‍🧑
+                </span>
+
+                <strong>
+                  {{ age[language] }}
+                </strong>
+
+              </button>
+
+            </div>
+
+          </div>
 
         </div>
 
@@ -1128,159 +1031,143 @@
       <!-- STEP 7 - PETS -->
       <!-- ================================================= -->
 
-      <section
-        *ngIf="currentStep === 7"
-        class="step-content"
-      >
+     <!-- ================================================= -->
+<!-- STEP 7 - PETS -->
+<!-- ================================================= -->
 
-        <div class="step-label">
-          {{ t('step') }} 7
-        </div>
+<section
+  *ngIf="currentStep === 7"
+  class="step-content"
+>
 
-        <h1>
-          {{ t('petsTitle') }}
-        </h1>
+  <div class="step-label">
+    {{ t('step') }} 7
+  </div>
 
-        <p class="subtitle">
-          {{ t('petsSubtitle') }}
-        </p>
+  <h1>
+    {{ t('petsTitle') }}
+  </h1>
 
-
-        <div class="pet-options">
-
-          <button
-            type="button"
-            [class.active]="
-              form.petType === 'none'
-            "
-            (click)="
-              selectPet('none')
-            "
-          >
-
-            <span>
-              🚫
-            </span>
-
-            {{ t('petNone') }}
-
-          </button>
+  <p class="subtitle">
+    {{ t('petsSubtitle') }}
+  </p>
 
 
-          <button
-            type="button"
-            [class.active]="
-              form.petType === 'dog'
-            "
-            (click)="
-              selectPet('dog')
-            "
-          >
+  <!-- PET TYPE -->
 
-            <span>
-              🐶
-            </span>
+  <div class="pet-grid">
 
-            {{ t('petDog') }}
+    <button
+      *ngFor="let pet of petOptions"
+      type="button"
+      class="pet-card"
+      [class.active]="form.petType === pet.value"
+      (click)="selectPet(pet.value)"
+    >
 
-          </button>
+      <span class="pet-icon">
+        {{ pet.icon }}
+      </span>
 
+      <strong>
+        {{ pet.label[language] }}
+      </strong>
 
-          <button
-            type="button"
-            [class.active]="
-              form.petType === 'cat'
-            "
-            (click)="
-              selectPet('cat')
-            "
-          >
+    </button>
 
-            <span>
-              🐱
-            </span>
-
-            {{ t('petCat') }}
-
-          </button>
+  </div>
 
 
-          <button
-            type="button"
-            [class.active]="
-              form.petType ===
-              'other'
-            "
-            (click)="
-              selectPet('other')
-            "
-          >
+  <!-- PET DETAILS -->
 
-            <span>
-              🐾
-            </span>
+  <div
+    *ngIf="form.petType && form.petType !== 'none'"
+    class="conditional-box pet-details"
+  >
 
-            {{ t('petOther') }}
+    <!-- PET SIZE -->
 
-          </button>
+    <div class="pet-size-section">
 
-        </div>
+      <span class="field-title">
+        {{ t('petSize') }}
+      </span>
 
+      <div class="pet-size-options">
 
-        <div
-          class="conditional-box"
-          *ngIf="
-            form.petType !==
-            'none'
-          "
+        <button
+          type="button"
+          class="pet-size-button"
+          [class.active]="form.petSize === 'small'"
+          (click)="form.petSize = 'small'"
         >
+          <span class="pet-size-icon">
+            🐾
+          </span>
 
-          <div class="two-columns">
-
-            <label class="input-group">
-
-              <span>
-                {{ t('petInfo') }}
-              </span>
-
-              <input
-                class="standard-input"
-                type="text"
-                [placeholder]="
-                  t(
-                    'petInfoPlaceholder'
-                  )
-                "
-                [(ngModel)]="
-                  form.petSize
-                "
-              />
-
-            </label>
+          <strong>
+            {{ t('petSmall') }}
+          </strong>
+        </button>
 
 
-            <label class="input-group">
+        <button
+          type="button"
+          class="pet-size-button"
+          [class.active]="form.petSize === 'medium'"
+          (click)="form.petSize = 'medium'"
+        >
+          <span class="pet-size-icon">
+            🐾
+          </span>
 
-              <span>
-                {{ t('count') }}
-              </span>
+          <strong>
+            {{ t('petMedium') }}
+          </strong>
+        </button>
 
-              <input
-                class="standard-input"
-                type="number"
-                min="1"
-                [(ngModel)]="
-                  form.petCount
-                "
-              />
 
-            </label>
+        <button
+          type="button"
+          class="pet-size-button"
+          [class.active]="form.petSize === 'large'"
+          (click)="form.petSize = 'large'"
+        >
+          <span class="pet-size-icon">
+            🐾
+          </span>
 
-          </div>
+          <strong>
+            {{ t('petLarge') }}
+          </strong>
+        </button>
 
-        </div>
+      </div>
 
-      </section>
+    </div>
+
+
+    <!-- PET COUNT -->
+
+    <label class="input-group pet-count">
+
+      <span>
+        {{ t('petCount') }}
+      </span>
+
+      <input
+        class="standard-input"
+        type="number"
+        min="1"
+        max="10"
+        [(ngModel)]="form.petCount"
+      />
+
+    </label>
+
+  </div>
+
+</section>
 
 
       <!-- ================================================= -->

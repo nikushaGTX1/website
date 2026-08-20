@@ -8,6 +8,8 @@ import {
   parsePhoneNumberFromString,
   validatePhoneNumberLength,
 } from 'libphonenumber-js/max';
+import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
+polyfillCountryFlagEmojis();
 
 type AppLanguage = 'ka' | 'en' | 'ru';
 
@@ -60,6 +62,178 @@ interface CrmLeadRequest {
   styleUrl: './crm-questioner.css',
 })
 export class CrmQuestioner implements OnInit {
+
+  readonly petOptions = [
+  {
+    value: 'none',
+    icon: '🚫',
+    label: {
+      ka: 'არა',
+      en: 'No',
+      ru: 'Нет',
+    },
+  },
+  {
+    value: 'dog',
+    icon: '🐶',
+    label: {
+      ka: 'ძაღლი',
+      en: 'Dog',
+      ru: 'Собака',
+    },
+  },
+  {
+    value: 'cat',
+    icon: '🐱',
+    label: {
+      ka: 'კატა',
+      en: 'Cat',
+      ru: 'Кошка',
+    },
+  },
+  {
+    value: 'other',
+    icon: '🐾',
+    label: {
+      ka: 'სხვა',
+      en: 'Other',
+      ru: 'Другое',
+    },
+  },
+];
+
+  readonly childAgeOptions = [
+  {
+    value: '0-3',
+    ka: '0–3 წლის',
+    en: '0–3 years',
+    ru: '0–3 года',
+  },
+  {
+    value: '4-6',
+    ka: '4–6 წლის',
+    en: '4–6 years',
+    ru: '4–6 лет',
+  },
+  {
+    value: '7-12',
+    ka: '7–12 წლის',
+    en: '7–12 years',
+    ru: '7–12 лет',
+  },
+  {
+    value: '13-17',
+    ka: '13–17 წლის',
+    en: '13–17 years',
+    ru: '13–17 лет',
+  },
+];
+
+  getDistrictLabel(
+  district: {
+    id: string;
+    ka: string;
+    en: string;
+    ru: string;
+  }
+): string {
+  return district[this.language];
+}
+
+
+  translateDistrict(district: string): string {
+  const key = district
+    .trim()
+    .normalize('NFC');
+
+  const translations: Record<
+    AppLanguage,
+    Record<string, string>
+  > = {
+    ka: {
+      'ვაკე': 'ვაკე',
+      'საბურთალო': 'საბურთალო',
+      'ვერა': 'ვერა',
+      'მთაწმინდა': 'მთაწმინდა',
+      'ჩუღურეთი': 'ჩუღურეთი',
+      'დიდუბე': 'დიდუბე',
+      'ნაძალადევი': 'ნაძალადევი',
+      'ისანი': 'ისანი',
+      'სამგორი': 'სამგორი',
+      'გლდანი': 'გლდანი',
+      'დიღომი': 'დიღომი',
+      'დიდი დიღომი': 'დიდი დიღომი',
+      'ორთაჭალა': 'ორთაჭალა',
+      'ავლაბარი': 'ავლაბარი',
+
+      Dighomi: 'დიღომი',
+      'Didi Dighomi': 'დიდი დიღომი',
+      Ortachala: 'ორთაჭალა',
+      Avlabari: 'ავლაბარი',
+    },
+
+    en: {
+      'ვაკე': 'Vake',
+      'საბურთალო': 'Saburtalo',
+      'ვერა': 'Vera',
+      'მთაწმინდა': 'Mtatsminda',
+      'ჩუღურეთი': 'Chugureti',
+      'დიდუბე': 'Didube',
+      'ნაძალადევი': 'Nadzaladevi',
+      'ისანი': 'Isani',
+      'სამგორი': 'Samgori',
+      'გლდანი': 'Gldani',
+      'დიღომი': 'Dighomi',
+      'დიდი დიღომი': 'Didi Dighomi',
+      'ორთაჭალა': 'Ortachala',
+      'ავლაბარი': 'Avlabari',
+
+      Vake: 'Vake',
+      Saburtalo: 'Saburtalo',
+      Vera: 'Vera',
+      Mtatsminda: 'Mtatsminda',
+      Chugureti: 'Chugureti',
+      Didube: 'Didube',
+      Nadzaladevi: 'Nadzaladevi',
+      Isani: 'Isani',
+      Samgori: 'Samgori',
+      Gldani: 'Gldani',
+      Dighomi: 'Dighomi',
+      'Didi Dighomi': 'Didi Dighomi',
+      Ortachala: 'Ortachala',
+      Avlabari: 'Avlabari',
+    },
+
+    ru: {
+      'ვაკე': 'Ваке',
+      'საბურთალო': 'Сабуртало',
+      'ვერა': 'Вера',
+      'მთაწმინდა': 'Мтацминда',
+      'ჩუღურეთი': 'Чугурети',
+      'დიდუბე': 'Дидубе',
+      'ნაძალადევი': 'Надзаладеви',
+      'ისანი': 'Исани',
+      'სამგორი': 'Самгори',
+      'გლდანი': 'Глдани',
+      'დიღომი': 'Дигоми',
+      'დიდი დიღომი': 'Диди Дигоми',
+      'ორთაჭალა': 'Ортачала',
+      'ავლაბარი': 'Авлабари',
+
+      Dighomi: 'Дигоми',
+      'Didi Dighomi': 'Диди Дигоми',
+      Ortachala: 'Ортачала',
+      Avlabari: 'Авлабари',
+    },
+  };
+
+  return (
+    translations[this.language]?.[key] ??
+    key
+  );
+}
+
+  
 
   toggleCountryDropdown(): void {
   /*
@@ -334,6 +508,21 @@ togglePhoneCountryDropdown(): void {
         petOther:
           'სხვა',
 
+        petSize:
+          'რა ზომისაა თქვენი შინაური ცხოველი?',
+
+        petSmall:
+          'პატარა',
+
+        petMedium:
+          'საშუალო',
+
+        petLarge:
+          'დიდი',
+
+        petCount:
+          'რამდენი შინაური ცხოველი გყავთ?',
+
         petInfo:
           'ზომა / დამატებითი ინფორმაცია',
 
@@ -605,6 +794,21 @@ togglePhoneCountryDropdown(): void {
 
         petOther:
           'Other',
+
+        petSize:
+          'What size is your pet?',
+
+        petSmall:
+          'Small',
+
+        petMedium:
+          'Medium',
+
+        petLarge:
+          'Large',
+
+        petCount:
+          'How many pets?',
 
         petInfo:
           'Size / additional information',
@@ -878,6 +1082,21 @@ togglePhoneCountryDropdown(): void {
         petOther:
           'Другое',
 
+        petSize:
+          'Какого размера ваш питомец?',
+
+        petSmall:
+          'Маленький',
+
+        petMedium:
+          'Средний',
+
+        petLarge:
+          'Большой',
+
+        petCount:
+          'Сколько у вас питомцев?',
+
         petInfo:
           'Размер / дополнительная информация',
 
@@ -968,21 +1187,91 @@ togglePhoneCountryDropdown(): void {
     };
 
   readonly districts = [
-    'ვაკე',
-    'საბურთალო',
-    'ვერა',
-    'მთაწმინდა',
-    'ჩუღურეთი',
-    'დიდუბე',
-    'ნაძალადევი',
-    'ისანი',
-    'სამგორი',
-    'გლდანი',
-    'დიღომი',
-    'დიდი დიღომი',
-    'ორთაჭალა',
-    'ავლაბარი',
-  ];
+  {
+    id: 'vake',
+    ka: 'ვაკე',
+    en: 'Vake',
+    ru: 'Ваке',
+  },
+  {
+    id: 'saburtalo',
+    ka: 'საბურთალო',
+    en: 'Saburtalo',
+    ru: 'Сабуртало',
+  },
+  {
+    id: 'vera',
+    ka: 'ვერა',
+    en: 'Vera',
+    ru: 'Вера',
+  },
+  {
+    id: 'mtatsminda',
+    ka: 'მთაწმინდა',
+    en: 'Mtatsminda',
+    ru: 'Мтацминда',
+  },
+  {
+    id: 'chugureti',
+    ka: 'ჩუღურეთი',
+    en: 'Chugureti',
+    ru: 'Чугурети',
+  },
+  {
+    id: 'didube',
+    ka: 'დიდუბე',
+    en: 'Didube',
+    ru: 'Дидубе',
+  },
+  {
+    id: 'nadzaladevi',
+    ka: 'ნაძალადევი',
+    en: 'Nadzaladevi',
+    ru: 'Надзаладеви',
+  },
+  {
+    id: 'isani',
+    ka: 'ისანი',
+    en: 'Isani',
+    ru: 'Исани',
+  },
+  {
+    id: 'samgori',
+    ka: 'სამგორი',
+    en: 'Samgori',
+    ru: 'Самгори',
+  },
+  {
+    id: 'gldani',
+    ka: 'გლდანი',
+    en: 'Gldani',
+    ru: 'Глдани',
+  },
+  {
+    id: 'dighomi',
+    ka: 'დიღომი',
+    en: 'Dighomi',
+    ru: 'Дигоми',
+  },
+  {
+    id: 'didi-dighomi',
+    ka: 'დიდი დიღომი',
+    en: 'Didi Dighomi',
+    ru: 'Диди Дигоми',
+  },
+  {
+    id: 'ortachala',
+    ka: 'ორთაჭალა',
+    en: 'Ortachala',
+    ru: 'Ортачала',
+  },
+  {
+    id: 'avlabari',
+    ka: 'ავლაბარი',
+    en: 'Avlabari',
+    ru: 'Авлабари',
+  },
+];
 
   readonly requirementOptions = [
     'ახალი კორპუსი',
@@ -1238,7 +1527,7 @@ togglePhoneCountryDropdown(): void {
       null as boolean | null,
 
     childrenAges:
-      '',
+      [] as string[],
 
     petType:
       'none',
@@ -1268,6 +1557,9 @@ togglePhoneCountryDropdown(): void {
   ) {}
 
   ngOnInit(): void {
+
+    polyfillCountryFlagEmojis();
+
     const browserLanguage =
       (navigator.language || '')
         .toLowerCase();
@@ -1640,7 +1932,7 @@ togglePhoneCountryDropdown(): void {
 
         if (
           this.form.hasChildren === true &&
-          !this.form.childrenAges.trim()
+          this.form.childrenAges.length === 0
         ) {
           return false;
         }
@@ -1658,7 +1950,10 @@ togglePhoneCountryDropdown(): void {
         !!this.form.petType &&
         (
           this.form.petType === 'none' ||
-          this.form.petCount >= 1
+          (
+            !!this.form.petSize &&
+            this.form.petCount >= 1
+          )
         )
       );
 
@@ -2010,30 +2305,32 @@ togglePhoneCountryDropdown(): void {
   }
 
   toggleDistrict(
-    district: string
-  ): void {
-    this.form.chooseDistrictForMe =
-      false;
-
-    const index =
-      this.form.districts
-        .indexOf(district);
-
-    if (
-      index >= 0
-    ) {
-      this.form.districts
-        .splice(
-          index,
-          1
-        );
-    } else {
-      this.form.districts
-        .push(
-          district
-        );
-    }
+  district: {
+    id: string;
+    ka: string;
+    en: string;
+    ru: string;
   }
+): void {
+
+  this.form.chooseDistrictForMe = false;
+
+  const index =
+    this.form.districts.indexOf(
+      district.id
+    );
+
+  if (index >= 0) {
+    this.form.districts.splice(
+      index,
+      1
+    );
+  } else {
+    this.form.districts.push(
+      district.id
+    );
+  }
+}
 
   toggleChooseDistrictForMe():
     void {
@@ -2049,15 +2346,18 @@ togglePhoneCountryDropdown(): void {
   }
 
   isDistrictSelected(
-    district: string
-  ): boolean {
-    return (
-      this.form.districts
-        .includes(
-          district
-        )
-    );
+  district: {
+    id: string;
+    ka: string;
+    en: string;
+    ru: string;
   }
+): boolean {
+
+  return this.form.districts.includes(
+    district.id
+  );
+}
 
   selectBedrooms(
     value: string
@@ -2087,9 +2387,38 @@ togglePhoneCountryDropdown(): void {
         null;
 
       this.form.childrenAges =
-        '';
+        [];
     }
   }
+
+  toggleChildAge(
+    value: string
+  ): void {
+    const index =
+      this.form.childrenAges.indexOf(
+        value
+      );
+
+    if (index >= 0) {
+      this.form.childrenAges.splice(
+        index,
+        1
+      );
+    } else {
+      this.form.childrenAges.push(
+        value
+      );
+    }
+  }
+
+  isChildAgeSelected(
+    value: string
+  ): boolean {
+    return this.form.childrenAges.includes(
+      value
+    );
+  }
+
 
   selectPet(
     value: string
