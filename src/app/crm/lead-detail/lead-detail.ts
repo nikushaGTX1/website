@@ -295,7 +295,7 @@ export class CrmLeadDetail implements OnInit {
 
 
   deleteLead(): void {
-    if (!this.isManager || !this.lead || this.deletingLead) return;
+    if (!this.canDeleteLead || !this.lead || this.deletingLead) return;
 
     const confirmed = window.confirm(
       `Permanently delete ${this.lead.fullName}? This also removes all tasks and activity history and cannot be undone.`,
@@ -665,6 +665,11 @@ export class CrmLeadDetail implements OnInit {
     boolean {
 
     return this.authService.canWorkCrmLeads;
+  }
+
+
+  get canDeleteLead(): boolean {
+    return !!this.lead && this.canAccessLead(this.lead);
   }
 
 

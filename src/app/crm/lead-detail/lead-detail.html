@@ -307,7 +307,7 @@
           <button
             type="button"
             class="danger-button"
-            *ngIf="isManager"
+            *ngIf="canDeleteLead"
             (click)="deleteLead()"
             [disabled]="deletingLead"
           >
