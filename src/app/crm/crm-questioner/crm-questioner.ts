@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -9,6 +9,8 @@ import {
   validatePhoneNumberLength,
 } from 'libphonenumber-js/max';
 import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
+import { ApiLocation, LocationSuggestion } from '../../models/location';
+import { LocationService } from '../../services/location.service';
 polyfillCountryFlagEmojis();
 
 type AppLanguage = 'ka' | 'en' | 'ru';
@@ -17,6 +19,10 @@ interface LocationEntry {
   id: number;
   type: string;
   address: string;
+  streetId: number | null;
+  streetValue: string;
+  streetLabel: string;
+  district: string;
 }
 
 interface PriorityItem {
@@ -550,6 +556,15 @@ togglePhoneCountryDropdown(): void {
         addressPlaceholder:
           'მაგ: პეკინის გამზირი 12',
 
+        streetSearchLoading:
+          'ქუჩები იტვირთება…',
+
+        streetSearchError:
+          'ქუჩების ჩატვირთვა ვერ მოხერხდა. მისამართი ხელით შეიყვანეთ.',
+
+        streetNoResults:
+          'შესაბამისი ქუჩა ვერ მოიძებნა. მისამართი ხელით შეიყვანეთ.',
+
         addAnother:
           '+ დაამატე კიდევ ერთი',
 
@@ -587,10 +602,13 @@ togglePhoneCountryDropdown(): void {
           'აირჩიეთ პრიორიტეტები',
 
         successTitle:
-          'მოთხოვნა წარმატებით გაიგზავნა',
+          'გმადლობთ, რომ აგვირჩიეთ',
 
         successText:
-          'ჩვენ უკვე ვეძებთ თქვენთვის საუკეთესო ბინებს.',
+          'ჩვენი აგენტი იპოვის ვარიანტს, რომელიც თქვენს ცხოვრების სტილს შეესაბამება.',
+
+        successAction:
+          'მთავარ გვერდზე დაბრუნება',
 
         errorTitle:
           'მოთხოვნის გაგზავნა ვერ მოხერხდა',
@@ -837,6 +855,15 @@ togglePhoneCountryDropdown(): void {
         addressPlaceholder:
           'Example: Pekini Avenue 12',
 
+        streetSearchLoading:
+          'Loading streets…',
+
+        streetSearchError:
+          'Streets could not be loaded. You can still enter the address manually.',
+
+        streetNoResults:
+          'No matching street found. You can still enter the address manually.',
+
         addAnother:
           '+ Add another',
 
@@ -874,10 +901,13 @@ togglePhoneCountryDropdown(): void {
           'Choose priorities',
 
         successTitle:
-          'Request sent successfully',
+          'Thank you for choosing us',
 
         successText:
-          'We are already looking for the best apartments for you.',
+          'Our agent will find an option that fits your lifestyle.',
+
+        successAction:
+          'Return to home',
 
         errorTitle:
           'Could not send request',
@@ -1124,6 +1154,15 @@ togglePhoneCountryDropdown(): void {
         addressPlaceholder:
           'Например: проспект Пекина 12',
 
+        streetSearchLoading:
+          'Загрузка улиц…',
+
+        streetSearchError:
+          'Не удалось загрузить улицы. Адрес можно ввести вручную.',
+
+        streetNoResults:
+          'Подходящая улица не найдена. Адрес можно ввести вручную.',
+
         addAnother:
           '+ Добавить ещё',
 
@@ -1161,10 +1200,13 @@ togglePhoneCountryDropdown(): void {
           'Выберите приоритеты',
 
         successTitle:
-          'Запрос успешно отправлен',
+          'Спасибо, что выбрали нас',
 
         successText:
-          'Мы уже ищем для вас лучшие квартиры.',
+          'Наш агент найдёт вариант, который соответствует вашему образу жизни.',
+
+        successAction:
+          'Вернуться на главную',
 
         errorTitle:
           'Не удалось отправить запрос',
@@ -1423,6 +1465,18 @@ togglePhoneCountryDropdown(): void {
 
   private locationId = 1;
 
+  streetCatalogLoading = false;
+  streetCatalogError = false;
+  activeLocationEntryId: number | null = null;
+
+  private streetCatalog: ApiLocation[] = [];
+  private readonly locationStreetSuggestions = new Map<
+    number,
+    LocationSuggestion[]
+  >();
+  private readonly activeStreetSuggestionIndexes =
+    new Map<number, number>();
+
   readonly basePriorities: PriorityItem[] = [
     {
       id: 'district',
@@ -1553,7 +1607,8 @@ togglePhoneCountryDropdown(): void {
 
   constructor(
     private http: HttpClient,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private locationService: LocationService
   ) {}
 
   ngOnInit(): void {
@@ -1606,6 +1661,8 @@ togglePhoneCountryDropdown(): void {
 
     this.agentToken = token;
     this.invalidAgentLink = false;
+
+    this.loadStreetCatalog();
   }
 
   t(key: string): string {
@@ -2485,6 +2542,35 @@ togglePhoneCountryDropdown(): void {
           1
         );
 
+      const removedEntries =
+        this.locationEntries
+          .filter(
+            entry =>
+              entry.type ===
+              type
+          );
+
+      removedEntries.forEach(
+        entry => {
+          this.locationStreetSuggestions
+            .delete(entry.id);
+
+          this.activeStreetSuggestionIndexes
+            .delete(entry.id);
+        }
+      );
+
+      if (
+        removedEntries.some(
+          entry =>
+            entry.id ===
+            this.activeLocationEntryId
+        )
+      ) {
+        this.activeLocationEntryId =
+          null;
+      }
+
       this.locationEntries =
         this.locationEntries
           .filter(
@@ -2524,6 +2610,18 @@ togglePhoneCountryDropdown(): void {
 
       address:
         '',
+
+      streetId:
+        null,
+
+      streetValue:
+        '',
+
+      streetLabel:
+        '',
+
+      district:
+        '',
     });
   }
 
@@ -2551,6 +2649,20 @@ togglePhoneCountryDropdown(): void {
             item.id !==
             entry.id
         );
+
+    this.locationStreetSuggestions
+      .delete(entry.id);
+
+    this.activeStreetSuggestionIndexes
+      .delete(entry.id);
+
+    if (
+      this.activeLocationEntryId ===
+      entry.id
+    ) {
+      this.activeLocationEntryId =
+        null;
+    }
   }
 
   clearLocations():
@@ -2560,6 +2672,767 @@ togglePhoneCountryDropdown(): void {
 
     this.locationEntries =
       [];
+
+    this.locationStreetSuggestions
+      .clear();
+
+    this.activeStreetSuggestionIndexes
+      .clear();
+
+    this.closeLocationAutocomplete();
+  }
+
+  onLocationAddressFocus(
+    entry: LocationEntry
+  ): void {
+    if (
+      !!entry.streetValue &&
+      this.addressKeepsSelectedStreet(
+        entry
+      )
+    ) {
+      this.closeLocationAutocomplete();
+
+      return;
+    }
+
+    this.activeLocationEntryId =
+      entry.id;
+
+    this.refreshStreetSuggestions(
+      entry
+    );
+  }
+
+  onLocationAddressInput(
+    entry: LocationEntry
+  ): void {
+    if (
+      !!entry.streetValue
+    ) {
+      if (
+        this.addressKeepsSelectedStreet(
+          entry
+        )
+      ) {
+        this.closeLocationAutocomplete();
+
+        return;
+      }
+
+      this.clearSelectedStreet(
+        entry
+      );
+    }
+
+    this.activeLocationEntryId =
+      entry.id;
+
+    this.refreshStreetSuggestions(
+      entry
+    );
+  }
+
+  closeLocationAutocomplete():
+    void {
+    this.activeLocationEntryId =
+      null;
+
+    this.activeStreetSuggestionIndexes
+      .clear();
+  }
+
+  showStreetAutocomplete(
+    entry: LocationEntry
+  ): boolean {
+    return (
+      this.activeLocationEntryId ===
+        entry.id &&
+      !(
+        !!entry.streetValue &&
+        this.addressKeepsSelectedStreet(
+          entry
+        )
+      ) &&
+      this.streetQuery(
+        entry.address
+      ).length >= 2
+    );
+  }
+
+  streetSuggestionsFor(
+    entry: LocationEntry
+  ): LocationSuggestion[] {
+    return (
+      this.locationStreetSuggestions
+        .get(entry.id) ??
+      []
+    );
+  }
+
+  selectStreetSuggestion(
+    entry: LocationEntry,
+    suggestion: LocationSuggestion
+  ): void {
+    const addressSuffix =
+      this.streetAddressSuffixForSuggestion(
+        entry.address,
+        suggestion
+      );
+
+    entry.address =
+      `${suggestion.label}${addressSuffix}`;
+
+    entry.streetId =
+      suggestion.id ??
+      null;
+
+    entry.streetValue =
+      suggestion.value ??
+      suggestion.label;
+
+    entry.streetLabel =
+      suggestion.label;
+
+    entry.district =
+      suggestion.districtValue ??
+      suggestion.district ??
+      '';
+
+    this.locationStreetSuggestions
+      .delete(entry.id);
+
+    this.closeLocationAutocomplete();
+  }
+
+  onLocationAddressKeydown(
+    entry: LocationEntry,
+    event: KeyboardEvent
+  ): void {
+    if (
+      event.key ===
+      'Escape'
+    ) {
+      this.closeLocationAutocomplete();
+
+      return;
+    }
+
+    if (
+      !this.showStreetAutocomplete(
+        entry
+      )
+    ) {
+      return;
+    }
+
+    const suggestions =
+      this.streetSuggestionsFor(
+        entry
+      );
+
+    if (!suggestions.length) {
+      return;
+    }
+
+    const currentIndex =
+      this.activeStreetSuggestionIndexes
+        .get(entry.id) ??
+      -1;
+
+    if (
+      event.key ===
+        'ArrowDown' ||
+      event.key ===
+        'ArrowUp'
+    ) {
+      event.preventDefault();
+
+      const direction =
+        event.key ===
+        'ArrowDown'
+          ? 1
+          : -1;
+
+      const nextIndex =
+        currentIndex < 0
+          ? direction > 0
+            ? 0
+            : suggestions.length - 1
+          : (
+              currentIndex +
+              direction +
+              suggestions.length
+            ) %
+            suggestions.length;
+
+      this.activeStreetSuggestionIndexes
+        .set(
+          entry.id,
+          nextIndex
+        );
+
+      window.requestAnimationFrame(
+        () =>
+          document
+            .getElementById(
+              this.streetSuggestionId(
+                entry,
+                nextIndex
+              )
+            )
+            ?.scrollIntoView({
+              block:
+                'nearest',
+            })
+      );
+
+      return;
+    }
+
+    if (
+      event.key ===
+        'Enter' &&
+      currentIndex >= 0
+    ) {
+      event.preventDefault();
+
+      this.selectStreetSuggestion(
+        entry,
+        suggestions[currentIndex]
+      );
+    }
+  }
+
+  onLocationAutocompleteFocusOut(
+    entry: LocationEntry,
+    event: FocusEvent
+  ): void {
+    const container =
+      event.currentTarget instanceof HTMLElement
+        ? event.currentTarget
+        : null;
+
+    const nextTarget =
+      event.relatedTarget instanceof Node
+        ? event.relatedTarget
+        : null;
+
+    if (
+      container &&
+      nextTarget &&
+      container.contains(
+        nextTarget
+      )
+    ) {
+      return;
+    }
+
+    if (
+      this.activeLocationEntryId ===
+      entry.id
+    ) {
+      this.closeLocationAutocomplete();
+    }
+  }
+
+  streetSuggestionId(
+    entry: LocationEntry,
+    index: number
+  ): string {
+    return `street-suggestion-${entry.id}-${index}`;
+  }
+
+  activeStreetSuggestionId(
+    entry: LocationEntry
+  ): string | null {
+    const index =
+      this.activeStreetSuggestionIndexes
+        .get(entry.id) ??
+      -1;
+
+    return index >= 0
+      ? this.streetSuggestionId(
+          entry,
+          index
+        )
+      : null;
+  }
+
+  isStreetSuggestionActive(
+    entry: LocationEntry,
+    index: number
+  ): boolean {
+    return (
+      this.activeStreetSuggestionIndexes
+        .get(entry.id) ===
+      index
+    );
+  }
+
+  @HostListener(
+    'document:pointerdown',
+    ['$event']
+  )
+  closeLocationAutocompleteOnOutsideClick(
+    event: PointerEvent
+  ): void {
+    if (
+      event.target instanceof Element &&
+      event.target.closest(
+        '.location-autocomplete'
+      )
+    ) {
+      return;
+    }
+
+    this.closeLocationAutocomplete();
+  }
+
+  private loadStreetCatalog():
+    void {
+    this.streetCatalogLoading =
+      true;
+
+    this.streetCatalogError =
+      false;
+
+    this.locationService
+      .getLocations()
+      .subscribe({
+        next: locations => {
+          this.streetCatalog =
+            locations;
+
+          this.streetCatalogLoading =
+            false;
+
+          const activeEntry =
+            this.locationEntries
+              .find(
+                entry =>
+                  entry.id ===
+                  this.activeLocationEntryId
+              );
+
+          if (activeEntry) {
+            this.refreshStreetSuggestions(
+              activeEntry
+            );
+          }
+        },
+
+        error: () => {
+          this.streetCatalogLoading =
+            false;
+
+          this.streetCatalogError =
+            true;
+        },
+      });
+  }
+
+  private refreshStreetSuggestions(
+    entry: LocationEntry
+  ): void {
+    const query =
+      this.streetQuery(
+        entry.address
+      );
+
+    if (
+      query.length < 2 ||
+      this.streetCatalogLoading ||
+      this.streetCatalogError
+    ) {
+      this.locationStreetSuggestions
+        .delete(entry.id);
+
+      this.activeStreetSuggestionIndexes
+        .delete(entry.id);
+
+      return;
+    }
+
+    const normalizedQuery =
+      this.normalizedStreetText(
+        query
+      );
+
+    const language =
+      /[\u10A0-\u10FF]/
+        .test(query)
+        ? 'ka'
+        : 'en';
+
+    const seen =
+      new Set<string>();
+
+    const matches: Array<{
+      suggestion: LocationSuggestion;
+      rank: number;
+    }> = [];
+
+    const locations =
+      this.streetCatalog
+        .filter(
+          location =>
+            location.city
+              .trim()
+              .toLowerCase() ===
+            'tbilisi'
+        )
+        .sort(
+          (left, right) =>
+            Number(
+              left.district ===
+              'All Tbilisi'
+            ) -
+            Number(
+              right.district ===
+              'All Tbilisi'
+            )
+        );
+
+    for (
+      const location
+      of locations
+    ) {
+      for (
+        const street
+        of this.locationService
+          .streetNames(
+            location,
+            language
+          )
+      ) {
+        const key =
+          street.id > 0
+            ? `id:${street.id}`
+            : `name:${
+                this.normalizedStreetText(
+                  street.value
+                )
+              }`;
+
+        if (seen.has(key)) {
+          continue;
+        }
+
+        const normalizedLabel =
+          this.normalizedStreetText(
+            street.label
+          );
+
+        const normalizedValue =
+          this.normalizedStreetText(
+            street.value
+          );
+
+        const normalizedAliases =
+          street.aliases
+            .map(
+              alias =>
+                this.normalizedStreetText(
+                  alias
+                )
+            );
+
+        const labelIndex =
+          normalizedLabel
+            .indexOf(
+              normalizedQuery
+            );
+
+        const valueIndex =
+          normalizedValue
+            .indexOf(
+              normalizedQuery
+            );
+
+        const aliasIndexes =
+          normalizedAliases
+            .map(
+              alias =>
+                alias.indexOf(
+                  normalizedQuery
+                )
+            )
+            .filter(
+              index =>
+                index >= 0
+            );
+
+        const aliasIndex =
+          aliasIndexes.length
+            ? Math.min(
+                ...aliasIndexes
+              )
+            : -1;
+
+        if (
+          labelIndex < 0 &&
+          valueIndex < 0 &&
+          aliasIndex < 0
+        ) {
+          continue;
+        }
+
+        seen.add(key);
+
+        matches.push({
+          rank:
+            labelIndex === 0
+              ? 0
+              : valueIndex === 0
+                ? 1
+                : normalizedAliases
+                    .some(
+                      alias =>
+                        alias.startsWith(
+                          normalizedQuery
+                        )
+                    )
+                  ? 2
+                  : Math.min(
+                      labelIndex < 0
+                        ? Number.MAX_SAFE_INTEGER
+                        : labelIndex,
+                      valueIndex < 0
+                        ? Number.MAX_SAFE_INTEGER
+                        : valueIndex,
+                      aliasIndex < 0
+                        ? Number.MAX_SAFE_INTEGER
+                        : aliasIndex
+                    ) + 3,
+
+          suggestion: {
+            id:
+              street.id ||
+              undefined,
+
+            label:
+              street.label,
+
+            value:
+              street.value,
+
+            aliases:
+              street.aliases,
+
+            type:
+              'Street',
+
+            city:
+              this.locationService
+                .cityName(
+                  location,
+                  language
+                ),
+
+            district:
+              this.locationService
+                .districtName(
+                  location,
+                  language
+                ),
+
+            districtValue:
+              location.district,
+          },
+        });
+      }
+    }
+
+    const suggestions =
+      matches
+        .sort(
+          (left, right) =>
+            left.rank -
+              right.rank ||
+            left.suggestion.label
+              .localeCompare(
+                right.suggestion.label
+              )
+        )
+        .slice(0, 8)
+        .map(
+          match =>
+            match.suggestion
+        );
+
+    this.locationStreetSuggestions
+      .set(
+        entry.id,
+        suggestions
+      );
+
+    this.activeStreetSuggestionIndexes
+      .set(
+        entry.id,
+        -1
+      );
+  }
+
+  private addressKeepsSelectedStreet(
+    entry: LocationEntry
+  ): boolean {
+    const address =
+      this.normalizedStreetText(
+        entry.address
+      );
+
+    const label =
+      this.normalizedStreetText(
+        entry.streetLabel
+      );
+
+    return (
+      !!label &&
+      (
+        address === label ||
+        (
+          address.startsWith(
+            label
+          ) &&
+          /^(?:,\s*|\s+)(?:#|№)?\d/
+            .test(
+              address.slice(
+                label.length
+              )
+            )
+        )
+      )
+    );
+  }
+
+  private clearSelectedStreet(
+    entry: LocationEntry
+  ): void {
+    entry.streetId =
+      null;
+
+    entry.streetValue =
+      '';
+
+    entry.streetLabel =
+      '';
+
+    entry.district =
+      '';
+  }
+
+  private streetQuery(
+    address: string
+  ): string {
+    const trimmedAddress =
+      address.trim();
+
+    const suffix =
+      this.streetAddressSuffix(
+        trimmedAddress
+      );
+
+    return suffix
+      ? trimmedAddress
+          .slice(
+            0,
+            -suffix.length
+          )
+          .trim()
+      : trimmedAddress;
+  }
+
+  private streetAddressSuffix(
+    address: string
+  ): string {
+    return (
+      address
+        .trim()
+        .match(
+          /((?:,\s*|\s+)(?:#|№)?\d[a-zа-я\u10a0-\u10ff0-9/-]*(?:\s*,.*)?)$/i
+        )?.[1] ??
+      ''
+    );
+  }
+
+  private streetAddressSuffixForSuggestion(
+    address: string,
+    suggestion: LocationSuggestion
+  ): string {
+    const trimmedAddress =
+      address.trim();
+
+    const normalizedAddress =
+      this.normalizedStreetText(
+        trimmedAddress
+      );
+
+    const candidateNames =
+      [
+        suggestion.label,
+        suggestion.value,
+        ...(suggestion.aliases ?? []),
+      ]
+        .filter(
+          (value): value is string =>
+            !!value
+        )
+        .map(
+          value =>
+            this.normalizedStreetText(
+              value
+            )
+        );
+
+    if (
+      candidateNames.includes(
+        normalizedAddress
+      )
+    ) {
+      return '';
+    }
+
+    const suffix =
+      this.streetAddressSuffix(
+        trimmedAddress
+      );
+
+    if (!suffix) {
+      return '';
+    }
+
+    const baseAddress =
+      this.normalizedStreetText(
+        trimmedAddress.slice(
+          0,
+          -suffix.length
+        )
+      );
+
+    return (
+      !!baseAddress &&
+      candidateNames.some(
+        name =>
+          name.includes(
+            baseAddress
+          ) ||
+          baseAddress.includes(
+            name
+          )
+      )
+    )
+      ? suffix
+      : '';
+  }
+
+  private normalizedStreetText(
+    value: string
+  ): string {
+    return value
+      .trim()
+      .normalize('NFC')
+      .toLocaleLowerCase();
   }
 
   selectRentalPeriod(
@@ -2820,7 +3693,7 @@ togglePhoneCountryDropdown(): void {
     string {
     const preferences = {
       questionnaireVersion:
-        3,
+        4,
 
       language:
         this.language,
@@ -2909,6 +3782,17 @@ togglePhoneCountryDropdown(): void {
 
             address:
               location.address,
+
+            streetId:
+              location.streetId,
+
+            street:
+              location.streetValue ||
+              null,
+
+            district:
+              location.district ||
+              null,
           })
         ),
 

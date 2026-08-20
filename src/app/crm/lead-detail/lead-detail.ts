@@ -61,6 +61,9 @@ interface QuestionnairePriority {
 interface QuestionnaireLocation {
   type: string;
   address: string;
+  streetId?: number | null;
+  street?: string | null;
+  district?: string | null;
 }
 
 

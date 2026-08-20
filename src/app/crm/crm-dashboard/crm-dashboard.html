@@ -1515,6 +1515,183 @@
 
 
             <!-- ============================================= -->
+            <!-- RENTAL AND PETS -->
+            <!-- ============================================= -->
+
+            <div class="form-section-heading wide">
+
+              <span>
+
+                <i
+                  class="fa-solid fa-calendar-check"
+                  aria-hidden="true"
+                ></i>
+
+              </span>
+
+
+              <div>
+
+                <b>
+                  {{
+                    manualLeadForm.goal === 'rent'
+                      ? 'Rental and lifestyle'
+                      : 'Lifestyle preferences'
+                  }}
+                </b>
+
+                <small>
+                  {{
+                    manualLeadForm.goal === 'rent'
+                      ? 'Lease term and pet requirements'
+                      : 'Pet requirements'
+                  }}
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <!-- RENTAL PERIOD -->
+
+            <div
+              class="lead-choice-field"
+              *ngIf="manualLeadForm.goal === 'rent'"
+            >
+
+              <span class="field-label">
+
+                <i
+                  class="fa-regular fa-clock"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Rental period
+                </span>
+
+              </span>
+
+
+              <div class="lead-choice-options rental-period-options">
+
+                <button
+                  type="button"
+                  *ngFor="let period of rentalPeriodOptions"
+                  [class.selected]="
+                    manualLeadForm.rentalPeriodMonths ===
+                    period.value
+                  "
+                  [attr.aria-pressed]="
+                    manualLeadForm.rentalPeriodMonths ===
+                    period.value
+                  "
+                  (click)="
+                    manualLeadForm.rentalPeriodMonths =
+                    period.value
+                  "
+                >
+                  {{ period.label }}
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- PET TYPE AND SIZE -->
+
+            <div
+              class="lead-choice-field"
+              [class.wide]="manualLeadForm.goal !== 'rent'"
+            >
+
+              <span class="field-label">
+
+                <i
+                  class="fa-solid fa-paw"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Pets
+                </span>
+
+              </span>
+
+
+              <div class="lead-choice-options pet-type-options">
+
+                <button
+                  type="button"
+                  *ngFor="let pet of petTypeOptions"
+                  [class.selected]="
+                    manualLeadForm.petType ===
+                    pet.value
+                  "
+                  [attr.aria-pressed]="
+                    manualLeadForm.petType ===
+                    pet.value
+                  "
+                  (click)="selectManualPet(pet.value)"
+                >
+
+                  <i
+                    class="fa-solid"
+                    [ngClass]="pet.icon"
+                    aria-hidden="true"
+                  ></i>
+
+                  {{ pet.label }}
+
+                </button>
+
+              </div>
+
+
+              <div
+                class="pet-size-panel"
+                *ngIf="
+                  manualLeadForm.petType === 'dog' ||
+                  manualLeadForm.petType === 'cat'
+                "
+              >
+
+                <span>
+                  Pet size
+                </span>
+
+
+                <div class="lead-choice-options pet-size-options">
+
+                  <button
+                    type="button"
+                    *ngFor="let size of petSizeOptions"
+                    [class.selected]="
+                      manualLeadForm.petSize ===
+                      size.value
+                    "
+                    [attr.aria-pressed]="
+                      manualLeadForm.petSize ===
+                      size.value
+                    "
+                    (click)="
+                      manualLeadForm.petSize =
+                      size.value
+                    "
+                  >
+                    {{ size.label }}
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- ============================================= -->
             <!-- PREFERENCES -->
             <!-- ============================================= -->
 

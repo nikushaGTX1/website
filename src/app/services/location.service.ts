@@ -11,7 +11,7 @@ export class LocationService {
   private readonly catalogUrl = `${API_URL}/locations/catalog`;
   private readonly streetsUrl = `${API_URL}/Streets`;
   private readonly persistentCache = new PersistentDataCache(
-    'verified-location-catalog-v3',
+    'verified-location-catalog-v4',
     5 * 60 * 1000,
   );
   private locations$?: Observable<ApiLocation[]>;
@@ -109,6 +109,7 @@ export class LocationService {
             id: street.id,
             english: street.nameEn,
             georgian: street.nameKa,
+            aliases: street.aliases || [],
             geometryStatus: street.geometryStatus,
           })),
       }));
@@ -149,11 +150,17 @@ export class LocationService {
       : location.region;
   }
 
-  streetNames(location: ApiLocation, language: AppLanguage): Array<{ id: number; label: string; value: string }> {
+  streetNames(location: ApiLocation, language: AppLanguage): Array<{
+    id: number;
+    label: string;
+    value: string;
+    aliases: string[];
+  }> {
     if (location.streets?.length) {
       return location.streets.map((street) => ({
         id: street.id,
         value: street.english,
+        aliases: street.aliases || [],
         label:
           language === 'ka'
             ? street.georgian ||
@@ -171,6 +178,7 @@ export class LocationService {
     return (location.streetNames || []).map((value, index) => ({
       id: 0,
       value,
+      aliases: [],
       label:
         localized?.[index] ||
         (language === 'ka'

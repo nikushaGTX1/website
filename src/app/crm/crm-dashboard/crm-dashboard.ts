@@ -19,6 +19,15 @@ import { CrmService } from '../../services/crm.service';
 
 type StatusFilter = 'all' | CrmLeadStatus;
 type AssignmentFilter = 'all' | 'mine' | 'unassigned';
+type ManualRentalPeriod = '' | '3' | '6' | '12' | '12+';
+type ManualPetType = '' | 'none' | 'dog' | 'cat';
+type ManualPetSize = '' | 'small' | 'medium' | 'large';
+
+interface ManualLeadForm extends CreateCrmLeadRequest {
+  rentalPeriodMonths: ManualRentalPeriod;
+  petType: ManualPetType;
+  petSize: ManualPetSize;
+}
 
 @Component({
   selector: 'app-crm-dashboard',
@@ -76,6 +85,22 @@ export class CrmDashboard implements OnInit {
   readonly leadBudgetStep = 100;
   readonly propertyTypes = ['Apartment', 'House', 'Commercial space', 'Country house', 'Land'];
   readonly roomOptions = [1, 2, 3, 4, 5, 6, 7, 8];
+  readonly rentalPeriodOptions: Array<{ value: Exclude<ManualRentalPeriod, ''>; label: string }> = [
+    { value: '3', label: '3 months' },
+    { value: '6', label: '6 months' },
+    { value: '12', label: '12 months' },
+    { value: '12+', label: '12+ months' },
+  ];
+  readonly petTypeOptions: Array<{ value: Exclude<ManualPetType, ''>; label: string; icon: string }> = [
+    { value: 'none', label: 'No pet', icon: 'fa-ban' },
+    { value: 'dog', label: 'Dog', icon: 'fa-dog' },
+    { value: 'cat', label: 'Cat', icon: 'fa-cat' },
+  ];
+  readonly petSizeOptions: Array<{ value: Exclude<ManualPetSize, ''>; label: string }> = [
+    { value: 'small', label: 'Small' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'large', label: 'Big' },
+  ];
   private readonly uploaderLeadSources = [{ value: 'referral', label: 'Referral' }];
   private readonly agentLeadSources = [{ value: 'manual', label: 'Manual' }];
   private readonly managerLeadSources = [
@@ -85,7 +110,7 @@ export class CrmDashboard implements OnInit {
     { value: 'website', label: 'Website' },
     { value: 'ai-match', label: 'AI match' },
   ];
-  manualLeadForm: CreateCrmLeadRequest = this.emptyLeadForm();
+  manualLeadForm: ManualLeadForm = this.emptyLeadForm();
   private previouslyFocusedElement: HTMLElement | null = null;
 
   constructor(
@@ -140,6 +165,11 @@ export class CrmDashboard implements OnInit {
     this.manualLeadForm.rooms = rooms;
     if ((this.manualLeadForm.bedrooms || 0) > rooms) this.manualLeadForm.bedrooms = undefined;
     this.leadMenu = 'bedrooms';
+  }
+
+  selectManualPet(type: Exclude<ManualPetType, ''>): void {
+    this.manualLeadForm.petType = type;
+    if (type === 'none') this.manualLeadForm.petSize = '';
   }
 
   trackLeadSource(_index: number, source: { value: string }): string {
@@ -341,18 +371,22 @@ export class CrmDashboard implements OnInit {
     }
 
     const request: CreateCrmLeadRequest = {
-      ...this.manualLeadForm,
       source: this.isUploader ? 'referral' : (this.authService.isCrmAgent && !this.isManager ? 'manual' : this.manualLeadForm.source),
       fullName,
       email: email || undefined,
       phoneNumber: phoneNumber || undefined,
+      preferredContactMethod: this.manualLeadForm.preferredContactMethod,
+      status: this.manualLeadForm.status,
+      goal: this.manualLeadForm.goal,
+      currency: this.manualLeadForm.currency,
       preferredDistricts: this.preferredDistrictsText
         .split(',')
         .map((district) => district.trim())
         .filter(Boolean),
-      preferences: this.manualLeadForm.preferences?.trim() || undefined,
+      preferences: this.manualLeadPreferences(),
       budgetMin,
       budgetMax,
+      preferredPropertyType: this.manualLeadForm.preferredPropertyType || undefined,
       rooms: this.nonNegativeNumber(this.manualLeadForm.rooms),
       bedrooms: this.nonNegativeNumber(this.manualLeadForm.bedrooms),
       assignedAgentId: this.manualLeadForm.assignedAgentId || null,
@@ -464,7 +498,7 @@ export class CrmDashboard implements OnInit {
     }
   }
 
-  private emptyLeadForm(): CreateCrmLeadRequest {
+  private emptyLeadForm(): ManualLeadForm {
     return {
       fullName: '',
       email: '',
@@ -481,7 +515,39 @@ export class CrmDashboard implements OnInit {
       budgetMax: this.leadBudgetMaximum,
       assignedAgentId: null,
       preferredPropertyType: '',
+      rentalPeriodMonths: '',
+      petType: '',
+      petSize: '',
     };
+  }
+
+  private manualLeadPreferences(): string | undefined {
+    const details: string[] = [];
+    const notes = this.manualLeadForm.preferences?.trim();
+
+    if (notes) details.push(notes);
+
+    if (
+      this.manualLeadForm.goal === 'rent' &&
+      this.manualLeadForm.rentalPeriodMonths
+    ) {
+      const period = this.rentalPeriodOptions.find(
+        (option) => option.value === this.manualLeadForm.rentalPeriodMonths,
+      );
+      if (period) details.push(`Rental period: ${period.label}`);
+    }
+
+    if (this.manualLeadForm.petType === 'none') {
+      details.push('Pet: None');
+    } else if (this.manualLeadForm.petType) {
+      const type = this.manualLeadForm.petType === 'dog' ? 'Dog' : 'Cat';
+      const size = this.petSizeOptions.find(
+        (option) => option.value === this.manualLeadForm.petSize,
+      )?.label;
+      details.push(`Pet: ${type}${size ? ` (${size})` : ''}`);
+    }
+
+    return details.length ? details.join(' · ') : undefined;
   }
 
   private emptyMetrics(): CrmMetrics {

@@ -29,6 +29,7 @@ export interface ApiLocation {
     id: number;
     english: string;
     georgian?: string | null;
+    aliases?: string[];
     geometryStatus?: string;
   }>;
 }
@@ -39,6 +40,7 @@ export interface LocationSuggestion {
   id?: number;
   label: string;
   value?: string;
+  aliases?: string[];
   type: LocationSuggestionType;
   city?: string;
   district?: string;

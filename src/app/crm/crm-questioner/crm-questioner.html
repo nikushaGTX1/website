@@ -9,8 +9,16 @@
         href="/main"
       >
 
-        <div class="brand-mark">
-          V
+        <div
+          class="brand-mark"
+          aria-hidden="true"
+        >
+          <img
+            src="/logosh2-small.png"
+            width="128"
+            height="86"
+            alt=""
+          />
         </div>
 
         <div>
@@ -94,9 +102,6 @@
         </h1>
 
 
-        <p class="subtitle">
-          {{ t('personalInfoSubtitle') }}
-        </p>
 
 
         <div class="contact-first-step">
@@ -1340,23 +1345,198 @@
             </div>
 
 
-            <div class="location-input-wrapper">
+            <div
+              class="location-autocomplete"
+              (focusout)="
+                onLocationAutocompleteFocusOut(
+                  entry,
+                  $event
+                )
+              "
+            >
 
-              <span>
-                📍
-              </span>
+              <div class="location-input-wrapper">
 
-              <input
-                type="text"
-                [placeholder]="
-                  t(
-                    'addressPlaceholder'
+                <span aria-hidden="true">
+                  📍
+                </span>
+
+                <input
+                  type="text"
+                  autocomplete="off"
+                  [placeholder]="
+                    t(
+                      'addressPlaceholder'
+                    )
+                  "
+                  [(ngModel)]="
+                    entry.address
+                  "
+                  (focus)="
+                    onLocationAddressFocus(
+                      entry
+                    )
+                  "
+                  (input)="
+                    onLocationAddressInput(
+                      entry
+                    )
+                  "
+                  (keydown)="
+                    onLocationAddressKeydown(
+                      entry,
+                      $event
+                    )
+                  "
+                  role="combobox"
+                  aria-autocomplete="list"
+                  [attr.aria-expanded]="
+                    showStreetAutocomplete(
+                      entry
+                    )
+                  "
+                  [attr.aria-controls]="
+                    'street-suggestions-' +
+                    entry.id
+                  "
+                  [attr.aria-activedescendant]="
+                    activeStreetSuggestionId(
+                      entry
+                    )
+                  "
+                />
+
+              </div>
+
+
+              <div
+                *ngIf="
+                  showStreetAutocomplete(
+                    entry
                   )
                 "
-                [(ngModel)]="
-                  entry.address
-                "
-              />
+                class="street-suggestions"
+              >
+
+                <p
+                  *ngIf="streetCatalogLoading"
+                  class="street-suggestion-status"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {{ t('streetSearchLoading') }}
+                </p>
+
+
+                <p
+                  *ngIf="
+                    !streetCatalogLoading &&
+                    streetCatalogError
+                  "
+                  class="street-suggestion-status error"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {{ t('streetSearchError') }}
+                </p>
+
+
+                <div
+                  *ngIf="
+                    streetSuggestionsFor(
+                      entry
+                    ).length > 0
+                  "
+                  [id]="
+                    'street-suggestions-' +
+                    entry.id
+                  "
+                  role="listbox"
+                >
+
+                  <button
+                    *ngFor="
+                      let suggestion
+                      of streetSuggestionsFor(
+                        entry
+                      );
+                      let index = index
+                    "
+                    type="button"
+                    role="option"
+                    tabindex="-1"
+                    data-no-translate
+                    [id]="
+                      streetSuggestionId(
+                        entry,
+                        index
+                      )
+                    "
+                    [class.active]="
+                      isStreetSuggestionActive(
+                        entry,
+                        index
+                      )
+                    "
+                    [attr.aria-selected]="
+                      isStreetSuggestionActive(
+                        entry,
+                        index
+                      )
+                    "
+                    (pointerdown)="
+                      $event.preventDefault()
+                    "
+                    (click)="
+                      selectStreetSuggestion(
+                        entry,
+                        suggestion
+                      )
+                    "
+                  >
+
+                    <span
+                      class="street-suggestion-icon"
+                      aria-hidden="true"
+                    >
+                      ↳
+                    </span>
+
+                    <span>
+
+                      <strong>
+                        {{ suggestion.label }}
+                      </strong>
+
+                      <small>
+                        {{ suggestion.district }}<ng-container
+                          *ngIf="suggestion.city"
+                        >, {{ suggestion.city }}</ng-container>
+                      </small>
+
+                    </span>
+
+                  </button>
+
+                </div>
+
+
+                <p
+                  *ngIf="
+                    !streetCatalogLoading &&
+                    !streetCatalogError &&
+                    streetSuggestionsFor(
+                      entry
+                    ).length === 0
+                  "
+                  class="street-suggestion-status"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {{ t('streetNoResults') }}
+                </p>
+
+              </div>
 
             </div>
 
@@ -1533,9 +1713,6 @@
 
         <div
           class="ranked-priorities"
-          *ngIf="
-            selectedPriorities.length
-          "
         >
 
           <div
@@ -1636,30 +1813,6 @@
             }}
 
           </button>
-
-        </div>
-
-
-        <div
-          *ngIf="submitSuccess"
-          class="submit-success"
-        >
-
-          <div class="success-icon">
-            ✓
-          </div>
-
-          <div>
-
-            <strong>
-              {{ t('successTitle') }}
-            </strong>
-
-            <p>
-              {{ t('successText') }}
-            </p>
-
-          </div>
 
         </div>
 
@@ -1767,6 +1920,62 @@
       </span>
 
       {{ t('secure') }}
+
+    </div>
+
+  </div>
+
+
+  <div
+    *ngIf="submitSuccess"
+    class="success-modal-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="questionnaire-success-title"
+    aria-describedby="questionnaire-success-text"
+  >
+
+    <div class="success-modal-card">
+
+      <div
+        class="success-modal-glow"
+        aria-hidden="true"
+      ></div>
+
+
+      <div
+        class="success-modal-icon"
+        aria-hidden="true"
+      >
+        ✓
+      </div>
+
+
+      <div class="success-modal-brand">
+        VELVEN
+      </div>
+
+
+      <h2 id="questionnaire-success-title">
+        {{ t('successTitle') }}
+      </h2>
+
+
+      <p id="questionnaire-success-text">
+        {{ t('successText') }}
+      </p>
+
+
+      <a
+        class="success-modal-action"
+        href="/main"
+      >
+        {{ t('successAction') }}
+
+        <span aria-hidden="true">
+          →
+        </span>
+      </a>
 
     </div>
 
