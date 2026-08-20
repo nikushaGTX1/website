@@ -2151,6 +2151,22 @@ togglePhoneCountryDropdown(): void {
     ).replace(/\D/g, '');
   }
 
+  allowPhoneNumberKey(
+    event: KeyboardEvent
+  ): void {
+    if (
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
+      event.key.length !== 1 ||
+      /\d/.test(event.key)
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+  }
+
 
   /**
    * Runs on every phone input change.
@@ -2164,6 +2180,12 @@ togglePhoneCountryDropdown(): void {
   onPhoneInput(
     event: Event
   ): void {
+    this.phoneCountryDropdownOpen =
+      false;
+
+    this.phoneCountrySearch =
+      '';
+
     const input =
       event.target as HTMLInputElement;
 

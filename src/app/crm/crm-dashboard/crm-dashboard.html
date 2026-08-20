@@ -1252,7 +1252,7 @@
                       [max]="leadBudgetMaximum"
                       name="leadBudgetMin"
                       [(ngModel)]="manualLeadForm.budgetMin"
-                      (ngModelChange)="updateLeadBudgetRange('budgetMin')"
+                      (blur)="clampLeadBudget('budgetMin')"
                     />
 
                   </label>
@@ -1270,7 +1270,7 @@
                       [max]="leadBudgetMaximum"
                       name="leadBudgetMax"
                       [(ngModel)]="manualLeadForm.budgetMax"
-                      (ngModelChange)="updateLeadBudgetRange('budgetMax')"
+                      (blur)="clampLeadBudget('budgetMax')"
                     />
 
                   </label>

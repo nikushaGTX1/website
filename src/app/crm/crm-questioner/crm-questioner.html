@@ -392,6 +392,7 @@
                 maxlength="15"
                 placeholder="Phone number"
                 [(ngModel)]="form.phoneNumber"
+                (keydown)="allowPhoneNumberKey($event)"
                 (input)="onPhoneInput($event)"
                 autocomplete="tel"
               />

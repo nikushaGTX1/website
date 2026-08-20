@@ -8,6 +8,7 @@ import { PendingApartment, PendingApartmentService } from '../services/pending-a
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { NearbyWalkingTimes } from '../maps/services/google-nearby-time.service';
+import { TranslationService } from '../services/translation.service';
 
 type UploadForm = {
   realEstateType: string;
@@ -247,6 +248,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     private authService: AuthService,
     private pendingService: PendingApartmentService,
     private locationService: LocationService,
+    private translationService: TranslationService,
   ) {
     this.dismissedNotificationIds = this.readDismissedNotificationIds();
     this.subscriptions.add(
@@ -317,7 +319,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   get uploadAreaSuggestions(): LocationSuggestion[] {
     const query = this.form.location.trim().toLowerCase();
-    const language = this.locationService.languageForQuery(this.form.location);
+    const language = this.translationService.language$.value;
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -337,7 +339,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   get uploadStreetSuggestions(): LocationSuggestion[] {
     const query = this.form.street.trim().toLowerCase();
-    const language = this.locationService.languageForQuery(this.form.street, this.form.location);
+    const language = this.translationService.language$.value;
     if (!this.selectedDistrictValue && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
     const seen = new Set<string>();
@@ -422,7 +424,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   uploadLocationText(english: string, georgian: string): string {
-    return this.locationService.languageForQuery(this.form.street, this.form.location) === 'ka'
+    return this.translationService.language$.value === 'ka'
       ? georgian
       : english;
   }
