@@ -303,6 +303,21 @@
 
           </button>
 
+
+          <button
+            type="button"
+            class="danger-button"
+            *ngIf="isManager"
+            (click)="deleteLead()"
+            [disabled]="deletingLead"
+          >
+
+            <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+
+            {{ deletingLead ? 'Deleting…' : 'Delete lead' }}
+
+          </button>
+
         </div>
 
       </header>

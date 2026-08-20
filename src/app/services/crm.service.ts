@@ -56,6 +56,10 @@ export class CrmService {
     );
   }
 
+  deleteLead(leadId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/leads/${leadId}`);
+  }
+
   updateLeadStatus(leadId: number, status: CrmLeadStatus): Observable<CrmLead> {
     return this.http.patch<CrmLead>(
       `${this.apiUrl}/leads/${leadId}/status`,

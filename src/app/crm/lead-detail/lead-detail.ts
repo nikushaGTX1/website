@@ -8,6 +8,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import {
   ActivatedRoute,
+  Router,
   RouterModule,
 } from '@angular/router';
 
@@ -216,6 +217,10 @@ export class CrmLeadDetail implements OnInit {
     false;
 
 
+  deletingLead =
+    false;
+
+
   statusSaving =
     false;
 
@@ -270,6 +275,9 @@ export class CrmLeadDetail implements OnInit {
     private route:
       ActivatedRoute,
 
+    private router:
+      Router,
+
     private crmService:
       CrmService,
 
@@ -282,6 +290,29 @@ export class CrmLeadDetail implements OnInit {
     private cdr:
       ChangeDetectorRef,
   ) {}
+
+
+  deleteLead(): void {
+    if (!this.isManager || !this.lead || this.deletingLead) return;
+
+    const confirmed = window.confirm(
+      `Permanently delete ${this.lead.fullName}? This also removes all tasks and activity history and cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    this.deletingLead = true;
+    this.pageError = '';
+    this.crmService.deleteLead(this.lead.id).subscribe({
+      next: () => {
+        void this.router.navigate(['/crm']);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.deletingLead = false;
+        this.pageError = this.apiError(error, 'Could not delete this lead.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
 
 
   /* =======================================================

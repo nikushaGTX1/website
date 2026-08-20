@@ -9,6 +9,9 @@
 .profile-grid .lifestyle-detail{position:relative;background:linear-gradient(135deg,#fff 55%,#faf7ff)}
 .profile-grid .lifestyle-detail strong{display:flex;align-items:center;gap:9px;color:#35284a}
 .profile-grid .lifestyle-detail strong i{width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;border-radius:9px;background:#eee8ff;color:#6341c1;font-size:13px}
+.hero-actions .danger-button{border-color:#efc7ca;background:#fff5f5;color:#a8323a}
+.hero-actions .danger-button:hover{border-color:#d65c64;background:#ffebec;color:#8f2028}
+.hero-actions .danger-button:disabled{cursor:wait;opacity:.6}
 
 /* =========================================================
    QUESTIONNAIRE PREFERENCES
