@@ -948,6 +948,17 @@ h1 {
   gap: 10px;
 }
 
+.selection-limit {
+  margin: -2px 0 14px;
+  color: #737b8e;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.selection-limit.complete {
+  color: var(--purple-dark);
+}
+
 
 .feature-card {
   display: flex;
@@ -1167,6 +1178,11 @@ h1 {
   background: var(--purple-light);
 
   color: var(--purple-dark);
+}
+
+.feature-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 
@@ -3402,6 +3418,10 @@ h1 {
   border-radius: 16px;
 
   background: #fbf9fe;
+}
+
+.other-pet-type {
+  margin-bottom: 18px;
 }
 
 

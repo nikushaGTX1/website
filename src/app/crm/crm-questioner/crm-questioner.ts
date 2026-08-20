@@ -515,6 +515,12 @@ togglePhoneCountryDropdown(): void {
         petOther:
           'სხვა',
 
+        otherPetType:
+          'რა სახის ცხოველი გყავთ?',
+
+        otherPetTypePlaceholder:
+          'მაგ: კურდღელი',
+
         petSize:
           'რა ზომისაა თქვენი შინაური ცხოველი?',
 
@@ -544,6 +550,9 @@ togglePhoneCountryDropdown(): void {
 
         requirementsSubtitle:
           'მონიშნეთ ყველა მნიშვნელოვანი პირობა.',
+
+        requirementsLimit:
+          'აირჩიეთ მაქსიმუმ 4 პირობა.',
 
         locationsTitle:
           'არის ადგილი, რომელთან ახლოს ყოფნაც მნიშვნელოვანია?',
@@ -814,6 +823,12 @@ togglePhoneCountryDropdown(): void {
         petOther:
           'Other',
 
+        otherPetType:
+          'What kind of animal do you have?',
+
+        otherPetTypePlaceholder:
+          'Example: Rabbit',
+
         petSize:
           'What size is your pet?',
 
@@ -843,6 +858,9 @@ togglePhoneCountryDropdown(): void {
 
         requirementsSubtitle:
           'Select all important requirements.',
+
+        requirementsLimit:
+          'Choose up to 4 features.',
 
         locationsTitle:
           'Is there a place you need to be close to?',
@@ -1113,6 +1131,12 @@ togglePhoneCountryDropdown(): void {
         petOther:
           'Другое',
 
+        otherPetType:
+          'Какое у вас животное?',
+
+        otherPetTypePlaceholder:
+          'Например: кролик',
+
         petSize:
           'Какого размера ваш питомец?',
 
@@ -1142,6 +1166,9 @@ togglePhoneCountryDropdown(): void {
 
         requirementsSubtitle:
           'Отметьте все важные условия.',
+
+        requirementsLimit:
+          'Выберите не более 4 условий.',
 
         locationsTitle:
           'Есть место, рядом с которым важно жить?',
@@ -1322,7 +1349,7 @@ togglePhoneCountryDropdown(): void {
     'პარკინგი',
     'აივანი',
     'კონდიციონერი',
-    'ცენტრალური გათბობა',
+    'პარკი ახლოს',
     'წყნარი ქუჩა',
     'მეტროსთან ახლოს',
     'კარგი ხედი',
@@ -1362,7 +1389,7 @@ togglePhoneCountryDropdown(): void {
         'პარკინგი': 'Parking',
         'აივანი': 'Balcony',
         'კონდიციონერი': 'Air conditioning',
-        'ცენტრალური გათბობა': 'Central heating',
+        'პარკი ახლოს': 'Park Nearby',
         'წყნარი ქუჩა': 'Quiet street',
         'მეტროსთან ახლოს': 'Near metro',
         'კარგი ხედი': 'Good view',
@@ -1416,8 +1443,8 @@ togglePhoneCountryDropdown(): void {
         'პარკინგი': 'Парковка',
         'აივანი': 'Балкон',
         'კონდიციონერი': 'Кондиционер',
-        'ცენტრალური გათბობა':
-          'Центральное отопление',
+        'პარკი ახლოს':
+          'Парк рядом',
 
         'წყნარი ქუჩა': 'Тихая улица',
         'მეტროსთან ახლოს': 'Рядом с метро',
@@ -1588,6 +1615,9 @@ togglePhoneCountryDropdown(): void {
       'none',
 
     petSize:
+      '',
+
+    otherPetType:
       '',
 
     petCount:
@@ -2019,8 +2049,15 @@ togglePhoneCountryDropdown(): void {
         (
           this.form.petType === 'none' ||
           (
-            !!this.form.petSize &&
-            this.form.petCount >= 1
+            this.form.petCount >= 1 &&
+            (
+              this.form.petType !== 'dog' ||
+              !!this.form.petSize
+            ) &&
+            (
+              this.form.petType !== 'other' ||
+              !!this.form.otherPetType.trim()
+            )
           )
         )
       );
@@ -2495,11 +2532,22 @@ togglePhoneCountryDropdown(): void {
       value;
 
     if (
-      value === 'none'
+      value !== 'dog'
     ) {
       this.form.petSize =
         '';
+    }
 
+    if (
+      value !== 'other'
+    ) {
+      this.form.otherPetType =
+        '';
+    }
+
+    if (
+      value === 'none'
+    ) {
       this.form.petCount =
         1;
     }
@@ -2521,6 +2569,12 @@ togglePhoneCountryDropdown(): void {
           1
         );
     } else {
+      if (
+        this.form.requirements.length >= 4
+      ) {
+        return;
+      }
+
       this.form.requirements
         .push(
           value
@@ -3774,6 +3828,9 @@ togglePhoneCountryDropdown(): void {
       pet: {
         type:
           this.form.petType,
+
+        otherType:
+          this.form.otherPetType.trim() || undefined,
 
         size:
           this.form.petSize,

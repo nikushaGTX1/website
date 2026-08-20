@@ -82,6 +82,8 @@ interface QuestionnaireHousehold {
 interface QuestionnairePet {
   type?: string;
 
+  otherType?: string;
+
   size?: string;
 
   count?: number;

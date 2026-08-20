@@ -1116,6 +1116,11 @@
 
                           </strong>
 
+                          <p *ngIf="preferences.pet?.otherType">
+                            ცხოველი:
+                            {{ preferences.pet?.otherType }}
+                          </p>
+
                           <p
                             *ngIf="
                               preferences.household?.peopleCount

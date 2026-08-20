@@ -6,7 +6,6 @@
 
       <a
         class="brand"
-        href="/main"
       >
 
         <div
@@ -1090,9 +1089,32 @@
     class="conditional-box pet-details"
   >
 
+    <!-- OTHER PET TYPE -->
+
+    <label
+      *ngIf="form.petType === 'other'"
+      class="input-group other-pet-type"
+    >
+
+      <span>
+        {{ t('otherPetType') }}
+      </span>
+
+      <input
+        class="standard-input"
+        type="text"
+        [(ngModel)]="form.otherPetType"
+        [placeholder]="t('otherPetTypePlaceholder')"
+      />
+
+    </label>
+
     <!-- PET SIZE -->
 
-    <div class="pet-size-section">
+    <div
+      *ngIf="form.petType === 'dog'"
+      class="pet-size-section"
+    >
 
       <span class="field-title">
         {{ t('petSize') }}
@@ -1196,6 +1218,14 @@
           {{ t('requirementsSubtitle') }}
         </p>
 
+        <p
+          class="selection-limit"
+          [class.complete]="form.requirements.length === 4"
+        >
+          {{ t('requirementsLimit') }}
+          {{ form.requirements.length }}/4
+        </p>
+
 
         <div class="feature-grid">
 
@@ -1210,6 +1240,10 @@
               isRequirementSelected(
                 option
               )
+            "
+            [disabled]="
+              form.requirements.length >= 4 &&
+              !isRequirementSelected(option)
             "
             (click)="
               toggleRequirement(
