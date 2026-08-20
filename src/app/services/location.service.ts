@@ -99,7 +99,7 @@ export class LocationService {
         district: district.nameEn,
         geometryStatus: district.geometryStatus,
         districtKa: district.nameKa,
-        region: '',
+        region: city?.nameEn || 'Tbilisi',
         streetNames: streets
           .filter((street) => street.districtId === district.id)
           .map((street) => street.nameEn),

@@ -858,7 +858,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       agentPhoneNumber: this.form.agentPhone.trim(),
       city: 'Tbilisi',
       region:
-        this.locationEntries.find((entry) => entry.district === district)?.region || '',
+        this.locationEntries.find((entry) => entry.district === district)?.region || 'Tbilisi',
       district,
       street,
       streetId: this.selectedStreetId || undefined,
