@@ -463,6 +463,10 @@ export class CrmDashboard implements OnInit {
   }
 
   nextAction(lead: CrmLead): CrmTask | undefined {
+    if (lead.status === 'won' || lead.status === 'lost') {
+      return undefined;
+    }
+
     if (lead.nextTask && lead.nextTask.status !== 'completed') {
       return lead.nextTask;
     }
