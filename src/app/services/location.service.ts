@@ -11,7 +11,7 @@ export class LocationService {
   private readonly catalogUrl = `${API_URL}/locations/catalog`;
   private readonly streetsUrl = `${API_URL}/Streets`;
   private readonly persistentCache = new PersistentDataCache(
-    'verified-location-catalog-v5',
+    'verified-location-catalog-v6',
     5 * 60 * 1000,
   );
   private locations$?: Observable<ApiLocation[]>;
