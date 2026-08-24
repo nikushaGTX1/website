@@ -954,15 +954,16 @@ h3 {
 }
 @container (max-width: 700px) {
   .compact-map-controls {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   .compact-map-controls > .compact-street-search {
     position: static;
     transform: none;
-    flex-basis: 100%;
-    width: 100%;
+    flex: 1 1 auto;
+    width: auto;
     max-width: none;
-    margin-top: 10px;
+    min-width: 0;
+    margin: 0;
   }
 }
 .compact-street-search > label {
