@@ -293,6 +293,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     try {
       const record = await firstValueFrom(this.locationService.getStreet(street.id));
       if (revision !== this.streetRevision) return;
+      if (!record.geometry) {
+        // Catalog streets remain searchable/selectable even when the source
+        // list does not include a drawable road line. The exact apartment
+        // location is still supplied independently through the point picker.
+        this.cdr.detectChanges();
+        return;
+      }
       const paths =
         record.geometry.type === 'LineString'
           ? [record.geometry.coordinates as number[][]]
@@ -523,6 +530,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       await Promise.all(
         this.selectedStreetsInput.map(async (selection) => {
           const street = await firstValueFrom(this.locationService.getStreet(selection.streetId));
+          if (!street.geometry) return [];
           return street.geometry.type === 'LineString'
             ? [street.geometry.coordinates as number[][]]
             : (street.geometry.coordinates as number[][][]);

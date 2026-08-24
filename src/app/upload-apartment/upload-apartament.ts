@@ -760,7 +760,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     }
 
     if (!this.selectedStreetId) {
-      this.errorMessage = 'Please select an approved street from the selected district.';
+      this.errorMessage = 'Please select a street from the selected district.';
       return;
     }
 

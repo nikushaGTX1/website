@@ -952,7 +952,7 @@ h3 {
   margin-inline: auto;
   width: min(290px, calc(100% - 24px));
 }
-@container (max-width: 560px) {
+@container (max-width: 700px) {
   .compact-map-controls {
     flex-wrap: wrap;
   }

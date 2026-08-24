@@ -11,7 +11,7 @@ export class LocationService {
   private readonly catalogUrl = `${API_URL}/locations/catalog`;
   private readonly streetsUrl = `${API_URL}/Streets`;
   private readonly persistentCache = new PersistentDataCache(
-    'verified-location-catalog-v4',
+    'verified-location-catalog-v5',
     5 * 60 * 1000,
   );
   private locations$?: Observable<ApiLocation[]>;
@@ -26,9 +26,9 @@ export class LocationService {
     nameEn: string;
     districtId: number;
     district: string;
-    geometry: { type: 'LineString' | 'MultiLineString'; coordinates: number[][] | number[][][] };
+    geometry?: { type: 'LineString' | 'MultiLineString'; coordinates: number[][] | number[][][] } | null;
     bounds: { type: 'Polygon'; coordinates: number[][][] };
-    geometryStatus: 'approved';
+    geometryStatus: string;
   }> {
     return this.http.get<any>(`${this.streetsUrl}/${id}`);
   }
