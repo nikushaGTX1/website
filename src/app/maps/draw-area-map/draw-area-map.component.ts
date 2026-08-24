@@ -34,8 +34,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     east: 45.08,
   };
   private static readonly persistentMapCache = new PersistentDataCache(
-    // v4 invalidates district polygons cached before source-aware boundary refreshes.
-    'map-geometry-v4',
+    // v5 replaces OSM's narrow Didi Digomi core with reviewed street coverage.
+    'map-geometry-v5',
     180 * 24 * 60 * 60 * 1000,
   );
   private static readonly sharedBoundaryCache = new Map<string, number[][][][]>();
