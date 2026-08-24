@@ -34,8 +34,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     east: 45.08,
   };
   private static readonly persistentMapCache = new PersistentDataCache(
-    // v2 ignores broad street-search results cached by the previous matcher.
-    'map-geometry-v3',
+    // v4 invalidates district polygons cached before source-aware boundary refreshes.
+    'map-geometry-v4',
     180 * 24 * 60 * 60 * 1000,
   );
   private static readonly sharedBoundaryCache = new Map<string, number[][][][]>();
@@ -230,7 +230,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     value: string;
     district: string;
   }> {
-    const query = this.streetSearch.trim().toLowerCase();
+    const query = this.normalizeStreetQuery(this.streetSearch);
     if (query.length < 2) return [];
     const language = this.locationService.languageForQuery(this.streetSearch);
     const selectedDistricts = new Set(
@@ -239,15 +239,17 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         .map((district) => district.trim().toLowerCase())
         .filter(Boolean),
     );
-    const searchableLocations = selectedDistricts.size
-      ? this.locations.filter(
-          (location) =>
-            selectedDistricts.has(location.district.trim().toLowerCase()) ||
-            selectedDistricts.has(
-              this.locationService.districtName(location, 'ka').trim().toLowerCase(),
-            ),
-        )
-      : this.locations;
+    // Search the complete official catalog. A district selection affects
+    // ranking, not visibility, because many streets cross district borders
+    // and the supplied catalog also contains smaller neighbourhood groups.
+    const searchableLocations = [...this.locations].sort((left, right) => {
+      const selected = (location: ApiLocation) =>
+        selectedDistricts.has(location.district.trim().toLowerCase()) ||
+        selectedDistricts.has(
+          this.locationService.districtName(location, 'ka').trim().toLowerCase(),
+        );
+      return Number(selected(right)) - Number(selected(left));
+    });
 
     return searchableLocations
       .flatMap((location) =>
@@ -258,10 +260,21 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       )
       .filter(
         (street) =>
-          street.label.toLowerCase().includes(query) || street.value.toLowerCase().includes(query),
+          this.normalizeStreetQuery(street.label).includes(query) ||
+          this.normalizeStreetQuery(street.value).includes(query) ||
+          street.aliases.some((alias) => this.normalizeStreetQuery(alias).includes(query)),
       )
       .filter((street, index, list) => list.findIndex((item) => item.id === street.id) === index)
       .slice(0, 7);
+  }
+
+  private normalizeStreetQuery(value: string): string {
+    return value
+      .normalize('NFKC')
+      .toLocaleLowerCase()
+      .replace(/[.,'’`\-–—()]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   async selectManualStreet(street: {

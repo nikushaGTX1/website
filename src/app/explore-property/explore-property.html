@@ -147,7 +147,7 @@
                   <div class="area-map-card">
                     <i class="fa-solid fa-city"></i
                     ><span
-                      ><b>{{ selectedLocationAreas.length ? selectedLocationAreas.join(', ') : 'Tbilisi' }}</b
+                      ><b>{{ selectedLocationAreas.length ? selectedLocationAreas.join(', ') : (selectedLocationArea || drawnDetectedArea || 'Tbilisi') }}</b
                       ><small>{{ selectedAreaDescription }}</small></span
                     >
                   </div>
