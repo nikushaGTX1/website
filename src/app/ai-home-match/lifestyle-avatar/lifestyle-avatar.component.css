@@ -17,7 +17,7 @@
 
 .character-stage {
   position: relative;
-  width: min(100%, 160px);
+  width: min(100%, 210px);
   height: 100%;
   min-height: 0;
   max-height: 100%;
@@ -26,6 +26,14 @@
   overflow: hidden;
   transform: scale(var(--avatar-character-scale, 1));
   transform-origin: var(--avatar-character-origin, center center);
+}
+
+.character-stage.character-group {
+  width: min(100%, 260px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
 }
 
 .avatar-placeholder {
@@ -45,6 +53,34 @@
   object-fit: contain;
   object-position: center bottom;
   animation: pop 0.35s ease;
+}
+
+.character-stage.character-group img {
+  position: relative;
+  inset: auto;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  flex: 0 0 auto;
+  object-position: center bottom;
+}
+
+.character-stage img[src*="woman"] {
+  height: 90%;
+  align-self: flex-end;
+}
+
+.character-stage:not(.character-group) img[src*="woman"] {
+  top: auto;
+}
+
+.character-stage.character-group img[src*="kid"] {
+  height: 70%;
+  align-self: flex-end;
+}
+
+.character-stage.character-group img:nth-child(n + 3) {
+  width: auto;
 }
 
 .gym-shirt {

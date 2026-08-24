@@ -283,6 +283,35 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       'car', 'social', 'pet', 'home', 'spark', 'check',
     ][this.step] || 'spark';
   }
+  householdImages(value: unknown): string[] {
+    const adult = this.profile.gender === 'Female'
+      ? '/woman%20offset%20fix.svg'
+      : '/man%20offset%20fix.svg';
+    const man = '/man%20offset%20fix.svg';
+    const woman = '/woman%20offset%20fix.svg';
+    const couple = '/couple%20offset%20fix.svg';
+    const child = '/kid%20offset%20fix.svg';
+
+    switch (value) {
+      case 'JustMe':
+        return [adult];
+      case 'Couple':
+        return [couple];
+      case 'ParentWithChildren':
+        return [adult, child];
+      case 'FamilyWithChildren':
+        return [couple, child];
+      case 'Friends':
+      case 'Roommates':
+        return [man, woman];
+      case 'Relatives':
+        return [couple, adult];
+      case 'CorporateHousing':
+        return [man, woman, man];
+      default:
+        return [adult];
+    }
+  }
   optionIcon(value: unknown, label = ''): string {
     const raw = typeof value === 'number' ? label : (value ?? label);
     const key = String(raw).replace(/[^a-z0-9]/gi, '').toLowerCase();
