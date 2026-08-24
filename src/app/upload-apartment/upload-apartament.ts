@@ -7,7 +7,10 @@ import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
-import { NearbyWalkingTimes } from '../maps/services/google-nearby-time.service';
+import {
+  GoogleNearbyTimeService,
+  NearbyWalkingTimes,
+} from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
 
 type UploadForm = {
@@ -248,6 +251,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     private authService: AuthService,
     private pendingService: PendingApartmentService,
     private locationService: LocationService,
+    private nearbyTimeService: GoogleNearbyTimeService,
     private translationService: TranslationService,
   ) {
     this.dismissedNotificationIds = this.readDismissedNotificationIds();
@@ -771,7 +775,18 @@ export class UploadApartment implements OnInit, OnDestroy {
     }
 
     this.loading = true;
+    const calculationAddress = [
+      this.selectedStreetValue,
+      this.form.streetNumber,
+      this.selectedDistrictValue,
+      'Tbilisi',
+    ].filter(Boolean).join(', ');
     let nearbyTimes: NearbyWalkingTimes = {};
+    try {
+      nearbyTimes = await this.nearbyTimeService.getWalkingTimes(calculationAddress);
+    } catch (error) {
+      console.error('Could not calculate nearby walking times:', error);
+    }
 
     if (!this.authService.isAdmin) {
       this.pendingService.submit(this.toCreateApartment(false, nearbyTimes), this.authService.currentUser).subscribe({

@@ -300,9 +300,10 @@ export class CrmDashboard implements OnInit {
       next: ({ leads, metrics, agents }) => {
         this.leads = this.scopeLeads(leads);
         this.agents = agents;
+        const calculatedMetrics = this.calculateMetrics(this.leads);
         this.metrics = this.isManager && metrics
-          ? metrics
-          : this.calculateMetrics(this.leads);
+          ? { ...metrics, overdueTasks: calculatedMetrics.overdueTasks }
+          : calculatedMetrics;
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -576,7 +577,10 @@ export class CrmDashboard implements OnInit {
   }
 
   private calculateMetrics(leads: CrmLead[]): CrmMetrics {
-    const tasks = leads.flatMap((lead) =>
+    const activeLeads = leads.filter(
+      (lead) => lead.status !== 'won' && lead.status !== 'lost',
+    );
+    const tasks = activeLeads.flatMap((lead) =>
       lead.tasks?.length ? lead.tasks : lead.nextTask ? [lead.nextTask] : [],
     );
     const wonLeads = leads.filter((lead) => lead.status === 'won').length;
@@ -585,7 +589,7 @@ export class CrmDashboard implements OnInit {
     return {
       totalLeads: leads.length,
       newLeads: leads.filter((lead) => lead.status === 'new').length,
-      activeLeads: leads.filter((lead) => lead.status !== 'won' && lead.status !== 'lost').length,
+      activeLeads: activeLeads.length,
       overdueTasks: tasks.filter((task) => this.isOverdue(task)).length,
       upcomingViewings: tasks.filter((task) =>
         task.type === 'viewing' && task.status !== 'completed' &&
@@ -638,7 +642,10 @@ export class CrmDashboard implements OnInit {
   private refreshMetrics(): void {
     this.crmService.getMetrics().subscribe({
       next: (metrics) => {
-        this.metrics = metrics;
+        const calculatedMetrics = this.calculateMetrics(this.leads);
+        this.metrics = this.isManager
+          ? { ...metrics, overdueTasks: calculatedMetrics.overdueTasks }
+          : calculatedMetrics;
         this.cdr.markForCheck();
       },
       error: () => undefined,
