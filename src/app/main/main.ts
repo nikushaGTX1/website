@@ -480,10 +480,22 @@ export class Main implements OnInit {
       this.selectedStreetId = this.selectedModalStreetDetails.at(-1)?.streetId ?? null;
     } else {
       if (!street.id) return;
+      const district = street.district?.trim() || '';
+      if (
+        district &&
+        !this.selectedLocationAreas.some(
+          (area) => area.toLowerCase() === district.toLowerCase(),
+        )
+      ) {
+        this.selectedLocationAreas = [...this.selectedLocationAreas, district];
+      }
+      if (district) this.selectedLocationArea = district;
+      this.inlineDrawnPolygon = null;
+      this.drawnDetectedArea = '';
       this.selectedModalStreets = [...this.selectedModalStreets, street.label];
       this.selectedModalStreetDetails = [
         ...this.selectedModalStreetDetails,
-        { streetId: street.id, street: street.label, district: street.district || '' },
+        { streetId: street.id, street: street.label, district },
       ];
       this.selectedStreetId = street.id;
     }
