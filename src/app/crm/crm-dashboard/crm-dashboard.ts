@@ -524,7 +524,16 @@ export class CrmDashboard implements OnInit {
 
     this.draggedLeadId = lead.id;
     event.dataTransfer?.setData('text/plain', String(lead.id));
-    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      const preview = document.createElement('div');
+      preview.className = 'crm-drag-preview';
+      preview.textContent = `Move ${lead.fullName}`;
+      preview.style.cssText = 'position:fixed;top:-1000px;left:-1000px;z-index:9999;max-width:230px;padding:10px 14px;overflow:hidden;border:1px solid #7657f6;border-radius:999px;color:#fff;background:#451a8f;box-shadow:0 8px 20px rgba(69,26,143,.25);font:700 12px Inter,"Segoe UI",sans-serif;text-overflow:ellipsis;white-space:nowrap;';
+      document.body.appendChild(preview);
+      event.dataTransfer.setDragImage(preview, 18, 18);
+      setTimeout(() => preview.remove());
+    }
   }
 
   allowLeadDrop(status: CrmLeadStatus, event: DragEvent): void {
@@ -550,9 +559,18 @@ export class CrmDashboard implements OnInit {
     const lead = this.leads.find((item) => item.id === leadId);
     if (!lead || lead.status === status || this.statusUpdatingLeadIds.has(lead.id)) return;
 
-    const previousStatus = lead.status;
+    const previousLeads = this.leads;
     this.statusUpdatingLeadIds.add(lead.id);
-    this.leads = this.leads.map((item) => item.id === lead.id ? { ...item, status } : item);
+    const movedLead = { ...lead, status };
+    const remainingLeads = this.leads.filter((item) => item.id !== lead.id);
+    const targetIndex = remainingLeads.findIndex((item) => item.status === status);
+    this.leads = targetIndex < 0
+      ? [...remainingLeads, movedLead]
+      : [
+          ...remainingLeads.slice(0, targetIndex),
+          movedLead,
+          ...remainingLeads.slice(targetIndex),
+        ];
     this.metrics = this.calculateMetrics(this.leads);
     this.errorMessage = '';
 
@@ -566,7 +584,7 @@ export class CrmDashboard implements OnInit {
         this.cdr.markForCheck();
       },
       error: (error: HttpErrorResponse) => {
-        this.leads = this.leads.map((item) => item.id === lead.id ? { ...item, status: previousStatus } : item);
+        this.leads = previousLeads;
         this.statusUpdatingLeadIds.delete(lead.id);
         this.metrics = this.calculateMetrics(this.leads);
         this.errorMessage = this.apiError(error, `Could not move ${lead.fullName}.`);

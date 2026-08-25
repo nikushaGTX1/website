@@ -510,6 +510,14 @@
 
             <div class="column-leads">
 
+              <div
+                class="lead-drop-placeholder"
+                *ngIf="dragOverStatus === status && draggedLeadId !== null"
+              >
+                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                Drop to move lead to {{ statusLabel(status) }}
+              </div>
+
               <a
                 class="lead-card"
                 *ngFor="
