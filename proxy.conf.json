@@ -4,6 +4,11 @@
     "secure": true,
     "changeOrigin": true
   },
+  "/media": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "changeOrigin": true
+  },
   "/map-data": {
     "target": "https://website-production-ab09.up.railway.app",
     "secure": true,

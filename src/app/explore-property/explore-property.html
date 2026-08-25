@@ -247,6 +247,7 @@
             <img
               [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'"
               [alt]="apartment.title || 'Property in Tbilisi'"
+              (error)="onApartmentImageError($event)"
             />
             <span class="property-tag"
               ><svg viewBox="0 0 24 24" aria-hidden="true">
@@ -342,35 +343,16 @@
       </div>
     </section>
     <aside class="map-pane" aria-label="Property map">
-      <iframe
-        title="Map of Tbilisi"
-        src="https://www.openstreetmap.org/export/embed.html?bbox=44.6900%2C41.6750%2C44.8500%2C41.7850&layer=mapnik"
-      ></iframe>
-      <div class="map-tint"></div>
-      <span class="map-label lisi">LISI LAKE</span><span class="map-label vake">VAKE</span
-      ><span class="map-label saburtalo">SABURTALO</span>
-      <button
-        *ngFor="let apartment of mapApartments; let index = index"
-        type="button"
-        class="price-pin"
-        [class.active]="selectedApartment?.id === apartment.id"
-        [style.left.%]="mapPinPositions[index].left"
-        [style.top.%]="mapPinPositions[index].top"
-        (click)="selectApartment(apartment)"
-      >
-        {{ compactPrice(apartment.price) }}
-      </button>
-      <button class="map-control" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path>
-          <circle cx="16" cy="7" r="2"></circle>
-          <circle cx="8" cy="17" r="2"></circle></svg
-        >Map settings
-      </button>
+      <app-explore-property-map
+        [apartments]="filteredApartments"
+        [selectedApartmentId]="selectedApartment ? selectedApartment.id : null"
+        (apartmentSelected)="selectApartment($event)"
+      ></app-explore-property-map>
       <div class="map-preview" *ngIf="selectedApartment as apartment">
         <img
           [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'"
           alt=""
+          (error)="onApartmentImageError($event)"
         />
         <div>
           <small>Selected home</small

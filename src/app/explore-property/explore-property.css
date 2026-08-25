@@ -663,93 +663,10 @@ svg {
   border-left: 1px solid var(--line);
   background: #ebe7e1;
 }
-.map-pane iframe {
+.map-pane app-explore-property-map {
+  display: block;
   width: 100%;
   height: 100%;
-  border: 0;
-  filter: saturate(0.72) contrast(0.92) brightness(1.04);
-}
-.map-tint {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: rgba(91, 56, 130, 0.035);
-}
-.map-label {
-  position: absolute;
-  color: #7f7489;
-  opacity: 0.75;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  pointer-events: none;
-}
-.map-label.lisi {
-  top: 14%;
-  left: 25%;
-}
-.map-label.vake {
-  top: 73%;
-  left: 39%;
-}
-.map-label.saburtalo {
-  top: 47%;
-  left: 57%;
-}
-.price-pin {
-  position: absolute;
-  z-index: 4;
-  padding: 7px 10px;
-  color: var(--ink);
-  border: 1px solid rgba(60, 48, 67, 0.17);
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(25, 16, 31, 0.18);
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-  transition: 0.18s ease;
-}
-.price-pin:hover,
-.price-pin.active {
-  z-index: 6;
-  color: #fff;
-  border-color: var(--purple);
-  background: var(--purple);
-  transform: translate(-50%, -50%) scale(1.1);
-}
-.price-pin.active::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 50%;
-  width: 9px;
-  height: 9px;
-  background: var(--purple);
-  transform: translateX(-50%) rotate(45deg);
-}
-.map-control {
-  position: absolute;
-  z-index: 5;
-  top: 15px;
-  right: 15px;
-  height: 37px;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid #ddd7e2;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 4px 13px rgba(22, 15, 28, 0.12);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.map-control svg {
-  width: 17px;
-  height: 17px;
 }
 .map-preview {
   position: absolute;

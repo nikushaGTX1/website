@@ -113,14 +113,6 @@ export class ExploreProperty implements OnInit {
 
   selectedApartment: Apartment | null = null;
   mapVisible = false;
-  readonly mapPinPositions = [
-    { left: 36, top: 76 },
-    { left: 46, top: 70 },
-    { left: 55, top: 53 },
-    { left: 34, top: 64 },
-    { left: 61, top: 42 },
-    { left: 25, top: 25 },
-  ];
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
   currentPage = 1;
@@ -274,16 +266,6 @@ export class ExploreProperty implements OnInit {
   selectFeature(feature: string): void {
     this.featureFilter = this.featureFilter === feature ? '' : feature;
     this.onSearch();
-  }
-
-  compactPrice(price: number): string {
-    if (price >= 1_000_000) {
-      return `$${Number((price / 1_000_000).toFixed(1))}M`;
-    }
-    if (price >= 1_000) {
-      return `$${Number((price / 1_000).toFixed(1))}K`;
-    }
-    return `$${price.toLocaleString()}`;
   }
 
   get areaSuggestions(): LocationSuggestion[] {
@@ -681,10 +663,6 @@ export class ExploreProperty implements OnInit {
     return [this.currentPage - 1, this.currentPage, this.currentPage + 1];
   }
 
-  get mapApartments(): Apartment[] {
-    return this.filteredApartments.slice(0, this.mapPinPositions.length);
-  }
-
   constructor(
     private apartmentService: ApartmentService,
     private cdr: ChangeDetectorRef,
@@ -742,6 +720,13 @@ export class ExploreProperty implements OnInit {
         console.error('Favorite API error:', error);
       },
     });
+  }
+
+  onApartmentImageError(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    if (!image.src.endsWith('/property-placeholder.svg')) {
+      image.src = '/property-placeholder.svg';
+    }
   }
 
   loadApartments(): void {

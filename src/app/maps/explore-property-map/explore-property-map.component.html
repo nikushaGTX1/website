@@ -1,0 +1,36 @@
+<section class="explore-map" aria-label="Interactive map of properties">
+  <div #mapCanvas class="map-canvas"></div>
+
+  <div class="loading-cover" *ngIf="loading && !errorMessage">
+    <span>V</span><strong>Loading properties…</strong>
+  </div>
+  <div class="map-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="map-toolbar" *ngIf="!errorMessage">
+    <button type="button" class="settings-trigger" (click)="settingsOpen = !settingsOpen">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h10M18 7h2M4 17h2M10 17h10"></path>
+        <circle cx="16" cy="7" r="2"></circle>
+        <circle cx="8" cy="17" r="2"></circle>
+      </svg>
+      Map settings
+    </button>
+    <div class="settings-menu" *ngIf="settingsOpen">
+      <button type="button" [class.active]="mapType === 'roadmap'" (click)="setMapType('roadmap')">
+        Map
+      </button>
+      <button
+        type="button"
+        [class.active]="mapType === 'satellite'"
+        (click)="setMapType('satellite')"
+      >
+        Satellite
+      </button>
+      <button type="button" (click)="recenter()">Show all homes</button>
+    </div>
+  </div>
+
+  <span class="map-count" *ngIf="!loading && mappedApartmentCount">
+    {{ mappedApartmentCount }} homes on map
+  </span>
+</section>
