@@ -74,7 +74,11 @@
         <label>Location</label
         ><span
           ><i class="fa-solid fa-location-dot"></i>
-          {{ selectedArea || (hasPolygon ? 'Custom map area' : 'Choose on map below') }}</span
+          {{
+            selectedStreet
+              ? selectedArea + ' · ' + selectedStreet
+              : selectedArea || (hasPolygon ? 'Custom map area' : 'Choose on map below')
+          }}</span
         >
       </div>
       <div [class.invalid]="validationMessage && !propertyType">

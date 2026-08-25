@@ -34,8 +34,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     east: 45.08,
   };
   private static readonly persistentMapCache = new PersistentDataCache(
-    // v5 replaces OSM's narrow Didi Digomi core with reviewed street coverage.
-    'map-geometry-v5',
+    // v7 publishes the detailed SS.ge-derived Didi Dighomi real-estate
+    // coverage and invalidates both the narrow OSM core and coarse v6 draft.
+    'map-geometry-v7',
     180 * 24 * 60 * 60 * 1000,
   );
   private static readonly sharedBoundaryCache = new Map<string, number[][][][]>();
@@ -132,7 +133,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   ngOnChanges(changes: SimpleChanges): void {
     const preserveDrawnPolygon = this.preserveDrawnPolygonOnInputChange;
     this.preserveDrawnPolygonOnInputChange = false;
+    let areaSelectionChanged = false;
     if (changes['selectedAreasInput'] && this.draw && this.map && !preserveDrawnPolygon) {
+      areaSelectionChanged = true;
       void this.chooseAreas(this.selectedAreasInput);
     } else if (
       changes['selectedAreaInput'] &&
@@ -141,9 +144,15 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.map &&
       !preserveDrawnPolygon
     ) {
+      areaSelectionChanged = true;
       void this.chooseAreas([this.selectedAreaInput]);
     }
-    if (changes['selectedStreetsInput'] && this.map) void this.drawSelectedStreets();
+    // chooseAreas draws the district first and then awaits the street draw.
+    // Starting both here caused the slower district request to clear the
+    // street overlay and restore the district-level zoom.
+    if (changes['selectedStreetsInput'] && this.map && !areaSelectionChanged) {
+      void this.drawSelectedStreets();
+    }
     if (changes['apartments'] && this.map && this.hasPolygon) this.refreshApartmentCountOverlays();
   }
 
@@ -290,16 +299,22 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       (area) => area.trim().toLowerCase() === street.district.trim().toLowerCase(),
     );
     if (!districtIsAlreadySelected) await this.chooseAreas([street.district]);
-    await this.selectStreet(street);
     this.streetStep = false;
+    // Commit the user's choice before requesting geometry. A missing or slow
+    // geometry response must not make a successful street click disappear.
+    this.selectedStreet = street.value || street.label;
+    this.selectedStreetId = street.id;
+    this.streetSearch = '';
     this.streetSelected.emit({ ...street, type: 'Street', city: 'Tbilisi' });
+    this.cdr.detectChanges();
+    await this.selectStreet(street);
   }
 
-  async selectStreet(street: { id: number; label: string; value: string }): Promise<void> {
+  async selectStreet(street: { id: number; label: string; value: string; district?: string }): Promise<void> {
     this.errorMessage = '';
     this.activeStreetPaths = [];
     this.clearStreetFocus();
-    this.selectedStreet = street.value;
+    this.selectedStreet = street.label || street.value;
     this.selectedStreetId = street.id;
     this.streetSearch = '';
     const revision = ++this.streetRevision;
@@ -307,9 +322,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       const record = await firstValueFrom(this.locationService.getStreet(street.id));
       if (revision !== this.streetRevision) return;
       if (!record.geometry) {
-        // Catalog streets remain searchable/selectable even when the source
-        // list does not include a drawable road line. The exact apartment
-        // location is still supplied independently through the point picker.
+        const focused = await this.focusStreetByAddress(street);
+        if (!focused) this.errorMessage = 'Exact street geometry is not available yet.';
         this.cdr.detectChanges();
         return;
       }
@@ -324,9 +338,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.renderApartmentPriceOverlays(this.activePriceAreas);
     } catch {
       if (revision !== this.streetRevision) return;
-      this.selectedStreet = '';
-      this.selectedStreetId = null;
-      this.errorMessage = 'Street geometry is not approved.';
+      // Keep the selected street visible/filterable even if its verified
+      // geometry cannot currently be drawn.
+      const focused = await this.focusStreetByAddress(street);
+      this.errorMessage = focused ? '' : 'Exact street geometry is not available yet.';
+      this.cdr.detectChanges();
     }
   }
 
@@ -437,7 +453,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.map.fitBounds(bounds, 48);
       this.renderApartmentCountOverlays(drawableAreas);
       this.renderApartmentPriceOverlays(drawableAreas.map((item) => item.area));
-      await this.drawSelectedStreets(false);
+      await this.drawSelectedStreets(this.selectedStreetsInput.length > 0);
       this.cdr.detectChanges();
       this.polygonChange.emit(this.currentPolygon());
     } else {
@@ -538,15 +554,28 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (!this.map) return;
     const revision = ++this.streetRevision;
     this.clearStreetLines();
-    if (!this.selectedStreetsInput.length) return;
+    if (!this.selectedStreetsInput.length) {
+      this.selectedStreet = '';
+      this.selectedStreetId = null;
+      return;
+    }
+    this.selectedStreet = this.selectedStreetsInput
+      .map((selection) => selection.street)
+      .filter(Boolean)
+      .join(', ');
+    this.selectedStreetId = this.selectedStreetsInput.at(-1)?.streetId ?? null;
     const paths = (
       await Promise.all(
         this.selectedStreetsInput.map(async (selection) => {
-          const street = await firstValueFrom(this.locationService.getStreet(selection.streetId));
-          if (!street.geometry) return [];
-          return street.geometry.type === 'LineString'
-            ? [street.geometry.coordinates as number[][]]
-            : (street.geometry.coordinates as number[][][]);
+          try {
+            const street = await firstValueFrom(this.locationService.getStreet(selection.streetId));
+            if (!street.geometry) return [];
+            return street.geometry.type === 'LineString'
+              ? [street.geometry.coordinates as number[][]]
+              : (street.geometry.coordinates as number[][][]);
+          } catch {
+            return [];
+          }
         }),
       )
     ).flat();
@@ -554,6 +583,80 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.clearStreetLines();
     this.activeStreetPaths = paths;
     this.renderStreetPaths(paths, fitToStreets);
+    if (paths.length) {
+      this.renderStreetFocus(paths, this.selectedStreet);
+      this.renderApartmentPriceOverlays(this.activePriceAreas);
+    } else if (fitToStreets) {
+      await this.focusStreetByAddress(this.selectedStreetsInput.at(-1)!);
+    }
+    this.cdr.detectChanges();
+  }
+
+  private async focusStreetByAddress(street: {
+    street?: string;
+    label?: string;
+    value?: string;
+    district?: string;
+  }): Promise<boolean> {
+    if (!this.map) return false;
+    const streetName = street.street || street.label || street.value || '';
+    if (!streetName) return false;
+
+    try {
+      const { Geocoder } = await importLibrary('geocoding') as google.maps.GeocodingLibrary;
+      const response = await new Geocoder().geocode({
+        address: [streetName, street.district, 'Tbilisi, Georgia'].filter(Boolean).join(', '),
+      });
+      const match = response.results[0];
+      if (!match) return false;
+
+      const position = match.geometry.location;
+      this.map.setCenter(position);
+      this.map.setZoom(17);
+      this.renderStreetPointFocus(position, streetName);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private renderStreetPointFocus(position: google.maps.LatLng, streetName: string): void {
+    if (!this.map) return;
+    this.clearStreetFocus();
+    const map = this.map;
+    const overlay = new google.maps.OverlayView();
+    let marker: HTMLDivElement | undefined;
+    overlay.onAdd = () => {
+      marker = document.createElement('div');
+      marker.className = 'street-point-focus';
+      marker.setAttribute('aria-label', `Selected street: ${streetName}`);
+      marker.innerHTML = '<i class="fa-solid fa-location-dot" aria-hidden="true"></i><span></span>';
+      const label = marker.querySelector('span');
+      if (label) label.textContent = streetName;
+      Object.assign(marker.style, {
+        position: 'absolute',
+        transform: 'translate(-50%, -100%)',
+        padding: '8px 11px',
+        borderRadius: '10px',
+        color: '#fff',
+        background: '#5b21b6',
+        boxShadow: '0 8px 22px rgba(69,26,143,.32)',
+        fontSize: '11px',
+        fontWeight: '800',
+        whiteSpace: 'nowrap',
+      });
+      overlay.getPanes()?.floatPane.appendChild(marker);
+    };
+    overlay.draw = () => {
+      if (!marker) return;
+      const point = overlay.getProjection().fromLatLngToDivPixel(position);
+      if (!point) return;
+      marker.style.left = `${point.x}px`;
+      marker.style.top = `${point.y}px`;
+    };
+    overlay.onRemove = () => marker?.remove();
+    overlay.setMap(map);
+    this.streetFocusOverlay = overlay;
   }
 
   private renderStreetPaths(paths: number[][][], fitToStreets: boolean): void {
