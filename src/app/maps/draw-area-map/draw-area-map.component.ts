@@ -99,11 +99,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   ];
   private map?: google.maps.Map;
   private draw?: import('terra-draw').TerraDraw;
-  private streetLines: google.maps.OverlayView[] = [];
+  private streetLines: Array<google.maps.OverlayView | google.maps.Polyline> = [];
   private countOverlays: google.maps.OverlayView[] = [];
   private priceOverlays: google.maps.OverlayView[] = [];
   private streetFocusOverlay?: google.maps.OverlayView;
   private drawnDeleteOverlay?: google.maps.OverlayView;
+  private selectedBoundaryPolygons: google.maps.Polygon[] = [];
+  private selectedBoundaryLines: google.maps.Polyline[] = [];
   private isCustomDrawing = false;
   private activeStreetPaths: number[][][] = [];
   private activePriceAreas: string[] = [];
@@ -163,12 +165,71 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.zoomListener?.remove();
     this.clearStreetFocus();
     this.clearDrawDeleteControl();
+    this.clearSelectedBoundaryOverlay();
   }
 
   private setLegacyMapStyles(styles: google.maps.MapTypeStyle[] | null): void {
     // A map ID receives its style from Google Cloud. Passing JSON styles as
     // well is unsupported and causes the Maps API warning seen in development.
     if (!this.usesCloudMapStyle) this.map?.setOptions({ styles });
+  }
+
+  /**
+   * Draw approved location boundaries separately from Terra Draw so selected
+   * districts can use a map-style dotted outline while manual drawings retain
+   * their editable purple controls.
+   */
+  private renderSelectedBoundaryOverlay(
+    areas: Array<{ area: string; polygons: number[][][][] }>,
+  ): void {
+    this.clearSelectedBoundaryOverlay();
+    if (!this.map) return;
+
+    const dottedLineSymbol: google.maps.Symbol = {
+      path: google.maps.SymbolPath.CIRCLE,
+      fillColor: '#d93025',
+      fillOpacity: 1,
+      strokeColor: '#d93025',
+      strokeOpacity: 1,
+      scale: 1.4,
+    };
+
+    areas.forEach(({ polygons }) =>
+      polygons.forEach((rings) => {
+        const paths = rings.map((ring) => ring.map(([lng, lat]) => ({ lat, lng })));
+        this.selectedBoundaryPolygons.push(
+          new google.maps.Polygon({
+            map: this.map,
+            paths,
+            clickable: false,
+            fillColor: '#d93025',
+            fillOpacity: 0.035,
+            strokeOpacity: 0,
+            zIndex: 20,
+          }),
+        );
+
+        paths.forEach((path) =>
+          this.selectedBoundaryLines.push(
+            new google.maps.Polyline({
+              map: this.map,
+              path,
+              clickable: false,
+              strokeOpacity: 0,
+              icons: [{ icon: dottedLineSymbol, offset: '0', repeat: '7px' }],
+              zIndex: 21,
+            }),
+          ),
+        );
+      }),
+    );
+  }
+
+  private clearSelectedBoundaryOverlay(): void {
+    this.selectedBoundaryPolygons.forEach((polygon) => polygon.setMap(null));
+    this.selectedBoundaryLines.forEach((line) => line.setMap(null));
+    this.selectedBoundaryPolygons = [];
+    this.selectedBoundaryLines = [];
   }
 
   clearArea(): void {
@@ -188,6 +249,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.activeStreetPaths = [];
     this.clearStreetFocus();
     this.clearDrawDeleteControl();
+    this.clearSelectedBoundaryOverlay();
     this.clearApartmentCountOverlays();
     this.clearApartmentPriceOverlays();
     this.setLegacyMapStyles(null);
@@ -286,12 +348,15 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       .trim();
   }
 
-  async selectManualStreet(street: {
-    id: number;
-    label: string;
-    value: string;
-    district: string;
-  }, event?: Event): Promise<void> {
+  async selectManualStreet(
+    street: {
+      id: number;
+      label: string;
+      value: string;
+      district: string;
+    },
+    event?: Event,
+  ): Promise<void> {
     event?.preventDefault();
     event?.stopPropagation();
 
@@ -310,7 +375,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     await this.selectStreet(street);
   }
 
-  async selectStreet(street: { id: number; label: string; value: string; district?: string }): Promise<void> {
+  async selectStreet(street: {
+    id: number;
+    label: string;
+    value: string;
+    district?: string;
+  }): Promise<void> {
     this.errorMessage = '';
     this.activeStreetPaths = [];
     this.clearStreetFocus();
@@ -362,9 +432,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const nextAreas = this.selectedAreas.some(
       (selected) => selected.trim().toLowerCase() === normalizedArea,
     )
-      ? this.selectedAreas.filter(
-          (selected) => selected.trim().toLowerCase() !== normalizedArea,
-        )
+      ? this.selectedAreas.filter((selected) => selected.trim().toLowerCase() !== normalizedArea)
       : [...this.selectedAreas, area];
     void this.chooseAreas(nextAreas);
   }
@@ -393,6 +461,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     // Remove the old district immediately. Otherwise it remains visible while
     // the newly selected OSM boundary is being downloaded.
     this.draw.clear();
+    this.clearSelectedBoundaryOverlay();
     this.clearStreetLines();
     this.activeStreetPaths = [];
     this.clearStreetFocus();
@@ -451,6 +520,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         ),
       );
       this.map.fitBounds(bounds, 48);
+      this.renderSelectedBoundaryOverlay(drawableAreas);
       this.renderApartmentCountOverlays(drawableAreas);
       this.renderApartmentPriceOverlays(drawableAreas.map((item) => item.area));
       await this.drawSelectedStreets(this.selectedStreetsInput.length > 0);
@@ -469,6 +539,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.drawnAreaRevision++;
     this.selectionRevision++;
     this.draw?.clear();
+    this.clearSelectedBoundaryOverlay();
     this.clearStreetLines();
     this.activeStreetPaths = [];
     this.clearStreetFocus();
@@ -524,11 +595,20 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private async fetchBoundary(area: string, cacheKey: string): Promise<number[][][][]> {
     try {
-      const areaRecord = this.locations.find(
-        (location) =>
-          location.district.toLowerCase() === area.toLowerCase() ||
-          this.locationService.districtName(location, 'ka').toLowerCase() === area.toLowerCase(),
-      );
+      const areaRecord = this.locations
+        .filter(
+          (location) =>
+            location.district.toLowerCase() === area.toLowerCase() ||
+            this.locationService.districtName(location, 'ka').toLowerCase() === area.toLowerCase(),
+        )
+        // The upstream catalog can temporarily contain a legacy duplicate
+        // with the same localized name but no geometry. Always choose the
+        // approved canonical record when one exists.
+        .sort(
+          (left, right) =>
+            Number(right.geometryStatus === 'approved') -
+            Number(left.geometryStatus === 'approved'),
+        )[0];
       if (!areaRecord) return [];
       if (areaRecord.geometryStatus !== 'approved') {
         this.errorMessage = `${area} boundary is awaiting verification.`;
@@ -586,8 +666,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (paths.length) {
       this.renderStreetFocus(paths, this.selectedStreet);
       this.renderApartmentPriceOverlays(this.activePriceAreas);
+      this.errorMessage = '';
     } else if (fitToStreets) {
-      await this.focusStreetByAddress(this.selectedStreetsInput.at(-1)!);
+      const focused = await this.focusStreetByAddress(this.selectedStreetsInput.at(-1)!);
+      this.errorMessage = focused ? '' : `${this.selectedStreet} could not be located on the map.`;
     }
     this.cdr.detectChanges();
   }
@@ -603,7 +685,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (!streetName) return false;
 
     try {
-      const { Geocoder } = await importLibrary('geocoding') as google.maps.GeocodingLibrary;
+      const { Geocoder } = (await importLibrary('geocoding')) as google.maps.GeocodingLibrary;
       const response = await new Geocoder().geocode({
         address: [streetName, street.district, 'Tbilisi, Georgia'].filter(Boolean).join(', '),
       });
@@ -639,8 +721,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         padding: '8px 11px',
         borderRadius: '10px',
         color: '#fff',
-        background: '#5b21b6',
-        boxShadow: '0 8px 22px rgba(69,26,143,.32)',
+        background: '#d93025',
+        boxShadow: '0 8px 22px rgba(217,48,37,.3)',
         fontSize: '11px',
         fontWeight: '800',
         whiteSpace: 'nowrap',
@@ -692,7 +774,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       const originY = Math.min(northEast.y, southWest.y);
       const width = Math.max(1, Math.abs(northEast.x - southWest.x));
       const height = Math.max(1, Math.abs(southWest.y - northEast.y));
-      const shortestSide = Math.min(map.getDiv().clientWidth || width, map.getDiv().clientHeight || height);
+      const shortestSide = Math.min(
+        map.getDiv().clientWidth || width,
+        map.getDiv().clientHeight || height,
+      );
       const viewportScale = Math.max(0.68, Math.min(1.16, shortestSide / 560));
       const zoom = map.getZoom() || 15;
       const zoomScale = Math.max(0.82, Math.min(1.12, 1 + (15 - zoom) * 0.055));
@@ -741,7 +826,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       drawGlowLayer(middleWidth, 0.27, '#c4b5fd');
       drawGlowLayer(innerWidth, 0.2, '#a78bfa');
       context.globalAlpha = 1;
-
     };
     glow.onRemove = () => {
       canvas?.remove();
@@ -749,6 +833,22 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     };
     glow.setMap(map);
     this.streetLines.push(glow);
+
+    // Draw the approved road centre line above the district polygon. This is
+    // generic for every street returned by the API, including MultiLineString
+    // roads split into disconnected sections.
+    for (const path of paths) {
+      const line = new google.maps.Polyline({
+        map,
+        path: path.map(([lng, lat]) => ({ lat, lng })),
+        clickable: false,
+        strokeColor: '#d93025',
+        strokeOpacity: 0.95,
+        strokeWeight: 4,
+        zIndex: 30,
+      });
+      this.streetLines.push(line);
+    }
 
     if (fitToStreets && !bounds.isEmpty()) this.map.fitBounds(bounds, 90);
   }
@@ -864,10 +964,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         modes: [
           new TerraDrawPolygonMode({
             styles: {
-              fillColor: '#451a8f',
-              fillOpacity: 0.1,
-              outlineColor: '#451a8f',
-              outlineWidth: 3,
+              // Approved district features are displayed by the dedicated
+              // Google overlay, which supports the dotted place-boundary look.
+              fillColor: '#d93025',
+              fillOpacity: 0,
+              outlineColor: '#d93025',
+              outlineWidth: 0,
             },
           }),
           new TerraDrawPolyLineMode({
@@ -1373,7 +1475,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         totalLength += length;
       }
     }
-    if (!segments.length) return paths[0]?.[0] as [number, number] | undefined || null;
+    if (!segments.length) return (paths[0]?.[0] as [number, number] | undefined) || null;
 
     const halfway = totalLength / 2;
     let travelled = 0;
@@ -1436,7 +1538,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         fontSize: '12px',
         cursor: 'pointer',
         transform: 'translate(-50%, -50%)',
-        transition: 'transform .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease',
+        transition:
+          'transform .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease',
         zIndex: '20',
       });
       button.addEventListener('pointerdown', (event) => event.stopPropagation());
