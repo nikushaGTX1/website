@@ -46,10 +46,10 @@
       <ng-container [ngSwitch]="step">
         <div class="options gender-first-step" *ngSwitchCase="0">
           <button type="button" [class.selected]="profile.gender === 'Male'" [attr.aria-pressed]="profile.gender === 'Male'" (click)="choose('gender', 'Male')">
-            <img class="gender-option-image" src="/husband%20svg.svg" alt="" />Male
+            <img class="gender-option-image" src="/man offset fix.svg" alt="" />Male
           </button>
           <button type="button" [class.selected]="profile.gender === 'Female'" [attr.aria-pressed]="profile.gender === 'Female'" (click)="choose('gender', 'Female')">
-            <img class="gender-option-image" src="/wife%20svg.svg" alt="" />Female
+            <img class="gender-option-image" src="/woman offset fix.svg" alt="" />Female
           </button>
         </div>
         <div class="options" *ngSwitchCase="1">
@@ -177,10 +177,21 @@
               type="button"
               *ngFor="let option of household"
               [class.selected]="profile.householdType === option.value"
-              [attr.aria-pressed]="profile.householdType === option.value"
-              (click)="choose('householdType', option.value)"
-            >
-              <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
+            [attr.aria-pressed]="profile.householdType === option.value"
+            (click)="choose('householdType', option.value)"
+          >
+              <span
+                class="household-option-images"
+                [class.multiple]="householdImages(option.value).length > 1"
+                *ngIf="householdImages(option.value).length; else householdIcon"
+                aria-hidden="true"
+              >
+                <img *ngFor="let image of householdImages(option.value)" [src]="image" alt="" />
+              </span>
+              <ng-template #householdIcon>
+                <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>
+              </ng-template>
+              {{ option.label }}
             </button>
           </div>
         </div>

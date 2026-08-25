@@ -11,9 +11,38 @@ export class VelvenLifestyleAvatarComponent {
   @Input() showSummary = false;
 
   get characterSrc(): string {
-    if (this.profile.gender === 'Male') return '/husband%20svg.svg';
-    if (this.profile.gender === 'Female') return '/wife%20svg.svg';
+    if (this.profile.gender === 'Male') return '/man%20offset%20fix.svg';
+    if (this.profile.gender === 'Female') return '/woman%20offset%20fix.svg';
     return '';
+  }
+
+  get characterImages(): string[] {
+    if (!this.characterSrc) return [];
+
+    const man = '/man%20offset%20fix.svg';
+    const woman = '/woman%20offset%20fix.svg';
+    const couple = '/couple%20offset%20fix.svg';
+    const child = '/kid%20offset%20fix.svg';
+    const selectedChildren = Array(Math.min(this.profile.children, 4)).fill(child) as string[];
+    const householdChildren = selectedChildren.length ? selectedChildren : [child];
+
+    switch (this.profile.householdType) {
+      case 'Couple':
+        return [couple, ...selectedChildren];
+      case 'ParentWithChildren':
+        return [this.characterSrc, ...householdChildren];
+      case 'FamilyWithChildren':
+        return [couple, ...householdChildren];
+      case 'Friends':
+      case 'Roommates':
+        return [man, woman, ...selectedChildren];
+      case 'Relatives':
+        return [couple, this.characterSrc, ...selectedChildren];
+      case 'CorporateHousing':
+        return [man, woman, man, ...selectedChildren];
+      default:
+        return [this.characterSrc, ...selectedChildren];
+    }
   }
 
   get wearsGymOutfit(): boolean {
