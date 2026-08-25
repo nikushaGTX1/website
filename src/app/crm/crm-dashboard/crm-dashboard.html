@@ -469,7 +469,11 @@
               trackBy: identifyStatus
             "
             [class]="'pipeline-column status-' + status"
+            [class.is-drop-target]="dragOverStatus === status"
             [attr.aria-labelledby]="'pipeline-' + status"
+            (dragover)="allowLeadDrop(status, $event)"
+            (dragleave)="leaveLeadDrop(status, $event)"
+            (drop)="dropLead(status, $event)"
           >
 
             <!-- COLUMN HEADER -->
@@ -516,6 +520,11 @@
                   '/crm/leads',
                   lead.id
                 ]"
+                [attr.draggable]="canDragLeads && !statusUpdatingLeadIds.has(lead.id) ? 'true' : null"
+                [class.is-dragging]="draggedLeadId === lead.id"
+                [class.is-updating]="statusUpdatingLeadIds.has(lead.id)"
+                (dragstart)="startLeadDrag(lead, $event)"
+                (dragend)="finishLeadDrag()"
                 [attr.aria-label]="
                   'Open lead ' +
                   lead.fullName

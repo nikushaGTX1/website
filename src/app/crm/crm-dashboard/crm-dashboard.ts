@@ -66,6 +66,9 @@ export class CrmDashboard implements OnInit {
   loading = true;
   errorMessage = '';
   successMessage = '';
+  draggedLeadId: number | null = null;
+  dragOverStatus: CrmLeadStatus | null = null;
+  readonly statusUpdatingLeadIds = new Set<number>();
 
   generatingQuestionnaireLink = false;
   linkCopied = false;
@@ -141,6 +144,10 @@ export class CrmDashboard implements OnInit {
   }
 
   get canChooseStartingStage(): boolean {
+    return this.isManager;
+  }
+
+  get canDragLeads(): boolean {
     return this.isManager;
   }
 
@@ -322,9 +329,10 @@ export class CrmDashboard implements OnInit {
   }
 
   leadsForStatus(status: CrmLeadStatus): CrmLead[] {
-    return this.filteredLeads
-      .filter((lead) => lead.status === status)
-      .sort((left, right) => this.leadSortValue(right) - this.leadSortValue(left));
+    // Preserve the API/board order. A status update changes updatedAt and
+    // lastActivityAt, so sorting here made a dropped card jump past another
+    // card as soon as the server response arrived.
+    return this.filteredLeads.filter((lead) => lead.status === status);
   }
 
   resetFilters(): void {
@@ -508,6 +516,70 @@ export class CrmDashboard implements OnInit {
     return status;
   }
 
+  startLeadDrag(lead: CrmLead, event: DragEvent): void {
+    if (!this.canDragLeads || this.statusUpdatingLeadIds.has(lead.id)) {
+      event.preventDefault();
+      return;
+    }
+
+    this.draggedLeadId = lead.id;
+    event.dataTransfer?.setData('text/plain', String(lead.id));
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  }
+
+  allowLeadDrop(status: CrmLeadStatus, event: DragEvent): void {
+    if (!this.canDragLeads || this.draggedLeadId === null) return;
+    event.preventDefault();
+    this.dragOverStatus = status;
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+  }
+
+  leaveLeadDrop(status: CrmLeadStatus, event: DragEvent): void {
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    const nextTarget = event.relatedTarget as Node | null;
+    if (currentTarget && nextTarget && currentTarget.contains(nextTarget)) return;
+    if (this.dragOverStatus === status) this.dragOverStatus = null;
+  }
+
+  dropLead(status: CrmLeadStatus, event: DragEvent): void {
+    event.preventDefault();
+    const leadId = this.draggedLeadId ?? Number(event.dataTransfer?.getData('text/plain'));
+    this.finishLeadDrag();
+    if (!this.canDragLeads || !Number.isFinite(leadId)) return;
+
+    const lead = this.leads.find((item) => item.id === leadId);
+    if (!lead || lead.status === status || this.statusUpdatingLeadIds.has(lead.id)) return;
+
+    const previousStatus = lead.status;
+    this.statusUpdatingLeadIds.add(lead.id);
+    this.leads = this.leads.map((item) => item.id === lead.id ? { ...item, status } : item);
+    this.metrics = this.calculateMetrics(this.leads);
+    this.errorMessage = '';
+
+    this.crmService.updateLeadStatus(lead.id, status).subscribe({
+      next: (updatedLead) => {
+        this.leads = this.leads.map((item) => item.id === lead.id ? updatedLead : item);
+        this.statusUpdatingLeadIds.delete(lead.id);
+        this.metrics = this.calculateMetrics(this.leads);
+        this.refreshMetrics();
+        this.successMessage = `${updatedLead.fullName} moved to ${this.statusLabel(status)}.`;
+        this.cdr.markForCheck();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.leads = this.leads.map((item) => item.id === lead.id ? { ...item, status: previousStatus } : item);
+        this.statusUpdatingLeadIds.delete(lead.id);
+        this.metrics = this.calculateMetrics(this.leads);
+        this.errorMessage = this.apiError(error, `Could not move ${lead.fullName}.`);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  finishLeadDrag(): void {
+    this.draggedLeadId = null;
+    this.dragOverStatus = null;
+  }
+
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
     if (!this.createDialogOpen) return;
@@ -628,10 +700,6 @@ export class CrmDashboard implements OnInit {
       const createdByUserId = (lead.createdByUserId || '').toLowerCase();
       return uploaderUserId === userId || createdByUserId === userId;
     });
-  }
-
-  private leadSortValue(lead: CrmLead): number {
-    return Date.parse(lead.lastActivityAt || lead.updatedAt || lead.createdAt || '') || 0;
   }
 
   private positiveNumber(value?: number): number | undefined {
