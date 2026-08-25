@@ -140,6 +140,10 @@ export class CrmDashboard implements OnInit {
     return this.authService.canWorkCrmLeads || this.isUploader;
   }
 
+  get canChooseStartingStage(): boolean {
+    return this.isManager;
+  }
+
   get canGenerateQuestionnaireLink(): boolean {
     return this.authService.canOpenCrm;
   }
@@ -337,6 +341,7 @@ export class CrmDashboard implements OnInit {
       : null;
     this.manualLeadForm = this.emptyLeadForm();
     this.manualLeadForm.source = this.allowedLeadSources[0].value;
+    this.manualLeadForm.status = this.canChooseStartingStage ? 'new' : 'contacted';
     this.preferredDistrictsText = '';
     this.createErrorMessage = '';
     this.createDialogOpen = true;
@@ -390,7 +395,9 @@ export class CrmDashboard implements OnInit {
       email: email || undefined,
       phoneNumber: phoneNumber || undefined,
       preferredContactMethod: this.manualLeadForm.preferredContactMethod,
-      status: this.manualLeadForm.status,
+      // Agent/uploader submissions have already started as a direct
+      // conversation and must never enter the New pipeline column.
+      status: this.canChooseStartingStage ? this.manualLeadForm.status : 'contacted',
       goal: this.manualLeadForm.goal,
       currency: this.manualLeadForm.currency,
       preferredDistricts: this.preferredDistrictsText

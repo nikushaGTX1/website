@@ -1018,7 +1018,6 @@
 
             </label>
 
-
             <!-- PHONE -->
 
             <label>
@@ -1087,7 +1086,7 @@
 
             <!-- STATUS -->
 
-            <label>
+            <label *ngIf="canChooseStartingStage; else fixedStartingStage">
 
               <span class="field-label">
 
@@ -1118,6 +1117,23 @@
               </select>
 
             </label>
+
+            <ng-template #fixedStartingStage>
+              <label>
+                <span class="field-label">
+                  <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                  <span>Starting stage</span>
+                </span>
+
+                <select
+                  name="leadStatus"
+                  [(ngModel)]="manualLeadForm.status"
+                  disabled
+                >
+                  <option value="contacted">{{ statusLabel('contacted') }}</option>
+                </select>
+              </label>
+            </ng-template>
 
 
             <!-- ============================================= -->
