@@ -112,6 +112,15 @@ export class ExploreProperty implements OnInit {
   selectedAmenities: string[] = [];
 
   selectedApartment: Apartment | null = null;
+  mapVisible = false;
+  readonly mapPinPositions = [
+    { left: 36, top: 76 },
+    { left: 46, top: 70 },
+    { left: 55, top: 53 },
+    { left: 34, top: 64 },
+    { left: 61, top: 42 },
+    { left: 25, top: 25 },
+  ];
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
   currentPage = 1;
@@ -244,6 +253,37 @@ export class ExploreProperty implements OnInit {
     this.homeType = value;
     this.propertyTypeOpen = false;
     this.onSearch();
+  }
+
+  selectQuickLocation(value: string): void {
+    this.location = value;
+    this.selectedLocationValue = value;
+  }
+
+  applyQuickLocation(): void {
+    this.selectedLocationValue = this.location;
+    this.locationOpen = false;
+    this.onSearch();
+  }
+
+  toggleAmenity(amenity: string): void {
+    this.toggleFilterItem(this.selectedAmenities, amenity);
+    this.onSearch();
+  }
+
+  selectFeature(feature: string): void {
+    this.featureFilter = this.featureFilter === feature ? '' : feature;
+    this.onSearch();
+  }
+
+  compactPrice(price: number): string {
+    if (price >= 1_000_000) {
+      return `$${Number((price / 1_000_000).toFixed(1))}M`;
+    }
+    if (price >= 1_000) {
+      return `$${Number((price / 1_000).toFixed(1))}K`;
+    }
+    return `$${price.toLocaleString()}`;
   }
 
   get areaSuggestions(): LocationSuggestion[] {
@@ -471,9 +511,7 @@ export class ExploreProperty implements OnInit {
       const district = street.district?.trim() || '';
       if (
         district &&
-        !this.selectedLocationAreas.some(
-          (area) => area.toLowerCase() === district.toLowerCase(),
-        )
+        !this.selectedLocationAreas.some((area) => area.toLowerCase() === district.toLowerCase())
       ) {
         this.selectedLocationAreas = [...this.selectedLocationAreas, district];
       }
@@ -641,6 +679,10 @@ export class ExploreProperty implements OnInit {
       return [this.totalPages - 2, this.totalPages - 1, this.totalPages];
     }
     return [this.currentPage - 1, this.currentPage, this.currentPage + 1];
+  }
+
+  get mapApartments(): Apartment[] {
+    return this.filteredApartments.slice(0, this.mapPinPositions.length);
   }
 
   constructor(
@@ -869,7 +911,6 @@ export class ExploreProperty implements OnInit {
 
   clearFilters(): void {
     this.searchQuery = '';
-    this.selectedType = 'For Rent';
     this.priceRange = '';
     this.budgetMin = 0;
     this.budgetMax = 5000;
@@ -888,6 +929,7 @@ export class ExploreProperty implements OnInit {
     this.selectedBathrooms = [];
     this.selectedPropertyTypes = [];
     this.selectedAmenities = [];
+    this.featureFilter = '';
     this.drawnAreaActive = false;
     sessionStorage.removeItem('white-tower-drawn-area');
 
@@ -1115,7 +1157,15 @@ export class ExploreProperty implements OnInit {
   private matchesAmenitiesFilter(apartment: Apartment): boolean {
     if (this.selectedAmenities.length === 0) return true;
     const text = `${apartment.title} ${apartment.description}`.toLowerCase();
-    return this.selectedAmenities.every((amenity) => text.includes(amenity.toLowerCase()));
+    return this.selectedAmenities.every((amenity) => {
+      const normalized = amenity.toLowerCase();
+      if (normalized === 'parking') return !!apartment.hasParking;
+      if (normalized === 'furnished') return !!apartment.isFurnished;
+      if (normalized === 'air conditioning') return !!apartment.hasAirConditioning;
+      if (normalized === 'balcony') return !!apartment.hasBalcony;
+      if (normalized === 'elevator') return !!apartment.hasElevator;
+      return text.includes(normalized);
+    });
   }
 
   private normalizedBudgetValue(value: number | null): number | null {
