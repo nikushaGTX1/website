@@ -234,27 +234,67 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       return { lat, lng };
     }
 
-    const address =
-      apartment.address?.trim() ||
+    const normalizedStreet = this.normalizeStreetName(apartment.street || '');
+    const normalizedAddress = this.normalizeStreetName(apartment.address || '');
+    const addresses = [
       [
-        [apartment.buildingNumber, apartment.street].filter(Boolean).join(' '),
+        [apartment.buildingNumber, normalizedStreet].filter(Boolean).join(' '),
         apartment.district,
         apartment.city || 'Tbilisi',
         'Georgia',
       ]
         .filter(Boolean)
-        .join(', ');
-    if (!address || !this.geocoder) return null;
-    if (this.geocodeCache.has(address)) return this.geocodeCache.get(address) ?? null;
+        .join(', '),
+      [normalizedAddress, apartment.city || 'Tbilisi', 'Georgia'].filter(Boolean).join(', '),
+    ].filter((value, index, values) => value && values.indexOf(value) === index);
+    const cacheKey = addresses.join('|');
+    if (!cacheKey) return null;
+    if (this.geocodeCache.has(cacheKey)) return this.geocodeCache.get(cacheKey) ?? null;
 
+    if (this.geocoder) {
+      for (const address of addresses) {
+        try {
+          const result = await this.geocoder.geocode({ address });
+          const location = result.results[0]?.geometry.location;
+          if (location) {
+            const position = { lat: location.lat(), lng: location.lng() };
+            this.geocodeCache.set(cacheKey, position);
+            return position;
+          }
+        } catch {
+          // The hosted Maps key may disallow client-side geocoding. The
+          // same-origin street geometry fallback below still places the home.
+        }
+      }
+    }
+
+    const streetPosition = await this.resolveStreetPosition(normalizedStreet);
+    this.geocodeCache.set(cacheKey, streetPosition);
+    return streetPosition;
+  }
+
+  private normalizeStreetName(value: string): string {
+    return value
+      .trim()
+      .replace(/\b(?:mckheta|mcxeta|mtsxeta)\b/gi, 'Mtskheta')
+      .replace(/\bst\.?\b/gi, 'Street')
+      .replace(/\s+/g, ' ');
+  }
+
+  private async resolveStreetPosition(street: string): Promise<google.maps.LatLngLiteral | null> {
+    if (!street) return null;
     try {
-      const result = await this.geocoder.geocode({ address });
-      const location = result.results[0]?.geometry.location;
-      const position = location ? { lat: location.lat(), lng: location.lng() } : null;
-      this.geocodeCache.set(address, position);
-      return position;
+      const response = await fetch(`/map-data/street?street=${encodeURIComponent(street)}`);
+      if (!response.ok) return null;
+      const payload = (await response.json()) as { lines?: number[][][] };
+      const longestLine = [...(payload.lines || [])].sort(
+        (left, right) => right.length - left.length,
+      )[0];
+      if (!longestLine?.length) return null;
+      const point = longestLine[Math.floor(longestLine.length / 2)];
+      const [lng, lat] = point || [];
+      return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
     } catch {
-      this.geocodeCache.set(address, null);
       return null;
     }
   }
