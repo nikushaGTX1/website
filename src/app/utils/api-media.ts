@@ -26,6 +26,15 @@ export function toMediaUrl(value?: string | null): string {
 
   const normalizedValue = value.replace(/\\/g, '/');
 
+  if (normalizedValue.startsWith('/media/apartment-image?')) {
+    try {
+      const source = new URL(normalizedValue, 'http://localhost').searchParams.get('url');
+      return source ? toMediaUrl(source) : '';
+    } catch {
+      return '';
+    }
+  }
+
   if (normalizedValue.startsWith('/media/')) {
     return normalizedValue;
   }
@@ -40,8 +49,10 @@ export function toMediaUrl(value?: string | null): string {
         mediaUrl.hostname === 'zhijxljnddhvlxzhrckz.supabase.co' &&
         mediaUrl.pathname.startsWith('/storage/v1/object/sign/apartments/')
       ) {
-        if (signedUrlHasExpired(mediaUrl)) return '/property-placeholder.svg';
-        return `/media/apartment-image?url=${encodeURIComponent(normalizedValue)}`;
+        // Signed apartment URLs are already safe to use as an <img> source. Keeping
+        // the original URL avoids making every listing photo depend on the optional
+        // local /media proxy (for example when the Angular app runs by itself).
+        return signedUrlHasExpired(mediaUrl) ? '' : normalizedValue;
       }
     } catch {
       return '';

@@ -188,7 +188,10 @@ export class ApartmentService {
         return null;
       }
 
-      return cache.apartments;
+      // Media links are signed and can expire while the persisted listing cache is
+      // still present. Re-normalize cached entries so stale links are discarded and
+      // replaced by the fresh network response instead of rendering a fake photo.
+      return cache.apartments.map((apartment) => this.normalizeImages(apartment));
     } catch {
       localStorage.removeItem(this.persistedApartmentsKey);
       return null;
