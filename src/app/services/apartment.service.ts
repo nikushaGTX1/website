@@ -31,7 +31,9 @@ export class ApartmentService {
   private apartmentsCache$?: Observable<Apartment[]>;
   private apartmentsCacheCreatedAt = 0;
   private readonly apartmentsCacheLifetimeMs = 5 * 60 * 1000;
-  private readonly persistedApartmentsKey = 'white-tower-apartments-cache-v1';
+  // v2 invalidates entries where an expired signed URL was persisted as the SVG
+  // placeholder by older clients.
+  private readonly persistedApartmentsKey = 'white-tower-apartments-cache-v2';
   private readonly persistedApartmentsLifetimeMs = 15 * 60 * 1000;
 
   constructor(private http: HttpClient) {}

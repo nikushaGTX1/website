@@ -4,36 +4,12 @@ const apiOrigin = API_BASE_URL;
 const profileUploadsPath = 'uploads/profiles';
 const attemptedMediaFallbacks = new WeakMap<HTMLImageElement, number>();
 
-function signedUrlHasExpired(url: URL): boolean {
-  try {
-    const token = url.searchParams.get('token');
-    if (!token) return false;
-    const encodedPayload = token.split('.')[1];
-    if (!encodedPayload) return false;
-    const normalizedPayload = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
-    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, '=');
-    const payload = JSON.parse(atob(paddedPayload)) as { exp?: number };
-    return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now() + 60_000;
-  } catch {
-    return false;
-  }
-}
-
 export function toMediaUrl(value?: string | null): string {
   if (!value) {
     return '';
   }
 
   const normalizedValue = value.replace(/\\/g, '/');
-
-  if (normalizedValue.startsWith('/media/apartment-image?')) {
-    try {
-      const source = new URL(normalizedValue, 'http://localhost').searchParams.get('url');
-      return source ? toMediaUrl(source) : '';
-    } catch {
-      return '';
-    }
-  }
 
   if (normalizedValue.startsWith('/media/')) {
     return normalizedValue;
@@ -49,10 +25,10 @@ export function toMediaUrl(value?: string | null): string {
         mediaUrl.hostname === 'zhijxljnddhvlxzhrckz.supabase.co' &&
         mediaUrl.pathname.startsWith('/storage/v1/object/sign/apartments/')
       ) {
-        // Signed apartment URLs are already safe to use as an <img> source. Keeping
-        // the original URL avoids making every listing photo depend on the optional
-        // local /media proxy (for example when the Angular app runs by itself).
-        return signedUrlHasExpired(mediaUrl) ? '' : normalizedValue;
+        // The upstream API can reuse a signed URL after its embedded expiry time,
+        // while Supabase still serves the object. Let the same-origin media proxy
+        // fetch/cache the real image instead of rejecting it from the token alone.
+        return `/media/apartment-image?url=${encodeURIComponent(normalizedValue)}`;
       }
     } catch {
       return '';
