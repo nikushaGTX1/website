@@ -62,6 +62,12 @@ const routes: Routes = [
   },
 
   {
+    path: 'property',
+    component: ApartmentDetail,
+    title: 'Apartment Details | Velven'
+  },
+
+  {
     path: 'find-my-home',
     component: AiConciergePageComponent,
     title: 'Find My Home | Velven'
