@@ -94,7 +94,11 @@ export class ApartmentDetail implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const apartmentId = Number(this.route.snapshot.paramMap.get('id') || 0);
+    const apartmentId = Number(
+      this.route.snapshot.paramMap.get('id') ||
+      this.route.snapshot.queryParamMap.get('id') ||
+      0,
+    );
 
     if (apartmentId) {
       this.favoriteService.loadFavorites().subscribe({
@@ -171,6 +175,11 @@ export class ApartmentDetail implements OnInit {
 
   get price(): number {
     return this.apartment?.price || 0;
+  }
+
+  get listingType(): string {
+    const metadata = `${this.getListingMetadata('Type')} ${this.getListingMetadata('Listing type')}`.toLowerCase();
+    return metadata.includes('sale') || metadata.includes('buy') ? 'For sale' : 'For rent';
   }
 
   get description(): string {

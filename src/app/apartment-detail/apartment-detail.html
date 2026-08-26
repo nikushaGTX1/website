@@ -1,207 +1,27 @@
-<section class="detail-page">
-  <div class="detail-page-content" [attr.inert]="viewingDialogOpen ? '' : null" [attr.aria-hidden]="viewingDialogOpen ? 'true' : null">
-  <p class="status-message" *ngIf="errorMessage">{{ errorMessage }}</p>
-
-  <ng-container *ngIf="apartment; else detailState">
-    <nav class="breadcrumbs" aria-label="Breadcrumb">
-      <a routerLink="/main">Home</a><span>›</span><a routerLink="/ExploreProperty">Rent</a><span>›</span>
-      <span>{{ apartment.district || 'Tbilisi' }}</span><span>›</span><strong>{{ title }}</strong>
-    </nav>
-
-    <header class="detail-heading">
-      <div>
-        <h1>{{ title }}</h1>
-        <p><i class="fa-solid fa-location-dot"></i>{{ address }}</p>
-        <div class="listing-tags">
-          <span class="verified"><i class="fa-regular fa-circle-check"></i> Verified</span>
-          <span class="exclusive" *ngIf="isExclusiveListing"><i class="fa-regular fa-gem"></i> Velven Exclusive</span>
-          <span><i class="fa-regular fa-snowflake"></i> New Listing</span>
-          <span class="gold"><i class="fa-regular fa-lightbulb"></i> AI Match</span>
-        </div>
-      </div>
-      <div class="heading-actions">
-        <button type="button" (click)="toggleFavorite()" [class.active]="favorite"
-          [attr.aria-label]="favorite ? 'Remove from saved properties' : 'Save apartment'"
-          [attr.aria-pressed]="favorite">
-          <i [class]="favorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
-        </button>
-        <button type="button" (click)="shareApartment()" aria-label="Share apartment"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
-      </div>
-    </header>
-
-    <section class="hero-layout">
-      <div class="gallery-column">
-        <div class="main-photo" data-protected-image>
-          <img [src]="activePhoto" [alt]="title" />
-          <button type="button" class="photo-nav previous" (click)="previousPhoto()" *ngIf="photoCount > 1" aria-label="Previous photo">‹</button>
-          <button type="button" class="photo-nav next" (click)="nextPhoto()" *ngIf="photoCount > 1" aria-label="Next photo">›</button>
-          <button type="button" class="all-photos" (click)="openPhotoViewer()"><i class="fa-regular fa-images"></i> View all photos ({{ photoCount }})</button>
-        </div>
-        <div class="thumbnail-row" *ngIf="galleryImages.length > 1">
-          <button type="button" *ngFor="let image of galleryImages | slice:0:5; let index = index" (click)="selectPhoto(index)" [class.active]="activePhotoIndex === index">
-            <img [src]="image" [alt]="title + ' thumbnail ' + (index + 1)" />
-          </button>
-        </div>
-      </div>
-
-      <aside class="price-card">
-        <strong class="price"><app-currency-price [usdPrice]="price" suffix="/ month"></app-currency-price></strong>
-        <div class="facts-grid">
-          <span><span class="measurement-svg" aria-hidden="true"></span><b>{{ area || '—' }} m²</b><small>Total area</small></span>
-          <span><i class="fa-solid fa-stairs"></i><b>{{ floorLabel }}</b><small>Floor</small></span>
-          <span><i class="fa-solid fa-bed"></i><b>{{ bedrooms || '—' }}</b><small>Bedrooms</small></span>
-          <span><i class="fa-regular fa-building"></i><b>{{ buildingType }}</b><small>Building type</small></span>
-          <span><i class="fa-solid fa-bath"></i><b>{{ bathrooms || '—' }}</b><small>Bathrooms</small></span>
-          <span><i class="fa-regular fa-calendar"></i><b>{{ apartment.totalFloors || '—' }}</b><small>Total floors</small></span>
-        </div>
-        <button *ngIf="!phoneRevealed" type="button" class="contact primary" (click)="$event.preventDefault(); $event.stopPropagation(); phoneRevealed = true"><i class="fa-solid fa-phone"></i> Reveal phone number</button>
-        <div *ngIf="phoneRevealed" class="contact primary revealed-phone"><i class="fa-solid fa-phone"></i> {{ phoneNumber || 'No phone number provided' }}</div>
-        <button type="button" class="contact whatsapp" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
-        <button type="button" class="contact schedule" (click)="scheduleViewing()"><i class="fa-regular fa-calendar-check"></i> Schedule a viewing</button>
-      </aside>
-    </section>
-
-    <section class="info-pair">
-      <article class="panel features-panel">
-        <h2>Key Features</h2>
-        <div class="feature-grid">
-          <span *ngFor="let feature of keyFeatures"><span *ngIf="feature.icon === 'fa-house'; else fontAwesomeFeatureIcon" class="home-svg" aria-hidden="true"></span><ng-template #fontAwesomeFeatureIcon><i class="fa-solid {{ feature.icon }}"></i></ng-template><b>{{ feature.label }}</b><small>{{ feature.value }}</small></span>
-        </div>
-      </article>
-
-      <article class="panel nearby-panel">
-        <div class="panel-heading">
-          <div><h2>What’s nearby</h2><p>Real walking times from this apartment.</p></div>
-          <i class="fa-solid fa-wand-magic-sparkles"></i>
-        </div>
-        <div class="nearby-grid" *ngIf="storedNearbyPlaces.length; else nearbyLoading">
-          <div *ngFor="let place of storedNearbyPlaces">
-            <i class="fa-solid {{ place.icon }}"></i>
-            <span><b>{{ place.label }}</b><small>{{ place.minutes }} min walk</small></span>
-          </div>
-        </div>
-        <ng-template #nearbyLoading><p class="nearby-loading">Calculating nearby walking times…</p></ng-template>
-      </article>
-    </section>
-
-    <section class="about-agent">
-      <article class="panel about-card">
-        <h2>About this property</h2>
-        <p>{{ visibleDescription }}</p>
-        <button type="button" class="text-button" *ngIf="description.length > 360" (click)="descriptionExpanded = !descriptionExpanded">
-          {{ descriptionExpanded ? 'Show less' : 'Show more' }} <i class="fa-solid fa-chevron-down"></i>
-        </button>
-      </article>
-
-      <article class="panel agent-card">
-        <a *ngIf="agentProfileId; else staticAgentAvatar" class="agent-avatar agent-profile-link" [routerLink]="['/agent-profile', agentProfileId]" [attr.aria-label]="'View ' + agentName + ' profile'">
-          <img *ngIf="agentImage; else linkedAgentInitials" [src]="agentImage" [alt]="agentName" (error)="handleAgentImageError()" />
-          <ng-template #linkedAgentInitials><span aria-hidden="true">{{ agentInitials }}</span></ng-template>
-        </a>
-        <ng-template #staticAgentAvatar>
-          <div class="agent-avatar">
-            <img *ngIf="agentImage; else uploaderInitials" [src]="agentImage" [alt]="agentName" (error)="handleAgentImageError()" />
-            <ng-template #uploaderInitials><span aria-hidden="true">{{ agentInitials }}</span></ng-template>
-          </div>
-        </ng-template>
-        <div class="agent-details">
-          <h3><a *ngIf="agentProfileId; else staticAgentName" class="agent-name-link" [routerLink]="['/agent-profile', agentProfileId]">{{ agentName }}</a><ng-template #staticAgentName>{{ agentName }}</ng-template></h3>
-          <span>{{ agentRole }}</span>
-          <small class="agent-rating">★ {{ agentRating }} <em>{{ agentRatingCount }}</em></small>
-          <div class="phone-reveal" *ngIf="phoneNumber">
-          </div>
-          <p class="agent-bio">{{ agentBio }}</p>
-          <div class="agent-actions"><button *ngIf="!phoneRevealed" type="button" (click)="$event.preventDefault(); $event.stopPropagation(); phoneRevealed = true"><i class="fa-solid fa-phone"></i> Reveal Number</button><span *ngIf="phoneRevealed" class="agent-phone-text"><i class="fa-solid fa-phone"></i> {{ phoneNumber || 'No phone number provided' }}</span><button type="button" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button></div>
-        </div>
-      </article>
-      <article class="panel owner-contact-card" *ngIf="canViewOwnerContact && (ownerName || ownerPhoneNumber)">
-        <span class="owner-lock"><i class="fa-solid fa-lock"></i></span>
-        <div>
-          <small>Private owner contact · Staff only</small>
-          <h3>{{ ownerName || 'Owner name not provided' }}</h3>
-          <a *ngIf="ownerPhoneNumber" [href]="'tel:' + ownerPhoneNumber"><i class="fa-solid fa-phone"></i> {{ ownerPhoneNumber }}</a>
-          <span *ngIf="!ownerPhoneNumber">Phone number not provided</span>
-        </div>
-      </article>
-    </section>
-
-    <section class="lower-layout">
-      <article class="panel location-section">
-        <div class="panel-heading">
-          <div><h2>Location &amp; Map</h2><p>{{ address }}</p></div>
-          <button type="button" class="open-map" (click)="openMaps()">Open in Maps <i class="fa-solid fa-arrow-up-right-from-square"></i></button>
-        </div>
-        <div class="saved-location-summary">
-          <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-          <div><b>{{ address }}</b><small>Location saved with this listing</small></div>
-        </div>
-      </article>
-
-      <article class="panel similar-section">
-        <div class="panel-heading"><h2>Similar properties</h2><a routerLink="/ExploreProperty">View all</a></div>
-        <div class="similar-grid">
-          <button type="button" class="similar-card" *ngFor="let similar of similarApartments | slice:0:3; let index = index" (click)="viewSimilar(index)">
-            <img [src]="similar.imageUrl" [alt]="similar.title" />
-            <span><b><app-currency-price [usdPrice]="similar.price" suffix="/ mo"></app-currency-price></b><strong>{{ similar.title }}</strong><small>{{ similar.address }}</small></span>
-          </button>
-        </div>
-      </article>
-    </section>
-
-    <section class="trust-row">
-      <span><i class="fa-regular fa-circle-check"></i><b>Verified properties</b><small>Every listing is verified</small></span>
-      <span><i class="fa-solid fa-shield-halved"></i><b>Secure process</b><small>Safe and transparent</small></span>
-      <span><i class="fa-solid fa-headset"></i><b>Expert support</b><small>We’re here to help</small></span>
-      <span><i class="fa-solid fa-wand-magic-sparkles"></i><b>AI matched for you</b><small>Smarter search, better results</small></span>
-    </section>
-
-    <div class="photo-viewer" data-protected-image *ngIf="photoViewerOpen" (click)="closePhotoViewer()">
-      <button type="button" class="viewer-close" (click)="closePhotoViewer()" aria-label="Close photos">×</button>
-      <button type="button" class="viewer-nav previous" (click)="$event.stopPropagation(); previousPhoto()">‹</button>
-      <img data-protected-photo [src]="activePhoto" [alt]="title + ' full photo'" (click)="$event.stopPropagation()" />
-      <button type="button" class="viewer-nav next" (click)="$event.stopPropagation(); nextPhoto()">›</button>
-      <span>{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
+<main class="vp-page">
+<div class="vp-content" [attr.inert]="viewingDialogOpen ? '' : null">
+<p class="status-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+<ng-container *ngIf="apartment; else state">
+  <div class="vp-toolbar"><a routerLink="/ExploreProperty"><i class="fa-solid fa-chevron-left"></i> Back to results</a><div><button (click)="shareApartment()"><i class="fa-solid fa-arrow-up-from-bracket"></i> Share</button><button (click)="toggleFavorite()" [class.saved]="favorite"><i [class]="favorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i> {{ favorite ? 'Saved' : 'Save' }}</button></div></div>
+  <section class="vp-gallery" data-protected-image>
+    <button class="vp-gallery-main" (click)="selectPhoto(0); openPhotoViewer()"><img [src]="galleryImages[0] || activePhoto" [alt]="title"></button>
+    <button *ngFor="let image of galleryImages | slice:1:5; let i=index" (click)="selectPhoto(i+1); openPhotoViewer()"><img [src]="image" [alt]="title + ' photo ' + (i+2)"><span class="vp-show-all" *ngIf="i===3"><i class="fa-regular fa-images"></i> Show all {{ photoCount }} photos</span></button>
+    <button class="vp-gallery-fallback" *ngFor="let slot of [1,2,3,4] | slice:(galleryImages.length - 1)" (click)="openPhotoViewer()"><img [src]="activePhoto" alt=""></button>
+  </section>
+  <div class="vp-columns">
+    <div class="vp-main">
+      <section class="vp-intro"><div class="vp-eyebrow"><span><i class="fa-regular fa-circle-check"></i> VELVEN VERIFIED</span><span>{{ listingType }}</span></div><h1>{{ title }}</h1><p class="vp-address"><i class="fa-solid fa-location-dot"></i>{{ address }}</p><div class="vp-facts"><div><i class="fa-solid fa-bed"></i><span><strong>{{ bedrooms || '—' }}</strong> bedrooms</span></div><div><i class="fa-solid fa-bath"></i><span><strong>{{ bathrooms || '—' }}</strong> bathrooms</span></div><div><i class="fa-solid fa-expand"></i><span><strong>{{ area || '—' }} m²</strong> total area</span></div><div><i class="fa-regular fa-building"></i><span><strong>{{ apartment.floor ?? '—' }} / {{ apartment.totalFloors ?? '—' }}</strong> floor</span></div></div></section>
+      <section class="vp-proof"><span class="vp-proof-icon"><i class="fa-solid fa-shield-halved"></i></span><div><h3>Checked by a VELVEN agent</h3><p>Property details, price and availability are supplied through the live VELVEN listing.</p></div><b>VERIFIED</b></section>
+      <section class="vp-section"><h2>About this home</h2><p>{{ visibleDescription }}</p><button class="vp-text-link" *ngIf="description.length > 360" (click)="descriptionExpanded=!descriptionExpanded">{{ descriptionExpanded ? 'Show less' : 'Read full description' }} <i class="fa-solid fa-chevron-right"></i></button></section>
+      <section class="vp-section"><small class="vp-kicker">EVERYDAY COMFORT</small><h2>What this home offers</h2><div class="vp-amenities"><div *ngFor="let feature of keyFeatures"><span><i class="fa-solid {{ feature.icon }}"></i></span><p>{{ feature.label }}<small>{{ feature.value }}</small></p></div></div></section>
+      <section class="vp-section"><small class="vp-kicker">THE NEIGHBOURHOOD</small><h2>Everything within reach</h2><div class="vp-nearby" *ngIf="storedNearbyPlaces.length"><div *ngFor="let place of storedNearbyPlaces"><i class="fa-solid {{ place.icon }}"></i><p><strong>{{ place.label }}</strong><small>{{ place.minutes }} min walk</small></p></div></div><div class="vp-map"><div><i class="fa-solid fa-location-dot"></i><strong>{{ address }}</strong><span>Location saved with this listing</span></div><button (click)="openMaps()">Open in Maps <i class="fa-solid fa-arrow-up-right-from-square"></i></button></div></section>
+      <section class="vp-service"><div><small>THE VELVEN WAY</small><h2>See more homes in one smooth route</h2><p>Your VELVEN advisor can prepare one personalized route of suitable, verified homes.</p><div><span><i class="fa-solid fa-car"></i> Coordinated route</span><span><i class="fa-solid fa-check"></i> Verified options</span><span><i class="fa-solid fa-wand-magic-sparkles"></i> Personal selection</span></div></div><aside><b>YOUR VIEWING ROUTE</b><p><i>1</i><span></span><i>2</i><span></span><i>3</i><span></span><i>4</i></p><small>One advisor · One route · Zero hassle</small></aside></section>
     </div>
-  </ng-container>
-
-  <ng-template #detailState>
-    <section class="detail-empty-state" *ngIf="loading"><h1>Loading apartment details…</h1><p>Preparing the listing, location, and nearby places.</p></section>
-    <section class="detail-empty-state" *ngIf="!loading"><h1>Apartment details unavailable</h1><p>Select a published apartment to view its details.</p><button type="button" routerLink="/main">Back to home</button></section>
-  </ng-template>
-
+    <aside class="vp-inquiry"><div class="vp-price"><strong><app-currency-price [usdPrice]="price"></app-currency-price></strong><span *ngIf="area"><app-currency-price [usdPrice]="price/area" suffix=" / m²"></app-currency-price></span></div><div class="vp-fee"><i class="fa-solid fa-check"></i><p><strong>Direct VELVEN support</strong><span>Ask about price, availability, or viewings</span></p></div><h3>Schedule a private viewing</h3><button class="vp-primary" (click)="scheduleViewing()"><i class="fa-regular fa-calendar-check"></i> Schedule a viewing</button><button class="vp-secondary" (click)="openWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Ask a question</button><p class="vp-no-charge">You won’t be charged for contacting us</p><div class="vp-agent"><a *ngIf="agentProfileId; else staticAvatar" [routerLink]="['/agent-profile',agentProfileId]" class="vp-agent-avatar"><img *ngIf="agentImage; else linkedInitials" [src]="agentImage" [alt]="agentName" (error)="handleAgentImageError()"><ng-template #linkedInitials><span>{{ agentInitials }}</span></ng-template></a><ng-template #staticAvatar><div class="vp-agent-avatar"><img *ngIf="agentImage; else initials" [src]="agentImage" [alt]="agentName" (error)="handleAgentImageError()"><ng-template #initials><span>{{ agentInitials }}</span></ng-template></div></ng-template><div><small>Your VELVEN advisor</small><strong>{{ agentName }}</strong><span>{{ agentRole }}</span></div><a *ngIf="phoneNumber" [href]="'tel:'+phoneNumber" aria-label="Call advisor"><i class="fa-solid fa-phone"></i></a></div></aside>
   </div>
-
-  <div class="viewing-backdrop" *ngIf="viewingDialogOpen" (click)="closeViewingDialog()">
-    <section #viewingDialog class="viewing-dialog" role="dialog" aria-modal="true" aria-labelledby="viewing-dialog-title" tabindex="-1" (click)="$event.stopPropagation()">
-      <header>
-        <div><p>PRIVATE VIEWING</p><h2 id="viewing-dialog-title">{{ inquirySubmitted ? 'Request received' : 'Schedule a viewing' }}</h2><span>{{ title }}</span></div>
-        <button type="button" aria-label="Close viewing request" (click)="closeViewingDialog()" [disabled]="inquirySubmitting"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-      </header>
-
-      <div class="viewing-success" *ngIf="inquirySubmitted; else viewingForm">
-        <span><i class="fa-regular fa-circle-check" aria-hidden="true"></i></span>
-        <h3>Thank you, {{ inquiryForm.name }}.</h3>
-        <p>Your viewing request is now with the Velven team. We’ll contact you using the details you provided to confirm the time.</p>
-        <div><b><i class="fa-regular fa-calendar" aria-hidden="true"></i>{{ inquiryForm.requestedViewingAt | date:'medium' }}</b><small>{{ address }}</small></div>
-        <button data-initial-focus type="button" (click)="closeViewingDialog()">Done</button>
-      </div>
-
-      <ng-template #viewingForm>
-        <form (ngSubmit)="submitViewingRequest()">
-          <p class="viewing-intro">Tell us when you would like to visit. An agent will follow up to confirm availability.</p>
-          <p class="viewing-error" role="alert" *ngIf="inquiryError"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ inquiryError }}</p>
-          <div class="viewing-grid">
-            <label class="wide"><span>Full name *</span><input data-initial-focus type="text" name="viewingName" [(ngModel)]="inquiryForm.name" autocomplete="name" required /></label>
-            <label><span>Email</span><input type="email" name="viewingEmail" [(ngModel)]="inquiryForm.email" autocomplete="email" /></label>
-            <label><span>Phone number</span><input type="tel" name="viewingPhone" [(ngModel)]="inquiryForm.phone" autocomplete="tel" /></label>
-            <label class="wide"><span>Preferred date and time *</span><input type="datetime-local" name="viewingDate" [(ngModel)]="inquiryForm.requestedViewingAt" [min]="minimumViewingDate" required /></label>
-            <label class="wide"><span>Message</span><textarea name="viewingMessage" rows="3" maxlength="4000" [(ngModel)]="inquiryForm.message"></textarea></label>
-            <input class="viewing-honeypot" type="text" name="website" [(ngModel)]="inquiryForm.website" tabindex="-1" autocomplete="off" aria-hidden="true" />
-            <label class="consent-field wide"><input type="checkbox" name="viewingConsent" [(ngModel)]="inquiryForm.consentToContact" required /><span>I agree that Velven may contact me about this property and viewing request.</span></label>
-          </div>
-          <footer><button type="button" class="viewing-cancel" (click)="closeViewingDialog()" [disabled]="inquirySubmitting">Cancel</button><button type="submit" class="viewing-submit" [disabled]="inquirySubmitting"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i>{{ inquirySubmitting ? 'Sending request…' : 'Request viewing' }}</button></footer>
-        </form>
-      </ng-template>
-    </section>
-  </div>
-</section>
+  <div class="photo-viewer" *ngIf="photoViewerOpen" (click)="closePhotoViewer()"><button class="viewer-close">×</button><button class="viewer-nav previous" (click)="$event.stopPropagation();previousPhoto()">‹</button><img [src]="activePhoto" [alt]="title" (click)="$event.stopPropagation()"><button class="viewer-nav next" (click)="$event.stopPropagation();nextPhoto()">›</button><span>{{ activePhotoIndex+1 }} / {{ photoCount }}</span></div>
+</ng-container>
+<ng-template #state><section class="detail-empty-state"><h1>{{ loading ? 'Loading apartment details…' : 'Apartment details unavailable' }}</h1><p>{{ loading ? 'Preparing the listing and advisor information.' : 'Select a published apartment to view its details.' }}</p></section></ng-template>
+</div>
+<div class="viewing-backdrop" *ngIf="viewingDialogOpen" (click)="closeViewingDialog()"><section #viewingDialog class="viewing-dialog" role="dialog" aria-modal="true" tabindex="-1" (click)="$event.stopPropagation()"><header><div><p>PRIVATE VIEWING</p><h2>{{ inquirySubmitted ? 'Request received' : 'Schedule a viewing' }}</h2><span>{{ title }}</span></div><button (click)="closeViewingDialog()"><i class="fa-solid fa-xmark"></i></button></header><div class="viewing-success" *ngIf="inquirySubmitted; else form"><h3>Thank you, {{ inquiryForm.name }}.</h3><p>Your request is with the VELVEN team. We’ll contact you to confirm the time.</p><button (click)="closeViewingDialog()">Done</button></div><ng-template #form><form (ngSubmit)="submitViewingRequest()"><p class="viewing-intro">Tell us when you would like to visit. Your advisor will confirm availability.</p><p class="viewing-error" *ngIf="inquiryError">{{ inquiryError }}</p><div class="viewing-grid"><label class="wide"><span>Full name *</span><input name="name" [(ngModel)]="inquiryForm.name" required></label><label><span>Email</span><input type="email" name="email" [(ngModel)]="inquiryForm.email"></label><label><span>Phone</span><input name="phone" [(ngModel)]="inquiryForm.phone"></label><label class="wide"><span>Preferred date and time *</span><input type="datetime-local" name="date" [(ngModel)]="inquiryForm.requestedViewingAt" [min]="minimumViewingDate" required></label><label class="wide"><span>Message</span><textarea name="message" [(ngModel)]="inquiryForm.message"></textarea></label><input class="viewing-honeypot" name="website" [(ngModel)]="inquiryForm.website"><label class="consent-field wide"><input type="checkbox" name="consent" [(ngModel)]="inquiryForm.consentToContact"><span>I agree that VELVEN may contact me about this property.</span></label></div><footer><button type="button" class="viewing-cancel" (click)="closeViewingDialog()">Cancel</button><button class="viewing-submit" type="submit">{{ inquirySubmitting ? 'Sending…' : 'Request viewing' }}</button></footer></form></ng-template></section></div>
+</main>
