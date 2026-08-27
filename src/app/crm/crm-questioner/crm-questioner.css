@@ -674,40 +674,11 @@ h1 {
   color: var(--purple-dark);
 }
 
-.flexible-location-option {
-  width: 100%;
-  min-height: 60px;
-  margin-top: 24px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 11px;
-  border: 1px solid var(--purple-border);
-  border-radius: 14px;
-  background: #faf7ff;
-  color: var(--purple-dark);
-  font-size: 14px;
+.location-flexibility-question {
+  margin: 25px 0 -16px;
+  color: var(--text);
+  font-size: 13px;
   font-weight: 750;
-  cursor: pointer;
-  transition: 0.18s ease;
-}
-
-.flexible-location-option:hover {
-  border-color: var(--purple);
-  background: var(--purple-light);
-}
-
-.flexible-location-option.active {
-  border-color: var(--purple);
-  background: var(--purple);
-  color: white;
-  box-shadow: 0 8px 18px rgba(69, 26, 143, 0.2);
-}
-
-.flexible-location-check {
-  font-size: 19px;
-  line-height: 1;
 }
 
 

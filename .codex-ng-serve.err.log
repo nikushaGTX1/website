@@ -1,0 +1,15 @@
+npm notice run site@0.0.0 ng
+npm notice run ng serve --host localhost --port 4200
+C:\Users\user\Desktop\website\node_modules\rxjs\dist\cjs\internal\util\reportUnhandledError.js:13
+            throw err;
+            ^
+
+Error: Port 4200 is already in use. Use '--port' to specify a different port.
+    at createInUseError (C:\Users\user\Desktop\website\node_modules\@angular\build\src\utils\check-port.js:51:12)
+    at Server.<anonymous> (C:\Users\user\Desktop\website\node_modules\@angular\build\src\utils\check-port.js:68:24)
+    at Object.onceWrapper (node:events:631:26)
+    at Server.emit (node:events:509:28)
+    at emitErrorNT (node:net:2203:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+
+Node.js v24.19.0

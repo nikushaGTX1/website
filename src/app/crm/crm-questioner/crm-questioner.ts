@@ -440,6 +440,9 @@ togglePhoneCountryDropdown(): void {
         districtsSubtitle:
           'შეგიძლიათ რამდენიმე უბანი აირჩიოთ.',
 
+        locationFlexibilityQuestion:
+          'მოქნილი ხართ მდებარეობის არჩევაში?',
+
         chooseForMe:
           'მდებარეობის არჩევაში მოქნილი ვარ',
 
@@ -748,6 +751,9 @@ togglePhoneCountryDropdown(): void {
         districtsSubtitle:
           'You can select several districts.',
 
+        locationFlexibilityQuestion:
+          'Are you flexible with location?',
+
         chooseForMe:
           "I'm flexible with location",
 
@@ -1055,6 +1061,9 @@ togglePhoneCountryDropdown(): void {
 
         districtsSubtitle:
           'Можно выбрать несколько районов.',
+
+        locationFlexibilityQuestion:
+          'Вы готовы рассмотреть разные районы?',
 
         chooseForMe:
           'Я гибок в выборе района',
