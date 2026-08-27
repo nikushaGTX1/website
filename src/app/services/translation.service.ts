@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type AppLanguage = 'en' | 'ka';
+export type AppLanguage = 'en' | 'ka' | 'ru';
 
 type TextState = {
   original: string;
@@ -11,6 +11,7 @@ type TextState = {
 };
 
 type GeorgianTranslator = (value: string) => string | undefined;
+type RussianTranslator = (value: string) => string | undefined;
 
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
@@ -22,6 +23,8 @@ export class TranslationService {
   private generation = 0;
   private georgianTranslator?: GeorgianTranslator;
   private georgianTranslatorRequest?: Promise<GeorgianTranslator>;
+  private russianTranslator?: RussianTranslator;
+  private russianTranslatorRequest?: Promise<RussianTranslator>;
 
   constructor(private zone: NgZone) {
     document.documentElement.lang = this.language$.value;
@@ -32,12 +35,12 @@ export class TranslationService {
 
     this.zone.runOutsideAngular(() => {
       this.observer = new MutationObserver((records) => {
-        if (this.language$.value !== 'ka') return;
+        if (this.language$.value === 'en') return;
 
         // Once the dictionary is loaded, translate only the nodes Angular
         // actually changed. Scheduling a full-document pass here causes our
         // own DOM writes to trigger another pass and can create NG0103 loops.
-        if (this.georgianTranslator) {
+        if (this.activeTranslator) {
           this.translateMutationsImmediately(records);
         } else {
           this.schedule();
@@ -66,12 +69,12 @@ export class TranslationService {
   }
 
   label(language: AppLanguage = this.language$.value): string {
-    return language === 'ka' ? 'GE' : 'EN';
+    return language === 'ka' ? 'GE' : language === 'ru' ? 'RU' : 'EN';
   }
 
   private savedLanguage(): AppLanguage {
     const saved = localStorage.getItem('velven-language');
-    return saved === 'ka' ? saved : 'en';
+    return saved === 'ka' || saved === 'ru' ? saved : 'en';
   }
 
   private schedule(): void {
@@ -85,7 +88,8 @@ export class TranslationService {
    * inside the same mutation checkpoint so the English value is never painted.
    */
   private translateMutationsImmediately(records: MutationRecord[]): void {
-    if (this.language$.value !== 'ka' || !this.georgianTranslator) return;
+    const translator = this.activeTranslator;
+    if (this.language$.value === 'en' || !translator) return;
 
     for (const record of records) {
       if (record.type === 'characterData') {
@@ -142,7 +146,7 @@ export class TranslationService {
       return;
     }
 
-    const translated = this.georgianTranslator?.(current);
+    const translated = this.activeTranslator?.(current);
     if (!translated || translated === current) return;
 
     if (!state) {
@@ -171,7 +175,7 @@ export class TranslationService {
         continue;
       }
 
-      const translated = this.georgianTranslator?.(current);
+      const translated = this.activeTranslator?.(current);
       if (!translated || translated === current) continue;
 
       if (!states) {
@@ -214,10 +218,8 @@ export class TranslationService {
     if (language === 'en') return;
 
     const generation = this.generation;
-    if (language === 'ka') {
-      await this.loadGeorgianTranslator();
-      if (generation !== this.generation || language !== this.language$.value) return;
-    }
+    await this.loadTranslator(language);
+    if (generation !== this.generation || language !== this.language$.value) return;
     const targets = this.collectTargets();
     const unique = [...new Set(targets.map((target) => target.state.original))];
     const translations = await this.translateStrings(unique, language);
@@ -300,7 +302,7 @@ export class TranslationService {
   }
 
   private shouldTranslate(value: string): boolean {
-    if (this.georgianTranslator?.(value)) return true;
+    if (this.activeTranslator?.(value)) return true;
     return /[A-Za-z]/.test(value) && !/^(https?:|\/|[\w.+-]+@[\w.-]+$)/.test(value);
   }
 
@@ -310,7 +312,7 @@ export class TranslationService {
   ): Promise<Map<string, string>> {
     const result = new Map<string, string>();
 
-    const translate = await this.loadGeorgianTranslator();
+    const translate = await this.loadTranslator(language);
     for (const value of values) {
       const translated = translate(value);
       if (translated) result.set(value, translated);
@@ -329,6 +331,33 @@ export class TranslationService {
         return this.georgianTranslator;
       });
     return this.georgianTranslatorRequest;
+  }
+
+  private loadRussianTranslator(): Promise<RussianTranslator> {
+    if (this.russianTranslator) {
+      return Promise.resolve(this.russianTranslator);
+    }
+
+    this.russianTranslatorRequest ??= import('../i18n/russian-translations')
+      .then((module) => {
+        this.russianTranslator = module.russianTranslation;
+        return this.russianTranslator;
+      });
+    return this.russianTranslatorRequest;
+  }
+
+  private loadTranslator(
+    language: Exclude<AppLanguage, 'en'>,
+  ): Promise<(value: string) => string | undefined> {
+    return language === 'ka' ? this.loadGeorgianTranslator() : this.loadRussianTranslator();
+  }
+
+  private get activeTranslator(): ((value: string) => string | undefined) | undefined {
+    return this.language$.value === 'ka'
+      ? this.georgianTranslator
+      : this.language$.value === 'ru'
+        ? this.russianTranslator
+        : undefined;
   }
 
 }

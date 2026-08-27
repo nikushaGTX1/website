@@ -10,6 +10,7 @@ import { AuthService } from '../services/auth.service';
 import { CrmService } from '../services/crm.service';
 import { toMediaUrl } from '../utils/api-media';
 import { NearbyPlace } from '../maps/google-property-map/google-property-map.component';
+import { AppLanguage, TranslationService } from '../services/translation.service';
 
 interface Review {
   name: string;
@@ -91,6 +92,7 @@ export class ApartmentDetail implements OnInit {
     private favoriteService: FavoriteService,
     private authService: AuthService,
     private crmService: CrmService,
+    readonly translation: TranslationService,
   ) {}
 
   ngOnInit(): void {
@@ -161,11 +163,29 @@ export class ApartmentDetail implements OnInit {
   }
 
   get title(): string {
-    return this.apartment?.title?.trim() || 'Apartment details unavailable';
+    const sourceTitle = this.apartment?.title?.trim() || '';
+    const language = this.translation.language$.value;
+    if (language === 'ka' || (language === 'en' && !this.hasGeorgianText(sourceTitle))) {
+      return sourceTitle || 'Apartment details unavailable';
+    }
+
+    const place = this.localizedPlace(language);
+    const forSale = this.isForSale;
+    if (language === 'ru') {
+      return `${this.localizedPropertyType('ru')} ${forSale ? 'на продажу' : 'в аренду'} — ${place}`;
+    }
+    return `${this.localizedPropertyType('en')} for ${forSale ? 'sale' : 'rent'} in ${place}`;
+  }
+
+  hasGeorgianText(value: string): boolean {
+    return /[\u10A0-\u10FF]/.test(value);
   }
 
   get address(): string {
-    return this.apartment?.address?.trim() || 'Address not provided';
+    const language = this.translation.language$.value;
+    const source = this.apartment?.address?.trim() || '';
+    if (!source) return language === 'ru' ? 'Адрес не указан' : language === 'ka' ? 'მისამართი არ არის მითითებული' : 'Address not provided';
+    return this.localizedPlace(language, source);
   }
 
   get cityLine(): string {
@@ -178,8 +198,10 @@ export class ApartmentDetail implements OnInit {
   }
 
   get listingType(): string {
-    const metadata = `${this.getListingMetadata('Type')} ${this.getListingMetadata('Listing type')}`.toLowerCase();
-    return metadata.includes('sale') || metadata.includes('buy') ? 'For sale' : 'For rent';
+    const language = this.translation.language$.value;
+    if (language === 'ru') return this.isForSale ? 'Продажа' : 'Аренда';
+    if (language === 'ka') return this.isForSale ? 'იყიდება' : 'ქირავდება';
+    return this.isForSale ? 'For sale' : 'For rent';
   }
 
   get description(): string {
@@ -260,6 +282,10 @@ export class ApartmentDetail implements OnInit {
 
   get visibleDescription(): string {
     const clean = this.description.split(/\r?\n\s*\r?\n(?:Listing plan|Type):/i)[0].trim();
+    const language = this.translation.language$.value;
+    if (language === 'ru' || (language === 'en' && this.hasGeorgianText(clean))) {
+      return this.generatedDescription(language);
+    }
     return this.descriptionExpanded || clean.length <= 360
       ? clean
       : `${clean.slice(0, 360).trim()}…`;
@@ -701,6 +727,50 @@ export class ApartmentDetail implements OnInit {
 
   private yesNo(value?: boolean): string {
     return value ? 'Yes' : 'No';
+  }
+
+  private get isForSale(): boolean {
+    const metadata = `${this.getListingMetadata('Deal')} ${this.getListingMetadata('Listing type')}`.toLowerCase();
+    return metadata.includes('sale') || metadata.includes('buy');
+  }
+
+  private localizedPropertyType(language: 'en' | 'ru'): string {
+    const type = `${this.getListingMetadata('Type')} ${this.apartment?.apartmentStyle || ''}`.toLowerCase();
+    const house = type.includes('house') || type.includes('villa') || type.includes('cottage');
+    return language === 'ru' ? (house ? 'Дом' : 'Квартира') : (house ? 'House' : 'Apartment');
+  }
+
+  private localizedPlace(language: AppLanguage, fallback?: string): string {
+    const source = fallback || this.apartment?.district?.trim() || this.apartment?.address?.trim() || 'Tbilisi';
+    const places: Record<string, { en: string; ka: string; ru: string }> = {
+      tbilisi: { en: 'Tbilisi', ka: 'თბილისი', ru: 'Тбилиси' },
+      vake: { en: 'Vake', ka: 'ვაკე', ru: 'Ваке' },
+      saburtalo: { en: 'Saburtalo', ka: 'საბურთალო', ru: 'Сабуртало' },
+      vera: { en: 'Vera', ka: 'ვერა', ru: 'Вера' },
+      mtatsminda: { en: 'Mtatsminda', ka: 'მთაწმინდა', ru: 'Мтацминда' },
+    };
+    return places[source.toLowerCase()]?.[language] || fallback || source;
+  }
+
+  private generatedDescription(language: 'en' | 'ru'): string {
+    const place = this.localizedPlace(language);
+    const propertyType = this.localizedPropertyType(language).toLowerCase();
+    const bedroomCount = this.bedrooms;
+    const bathroomCount = this.bathrooms;
+    if (language === 'ru') {
+      const facts = [
+        bedroomCount ? `${bedroomCount} спальн.` : '',
+        bathroomCount ? `${bathroomCount} ванн.` : '',
+        this.area ? `${this.area} м²` : '',
+      ].filter(Boolean).join(' · ');
+      return `Проверенный объект (${propertyType}) в районе ${place}.${facts ? ` ${facts}.` : ''} Свяжитесь с VELVEN, чтобы уточнить доступность и договориться о просмотре.`;
+    }
+    const facts = [
+      bedroomCount ? `${bedroomCount} bedroom${bedroomCount === 1 ? '' : 's'}` : '',
+      bathroomCount ? `${bathroomCount} bathroom${bathroomCount === 1 ? '' : 's'}` : '',
+      this.area ? `${this.area} m²` : '',
+    ].filter(Boolean).join(' · ');
+    return `Verified ${propertyType} in ${place}.${facts ? ` ${facts}.` : ''} Contact VELVEN to confirm availability and arrange a viewing.`;
   }
 
   private ordinalSuffix(value: number): string {

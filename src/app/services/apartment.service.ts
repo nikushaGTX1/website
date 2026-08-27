@@ -31,7 +31,9 @@ export class ApartmentService {
   private apartmentsCache$?: Observable<Apartment[]>;
   private apartmentsCacheCreatedAt = 0;
   private readonly apartmentsCacheLifetimeMs = 5 * 60 * 1000;
-  private readonly persistedApartmentsKey = 'white-tower-apartments-cache-v1';
+  // v2 invalidates entries where an expired signed URL was persisted as the SVG
+  // placeholder by older clients.
+  private readonly persistedApartmentsKey = 'white-tower-apartments-cache-v2';
   private readonly persistedApartmentsLifetimeMs = 15 * 60 * 1000;
 
   constructor(private http: HttpClient) {}
@@ -188,7 +190,10 @@ export class ApartmentService {
         return null;
       }
 
-      return cache.apartments;
+      // Media links are signed and can expire while the persisted listing cache is
+      // still present. Re-normalize cached entries so stale links are discarded and
+      // replaced by the fresh network response instead of rendering a fake photo.
+      return cache.apartments.map((apartment) => this.normalizeImages(apartment));
     } catch {
       localStorage.removeItem(this.persistedApartmentsKey);
       return null;

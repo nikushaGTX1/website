@@ -6,7 +6,7 @@ import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
-import { TranslationService } from '../services/translation.service';
+import { AppLanguage, TranslationService } from '../services/translation.service';
 
 @Component({
   selector: 'app-explore-property',
@@ -97,7 +97,7 @@ export class ExploreProperty implements OnInit {
     'Krtsanisi',
     'Vashlijvari',
   ];
-  locationDisplayLanguage: 'en' | 'ka' = 'ka';
+  locationDisplayLanguage: AppLanguage = 'ka';
   headerBedrooms = '';
   headerRooms = '';
   featureFilter = '';
@@ -684,7 +684,9 @@ export class ExploreProperty implements OnInit {
       .map((area) => area.trim())
       .filter(Boolean);
     this.selectedLocationArea = this.selectedLocationAreas.at(-1) || '';
-    this.locationDisplayLanguage = params.get('locationLanguage') === 'en' ? 'en' : 'ka';
+    const locationLanguage = params.get('locationLanguage');
+    this.locationDisplayLanguage =
+      locationLanguage === 'en' || locationLanguage === 'ru' ? locationLanguage : 'ka';
     this.homeType = params.get('propertyType') || '';
     this.headerBedrooms = params.get('bedrooms') || '';
     this.headerRooms = params.get('rooms') || '';

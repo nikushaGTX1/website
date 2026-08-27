@@ -28,7 +28,7 @@ body {
   margin: 0;
   color: #111827;
   background: #fff;
-  font-family: sans-serif;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
   line-height: 1.5;
   overflow-x: clip;
 }
@@ -44,6 +44,14 @@ html[lang='ka'] textarea {
 html[lang='ka'] :is(h1, h2, h3, h4, h5, h6) {
   font-family: "Noto Sans Georgian", "Segoe UI", Arial, sans-serif;
   letter-spacing: 0;
+}
+
+html[lang='ru'] body,
+html[lang='ru'] button,
+html[lang='ru'] input,
+html[lang='ru'] select,
+html[lang='ru'] textarea {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
 
 button,
