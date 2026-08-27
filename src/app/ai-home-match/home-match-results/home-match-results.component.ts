@@ -32,6 +32,39 @@ export class HomeMatchResultsComponent implements OnChanges {
       '/property-placeholder.svg'
     );
   }
+
+  mapAddress(result: HomeMatchResult): string {
+    return (
+      result.apartment.address ||
+      result.apartment.district ||
+      `${result.apartment.title}, Tbilisi`
+    );
+  }
+
+  latitude(result: HomeMatchResult): number | undefined {
+    const value = Number(
+      result.apartment.propertyLatitude ?? result.apartment.latitude,
+    );
+    return Number.isFinite(value) ? value : undefined;
+  }
+
+  longitude(result: HomeMatchResult): number | undefined {
+    const value = Number(
+      result.apartment.propertyLongitude ?? result.apartment.longitude,
+    );
+    return Number.isFinite(value) ? value : undefined;
+  }
+
+  mapsUrl(result: HomeMatchResult): string {
+    const latitude = this.latitude(result);
+    const longitude = this.longitude(result);
+    const query =
+      latitude !== undefined && longitude !== undefined
+        ? `${latitude},${longitude}`
+        : this.mapAddress(result);
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }
+
   label(score: number): string {
     return score >= 95
       ? 'Perfect Match'

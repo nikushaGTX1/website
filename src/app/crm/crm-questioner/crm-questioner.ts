@@ -441,7 +441,7 @@ togglePhoneCountryDropdown(): void {
           'შეგიძლიათ რამდენიმე უბანი აირჩიოთ.',
 
         chooseForMe:
-          'არ ვარ დარწმუნებული — შემირჩიეთ',
+          'მდებარეობის არჩევაში მოქნილი ვარ',
 
         chooseForMeSmall:
           'Velven შეარჩევს საუკეთესო უბნებს თქვენი მოთხოვნების მიხედვით.',
@@ -749,7 +749,7 @@ togglePhoneCountryDropdown(): void {
           'You can select several districts.',
 
         chooseForMe:
-          "I'm not sure — choose for me",
+          "I'm flexible with location",
 
         chooseForMeSmall:
           'Velven will select the best districts based on your requirements.',
@@ -1057,7 +1057,7 @@ togglePhoneCountryDropdown(): void {
           'Можно выбрать несколько районов.',
 
         chooseForMe:
-          'Не уверен — выберите за меня',
+          'Я гибок в выборе района',
 
         chooseForMeSmall:
           'Velven подберёт лучшие районы по вашим требованиям.',

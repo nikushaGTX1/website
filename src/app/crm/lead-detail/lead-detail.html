@@ -981,7 +981,9 @@
                   <strong>
 
                     {{
-                      currentLead.preferredDistricts?.length
+                      questionnairePreferences?.chooseDistrictForMe
+                        ? 'Flexible with location'
+                        : currentLead.preferredDistricts?.length
                         ? currentLead.preferredDistricts?.join(', ')
                         : 'No preferred district yet'
                     }}
@@ -1345,8 +1347,8 @@
 
                             {{
                               preferences.chooseDistrictForMe
-                                ? 'Velven-ს სთხოვა უბნის შერჩევა'
-                                : 'უბნები თავად აირჩია'
+                                ? 'Yes — flexible with location'
+                                : 'No — specific districts selected'
                             }}
 
                           </strong>

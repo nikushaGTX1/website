@@ -629,7 +629,7 @@
 
                   <span
                     *ngIf="
-                      lead.preferredDistricts?.length
+                      lead.preferredDistricts?.length || isFlexibleWithLocation(lead)
                     "
                   >
 
@@ -639,7 +639,9 @@
                     ></i>
 
                     {{
-                      lead.preferredDistricts?.join(', ')
+                      isFlexibleWithLocation(lead)
+                        ? 'Flexible with location'
+                        : lead.preferredDistricts?.join(', ')
                     }}
 
                   </span>
