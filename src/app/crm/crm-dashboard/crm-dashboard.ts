@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -117,7 +117,6 @@ export class CrmDashboard implements OnInit {
 
   constructor(
     private crmService: CrmService,
-    private http: HttpClient,
     private agentService: AgentService,
     readonly authService: AuthService,
     private cdr: ChangeDetectorRef,
@@ -815,13 +814,7 @@ export class CrmDashboard implements OnInit {
     this.linkCopied = false;
     this.errorMessage = '';
 
-    this.http.post<{
-      token: string;
-      path: string;
-    }>(
-      'https://websiteapi-production-c970.up.railway.app/api/Crm/questionnaire-links',
-      {}
-    ).subscribe({
+    this.crmService.generateQuestionnaireLink().subscribe({
       next: async (response) => {
         this.generatingQuestionnaireLink = false;
 
