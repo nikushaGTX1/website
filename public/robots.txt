@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://website-production-ab09.up.railway.app/sitemap.xml
+Sitemap: https://velven.ge/sitemap.xml

@@ -13,7 +13,12 @@ import {
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const apiOrigin = 'https://websiteapi-production-c970.up.railway.app';
-const canonicalHost = 'website-production-ab09.up.railway.app';
+const canonicalHost = 'velven.ge';
+const canonicalOrigin = `https://${canonicalHost}`;
+const legacyHosts = new Set([
+  'website-production-ab09.up.railway.app',
+  'website-lff1.onrender.com',
+]);
 const supabaseHost = 'zhijxljnddhvlxzhrckz.supabase.co';
 const publicApiPaths = new Set([
   '/api/Apartments',
@@ -50,12 +55,51 @@ const browserDirectory = path.join(
   'site',
   'browser',
 );
+const defaultSeo = {
+  title: 'Verified Apartments for Rent in Tbilisi | Velven',
+  description: 'Find verified apartments for rent in Tbilisi with accurate prices, trusted listings, local agents and personalized AI home matching.',
+  image: `${canonicalOrigin}/banner.jpg`,
+  type: 'website',
+};
+const routeSeo = new Map([
+  ['/main', defaultSeo],
+  ['/ExploreProperty', {
+    title: 'Apartments for Rent and Sale in Tbilisi | Velven',
+    description: 'Browse verified Tbilisi apartments by location, price, bedrooms and amenities. Compare trusted listings and find your next home.',
+  }],
+  ['/agent-profile', {
+    title: 'Trusted Real Estate Agents in Tbilisi | Velven',
+    description: 'Meet experienced Tbilisi real estate agents who can help you rent, buy or list a verified property with confidence.',
+  }],
+  ['/blog', {
+    title: 'Tbilisi Real Estate Guides and Insights | Velven',
+    description: 'Read practical guides about renting, buying, neighborhoods and property trends in Tbilisi, Georgia.',
+  }],
+  ['/ai-home-match', {
+    title: 'AI Home Matcher for Tbilisi Apartments | Velven',
+    description: 'Create a personalized home profile and discover Tbilisi apartments matched to your budget, commute and lifestyle.',
+  }],
+  ['/find-my-home', {
+    title: 'Find My Home in Tbilisi | Velven',
+    description: 'Tell us what matters to you and get personalized Tbilisi apartment recommendations for your needs and lifestyle.',
+  }],
+  ['/about', {
+    title: 'About Velven | Tbilisi Real Estate Platform',
+    description: 'Learn how Velven makes apartment searches in Tbilisi clearer with verified listings, local expertise and smart matching.',
+  }],
+  ['/services', {
+    title: 'Real Estate Services in Tbilisi | Velven',
+    description: 'Explore professional property search, listing and real estate support services for renters, buyers and owners in Tbilisi.',
+  }],
+]);
+const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/;
+let sitemapCache;
 
 app.use((request, response, next) => {
   const forwardedHost = request.get('x-forwarded-host')?.split(',')[0].trim();
   const requestHost = (forwardedHost || request.get('host') || '').split(':')[0].toLowerCase();
 
-  if (requestHost === `www.${canonicalHost}`) {
+  if (requestHost === `www.${canonicalHost}` || legacyHosts.has(requestHost)) {
     response.redirect(301, `https://${canonicalHost}${request.originalUrl}`);
     return;
   }
@@ -883,6 +927,256 @@ app.use('/api', async (request, response) => {
   }
 });
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function plainText(value, maximumLength = 165) {
+  const text = String(value ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s*Source:\s*https?:\/\/\S+[\s\S]*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (text.length <= maximumLength) return text;
+  return `${text.slice(0, maximumLength - 1).trimEnd()}…`;
+}
+
+function replaceMeta(document, attribute, name, content) {
+  const tag = `<meta ${attribute}="${name}" content="${escapeHtml(content)}" />`;
+  const pattern = new RegExp(`<meta\\s+${attribute}=["']${name}["'][^>]*>`, 'i');
+  return pattern.test(document)
+    ? document.replace(pattern, tag)
+    : document.replace('</head>', `    ${tag}\n  </head>`);
+}
+
+function injectSeo(document, seo) {
+  const canonicalUrl = seo.canonicalUrl || `${canonicalOrigin}/main`;
+  const title = seo.title || defaultSeo.title;
+  const description = seo.description || defaultSeo.description;
+  const image = seo.image || defaultSeo.image;
+  const robots = seo.robots || 'index, follow, max-image-preview:large';
+  const structuredData = JSON.stringify(seo.structuredData || {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateAgent',
+    name: 'Velven',
+    url: `${canonicalOrigin}/main`,
+    logo: `${canonicalOrigin}/velven-logo.svg`,
+    image: defaultSeo.image,
+    telephone: '+995 568 444 220',
+    priceRange: '$$',
+    address: { '@type': 'PostalAddress', addressLocality: 'Tbilisi', addressCountry: 'GE' },
+    areaServed: { '@type': 'City', name: 'Tbilisi' },
+  }).replace(/</g, '\\u003c');
+
+  document = document.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)}</title>`);
+  document = replaceMeta(document, 'name', 'description', description);
+  document = replaceMeta(document, 'name', 'robots', robots);
+  document = replaceMeta(document, 'property', 'og:type', seo.type || 'website');
+  document = replaceMeta(document, 'property', 'og:title', title);
+  document = replaceMeta(document, 'property', 'og:description', description);
+  document = replaceMeta(document, 'property', 'og:url', canonicalUrl);
+  document = replaceMeta(document, 'property', 'og:image', image);
+  document = replaceMeta(document, 'name', 'twitter:title', title);
+  document = replaceMeta(document, 'name', 'twitter:description', description);
+  document = replaceMeta(document, 'name', 'twitter:image', image);
+  document = document.replace(
+    /<link\s+rel=["']canonical["'][^>]*>/i,
+    `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
+  );
+  return document.replace(
+    /<script\s+type=["']application\/ld\+json["']>[\s\S]*?<\/script>/i,
+    `<script type="application/ld+json">${structuredData}</script>`,
+  );
+}
+
+async function apartmentSeo(pathname) {
+  const match = /^\/apartments\/(\d+)$/.exec(pathname);
+  if (!match) return undefined;
+  const apiResponse = await fetchPublicApi(`/api/Apartments/${match[1]}`, false);
+  if (apiResponse.status === 404) return null;
+  if (apiResponse.status < 200 || apiResponse.status >= 300) return undefined;
+
+  const apartment = JSON.parse(apiResponse.body.toString('utf8'));
+  const location = [apartment.street, apartment.district, apartment.city]
+    .filter(Boolean)
+    .join(', ');
+  const title = plainText(apartment.title, 70) || `Apartment in ${location || 'Tbilisi'}`;
+  const description = plainText(apartment.description)
+    || `${apartment.bedrooms || 0}-bedroom apartment in ${location || 'Tbilisi'} with verified property details from Velven.`;
+  const canonicalUrl = `${canonicalOrigin}${pathname}`;
+  const sourceImage = apartment.images?.find((item) => item.isCover)?.url
+    || apartment.images?.[0]?.url
+    || apartment.imageUrl;
+  const image = sourceImage
+    ? `${canonicalOrigin}/seo/apartment-image/${apartment.id}`
+    : defaultSeo.image;
+
+  return {
+    title: `${title} | Velven`,
+    description,
+    canonicalUrl,
+    image,
+    type: 'product',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'Apartment',
+      name: title,
+      description,
+      image: image === defaultSeo.image ? undefined : [image],
+      url: canonicalUrl,
+      floorSize: apartment.sizeSquareMeters
+        ? { '@type': 'QuantitativeValue', value: apartment.sizeSquareMeters, unitCode: 'MTK' }
+        : undefined,
+      numberOfBedrooms: apartment.bedrooms || undefined,
+      numberOfBathroomsTotal: apartment.bathrooms || undefined,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: apartment.address || apartment.street || undefined,
+        addressLocality: apartment.city || 'Tbilisi',
+        addressRegion: apartment.district || apartment.region || undefined,
+        addressCountry: 'GE',
+      },
+      offers: {
+        '@type': 'Offer',
+        price: apartment.price,
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+        url: canonicalUrl,
+      },
+    },
+  };
+}
+
+async function agentSeo(pathname) {
+  const match = /^\/agent-profile\/([^/]+)$/.exec(pathname);
+  if (!match) return undefined;
+  const agentId = encodeURIComponent(match[1]);
+  const apiResponse = await fetchPublicApi(`/api/Agents/${agentId}`, false);
+  if (apiResponse.status === 404) return null;
+  if (apiResponse.status < 200 || apiResponse.status >= 300) return undefined;
+  const agent = JSON.parse(apiResponse.body.toString('utf8'));
+  const name = plainText(agent.fullName || agent.userName || agent.name, 70) || 'Velven Agent';
+  const description = plainText(agent.bio)
+    || `View ${name}'s profile, experience and verified property listings with Velven in Tbilisi.`;
+  const canonicalUrl = `${canonicalOrigin}${pathname}`;
+  return {
+    title: `${name} — Real Estate Agent in Tbilisi | Velven`,
+    description,
+    canonicalUrl,
+    image: defaultSeo.image,
+    type: 'profile',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'RealEstateAgent',
+      name,
+      description,
+      url: canonicalUrl,
+      areaServed: { '@type': 'City', name: 'Tbilisi' },
+    },
+  };
+}
+
+app.get('/seo/apartment-image/:id', async (request, response) => {
+  try {
+    if (!/^\d+$/.test(request.params.id)) {
+      response.sendStatus(404);
+      return;
+    }
+    const apiResponse = await fetchPublicApi(`/api/Apartments/${request.params.id}`, false);
+    if (apiResponse.status < 200 || apiResponse.status >= 300) {
+      response.sendFile(path.join(browserDirectory, 'banner.jpg'));
+      return;
+    }
+    const apartment = JSON.parse(apiResponse.body.toString('utf8'));
+    const source = apartment.images?.find((item) => item.isCover)?.url
+      || apartment.images?.[0]?.url
+      || apartment.imageUrl;
+    if (!source) {
+      response.sendFile(path.join(browserDirectory, 'banner.jpg'));
+      return;
+    }
+    const image = await fetchApartmentImage(source);
+    response.setHeader('Content-Type', image.contentType);
+    response.setHeader('Cache-Control', 'public, max-age=1800, stale-while-revalidate=86400');
+    if (image.etag) response.setHeader('ETag', image.etag);
+    response.send(image.body);
+  } catch (error) {
+    console.error('SEO apartment image error:', error);
+    response.sendFile(path.join(browserDirectory, 'banner.jpg'));
+  }
+});
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+async function dynamicSitemap() {
+  if (sitemapCache?.expiresAt > Date.now()) return sitemapCache.body;
+  const paths = [
+    ['/main', 'daily', '1.0'],
+    ['/ExploreProperty', 'daily', '0.9'],
+    ['/agent-profile', 'weekly', '0.8'],
+    ['/blog', 'weekly', '0.7'],
+    ['/ai-home-match', 'monthly', '0.6'],
+    ['/about', 'monthly', '0.7'],
+    ['/services', 'monthly', '0.8'],
+    ['/find-my-home', 'monthly', '0.7'],
+  ];
+  const apartments = [];
+  for (let page = 1; page <= 100; page += 1) {
+    const apiResponse = await fetchPublicApi(`/api/Apartments?page=${page}&pageSize=100`, false);
+    if (apiResponse.status < 200 || apiResponse.status >= 300) break;
+    const items = JSON.parse(apiResponse.body.toString('utf8'));
+    if (!Array.isArray(items)) break;
+    apartments.push(...items);
+    if (items.length < 100) break;
+  }
+  for (const apartment of apartments) {
+    if (Number.isInteger(apartment.id)) {
+      paths.push([`/apartments/${apartment.id}`, 'daily', '0.8', apartment.createdAt]);
+    }
+  }
+  const agentsResponse = await fetchPublicApi('/api/Agents', false);
+  if (agentsResponse.status >= 200 && agentsResponse.status < 300) {
+    const agents = JSON.parse(agentsResponse.body.toString('utf8'));
+    if (Array.isArray(agents)) {
+      for (const agent of agents) {
+        if (agent.id) paths.push([`/agent-profile/${encodeURIComponent(agent.id)}`, 'weekly', '0.7']);
+      }
+    }
+  }
+  const entries = paths.map(([pathname, changefreq, priority, lastmod]) => {
+    const date = lastmod && !Number.isNaN(Date.parse(lastmod))
+      ? `\n    <lastmod>${new Date(lastmod).toISOString()}</lastmod>`
+      : '';
+    return `  <url>\n    <loc>${escapeXml(`${canonicalOrigin}${pathname}`)}</loc>${date}\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+  });
+  const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`;
+  sitemapCache = { body, expiresAt: Date.now() + 10 * 60_000 };
+  return body;
+}
+
+app.get('/sitemap.xml', async (_request, response) => {
+  try {
+    response.type('application/xml');
+    response.setHeader('Cache-Control', 'public, max-age=600, stale-while-revalidate=3600');
+    response.send(await dynamicSitemap());
+  } catch (error) {
+    console.error('Sitemap generation failed:', error);
+    response.sendFile(path.join(browserDirectory, 'sitemap.xml'));
+  }
+});
+
 app.get('/', (_request, response) => {
   response.redirect(301, '/main');
 });
@@ -896,7 +1190,7 @@ app.use(express.static(browserDirectory, {
     }
   },
 }));
-app.use((request, response) => {
+app.use(async (request, response) => {
   // Do not return index.html for missing browser assets. During a rolling
   // deployment that turns a missing JavaScript bundle into an HTML response,
   // so the browser rejects it and leaves the static SEO fallback on screen.
@@ -905,8 +1199,37 @@ app.use((request, response) => {
     return;
   }
 
-  response.setHeader('Cache-Control', 'no-cache');
-  response.sendFile(path.join(browserDirectory, 'index.html'));
+  try {
+    const pathname = request.path.replace(/\/+$/, '') || '/main';
+    const apartmentMetadata = await apartmentSeo(pathname);
+    const agentMetadata = apartmentMetadata === undefined ? await agentSeo(pathname) : undefined;
+    const missingResource = apartmentMetadata === null || agentMetadata === null;
+    const dynamicMetadata = apartmentMetadata || agentMetadata;
+    const pageMetadata = dynamicMetadata || routeSeo.get(pathname) || defaultSeo;
+    const robots = missingResource || privateRoutePattern.test(pathname)
+      || ['/property', '/apartment-detail'].includes(pathname)
+      ? 'noindex, nofollow'
+      : undefined;
+    const canonicalPath = missingResource ? pathname : (routeSeo.has(pathname) || dynamicMetadata
+      ? pathname
+      : '/main');
+    const template = await readFile(path.join(browserDirectory, 'index.html'), 'utf8');
+    const document = injectSeo(template, {
+      ...pageMetadata,
+      canonicalUrl: pageMetadata.canonicalUrl || `${canonicalOrigin}${canonicalPath}`,
+      robots,
+      title: missingResource ? 'Page Not Found | Velven' : pageMetadata.title,
+      description: missingResource
+        ? 'This page is no longer available. Browse current verified properties and agents on Velven.'
+        : pageMetadata.description,
+    });
+    response.status(missingResource ? 404 : 200);
+    response.setHeader('Cache-Control', 'no-cache');
+    response.type('html').send(document);
+  } catch (error) {
+    console.error('SEO document rendering failed:', error);
+    response.status(500).send('The website is temporarily unavailable.');
+  }
 });
 
 app.listen(port, '0.0.0.0', () => {

@@ -18,6 +18,7 @@ import { CrmService } from '../services/crm.service';
 import { toMediaUrl } from '../utils/api-media';
 import { NearbyPlace } from '../maps/google-property-map/google-property-map.component';
 import { AppLanguage, TranslationService } from '../services/translation.service';
+import { SeoService } from '../services/seo.service';
 
 interface Review {
   name: string;
@@ -99,6 +100,7 @@ export class ApartmentDetail implements OnInit {
     private favoriteService: FavoriteService,
     private authService: AuthService,
     private crmService: CrmService,
+    private seoService: SeoService,
     readonly translation: TranslationService,
   ) {}
 
@@ -131,6 +133,7 @@ export class ApartmentDetail implements OnInit {
     this.apartmentService.getApartment(id).subscribe({
       next: (apartment) => {
         this.applyApartment(apartment);
+        this.seoService.updateApartment(apartment);
         this.favorite = this.favoriteService.isFavorite(apartment.id);
         this.loadApartmentAgent(apartment);
         this.loading = false;
