@@ -35,6 +35,12 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     north: 41.92,
     east: 45.1,
   };
+  private static readonly tbilisiCameraBounds: google.maps.LatLngBoundsLiteral = {
+    south: 41.6,
+    west: 44.62,
+    north: 41.88,
+    east: 45.03,
+  };
   @Input() apartments: Apartment[] = [];
   @Input() selectedApartmentId: number | null = null;
   @Output() apartmentSelected = new EventEmitter<Apartment>();
@@ -124,8 +130,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         gestureHandling: 'greedy',
         zoomControl: true,
         restriction: {
-          latLngBounds: ExplorePropertyMapComponent.tbilisiBounds,
-          strictBounds: true,
+          latLngBounds: ExplorePropertyMapComponent.tbilisiCameraBounds,
+          // Google's elastic boundary keeps Tbilisi centered without exposing
+          // the clipped/blank edge produced when a wide map meets strict bounds.
+          strictBounds: false,
         },
       });
 
