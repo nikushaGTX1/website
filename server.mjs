@@ -100,11 +100,11 @@ function crmQuestionnaireSeo(pathname) {
   return {
     title: 'Your Personalized Home Search | Velven',
     description: 'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',
-    image: `${canonicalOrigin}/velven-questionnaire-preview-v2.jpg`,
-    imageAlt: 'Velven personalized home search questionnaire',
-    imageWidth: '1200',
-    imageHeight: '630',
-    imageType: 'image/jpeg',
+    image: `${canonicalOrigin}/velven-questionnaire-thumbnail-v3.png`,
+    imageAlt: 'Velven logo',
+    imageWidth: '1254',
+    imageHeight: '1254',
+    imageType: 'image/png',
     type: 'website',
   };
 }
