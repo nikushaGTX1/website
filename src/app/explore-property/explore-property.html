@@ -128,7 +128,7 @@
         [class.selected]="!!homeType"
         (click)="$event.stopPropagation(); toggleSearchMenu('propertyType')"
       >
-        {{ homeType || 'Apartment' }} <span>⌄</span>
+        {{ homeType || 'Apartment' }} <span></span>
       </button>
       <button
         class="chip"
@@ -136,7 +136,7 @@
         [class.selected]="appliedBudgetMin !== null || appliedBudgetMax !== null"
         (click)="$event.stopPropagation(); toggleSearchMenu('budget')"
       >
-        Price <span>⌄</span>
+        Price <span></span>
       </button>
       <button
         class="chip"
@@ -144,7 +144,7 @@
         [class.selected]="!!headerBedrooms"
         (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')"
       >
-        Bedrooms <span>⌄</span>
+        Bedrooms <span></span>
       </button>
       <button
         class="chip"
@@ -163,7 +163,7 @@
         [class.selected]="selectedAmenities.includes('Furnished')"
         (click)="toggleAmenity('Furnished')"
       >
-        Furnished <span>⌄</span>
+        Furnished <span></span>
       </button>
       <button
         class="chip"
@@ -175,7 +175,7 @@
           <path d="M4 8h10a3 3 0 1 0-3-3M4 12h15a2 2 0 1 1-2 2M4 16h8"></path></svg
         >Air conditioning
       </button>
-      <button class="chip" type="button" (click)="selectFeature('')">More <span>⌄</span></button>
+      <button class="chip" type="button" (click)="selectFeature('')">More <span></span></button>
     </div>
     <div
       class="chip-popover bedroom-popover"
@@ -213,7 +213,7 @@
             <option value="newest">Recommended</option>
             <option value="price-asc">Price: low to high</option>
             <option value="price-desc">Price: high to low</option></select
-          ><span>⌄</span></label
+          ><span></span></label
         >
       </div>
       <div class="cards-grid">
