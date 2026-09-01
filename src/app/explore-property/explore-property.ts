@@ -17,6 +17,7 @@ import { AppLanguage, TranslationService } from '../services/translation.service
 export class ExploreProperty implements OnInit {
   apartments: Apartment[] = [];
   filteredApartments: Apartment[] = [];
+  pageApartments: Apartment[] = [];
   visibleApartments: Apartment[] = [];
 
   loading = false;
@@ -654,7 +655,19 @@ export class ExploreProperty implements OnInit {
 
   private updateVisibleApartments(): void {
     const start = (this.currentPage - 1) * this.pageSize;
-    this.visibleApartments = this.filteredApartments.slice(start, start + this.pageSize);
+    this.pageApartments = this.filteredApartments.slice(start, start + this.pageSize);
+    this.visibleApartments = this.pageApartments;
+  }
+
+  onMapVisibleApartmentsChanged(apartments: Apartment[]): void {
+    this.visibleApartments = apartments;
+    if (
+      this.selectedApartment &&
+      !apartments.some((apartment) => apartment.id === this.selectedApartment?.id)
+    ) {
+      this.selectedApartment = apartments[0] ?? null;
+    }
+    this.cdr.detectChanges();
   }
 
   get visiblePages(): number[] {
@@ -760,6 +773,7 @@ export class ExploreProperty implements OnInit {
         console.error('API Error:', err);
         this.apartments = [];
         this.filteredApartments = [];
+        this.pageApartments = [];
         this.visibleApartments = [];
         this.selectedApartment = null;
         this.loading = false;

@@ -206,7 +206,7 @@
             Homes {{ selectedType === 'For Sale' ? 'for sale' : 'for rent' }} in
             {{ location || 'Tbilisi' }}
           </h1>
-          <p>{{ filteredApartments.length | number }} verified homes match your search</p>
+          <p>{{ visibleApartments.length | number }} verified homes in this map area</p>
         </div>
         <label class="sort"
           ><select [value]="currentSort" (change)="onSortChange($event)">
@@ -225,7 +225,7 @@
         <div class="property-message" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
         <div
           class="property-message"
-          *ngIf="!loading && !errorMessage && filteredApartments.length === 0"
+          *ngIf="!loading && !errorMessage && visibleApartments.length === 0"
         >
           <h2>No homes found</h2>
           <p>Try widening your search or clearing a filter.</p>
@@ -343,9 +343,10 @@
     </section>
     <aside class="map-pane" aria-label="Property map">
       <app-explore-property-map
-        [apartments]="visibleApartments"
+        [apartments]="pageApartments"
         [selectedApartmentId]="selectedApartment ? selectedApartment.id : null"
         (apartmentSelected)="selectApartment($event)"
+        (visibleApartmentsChanged)="onMapVisibleApartmentsChanged($event)"
       ></app-explore-property-map>
       <div class="map-preview" *ngIf="selectedApartment as apartment">
         <img

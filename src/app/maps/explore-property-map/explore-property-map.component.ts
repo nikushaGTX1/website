@@ -38,6 +38,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   @Input() apartments: Apartment[] = [];
   @Input() selectedApartmentId: number | null = null;
   @Output() apartmentSelected = new EventEmitter<Apartment>();
+  @Output() visibleApartmentsChanged = new EventEmitter<Apartment[]>();
   @ViewChild('mapCanvas') mapCanvas?: ElementRef<HTMLDivElement>;
 
   loading = true;
@@ -51,6 +52,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private markers: PropertyMarker[] = [];
   private viewReady = false;
   private renderRevision = 0;
+  private idleListener?: google.maps.MapsEventListener;
   private readonly geocodeCache = new Map<string, google.maps.LatLngLiteral | null>();
 
   constructor(
@@ -71,6 +73,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
   ngOnDestroy(): void {
     this.renderRevision += 1;
+    this.idleListener?.remove();
     this.clearMarkers();
   }
 
@@ -111,7 +114,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       this.map = new Map(this.mapCanvas.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
         zoom: 11,
-        minZoom: 10,
+        minZoom: 11,
         ...(mapId ? { mapId } : {}),
         mapTypeId: this.mapType,
         mapTypeControl: false,
@@ -124,6 +127,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
           latLngBounds: ExplorePropertyMapComponent.tbilisiBounds,
           strictBounds: true,
         },
+      });
+
+      this.idleListener = this.map.addListener('idle', () => {
+        this.zone.run(() => this.emitVisibleApartments());
       });
 
       // Keep the constructor available without loading the marker library again.
@@ -352,8 +359,29 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     }
     this.map.fitBounds(bounds, 70);
     google.maps.event.addListenerOnce(this.map, 'idle', () => {
-      if ((this.map?.getZoom() || 0) > 16) this.map?.setZoom(16);
+      const zoom = this.map?.getZoom() || 0;
+      if (zoom > 16) this.map?.setZoom(16);
+      if (zoom < 11) this.map?.setZoom(11);
     });
+  }
+
+  private emitVisibleApartments(): void {
+    const bounds = this.map?.getBounds();
+    if (!bounds) return;
+    const visible = this.markers
+      .filter((item) => {
+        const position = item.marker.position;
+        if (!position) return false;
+        const point =
+          position instanceof google.maps.LatLng
+            ? position
+            : new google.maps.LatLng(position.lat, position.lng);
+        return bounds.contains(point);
+      })
+      .map((item) => item.apartment);
+    this.mappedApartmentCount = visible.length;
+    this.visibleApartmentsChanged.emit(visible);
+    this.refreshView();
   }
 
   private clearMarkers(): void {
