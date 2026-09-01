@@ -29,6 +29,12 @@ interface PropertyMarker {
   styleUrl: './explore-property-map.component.css',
 })
 export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private static readonly tbilisiBounds: google.maps.LatLngBoundsLiteral = {
+    south: 41.5,
+    west: 44.55,
+    north: 41.92,
+    east: 45.1,
+  };
   @Input() apartments: Apartment[] = [];
   @Input() selectedApartmentId: number | null = null;
   @Output() apartmentSelected = new EventEmitter<Apartment>();
@@ -113,6 +119,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         clickableIcons: false,
         gestureHandling: 'greedy',
         zoomControl: true,
+        restriction: {
+          latLngBounds: ExplorePropertyMapComponent.tbilisiBounds,
+          strictBounds: false,
+        },
       });
 
       // Keep the constructor available without loading the marker library again.
@@ -229,7 +239,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       lat >= -90 &&
       lat <= 90 &&
       lng >= -180 &&
-      lng <= 180
+      lng <= 180 &&
+      this.isInsideTbilisi(lat, lng)
     ) {
       return { lat, lng };
     }
@@ -254,9 +265,14 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (this.geocoder) {
       for (const address of addresses) {
         try {
-          const result = await this.geocoder.geocode({ address });
+          const result = await this.geocoder.geocode({
+            address,
+            bounds: ExplorePropertyMapComponent.tbilisiBounds,
+            componentRestrictions: { country: 'GE' },
+            region: 'GE',
+          });
           const location = result.results[0]?.geometry.location;
-          if (location) {
+          if (location && this.isInsideTbilisi(location.lat(), location.lng())) {
             const position = { lat: location.lat(), lng: location.lng() };
             this.geocodeCache.set(cacheKey, position);
             return position;
@@ -284,7 +300,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private async resolveStreetPosition(street: string): Promise<google.maps.LatLngLiteral | null> {
     if (!street) return null;
     try {
-      const response = await fetch(`/map-data/street?street=${encodeURIComponent(street)}`);
+      const response = await fetch(
+        `/map-data/street?street=${encodeURIComponent(street)}&bbox=41.50,44.55,41.92,45.10`,
+      );
       if (!response.ok) return null;
       const payload = (await response.json()) as { lines?: number[][][] };
       const longestLine = [...(payload.lines || [])].sort(
@@ -293,10 +311,19 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       if (!longestLine?.length) return null;
       const point = longestLine[Math.floor(longestLine.length / 2)];
       const [lng, lat] = point || [];
-      return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+      return Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        this.isInsideTbilisi(lat, lng)
+        ? { lat, lng }
+        : null;
     } catch {
       return null;
     }
+  }
+
+  private isInsideTbilisi(lat: number, lng: number): boolean {
+    const bounds = ExplorePropertyMapComponent.tbilisiBounds;
+    return lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
   }
 
   private updateSelectedMarker(): void {

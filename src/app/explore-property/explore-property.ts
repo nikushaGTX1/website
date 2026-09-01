@@ -17,6 +17,7 @@ import { AppLanguage, TranslationService } from '../services/translation.service
 export class ExploreProperty implements OnInit {
   apartments: Apartment[] = [];
   filteredApartments: Apartment[] = [];
+  visibleApartments: Apartment[] = [];
 
   loading = false;
   errorMessage = '';
@@ -648,8 +649,12 @@ export class ExploreProperty implements OnInit {
   }
 
   get paginatedApartments(): Apartment[] {
+    return this.visibleApartments;
+  }
+
+  private updateVisibleApartments(): void {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredApartments.slice(start, start + this.pageSize);
+    this.visibleApartments = this.filteredApartments.slice(start, start + this.pageSize);
   }
 
   get visiblePages(): number[] {
@@ -755,6 +760,8 @@ export class ExploreProperty implements OnInit {
         console.error('API Error:', err);
         this.apartments = [];
         this.filteredApartments = [];
+        this.visibleApartments = [];
+        this.selectedApartment = null;
         this.loading = false;
         this.errorMessage = 'Could not load apartments right now.';
         this.cdr.detectChanges();
@@ -873,11 +880,12 @@ export class ExploreProperty implements OnInit {
 
     this.applySorting();
     this.currentPage = 1;
+    this.updateVisibleApartments();
 
-    if (this.filteredApartments.length === 0) {
+    if (this.visibleApartments.length === 0) {
       this.selectedApartment = null;
     } else {
-      this.selectApartment(this.filteredApartments[0], false);
+      this.selectApartment(this.visibleApartments[0], false);
     }
 
     this.cdr.detectChanges();
@@ -928,10 +936,14 @@ export class ExploreProperty implements OnInit {
     this.currentSort = select.value;
     this.applySorting();
     this.currentPage = 1;
+    this.updateVisibleApartments();
+    this.selectedApartment = this.visibleApartments[0] ?? null;
   }
 
   goToPage(page: number): void {
     this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
+    this.updateVisibleApartments();
+    this.selectedApartment = this.visibleApartments[0] ?? null;
     document.querySelector('.results-header')?.scrollIntoView({
       behavior: 'smooth',
       block: 'start',
@@ -941,6 +953,8 @@ export class ExploreProperty implements OnInit {
   onPageSizeChange(event: Event): void {
     this.pageSize = Number((event.target as HTMLSelectElement).value);
     this.currentPage = 1;
+    this.updateVisibleApartments();
+    this.selectedApartment = this.visibleApartments[0] ?? null;
   }
 
   focusFilters(): void {

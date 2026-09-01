@@ -343,7 +343,7 @@
     </section>
     <aside class="map-pane" aria-label="Property map">
       <app-explore-property-map
-        [apartments]="filteredApartments"
+        [apartments]="visibleApartments"
         [selectedApartmentId]="selectedApartment ? selectedApartment.id : null"
         (apartmentSelected)="selectApartment($event)"
       ></app-explore-property-map>
