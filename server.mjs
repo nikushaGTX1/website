@@ -970,6 +970,7 @@ function replaceMeta(document, attribute, name, content) {
 
 function injectSeo(document, seo) {
   const canonicalUrl = seo.canonicalUrl || `${canonicalOrigin}/main`;
+  const openGraphUrl = seo.openGraphUrl || canonicalUrl;
   const title = seo.title || defaultSeo.title;
   const description = seo.description || defaultSeo.description;
   const image = seo.image || defaultSeo.image;
@@ -993,7 +994,7 @@ function injectSeo(document, seo) {
   document = replaceMeta(document, 'property', 'og:type', seo.type || 'website');
   document = replaceMeta(document, 'property', 'og:title', title);
   document = replaceMeta(document, 'property', 'og:description', description);
-  document = replaceMeta(document, 'property', 'og:url', canonicalUrl);
+  document = replaceMeta(document, 'property', 'og:url', openGraphUrl);
   document = replaceMeta(document, 'property', 'og:image', image);
   document = replaceMeta(document, 'property', 'og:image:secure_url', image);
   document = replaceMeta(document, 'property', 'og:image:alt', seo.imageAlt || 'Velven');
@@ -1234,9 +1235,15 @@ app.use(async (request, response) => {
       ? pathname
       : '/main');
     const template = await readFile(path.join(browserDirectory, 'index.html'), 'utf8');
+    const shareVersion = questionnaireMetadata && typeof request.query.v === 'string'
+      ? request.query.v.replace(/[^a-z0-9_-]/gi, '').slice(0, 32)
+      : '';
     const document = injectSeo(template, {
       ...pageMetadata,
       canonicalUrl: pageMetadata.canonicalUrl || `${canonicalOrigin}${canonicalPath}`,
+      openGraphUrl: shareVersion
+        ? `${canonicalOrigin}${pathname}?v=${encodeURIComponent(shareVersion)}`
+        : undefined,
       robots,
       title: missingResource ? 'Page Not Found | Velven' : pageMetadata.title,
       description: missingResource
