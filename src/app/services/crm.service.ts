@@ -45,8 +45,8 @@ export class CrmService {
     return this.http.get<CrmMetrics>(`${this.apiUrl}/metrics`);
   }
 
-  generateQuestionnaireLink(): Observable<{ token: string; path: string }> {
-    return this.http.post<{ token: string; path: string }>(
+  generateQuestionnaireLink(): Observable<{ token: string; slug: string; path: string }> {
+    return this.http.post<{ token: string; slug: string; path: string }>(
       `${this.apiUrl}/questionnaire-links`,
       {},
     );

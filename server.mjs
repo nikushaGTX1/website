@@ -92,11 +92,11 @@ const routeSeo = new Map([
     description: 'Explore professional property search, listing and real estate support services for renters, buyers and owners in Tbilisi.',
   }],
 ]);
-const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/;
+const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/;
 let sitemapCache;
 
 function crmQuestionnaireSeo(pathname) {
-  if (!/^\/crm-questioner\/(?:agent-)?[a-z0-9-]+$/i.test(pathname)) return undefined;
+  if (!/^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname)) return undefined;
   return {
     title: 'Your Personalized Home Search | Velven',
     description: 'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',

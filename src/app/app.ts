@@ -61,8 +61,7 @@ export class App implements AfterViewInit {
   }
 
   get showNavigation(): boolean {
-    return !this.router.url.startsWith(
-      '/crm-questioner'
-    );
+    return !this.router.url.startsWith('/crm-questioner') &&
+      !this.router.url.startsWith('/questions/');
   }
 }

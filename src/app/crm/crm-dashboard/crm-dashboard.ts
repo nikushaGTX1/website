@@ -818,12 +818,7 @@ export class CrmDashboard implements OnInit {
       next: async (response) => {
         this.generatingQuestionnaireLink = false;
 
-        // The questionnaire token is intentionally stable for an agent. Add a
-        // harmless version value so messaging apps fetch the latest link card
-        // instead of reusing a preview cached for an earlier share.
-        const shareUrl = new URL(response.path, window.location.origin);
-        shareUrl.searchParams.set('v', Date.now().toString(36));
-        const fullUrl = shareUrl.toString();
+        const fullUrl = new URL(response.path, window.location.origin).toString();
 
         try {
           await navigator.clipboard.writeText(fullUrl);

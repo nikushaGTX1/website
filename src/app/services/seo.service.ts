@@ -138,9 +138,9 @@ export class SeoService {
   private update(rawUrl: string): void {
     const path = rawUrl.split('?')[0].replace(/\/+$/, '') || '/main';
     const isApartment = /^\/apartments\/[^/]+$/.test(path);
-    const isQuestionnaire = /^\/crm-questioner\/(?:agent-)?[a-z0-9-]+$/i.test(path);
+    const isQuestionnaire = /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(path);
     const isPrivate =
-      /^\/(admin|crm(?:\/|$)|crm-questioner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/.test(
+      /^\/(admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/.test(
         path,
       );
     const page =
@@ -149,7 +149,7 @@ export class SeoService {
             title: 'Your Personalized Home Search | Velven',
             description:
               'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',
-            image: `${this.origin}/velven-questionnaire-preview-v2.jpg`,
+            image: `${this.origin}/velven-questionnaire-thumbnail-v3.png`,
           }
         : this.pages[path]) ||
       (isApartment
