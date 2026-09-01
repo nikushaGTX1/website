@@ -43,9 +43,9 @@
 }
 
 .brand-mark {
-  width: clamp(40px, 3vw, 48px);
+  width: clamp(48px, 3.6vw, 58px);
   aspect-ratio: 644 / 790;
-  flex: 0 0 clamp(40px, 3vw, 48px);
+  flex: 0 0 clamp(48px, 3.6vw, 58px);
   display: grid;
   place-items: center;
 }
@@ -53,7 +53,7 @@
 .brand-mark img {
   width: 100%;
   height: auto;
-  max-height: 59px;
+  max-height: 71px;
   display: block;
   object-fit: contain;
 }
@@ -297,8 +297,8 @@
   }
 
   .brand-mark {
-    width: 40px;
-    flex-basis: 40px;
+    width: 48px;
+    flex-basis: 48px;
   }
 
   .brand-name {
@@ -553,12 +553,12 @@
   }
 
   .brand-mark {
-    width: 36px;
-    flex-basis: 36px;
+    width: 42px;
+    flex-basis: 42px;
   }
 
   .brand-mark img {
-    max-height: 44px;
+    max-height: 52px;
   }
 
   .menu-toggle {
