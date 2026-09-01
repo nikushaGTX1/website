@@ -95,6 +95,19 @@ const routeSeo = new Map([
 const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/;
 let sitemapCache;
 
+function crmQuestionnaireSeo(pathname) {
+  if (!/^\/crm-questioner\/(?:agent-)?[a-z0-9-]+$/i.test(pathname)) return undefined;
+  return {
+    title: 'Your Personalized Home Search | Velven',
+    description: 'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',
+    image: `${canonicalOrigin}/logosh2.png`,
+    imageAlt: 'Velven real estate',
+    imageWidth: '1536',
+    imageHeight: '1024',
+    type: 'website',
+  };
+}
+
 app.use((request, response, next) => {
   const forwardedHost = request.get('x-forwarded-host')?.split(',')[0].trim();
   const requestHost = (forwardedHost || request.get('host') || '').split(':')[0].toLowerCase();
@@ -981,6 +994,10 @@ function injectSeo(document, seo) {
   document = replaceMeta(document, 'property', 'og:description', description);
   document = replaceMeta(document, 'property', 'og:url', canonicalUrl);
   document = replaceMeta(document, 'property', 'og:image', image);
+  document = replaceMeta(document, 'property', 'og:image:secure_url', image);
+  document = replaceMeta(document, 'property', 'og:image:alt', seo.imageAlt || 'Velven');
+  if (seo.imageWidth) document = replaceMeta(document, 'property', 'og:image:width', seo.imageWidth);
+  if (seo.imageHeight) document = replaceMeta(document, 'property', 'og:image:height', seo.imageHeight);
   document = replaceMeta(document, 'name', 'twitter:title', title);
   document = replaceMeta(document, 'name', 'twitter:description', description);
   document = replaceMeta(document, 'name', 'twitter:image', image);
@@ -1203,8 +1220,9 @@ app.use(async (request, response) => {
     const pathname = request.path.replace(/\/+$/, '') || '/main';
     const apartmentMetadata = await apartmentSeo(pathname);
     const agentMetadata = apartmentMetadata === undefined ? await agentSeo(pathname) : undefined;
+    const questionnaireMetadata = crmQuestionnaireSeo(pathname);
     const missingResource = apartmentMetadata === null || agentMetadata === null;
-    const dynamicMetadata = apartmentMetadata || agentMetadata;
+    const dynamicMetadata = apartmentMetadata || agentMetadata || questionnaireMetadata;
     const pageMetadata = dynamicMetadata || routeSeo.get(pathname) || defaultSeo;
     const robots = missingResource || privateRoutePattern.test(pathname)
       || ['/property', '/apartment-detail'].includes(pathname)

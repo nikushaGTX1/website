@@ -8,6 +8,7 @@ interface SeoPage {
   title: string;
   description: string;
   robots?: string;
+  image?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -137,12 +138,20 @@ export class SeoService {
   private update(rawUrl: string): void {
     const path = rawUrl.split('?')[0].replace(/\/+$/, '') || '/main';
     const isApartment = /^\/apartments\/[^/]+$/.test(path);
+    const isQuestionnaire = /^\/crm-questioner\/(?:agent-)?[a-z0-9-]+$/i.test(path);
     const isPrivate =
       /^\/(admin|crm(?:\/|$)|crm-questioner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/.test(
         path,
       );
     const page =
-      this.pages[path] ||
+      (isQuestionnaire
+        ? {
+            title: 'Your Personalized Home Search | Velven',
+            description:
+              'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',
+            image: `${this.origin}/logosh2.png`,
+          }
+        : this.pages[path]) ||
       (isApartment
         ? {
             title: 'Apartment for Rent in Tbilisi | Velven',
@@ -166,6 +175,12 @@ export class SeoService {
     this.setMeta('property', 'og:title', page.title);
     this.setMeta('property', 'og:description', page.description);
     this.setMeta('property', 'og:url', canonicalUrl);
+    if (page.image) {
+      this.setMeta('property', 'og:image', page.image);
+      this.setMeta('property', 'og:image:secure_url', page.image);
+      this.setMeta('property', 'og:image:alt', 'Velven real estate');
+      this.setMeta('name', 'twitter:image', page.image);
+    }
     this.setMeta('name', 'twitter:title', page.title);
     this.setMeta('name', 'twitter:description', page.description);
     this.setCanonical(canonicalUrl);

@@ -55,8 +55,6 @@
   display: block;
   object-fit: contain;
   object-position: center;
-  transform: scale(2.25);
-  transform-origin: center;
 }
 
 .brand-name {
