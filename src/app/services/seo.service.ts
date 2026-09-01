@@ -149,7 +149,7 @@ export class SeoService {
             title: 'Your Personalized Home Search | Velven',
             description:
               'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',
-            image: `${this.origin}/logosh2.png`,
+            image: `${this.origin}/velven-questionnaire-preview-v2.jpg`,
           }
         : this.pages[path]) ||
       (isApartment

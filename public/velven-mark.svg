@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 122" role="img" aria-labelledby="title">
+  <title id="title">Velven</title>
+  <path fill="#451a8f" d="M50 1C22.9 1 1 23.1 1 50.4c0 37.7 36.8 63.8 49 70.6 12.2-6.8 49-32.9 49-70.6C99 23.1 77.1 1 50 1Z"/>
+  <path fill="#fff" d="M20.5 42.3 47.2 29v72.1L20.5 82.4V42.3Zm8 5.3v8.1l12.2-6.1v-8.1l-12.2 6.1Zm0 15.4v8.1L40.7 65v-8.1L28.5 63Zm0 15.4v8.1l12.2 8.6V72.3l-12.2 6.1ZM53 29l26.5 13.3v40.1L53 101.1V29Z"/>
+</svg>

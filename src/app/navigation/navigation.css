@@ -42,9 +42,9 @@
 }
 
 .brand-mark {
-  width: 46px;
-  height: 52px;
-  flex: 0 0 46px;
+  width: clamp(38px, 2.7vw, 46px);
+  height: clamp(46px, 3.2vw, 56px);
+  flex: 0 0 clamp(38px, 2.7vw, 46px);
   display: block;
   overflow: hidden;
 }
@@ -297,7 +297,7 @@
 
   .brand-mark {
     width: 38px;
-    height: 44px;
+    height: 46px;
     flex-basis: 38px;
   }
 
