@@ -595,6 +595,57 @@ svg {
   width: 16px;
   height: 16px;
 }
+.card-nearby {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid #e8ecf2;
+}
+.card-nearby-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--purple);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.card-nearby-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.card-nearby-grid > span {
+  min-width: 0;
+  min-height: 56px;
+  padding: 7px 6px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-content: center;
+  border: 1px solid #e0e6ef;
+  border-radius: 10px;
+  background: #fff;
+}
+.card-nearby-grid i {
+  grid-row: 1 / 3;
+  align-self: center;
+  color: var(--purple);
+  font-size: 15px;
+}
+.card-nearby-grid b,
+.card-nearby-grid small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-nearby-grid b {
+  color: #263249;
+  font-size: 10px;
+}
+.card-nearby-grid small {
+  color: #758095;
+  font-size: 9px;
+}
 .price {
   margin-top: 10px;
   font-size: 13px;

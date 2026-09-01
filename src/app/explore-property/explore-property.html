@@ -313,6 +313,34 @@
                 >{{ apartment.sizeSquareMeters || '—' }} m²</span
               >
             </div>
+            <div class="card-nearby">
+              <span class="card-nearby-label">Nearby</span>
+              <div class="card-nearby-grid">
+                <span>
+                  <i class="fa-solid fa-train-subway" aria-hidden="true"></i>
+                  <b>Metro</b>
+                  <small>{{
+                    apartment.metroDistanceMinutes != null
+                      ? apartment.metroDistanceMinutes + ' min walk'
+                      : 'Not nearby'
+                  }}</small>
+                </span>
+                <span>
+                  <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                  <b>School</b>
+                  <small>{{
+                    apartment.schoolDistanceMinutes != null
+                      ? apartment.schoolDistanceMinutes + ' min walk'
+                      : 'Not nearby'
+                  }}</small>
+                </span>
+                <span>
+                  <i class="fa-solid fa-car" aria-hidden="true"></i>
+                  <b>Parking</b>
+                  <small>{{ apartment.hasParking ? 'Available' : 'Unavailable' }}</small>
+                </span>
+              </div>
+            </div>
             <div class="price">
               <app-currency-price
                 [usdPrice]="apartment.price"
