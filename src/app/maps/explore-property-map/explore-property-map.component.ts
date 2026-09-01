@@ -111,6 +111,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       this.map = new Map(this.mapCanvas.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
         zoom: 11,
+        minZoom: 10,
         ...(mapId ? { mapId } : {}),
         mapTypeId: this.mapType,
         mapTypeControl: false,
@@ -121,7 +122,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         zoomControl: true,
         restriction: {
           latLngBounds: ExplorePropertyMapComponent.tbilisiBounds,
-          strictBounds: false,
+          strictBounds: true,
         },
       });
 
