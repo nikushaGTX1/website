@@ -100,11 +100,11 @@ function crmQuestionnaireSeo(pathname) {
   return {
     title: 'Your Personalized Home Search | Velven',
     description: 'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',
-    image: `${canonicalOrigin}/velven-questionnaire-thumbnail-v3.png`,
-    imageAlt: 'Velven logo',
-    imageWidth: '1254',
-    imageHeight: '1254',
-    imageType: 'image/png',
+    image: `${canonicalOrigin}/velven-questionnaire-preview-v2.jpg`,
+    imageAlt: 'Velven — Your Personalized Home Search',
+    imageWidth: '1200',
+    imageHeight: '630',
+    imageType: 'image/jpeg',
     type: 'website',
   };
 }
@@ -1004,6 +1004,7 @@ function injectSeo(document, seo) {
   document = replaceMeta(document, 'name', 'twitter:title', title);
   document = replaceMeta(document, 'name', 'twitter:description', description);
   document = replaceMeta(document, 'name', 'twitter:image', image);
+  document = replaceMeta(document, 'name', 'twitter:image:alt', seo.imageAlt || 'Velven');
   document = document.replace(
     /<link\s+rel=["']canonical["'][^>]*>/i,
     `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
