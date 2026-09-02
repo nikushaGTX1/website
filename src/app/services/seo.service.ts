@@ -146,10 +146,10 @@ export class SeoService {
     const page =
       (isQuestionnaire
         ? {
-            title: 'Your Personalized Home Search | Velven',
+            title: 'Find Your Home with Velven',
             description:
-              'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',
-            image: `${this.origin}/velven-questionnaire-preview-v2.jpg`,
+              'Answer a few quick questions to get your personalized property shortlist.',
+            image: `${this.origin}/velven-questionnaire-thumbnail-v3.png`,
           }
         : this.pages[path]) ||
       (isApartment
@@ -178,14 +178,14 @@ export class SeoService {
     if (page.image) {
       this.setMeta('property', 'og:image', page.image);
       this.setMeta('property', 'og:image:secure_url', page.image);
-      this.setMeta('property', 'og:image:alt', 'Velven — Your Personalized Home Search');
+      this.setMeta('property', 'og:image:alt', 'Velven logo');
       if (isQuestionnaire) {
-        this.setMeta('property', 'og:image:width', '1200');
-        this.setMeta('property', 'og:image:height', '630');
-        this.setMeta('property', 'og:image:type', 'image/jpeg');
+        this.setMeta('property', 'og:image:width', '1254');
+        this.setMeta('property', 'og:image:height', '1254');
+        this.setMeta('property', 'og:image:type', 'image/png');
       }
       this.setMeta('name', 'twitter:image', page.image);
-      this.setMeta('name', 'twitter:image:alt', 'Velven — Your Personalized Home Search');
+      this.setMeta('name', 'twitter:image:alt', 'Velven logo');
     }
     this.setMeta('name', 'twitter:title', page.title);
     this.setMeta('name', 'twitter:description', page.description);

@@ -98,13 +98,13 @@ let sitemapCache;
 function crmQuestionnaireSeo(pathname) {
   if (!/^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname)) return undefined;
   return {
-    title: 'Your Personalized Home Search | Velven',
-    description: 'Complete this short, secure questionnaire so your Velven real estate agent can prepare a personalized property shortlist for you.',
-    image: `${canonicalOrigin}/velven-questionnaire-preview-v2.jpg`,
-    imageAlt: 'Velven — Your Personalized Home Search',
-    imageWidth: '1200',
-    imageHeight: '630',
-    imageType: 'image/jpeg',
+    title: 'Find Your Home with Velven',
+    description: 'Answer a few quick questions to get your personalized property shortlist.',
+    image: `${canonicalOrigin}/velven-questionnaire-thumbnail-v3.png`,
+    imageAlt: 'Velven logo',
+    imageWidth: '1254',
+    imageHeight: '1254',
+    imageType: 'image/png',
     type: 'website',
   };
 }

@@ -818,7 +818,11 @@ export class CrmDashboard implements OnInit {
       next: async (response) => {
         this.generatingQuestionnaireLink = false;
 
-        const fullUrl = new URL(response.path, window.location.origin).toString();
+        const shareUrl = new URL(response.path, window.location.origin);
+        // Version the shared URL so messaging apps fetch the latest preview
+        // instead of reusing an older cached Open Graph card.
+        shareUrl.searchParams.set('v', 'logo');
+        const fullUrl = shareUrl.toString();
 
         try {
           await navigator.clipboard.writeText(fullUrl);
