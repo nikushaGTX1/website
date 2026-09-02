@@ -96,7 +96,11 @@ const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|ques
 let sitemapCache;
 
 function crmQuestionnaireSeo(pathname) {
-  if (!/^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname)) return undefined;
+  const isLegacyPath = /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname);
+  const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|about|services|apartment-detail|agent-profile|login|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(pathname);
+  const isShortPath = /^\/(?:agent-)?[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(pathname)
+    && !reservedShortPath;
+  if (!isLegacyPath && !isShortPath) return undefined;
   return {
     title: 'Find Your Home with Velven',
     description: 'Answer a few quick questions to get your personalized property shortlist.',
@@ -1211,6 +1215,16 @@ app.use(express.static(browserDirectory, {
     }
   },
 }));
+
+app.get(['/questions/:agentToken', '/crm-questioner/:agentToken'], (request, response) => {
+  const token = String(request.params.agentToken || '').replace(/^agent-/i, '').toLowerCase();
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(token)) {
+    response.redirect(301, '/main');
+    return;
+  }
+  response.redirect(301, `/${encodeURIComponent(token)}`);
+});
+
 app.use(async (request, response) => {
   // Do not return index.html for missing browser assets. During a rolling
   // deployment that turns a missing JavaScript bundle into an HTML response,

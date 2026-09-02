@@ -239,6 +239,12 @@ const routes: Routes = [
   },
 
   {
+    path: ':agentToken',
+    component: CrmQuestioner,
+    title: 'Apartment Questionnaire | Velven'
+  },
+
+  {
     path: '**',
     redirectTo: 'main'
   }

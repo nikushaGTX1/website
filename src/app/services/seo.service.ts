@@ -138,7 +138,12 @@ export class SeoService {
   private update(rawUrl: string): void {
     const path = rawUrl.split('?')[0].replace(/\/+$/, '') || '/main';
     const isApartment = /^\/apartments\/[^/]+$/.test(path);
-    const isQuestionnaire = /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(path);
+    const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|about|services|apartment-detail|agent-profile|login|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(path);
+    const isShortQuestionnaire =
+      /^\/(?:agent-)?[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(path) && !reservedShortPath;
+    const isQuestionnaire =
+      /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(path) ||
+      isShortQuestionnaire;
     const isPrivate =
       /^\/(admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/.test(
         path,
@@ -165,7 +170,7 @@ export class SeoService {
           });
     const canonicalPath = isApartment ? path : path === '/' ? '/main' : path;
     const canonicalUrl = `${this.origin}${canonicalPath}`;
-    const robots = isPrivate
+    const robots = isPrivate || isQuestionnaire
       ? 'noindex, nofollow'
       : page.robots || 'index, follow, max-image-preview:large';
 
