@@ -357,8 +357,8 @@
           <button class="map-preview-close" type="button" aria-label="Close preview" (click)="$event.stopPropagation(); closeMapPreview()">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
           </button>
-          <button class="map-preview-arrow previous" type="button" aria-label="Previous image" *ngIf="getMapPreviewImages(apartment).length > 1" (click)="changeMapPreviewImage($event, -1, apartment)">‹</button>
-          <button class="map-preview-arrow next" type="button" aria-label="Next image" *ngIf="getMapPreviewImages(apartment).length > 1" (click)="changeMapPreviewImage($event, 1, apartment)">›</button>
+          <button class="map-preview-arrow previous" type="button" aria-label="Previous image" *ngIf="mapPreviewImageIndex > 0" (click)="changeMapPreviewImage($event, -1, apartment)">‹</button>
+          <button class="map-preview-arrow next" type="button" aria-label="Next image" *ngIf="mapPreviewImageIndex < getMapPreviewImages(apartment).length - 1" (click)="changeMapPreviewImage($event, 1, apartment)">›</button>
           <div class="map-preview-dots" *ngIf="getMapPreviewImages(apartment).length > 1">
             <button *ngFor="let image of getMapPreviewImages(apartment); let i = index" type="button" [class.active]="i === mapPreviewImageIndex" [attr.aria-label]="'Show image ' + (i + 1)" (click)="setMapPreviewImage($event, i)"></button>
           </div>

@@ -1103,7 +1103,10 @@ export class ExploreProperty implements OnInit {
   changeMapPreviewImage(event: Event, direction: number, apartment: Apartment): void {
     event.stopPropagation();
     const imageCount = this.getMapPreviewImages(apartment).length;
-    this.mapPreviewImageIndex = (this.mapPreviewImageIndex + direction + imageCount) % imageCount;
+    this.mapPreviewImageIndex = Math.max(
+      0,
+      Math.min(this.mapPreviewImageIndex + direction, imageCount - 1),
+    );
   }
 
   setMapPreviewImage(event: Event, index: number): void {

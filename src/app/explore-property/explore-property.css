@@ -818,9 +818,29 @@ svg {
 .map-preview-heart.saved { color: var(--purple); }
 .map-preview-heart:hover,
 .map-preview-close:hover { background: #f7f7f7; transform: scale(1.04); }
-.map-preview-arrow { top: 50%; font-size: 27px; transform: translateY(-50%); }
+.map-preview-arrow {
+  top: 50%;
+  opacity: 0;
+  visibility: hidden;
+  font-size: 27px;
+  transform: translateY(-50%) scale(.92);
+  transition: opacity .16s ease, visibility .16s ease, transform .16s ease;
+}
+.map-preview-gallery:hover .map-preview-arrow,
+.map-preview-gallery:focus-within .map-preview-arrow {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) scale(1);
+}
 .map-preview-arrow.previous { left: 10px; }
 .map-preview-arrow.next { right: 10px; }
+@media (hover: none) {
+  .map-preview-arrow {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) scale(1);
+  }
+}
 .map-preview-dots {
   right: 14px;
   bottom: 11px;
