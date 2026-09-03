@@ -121,6 +121,7 @@ export class ExploreProperty implements OnInit {
   mapPreviewImageIndex = 0;
   mapPreviewPosition = { left: 16, top: 16 };
   private mapPreviewOffset = { x: 0, y: 0 };
+  private readonly mapGalleryRequests = new Set<number>();
   mapVisible = false;
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
@@ -1041,6 +1042,24 @@ export class ExploreProperty implements OnInit {
     this.mapPreviewApartment = apartment;
     if (apartmentChanged) this.mapPreviewImageIndex = 0;
     this.cdr.detectChanges();
+
+    if (this.getMapPreviewImages(apartment).length <= 1 && !this.mapGalleryRequests.has(apartment.id)) {
+      this.mapGalleryRequests.add(apartment.id);
+      this.apartmentService.getApartment(apartment.id).subscribe({
+        next: (detailedApartment) => {
+          this.mapGalleryRequests.delete(apartment.id);
+          if (this.mapPreviewApartment?.id !== apartment.id) return;
+          this.mapPreviewApartment = detailedApartment;
+          this.selectedApartment = detailedApartment;
+          this.mapPreviewImageIndex = Math.min(
+            this.mapPreviewImageIndex,
+            this.getMapPreviewImages(detailedApartment).length - 1,
+          );
+          this.cdr.detectChanges();
+        },
+        error: () => this.mapGalleryRequests.delete(apartment.id),
+      });
+    }
   }
 
   positionMapPreview(anchor: PropertyMapPreviewAnchor): void {
