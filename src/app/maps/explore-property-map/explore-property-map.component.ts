@@ -18,6 +18,7 @@ import { Apartment } from '../../models/apartment';
 interface PropertyMarker {
   apartment: Apartment;
   marker: google.maps.marker.AdvancedMarkerElement;
+  wrapper: HTMLDivElement;
   button: HTMLButtonElement;
   tail: HTMLSpanElement;
 }
@@ -200,12 +201,24 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     );
 
     if (revision !== this.renderRevision) return;
+    const positionCounts = new Map<string, number>();
+    const positionIndexes = new Map<string, number>();
+    locatedApartments.forEach(({ position }) => {
+      const key = this.positionKey(position);
+      positionCounts.set(key, (positionCounts.get(key) || 0) + 1);
+    });
+
     for (const { apartment, position } of locatedApartments) {
-      const { button, tail } = this.createPricePin(apartment);
+      const key = this.positionKey(position);
+      const markerIndex = positionIndexes.get(key) || 0;
+      const markerCount = positionCounts.get(key) || 1;
+      positionIndexes.set(key, markerIndex + 1);
+      const offsetX = (markerIndex - (markerCount - 1) / 2) * 66;
+      const { wrapper, button, tail } = this.createPricePin(apartment, offsetX);
       const marker = new this.advancedMarkerConstructor({
         map: this.map,
         position,
-        content: button,
+        content: wrapper,
         zIndex: apartment.id === this.selectedApartmentId ? 100 : 1,
       });
       button.addEventListener('click', (event) => {
@@ -220,7 +233,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       button.addEventListener('pointerleave', hideHoverState);
       button.addEventListener('focus', showHoverState);
       button.addEventListener('blur', hideHoverState);
-      this.markers.push({ apartment, marker, button, tail });
+      this.markers.push({ apartment, marker, wrapper, button, tail });
     }
 
     this.mappedApartmentCount = this.markers.length;
@@ -229,10 +242,17 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     this.refreshView();
   }
 
-  private createPricePin(apartment: Apartment): {
+  private createPricePin(apartment: Apartment, offsetX = 0): {
+    wrapper: HTMLDivElement;
     button: HTMLButtonElement;
     tail: HTMLSpanElement;
   } {
+    const wrapper = document.createElement('div');
+    Object.assign(wrapper.style, {
+      position: 'relative',
+      transform: `translateX(${offsetX}px)`,
+      overflow: 'visible',
+    });
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = this.compactPrice(apartment.price);
@@ -275,7 +295,12 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       zIndex: '-1',
     });
     button.appendChild(tail);
-    return { button, tail };
+    wrapper.appendChild(button);
+    return { wrapper, button, tail };
+  }
+
+  private positionKey(position: google.maps.LatLngLiteral): string {
+    return `${position.lat.toFixed(5)},${position.lng.toFixed(5)}`;
   }
 
   private async resolvePosition(apartment: Apartment): Promise<google.maps.LatLngLiteral | null> {
