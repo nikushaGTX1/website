@@ -22,6 +22,16 @@ interface PropertyMarker {
   tail: HTMLSpanElement;
 }
 
+export interface PropertyMapPreviewAnchor {
+  apartment: Apartment;
+  x: number;
+  y: number;
+  markerWidth: number;
+  markerHeight: number;
+  mapWidth: number;
+  mapHeight: number;
+}
+
 @Component({
   selector: 'app-explore-property-map',
   standalone: false,
@@ -44,6 +54,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   @Input() apartments: Apartment[] = [];
   @Input() selectedApartmentId: number | null = null;
   @Output() apartmentSelected = new EventEmitter<Apartment>();
+  @Output() previewAnchorChanged = new EventEmitter<PropertyMapPreviewAnchor>();
   @Output() visibleApartmentsChanged = new EventEmitter<Apartment[]>();
   @ViewChild('mapCanvas') mapCanvas?: ElementRef<HTMLDivElement>;
 
@@ -138,7 +149,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       });
 
       this.idleListener = this.map.addListener('idle', () => {
-        this.zone.run(() => this.emitVisibleApartments());
+        this.zone.run(() => {
+          this.emitVisibleApartments();
+          this.emitSelectedPreviewAnchor();
+        });
       });
 
       // Keep the constructor available without loading the marker library again.
@@ -180,7 +194,6 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         map: this.map,
         position,
         content: button,
-        title: `${apartment.title || 'Property'} — ${this.compactPrice(apartment.price)}`,
         zIndex: apartment.id === this.selectedApartmentId ? 100 : 1,
       });
       marker.addListener('click', () => {
@@ -188,8 +201,17 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       });
       button.addEventListener('click', (event) => {
         event.stopPropagation();
-        this.zone.run(() => this.apartmentSelected.emit(apartment));
+        this.zone.run(() => {
+          this.apartmentSelected.emit(apartment);
+          this.emitPreviewAnchor(apartment, button);
+        });
       });
+      const showHoverState = () => this.setMarkerHoverState(apartment.id, true);
+      const hideHoverState = () => this.setMarkerHoverState(apartment.id, false);
+      button.addEventListener('pointerenter', showHoverState);
+      button.addEventListener('pointerleave', hideHoverState);
+      button.addEventListener('focus', showHoverState);
+      button.addEventListener('blur', hideHoverState);
       this.markers.push({ apartment, marker, button, tail });
     }
 
@@ -228,7 +250,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       cursor: 'pointer',
       transform: 'translateY(-9px)',
       transformOrigin: 'center bottom',
-      transition: 'transform .18s ease, background .18s ease, color .18s ease',
+      outline: 'none',
+      transition:
+        'transform .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease',
     });
     const tail = document.createElement('span');
     Object.assign(tail.style, {
@@ -348,9 +372,54 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       item.button.style.background = selected ? '#451a8f' : '#fff';
       item.button.style.color = selected ? '#fff' : '#171421';
       item.button.style.transform = selected ? 'translateY(-9px) scale(1.1)' : 'translateY(-9px)';
+      item.button.style.boxShadow = selected
+        ? '0 9px 22px rgba(69, 26, 143, .32)'
+        : '0 5px 14px rgba(25, 16, 31, .22)';
       item.tail.style.background = selected ? '#451a8f' : '#fff';
       item.marker.zIndex = selected ? 100 : 1;
     }
+  }
+
+  private setMarkerHoverState(apartmentId: number, hovered: boolean): void {
+    const item = this.markers.find((marker) => marker.apartment.id === apartmentId);
+    if (!item) return;
+
+    const selected = apartmentId === this.selectedApartmentId;
+    item.button.style.background = selected ? '#451a8f' : '#fff';
+    item.button.style.color = selected ? '#fff' : '#171421';
+    item.button.style.transform = hovered
+      ? `translateY(-15px) scale(${selected ? '1.1' : '1.04'})`
+      : selected
+        ? 'translateY(-9px) scale(1.1)'
+        : 'translateY(-9px)';
+    item.button.style.boxShadow = hovered || selected
+      ? '0 9px 22px rgba(69, 26, 143, .32)'
+      : '0 5px 14px rgba(25, 16, 31, .22)';
+    item.tail.style.background = selected ? '#451a8f' : '#fff';
+    item.marker.zIndex = hovered ? 101 : selected ? 100 : 1;
+  }
+
+  private emitSelectedPreviewAnchor(): void {
+    const selected = this.markers.find(
+      (item) => item.apartment.id === this.selectedApartmentId,
+    );
+    if (selected) requestAnimationFrame(() => this.emitPreviewAnchor(selected.apartment, selected.button));
+  }
+
+  private emitPreviewAnchor(apartment: Apartment, button: HTMLButtonElement): void {
+    const mapElement = this.mapCanvas?.nativeElement;
+    if (!mapElement) return;
+    const mapRect = mapElement.getBoundingClientRect();
+    const markerRect = button.getBoundingClientRect();
+    this.previewAnchorChanged.emit({
+      apartment,
+      x: markerRect.left - mapRect.left + markerRect.width / 2,
+      y: markerRect.top - mapRect.top + markerRect.height / 2,
+      markerWidth: markerRect.width,
+      markerHeight: markerRect.height,
+      mapWidth: mapRect.width,
+      mapHeight: mapRect.height,
+    });
   }
 
   private fitVisibleProperties(): void {

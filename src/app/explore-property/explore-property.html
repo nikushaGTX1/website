@@ -365,27 +365,37 @@
     <aside class="map-pane" aria-label="Property map">
       <app-explore-property-map
         [apartments]="pageApartments"
-        [selectedApartmentId]="selectedApartment ? selectedApartment.id : null"
-        (apartmentSelected)="selectApartment($event)"
+        [selectedApartmentId]="mapPreviewApartment ? mapPreviewApartment.id : null"
+        (apartmentSelected)="selectMapApartment($event)"
+        (previewAnchorChanged)="positionMapPreview($event)"
         (visibleApartmentsChanged)="onMapVisibleApartmentsChanged($event)"
       ></app-explore-property-map>
-      <div class="map-preview" *ngIf="selectedApartment as apartment">
-        <img
-          [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'"
-          alt=""
-          (error)="onApartmentImageError($event)"
-        />
-        <div>
-          <small>Selected home</small
-          ><app-currency-price
-            [usdPrice]="apartment.price"
-            [showApproximate]="false"
-          ></app-currency-price
-          ><span>{{ getApartmentStreet(apartment) }}</span>
+      <div class="map-preview" *ngIf="mapPreviewApartment as apartment" [style.left.px]="mapPreviewPosition.left" [style.top.px]="mapPreviewPosition.top">
+        <a class="map-preview-link" [routerLink]="['/apartments', apartment.id]" [attr.aria-label]="apartment.title"></a>
+        <div class="map-preview-gallery" data-protected-image>
+          <img [src]="getMapPreviewImages(apartment)[mapPreviewImageIndex]" [alt]="apartment.title || 'Property in Tbilisi'" (error)="onApartmentImageError($event)" />
+          <button class="map-preview-heart" type="button" [class.saved]="favoriteService.isFavorite(apartment.id)" aria-label="Save property" (click)="toggleFavorite($event, apartment)">
+            <svg viewBox="0 0 24 24" [attr.fill]="favoriteService.isFavorite(apartment.id) ? 'currentColor' : 'none'" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"></path></svg>
+          </button>
+          <button class="map-preview-close" type="button" aria-label="Close preview" (click)="$event.stopPropagation(); closeMapPreview()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+          </button>
+          <button class="map-preview-arrow previous" type="button" aria-label="Previous image" *ngIf="getMapPreviewImages(apartment).length > 1" (click)="changeMapPreviewImage($event, -1, apartment)">‹</button>
+          <button class="map-preview-arrow next" type="button" aria-label="Next image" *ngIf="getMapPreviewImages(apartment).length > 1" (click)="changeMapPreviewImage($event, 1, apartment)">›</button>
+          <div class="map-preview-dots" *ngIf="getMapPreviewImages(apartment).length > 1">
+            <button *ngFor="let image of getMapPreviewImages(apartment); let i = index" type="button" [class.active]="i === mapPreviewImageIndex" [attr.aria-label]="'Show image ' + (i + 1)" (click)="setMapPreviewImage($event, i)"></button>
+          </div>
         </div>
-        <button type="button" aria-label="Close preview" (click)="selectedApartment = null">
-          ×
-        </button>
+        <div class="map-preview-body">
+          <h3 class="map-preview-title">{{ apartment.title || getApartmentLocation(apartment) }}</h3>
+          <p class="map-preview-location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><span>{{ getApartmentStreet(apartment) }}</span></p>
+          <div class="map-preview-facts">
+            <span *ngIf="apartment.bedrooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18v-8M21 18v-5a2 2 0 0 0-2-2H7a4 4 0 0 0-4 4v3M3 16h18M7 11V7h5a2 2 0 0 1 2 2v2"></path></svg>{{ apartment.bedrooms }} bed<span *ngIf="apartment.bedrooms !== 1">s</span></span>
+            <span *ngIf="apartment.bathrooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-3ZM7 12V6a3 3 0 0 1 5.5-1.5"></path></svg>{{ apartment.bathrooms }} bath<span *ngIf="apartment.bathrooms !== 1">s</span></span>
+            <span *ngIf="apartment.sizeSquareMeters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg>{{ apartment.sizeSquareMeters }} m²</span>
+          </div>
+          <div class="map-preview-price"><app-currency-price [usdPrice]="apartment.price" [suffix]="selectedType === 'For Sale' ? '' : '/ month'" [showApproximate]="false"></app-currency-price></div>
+        </div>
       </div>
     </aside>
   </div>

@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { AppLanguage, TranslationService } from '../services/translation.service';
+import { PropertyMapPreviewAnchor } from '../maps/explore-property-map/explore-property-map.component';
 
 @Component({
   selector: 'app-explore-property',
@@ -114,6 +115,9 @@ export class ExploreProperty implements OnInit {
   selectedAmenities: string[] = [];
 
   selectedApartment: Apartment | null = null;
+  mapPreviewApartment: Apartment | null = null;
+  mapPreviewImageIndex = 0;
+  mapPreviewPosition = { left: 16, top: 16 };
   mapVisible = false;
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
@@ -991,6 +995,66 @@ export class ExploreProperty implements OnInit {
     if (updateView) {
       this.cdr.detectChanges();
     }
+  }
+
+  selectMapApartment(apartment: Apartment): void {
+    const apartmentChanged = this.mapPreviewApartment?.id !== apartment.id;
+    this.selectedApartment = apartment;
+    this.mapPreviewApartment = apartment;
+    if (apartmentChanged) this.mapPreviewImageIndex = 0;
+    this.cdr.detectChanges();
+  }
+
+  positionMapPreview(anchor: PropertyMapPreviewAnchor): void {
+    this.selectMapApartment(anchor.apartment);
+    const gap = 22;
+    const edge = 16;
+    const cardWidth = Math.min(326, anchor.mapWidth - edge * 2);
+    const cardHeight = Math.min(350, anchor.mapHeight - edge * 2);
+    const markerLeft = anchor.x - anchor.markerWidth / 2;
+    const markerRight = anchor.x + anchor.markerWidth / 2;
+    const markerTop = anchor.y - anchor.markerHeight / 2;
+    const markerBottom = anchor.y + anchor.markerHeight / 2;
+    let left: number;
+    let top: number;
+
+    if (markerRight + gap + cardWidth <= anchor.mapWidth - edge) {
+      left = markerRight + gap;
+      top = anchor.y - cardHeight / 2;
+    } else if (markerLeft - gap - cardWidth >= edge) {
+      left = markerLeft - gap - cardWidth;
+      top = anchor.y - cardHeight / 2;
+    } else {
+      left = anchor.x - cardWidth / 2;
+      top = markerTop - gap - cardHeight;
+      if (top < edge) top = markerBottom + gap;
+    }
+
+    this.mapPreviewPosition = {
+      left: Math.max(edge, Math.min(left, anchor.mapWidth - cardWidth - edge)),
+      top: Math.max(edge, Math.min(top, anchor.mapHeight - cardHeight - edge)),
+    };
+  }
+
+  closeMapPreview(): void {
+    this.mapPreviewApartment = null;
+    this.selectedApartment = null;
+  }
+
+  getMapPreviewImages(apartment: Apartment): string[] {
+    const images = (apartment.imageUrls || []).filter(Boolean);
+    return images.length ? images : [apartment.imageUrl || '/property-placeholder.svg'];
+  }
+
+  changeMapPreviewImage(event: Event, direction: number, apartment: Apartment): void {
+    event.stopPropagation();
+    const imageCount = this.getMapPreviewImages(apartment).length;
+    this.mapPreviewImageIndex = (this.mapPreviewImageIndex + direction + imageCount) % imageCount;
+  }
+
+  setMapPreviewImage(event: Event, index: number): void {
+    event.stopPropagation();
+    this.mapPreviewImageIndex = index;
   }
 
   getApartmentLocation(apartment: Apartment): string {
