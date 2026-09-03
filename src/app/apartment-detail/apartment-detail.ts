@@ -191,7 +191,16 @@ export class ApartmentDetail implements OnInit {
 
   get address(): string {
     const language = this.translation.language$.value;
-    const source = this.apartment?.address?.trim() || '';
+    const apartment = this.apartment;
+    const source =
+      apartment?.address?.trim() ||
+      [
+        apartment?.street?.trim(),
+        apartment?.district?.trim(),
+        apartment?.city?.trim(),
+      ]
+        .filter((value, index, values): value is string => !!value && values.indexOf(value) === index)
+        .join(', ');
     if (!source)
       return language === 'ru'
         ? 'Адрес не указан'
@@ -203,7 +212,11 @@ export class ApartmentDetail implements OnInit {
 
   get cityLine(): string {
     const address = this.address;
-    return address.includes(',') ? address.split(',')[0].trim() : 'Tbilisi, Georgia';
+    return address.includes(',')
+      ? address.split(',')[0].trim()
+      : address === 'Address not provided' || address === 'მისამართი არ არის მითითებული' || address === 'Адрес не указан'
+        ? 'Tbilisi, Georgia'
+        : address;
   }
 
   get price(): number {
