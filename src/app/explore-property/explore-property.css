@@ -400,17 +400,12 @@ svg {
   padding: 26px 25px 70px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #c7bdcf transparent;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 .results-pane::-webkit-scrollbar {
-  width: 8px;
-}
-.results-pane::-webkit-scrollbar-thumb {
-  border: 2px solid transparent;
-  border-radius: 999px;
-  background: #c7bdcf;
-  background-clip: padding-box;
+  width: 0;
+  height: 0;
+  display: none;
 }
 .results-heading {
   margin-bottom: 21px;
