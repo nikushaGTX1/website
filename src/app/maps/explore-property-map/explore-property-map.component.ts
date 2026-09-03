@@ -255,8 +255,12 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     const item = this.markers[Math.floor(Math.random() * this.markers.length)];
     const position = item.marker.position;
     if (!position) return;
-    this.map.setCenter(position as google.maps.LatLng | google.maps.LatLngLiteral);
-    this.map.setZoom(15);
+    requestAnimationFrame(() => {
+      this.map?.moveCamera({
+        center: position as google.maps.LatLng | google.maps.LatLngLiteral,
+        zoom: 15,
+      });
+    });
   }
 
   private createPricePin(apartment: Apartment, offsetX = 0): {
@@ -337,6 +341,14 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
     const normalizedStreet = this.normalizeStreetName(apartment.street || '');
     const normalizedAddress = this.normalizeStreetName(apartment.address || '');
+    const districtFallback = this.resolveDistrictPosition(apartment);
+
+    // Public listings can intentionally omit their precise street and point.
+    // In that case, do not wait for remote geocoding: place the marker at the
+    // saved district immediately so the initial camera always has a target.
+    if (!normalizedStreet && districtFallback) {
+      return districtFallback;
+    }
     const addresses = [
       [
         [apartment.buildingNumber, normalizedStreet].filter(Boolean).join(' '),
@@ -375,8 +387,41 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     }
 
     const streetPosition = await this.resolveStreetPosition(normalizedStreet);
-    this.geocodeCache.set(cacheKey, streetPosition);
-    return streetPosition;
+    const fallbackPosition = streetPosition || districtFallback;
+    this.geocodeCache.set(cacheKey, fallbackPosition);
+    return fallbackPosition;
+  }
+
+  private resolveDistrictPosition(apartment: Apartment): google.maps.LatLngLiteral | null {
+    const districtCenters: Record<string, google.maps.LatLngLiteral> = {
+      vake: { lat: 41.7085, lng: 44.7565 },
+      saburtalo: { lat: 41.7257, lng: 44.7478 },
+      vera: { lat: 41.7072, lng: 44.7832 },
+      mtatsminda: { lat: 41.6958, lng: 44.7908 },
+      didube: { lat: 41.7492, lng: 44.7782 },
+      digomi: { lat: 41.7837, lng: 44.7551 },
+      'didi digomi': { lat: 41.7948, lng: 44.7428 },
+      gldani: { lat: 41.7952, lng: 44.8177 },
+      nadzaladevi: { lat: 41.7571, lng: 44.799 },
+      isani: { lat: 41.6875, lng: 44.8352 },
+      samgori: { lat: 41.6896, lng: 44.8618 },
+      avlabari: { lat: 41.6936, lng: 44.8155 },
+      sololaki: { lat: 41.6895, lng: 44.8005 },
+      chugureti: { lat: 41.714, lng: 44.8065 },
+      krtsanisi: { lat: 41.6726, lng: 44.817 },
+    };
+    const key = (apartment.district || '').trim().toLowerCase();
+    const center = districtCenters[key];
+    if (!center) return null;
+
+    // Slightly separate privacy-redacted homes in the same district so each
+    // price remains visible without implying an exact building location.
+    const angle = ((apartment.id * 137.5) % 360) * (Math.PI / 180);
+    const radius = 0.002 + (apartment.id % 3) * 0.0007;
+    return {
+      lat: center.lat + Math.sin(angle) * radius,
+      lng: center.lng + Math.cos(angle) * radius,
+    };
   }
 
   private normalizeStreetName(value: string): string {

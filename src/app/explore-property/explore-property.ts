@@ -678,6 +678,7 @@ export class ExploreProperty implements OnInit {
   }
 
   onMapVisibleApartmentsChanged(apartments: Apartment[]): void {
+    if (!apartments.length && this.pageApartments.length) return;
     this.visibleApartments = apartments;
     if (
       this.selectedApartment &&
