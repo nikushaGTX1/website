@@ -1021,11 +1021,14 @@ svg {
   gap: 3px;
 }
 .facts span:not(:last-child)::after {
-  content: '\00b7';
-  margin-left: 5px;
+  content: none;
 }
 .facts svg {
-  display: none;
+  display: block;
+  width: 15px;
+  height: 15px;
+  color: var(--purple);
+  stroke-width: 1.9;
 }
 .card-nearby {
   display: block;

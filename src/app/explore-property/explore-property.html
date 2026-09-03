@@ -279,6 +279,7 @@
                 <app-currency-price
                   [usdPrice]="apartment.price"
                   [suffix]="selectedType === 'For Sale' ? '' : '/ month'"
+                  [showApproximate]="false"
                 ></app-currency-price>
               </span>
             </div>
@@ -376,7 +377,10 @@
         />
         <div>
           <small>Selected home</small
-          ><app-currency-price [usdPrice]="apartment.price"></app-currency-price
+          ><app-currency-price
+            [usdPrice]="apartment.price"
+            [showApproximate]="false"
+          ></app-currency-price
           ><span>{{ getApartmentStreet(apartment) }}</span>
         </div>
         <button type="button" aria-label="Close preview" (click)="selectedApartment = null">
