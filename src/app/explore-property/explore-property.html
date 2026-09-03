@@ -43,14 +43,6 @@
           <button type="button" [class.selected]="!homeType" (click)="selectHeaderPropertyType('')">
             Any home
           </button>
-          <button
-            type="button"
-            *ngFor="let option of propertyTypeOptions"
-            [class.selected]="homeType === option"
-            (click)="selectHeaderPropertyType(option)"
-          >
-            {{ option === 'Apartament' ? 'Apartment' : option }}
-          </button>
         </div>
       </div>
       <span class="divider hide-small"></span>
@@ -122,35 +114,23 @@
           <circle cx="8" cy="17" r="2"></circle></svg
         >Filters
       </button>
+      <label class="chip filter-select compact-filter-chip" [class.selected]="selectedMinArea > 0">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg>
+        <select [value]="selectedMinArea" (change)="setMinimumArea($event)" aria-label="Minimum area">
+          <option value="0">Area</option><option value="30">30+ m²</option><option value="50">50+ m²</option><option value="80">80+ m²</option><option value="120">120+ m²</option>
+        </select>
+      </label>
+      <label class="chip filter-select compact-filter-chip" [class.selected]="selectedMinFloor > 0">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21h14M7 21V4h10v17M10 8h1M14 8h1M10 12h1M14 12h1M10 16h1M14 16h1"></path></svg>
+        <select [value]="selectedMinFloor" (change)="setMinimumFloor($event)" aria-label="Minimum floor">
+          <option value="0">Floor</option><option value="1">1+ floor</option><option value="3">3+ floor</option><option value="5">5+ floor</option><option value="10">10+ floor</option>
+        </select>
+      </label>
       <button
-        class="chip"
+        class="chip compact-filter-chip"
         type="button"
-        [class.selected]="!!homeType"
-        (click)="$event.stopPropagation(); toggleSearchMenu('propertyType')"
-      >
-        {{ homeType || 'Apartment' }} <span></span>
-      </button>
-      <button
-        class="chip"
-        type="button"
-        [class.selected]="appliedBudgetMin !== null || appliedBudgetMax !== null"
-        (click)="$event.stopPropagation(); toggleSearchMenu('budget')"
-      >
-        Price <span></span>
-      </button>
-      <button
-        class="chip"
-        type="button"
-        [class.selected]="!!headerBedrooms"
-        (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')"
-      >
-        Bedrooms <span></span>
-      </button>
-      <button
-        class="chip"
-        type="button"
-        [class.selected]="featureFilter === 'parking'"
-        (click)="selectFeature('parking')"
+        [class.selected]="selectedAmenities.includes('Parking')"
+        (click)="toggleAmenity('Parking')"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9"></circle>
@@ -158,12 +138,17 @@
         >Parking
       </button>
       <button
-        class="chip"
+        class="chip compact-filter-chip"
         type="button"
-        [class.selected]="selectedAmenities.includes('Furnished')"
-        (click)="toggleAmenity('Furnished')"
+        [class.selected]="selectedAmenities.includes('Pet friendly')"
+        (click)="toggleAmenity('Pet friendly')"
       >
-        Furnished <span></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="2"></circle><circle cx="17" cy="7" r="2"></circle><circle cx="5" cy="13" r="2"></circle><circle cx="19" cy="13" r="2"></circle><path d="M8 18c0-3 2-5 4-5s4 2 4 5c0 2-2 3-4 3s-4-1-4-3Z"></path></svg>
+        Pets allowed
+      </button>
+      <button class="chip" type="button" [class.selected]="selectedAmenities.includes('New building')" (click)="toggleAmenity('New building')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V7l6-4 6 4v14M9 10h2M13 10h2M9 14h2M13 14h2M10 21v-3h4v3"></path></svg>
+        New building
       </button>
       <button
         class="chip"
@@ -175,7 +160,6 @@
           <path d="M4 8h10a3 3 0 1 0-3-3M4 12h15a2 2 0 1 1-2 2M4 16h8"></path></svg
         >Air conditioning
       </button>
-      <button class="chip" type="button" (click)="selectFeature('')">More <span></span></button>
     </div>
     <div
       class="chip-popover bedroom-popover"

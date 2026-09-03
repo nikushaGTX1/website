@@ -30,6 +30,7 @@ export interface PropertyMapPreviewAnchor {
   markerHeight: number;
   mapWidth: number;
   mapHeight: number;
+  fromClick: boolean;
 }
 
 @Component({
@@ -70,6 +71,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private viewReady = false;
   private renderRevision = 0;
   private idleListener?: google.maps.MapsEventListener;
+  private boundsListener?: google.maps.MapsEventListener;
+  private previewFrame?: number;
   private readonly geocodeCache = new Map<string, google.maps.LatLngLiteral | null>();
 
   constructor(
@@ -91,6 +94,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   ngOnDestroy(): void {
     this.renderRevision += 1;
     this.idleListener?.remove();
+    this.boundsListener?.remove();
+    if (this.previewFrame) cancelAnimationFrame(this.previewFrame);
     this.clearMarkers();
   }
 
@@ -154,6 +159,13 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
           this.emitSelectedPreviewAnchor();
         });
       });
+      this.boundsListener = this.map.addListener('bounds_changed', () => {
+        if (this.previewFrame) cancelAnimationFrame(this.previewFrame);
+        this.previewFrame = requestAnimationFrame(() => {
+          this.previewFrame = undefined;
+          this.zone.run(() => this.emitSelectedPreviewAnchor());
+        });
+      });
 
       // Keep the constructor available without loading the marker library again.
       this.advancedMarkerConstructor = AdvancedMarkerElement;
@@ -196,14 +208,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         content: button,
         zIndex: apartment.id === this.selectedApartmentId ? 100 : 1,
       });
-      marker.addListener('click', () => {
-        this.zone.run(() => this.apartmentSelected.emit(apartment));
-      });
       button.addEventListener('click', (event) => {
         event.stopPropagation();
         this.zone.run(() => {
-          this.apartmentSelected.emit(apartment);
-          this.emitPreviewAnchor(apartment, button);
+          this.emitPreviewAnchor(apartment, button, true);
         });
       });
       const showHoverState = () => this.setMarkerHoverState(apartment.id, true);
@@ -406,7 +414,11 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (selected) requestAnimationFrame(() => this.emitPreviewAnchor(selected.apartment, selected.button));
   }
 
-  private emitPreviewAnchor(apartment: Apartment, button: HTMLButtonElement): void {
+  private emitPreviewAnchor(
+    apartment: Apartment,
+    button: HTMLButtonElement,
+    fromClick = false,
+  ): void {
     const mapElement = this.mapCanvas?.nativeElement;
     if (!mapElement) return;
     const mapRect = mapElement.getBoundingClientRect();
@@ -419,6 +431,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       markerHeight: markerRect.height,
       mapWidth: mapRect.width,
       mapHeight: mapRect.height,
+      fromClick,
     });
   }
 

@@ -326,6 +326,29 @@ svg {
   width: 15px;
   height: 15px;
 }
+.filter-select {
+  justify-content: center;
+  cursor: default;
+}
+.compact-filter-chip {
+  height: 36px;
+  justify-content: center;
+  box-sizing: content-box;
+}
+.filter-select select {
+  width: auto;
+  max-width: 105px;
+  padding: 0 16px 0 0;
+  color: inherit;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
 .chip:hover,
 .chip.selected {
   color: var(--purple);

@@ -113,11 +113,14 @@ export class ExploreProperty implements OnInit {
   selectedBathrooms: string[] = [];
   selectedPropertyTypes: string[] = [];
   selectedAmenities: string[] = [];
+  selectedMinArea = 0;
+  selectedMinFloor = 0;
 
   selectedApartment: Apartment | null = null;
   mapPreviewApartment: Apartment | null = null;
   mapPreviewImageIndex = 0;
   mapPreviewPosition = { left: 16, top: 16 };
+  private mapPreviewOffset = { x: 0, y: 0 };
   mapVisible = false;
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
@@ -266,6 +269,16 @@ export class ExploreProperty implements OnInit {
 
   toggleAmenity(amenity: string): void {
     this.toggleFilterItem(this.selectedAmenities, amenity);
+    this.onSearch();
+  }
+
+  setMinimumArea(event: Event): void {
+    this.selectedMinArea = Number((event.target as HTMLSelectElement).value) || 0;
+    this.onSearch();
+  }
+
+  setMinimumFloor(event: Event): void {
+    this.selectedMinFloor = Number((event.target as HTMLSelectElement).value) || 0;
     this.onSearch();
   }
 
@@ -877,6 +890,8 @@ export class ExploreProperty implements OnInit {
       const matchesPropertyType = this.matchesPropertyTypeFilter(apartment);
       const matchesAmenities = this.matchesAmenitiesFilter(apartment);
       const matchesFeature = this.matchesQuickFeature(apartment);
+      const matchesArea = !this.selectedMinArea || Number(apartment.sizeSquareMeters) >= this.selectedMinArea;
+      const matchesFloor = !this.selectedMinFloor || Number(apartment.floor) >= this.selectedMinFloor;
 
       return (
         matchesQuery &&
@@ -892,7 +907,9 @@ export class ExploreProperty implements OnInit {
         matchesBathrooms &&
         matchesPropertyType &&
         matchesAmenities &&
-        matchesFeature
+        matchesFeature &&
+        matchesArea &&
+        matchesFloor
       );
     });
 
@@ -942,6 +959,8 @@ export class ExploreProperty implements OnInit {
     this.selectedBathrooms = [];
     this.selectedPropertyTypes = [];
     this.selectedAmenities = [];
+    this.selectedMinArea = 0;
+    this.selectedMinFloor = 0;
     this.featureFilter = '';
     this.drawnAreaActive = false;
     sessionStorage.removeItem('white-tower-drawn-area');
@@ -1006,7 +1025,19 @@ export class ExploreProperty implements OnInit {
   }
 
   positionMapPreview(anchor: PropertyMapPreviewAnchor): void {
-    this.selectMapApartment(anchor.apartment);
+    if (anchor.fromClick && this.mapPreviewApartment?.id === anchor.apartment.id) {
+      this.closeMapPreview();
+      return;
+    }
+    if (!anchor.fromClick && this.mapPreviewApartment?.id !== anchor.apartment.id) return;
+    if (!anchor.fromClick) {
+      this.mapPreviewPosition = {
+        left: anchor.x + this.mapPreviewOffset.x,
+        top: anchor.y + this.mapPreviewOffset.y,
+      };
+      return;
+    }
+    if (anchor.fromClick) this.selectMapApartment(anchor.apartment);
     const gap = 22;
     const edge = 16;
     const cardWidth = Math.min(326, anchor.mapWidth - edge * 2);
@@ -1033,6 +1064,10 @@ export class ExploreProperty implements OnInit {
     this.mapPreviewPosition = {
       left: Math.max(edge, Math.min(left, anchor.mapWidth - cardWidth - edge)),
       top: Math.max(edge, Math.min(top, anchor.mapHeight - cardHeight - edge)),
+    };
+    this.mapPreviewOffset = {
+      x: this.mapPreviewPosition.left - anchor.x,
+      y: this.mapPreviewPosition.top - anchor.y,
     };
   }
 
@@ -1243,6 +1278,11 @@ export class ExploreProperty implements OnInit {
       if (normalized === 'air conditioning') return !!apartment.hasAirConditioning;
       if (normalized === 'balcony') return !!apartment.hasBalcony;
       if (normalized === 'elevator') return !!apartment.hasElevator;
+      if (normalized === 'pet friendly') return !!apartment.isPetFriendly;
+      if (normalized === 'new building') {
+        const buildingText = `${apartment.apartmentStyle || ''} ${text}`;
+        return /new building|new build|newly built|ახალი კორპუს/i.test(buildingText);
+      }
       return text.includes(normalized);
     });
   }
