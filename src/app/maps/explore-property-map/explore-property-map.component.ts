@@ -75,6 +75,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private boundsListener?: google.maps.MapsEventListener;
   private previewFrame?: number;
   private readonly geocodeCache = new Map<string, google.maps.LatLngLiteral | null>();
+  private initialPropertyFocused = false;
 
   constructor(
     private readonly zone: NgZone,
@@ -238,8 +239,24 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
     this.mappedApartmentCount = this.markers.length;
     this.updateSelectedMarker();
-    if (fitBounds) this.fitVisibleProperties();
+    if (fitBounds) {
+      if (!this.initialPropertyFocused && this.markers.length) {
+        this.focusRandomProperty();
+        this.initialPropertyFocused = true;
+      } else {
+        this.fitVisibleProperties();
+      }
+    }
     this.refreshView();
+  }
+
+  private focusRandomProperty(): void {
+    if (!this.map || !this.markers.length) return;
+    const item = this.markers[Math.floor(Math.random() * this.markers.length)];
+    const position = item.marker.position;
+    if (!position) return;
+    this.map.setCenter(position as google.maps.LatLng | google.maps.LatLngLiteral);
+    this.map.setZoom(15);
   }
 
   private createPricePin(apartment: Apartment, offsetX = 0): {

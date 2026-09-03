@@ -1133,6 +1133,13 @@ export class ExploreProperty implements OnInit {
     this.mapPreviewImageIndex = index;
   }
 
+  getMapPreviewDotIndexes(apartment: Apartment): number[] {
+    const count = this.getMapPreviewImages(apartment).length;
+    if (count <= 5) return Array.from({ length: count }, (_, index) => index);
+    const start = Math.max(0, Math.min(this.mapPreviewImageIndex - 2, count - 5));
+    return Array.from({ length: 5 }, (_, index) => start + index);
+  }
+
   getApartmentLocation(apartment: Apartment): string {
     const address = apartment.address?.trim();
     return address ? address.split(',')[0].trim() : 'Tbilisi, Georgia';
