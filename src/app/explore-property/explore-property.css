@@ -306,7 +306,9 @@ svg {
   display: none;
 }
 .chip {
-  height: 36px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
   padding: 0 14px;
   flex: 0 0 auto;
   display: flex;
@@ -321,6 +323,7 @@ svg {
   white-space: nowrap;
   cursor: pointer;
   transition: 0.18s ease;
+  box-sizing: border-box;
 }
 .chip svg {
   width: 15px;
@@ -331,12 +334,21 @@ svg {
   cursor: default;
 }
 .compact-filter-chip {
-  height: 36px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
   justify-content: center;
-  box-sizing: content-box;
+  box-sizing: border-box;
+}
+.chip.filter-select {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  border-radius: 22px;
 }
 .filter-select select {
   width: auto;
+  height: 100%;
   max-width: 105px;
   padding: 0 16px 0 0;
   color: inherit;
@@ -961,6 +973,13 @@ svg {
   }
   .chip {
     height: 34px;
+    min-height: 34px;
+    max-height: 34px;
+  }
+  .chip.filter-select {
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
   }
   .explorer {
     height: auto;
