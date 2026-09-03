@@ -482,7 +482,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
   private emitVisibleApartments(): void {
     const bounds = this.map?.getBounds();
-    if (!bounds) return;
+    // Do not replace the loaded results with an empty list during the map's
+    // first idle event, before async geocoding has produced its markers.
+    if (!bounds || !this.markers.length) return;
     const visible = this.markers
       .filter((item) => {
         const position = item.marker.position;

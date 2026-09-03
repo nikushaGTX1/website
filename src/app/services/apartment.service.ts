@@ -221,6 +221,19 @@ export class ApartmentService {
   }
 
   private normalizeImages(apartment: Apartment): Apartment {
+    const metadata = apartment.description || '';
+    const metaValue = (label: string): string => {
+      const match = metadata.match(new RegExp(`(?:^|[|\\n])\\s*${label}:\\s*([^|\\n]+)`, 'i'));
+      return match?.[1]?.trim() || '';
+    };
+    const storedStreet = apartment.street?.trim() || metaValue('Street');
+    const storedDistrict = apartment.district?.trim() || metaValue('District');
+    const storedBuilding = apartment.buildingNumber?.trim() || metaValue('Building');
+    const storedStreetId = apartment.streetId || Number(metaValue('Street ID')) || undefined;
+    const storedAddress =
+      apartment.address?.trim() ||
+      [storedStreet, storedBuilding, storedDistrict].filter(Boolean).join(', ') ||
+      undefined;
     const gallery = [...(apartment.images || [])]
       .sort(
         (left, right) =>
@@ -242,6 +255,11 @@ export class ApartmentService {
 
     return {
       ...apartment,
+      address: storedAddress,
+      district: storedDistrict || apartment.district,
+      street: storedStreet || apartment.street,
+      streetId: storedStreetId,
+      buildingNumber: storedBuilding || apartment.buildingNumber,
       imageUrl,
       imageUrls: galleryUrls.length ? galleryUrls : legacyUrls,
       images: gallery,
