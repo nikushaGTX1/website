@@ -213,8 +213,8 @@
             <option value="newest">Recommended</option>
             <option value="price-asc">Price: low to high</option>
             <option value="price-desc">Price: high to low</option></select
-          ><span></span></label
-        >
+          ><span></span
+        ></label>
       </div>
       <div class="cards-grid">
         <ng-container *ngIf="loading"
@@ -249,14 +249,6 @@
               [alt]="apartment.title || 'Property in Tbilisi'"
               (error)="onApartmentImageError($event)"
             />
-            <span class="property-tag"
-              ><svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="m12 3 2.2 1.6 2.7-.2.8 2.6 2.3 1.5-.8 2.6.8 2.6-2.3 1.5-.8 2.6-2.7-.2L12 21l-2.2-1.6-2.7.2-.8-2.6L4 15.5l.8-2.6L4 10.3l2.3-1.5.8-2.6 2.7.2L12 3Z"
-                ></path>
-                <path d="m9.2 12 1.8 1.8 3.8-4"></path></svg
-              >{{ isExclusiveListing(apartment) ? 'VELVEN SELECT' : 'VERIFIED' }}</span
-            >
             <button
               class="heart"
               type="button"
@@ -283,6 +275,12 @@
           <div class="card-body">
             <div class="title-row">
               <h2>{{ apartment.title || getApartmentLocation(apartment) }}</h2>
+              <span class="card-header-price">
+                <app-currency-price
+                  [usdPrice]="apartment.price"
+                  [suffix]="selectedType === 'For Sale' ? '' : '/ month'"
+                ></app-currency-price>
+              </span>
             </div>
             <p class="property-location">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -340,12 +338,6 @@
                   <small>{{ apartment.hasParking ? 'Available' : 'Unavailable' }}</small>
                 </span>
               </div>
-            </div>
-            <div class="price">
-              <app-currency-price
-                [usdPrice]="apartment.price"
-                [suffix]="selectedType === 'For Sale' ? '' : '/ month'"
-              ></app-currency-price>
             </div>
           </div>
         </article>

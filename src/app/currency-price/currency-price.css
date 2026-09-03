@@ -22,8 +22,9 @@
 .primary-price small {
   margin-left: 5px;
   color: #536178;
-  font-size: .48em;
-  font-weight: 500;
+  font-size: 0.68em;
+  font-weight: 600;
+  line-height: 1;
   letter-spacing: 0;
 }
 

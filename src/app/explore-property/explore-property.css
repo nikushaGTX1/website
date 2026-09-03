@@ -948,3 +948,156 @@ svg {
     transform: none;
   }
 }
+
+/* Image-led listing layout, matching the compact travel-card visual language. */
+@media (min-width: 781px) {
+  .explorer {
+    grid-template-columns: minmax(560px, 48%) minmax(440px, 52%);
+  }
+  .results-pane {
+    padding: 24px 24px 70px 46px;
+  }
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px 24px;
+  }
+  .photo-wrap {
+    height: clamp(205px, 17vw, 310px);
+  }
+  .map-pane {
+    margin: 18px 36px 18px 24px;
+  }
+}
+
+.property-card.active {
+  outline-color: transparent;
+}
+.photo-wrap {
+  border-radius: 20px;
+}
+.property-tag {
+  color: #171717;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.property-tag > span {
+  font-size: 12px;
+}
+.heart {
+  background: transparent;
+}
+.card-body {
+  padding: 12px 4px 0;
+}
+.title-row h2 {
+  font-size: 15px;
+}
+.card-header-price {
+  flex: 0 0 auto;
+  padding-left: 10px;
+  font-size: 14px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.card-header-price app-currency-price {
+  font-size: inherit;
+  font-weight: inherit;
+}
+.property-location {
+  margin: 3px 0;
+  color: #6a6a6a;
+  font-size: 14px;
+}
+.property-location svg {
+  display: none;
+}
+.facts {
+  gap: 5px;
+  color: #6a6a6a;
+  font-size: 14px;
+}
+.facts span {
+  gap: 3px;
+}
+.facts span:not(:last-child)::after {
+  content: '\00b7';
+  margin-left: 5px;
+}
+.facts svg {
+  display: none;
+}
+.card-nearby {
+  display: block;
+  margin-top: 13px;
+  padding-top: 11px;
+  border-top: 1px solid #ece8f2;
+}
+.card-nearby-label {
+  margin-bottom: 9px;
+  color: var(--purple);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  text-transform: none;
+}
+.card-nearby-grid {
+  gap: 8px;
+}
+.card-nearby-grid > span {
+  min-height: 78px;
+  padding: 10px 6px 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid #ddd6e9;
+  border-radius: 11px;
+  background: #fff;
+  text-align: center;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+.property-card:hover .card-nearby-grid > span {
+  border-color: #cbbce4;
+}
+.card-nearby-grid > span:hover {
+  background: #faf8ff;
+  transform: translateY(-1px);
+}
+.card-nearby-grid i {
+  grid-row: auto;
+  align-self: auto;
+  margin-bottom: 2px;
+  color: var(--purple);
+  font-size: 17px;
+}
+.card-nearby-grid b,
+.card-nearby-grid small {
+  width: 100%;
+  line-height: 1.25;
+}
+.card-nearby-grid b {
+  color: #292234;
+  font-size: 10px;
+  font-weight: 750;
+}
+.card-nearby-grid small {
+  color: #777080;
+  font-size: 9px;
+}
+.price {
+  margin-top: 8px;
+  font-size: 14px;
+}
+.price app-currency-price {
+  font-size: 15px;
+  font-weight: 750;
+}
+.map-pane {
+  border-radius: 20px;
+  box-shadow: none;
+}
