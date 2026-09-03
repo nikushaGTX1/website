@@ -40,17 +40,17 @@ export interface PropertyMapPreviewAnchor {
   styleUrl: './explore-property-map.component.css',
 })
 export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, OnDestroy {
-  private static readonly tbilisiBounds: google.maps.LatLngBoundsLiteral = {
-    south: 41.5,
-    west: 44.55,
-    north: 41.92,
-    east: 45.1,
+  private static readonly georgiaBounds: google.maps.LatLngBoundsLiteral = {
+    south: 41.05,
+    west: 40.85,
+    north: 43.75,
+    east: 46.8,
   };
-  private static readonly tbilisiCameraBounds: google.maps.LatLngBoundsLiteral = {
-    south: 41.6,
-    west: 44.62,
-    north: 41.88,
-    east: 45.03,
+  private static readonly georgiaCameraBounds: google.maps.LatLngBoundsLiteral = {
+    south: 40.9,
+    west: 40.55,
+    north: 43.9,
+    east: 47.05,
   };
   @Input() apartments: Apartment[] = [];
   @Input() selectedApartmentId: number | null = null;
@@ -134,9 +134,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       ]);
 
       this.map = new Map(this.mapCanvas.nativeElement, {
-        center: { lat: 41.7151, lng: 44.8271 },
-        zoom: 11,
-        minZoom: 11,
+        center: { lat: 42.1, lng: 43.5 },
+        zoom: 7,
+        minZoom: 7,
         ...(mapId ? { mapId } : {}),
         mapTypeId: this.mapType,
         mapTypeControl: false,
@@ -146,8 +146,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         gestureHandling: 'greedy',
         zoomControl: true,
         restriction: {
-          latLngBounds: ExplorePropertyMapComponent.tbilisiCameraBounds,
-          // Google's elastic boundary keeps Tbilisi centered without exposing
+          latLngBounds: ExplorePropertyMapComponent.georgiaCameraBounds,
+          // Google's elastic boundary keeps Georgia centered without exposing
           // the clipped/blank edge produced when a wide map meets strict bounds.
           strictBounds: false,
         },
@@ -288,7 +288,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       lat <= 90 &&
       lng >= -180 &&
       lng <= 180 &&
-      this.isInsideTbilisi(lat, lng)
+      this.isInsideGeorgia(lat, lng)
     ) {
       return { lat, lng };
     }
@@ -315,12 +315,12 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         try {
           const result = await this.geocoder.geocode({
             address,
-            bounds: ExplorePropertyMapComponent.tbilisiBounds,
+            bounds: ExplorePropertyMapComponent.georgiaBounds,
             componentRestrictions: { country: 'GE' },
             region: 'GE',
           });
           const location = result.results[0]?.geometry.location;
-          if (location && this.isInsideTbilisi(location.lat(), location.lng())) {
+          if (location && this.isInsideGeorgia(location.lat(), location.lng())) {
             const position = { lat: location.lat(), lng: location.lng() };
             this.geocodeCache.set(cacheKey, position);
             return position;
@@ -349,7 +349,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (!street) return null;
     try {
       const response = await fetch(
-        `/map-data/street?street=${encodeURIComponent(street)}&bbox=41.50,44.55,41.92,45.10`,
+        `/map-data/street?street=${encodeURIComponent(street)}&bbox=41.05,40.85,43.75,46.80`,
       );
       if (!response.ok) return null;
       const payload = (await response.json()) as { lines?: number[][][] };
@@ -361,7 +361,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       const [lng, lat] = point || [];
       return Number.isFinite(lat) &&
         Number.isFinite(lng) &&
-        this.isInsideTbilisi(lat, lng)
+        this.isInsideGeorgia(lat, lng)
         ? { lat, lng }
         : null;
     } catch {
@@ -369,8 +369,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     }
   }
 
-  private isInsideTbilisi(lat: number, lng: number): boolean {
-    const bounds = ExplorePropertyMapComponent.tbilisiBounds;
+  private isInsideGeorgia(lat: number, lng: number): boolean {
+    const bounds = ExplorePropertyMapComponent.georgiaBounds;
     return lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
   }
 
@@ -451,7 +451,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     google.maps.event.addListenerOnce(this.map, 'idle', () => {
       const zoom = this.map?.getZoom() || 0;
       if (zoom > 16) this.map?.setZoom(16);
-      if (zoom < 11) this.map?.setZoom(11);
+      if (zoom < 7) this.map?.setZoom(7);
     });
   }
 
