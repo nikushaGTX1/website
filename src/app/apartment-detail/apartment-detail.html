@@ -227,15 +227,11 @@
         </aside>
       </div>
       <div class="photo-viewer" *ngIf="photoViewerOpen" (click)="closePhotoViewer()">
-        <button class="viewer-close">×</button
-        ><button class="viewer-nav previous" (click)="$event.stopPropagation(); previousPhoto()">
-          ‹</button
-        ><img [src]="activePhoto" [alt]="title" (click)="$event.stopPropagation()" /><button
-          class="viewer-nav next"
-          (click)="$event.stopPropagation(); nextPhoto()"
-        >
-          ›</button
-        ><span>{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
+        <button class="viewer-close" type="button" aria-label="Close photo viewer">×</button>
+        <div class="photo-viewer-track" (click)="$event.stopPropagation()" (scroll)="updateActiveViewerPhoto($event)">
+          <img *ngFor="let image of galleryImages; let i = index" [src]="image" [alt]="title + ' photo ' + (i + 1)" [attr.data-viewer-photo]="i" />
+        </div>
+        <span>{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
       </div>
     </ng-container>
     <ng-template #state

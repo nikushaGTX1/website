@@ -108,7 +108,7 @@ export class ExploreProperty implements OnInit {
   drawAreaOpen = false;
   drawAreaInitialized = false;
 
-  selectedPriceMax = 3000;
+  selectedPriceMax = Number.MAX_SAFE_INTEGER;
   selectedBedrooms: string[] = [];
   selectedBathrooms: string[] = [];
   selectedPropertyTypes: string[] = [];
@@ -740,8 +740,27 @@ export class ExploreProperty implements OnInit {
       const nextType = queryParams.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
       if (nextType === this.selectedType) return;
       this.selectedType = nextType;
+      this.resetModeNavigationFilters(queryParams.get('location') || '');
       this.onSearch();
     });
+  }
+
+  private resetModeNavigationFilters(location: string): void {
+    this.location = location;
+    this.selectedLocationValue = location;
+    this.selectedStreetId = null;
+    this.homeType = '';
+    this.headerBedrooms = '';
+    this.headerRooms = '';
+    this.appliedBudgetMin = null;
+    this.appliedBudgetMax = null;
+    this.selectedPriceMax = Number.MAX_SAFE_INTEGER;
+    this.selectedAmenities = [];
+    this.selectedMinArea = 0;
+    this.selectedMinFloor = 0;
+    this.featureFilter = '';
+    this.drawnAreaActive = false;
+    this.mapPreviewApartment = null;
   }
 
   toggleFavorite(event: Event, apartment: Apartment): void {
@@ -954,7 +973,7 @@ export class ExploreProperty implements OnInit {
     this.headerRooms = '';
     this.bedroomStep = 'rooms';
 
-    this.selectedPriceMax = 3000;
+    this.selectedPriceMax = Number.MAX_SAFE_INTEGER;
     this.selectedBedrooms = [];
     this.selectedBathrooms = [];
     this.selectedPropertyTypes = [];

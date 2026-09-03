@@ -371,10 +371,33 @@ export class ApartmentDetail implements OnInit {
 
   openPhotoViewer(): void {
     this.photoViewerOpen = true;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>(`[data-viewer-photo="${this.activePhotoIndex}"]`)
+        ?.scrollIntoView({ block: 'center' });
+    });
   }
 
   closePhotoViewer(): void {
     this.photoViewerOpen = false;
+    document.body.style.overflow = '';
+  }
+
+  updateActiveViewerPhoto(event: Event): void {
+    const viewer = event.currentTarget as HTMLElement;
+    const viewerCenter = viewer.getBoundingClientRect().top + viewer.clientHeight / 2;
+    const photos = Array.from(viewer.querySelectorAll<HTMLElement>('[data-viewer-photo]'));
+    const closest = photos.reduce<{ index: number; distance: number }>(
+      (result, photo) => {
+        const rect = photo.getBoundingClientRect();
+        const distance = Math.abs(rect.top + rect.height / 2 - viewerCenter);
+        const index = Number(photo.dataset['viewerPhoto']);
+        return distance < result.distance ? { index, distance } : result;
+      },
+      { index: this.activePhotoIndex, distance: Number.POSITIVE_INFINITY },
+    );
+    this.activePhotoIndex = closest.index;
   }
 
   toggleFavorite(): void {
