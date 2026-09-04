@@ -288,9 +288,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ? '/woman%20offset%20fix.svg'
       : '/man%20offset%20fix.svg';
     const man = '/man%20offset%20fix.svg';
+    const manTwo = '/man%20ver%202%20offset.svg';
+    const manThree = '/man%20ver%203%20offset.svg';
     const woman = '/woman%20offset%20fix.svg';
+    const womanTwo = '/woman%20ver%202%20offset.svg';
     const couple = '/couple%20offset%20fix.svg';
-    const child = '/kid%20offset%20fix.svg';
+    const child = '/daughter%20offset.svg';
 
     switch (value) {
       case 'JustMe':
@@ -302,12 +305,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       case 'FamilyWithChildren':
         return [couple, child];
       case 'Friends':
+        return [manTwo, womanTwo];
       case 'Roommates':
-        return [man, woman];
+        return [manTwo, womanTwo, manThree];
       case 'Relatives':
-        return [couple, adult];
+        return [man, woman, womanTwo];
       case 'CorporateHousing':
-        return [man, woman, man];
+        return [man, woman, manTwo, manThree];
       default:
         return [adult];
     }
