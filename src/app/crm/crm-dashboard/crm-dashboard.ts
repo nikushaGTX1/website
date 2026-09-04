@@ -34,6 +34,7 @@ interface ManualLeadForm extends CreateCrmLeadRequest {
   rentalPeriodMonths: ManualRentalPeriod;
   petType: ManualPetType;
   petSize: ManualPetSize;
+  fromUploader: boolean;
 }
 
 @Component({
@@ -194,6 +195,15 @@ export class CrmDashboard implements OnInit {
 
   trackLeadSource(_index: number, source: { value: string }): string {
     return source.value;
+  }
+
+  toggleUploaderOrigin(): void {
+    if (!this.isManager) return;
+    this.manualLeadForm.fromUploader = !this.manualLeadForm.fromUploader;
+    if (this.manualLeadForm.fromUploader) {
+      this.manualLeadForm.source = 'referral';
+      this.manualLeadForm.status = 'new';
+    }
   }
 
   clampLeadBudget(field: 'budgetMin' | 'budgetMax'): void {
@@ -421,7 +431,7 @@ export class CrmDashboard implements OnInit {
     }
 
     const request: CreateCrmLeadRequest = {
-      source: this.isUploader
+      source: this.isUploader || this.manualLeadForm.fromUploader
         ? 'referral'
         : this.authService.isCrmAgent && !this.isManager
           ? 'manual'
@@ -433,7 +443,7 @@ export class CrmDashboard implements OnInit {
       // Uploader-origin leads always need a first contact, so they begin in
       // New. Other leads keep their selected stage when unassigned.
       status:
-        this.isUploader
+        this.isUploader || this.manualLeadForm.fromUploader
           ? 'new'
           : this.canChooseStartingStage
             ? this.manualLeadForm.status
@@ -684,6 +694,7 @@ export class CrmDashboard implements OnInit {
       rentalPeriodMonths: '',
       petType: '',
       petSize: '',
+      fromUploader: false,
     };
   }
 

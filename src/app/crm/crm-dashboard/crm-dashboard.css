@@ -994,6 +994,50 @@ button:disabled {
   display: inline-block;
   padding-top: 1px;
 }
+
+.uploader-origin-toggle {
+  min-height: 48px;
+  padding: 8px 12px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #d8dce5;
+  border-radius: 10px;
+  color: #465066;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.uploader-origin-toggle > span:first-child {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #6746c6;
+  background: #f0eafd;
+}
+
+.uploader-origin-toggle > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.uploader-origin-toggle strong { font-size: 11px; }
+.uploader-origin-toggle small { color: #7d8597; font-size: 9px; }
+.uploader-origin-toggle > i { color: #a8afbc; }
+.uploader-origin-toggle:hover { border-color: #a995e0; }
+.uploader-origin-toggle.active {
+  border-color: #7657f6;
+  color: #451a8f;
+  background: #f8f5ff;
+  box-shadow: 0 0 0 3px rgba(118,87,246,.10);
+}
+.uploader-origin-toggle.active > i { color: #6847cf; }
 .form-grid input,
 .form-grid select,
 .form-grid textarea {
