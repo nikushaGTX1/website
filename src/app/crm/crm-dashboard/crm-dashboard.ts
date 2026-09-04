@@ -441,9 +441,10 @@ export class CrmDashboard implements OnInit {
       phoneNumber: phoneNumber || undefined,
       preferredContactMethod: this.manualLeadForm.preferredContactMethod,
       // Uploader-origin leads always need a first contact, so they begin in
-      // New. Other leads keep their selected stage when unassigned.
+      // New while unassigned. Once assigned, they keep their selected stage.
       status:
-        this.isUploader || this.manualLeadForm.fromUploader
+        (this.isUploader || this.manualLeadForm.fromUploader) &&
+        !this.manualLeadForm.assignedAgentId
           ? 'new'
           : this.canChooseStartingStage
             ? this.manualLeadForm.status
@@ -763,7 +764,7 @@ export class CrmDashboard implements OnInit {
   }
 
   private pipelineStatus(lead: CrmLead): CrmLeadStatus {
-    return this.isUploaderLead(lead) ? 'new' : lead.status;
+    return this.isUploaderLead(lead) && !lead.assignedAgentId?.trim() ? 'new' : lead.status;
   }
 
   private scopeLeads(leads: CrmLead[]): CrmLead[] {
