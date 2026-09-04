@@ -13,7 +13,7 @@
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
-import { GeoJsonPolygon } from '../../services/apartment.service';
+import { ApartmentService, GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { PersistentDataCache } from '../../utils/persistent-data-cache';
@@ -125,6 +125,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     private cdr: ChangeDetectorRef,
     private locationService: LocationService,
     private router: Router,
+    private apartmentService: ApartmentService,
   ) {}
 
   ngAfterViewInit(): void {
@@ -1339,7 +1340,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         };
         const openPreview = (event: Event) => {
           event.stopPropagation();
-          this.showPropertyPreview(apartment, position, pin!, tail);
+          void this.showPropertyPreview(apartment, position, pin!, tail);
         };
         pin.addEventListener('click', openPreview);
         pin.addEventListener('pointerenter', () => setPinHighlighted(true));
@@ -1441,12 +1442,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     return inside;
   }
 
-  private showPropertyPreview(
+  private async showPropertyPreview(
     apartment: Apartment,
     position: google.maps.LatLngLiteral,
     pin: HTMLDivElement,
     tail: HTMLElement,
-  ): void {
+  ): Promise<void> {
     if (!this.map) return;
     if (this.previewApartmentId === apartment.id) {
       this.clearPropertyPreview();
@@ -1461,6 +1462,18 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     pin.style.transform = 'translate(-50%, -100%) scale(1.08)';
     pin.style.boxShadow = '0 8px 20px rgba(69, 26, 143, .34)';
     tail.style.background = '#451a8f';
+    const listedImages = (apartment.imageUrls || []).filter(Boolean);
+    if (listedImages.length <= 1) {
+      try {
+        const detailedApartment = await firstValueFrom(
+          this.apartmentService.getApartment(apartment.id),
+        );
+        if (this.previewApartmentId !== apartment.id) return;
+        apartment = detailedApartment;
+      } catch {
+        // Keep the list result available if the full gallery cannot be loaded.
+      }
+    }
     const overlay = new google.maps.OverlayView();
     let card: HTMLDivElement | undefined;
     overlay.onAdd = () => {
