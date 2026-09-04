@@ -395,6 +395,15 @@ export class CrmDashboard implements OnInit {
     return this.filteredLeads.filter((lead) => this.pipelineStatus(lead) === status);
   }
 
+  displayedLeadsForStatus(status: CrmLeadStatus): CrmLead[] {
+    const leads = this.leadsForStatus(status);
+    return this.dedicatedStatus || this.dedicatedAgentId ? leads : leads.slice(0, 5);
+  }
+
+  hasMoreLeadsForStatus(status: CrmLeadStatus): boolean {
+    return !this.dedicatedStatus && !this.dedicatedAgentId && this.leadsForStatus(status).length > 5;
+  }
+
   isUploaderLead(lead: CrmLead): boolean {
     return !!lead.uploaderUserId?.trim() || lead.source?.trim().toLowerCase() === 'referral';
   }

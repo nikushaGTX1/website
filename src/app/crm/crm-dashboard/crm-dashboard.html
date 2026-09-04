@@ -327,7 +327,7 @@
 
               <a
                 class="lead-card"
-                *ngFor="let lead of leadsForStatus(status); trackBy: identifyLead"
+                *ngFor="let lead of displayedLeadsForStatus(status); trackBy: identifyLead"
                 [routerLink]="['/crm/leads', lead.id]"
                 [attr.draggable]="
                   canDragLeads && !statusUpdatingLeadIds.has(lead.id) ? 'true' : null
@@ -453,6 +453,15 @@
 
                   <span> View details </span>
                 </footer>
+              </a>
+
+              <a
+                class="see-more-leads"
+                *ngIf="hasMoreLeadsForStatus(status)"
+                [routerLink]="['/crm/clients', status]"
+              >
+                See more
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </a>
 
               <p class="column-empty" *ngIf="leadsForStatus(status).length === 0">
