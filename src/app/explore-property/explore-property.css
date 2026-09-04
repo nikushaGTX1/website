@@ -496,6 +496,21 @@ svg {
   cursor: pointer;
   transition: 0.2s ease;
 }
+.property-card .card-body {
+  border-radius: 0 0 16px 16px;
+  transition: background-color 180ms ease, color 180ms ease, padding 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .property-card:hover .card-body {
+    padding-right: 12px;
+    padding-left: 12px;
+    background: var(--lavender);
+  }
+  .property-card:hover .title-row h2,
+  .property-card:hover .card-header-price {
+    color: var(--purple);
+  }
+}
 .property-card:hover,
 .property-card.active {
   transform: translateY(-2px);

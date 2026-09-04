@@ -1293,12 +1293,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         Object.assign(pin.style, {
           position: 'absolute',
           transform: 'translate(-50%, -100%)',
-          padding: '6px 9px',
-          borderRadius: '7px',
-          background: '#5b21d1',
-          color: '#fff',
-          border: '2px solid #fff',
-          boxShadow: '0 3px 9px rgba(69, 26, 143, .32)',
+          minWidth: '58px',
+          padding: '10px 12px',
+          borderRadius: '22px',
+          background: '#fff',
+          color: '#171421',
+          border: '1px solid rgba(60, 48, 67, .12)',
+          boxShadow: '0 6px 16px rgba(25, 16, 31, .22)',
           fontFamily: 'inherit',
           fontSize: '12px',
           lineHeight: '1',
@@ -1312,13 +1313,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         Object.assign(tail.style, {
           position: 'absolute',
           left: '50%',
-          bottom: '-7px',
-          width: '0',
-          height: '0',
-          transform: 'translateX(-50%)',
-          borderLeft: '6px solid transparent',
-          borderRight: '6px solid transparent',
-          borderTop: '7px solid #5b21d1',
+          bottom: '-5px',
+          width: '10px',
+          height: '10px',
+          background: '#fff',
+          transform: 'translateX(-50%) rotate(45deg)',
+          boxShadow: '3px 3px 5px rgba(25, 16, 31, .08)',
         });
         pin.appendChild(tail);
         const openPreview = (event: Event) => {
@@ -1435,16 +1435,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         <button type="button" data-close aria-label="Close property preview">&times;</button>
         <img src="${this.escapeAttribute(image)}" alt="" />
         <div><b>$${Math.round(apartment.price).toLocaleString('en-US')}</b>
-        <small>${apartment.bedrooms || '—'} beds</small></div>`;
+        <small>${apartment.bedrooms || '—'} beds · ${apartment.sizeSquareMeters || '—'} m²</small></div>`;
       Object.assign(card.style, {
-        position: 'absolute', width: '214px', height: '92px', overflow: 'hidden', borderRadius: '14px',
-        display: 'grid', gridTemplateColumns: '98px 1fr',
+        position: 'absolute', width: '236px', height: '104px', overflow: 'hidden', borderRadius: '14px',
+        display: 'grid', gridTemplateColumns: '116px 1fr',
         background: '#fff', color: '#171421', boxShadow: '0 16px 38px rgba(28,17,36,.28)',
         transform: 'translate(-50%, calc(-100% - 42px))', fontFamily: 'Inter,system-ui,sans-serif',
         cursor: 'pointer', zIndex: '30'
       });
       const img = card.querySelector('img') as HTMLImageElement;
-      Object.assign(img.style, { width: '98px', height: '92px', display: 'block', objectFit: 'cover' });
+      Object.assign(img.style, { width: '116px', height: '104px', display: 'block', objectFit: 'cover' });
       const body = card.querySelector('div') as HTMLDivElement;
       Object.assign(body.style, { padding: '20px 10px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '7px' });
       (body.querySelector('small') as HTMLElement).style.cssText = 'font-size:11px;font-weight:650;color:#6e6878';
