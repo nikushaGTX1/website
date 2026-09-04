@@ -69,24 +69,18 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     [
       'Just me',
       'Couple',
-      'Parent with child or children',
       'Family with children',
-      'Friends',
       'Relatives',
       'Roommates',
       'Company employees',
-      'Other',
     ],
     [
       'JustMe',
       'Couple',
-      'ParentWithChildren',
       'FamilyWithChildren',
-      'Friends',
       'Relatives',
       'Roommates',
       'CorporateHousing',
-      'Other',
     ],
   );
   readonly lifestyles = this.opts(
@@ -289,7 +283,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       : '/man%20offset%20fix.svg';
     const man = '/man%20offset%20fix.svg';
     const manTwo = '/man%20ver%202%20offset.svg';
-    const manThree = '/man%20ver%203%20offset.svg';
     const woman = '/woman%20offset%20fix.svg';
     const womanTwo = '/woman%20ver%202%20offset.svg';
     const couple = '/couple%20offset%20fix.svg';
@@ -307,11 +300,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       case 'Friends':
         return [manTwo, womanTwo];
       case 'Roommates':
-        return [manTwo, womanTwo, manThree];
+        return [woman, womanTwo];
       case 'Relatives':
         return [man, woman, womanTwo];
       case 'CorporateHousing':
-        return [man, woman, manTwo, manThree];
+        return [man, woman, manTwo, womanTwo];
       default:
         return [adult];
     }

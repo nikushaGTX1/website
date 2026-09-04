@@ -21,7 +21,6 @@ export class VelvenLifestyleAvatarComponent {
 
     const man = '/man%20offset%20fix.svg';
     const manTwo = '/man%20ver%202%20offset.svg';
-    const manThree = '/man%20ver%203%20offset.svg';
     const woman = '/woman%20offset%20fix.svg';
     const womanTwo = '/woman%20ver%202%20offset.svg';
     const couple = '/couple%20offset%20fix.svg';
@@ -40,11 +39,11 @@ export class VelvenLifestyleAvatarComponent {
       case 'Friends':
         return [manTwo, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'Roommates':
-        return [manTwo, womanTwo, manThree, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [woman, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'Relatives':
         return [man, woman, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'CorporateHousing':
-        return [man, woman, manTwo, manThree, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [man, woman, manTwo, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       default:
         return [this.characterSrc, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
     }
