@@ -400,6 +400,30 @@ svg {
   background: var(--purple);
 }
 
+.bedroom-search-popover {
+  width: 300px;
+}
+
+.bedroom-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.bedroom-options button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.bedroom-options button.selected {
+  color: #fff;
+  border-color: var(--purple);
+  background: var(--purple);
+}
+
 .explorer {
   height: calc(100dvh - 238px);
   min-height: 480px;

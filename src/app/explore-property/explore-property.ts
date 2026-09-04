@@ -27,7 +27,7 @@ export class ExploreProperty implements OnInit {
   bedroomOptions = ['Studio', '1 Bedroom', '2 Bedrooms', '3 Bedrooms', '4+ Bedrooms'];
   bathroomOptions = ['1+ Bathrooms', '2+ Bathrooms', '3+ Bathrooms'];
   propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
-  amenityOptions = ['Parking', 'Balcony', 'Elevator', 'Pool', 'Furnished'];
+  amenityOptions = ['Parking', 'Near Park', 'Balcony', 'Elevator', 'Pool', 'Furnished'];
 
   searchQuery = '';
   selectedType = 'For Rent';
@@ -148,6 +148,13 @@ export class ExploreProperty implements OnInit {
     if (!this.headerBedrooms) return rooms;
     const bedrooms = `${this.headerBedrooms} ${this.headerBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
     return `${rooms}, ${bedrooms}`;
+  }
+
+  get bedroomSummary(): string {
+    if (!this.headerBedrooms) return 'Any bedrooms';
+    return this.headerBedrooms === '4+'
+      ? '4+ Bedrooms'
+      : `${this.headerBedrooms} ${this.headerBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
   }
 
   get availableHeaderBedroomOptions() {
@@ -1328,6 +1335,10 @@ export class ExploreProperty implements OnInit {
       if (normalized === 'balcony') return !!apartment.hasBalcony;
       if (normalized === 'elevator') return !!apartment.hasElevator;
       if (normalized === 'pet friendly') return !!apartment.isPetFriendly;
+      if (normalized === 'near park') {
+        const minutes = Number(apartment.parkDistanceMinutes);
+        return Number.isFinite(minutes) && minutes >= 0 && minutes <= 10;
+      }
       if (normalized === 'new building') {
         const buildingText = `${apartment.apartmentStyle || ''} ${text}`;
         return /new building|new build|newly built|ახალი კორპუს/i.test(buildingText);

@@ -81,6 +81,36 @@
           </div>
         </div>
       </div>
+      <span class="divider hide-small"></span>
+      <div class="search-field hide-small">
+        <button type="button" (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')">
+          <small>Bedrooms</small><strong>{{ bedroomSummary }}</strong>
+        </button>
+        <div
+          class="search-popover compact-popover bedroom-search-popover"
+          *ngIf="bedroomOpen"
+          (click)="$event.stopPropagation()"
+        >
+          <h3>Bedrooms</h3>
+          <div class="bedroom-options">
+            <button
+              type="button"
+              [class.selected]="!headerBedrooms"
+              (click)="selectHeaderBedrooms('')"
+            >
+              Any
+            </button>
+            <button
+              type="button"
+              *ngFor="let option of headerBedroomOptions"
+              [class.selected]="headerBedrooms === option.value"
+              (click)="selectHeaderBedrooms(option.value)"
+            >
+              {{ option.value }}
+            </button>
+          </div>
+        </div>
+      </div>
       <button
         class="search-submit"
         type="button"
@@ -139,39 +169,19 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="2"></circle><circle cx="17" cy="7" r="2"></circle><circle cx="5" cy="13" r="2"></circle><circle cx="19" cy="13" r="2"></circle><path d="M8 18c0-3 2-5 4-5s4 2 4 5c0 2-2 3-4 3s-4-1-4-3Z"></path></svg>
         Pets allowed
       </button>
+      <button
+        class="chip compact-filter-chip"
+        type="button"
+        [class.selected]="selectedAmenities.includes('Near Park')"
+        (click)="toggleAmenity('Near Park')"
+      >
+        <i class="fa-solid fa-tree" aria-hidden="true"></i>
+        Near Park · ≤10 min walk
+      </button>
       <button class="chip" type="button" [class.selected]="selectedAmenities.includes('New building')" (click)="toggleAmenity('New building')">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V7l6-4 6 4v14M9 10h2M13 10h2M9 14h2M13 14h2M10 21v-3h4v3"></path></svg>
         New building
       </button>
-      <button
-        class="chip"
-        type="button"
-        [class.selected]="selectedAmenities.includes('Air conditioning')"
-        (click)="toggleAmenity('Air conditioning')"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 8h10a3 3 0 1 0-3-3M4 12h15a2 2 0 1 1-2 2M4 16h8"></path></svg
-        >Air conditioning
-      </button>
-    </div>
-    <div
-      class="chip-popover bedroom-popover"
-      *ngIf="bedroomOpen"
-      (click)="$event.stopPropagation()"
-    >
-      <h3>Bedrooms</h3>
-      <div>
-        <button type="button" [class.selected]="!headerBedrooms" (click)="selectHeaderBedrooms('')">
-          Any</button
-        ><button
-          type="button"
-          *ngFor="let option of headerBedroomOptions"
-          [class.selected]="headerBedrooms === option.value"
-          (click)="selectHeaderBedrooms(option.value)"
-        >
-          {{ option.value }}
-        </button>
-      </div>
     </div>
   </section>
 
