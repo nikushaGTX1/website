@@ -104,6 +104,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private countOverlays: google.maps.OverlayView[] = [];
   private priceOverlays: google.maps.OverlayView[] = [];
   private propertyPreviewOverlay?: google.maps.OverlayView;
+  private previewApartmentId: number | null = null;
   private streetFocusOverlay?: google.maps.OverlayView;
   private drawnDeleteOverlay?: google.maps.OverlayView;
   private selectedBoundaryPolygons: google.maps.Polygon[] = [];
@@ -1423,7 +1424,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private showPropertyPreview(apartment: Apartment, position: google.maps.LatLngLiteral): void {
     if (!this.map) return;
+    if (this.previewApartmentId === apartment.id) {
+      this.clearPropertyPreview();
+      return;
+    }
     this.clearPropertyPreview();
+    this.previewApartmentId = apartment.id;
     const overlay = new google.maps.OverlayView();
     let card: HTMLDivElement | undefined;
     overlay.onAdd = () => {
@@ -1438,13 +1444,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         <small>${apartment.bedrooms || '—'} beds · ${apartment.sizeSquareMeters || '—'} m²</small></div>`;
       Object.assign(card.style, {
         position: 'absolute', width: '246px', height: '112px', overflow: 'hidden', borderRadius: '14px',
-        display: 'grid', gridTemplateColumns: '140px 1fr',
+        display: 'grid', gridTemplateColumns: '158px 1fr',
         background: '#fff', color: '#171421', boxShadow: '0 16px 38px rgba(28,17,36,.28)',
         transform: 'translate(-50%, calc(-100% - 42px))', fontFamily: 'Inter,system-ui,sans-serif',
         cursor: 'pointer', zIndex: '30'
       });
       const img = card.querySelector('img') as HTMLImageElement;
-      Object.assign(img.style, { width: '140px', height: '112px', display: 'block', objectFit: 'cover' });
+      Object.assign(img.style, { width: '158px', height: '112px', display: 'block', objectFit: 'cover' });
       const body = card.querySelector('div') as HTMLDivElement;
       Object.assign(body.style, { padding: '17px 7px 8px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' });
       (body.querySelector('small') as HTMLElement).style.cssText = 'font-size:9px;font-weight:650;color:#6e6878;white-space:nowrap';
@@ -1467,6 +1473,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private clearPropertyPreview(): void {
     this.propertyPreviewOverlay?.setMap(null);
     this.propertyPreviewOverlay = undefined;
+    this.previewApartmentId = null;
   }
 
   private escapeHtml(value: string): string {
