@@ -105,6 +105,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private priceOverlays: google.maps.OverlayView[] = [];
   private propertyPreviewOverlay?: google.maps.OverlayView;
   private previewApartmentId: number | null = null;
+  private activePreviewPin?: HTMLDivElement;
+  private activePreviewTail?: HTMLElement;
   private streetFocusOverlay?: google.maps.OverlayView;
   private drawnDeleteOverlay?: google.maps.OverlayView;
   private selectedBoundaryPolygons: google.maps.Polygon[] = [];
@@ -1324,7 +1326,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         pin.appendChild(tail);
         const openPreview = (event: Event) => {
           event.stopPropagation();
-          this.showPropertyPreview(apartment, position);
+          this.showPropertyPreview(apartment, position, pin!, tail);
         };
         pin.addEventListener('click', openPreview);
         pin.addEventListener('keydown', (event) => {
@@ -1422,7 +1424,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     return inside;
   }
 
-  private showPropertyPreview(apartment: Apartment, position: google.maps.LatLngLiteral): void {
+  private showPropertyPreview(
+    apartment: Apartment,
+    position: google.maps.LatLngLiteral,
+    pin: HTMLDivElement,
+    tail: HTMLElement,
+  ): void {
     if (!this.map) return;
     if (this.previewApartmentId === apartment.id) {
       this.clearPropertyPreview();
@@ -1430,6 +1437,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
     this.clearPropertyPreview();
     this.previewApartmentId = apartment.id;
+    this.activePreviewPin = pin;
+    this.activePreviewTail = tail;
+    pin.style.background = '#451a8f';
+    pin.style.color = '#fff';
+    pin.style.transform = 'translate(-50%, -100%) scale(1.08)';
+    pin.style.boxShadow = '0 8px 20px rgba(69, 26, 143, .34)';
+    tail.style.background = '#451a8f';
     const overlay = new google.maps.OverlayView();
     let card: HTMLDivElement | undefined;
     overlay.onAdd = () => {
@@ -1473,6 +1487,15 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private clearPropertyPreview(): void {
     this.propertyPreviewOverlay?.setMap(null);
     this.propertyPreviewOverlay = undefined;
+    if (this.activePreviewPin) {
+      this.activePreviewPin.style.background = '#fff';
+      this.activePreviewPin.style.color = '#171421';
+      this.activePreviewPin.style.transform = 'translate(-50%, -100%)';
+      this.activePreviewPin.style.boxShadow = '0 6px 16px rgba(25, 16, 31, .22)';
+    }
+    if (this.activePreviewTail) this.activePreviewTail.style.background = '#fff';
+    this.activePreviewPin = undefined;
+    this.activePreviewTail = undefined;
     this.previewApartmentId = null;
   }
 
