@@ -1,6 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -93,7 +100,11 @@ export class CrmDashboard implements OnInit {
     { value: '12', label: '12 months' },
     { value: '12+', label: '12+ months' },
   ];
-  readonly petTypeOptions: Array<{ value: Exclude<ManualPetType, ''>; label: string; icon: string }> = [
+  readonly petTypeOptions: Array<{
+    value: Exclude<ManualPetType, ''>;
+    label: string;
+    icon: string;
+  }> = [
     { value: 'none', label: 'No pet', icon: 'fa-ban' },
     { value: 'dog', label: 'Dog', icon: 'fa-dog' },
     { value: 'cat', label: 'Cat', icon: 'fa-cat' },
@@ -256,8 +267,9 @@ export class CrmDashboard implements OnInit {
   }
 
   get sourceOptions(): string[] {
-    return [...new Set(this.leads.map((lead) => lead.source).filter(Boolean))]
-      .sort((left, right) => left.localeCompare(right));
+    return [...new Set(this.leads.map((lead) => lead.source).filter(Boolean))].sort((left, right) =>
+      left.localeCompare(right),
+    );
   }
 
   get visibleStatuses(): readonly CrmLeadStatus[] {
@@ -269,15 +281,17 @@ export class CrmDashboard implements OnInit {
     const currentUserId = (this.authService.currentUser?.id || '').toLowerCase();
 
     return this.leads.filter((lead) => {
-      const matchesSearch = !query || [
-        lead.fullName,
-        lead.email,
-        lead.phoneNumber,
-        lead.source,
-        lead.assignedAgentName,
-        lead.apartmentTitle,
-        ...(lead.preferredDistricts || []),
-      ].some((value) => value?.toLowerCase().includes(query));
+      const matchesSearch =
+        !query ||
+        [
+          lead.fullName,
+          lead.email,
+          lead.phoneNumber,
+          lead.source,
+          lead.assignedAgentName,
+          lead.apartmentTitle,
+          ...(lead.preferredDistricts || []),
+        ].some((value) => value?.toLowerCase().includes(query));
       const matchesSource = this.sourceFilter === 'all' || lead.source === this.sourceFilter;
       const assignedAgentId = (lead.assignedAgentId || '').toLowerCase();
       const matchesAssignment =
@@ -290,10 +304,12 @@ export class CrmDashboard implements OnInit {
   }
 
   get hasFilters(): boolean {
-    return !!this.searchQuery ||
+    return (
+      !!this.searchQuery ||
       this.statusFilter !== 'all' ||
       this.sourceFilter !== 'all' ||
-      this.assignmentFilter !== 'all';
+      this.assignmentFilter !== 'all'
+    );
   }
 
   loadDashboard(): void {
@@ -311,9 +327,14 @@ export class CrmDashboard implements OnInit {
         this.leads = this.scopeLeads(leads);
         this.agents = agents;
         const calculatedMetrics = this.calculateMetrics(this.leads);
-        this.metrics = this.isManager && metrics
-          ? { ...metrics, overdueTasks: calculatedMetrics.overdueTasks }
-          : calculatedMetrics;
+        this.metrics =
+          this.isManager && metrics
+            ? {
+                ...metrics,
+                newLeads: calculatedMetrics.newLeads,
+                overdueTasks: calculatedMetrics.overdueTasks,
+              }
+            : calculatedMetrics;
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -331,7 +352,11 @@ export class CrmDashboard implements OnInit {
     // Preserve the API/board order. A status update changes updatedAt and
     // lastActivityAt, so sorting here made a dropped card jump past another
     // card as soon as the server response arrived.
-    return this.filteredLeads.filter((lead) => lead.status === status);
+    return this.filteredLeads.filter((lead) => this.pipelineStatus(lead) === status);
+  }
+
+  isUploaderLead(lead: CrmLead): boolean {
+    return !!lead.uploaderUserId?.trim();
   }
 
   resetFilters(): void {
@@ -343,9 +368,8 @@ export class CrmDashboard implements OnInit {
 
   openCreateDialog(): void {
     if (!this.canCreateLead) return;
-    this.previouslyFocusedElement = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    this.previouslyFocusedElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.manualLeadForm = this.emptyLeadForm();
     this.manualLeadForm.source = this.allowedLeadSources[0].value;
     this.manualLeadForm.status = this.canChooseStartingStage ? 'new' : 'contacted';
@@ -397,14 +421,23 @@ export class CrmDashboard implements OnInit {
     }
 
     const request: CreateCrmLeadRequest = {
-      source: this.isUploader ? 'referral' : (this.authService.isCrmAgent && !this.isManager ? 'manual' : this.manualLeadForm.source),
+      source: this.isUploader
+        ? 'referral'
+        : this.authService.isCrmAgent && !this.isManager
+          ? 'manual'
+          : this.manualLeadForm.source,
       fullName,
       email: email || undefined,
       phoneNumber: phoneNumber || undefined,
       preferredContactMethod: this.manualLeadForm.preferredContactMethod,
-      // Agent/uploader submissions have already started as a direct
-      // conversation and must never enter the New pipeline column.
-      status: this.canChooseStartingStage ? this.manualLeadForm.status : 'contacted',
+      // Uploader-origin and unassigned leads always need a first contact,
+      // so they begin in the New pipeline column.
+      status:
+        this.isUploader || !this.manualLeadForm.assignedAgentId
+          ? 'new'
+          : this.canChooseStartingStage
+            ? this.manualLeadForm.status
+            : 'contacted',
       goal: this.manualLeadForm.goal,
       currency: this.manualLeadForm.currency,
       preferredDistricts: this.preferredDistrictsText
@@ -454,21 +487,26 @@ export class CrmDashboard implements OnInit {
   }
 
   initials(lead: CrmLead): string {
-    return lead.fullName
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase() || 'L';
+    return (
+      lead.fullName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase() || 'L'
+    );
   }
 
   budgetLabel(lead: CrmLead): string {
     const minimum = this.positiveNumber(lead.budgetMin);
     const maximum = this.positiveNumber(lead.budgetMax);
     const format = (value: number): string =>
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: this.safeCurrency(lead.currency), maximumFractionDigits: 0 })
-        .format(value);
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: this.safeCurrency(lead.currency),
+        maximumFractionDigits: 0,
+      }).format(value);
 
     if (minimum && maximum) return `${format(minimum)} – ${format(maximum)}`;
     if (maximum) return `Up to ${format(maximum)}`;
@@ -540,7 +578,8 @@ export class CrmDashboard implements OnInit {
       const preview = document.createElement('div');
       preview.className = 'crm-drag-preview';
       preview.textContent = `Move ${lead.fullName}`;
-      preview.style.cssText = 'position:fixed;top:-1000px;left:-1000px;z-index:9999;max-width:230px;padding:10px 14px;overflow:hidden;border:1px solid #7657f6;border-radius:999px;color:#fff;background:#451a8f;box-shadow:0 8px 20px rgba(69,26,143,.25);font:700 12px Inter,"Segoe UI",sans-serif;text-overflow:ellipsis;white-space:nowrap;';
+      preview.style.cssText =
+        'position:fixed;top:-1000px;left:-1000px;z-index:9999;max-width:230px;padding:10px 14px;overflow:hidden;border:1px solid #7657f6;border-radius:999px;color:#fff;background:#451a8f;box-shadow:0 8px 20px rgba(69,26,143,.25);font:700 12px Inter,"Segoe UI",sans-serif;text-overflow:ellipsis;white-space:nowrap;';
       document.body.appendChild(preview);
       event.dataTransfer.setDragImage(preview, 18, 18);
       setTimeout(() => preview.remove());
@@ -575,19 +614,20 @@ export class CrmDashboard implements OnInit {
     const movedLead = { ...lead, status };
     const remainingLeads = this.leads.filter((item) => item.id !== lead.id);
     const targetIndex = remainingLeads.findIndex((item) => item.status === status);
-    this.leads = targetIndex < 0
-      ? [...remainingLeads, movedLead]
-      : [
-          ...remainingLeads.slice(0, targetIndex),
-          movedLead,
-          ...remainingLeads.slice(targetIndex),
-        ];
+    this.leads =
+      targetIndex < 0
+        ? [...remainingLeads, movedLead]
+        : [
+            ...remainingLeads.slice(0, targetIndex),
+            movedLead,
+            ...remainingLeads.slice(targetIndex),
+          ];
     this.metrics = this.calculateMetrics(this.leads);
     this.errorMessage = '';
 
     this.crmService.updateLeadStatus(lead.id, status).subscribe({
       next: (updatedLead) => {
-        this.leads = this.leads.map((item) => item.id === lead.id ? updatedLead : item);
+        this.leads = this.leads.map((item) => (item.id === lead.id ? updatedLead : item));
         this.statusUpdatingLeadIds.delete(lead.id);
         this.metrics = this.calculateMetrics(this.leads);
         this.refreshMetrics();
@@ -653,10 +693,7 @@ export class CrmDashboard implements OnInit {
 
     if (notes) details.push(notes);
 
-    if (
-      this.manualLeadForm.goal === 'rent' &&
-      this.manualLeadForm.rentalPeriodMonths
-    ) {
+    if (this.manualLeadForm.goal === 'rent' && this.manualLeadForm.rentalPeriodMonths) {
       const period = this.rentalPeriodOptions.find(
         (option) => option.value === this.manualLeadForm.rentalPeriodMonths,
       );
@@ -689,27 +726,33 @@ export class CrmDashboard implements OnInit {
   }
 
   private calculateMetrics(leads: CrmLead[]): CrmMetrics {
-    const activeLeads = leads.filter(
-      (lead) => lead.status !== 'won' && lead.status !== 'lost',
-    );
+    const activeLeads = leads.filter((lead) => lead.status !== 'won' && lead.status !== 'lost');
     const tasks = activeLeads.flatMap((lead) =>
       lead.tasks?.length ? lead.tasks : lead.nextTask ? [lead.nextTask] : [],
     );
     const wonLeads = leads.filter((lead) => lead.status === 'won').length;
-    const closedLeads = leads.filter((lead) => lead.status === 'won' || lead.status === 'lost').length;
+    const closedLeads = leads.filter(
+      (lead) => lead.status === 'won' || lead.status === 'lost',
+    ).length;
 
     return {
       totalLeads: leads.length,
-      newLeads: leads.filter((lead) => lead.status === 'new').length,
+      newLeads: leads.filter((lead) => this.pipelineStatus(lead) === 'new').length,
       activeLeads: activeLeads.length,
       overdueTasks: tasks.filter((task) => this.isOverdue(task)).length,
-      upcomingViewings: tasks.filter((task) =>
-        task.type === 'viewing' && task.status !== 'completed' &&
-        (!task.dueAt || Date.parse(task.dueAt) >= Date.now()),
+      upcomingViewings: tasks.filter(
+        (task) =>
+          task.type === 'viewing' &&
+          task.status !== 'completed' &&
+          (!task.dueAt || Date.parse(task.dueAt) >= Date.now()),
       ).length,
       wonLeads,
       conversionRate: closedLeads ? (wonLeads / closedLeads) * 100 : 0,
     };
+  }
+
+  private pipelineStatus(lead: CrmLead): CrmLeadStatus {
+    return this.isUploaderLead(lead) || !lead.assignedAgentId?.trim() ? 'new' : lead.status;
   }
 
   private scopeLeads(leads: CrmLead[]): CrmLead[] {
@@ -719,9 +762,7 @@ export class CrmDashboard implements OnInit {
     if (!userId) return [];
 
     if (this.authService.isCrmAgent) {
-      return leads.filter((lead) =>
-        (lead.assignedAgentId || '').toLowerCase() === userId,
-      );
+      return leads.filter((lead) => (lead.assignedAgentId || '').toLowerCase() === userId);
     }
 
     return leads.filter((lead) => {
@@ -752,7 +793,11 @@ export class CrmDashboard implements OnInit {
       next: (metrics) => {
         const calculatedMetrics = this.calculateMetrics(this.leads);
         this.metrics = this.isManager
-          ? { ...metrics, overdueTasks: calculatedMetrics.overdueTasks }
+          ? {
+              ...metrics,
+              newLeads: calculatedMetrics.newLeads,
+              overdueTasks: calculatedMetrics.overdueTasks,
+            }
           : calculatedMetrics;
         this.cdr.markForCheck();
       },
@@ -788,22 +833,21 @@ export class CrmDashboard implements OnInit {
   }
 
   private focusableElements(dialog: HTMLElement): HTMLElement[] {
-    return Array.from(dialog.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    )).filter((element) => element.offsetParent !== null);
+    return Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => element.offsetParent !== null);
   }
 
   private apiError(error: HttpErrorResponse, fallback: string): string {
     if (error.status === 401) return 'Your session expired. Please sign in again.';
     if (error.status === 403) return 'You do not have permission to access these leads.';
 
-    const message = typeof error.error === 'string'
-      ? error.error
-      : error.error?.message || error.error?.title;
+    const message =
+      typeof error.error === 'string' ? error.error : error.error?.message || error.error?.title;
     return message || fallback;
   }
-
-
 
   generateQuestionnaireLink(): void {
     if (!this.canGenerateQuestionnaireLink || this.generatingQuestionnaireLink) {
@@ -835,10 +879,7 @@ export class CrmDashboard implements OnInit {
         } catch (error) {
           console.error('Could not copy questionnaire link:', error);
 
-          window.prompt(
-            'Copy questionnaire link:',
-            fullUrl
-          );
+          window.prompt('Copy questionnaire link:', fullUrl);
         }
 
         this.cdr.markForCheck();
@@ -846,10 +887,7 @@ export class CrmDashboard implements OnInit {
 
       error: (error: HttpErrorResponse) => {
         this.generatingQuestionnaireLink = false;
-        this.errorMessage = this.apiError(
-          error,
-          'Could not generate questionnaire link.'
-        );
+        this.errorMessage = this.apiError(error, 'Could not generate questionnaire link.');
         this.cdr.markForCheck();
       },
     });
