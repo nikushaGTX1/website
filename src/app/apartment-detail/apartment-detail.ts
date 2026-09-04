@@ -256,6 +256,10 @@ export class ApartmentDetail implements OnInit {
     return this.galleryImages[this.activePhotoIndex] || '/property-placeholder.svg';
   }
 
+  get rooms(): number {
+    return this.apartment?.rooms || 0;
+  }
+
   get bedrooms(): number {
     return this.apartment?.bedrooms || 0;
   }
