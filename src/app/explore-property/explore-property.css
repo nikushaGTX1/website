@@ -915,6 +915,9 @@ svg {
 .mobile-toggle {
   display: none;
 }
+.mobile-filter-trigger {
+  display: none;
+}
 
 @media (min-width: 1700px) {
   .explorer {
@@ -947,6 +950,12 @@ svg {
   }
 }
 @media (max-width: 780px) {
+  :host {
+    overflow-x: clip;
+  }
+  .property-explorer {
+    min-height: 100dvh;
+  }
   .search-row {
     min-height: 73px;
     padding: 9px 14px;
@@ -957,6 +966,7 @@ svg {
     min-width: 0;
     height: 53px;
     padding-left: 17px;
+    box-shadow: 0 3px 12px rgba(35, 22, 51, 0.07);
   }
   .search-field {
     min-width: 0;
@@ -994,6 +1004,22 @@ svg {
   }
   .chip-scroll {
     justify-content: flex-start;
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chip-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .mobile-filter-trigger {
+    display: inline-flex;
+  }
+  .chip-scroll > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
   }
   .chip {
     height: 34px;
@@ -1012,26 +1038,70 @@ svg {
     overflow: visible;
   }
   .results-pane {
-    padding: 20px 14px 90px;
+    padding: 22px 16px calc(96px + env(safe-area-inset-bottom));
     overflow: visible;
   }
   .results-heading h1 {
-    font-size: 22px;
+    font-size: clamp(21px, 6vw, 25px);
+    line-height: 1.18;
+  }
+  .results-heading {
+    margin-bottom: 20px;
   }
   .sort {
     display: none;
   }
   .cards-grid {
     grid-template-columns: 1fr;
-    gap: 27px;
+    gap: 32px;
   }
   .photo-wrap {
-    height: 270px;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 16px;
+  }
+  .property-card:hover,
+  .property-card.active {
+    transform: none;
+  }
+  .heart {
+    width: 44px;
+    height: 44px;
+    top: 8px;
+    right: 8px;
+  }
+  .heart svg {
+    width: 23px;
+    height: 23px;
+  }
+  .card-body {
+    padding: 12px 1px 0;
+  }
+  .title-row {
+    gap: 10px;
+  }
+  .title-row h2 {
+    font-size: 16px;
+  }
+  .card-header-price {
+    font-size: 15px;
+  }
+  .property-location,
+  .facts {
+    font-size: 13px;
+  }
+  .facts {
+    gap: 10px;
+  }
+  .card-nearby-grid > span {
+    min-height: 70px;
   }
   .map-pane {
     position: fixed;
     z-index: 30;
     inset: 119px 0 0;
+    margin: 0;
+    border-radius: 0;
     display: none;
     height: auto;
     border: 0;
@@ -1045,7 +1115,7 @@ svg {
   .mobile-toggle {
     position: fixed;
     z-index: 60;
-    bottom: 22px;
+    bottom: calc(18px + env(safe-area-inset-bottom));
     left: 50%;
     height: 47px;
     padding: 0 18px;
@@ -1061,6 +1131,7 @@ svg {
     font-weight: 700;
     cursor: pointer;
     transform: translateX(-50%);
+    touch-action: manipulation;
   }
   .mobile-toggle svg {
     width: 18px;
@@ -1072,6 +1143,9 @@ svg {
     right: 14px;
     left: 14px;
     width: auto;
+    max-height: calc(100dvh - 150px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .search-popover::before {
     display: none;
@@ -1083,6 +1157,52 @@ svg {
     left: 14px;
     width: auto;
     transform: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .search-row {
+    padding-inline: 10px;
+  }
+  .search-box {
+    height: 50px;
+    padding-left: 14px;
+  }
+  .search-submit {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    margin-right: 4px;
+  }
+  .ai-cta {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+  .chip-bar {
+    padding-inline: 10px;
+  }
+  .results-pane {
+    padding-inline: 12px;
+  }
+  .photo-wrap {
+    aspect-ratio: 1.18 / 1;
+  }
+  .title-row {
+    flex-wrap: wrap;
+  }
+  .card-header-price {
+    padding-left: 0;
+  }
+  .card-nearby-grid {
+    gap: 5px;
+  }
+  .card-nearby-grid > span {
+    min-height: 66px;
+    padding-inline: 3px;
+  }
+  .map-preview {
+    width: calc(100% - 24px);
   }
 }
 

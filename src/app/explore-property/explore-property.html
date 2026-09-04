@@ -43,6 +43,14 @@
           <button type="button" [class.selected]="!homeType" (click)="selectHeaderPropertyType('')">
             Any home
           </button>
+          <button
+            type="button"
+            *ngFor="let type of ['Apartment', 'House', 'Country house', 'Commercial place']"
+            [class.selected]="homeType === type"
+            (click)="selectHeaderPropertyType(type)"
+          >
+            {{ type }}
+          </button>
         </div>
       </div>
       <span class="divider hide-small"></span>
@@ -137,6 +145,33 @@
 
   <section class="chip-bar" aria-label="Property filters">
     <div class="chip-scroll">
+      <button
+        class="chip mobile-filter-trigger"
+        type="button"
+        [class.selected]="!!homeType"
+        (click)="$event.stopPropagation(); toggleSearchMenu('propertyType')"
+      >
+        <i class="fa-solid fa-house" aria-hidden="true"></i>
+        {{ homeType || 'Home type' }}
+      </button>
+      <button
+        class="chip mobile-filter-trigger"
+        type="button"
+        [class.selected]="!!appliedBudgetMin || !!appliedBudgetMax"
+        (click)="$event.stopPropagation(); toggleSearchMenu('budget')"
+      >
+        <i class="fa-solid fa-tag" aria-hidden="true"></i>
+        {{ budgetSummary === 'Any budget' ? 'Price' : budgetSummary }}
+      </button>
+      <button
+        class="chip mobile-filter-trigger"
+        type="button"
+        [class.selected]="!!headerBedrooms"
+        (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')"
+      >
+        <i class="fa-solid fa-bed" aria-hidden="true"></i>
+        {{ bedroomSummary }}
+      </button>
       <label class="chip filter-select compact-filter-chip" [class.selected]="selectedMinArea > 0">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg>
         <select [value]="selectedMinArea" (change)="setMinimumArea($event)" aria-label="Minimum area">
