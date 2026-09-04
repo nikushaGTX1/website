@@ -1324,11 +1324,28 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           boxShadow: '3px 3px 5px rgba(25, 16, 31, .08)',
         });
         pin.appendChild(tail);
+        const setPinHighlighted = (highlighted: boolean) => {
+          const active = this.previewApartmentId === apartment.id;
+          const selected = highlighted || active;
+          pin!.style.background = selected ? '#451a8f' : '#fff';
+          pin!.style.color = selected ? '#fff' : '#171421';
+          pin!.style.transform = selected
+            ? 'translate(-50%, -100%) scale(1.08)'
+            : 'translate(-50%, -100%)';
+          pin!.style.boxShadow = selected
+            ? '0 8px 20px rgba(69, 26, 143, .34)'
+            : '0 6px 16px rgba(25, 16, 31, .22)';
+          tail.style.background = selected ? '#451a8f' : '#fff';
+        };
         const openPreview = (event: Event) => {
           event.stopPropagation();
           this.showPropertyPreview(apartment, position, pin!, tail);
         };
         pin.addEventListener('click', openPreview);
+        pin.addEventListener('pointerenter', () => setPinHighlighted(true));
+        pin.addEventListener('pointerleave', () => setPinHighlighted(false));
+        pin.addEventListener('focus', () => setPinHighlighted(true));
+        pin.addEventListener('blur', () => setPinHighlighted(false));
         pin.addEventListener('keydown', (event) => {
           if ((event as KeyboardEvent).key === 'Enter' || (event as KeyboardEvent).key === ' ') {
             event.preventDefault();
@@ -1448,13 +1465,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     let card: HTMLDivElement | undefined;
     overlay.onAdd = () => {
       card = document.createElement('div');
-      const image = apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg';
+      const images = (apartment.imageUrls || []).filter(Boolean);
+      if (!images.length) images.push(apartment.imageUrl || '/property-placeholder.svg');
+      let imageIndex = 0;
       card.setAttribute('role', 'dialog');
       card.setAttribute('aria-label', apartment.title || 'Property details');
       card.innerHTML = `
         <button type="button" data-close aria-label="Close property preview">&times;</button>
-        <img src="${this.escapeAttribute(image)}" alt="" />
-        <div><b>$${Math.round(apartment.price).toLocaleString('en-US')}</b>
+        <div data-gallery><img src="${this.escapeAttribute(images[0])}" alt="" />
+        ${images.length > 1 ? '<button type="button" data-previous aria-label="Previous image">&#8249;</button><button type="button" data-next aria-label="Next image">&#8250;</button>' : ''}</div>
+        <div data-body><b>$${Math.round(apartment.price).toLocaleString('en-US')}</b>
         <small>${apartment.bedrooms || '—'} beds · ${apartment.sizeSquareMeters || '—'} m²</small></div>`;
       Object.assign(card.style, {
         position: 'absolute', width: '246px', height: '112px', overflow: 'hidden', borderRadius: '14px',
@@ -1463,9 +1483,25 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         transform: 'translate(-50%, calc(-100% - 42px))', fontFamily: 'Inter,system-ui,sans-serif',
         cursor: 'pointer', zIndex: '30'
       });
-      const img = card.querySelector('img') as HTMLImageElement;
+      const gallery = card.querySelector('[data-gallery]') as HTMLDivElement;
+      Object.assign(gallery.style, { position: 'relative', width: '158px', height: '112px', overflow: 'hidden' });
+      const img = gallery.querySelector('img') as HTMLImageElement;
       Object.assign(img.style, { width: '158px', height: '112px', display: 'block', objectFit: 'cover' });
-      const body = card.querySelector('div') as HTMLDivElement;
+      const changeImage = (event: Event, direction: number) => {
+        event.stopPropagation();
+        imageIndex = (imageIndex + direction + images.length) % images.length;
+        img.src = images[imageIndex];
+      };
+      const previous = gallery.querySelector('[data-previous]') as HTMLButtonElement | null;
+      const next = gallery.querySelector('[data-next]') as HTMLButtonElement | null;
+      if (previous && next) {
+        const arrowCss = 'position:absolute;z-index:2;top:50%;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:#fff;color:#171421;font-size:24px;line-height:25px;cursor:pointer;box-shadow:0 2px 7px #0003;transform:translateY(-50%)';
+        previous.style.cssText = `${arrowCss};left:6px`;
+        next.style.cssText = `${arrowCss};right:6px`;
+        previous.addEventListener('click', (event) => changeImage(event, -1));
+        next.addEventListener('click', (event) => changeImage(event, 1));
+      }
+      const body = card.querySelector('[data-body]') as HTMLDivElement;
       Object.assign(body.style, { padding: '17px 7px 8px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' });
       (body.querySelector('small') as HTMLElement).style.cssText = 'font-size:9px;font-weight:650;color:#6e6878;white-space:nowrap';
       (body.querySelector('b') as HTMLElement).style.cssText = 'font-size:15px;color:#451a8f;white-space:nowrap';
