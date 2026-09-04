@@ -1437,18 +1437,18 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         <div><b>$${Math.round(apartment.price).toLocaleString('en-US')}</b>
         <small>${apartment.bedrooms || '—'} beds · ${apartment.sizeSquareMeters || '—'} m²</small></div>`;
       Object.assign(card.style, {
-        position: 'absolute', width: '236px', height: '104px', overflow: 'hidden', borderRadius: '14px',
-        display: 'grid', gridTemplateColumns: '116px 1fr',
+        position: 'absolute', width: '232px', height: '108px', overflow: 'hidden', borderRadius: '14px',
+        display: 'grid', gridTemplateColumns: '126px 1fr',
         background: '#fff', color: '#171421', boxShadow: '0 16px 38px rgba(28,17,36,.28)',
         transform: 'translate(-50%, calc(-100% - 42px))', fontFamily: 'Inter,system-ui,sans-serif',
         cursor: 'pointer', zIndex: '30'
       });
       const img = card.querySelector('img') as HTMLImageElement;
-      Object.assign(img.style, { width: '116px', height: '104px', display: 'block', objectFit: 'cover' });
+      Object.assign(img.style, { width: '126px', height: '108px', display: 'block', objectFit: 'cover' });
       const body = card.querySelector('div') as HTMLDivElement;
-      Object.assign(body.style, { padding: '20px 10px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '7px' });
-      (body.querySelector('small') as HTMLElement).style.cssText = 'font-size:11px;font-weight:650;color:#6e6878';
-      (body.querySelector('b') as HTMLElement).style.cssText = 'font-size:17px;color:#451a8f;white-space:nowrap';
+      Object.assign(body.style, { padding: '17px 7px 8px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' });
+      (body.querySelector('small') as HTMLElement).style.cssText = 'font-size:9px;font-weight:650;color:#6e6878;white-space:nowrap';
+      (body.querySelector('b') as HTMLElement).style.cssText = 'font-size:15px;color:#451a8f;white-space:nowrap';
       const close = card.querySelector('[data-close]') as HTMLButtonElement;
       close.style.cssText = 'position:absolute;z-index:2;top:5px;right:5px;width:24px;height:24px;padding:0;border:0;border-radius:50%;background:#f5f2f8;color:#4b4452;font-size:17px;line-height:22px;cursor:pointer';
       close.addEventListener('click', (event) => { event.stopPropagation(); this.clearPropertyPreview(); });

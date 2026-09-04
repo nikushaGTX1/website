@@ -257,8 +257,10 @@
           class="property-card"
           *ngFor="let apartment of paginatedApartments"
           [class.active]="selectedApartment?.id === apartment.id"
-          (mouseenter)="selectApartment(apartment)"
-          (focusin)="selectApartment(apartment)"
+          (mouseenter)="hoveredApartmentId = apartment.id; selectApartment(apartment)"
+          (mouseleave)="hoveredApartmentId = null"
+          (focusin)="hoveredApartmentId = apartment.id; selectApartment(apartment)"
+          (focusout)="hoveredApartmentId = null"
         >
           <a
             class="card-link"
@@ -387,7 +389,7 @@
     <aside class="map-pane" aria-label="Property map">
       <app-explore-property-map
         [apartments]="pageApartments"
-        [selectedApartmentId]="mapPreviewApartment ? mapPreviewApartment.id : null"
+        [selectedApartmentId]="hoveredApartmentId ?? (mapPreviewApartment ? mapPreviewApartment.id : null)"
         (apartmentSelected)="selectMapApartment($event)"
         (previewAnchorChanged)="positionMapPreview($event)"
         (visibleApartmentsChanged)="onMapVisibleApartmentsChanged($event)"

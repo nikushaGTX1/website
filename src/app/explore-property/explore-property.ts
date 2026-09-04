@@ -118,6 +118,7 @@ export class ExploreProperty implements OnInit {
 
   selectedApartment: Apartment | null = null;
   mapPreviewApartment: Apartment | null = null;
+  hoveredApartmentId: number | null = null;
   mapPreviewImageIndex = 0;
   mapPreviewPosition = { left: 16, top: 16 };
   private mapPreviewOffset = { x: 0, y: 0 };
