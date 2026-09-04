@@ -312,8 +312,9 @@ button:disabled {
 .pipeline-board {
   min-width: 1900px;
   display: grid;
-  grid-template-columns: repeat(7, minmax(250px, 1fr));
+  grid-template-columns: repeat(6, minmax(250px, 1fr));
   gap: 12px;
+  align-items: start;
 }
 
 .pipeline-board.filtered {
@@ -323,7 +324,7 @@ button:disabled {
 
 .pipeline-column {
   min-width: 0;
-  min-height: 420px;
+  min-height: 0;
   padding: 12px;
   border: 1px solid #e0e4ea;
   border-radius: 12px;
@@ -1405,6 +1406,14 @@ button:disabled {
   color: #8a93a3;
   font-size: 10px;
   font-weight: 500;
+}
+.form-grid .duplicate-warning {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #b42318;
+  font-weight: 800;
 }
 .dialog-error {
   margin: 0 0 15px;

@@ -650,6 +650,11 @@
                 [(ngModel)]="manualLeadForm.phoneNumber"
                 autocomplete="tel"
               />
+              <small class="duplicate-warning" *ngIf="duplicateLead as duplicate" role="alert">
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                Duplicate detected — {{ duplicate.fullName }} already has this phone number or
+                email.
+              </small>
             </label>
 
             <!-- SOURCE -->
@@ -1130,7 +1135,7 @@
           <button
             class="primary-button"
             type="submit"
-            [disabled]="creatingLead || !manualLeadForm.goal"
+            [disabled]="creatingLead || !manualLeadForm.goal || !!duplicateLead"
           >
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
 

@@ -198,6 +198,26 @@ export class CrmDashboard implements OnInit {
     return agent ? this.agentFirstLastName(agent) : 'Agent';
   }
 
+  get duplicateLead(): CrmLead | null {
+    const phone = this.normalizedPhone(this.manualLeadForm.phoneNumber);
+    const email = this.manualLeadForm.email?.trim().toLowerCase() || '';
+
+    return (
+      this.leads.find((lead) => {
+        const existingPhone = this.normalizedPhone(lead.phoneNumber);
+        const samePhone =
+          !!phone &&
+          !!existingPhone &&
+          (phone === existingPhone ||
+            (phone.length >= 9 &&
+              existingPhone.length >= 9 &&
+              phone.slice(-9) === existingPhone.slice(-9)));
+        const sameEmail = !!email && lead.email?.trim().toLowerCase() === email;
+        return samePhone || sameEmail;
+      }) || null
+    );
+  }
+
   toggleLeadMenu(menu: 'budget' | 'property' | 'rooms' | 'bedrooms'): void {
     if (menu === 'bedrooms' && !this.manualLeadForm.rooms) return;
     this.leadMenu = this.leadMenu === menu ? null : menu;
@@ -427,6 +447,12 @@ export class CrmDashboard implements OnInit {
 
     if (!email && !phoneNumber) {
       this.createErrorMessage = 'Add an email address or phone number.';
+      return;
+    }
+
+    const duplicate = this.duplicateLead;
+    if (duplicate) {
+      this.createErrorMessage = `Duplicate detected: ${duplicate.fullName} already uses this phone number or email.`;
       return;
     }
 
@@ -846,6 +872,10 @@ export class CrmDashboard implements OnInit {
   private safeCurrency(value?: string): string {
     const currency = (value || 'USD').toUpperCase();
     return /^[A-Z]{3}$/.test(currency) ? currency : 'USD';
+  }
+
+  private normalizedPhone(value?: string): string {
+    return (value || '').replace(/\D/g, '').replace(/^00/, '');
   }
 
   private refreshMetrics(): void {
