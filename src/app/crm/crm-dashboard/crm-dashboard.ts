@@ -11,6 +11,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
+import { parsePhoneNumberFromString } from 'libphonenumber-js/max';
 import { Agent } from '../../models/agent';
 import {
   CRM_LEAD_STATUSES,
@@ -447,15 +448,21 @@ export class CrmDashboard implements OnInit {
 
     const fullName = this.manualLeadForm.fullName.trim();
     const email = this.manualLeadForm.email?.trim() || '';
-    const phoneNumber = this.manualLeadForm.phoneNumber?.trim() || '';
+    const enteredPhoneNumber = this.manualLeadForm.phoneNumber?.trim() || '';
+    const phoneNumber = this.phoneForSubmission(enteredPhoneNumber);
 
     if (!fullName) {
       this.createErrorMessage = 'Please enter the lead name.';
       return;
     }
 
-    if (!email && !phoneNumber) {
+    if (!email && !enteredPhoneNumber) {
       this.createErrorMessage = 'Add an email address or phone number.';
+      return;
+    }
+
+    if (enteredPhoneNumber && !phoneNumber) {
+      this.createErrorMessage = 'Enter a valid phone number, including the country code.';
       return;
     }
 
@@ -885,6 +892,19 @@ export class CrmDashboard implements OnInit {
 
   private normalizedPhone(value?: string): string {
     return (value || '').replace(/\D/g, '').replace(/^00/, '');
+  }
+
+  private phoneForSubmission(value: string): string {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+
+    if (trimmed.startsWith('+')) {
+      const parsed = parsePhoneNumberFromString(trimmed);
+      return parsed?.isPossible() ? parsed.number : '';
+    }
+
+    const digits = this.normalizedPhone(trimmed);
+    return digits.length >= 7 && digits.length <= 15 ? digits : '';
   }
 
   private refreshMetrics(): void {
