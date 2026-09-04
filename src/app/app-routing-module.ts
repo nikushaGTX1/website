@@ -151,6 +151,24 @@ const routes: Routes = [
   },
 
   {
+    path: 'crm/clients/:status',
+    loadComponent: () =>
+      import('./crm/crm-dashboard/crm-dashboard')
+        .then(module => module.CrmDashboard),
+    title: 'CRM Clients | Velven',
+    canActivate: [authGuard, crmGuard]
+  },
+
+  {
+    path: 'crm/agents/:agentId',
+    loadComponent: () =>
+      import('./crm/crm-dashboard/crm-dashboard')
+        .then(module => module.CrmDashboard),
+    title: 'Agent Leads | Velven',
+    canActivate: [authGuard, crmGuard]
+  },
+
+  {
     path: 'crm/leads/:id',
 
     loadComponent: () =>

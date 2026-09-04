@@ -12,7 +12,15 @@
       <div>
         <p class="eyebrow">VELVEN CRM</p>
 
-        <h1>Lead pipeline</h1>
+        <h1>
+          {{
+            dedicatedStatus
+              ? statusLabel(dedicatedStatus) + ' clients'
+              : dedicatedAgentId
+                ? dedicatedAgentName + ' leads'
+                : 'Lead pipeline'
+          }}
+        </h1>
 
         <p class="header-copy" *ngIf="!isUploader">
           Keep every inquiry, follow-up, and viewing moving toward the right home.
@@ -26,6 +34,10 @@
       <!-- HEADER ACTIONS -->
 
       <div class="header-actions">
+        <a class="admin-shortcut" routerLink="/crm" *ngIf="dedicatedStatus || dedicatedAgentId">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          All pipeline stages
+        </a>
         <!-- SYSTEM DASHBOARD -->
 
         <a class="admin-shortcut" routerLink="/admin" *ngIf="isAdmin">
@@ -161,7 +173,7 @@
         <select [(ngModel)]="statusFilter">
           <option value="all">All stages</option>
 
-          <option *ngFor="let status of statuses" [value]="status">
+          <option *ngFor="let status of displayedStatuses" [value]="status">
             {{ statusLabel(status) }}
           </option>
         </select>
@@ -181,17 +193,16 @@
         </select>
       </label>
 
-      <!-- ASSIGNMENT -->
+      <!-- AGENTS -->
 
       <label *ngIf="isManager">
-        <span> Assignment </span>
+        <span> Agents </span>
 
-        <select [(ngModel)]="assignmentFilter">
-          <option value="all">All visible leads</option>
-
-          <option value="mine">Assigned to me</option>
-
-          <option value="unassigned">Unassigned</option>
+        <select [(ngModel)]="agentFilter" (ngModelChange)="openAgentLeads($event)">
+          <option value="all">All agents</option>
+          <option *ngFor="let agent of agents" [value]="agentId(agent)">
+            {{ agentFirstLastName(agent) }}
+          </option>
         </select>
       </label>
 
@@ -290,7 +301,7 @@
                 <span class="status-dot" aria-hidden="true"></span>
 
                 <h3 [id]="'pipeline-' + status">
-                  {{ statusLabel(status) }}
+                  <a [routerLink]="['/crm/clients', status]">{{ statusLabel(status) }}</a>
                 </h3>
               </div>
 
@@ -323,10 +334,15 @@
                 "
                 [class.is-dragging]="draggedLeadId === lead.id"
                 [class.is-updating]="statusUpdatingLeadIds.has(lead.id)"
+                [class.needs-attention]="needsAttention(lead)"
                 (dragstart)="startLeadDrag(lead, $event)"
                 (dragend)="finishLeadDrag()"
                 [attr.aria-label]="'Open lead ' + lead.fullName"
               >
+                <div class="attention-badge" *ngIf="needsAttention(lead)">
+                  <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                  Needs Attention
+                </div>
                 <!-- LEAD TOP -->
 
                 <div class="lead-card-top">
@@ -688,7 +704,7 @@
               </span>
 
               <select name="leadStatus" [(ngModel)]="manualLeadForm.status">
-                <option *ngFor="let status of statuses" [value]="status">
+                <option *ngFor="let status of displayedStatuses" [value]="status">
                   {{ statusLabel(status) }}
                 </option>
               </select>

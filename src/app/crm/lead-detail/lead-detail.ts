@@ -147,8 +147,9 @@ export class CrmLeadDetail implements OnInit {
      CONSTANTS
   ======================================================= */
 
-  readonly statuses =
-    CRM_LEAD_STATUSES;
+  readonly statuses = CRM_LEAD_STATUSES.filter(
+    (status): status is Exclude<CrmLeadStatus, 'negotiation'> => status !== 'negotiation',
+  );
 
 
   readonly taskTypes =
@@ -1809,6 +1810,10 @@ export class CrmLeadDetail implements OnInit {
     return this.statusLabels[
       status
     ];
+  }
+
+  statusIndex(status: CrmLeadStatus): number {
+    return this.statuses.findIndex((item) => item === status);
   }
 
 
