@@ -356,7 +356,7 @@ export class CrmDashboard implements OnInit {
   }
 
   isUploaderLead(lead: CrmLead): boolean {
-    return !!lead.uploaderUserId?.trim();
+    return !!lead.uploaderUserId?.trim() || lead.source?.trim().toLowerCase() === 'referral';
   }
 
   resetFilters(): void {
