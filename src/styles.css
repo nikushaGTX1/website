@@ -365,6 +365,16 @@ html:lang(ru) :is(input, textarea)::placeholder {
   text-overflow: ellipsis;
 }
 
+body.photo-viewer-active app-navigation,
+body.photo-viewer-active app-footer,
+body.photo-viewer-active .skip-link {
+  display: none !important;
+}
+
+body.photo-viewer-active .route-content {
+  isolation: auto !important;
+}
+
 @media (max-width: 768px) {
   html:lang(ka) :is(button, [role='button']),
   html:lang(ru) :is(button, [role='button']) {

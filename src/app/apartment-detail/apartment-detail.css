@@ -636,9 +636,10 @@
 }
 .photo-viewer-track img {
   width: min(1100px, calc(100vw - 64px));
-  max-height: calc(100dvh - 150px);
+  height: calc(100dvh - 150px);
   flex: 0 0 auto;
   object-fit: contain;
+  background: #0f0a14;
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
   user-select: none;
@@ -646,7 +647,7 @@
 .viewer-back,
 .viewer-close,
 .viewer-nav {
-  position: absolute;
+  position: fixed;
   border: 0;
   cursor: pointer;
 }
@@ -700,9 +701,31 @@
   border-radius: 18px;
   background: rgba(15, 10, 20, .72);
   transform: translateX(-50%);
-  position: absolute;
+  position: fixed;
   bottom: 18px;
   color: #fff;
+}
+
+@media (max-width: 600px) {
+  .photo-viewer-track {
+    padding: 72px 12px 76px;
+    gap: 12px;
+  }
+
+  .photo-viewer-track img {
+    width: calc(100vw - 24px);
+    height: calc(100dvh - 148px);
+  }
+
+  .viewer-back {
+    top: 14px;
+    left: 12px;
+  }
+
+  .viewer-close {
+    top: 10px;
+    right: 14px;
+  }
 }
 .detail-empty-state {
   padding: 90px 20px;

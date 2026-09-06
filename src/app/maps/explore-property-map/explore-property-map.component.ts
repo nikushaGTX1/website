@@ -41,6 +41,12 @@ export interface PropertyMapPreviewAnchor {
   styleUrl: './explore-property-map.component.css',
 })
 export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private static readonly defaultCenter: google.maps.LatLngLiteral = {
+    lat: 41.7151,
+    lng: 44.7833,
+  };
+  private static readonly defaultZoom = 12;
+  private static readonly minimumZoom = 10;
   private static readonly georgiaBounds: google.maps.LatLngBoundsLiteral = {
     south: 41.05,
     west: 40.85,
@@ -136,9 +142,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       ]);
 
       this.map = new Map(this.mapCanvas.nativeElement, {
-        center: { lat: 42.1, lng: 43.5 },
-        zoom: 7,
-        minZoom: 7,
+        center: ExplorePropertyMapComponent.defaultCenter,
+        zoom: ExplorePropertyMapComponent.defaultZoom,
+        minZoom: ExplorePropertyMapComponent.minimumZoom,
         ...(mapId ? { mapId } : {}),
         mapTypeId: this.mapType,
         mapTypeControl: false,
@@ -538,7 +544,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     google.maps.event.addListenerOnce(this.map, 'idle', () => {
       const zoom = this.map?.getZoom() || 0;
       if (zoom > 16) this.map?.setZoom(16);
-      if (zoom < 7) this.map?.setZoom(7);
+      if (zoom < ExplorePropertyMapComponent.minimumZoom) {
+        this.map?.setZoom(ExplorePropertyMapComponent.minimumZoom);
+      }
     });
   }
 

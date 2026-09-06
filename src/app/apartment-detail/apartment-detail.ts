@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -50,7 +51,7 @@ interface ViewingInquiryForm {
   templateUrl: './apartment-detail.html',
   styleUrls: ['./apartment-detail.css', './apartment-detail.icons.css'],
 })
-export class ApartmentDetail implements OnInit {
+export class ApartmentDetail implements OnInit, OnDestroy {
   @ViewChild('viewingDialog') private viewingDialog?: ElementRef<HTMLElement>;
 
   apartment: Apartment | null = null;
@@ -375,6 +376,7 @@ export class ApartmentDetail implements OnInit {
 
   openPhotoViewer(): void {
     this.photoViewerOpen = true;
+    document.body.classList.add('photo-viewer-active');
     document.body.style.overflow = 'hidden';
     requestAnimationFrame(() => {
       document
@@ -385,6 +387,12 @@ export class ApartmentDetail implements OnInit {
 
   closePhotoViewer(): void {
     this.photoViewerOpen = false;
+    document.body.classList.remove('photo-viewer-active');
+    document.body.style.overflow = '';
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.remove('photo-viewer-active');
     document.body.style.overflow = '';
   }
 
@@ -545,6 +553,12 @@ export class ApartmentDetail implements OnInit {
 
   @HostListener('document:keydown', ['$event'])
   handleDialogKeydown(event: KeyboardEvent): void {
+    if (this.photoViewerOpen && event.key === 'Escape') {
+      event.preventDefault();
+      this.closePhotoViewer();
+      return;
+    }
+
     if (!this.viewingDialogOpen) return;
 
     if (event.key === 'Escape') {
