@@ -97,7 +97,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Choose your location', 'აირჩიეთ მდებარეობა'],
   ['Choose a location', 'აირჩიეთ მდებარეობა'],
   ['Close location picker', 'მდებარეობის არჩევის ფანჯრის დახურვა'],
-  ['Search area, street, building or landmark...', 'მოძებნეთ უბანი, ქუჩა, შენობა ან ობიექტი...'],
+  ['Search area, Streets Or Draw', 'მოძებნეთ უბანი, ქუჩა, ან დახაზეთ'],
   ['Search locations', 'მდებარეობების ძიება'],
   ['Search street...', 'ქუჩის ძიება...'],
   ['Areas', 'უბნები'],

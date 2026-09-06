@@ -3694,4 +3694,10 @@
   :host-context(html:lang(ka)) .hero h1 {
     font-size: clamp(34px, 9.5vw, 42px);
   }
+
+  @media (max-width: 650px) {
+  .location-panel-trigger > b {
+    transform: translateX(-7px);
+  }
+}
 }
