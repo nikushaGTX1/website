@@ -1847,6 +1847,9 @@
             class="panel owner-panel"
             aria-labelledby="owner-heading"
           >
+            <p class="permission-note" *ngIf="currentLead.originalOwnerName">
+              Original lead owner: <strong>{{ currentLead.originalOwnerName }}</strong>
+            </p>
 
             <header class="panel-heading">
 

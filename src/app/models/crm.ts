@@ -80,6 +80,9 @@ export interface CrmLead {
   createdByUserId?: string;
   /** Account that uploaded the property which generated this lead. */
   uploaderUserId?: string;
+  /** Original owner, independent of the currently assigned agent. */
+  originalOwnerUserId?: string;
+  originalOwnerName?: string;
   closedAt?: string;
   createdAt: string;
   updatedAt?: string;
