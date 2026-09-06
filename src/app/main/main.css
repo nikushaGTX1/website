@@ -2009,7 +2009,7 @@
 
 /* Refined desktop scale and typography */
 :host {
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: Manrope, 'Segoe UI', Arial, sans-serif;
   font-size: 16px;
 }
 .hero-copy {

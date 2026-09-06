@@ -637,11 +637,32 @@
   object-fit: contain;
   scroll-snap-align: center;
 }
+.viewer-back,
 .viewer-close,
 .viewer-nav {
   position: absolute;
   border: 0;
   cursor: pointer;
+}
+.viewer-back {
+  z-index: 2;
+  top: 22px;
+  left: 25px;
+  min-height: 42px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  background: rgba(15, 10, 20, 0.72);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+.viewer-back:hover {
+  background: rgba(255, 255, 255, 0.16);
 }
 .viewer-close {
   z-index: 2;

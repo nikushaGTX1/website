@@ -227,6 +227,9 @@
         </aside>
       </div>
       <div class="photo-viewer" *ngIf="photoViewerOpen" (click)="closePhotoViewer()">
+        <button class="viewer-back" type="button" (click)="$event.stopPropagation(); closePhotoViewer()">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Back</span>
+        </button>
         <button class="viewer-close" type="button" aria-label="Close photo viewer">×</button>
         <div class="photo-viewer-track" (click)="$event.stopPropagation()" (scroll)="updateActiveViewerPhoto($event)">
           <img *ngFor="let image of galleryImages; let i = index" [src]="image" [alt]="title + ' photo ' + (i + 1)" [attr.data-viewer-photo]="i" />

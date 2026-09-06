@@ -1030,7 +1030,89 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Apartment details unavailable', 'ობიექტის დეტალები მიუწვდომელია'],
   ['Preparing the listing and advisor information.', 'ვამზადებთ განცხადებისა და მრჩევლის ინფორმაციას.'],
   ['Select a published apartment to view its details.', 'დეტალების სანახავად აირჩიეთ გამოქვეყნებული ობიექტი.'],
+  ['Why Choose Velven', 'რატომ Velven'],
+  ['Close photo viewer', 'ფოტოების დათვალიერების დახურვა'],
+  ['Previous image', 'წინა ფოტო'],
+  ['Next image', 'შემდეგი ფოტო'],
+  ['Show all photos', 'ყველა ფოტოს ნახვა'],
+  ['This is you.', 'ეს თქვენ ხართ.'],
+  ['Personalized household profile', 'ოჯახის პერსონალიზებული პროფილი'],
+  ['Location and commute priorities', 'მდებარეობისა და გადაადგილების პრიორიტეტები'],
+  ['Lifestyle-aware recommendations', 'ცხოვრების სტილზე მორგებული რეკომენდაციები'],
+  ['Homes ranked for your real needs', 'თქვენს რეალურ საჭიროებებზე მორგებული სახლები'],
+  ["Family member's workplace", 'ოჯახის წევრის სამუშაო ადგილი'],
+  ['Specific address', 'კონკრეტული მისამართი'],
+  ['Address', 'მისამართი'],
+  ['Female', 'ქალი'],
+  ['Male', 'კაცი'],
+  ['Gender', 'სქესი'],
+  ['English', 'ინგლისური'],
+  ['Georgian', 'ქართული'],
+  ['Russian', 'რუსული'],
+  ['Where do you want to live?', 'სად გსურთ ცხოვრება?'],
+  ['Apply location', 'მდებარეობის გამოყენება'],
+  ['Clear filters', 'ფილტრების გასუფთავება'],
+  ['Search properties', 'ობიექტების ძიება'],
+  ['No homes found', 'სახლები ვერ მოიძებნა'],
+  ['Try widening your search or clearing a filter.', 'გააფართოეთ ძიება ან გაასუფთავეთ ფილტრი.'],
+  ['Property filters', 'ობიექტის ფილტრები'],
+  ['Property map', 'ობიექტების რუკა'],
+  ['Interactive map of properties', 'ობიექტების ინტერაქტიული რუკა'],
+  ['Map settings', 'რუკის პარამეტრები'],
+  ['Show all homes', 'ყველა სახლის ნახვა'],
+  ['Explore the neighborhood', 'დაათვალიერეთ სამეზობლო'],
+  ['Searching nearby…', 'ახლომდებარე ადგილები იძებნება…'],
+  ['Places near', 'ახლომდებარე ადგილები'],
+  ['Nearest', 'უახლოესი'],
+  ['Route to', 'მარშრუტი'],
+  ['Loading map…', 'რუკა იტვირთება…'],
+  ['Exact property location', 'ობიექტის ზუსტი მდებარეობა'],
+  ['Exact location selected', 'ზუსტი მდებარეობა არჩეულია'],
+  ['Click the building on the map to confirm its exact location.', 'ზუსტი მდებარეობის დასადასტურებლად რუკაზე მონიშნეთ შენობა.'],
+  ['Account information', 'ანგარიშის ინფორმაცია'],
+  ['Personal details', 'პირადი მონაცემები'],
+  ['About you', 'თქვენ შესახებ'],
+  ['Account type', 'ანგარიშის ტიპი'],
+  ['Profile active', 'პროფილი აქტიურია'],
+  ['Profile image', 'პროფილის ფოტო'],
+  ['Change profile photo', 'პროფილის ფოტოს შეცვლა'],
+  ['Required field', 'სავალდებულო ველი'],
+  ['Your apartments', 'თქვენი ბინები'],
+  ['Published listings', 'გამოქვეყნებული განცხადებები'],
+  ['Create listing', 'განცხადების შექმნა'],
+  ['Add listing', 'განცხადების დამატება'],
+  ['No photo', 'ფოტო არ არის'],
+  ['Save and resubmit', 'შენახვა და ხელახლა გაგზავნა'],
+  ['Admin panel', 'ადმინისტრირების პანელი'],
+  ['User management', 'მომხმარებლების მართვა'],
+  ['Published apartments', 'გამოქვეყნებული ბინები'],
+  ['Apartment review queue', 'ბინების განხილვის რიგი'],
+  ['Actions', 'მოქმედებები'],
+  ['Pending', 'მოლოდინში'],
+  ['Approved', 'დამტკიცებული'],
+  ['Rejected', 'უარყოფილი'],
+  ['Approve', 'დამტკიცება'],
+  ['Reject', 'უარყოფა'],
+  ['Decline', 'უარყოფა'],
+  ['Edit user', 'მომხმარებლის რედაქტირება'],
+  ['Manage user', 'მომხმარებლის მართვა'],
+  ['Reset password', 'პაროლის განახლება'],
+  ['CRM overview', 'CRM მიმოხილვა'],
+  ['System dashboard', 'სისტემის პანელი'],
+  ['Search leads', 'ლიდების ძიება'],
+  ['All agents', 'ყველა აგენტი'],
+  ['All pipeline stages', 'ყველა გაყიდვის ეტაპი'],
+  ['Lead filters', 'ლიდების ფილტრები'],
+  ['No leads in this stage.', 'ამ ეტაპზე ლიდები არ არის.'],
+  ['Back to pipeline', 'გაყიდვების პროცესზე დაბრუნება'],
+  ['Needs and preferences', 'საჭიროებები და პრეფერენციები'],
+  ['Add a note', 'ჩანაწერის დამატება'],
+  ['No activity yet. Add the first note after contacting this lead.', 'აქტივობა ჯერ არ არის. ლიდთან დაკავშირების შემდეგ დაამატეთ პირველი ჩანაწერი.'],
 ]);
+
+const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
+  [...GEORGIAN_TRANSLATIONS].map(([source, translation]) => [source.toLocaleLowerCase('en'), translation]),
+);
 
 const GEORGIAN_RULES: GeorgianRule[] = [
   {
@@ -1121,6 +1203,19 @@ const GEORGIAN_RULES: GeorgianRule[] = [
 export function georgianTranslation(value: string): string | undefined {
   const exact = GEORGIAN_TRANSLATIONS.get(value);
   if (exact) return exact;
+
+  const caseInsensitive = GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE.get(
+    value.toLocaleLowerCase('en'),
+  );
+  if (caseInsensitive) return caseInsensitive;
+
+  const decorated = value.match(/^(\s*[^A-Za-z]*?)([A-Za-z].*)$/);
+  if (decorated?.[1]) {
+    const translated =
+      GEORGIAN_TRANSLATIONS.get(decorated[2]) ??
+      GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE.get(decorated[2].toLocaleLowerCase('en'));
+    if (translated) return `${decorated[1]}${translated}`;
+  }
 
   for (const rule of GEORGIAN_RULES) {
     const match = value.match(rule.pattern);

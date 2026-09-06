@@ -28,7 +28,7 @@ body {
   margin: 0;
   color: #111827;
   background: #fff;
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: Manrope, Inter, "Segoe UI", Arial, sans-serif;
   line-height: 1.5;
   overflow-x: clip;
 }
@@ -51,7 +51,7 @@ html[lang='ru'] button,
 html[lang='ru'] input,
 html[lang='ru'] select,
 html[lang='ru'] textarea {
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: Manrope, Inter, "Segoe UI", Arial, sans-serif;
 }
 
 button,
@@ -244,6 +244,29 @@ app-root {
   input[type='submit'] {
     min-height: 44px;
   }
+}
+
+/* Site typography: one visual voice with script-appropriate glyph coverage. */
+:root {
+  --font-site: Manrope, Inter, "Segoe UI", Arial, sans-serif;
+  --font-site-georgian: "Noto Sans Georgian", "Segoe UI", Arial, sans-serif;
+}
+
+html:not([lang='ka']) body,
+html:not([lang='ka']) body
+  *:not(i):not(code):not(pre):not(kbd):not(samp):not(.fa):not([class^='fa-']):not(
+    [class*=' fa-']
+  ):not(.material-icons):not(.material-symbols-outlined) {
+  font-family: var(--font-site) !important;
+}
+
+html[lang='ka'] body,
+html[lang='ka'] body
+  *:not(i):not(code):not(pre):not(kbd):not(samp):not(.fa):not([class^='fa-']):not(
+    [class*=' fa-']
+  ):not(.material-icons):not(.material-symbols-outlined) {
+  font-family: var(--font-site-georgian) !important;
+  letter-spacing: 0;
 }
 
 /* Language-aware layout ---------------------------------------------------
