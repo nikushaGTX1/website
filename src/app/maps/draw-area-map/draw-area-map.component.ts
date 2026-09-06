@@ -44,6 +44,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private static readonly boundaryRequests = new Map<string, Promise<number[][][][]>>();
   @Input() visible = false;
   @Input() compact = false;
+  @Input() dockPropertyPreview = false;
   @Input() selectedAreaInput = '';
   @Input() selectedAreasInput: string[] = [];
   @Input() selectedStreetsInput: Array<{ streetId: number; street: string; district: string }> = [];
@@ -1500,6 +1501,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       Object.assign(gallery.style, { position: 'relative', width: '158px', height: '112px', overflow: 'hidden' });
       const img = gallery.querySelector('img') as HTMLImageElement;
       Object.assign(img.style, { width: '158px', height: '112px', display: 'block', objectFit: 'cover' });
+      img.addEventListener('error', () => {
+        if (img.getAttribute('src') !== '/property-placeholder.svg') {
+          img.src = '/property-placeholder.svg';
+        }
+      });
       const changeImage = (event: Event, direction: number) => {
         event.stopPropagation();
         imageIndex = (imageIndex + direction + images.length) % images.length;
@@ -1520,11 +1526,47 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       (body.querySelector('b') as HTMLElement).style.cssText = 'font-size:15px;color:#451a8f;white-space:nowrap';
       const close = card.querySelector('[data-close]') as HTMLButtonElement;
       close.style.cssText = 'position:absolute;z-index:2;top:5px;right:5px;width:24px;height:24px;padding:0;border:0;border-radius:50%;background:#f5f2f8;color:#4b4452;font-size:17px;line-height:22px;cursor:pointer';
+      const controlIcon = (path: string) =>
+        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex:none;pointer-events:none"><path d="${path}"/></svg>`;
+      for (const control of [previous, next, close]) {
+        if (!control) continue;
+        Object.assign(control.style, {
+          width: '32px', height: '32px', minWidth: '32px', minHeight: '32px',
+          maxWidth: '32px', maxHeight: '32px', padding: '0', margin: '0',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxSizing: 'border-box', lineHeight: '1', appearance: 'none',
+        });
+      }
+      if (previous) previous.innerHTML = controlIcon('M15 18l-6-6 6-6');
+      if (next) next.innerHTML = controlIcon('M9 6l6 6-6 6');
+      close.innerHTML = controlIcon('M6 6l12 12M18 6L6 18');
+      close.style.top = '8px';
+      close.style.right = '8px';
       close.addEventListener('click', (event) => { event.stopPropagation(); this.clearPropertyPreview(); });
       card.addEventListener('click', () => void this.router.navigate(['/apartments', apartment.id]));
-      overlay.getPanes()?.floatPane.appendChild(card);
+      if (this.dockPropertyPreview) {
+        // Keep the preview above the area summary, independent of marker position.
+        Object.assign(card.style, {
+          left: '16px', bottom: '108px', width: 'min(288px, calc(100% - 32px))',
+          height: '190px', gridTemplateColumns: '1fr', gridTemplateRows: '140px 50px',
+          transform: 'none',
+        });
+        Object.assign(gallery.style, { width: '100%', height: '140px' });
+        Object.assign(img.style, { width: '100%', height: '140px' });
+        Object.assign(body.style, {
+          padding: '10px 12px', flexDirection: 'row', alignItems: 'center',
+          justifyContent: 'space-between', gap: '8px',
+        });
+        (body.querySelector('small') as HTMLElement).style.fontSize = '11px';
+        (body.querySelector('b') as HTMLElement).style.fontSize = '17px';
+        this.map?.getDiv().parentElement?.appendChild(card);
+      } else {
+        overlay.getPanes()?.floatPane.appendChild(card);
+      }
+      google.maps.OverlayView.preventMapHitsAndGesturesFrom(card);
     };
     overlay.draw = () => {
+      if (this.dockPropertyPreview) return;
       const pixel = overlay.getProjection().fromLatLngToDivPixel(position);
       if (card && pixel) { card.style.left = `${pixel.x}px`; card.style.top = `${pixel.y}px`; }
     };
