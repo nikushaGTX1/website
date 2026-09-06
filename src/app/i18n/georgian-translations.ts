@@ -81,7 +81,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Personalized Search.', 'პერსონალიზირებული ძიება'],
   ['Find a home', 'იპოვეთ სახლი'],
   ['that fits', 'რომელიც შეესაბამება'],
-  ['your', 'თქვენი'],
+  ['your', 'თქვენს'],
   ['life', 'პერსონას'],
   ['Property type', 'უძრავი ქონების ტიპი'],
   ['Property Type', 'უძრავი ქონების ტიპი'],

@@ -57,7 +57,7 @@
   height: 17px;
   margin: 7px 0 20px;
   display: block;
-  border-top: 4px solid #8b95a5;
+  border-top: 4px solid rgb(69, 26, 143);
   border-radius: 50%;
   transform: rotate(-8deg);
 }
