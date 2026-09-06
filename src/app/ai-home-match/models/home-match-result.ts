@@ -28,6 +28,10 @@ export interface HomeMatchApartment {
   description?: string;
   price: number;
   address?: string;
+  latitude?: number;
+  longitude?: number;
+  propertyLatitude?: number;
+  propertyLongitude?: number;
   imageUrl?: string;
   imageUrls?: string[];
   district?: string;

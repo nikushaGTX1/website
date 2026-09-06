@@ -674,6 +674,13 @@ h1 {
   color: var(--purple-dark);
 }
 
+.location-flexibility-question {
+  margin: 25px 0 -16px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+}
+
 
 .smart-option {
   width: 100%;

@@ -58,7 +58,7 @@ export class ApartmentDetail implements OnInit {
   favorite = false;
   phoneRevealed = false;
   descriptionExpanded = false;
-  agentImageFailed = false;
+  private agentImageIndex = 0;
   nearbyPlaces: NearbyPlace[] = [];
   viewingDialogOpen = false;
   inquirySubmitting = false;
@@ -601,15 +601,54 @@ export class ApartmentDetail implements OnInit {
   }
 
   get agentImage(): string {
-    if (this.agentImageFailed) return '';
-    return toMediaUrl(
-      this.selectedAgent?.profilePictureUrl ||
-      this.selectedAgent?.profilePicture ||
-      this.selectedAgent?.avatarUrl ||
-      this.apartment?.agentProfilePictureUrl ||
-      this.apartment?.uploaderProfilePictureUrl ||
-      this.apartment?.uploadedByProfilePictureUrl
-    );
+    return this.agentImageCandidates[this.agentImageIndex] || '';
+  }
+
+  private get agentImageCandidates(): string[] {
+    const candidates = [
+      this.selectedAgent?.profilePictureUrl,
+      this.selectedAgent?.profilePicture,
+      this.selectedAgent?.avatarUrl,
+      this.apartment?.agentProfilePictureUrl,
+      this.apartment?.agentProfilePicture,
+      this.apartment?.uploaderProfilePictureUrl,
+      this.apartment?.uploaderProfilePicture,
+      this.apartment?.uploadedByProfilePictureUrl,
+      this.apartment?.uploadedByProfilePicture,
+      this.apartment?.profilePictureUrl,
+      this.apartment?.profilePicture,
+      this.currentUploaderProfilePicture,
+    ]
+      .map((value) => toMediaUrl(value))
+      .filter((value): value is string => !!value);
+    return [...new Set(candidates)];
+  }
+
+  private get currentUploaderProfilePicture(): string | undefined {
+    const user = this.authService.currentUser;
+    if (!user || !this.apartment) return undefined;
+    const userId = String(user.id || '').toLowerCase();
+    const uploaderIds = [
+      this.apartment.userId,
+      this.apartment.ownerId,
+      this.apartment.createdById,
+      this.apartment.applicationUserId,
+      this.apartment.agentId,
+      this.apartment.agentUserId,
+      this.apartment.uploadedById,
+      this.apartment.uploadedByUserId,
+      this.apartment.uploaderUserId,
+    ].map((value) => String(value || '').toLowerCase());
+    const uploaderEmails = [
+      this.apartment.userEmail,
+      this.apartment.createdByEmail,
+      this.apartment.agentEmail,
+      this.apartment.uploadedByEmail,
+    ].map((value) => String(value || '').toLowerCase());
+    const isUploader =
+      (!!userId && uploaderIds.includes(userId)) ||
+      uploaderEmails.includes(user.email.toLowerCase());
+    return isUploader ? user.profilePictureUrl || user.profilePicture : undefined;
   }
 
   get agentInitials(): string {
@@ -621,7 +660,8 @@ export class ApartmentDetail implements OnInit {
   }
 
   handleAgentImageError(): void {
-    this.agentImageFailed = true;
+    this.agentImageIndex += 1;
+    this.cdr.detectChanges();
   }
 
   get agentRating(): string {
@@ -660,7 +700,7 @@ export class ApartmentDetail implements OnInit {
   private applyApartment(apartment: Apartment): void {
     this.apartment = apartment;
     this.phoneRevealed = false;
-    this.agentImageFailed = false;
+    this.agentImageIndex = 0;
     this.galleryImages = this.getApartmentImages(apartment);
   }
 
@@ -785,6 +825,7 @@ export class ApartmentDetail implements OnInit {
             (!!agentEmail && ownerEmails.includes(agentEmail))
           );
         }) || null;
+        this.agentImageIndex = 0;
         this.cdr.detectChanges();
       },
       error: () => {

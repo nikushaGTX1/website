@@ -745,35 +745,21 @@
   </button>
 </div>
 
+<p class="location-flexibility-question">{{ t('locationFlexibilityQuestion') }}</p>
 
-        <button
-          type="button"
-          class="smart-option"
-          [class.active]="
-            form.chooseDistrictForMe
-          "
-          (click)="
-            toggleChooseDistrictForMe()
-          "
-        >
-
-          <span class="smart-icon">
-            ✨
-          </span>
-
-          <span>
-
-            <strong>
-              {{ t('chooseForMe') }}
-            </strong>
-
-            <small>
-              {{ t('chooseForMeSmall') }}
-            </small>
-
-          </span>
-
-        </button>
+<button
+  type="button"
+  class="smart-option"
+  [class.active]="form.chooseDistrictForMe"
+  [attr.aria-pressed]="form.chooseDistrictForMe"
+  (click)="toggleChooseDistrictForMe()"
+>
+  <span class="smart-icon" aria-hidden="true">✨</span>
+  <span>
+    <strong>{{ t('chooseForMe') }}</strong>
+    <small>{{ t('chooseForMeSmall') }}</small>
+  </span>
+</button>
 
       </section>
 

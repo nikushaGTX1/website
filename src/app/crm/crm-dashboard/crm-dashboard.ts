@@ -477,6 +477,18 @@ export class CrmDashboard implements OnInit {
     return 'Budget not set';
   }
 
+  isFlexibleWithLocation(lead: CrmLead): boolean {
+    if (!lead.preferences) return false;
+    try {
+      const preferences = JSON.parse(lead.preferences) as {
+        chooseDistrictForMe?: boolean;
+      };
+      return preferences.chooseDistrictForMe === true;
+    } catch {
+      return false;
+    }
+  }
+
   nextAction(lead: CrmLead): CrmTask | undefined {
     if (lead.status === 'won' || lead.status === 'lost') {
       return undefined;

@@ -87,6 +87,79 @@ h1 {
   padding: 14px 0;
   border-bottom: 1px solid #eee;
 }
+.location-map {
+  position: relative;
+  height: 280px;
+  margin: 18px 0;
+  overflow: hidden;
+  border: 1px solid #e4e0ea;
+  border-radius: 16px;
+  background: #f5f3f0;
+}
+.location-map app-google-property-map {
+  display: block;
+  height: 100%;
+}
+.map-caption {
+  position: absolute;
+  z-index: 4;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 12px;
+  border: 1px solid #e2dce8;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 22px rgba(31, 23, 52, 0.13);
+  backdrop-filter: blur(8px);
+}
+.map-caption > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.map-caption p,
+.map-caption strong,
+.map-caption small {
+  display: block;
+  margin: 0;
+}
+.map-caption p { min-width: 0; }
+.map-caption small {
+  margin-top: 2px;
+  overflow: hidden;
+  color: #716c7d;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-pin {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #4f1b9d;
+  color: #fff;
+  font-size: 11px;
+}
+.map-caption a {
+  flex: 0 0 auto;
+  padding: 9px 11px;
+  border: 1px solid #d8d1e2;
+  border-radius: 9px;
+  color: #4f1b9d;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
 .reasons {
   list-style: none;
   padding: 0;
@@ -244,4 +317,7 @@ h1 {
   .heading {
     flex-direction: column;
   }
+  .location-map { height: 310px; }
+  .map-caption { align-items: stretch; flex-direction: column; }
+  .map-caption a { text-align: center; }
 }
