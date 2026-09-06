@@ -39,8 +39,17 @@
 }
 
 .hero-copy h1 em {
-  color: #8b95a5;
+  color: #451a8f;
   font-weight: 400;
+}
+
+:host-context(html:lang(ka)) .hero-copy {
+  width: min(820px, 72vw);
+}
+
+:host-context(html:lang(ka)) .hero-copy h1 {
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 .gold-stroke {
@@ -316,9 +325,17 @@
     width: 100%;
   }
 
+  :host-context(html:lang(ka)) .hero-copy {
+    width: 100%;
+  }
+
   .hero-copy h1 {
     font-size: clamp(40px, 11vw, 56px);
     letter-spacing: -1.5px;
+  }
+
+  :host-context(html:lang(ka)) .hero-copy h1 {
+    font-size: clamp(32px, 9vw, 44px);
   }
 
   .services-content {

@@ -293,22 +293,22 @@
 
 @media (min-width: 1300px) {
   :host-context(html:lang(ka)) .navigation {
-    width: min(100%, 1560px);
-    padding-inline: 24px;
-    gap: 34px;
+    width: min(100%, 1480px);
+    padding-inline: 32px;
+    gap: 28px;
   }
 
   :host-context(html:lang(ka)) .navigation-content {
-    gap: 42px;
+    gap: 28px;
   }
 
   :host-context(html:lang(ka)) .nav-links {
-    justify-content: space-between;
-    gap: 24px;
+    justify-content: center;
+    gap: clamp(18px, 1.55vw, 27px);
   }
 
   :host-context(html:lang(ka)) .nav-actions {
-    gap: 16px;
+    gap: 12px;
   }
 }
 
