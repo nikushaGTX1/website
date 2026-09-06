@@ -147,15 +147,23 @@ export class ExploreProperty implements OnInit {
     if (!this.headerRooms) return 'Rooms';
     const rooms = `${this.headerRooms} ${this.headerRooms === '1' ? 'Room' : 'Rooms'}`;
     if (!this.headerBedrooms) return rooms;
-    const bedrooms = `${this.headerBedrooms} ${this.headerBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
+    const bedrooms = `${this.formatBedroomSelection()} Bedrooms`;
     return `${rooms}, ${bedrooms}`;
   }
 
   get bedroomSummary(): string {
     if (!this.headerBedrooms) return 'Any bedrooms';
-    return this.headerBedrooms === '4+'
-      ? '4+ Bedrooms'
-      : `${this.headerBedrooms} ${this.headerBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
+    const values = this.headerBedroomValues;
+    if (values.length === 1 && values[0] === '1') return '1 Bedroom';
+    return `${this.formatBedroomSelection()} Bedrooms`;
+  }
+
+  get headerBedroomValues(): string[] {
+    return this.headerBedrooms.split(',').filter(Boolean);
+  }
+
+  isHeaderBedroomSelected(value: string): boolean {
+    return this.headerBedroomValues.includes(value);
   }
 
   get availableHeaderBedroomOptions() {
@@ -246,8 +254,18 @@ export class ExploreProperty implements OnInit {
   }
 
   selectHeaderBedrooms(value: string): void {
-    this.headerBedrooms = value;
-    this.bedroomOpen = false;
+    if (!value) {
+      this.headerBedrooms = '';
+      this.onSearch();
+      return;
+    }
+
+    const selected = new Set(this.headerBedroomValues);
+    selected.has(value) ? selected.delete(value) : selected.add(value);
+    this.headerBedrooms = this.headerBedroomOptions
+      .map((option) => option.value)
+      .filter((optionValue) => selected.has(optionValue))
+      .join(',');
     this.onSearch();
   }
 
@@ -1205,8 +1223,13 @@ export class ExploreProperty implements OnInit {
   private matchesHeaderBedroom(apartment: Apartment): boolean {
     if (!this.headerBedrooms) return true;
     const bedrooms = Number(apartment.bedrooms || 0);
-    if (this.headerBedrooms === '4+') return bedrooms >= 4;
-    return bedrooms === Number(this.headerBedrooms);
+    return this.headerBedroomValues.some((selected) =>
+      selected === '4+' ? bedrooms >= 4 : bedrooms === Number(selected),
+    );
+  }
+
+  private formatBedroomSelection(): string {
+    return this.headerBedroomValues.join(', ');
   }
 
   private matchesBathroomFilter(apartment: Apartment): boolean {
