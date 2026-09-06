@@ -310,6 +310,24 @@
   :host-context(html:lang(ka)) .nav-actions {
     gap: 12px;
   }
+
+  :host-context(html:lang(ka)) .navigation.logged-in {
+    width: min(calc(100% - 48px), 1560px);
+    padding-inline: 24px;
+    gap: 30px;
+  }
+
+  :host-context(html:lang(ka)) .navigation.logged-in .navigation-content {
+    gap: 32px;
+  }
+
+  :host-context(html:lang(ka)) .navigation.logged-in .nav-links {
+    gap: clamp(18px, 1.4vw, 26px);
+    width: 100%;
+    margin-inline: auto;
+    justify-content: center;
+    text-align: center;
+  }
 }
 
 @media (max-width: 1240px) {

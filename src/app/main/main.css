@@ -1738,8 +1738,7 @@
   height: 100%;
   object-fit: contain;
   
-  /* Applies the dark purple color overlay to SVG/PNG images */
-  filter: invert(10%) sepia(85%) saturate(5400%) hue-rotate(265deg) brightness(50%) contrast(110%);
+  filter: brightness(0) saturate(100%) invert(16%) sepia(76%) saturate(3482%) hue-rotate(257deg) brightness(80%) contrast(103%);
 }
 
 .process-grid h3 {
