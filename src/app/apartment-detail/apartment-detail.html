@@ -35,9 +35,9 @@
           <img
             [src]="image"
             [alt]="title + ' photo ' + (i + 2)"
-            loading="lazy"
+            loading="eager"
             decoding="async"
-            fetchpriority="low"
+            fetchpriority="high"
             draggable="false"
             (contextmenu)="preventImageAction($event)"
             (dragstart)="preventImageAction($event)"
@@ -52,7 +52,7 @@
           *ngFor="let slot of [1, 2, 3, 4] | slice: galleryImages.length - 1"
           (click)="openPhotoViewer()"
         >
-          <img [src]="activePhoto" alt="" loading="lazy" decoding="async" fetchpriority="low" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
+          <img [src]="activePhoto" alt="" loading="eager" decoding="async" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
         </button>
       </section>
       <div class="vp-columns">
