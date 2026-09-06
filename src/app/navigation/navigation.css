@@ -59,11 +59,11 @@
 }
 
 .brand-name {
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: "Noto Sans Georgian", "Segoe UI", Arial, sans-serif !important;
   font-size: 27px;
   font-weight: 600;
   line-height: 0.95;
-  letter-spacing: 7px;
+  letter-spacing: 0 !important;
   color: #451a8f;
 }
 
@@ -289,6 +289,27 @@
   padding-inline: 16px;
   text-align: center;
   white-space: normal;
+}
+
+@media (min-width: 1300px) {
+  :host-context(html:lang(ka)) .navigation {
+    width: min(100%, 1560px);
+    padding-inline: 24px;
+    gap: 34px;
+  }
+
+  :host-context(html:lang(ka)) .navigation-content {
+    gap: 42px;
+  }
+
+  :host-context(html:lang(ka)) .nav-links {
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  :host-context(html:lang(ka)) .nav-actions {
+    gap: 16px;
+  }
 }
 
 @media (max-width: 1240px) {
