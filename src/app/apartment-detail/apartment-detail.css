@@ -83,6 +83,9 @@
   display: block;
   object-fit: cover;
   transition: 0.4s;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 .vp-gallery button:hover img {
   filter: brightness(0.94);
@@ -613,7 +616,7 @@
 }
 .photo-viewer {
   position: fixed;
-  z-index: 1400;
+  z-index: 12000;
   inset: 0;
   background: #0f0a14f5;
 }
@@ -627,15 +630,18 @@
   gap: 22px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scroll-snap-type: y proximity;
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
   box-sizing: border-box;
 }
 .photo-viewer-track img {
-  width: min(1100px, 86vw);
-  max-height: calc(100vh - 150px);
+  width: min(1100px, calc(100vw - 64px));
+  max-height: calc(100dvh - 150px);
   flex: 0 0 auto;
   object-fit: contain;
-  scroll-snap-align: center;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 .viewer-back,
 .viewer-close,

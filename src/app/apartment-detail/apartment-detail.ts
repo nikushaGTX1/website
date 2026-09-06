@@ -388,6 +388,11 @@ export class ApartmentDetail implements OnInit {
     document.body.style.overflow = '';
   }
 
+  preventImageAction(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   updateActiveViewerPhoto(event: Event): void {
     const viewer = event.currentTarget as HTMLElement;
     const viewerCenter = viewer.getBoundingClientRect().top + viewer.clientHeight / 2;
