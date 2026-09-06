@@ -42,9 +42,15 @@
   font-weight: 700;
 }
 
-.character-stage img {
+.character-figure {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.character-figure img {
   width: 100%;
   height: 100%;
   max-width: 100%;
@@ -55,71 +61,48 @@
   animation: pop 0.35s ease;
 }
 
-.character-stage.character-group img {
+.character-stage.character-group .character-figure {
   position: relative;
   inset: auto;
   width: auto;
   height: 100%;
   max-width: none;
   flex: 0 0 auto;
+}
+
+.character-stage.character-group .character-figure img {
+  width: auto;
+  height: 100%;
+  max-width: none;
   object-position: center bottom;
 }
 
-.character-stage img[src*="woman"] {
+.character-figure:has(img[src*="woman"]) {
   height: 90%;
   align-self: flex-end;
 }
 
-.character-stage:not(.character-group) img[src*="woman"] {
+.character-stage:not(.character-group) .character-figure:has(img[src*="woman"]) {
   top: auto;
 }
 
-.character-stage.character-group img[src*="kid"] {
+.character-stage.character-group .child-figure {
   height: 70%;
   align-self: flex-end;
 }
 
-.character-stage.character-group img[src*="daughter"] {
+.character-stage.character-group .child-figure:has(img[src*="daughter"]) {
   height: 72%;
   align-self: flex-end;
 }
 
-.character-stage.character-group img[src*="dog"] {
+.character-stage.character-group .pet-figure {
   height: 42%;
   align-self: flex-end;
 }
 
-.character-stage.character-group img:nth-child(n + 3) {
+.character-stage.character-group .character-figure:nth-child(n + 3) {
   width: auto;
-}
-
-.gym-shirt {
-  position: absolute;
-  top: 25.2%;
-  left: 31.8%;
-  width: 36.4%;
-  height: 31.5%;
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  border: 4px solid #14254f;
-  border-radius: 42% 42% 46% 46% / 24% 24% 64% 64%;
-  background:
-    linear-gradient(90deg, transparent 42%, rgba(255, 255, 255, 0.75) 43% 57%, transparent 58%),
-    #451a8f;
-  color: #fff;
-  clip-path: polygon(18% 0, 35% 8%, 50% 18%, 65% 8%, 82% 0, 100% 18%, 89% 100%, 11% 100%, 0 18%);
-  filter: drop-shadow(0 4px 3px rgba(20, 37, 79, 0.22));
-  animation: dress 0.32s ease-out;
-}
-
-.gym-shirt span {
-  margin-top: 28%;
-  padding: 3px 5px;
-  border-radius: 4px;
-  background: #14254f;
-  font: 800 11px/1 Arial, sans-serif;
-  letter-spacing: 0.08em;
 }
 
 .avatar p {
@@ -133,13 +116,6 @@
   from {
     opacity: 0;
     transform: scale(0.7) translateY(8px);
-  }
-}
-
-@keyframes dress {
-  from {
-    opacity: 0;
-    transform: scale(0.75) translateY(-10px);
   }
 }
 
