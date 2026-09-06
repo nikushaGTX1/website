@@ -211,6 +211,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     private service: HomeMatchService,
     private cdr: ChangeDetectorRef,
   ) {
+    service.reset();
     this.profile = {
       ...service.profile,
       gender: service.profile.gender || '',

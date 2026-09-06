@@ -64,16 +64,17 @@
 .character-stage.character-group .character-figure {
   position: relative;
   inset: auto;
-  width: auto;
+  width: 0;
   height: 100%;
-  max-width: none;
-  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 0;
 }
 
 .character-stage.character-group .character-figure img {
-  width: auto;
+  width: 100%;
   height: 100%;
-  max-width: none;
+  max-width: 100%;
   object-position: center bottom;
 }
 
@@ -99,10 +100,6 @@
 .character-stage.character-group .pet-figure {
   height: 42%;
   align-self: flex-end;
-}
-
-.character-stage.character-group .character-figure:nth-child(n + 3) {
-  width: auto;
 }
 
 .avatar p {

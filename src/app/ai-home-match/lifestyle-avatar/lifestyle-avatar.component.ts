@@ -4,6 +4,7 @@ import { HomeMatchProfile } from '../models/home-match-profile';
 interface AvatarFigure {
   src: string;
   role: 'adult' | 'child' | 'pet';
+  gender?: 'Male' | 'Female';
 }
 
 @Component({
@@ -33,10 +34,13 @@ export class VelvenLifestyleAvatarComponent {
     const manTwo = '/man%20ver%202%20offset.svg';
     const woman = '/woman%20offset%20fix.svg';
     const womanTwo = '/woman%20ver%202%20offset.svg';
-    const couple = '/couple%20offset%20fix.svg';
     const child = '/daughter%20offset.svg';
     const pet = '/dog%20visual%20two.svg';
-    const adult = (src: string): AvatarFigure => ({ src, role: 'adult' });
+    const adult = (src: string, gender: 'Male' | 'Female'): AvatarFigure => ({
+      src,
+      role: 'adult',
+      gender,
+    });
     const selectedChildren = Array.from(
       { length: Math.min(this.profile.children, 4) },
       (): AvatarFigure => ({ src: child, role: 'child' }),
@@ -48,42 +52,41 @@ export class VelvenLifestyleAvatarComponent {
 
     switch (this.profile.householdType) {
       case 'Couple':
-        return [adult(couple), ...selectedChildren, ...selectedPet];
+        return [adult(man, 'Male'), adult(woman, 'Female'), ...selectedChildren, ...selectedPet];
       case 'ParentWithChildren':
-        return [adult(this.characterSrc), ...householdChildren, ...selectedPet];
+        return [adult(this.characterSrc, this.profile.gender as 'Male' | 'Female'), ...householdChildren, ...selectedPet];
       case 'FamilyWithChildren':
-        return [adult(couple), ...householdChildren, ...selectedPet];
+        return [adult(man, 'Male'), adult(woman, 'Female'), ...householdChildren, ...selectedPet];
       case 'Friends':
-        return [adult(manTwo), adult(womanTwo), ...selectedChildren, ...selectedPet];
+        return [adult(manTwo, 'Male'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
       case 'Roommates':
-        return [adult(woman), adult(womanTwo), ...selectedChildren, ...selectedPet];
+        return [adult(woman, 'Female'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
       case 'Relatives':
-        return [adult(man), adult(woman), adult(womanTwo), ...selectedChildren, ...selectedPet];
+        return [adult(man, 'Male'), adult(woman, 'Female'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
       case 'CorporateHousing':
-        return [adult(man), adult(woman), adult(manTwo), adult(womanTwo), ...selectedChildren, ...selectedPet];
+        return [adult(man, 'Male'), adult(woman, 'Female'), adult(manTwo, 'Male'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
       default:
-        return [adult(this.characterSrc), ...selectedChildren, ...selectedPet];
+        return [adult(this.characterSrc, this.profile.gender as 'Male' | 'Female'), ...selectedChildren, ...selectedPet];
     }
   }
 
   variantFigureSrc(figure: AvatarFigure): string {
-    if (figure.role !== 'adult') return figure.src;
+    if (figure.role !== 'adult' || figure.gender !== this.profile.gender) return figure.src;
 
-    const isCouple = figure.src.includes('couple');
     const isWoman = figure.src.includes('woman');
     const lifestyles = new Set(this.profile.lifestyles);
 
-    if (this.wearsGymOutfit) return this.variantAsset('athlete', isCouple, isWoman);
-    if (lifestyles.has('Student')) return this.variantAsset('student', isCouple, isWoman);
-    if (lifestyles.has('BusinessProfessional')) return this.variantAsset('business', isCouple, isWoman);
-    if (lifestyles.has('HostsGuests')) return this.variantAsset('host', isCouple, isWoman);
-    if (lifestyles.has('FrequentTraveler')) return this.variantAsset('traveler', isCouple, isWoman);
+    if (this.wearsGymOutfit) return this.variantAsset('athlete', isWoman);
+    if (lifestyles.has('Student')) return this.variantAsset('student', isWoman);
+    if (lifestyles.has('BusinessProfessional')) return this.variantAsset('business', isWoman);
+    if (lifestyles.has('HostsGuests')) return this.variantAsset('host', isWoman);
+    if (lifestyles.has('FrequentTraveler')) return this.variantAsset('traveler', isWoman);
 
     return figure.src;
   }
 
-  private variantAsset(variant: string, isCouple: boolean, isWoman: boolean): string {
-    const subject = isCouple ? 'couple' : isWoman ? 'woman' : 'man';
+  private variantAsset(variant: string, isWoman: boolean): string {
+    const subject = isWoman ? 'woman' : 'man';
     return `/avatar-${variant}-${subject}-v1.png`;
   }
 

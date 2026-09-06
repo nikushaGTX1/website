@@ -7,8 +7,7 @@ import { EMPTY_HOME_MATCH_PROFILE, HomeMatchProfile } from '../models/home-match
 
 @Injectable({ providedIn: 'root' })
 export class HomeMatchService {
-  private readonly storageKey = 'velven-home-match-session';
-  private readonly profileSubject = new BehaviorSubject<HomeMatchProfile>(this.restore());
+  private readonly profileSubject = new BehaviorSubject<HomeMatchProfile>(this.cloneEmpty());
   readonly profile$ = this.profileSubject.asObservable();
   constructor(private http: HttpClient) {}
   get profile(): HomeMatchProfile {
@@ -16,7 +15,6 @@ export class HomeMatchService {
   }
   update(profile: HomeMatchProfile): void {
     this.profileSubject.next(profile);
-    sessionStorage.setItem(this.storageKey, JSON.stringify(profile));
   }
   reset(): void {
     const profile = this.cloneEmpty();
@@ -27,14 +25,6 @@ export class HomeMatchService {
   }
   saveProfile(profile: HomeMatchProfile): Observable<{ id?: number }> {
     return this.http.post<{ id?: number }>(`${API_URL}/ai-home-match/profiles`, profile);
-  }
-  private restore(): HomeMatchProfile {
-    try {
-      const value = sessionStorage.getItem(this.storageKey);
-      return value ? (JSON.parse(value) as HomeMatchProfile) : this.cloneEmpty();
-    } catch {
-      return this.cloneEmpty();
-    }
   }
   private cloneEmpty(): HomeMatchProfile {
     return {
