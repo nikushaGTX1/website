@@ -13,12 +13,13 @@
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
-import { GeoJsonPolygon } from '../../services/apartment.service';
+import { ApartmentService, GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { PersistentDataCache } from '../../utils/persistent-data-cache';
 import { firstValueFrom } from 'rxjs';
 import { Apartment } from '../../models/apartment';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-draw-area-map',
@@ -102,6 +103,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private streetLines: Array<google.maps.OverlayView | google.maps.Polyline> = [];
   private countOverlays: google.maps.OverlayView[] = [];
   private priceOverlays: google.maps.OverlayView[] = [];
+  private propertyPreviewOverlay?: google.maps.OverlayView;
+  private previewApartmentId: number | null = null;
+  private activePreviewPin?: HTMLDivElement;
+  private activePreviewTail?: HTMLElement;
   private streetFocusOverlay?: google.maps.OverlayView;
   private drawnDeleteOverlay?: google.maps.OverlayView;
   private selectedBoundaryPolygons: google.maps.Polygon[] = [];
@@ -119,6 +124,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   constructor(
     private cdr: ChangeDetectorRef,
     private locationService: LocationService,
+    private router: Router,
+    private apartmentService: ApartmentService,
   ) {}
 
   ngAfterViewInit(): void {
@@ -155,13 +162,18 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (changes['selectedStreetsInput'] && this.map && !areaSelectionChanged) {
       void this.drawSelectedStreets();
     }
-    if (changes['apartments'] && this.map && this.hasPolygon) this.refreshApartmentCountOverlays();
+    if (changes['apartments'] && this.map && this.hasPolygon) {
+      const polygon = this.currentPolygon();
+      if (this.isCustomDrawing && polygon) this.renderApartmentPriceOverlays([], polygon);
+      else this.refreshApartmentCountOverlays();
+    }
   }
 
   ngOnDestroy(): void {
     this.draw?.stop();
     this.clearApartmentCountOverlays();
     this.clearApartmentPriceOverlays();
+    this.clearPropertyPreview();
     this.zoomListener?.remove();
     this.clearStreetFocus();
     this.clearDrawDeleteControl();
@@ -520,7 +532,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         ),
       );
       this.map.fitBounds(bounds, 48);
-      this.renderSelectedBoundaryOverlay(drawableAreas);
+      // The compact home-page map uses a clean listing-map presentation.
+      // Keep the district geometry for searching, but do not paint its polygon.
+      if (!this.compact) this.renderSelectedBoundaryOverlay(drawableAreas);
       this.renderApartmentCountOverlays(drawableAreas);
       this.renderApartmentPriceOverlays(drawableAreas.map((item) => item.area));
       await this.drawSelectedStreets(this.selectedStreetsInput.length > 0);
@@ -1046,6 +1060,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         if (polygon) {
           this.isCustomDrawing = true;
           this.renderDrawDeleteControl(polygon);
+          this.clearApartmentCountOverlays();
+          this.renderApartmentPriceOverlays([], polygon);
           this.setDrawingEnabled(false);
         }
         this.cdr.detectChanges();
@@ -1055,8 +1071,14 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         if (!this.hasPolygon) this.selectedArea = '';
         const polygon = this.currentPolygon();
         this.polygonChange.emit(polygon);
-        if (this.isCustomDrawing && polygon) this.renderDrawDeleteControl(polygon);
-        else if (!polygon) this.clearDrawDeleteControl();
+        if (this.isCustomDrawing && polygon) {
+          this.renderDrawDeleteControl(polygon);
+          this.renderApartmentPriceOverlays([], polygon);
+        } else if (!polygon) {
+          this.clearDrawDeleteControl();
+          this.clearApartmentPriceOverlays();
+          this.clearPropertyPreview();
+        }
         this.cdr.detectChanges();
       });
       this.loading = false;
@@ -1242,65 +1264,95 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.countOverlays = [];
   }
 
-  private renderApartmentPriceOverlays(areas: string[]): void {
+  private renderApartmentPriceOverlays(areas: string[], polygon?: GeoJsonPolygon | null): void {
     if (!this.map) return;
     this.activePriceAreas = areas;
     this.clearApartmentPriceOverlays();
     const selectedAreas = new Set(areas.map((area) => area.trim().toLowerCase()));
-    const listings = this.apartments.filter((apartment) => {
-      const lat = apartment.propertyLatitude ?? apartment.latitude;
-      const lng = apartment.propertyLongitude ?? apartment.longitude;
+    const listings = this.apartments.flatMap((apartment) => {
+      const position = this.resolveApartmentPosition(apartment);
+      const lat = position?.lat;
+      const lng = position?.lng;
       const isInSelectedArea =
         Number.isFinite(lat) &&
         Number.isFinite(lng) &&
-        selectedAreas.has((apartment.district || '').trim().toLowerCase());
-      if (!isInSelectedArea) return false;
-      return !this.activeStreetPaths.length || this.distanceToStreetKm(lat!, lng!) <= 1.2;
+        (polygon
+          ? this.pointInsidePolygon(lng!, lat!, polygon.coordinates[0] || [])
+          : selectedAreas.has((apartment.district || '').trim().toLowerCase()));
+      if (!isInSelectedArea) return [];
+      if (this.activeStreetPaths.length && this.distanceToStreetKm(lat!, lng!) > 1.2) return [];
+      return [{ apartment, position: position! }];
     });
 
-    for (const apartment of listings) {
-      const position = {
-        lat: (apartment.propertyLatitude ?? apartment.latitude)!,
-        lng: (apartment.propertyLongitude ?? apartment.longitude)!,
-      };
+    for (const { apartment, position } of listings) {
       const price = `$${Math.round(apartment.price).toLocaleString('en-US')}`;
       const overlay = new google.maps.OverlayView();
       let pin: HTMLDivElement | undefined;
       overlay.onAdd = () => {
         pin = document.createElement('div');
         pin.textContent = price;
-        pin.setAttribute('role', 'img');
-        pin.setAttribute('aria-label', `${apartment.title}, ${price}`);
+        pin.setAttribute('role', 'button');
+        pin.setAttribute('tabindex', '0');
+        pin.setAttribute('aria-label', `Open ${apartment.title}, ${price}`);
         Object.assign(pin.style, {
           position: 'absolute',
           transform: 'translate(-50%, -100%)',
-          padding: '6px 9px',
-          borderRadius: '7px',
-          background: '#5b21d1',
-          color: '#fff',
-          border: '2px solid #fff',
-          boxShadow: '0 3px 9px rgba(69, 26, 143, .32)',
+          minWidth: '58px',
+          padding: '10px 12px',
+          borderRadius: '22px',
+          background: '#fff',
+          color: '#171421',
+          border: '1px solid rgba(60, 48, 67, .12)',
+          boxShadow: '0 6px 16px rgba(25, 16, 31, .22)',
           fontFamily: 'inherit',
           fontSize: '12px',
           lineHeight: '1',
           fontWeight: '800',
           whiteSpace: 'nowrap',
-          pointerEvents: 'none',
+          pointerEvents: 'auto',
+          cursor: 'pointer',
           zIndex: '9',
         });
         const tail = document.createElement('i');
         Object.assign(tail.style, {
           position: 'absolute',
           left: '50%',
-          bottom: '-7px',
-          width: '0',
-          height: '0',
-          transform: 'translateX(-50%)',
-          borderLeft: '6px solid transparent',
-          borderRight: '6px solid transparent',
-          borderTop: '7px solid #5b21d1',
+          bottom: '-5px',
+          width: '10px',
+          height: '10px',
+          background: '#fff',
+          transform: 'translateX(-50%) rotate(45deg)',
+          boxShadow: '3px 3px 5px rgba(25, 16, 31, .08)',
         });
         pin.appendChild(tail);
+        const setPinHighlighted = (highlighted: boolean) => {
+          const active = this.previewApartmentId === apartment.id;
+          const selected = highlighted || active;
+          pin!.style.background = selected ? '#451a8f' : '#fff';
+          pin!.style.color = selected ? '#fff' : '#171421';
+          pin!.style.transform = selected
+            ? 'translate(-50%, -100%) scale(1.08)'
+            : 'translate(-50%, -100%)';
+          pin!.style.boxShadow = selected
+            ? '0 8px 20px rgba(69, 26, 143, .34)'
+            : '0 6px 16px rgba(25, 16, 31, .22)';
+          tail.style.background = selected ? '#451a8f' : '#fff';
+        };
+        const openPreview = (event: Event) => {
+          event.stopPropagation();
+          void this.showPropertyPreview(apartment, position, pin!, tail);
+        };
+        pin.addEventListener('click', openPreview);
+        pin.addEventListener('pointerenter', () => setPinHighlighted(true));
+        pin.addEventListener('pointerleave', () => setPinHighlighted(false));
+        pin.addEventListener('focus', () => setPinHighlighted(true));
+        pin.addEventListener('blur', () => setPinHighlighted(false));
+        pin.addEventListener('keydown', (event) => {
+          if ((event as KeyboardEvent).key === 'Enter' || (event as KeyboardEvent).key === ' ') {
+            event.preventDefault();
+            openPreview(event);
+          }
+        });
         overlay.getPanes()?.floatPane.appendChild(pin);
       };
       overlay.draw = () => {
@@ -1319,16 +1371,191 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.syncApartmentOverlayVisibility();
   }
 
+  private resolveApartmentPosition(apartment: Apartment): google.maps.LatLngLiteral | null {
+    const rawLat = apartment.propertyLatitude ?? apartment.latitude;
+    const rawLng = apartment.propertyLongitude ?? apartment.longitude;
+    const lat = Number(rawLat);
+    const lng = Number(rawLng);
+    if (
+      rawLat != null &&
+      rawLng != null &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      lat >= DrawAreaMapComponent.tbilisiMapBounds.south &&
+      lat <= DrawAreaMapComponent.tbilisiMapBounds.north &&
+      lng >= DrawAreaMapComponent.tbilisiMapBounds.west &&
+      lng <= DrawAreaMapComponent.tbilisiMapBounds.east
+    ) return { lat, lng };
+
+    const districtCenters: Record<string, google.maps.LatLngLiteral> = {
+      vake: { lat: 41.7085, lng: 44.7565 },
+      saburtalo: { lat: 41.7257, lng: 44.7478 },
+      vera: { lat: 41.7072, lng: 44.7832 },
+      mtatsminda: { lat: 41.6958, lng: 44.7908 },
+      didube: { lat: 41.7492, lng: 44.7782 },
+      digomi: { lat: 41.7837, lng: 44.7551 },
+      'didi digomi': { lat: 41.7948, lng: 44.7428 },
+      gldani: { lat: 41.7952, lng: 44.8177 },
+      nadzaladevi: { lat: 41.7571, lng: 44.799 },
+      isani: { lat: 41.6875, lng: 44.8352 },
+      samgori: { lat: 41.6896, lng: 44.8618 },
+      avlabari: { lat: 41.6936, lng: 44.8155 },
+      sololaki: { lat: 41.6895, lng: 44.8005 },
+      chugureti: { lat: 41.714, lng: 44.8065 },
+      krtsanisi: { lat: 41.6726, lng: 44.817 },
+    };
+    const center = districtCenters[(apartment.district || '').trim().toLowerCase()];
+    if (!center) return null;
+
+    // Separate privacy-redacted listings so their price pins remain clickable.
+    const angle = ((apartment.id * 137.5) % 360) * (Math.PI / 180);
+    const radius = 0.002 + (apartment.id % 4) * 0.00075;
+    return {
+      lat: center.lat + Math.sin(angle) * radius,
+      lng: center.lng + Math.cos(angle) * radius,
+    };
+  }
+
   private syncApartmentOverlayVisibility(): void {
     if (!this.map) return;
-    const showPrices = !!this.activeStreetPaths.length || (this.map.getZoom() || 0) >= 15;
+    const showPrices = this.compact || !!this.activeStreetPaths.length || (this.map.getZoom() || 0) >= 15;
     this.countOverlays.forEach((overlay) => overlay.setMap(showPrices ? null : this.map!));
     this.priceOverlays.forEach((overlay) => overlay.setMap(showPrices ? this.map! : null));
   }
 
   private clearApartmentPriceOverlays(): void {
+    this.clearPropertyPreview();
     this.priceOverlays.forEach((overlay) => overlay.setMap(null));
     this.priceOverlays = [];
+  }
+
+  private pointInsidePolygon(longitude: number, latitude: number, ring: number[][]): boolean {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i];
+      const [xj, yj] = ring[j];
+      if (
+        yi > latitude !== yj > latitude &&
+        longitude < ((xj - xi) * (latitude - yi)) / (yj - yi || Number.EPSILON) + xi
+      ) inside = !inside;
+    }
+    return inside;
+  }
+
+  private async showPropertyPreview(
+    apartment: Apartment,
+    position: google.maps.LatLngLiteral,
+    pin: HTMLDivElement,
+    tail: HTMLElement,
+  ): Promise<void> {
+    if (!this.map) return;
+    if (this.previewApartmentId === apartment.id) {
+      this.clearPropertyPreview();
+      return;
+    }
+    this.clearPropertyPreview();
+    this.previewApartmentId = apartment.id;
+    this.activePreviewPin = pin;
+    this.activePreviewTail = tail;
+    pin.style.background = '#451a8f';
+    pin.style.color = '#fff';
+    pin.style.transform = 'translate(-50%, -100%) scale(1.08)';
+    pin.style.boxShadow = '0 8px 20px rgba(69, 26, 143, .34)';
+    tail.style.background = '#451a8f';
+    const listedImages = (apartment.imageUrls || []).filter(Boolean);
+    if (listedImages.length <= 1) {
+      try {
+        const detailedApartment = await firstValueFrom(
+          this.apartmentService.getApartment(apartment.id),
+        );
+        if (this.previewApartmentId !== apartment.id) return;
+        apartment = detailedApartment;
+      } catch {
+        // Keep the list result available if the full gallery cannot be loaded.
+      }
+    }
+    const overlay = new google.maps.OverlayView();
+    let card: HTMLDivElement | undefined;
+    overlay.onAdd = () => {
+      card = document.createElement('div');
+      const images = (apartment.imageUrls || []).filter(Boolean);
+      if (!images.length) images.push(apartment.imageUrl || '/property-placeholder.svg');
+      let imageIndex = 0;
+      card.setAttribute('role', 'dialog');
+      card.setAttribute('aria-label', apartment.title || 'Property details');
+      card.innerHTML = `
+        <button type="button" data-close aria-label="Close property preview">&times;</button>
+        <div data-gallery><img src="${this.escapeAttribute(images[0])}" alt="" />
+        ${images.length > 1 ? '<button type="button" data-previous aria-label="Previous image">&#8249;</button><button type="button" data-next aria-label="Next image">&#8250;</button>' : ''}</div>
+        <div data-body><b>$${Math.round(apartment.price).toLocaleString('en-US')}</b>
+        <small>${apartment.bedrooms || '—'} beds · ${apartment.sizeSquareMeters || '—'} m²</small></div>`;
+      Object.assign(card.style, {
+        position: 'absolute', width: '246px', height: '112px', overflow: 'hidden', borderRadius: '14px',
+        display: 'grid', gridTemplateColumns: '158px 1fr',
+        background: '#fff', color: '#171421', boxShadow: '0 16px 38px rgba(28,17,36,.28)',
+        transform: 'translate(-50%, calc(-100% - 42px))', fontFamily: 'Inter,system-ui,sans-serif',
+        cursor: 'pointer', zIndex: '30'
+      });
+      const gallery = card.querySelector('[data-gallery]') as HTMLDivElement;
+      Object.assign(gallery.style, { position: 'relative', width: '158px', height: '112px', overflow: 'hidden' });
+      const img = gallery.querySelector('img') as HTMLImageElement;
+      Object.assign(img.style, { width: '158px', height: '112px', display: 'block', objectFit: 'cover' });
+      const changeImage = (event: Event, direction: number) => {
+        event.stopPropagation();
+        imageIndex = (imageIndex + direction + images.length) % images.length;
+        img.src = images[imageIndex];
+      };
+      const previous = gallery.querySelector('[data-previous]') as HTMLButtonElement | null;
+      const next = gallery.querySelector('[data-next]') as HTMLButtonElement | null;
+      if (previous && next) {
+        const arrowCss = 'position:absolute;z-index:2;top:50%;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:#fff;color:#171421;font-size:24px;line-height:25px;cursor:pointer;box-shadow:0 2px 7px #0003;transform:translateY(-50%)';
+        previous.style.cssText = `${arrowCss};left:6px`;
+        next.style.cssText = `${arrowCss};right:6px`;
+        previous.addEventListener('click', (event) => changeImage(event, -1));
+        next.addEventListener('click', (event) => changeImage(event, 1));
+      }
+      const body = card.querySelector('[data-body]') as HTMLDivElement;
+      Object.assign(body.style, { padding: '17px 7px 8px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' });
+      (body.querySelector('small') as HTMLElement).style.cssText = 'font-size:9px;font-weight:650;color:#6e6878;white-space:nowrap';
+      (body.querySelector('b') as HTMLElement).style.cssText = 'font-size:15px;color:#451a8f;white-space:nowrap';
+      const close = card.querySelector('[data-close]') as HTMLButtonElement;
+      close.style.cssText = 'position:absolute;z-index:2;top:5px;right:5px;width:24px;height:24px;padding:0;border:0;border-radius:50%;background:#f5f2f8;color:#4b4452;font-size:17px;line-height:22px;cursor:pointer';
+      close.addEventListener('click', (event) => { event.stopPropagation(); this.clearPropertyPreview(); });
+      card.addEventListener('click', () => void this.router.navigate(['/apartments', apartment.id]));
+      overlay.getPanes()?.floatPane.appendChild(card);
+    };
+    overlay.draw = () => {
+      const pixel = overlay.getProjection().fromLatLngToDivPixel(position);
+      if (card && pixel) { card.style.left = `${pixel.x}px`; card.style.top = `${pixel.y}px`; }
+    };
+    overlay.onRemove = () => { card?.remove(); card = undefined; };
+    overlay.setMap(this.map);
+    this.propertyPreviewOverlay = overlay;
+  }
+
+  private clearPropertyPreview(): void {
+    this.propertyPreviewOverlay?.setMap(null);
+    this.propertyPreviewOverlay = undefined;
+    if (this.activePreviewPin) {
+      this.activePreviewPin.style.background = '#fff';
+      this.activePreviewPin.style.color = '#171421';
+      this.activePreviewPin.style.transform = 'translate(-50%, -100%)';
+      this.activePreviewPin.style.boxShadow = '0 6px 16px rgba(25, 16, 31, .22)';
+    }
+    if (this.activePreviewTail) this.activePreviewTail.style.background = '#fff';
+    this.activePreviewPin = undefined;
+    this.activePreviewTail = undefined;
+    this.previewApartmentId = null;
+  }
+
+  private escapeHtml(value: string): string {
+    const element = document.createElement('div');
+    element.textContent = value;
+    return element.innerHTML;
+  }
+
+  private escapeAttribute(value: string): string {
+    return this.escapeHtml(value).replace(/`/g, '&#96;');
   }
 
   private distanceToStreetKm(latitude: number, longitude: number): number {

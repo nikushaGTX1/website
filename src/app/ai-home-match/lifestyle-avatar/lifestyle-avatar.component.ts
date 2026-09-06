@@ -20,28 +20,32 @@ export class VelvenLifestyleAvatarComponent {
     if (!this.characterSrc) return [];
 
     const man = '/man%20offset%20fix.svg';
+    const manTwo = '/man%20ver%202%20offset.svg';
     const woman = '/woman%20offset%20fix.svg';
+    const womanTwo = '/woman%20ver%202%20offset.svg';
     const couple = '/couple%20offset%20fix.svg';
-    const child = '/kid%20offset%20fix.svg';
+    const child = '/daughter%20offset.svg';
+    const pet = '/dog%20visual%20two.svg';
     const selectedChildren = Array(Math.min(this.profile.children, 4)).fill(child) as string[];
     const householdChildren = selectedChildren.length ? selectedChildren : [child];
 
     switch (this.profile.householdType) {
       case 'Couple':
-        return [couple, ...selectedChildren];
+        return [couple, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'ParentWithChildren':
-        return [this.characterSrc, ...householdChildren];
+        return [this.characterSrc, ...householdChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'FamilyWithChildren':
-        return [couple, ...householdChildren];
+        return [couple, ...householdChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'Friends':
+        return [manTwo, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'Roommates':
-        return [man, woman, ...selectedChildren];
+        return [woman, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'Relatives':
-        return [couple, this.characterSrc, ...selectedChildren];
+        return [man, woman, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       case 'CorporateHousing':
-        return [man, woman, man, ...selectedChildren];
+        return [man, woman, manTwo, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
       default:
-        return [this.characterSrc, ...selectedChildren];
+        return [this.characterSrc, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
     }
   }
 

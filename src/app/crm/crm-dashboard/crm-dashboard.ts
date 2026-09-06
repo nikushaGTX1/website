@@ -1,9 +1,17 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
+import { parsePhoneNumberFromString } from 'libphonenumber-js/max';
 import { Agent } from '../../models/agent';
 import {
   CRM_LEAD_STATUSES,
@@ -18,7 +26,6 @@ import { AuthService } from '../../services/auth.service';
 import { CrmService } from '../../services/crm.service';
 
 type StatusFilter = 'all' | CrmLeadStatus;
-type AssignmentFilter = 'all' | 'mine' | 'unassigned';
 type ManualRentalPeriod = '' | '6' | '12' | '12+';
 type ManualPetType = '' | 'none' | 'dog' | 'cat';
 type ManualPetSize = '' | 'small' | 'medium' | 'large';
@@ -27,6 +34,7 @@ interface ManualLeadForm extends CreateCrmLeadRequest {
   rentalPeriodMonths: ManualRentalPeriod;
   petType: ManualPetType;
   petSize: ManualPetSize;
+  fromUploader: boolean;
 }
 
 @Component({
@@ -40,6 +48,9 @@ export class CrmDashboard implements OnInit {
   @ViewChild('createLeadDialog') private createLeadDialog?: ElementRef<HTMLElement>;
 
   readonly statuses = CRM_LEAD_STATUSES;
+  readonly displayedStatuses = CRM_LEAD_STATUSES.filter(
+    (status): status is Exclude<CrmLeadStatus, 'negotiation'> => status !== 'negotiation',
+  );
   readonly statusLabels: Record<CrmLeadStatus, string> = {
     new: 'New',
     contacted: 'Contacted',
@@ -76,7 +87,7 @@ export class CrmDashboard implements OnInit {
   searchQuery = '';
   statusFilter: StatusFilter = 'all';
   sourceFilter = 'all';
-  assignmentFilter: AssignmentFilter = 'all';
+  agentFilter = 'all';
 
   createDialogOpen = false;
   creatingLead = false;
@@ -93,7 +104,11 @@ export class CrmDashboard implements OnInit {
     { value: '12', label: '12 months' },
     { value: '12+', label: '12+ months' },
   ];
-  readonly petTypeOptions: Array<{ value: Exclude<ManualPetType, ''>; label: string; icon: string }> = [
+  readonly petTypeOptions: Array<{
+    value: Exclude<ManualPetType, ''>;
+    label: string;
+    icon: string;
+  }> = [
     { value: 'none', label: 'No pet', icon: 'fa-ban' },
     { value: 'dog', label: 'Dog', icon: 'fa-dog' },
     { value: 'cat', label: 'Cat', icon: 'fa-cat' },
@@ -114,16 +129,29 @@ export class CrmDashboard implements OnInit {
   ];
   manualLeadForm: ManualLeadForm = this.emptyLeadForm();
   private previouslyFocusedElement: HTMLElement | null = null;
+  dedicatedStatus: CrmLeadStatus | null = null;
+  dedicatedAgentId: string | null = null;
 
   constructor(
     private crmService: CrmService,
-    private http: HttpClient,
     private agentService: AgentService,
     readonly authService: AuthService,
     private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
+    const requestedStatus = this.route.snapshot.paramMap.get('status');
+    if (this.isDisplayedStatus(requestedStatus)) {
+      this.dedicatedStatus = requestedStatus;
+      this.statusFilter = requestedStatus;
+    }
+    const requestedAgentId = this.route.snapshot.paramMap.get('agentId')?.trim();
+    if (requestedAgentId) {
+      this.dedicatedAgentId = requestedAgentId;
+      this.agentFilter = requestedAgentId;
+    }
     this.loadDashboard();
   }
 
@@ -166,6 +194,31 @@ export class CrmDashboard implements OnInit {
     return Array.from({ length: rooms }, (_, index) => index + 1);
   }
 
+  get dedicatedAgentName(): string {
+    const agent = this.agents.find((item) => this.agentId(item) === this.dedicatedAgentId);
+    return agent ? this.agentFirstLastName(agent) : 'Agent';
+  }
+
+  get duplicateLead(): CrmLead | null {
+    const phone = this.normalizedPhone(this.manualLeadForm.phoneNumber);
+    const email = this.manualLeadForm.email?.trim().toLowerCase() || '';
+
+    return (
+      this.leads.find((lead) => {
+        const existingPhone = this.normalizedPhone(lead.phoneNumber);
+        const samePhone =
+          !!phone &&
+          !!existingPhone &&
+          (phone === existingPhone ||
+            (phone.length >= 9 &&
+              existingPhone.length >= 9 &&
+              phone.slice(-9) === existingPhone.slice(-9)));
+        const sameEmail = !!email && lead.email?.trim().toLowerCase() === email;
+        return samePhone || sameEmail;
+      }) || null
+    );
+  }
+
   toggleLeadMenu(menu: 'budget' | 'property' | 'rooms' | 'bedrooms'): void {
     if (menu === 'bedrooms' && !this.manualLeadForm.rooms) return;
     this.leadMenu = this.leadMenu === menu ? null : menu;
@@ -184,6 +237,15 @@ export class CrmDashboard implements OnInit {
 
   trackLeadSource(_index: number, source: { value: string }): string {
     return source.value;
+  }
+
+  toggleUploaderOrigin(): void {
+    if (!this.isManager) return;
+    this.manualLeadForm.fromUploader = !this.manualLeadForm.fromUploader;
+    if (this.manualLeadForm.fromUploader) {
+      this.manualLeadForm.source = 'referral';
+      this.manualLeadForm.status = 'new';
+    }
   }
 
   clampLeadBudget(field: 'budgetMin' | 'budgetMax'): void {
@@ -240,13 +302,6 @@ export class CrmDashboard implements OnInit {
         tone: this.metrics.overdueTasks ? 'red' : 'green',
       },
       {
-        label: 'Upcoming viewings',
-        value: String(this.metrics.upcomingViewings),
-        detail: 'Open viewing tasks',
-        icon: 'fa-regular fa-calendar-check',
-        tone: 'gold',
-      },
-      {
         label: 'Conversion',
         value: `${this.metrics.conversionRate.toFixed(1)}%`,
         detail: `${this.metrics.wonLeads} won`,
@@ -257,44 +312,45 @@ export class CrmDashboard implements OnInit {
   }
 
   get sourceOptions(): string[] {
-    return [...new Set(this.leads.map((lead) => lead.source).filter(Boolean))]
-      .sort((left, right) => left.localeCompare(right));
+    return [...new Set(this.leads.map((lead) => lead.source).filter(Boolean))].sort((left, right) =>
+      left.localeCompare(right),
+    );
   }
 
   get visibleStatuses(): readonly CrmLeadStatus[] {
-    return this.statusFilter === 'all' ? this.statuses : [this.statusFilter];
+    return this.statusFilter === 'all' ? this.displayedStatuses : [this.statusFilter];
   }
 
   get filteredLeads(): CrmLead[] {
     const query = this.searchQuery.trim().toLowerCase();
-    const currentUserId = (this.authService.currentUser?.id || '').toLowerCase();
-
     return this.leads.filter((lead) => {
-      const matchesSearch = !query || [
-        lead.fullName,
-        lead.email,
-        lead.phoneNumber,
-        lead.source,
-        lead.assignedAgentName,
-        lead.apartmentTitle,
-        ...(lead.preferredDistricts || []),
-      ].some((value) => value?.toLowerCase().includes(query));
+      const matchesSearch =
+        !query ||
+        [
+          lead.fullName,
+          lead.email,
+          lead.phoneNumber,
+          lead.source,
+          lead.assignedAgentName,
+          lead.apartmentTitle,
+          ...(lead.preferredDistricts || []),
+        ].some((value) => value?.toLowerCase().includes(query));
       const matchesSource = this.sourceFilter === 'all' || lead.source === this.sourceFilter;
       const assignedAgentId = (lead.assignedAgentId || '').toLowerCase();
       const matchesAssignment =
-        this.assignmentFilter === 'all' ||
-        (this.assignmentFilter === 'unassigned' && !assignedAgentId) ||
-        (this.assignmentFilter === 'mine' && !!currentUserId && assignedAgentId === currentUserId);
+        this.agentFilter === 'all' || assignedAgentId === this.agentFilter.toLowerCase();
 
       return matchesSearch && matchesSource && matchesAssignment;
     });
   }
 
   get hasFilters(): boolean {
-    return !!this.searchQuery ||
+    return (
+      !!this.searchQuery ||
       this.statusFilter !== 'all' ||
       this.sourceFilter !== 'all' ||
-      this.assignmentFilter !== 'all';
+      this.agentFilter !== 'all'
+    );
   }
 
   loadDashboard(): void {
@@ -312,9 +368,14 @@ export class CrmDashboard implements OnInit {
         this.leads = this.scopeLeads(leads);
         this.agents = agents;
         const calculatedMetrics = this.calculateMetrics(this.leads);
-        this.metrics = this.isManager && metrics
-          ? { ...metrics, overdueTasks: calculatedMetrics.overdueTasks }
-          : calculatedMetrics;
+        this.metrics =
+          this.isManager && metrics
+            ? {
+                ...metrics,
+                newLeads: calculatedMetrics.newLeads,
+                overdueTasks: calculatedMetrics.overdueTasks,
+              }
+            : calculatedMetrics;
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -332,21 +393,33 @@ export class CrmDashboard implements OnInit {
     // Preserve the API/board order. A status update changes updatedAt and
     // lastActivityAt, so sorting here made a dropped card jump past another
     // card as soon as the server response arrived.
-    return this.filteredLeads.filter((lead) => lead.status === status);
+    return this.filteredLeads.filter((lead) => this.pipelineStatus(lead) === status);
+  }
+
+  displayedLeadsForStatus(status: CrmLeadStatus): CrmLead[] {
+    const leads = this.leadsForStatus(status);
+    return this.dedicatedStatus || this.dedicatedAgentId ? leads : leads.slice(0, 5);
+  }
+
+  hasMoreLeadsForStatus(status: CrmLeadStatus): boolean {
+    return !this.dedicatedStatus && !this.dedicatedAgentId && this.leadsForStatus(status).length > 5;
+  }
+
+  isUploaderLead(lead: CrmLead): boolean {
+    return !!lead.uploaderUserId?.trim() || lead.source?.trim().toLowerCase() === 'referral';
   }
 
   resetFilters(): void {
     this.searchQuery = '';
-    this.statusFilter = 'all';
+    this.statusFilter = this.dedicatedStatus || 'all';
     this.sourceFilter = 'all';
-    this.assignmentFilter = 'all';
+    this.agentFilter = this.dedicatedAgentId || 'all';
   }
 
   openCreateDialog(): void {
     if (!this.canCreateLead) return;
-    this.previouslyFocusedElement = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    this.previouslyFocusedElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.manualLeadForm = this.emptyLeadForm();
     this.manualLeadForm.source = this.allowedLeadSources[0].value;
     this.manualLeadForm.status = this.canChooseStartingStage ? 'new' : 'contacted';
@@ -375,15 +448,27 @@ export class CrmDashboard implements OnInit {
 
     const fullName = this.manualLeadForm.fullName.trim();
     const email = this.manualLeadForm.email?.trim() || '';
-    const phoneNumber = this.manualLeadForm.phoneNumber?.trim() || '';
+    const enteredPhoneNumber = this.manualLeadForm.phoneNumber?.trim() || '';
+    const phoneNumber = this.phoneForSubmission(enteredPhoneNumber);
 
     if (!fullName) {
       this.createErrorMessage = 'Please enter the lead name.';
       return;
     }
 
-    if (!email && !phoneNumber) {
+    if (!email && !enteredPhoneNumber) {
       this.createErrorMessage = 'Add an email address or phone number.';
+      return;
+    }
+
+    if (enteredPhoneNumber && !phoneNumber) {
+      this.createErrorMessage = 'Enter a valid phone number, including the country code.';
+      return;
+    }
+
+    const duplicate = this.duplicateLead;
+    if (duplicate) {
+      this.createErrorMessage = `Duplicate detected: ${duplicate.fullName} already uses this phone number or email.`;
       return;
     }
 
@@ -398,14 +483,24 @@ export class CrmDashboard implements OnInit {
     }
 
     const request: CreateCrmLeadRequest = {
-      source: this.isUploader ? 'referral' : (this.authService.isCrmAgent && !this.isManager ? 'manual' : this.manualLeadForm.source),
+      source: this.isUploader || this.manualLeadForm.fromUploader
+        ? 'referral'
+        : this.authService.isCrmAgent && !this.isManager
+          ? 'manual'
+          : this.manualLeadForm.source,
       fullName,
       email: email || undefined,
       phoneNumber: phoneNumber || undefined,
       preferredContactMethod: this.manualLeadForm.preferredContactMethod,
-      // Agent/uploader submissions have already started as a direct
-      // conversation and must never enter the New pipeline column.
-      status: this.canChooseStartingStage ? this.manualLeadForm.status : 'contacted',
+      // Uploader-origin leads always need a first contact, so they begin in
+      // New while unassigned. Once assigned, they keep their selected stage.
+      status:
+        (this.isUploader || this.manualLeadForm.fromUploader) &&
+        !this.manualLeadForm.assignedAgentId
+          ? 'new'
+          : this.canChooseStartingStage
+            ? this.manualLeadForm.status
+            : 'contacted',
       goal: this.manualLeadForm.goal,
       currency: this.manualLeadForm.currency,
       preferredDistricts: this.preferredDistrictsText
@@ -454,22 +549,46 @@ export class CrmDashboard implements OnInit {
     return agent.fullName || agent.name || agent.userName || agent.email || 'Agent';
   }
 
+  agentFirstLastName(agent: Agent): string {
+    const parts = this.agentName(agent).trim().split(/\s+/).filter(Boolean);
+    return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1]}` : parts[0] || 'Agent';
+  }
+
+  openAgentLeads(agentId: string): void {
+    if (!agentId || agentId === 'all') {
+      this.agentFilter = 'all';
+      this.dedicatedAgentId = null;
+      void this.router.navigate(['/crm']);
+      return;
+    }
+    this.agentFilter = agentId;
+    this.dedicatedAgentId = agentId;
+    this.dedicatedStatus = null;
+    this.statusFilter = 'all';
+    void this.router.navigate(['/crm/agents', agentId]);
+  }
+
   initials(lead: CrmLead): string {
-    return lead.fullName
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase() || 'L';
+    return (
+      lead.fullName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase() || 'L'
+    );
   }
 
   budgetLabel(lead: CrmLead): string {
     const minimum = this.positiveNumber(lead.budgetMin);
     const maximum = this.positiveNumber(lead.budgetMax);
     const format = (value: number): string =>
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: this.safeCurrency(lead.currency), maximumFractionDigits: 0 })
-        .format(value);
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: this.safeCurrency(lead.currency),
+        maximumFractionDigits: 0,
+      }).format(value);
 
     if (minimum && maximum) return `${format(minimum)} – ${format(maximum)}`;
     if (maximum) return `Up to ${format(maximum)}`;
@@ -520,6 +639,21 @@ export class CrmDashboard implements OnInit {
     return task.status !== 'completed' && !!task.dueAt && Date.parse(task.dueAt) < Date.now();
   }
 
+  needsAttention(lead: CrmLead): boolean {
+    if (lead.status === 'won' || lead.status === 'lost') return false;
+
+    const relevantActivityTimes = (lead.activities || [])
+      .filter((activity) => activity.type === 'status' || activity.type === 'note')
+      .map((activity) => Date.parse(activity.createdAt))
+      .filter(Number.isFinite);
+    const fallbackTime = Date.parse(lead.lastActivityAt || lead.createdAt);
+    const lastRelevantActivity = relevantActivityTimes.length
+      ? Math.max(...relevantActivityTimes)
+      : fallbackTime;
+
+    return Number.isFinite(lastRelevantActivity) && Date.now() - lastRelevantActivity >= 5 * 86_400_000;
+  }
+
   identifyLead(_: number, lead: CrmLead): number {
     return lead.id;
   }
@@ -541,7 +675,8 @@ export class CrmDashboard implements OnInit {
       const preview = document.createElement('div');
       preview.className = 'crm-drag-preview';
       preview.textContent = `Move ${lead.fullName}`;
-      preview.style.cssText = 'position:fixed;top:-1000px;left:-1000px;z-index:9999;max-width:230px;padding:10px 14px;overflow:hidden;border:1px solid #7657f6;border-radius:999px;color:#fff;background:#451a8f;box-shadow:0 8px 20px rgba(69,26,143,.25);font:700 12px Inter,"Segoe UI",sans-serif;text-overflow:ellipsis;white-space:nowrap;';
+      preview.style.cssText =
+        'position:fixed;top:-1000px;left:-1000px;z-index:9999;max-width:230px;padding:10px 14px;overflow:hidden;border:1px solid #7657f6;border-radius:999px;color:#fff;background:#451a8f;box-shadow:0 8px 20px rgba(69,26,143,.25);font:700 12px Inter,"Segoe UI",sans-serif;text-overflow:ellipsis;white-space:nowrap;';
       document.body.appendChild(preview);
       event.dataTransfer.setDragImage(preview, 18, 18);
       setTimeout(() => preview.remove());
@@ -576,19 +711,20 @@ export class CrmDashboard implements OnInit {
     const movedLead = { ...lead, status };
     const remainingLeads = this.leads.filter((item) => item.id !== lead.id);
     const targetIndex = remainingLeads.findIndex((item) => item.status === status);
-    this.leads = targetIndex < 0
-      ? [...remainingLeads, movedLead]
-      : [
-          ...remainingLeads.slice(0, targetIndex),
-          movedLead,
-          ...remainingLeads.slice(targetIndex),
-        ];
+    this.leads =
+      targetIndex < 0
+        ? [...remainingLeads, movedLead]
+        : [
+            ...remainingLeads.slice(0, targetIndex),
+            movedLead,
+            ...remainingLeads.slice(targetIndex),
+          ];
     this.metrics = this.calculateMetrics(this.leads);
     this.errorMessage = '';
 
     this.crmService.updateLeadStatus(lead.id, status).subscribe({
       next: (updatedLead) => {
-        this.leads = this.leads.map((item) => item.id === lead.id ? updatedLead : item);
+        this.leads = this.leads.map((item) => (item.id === lead.id ? updatedLead : item));
         this.statusUpdatingLeadIds.delete(lead.id);
         this.metrics = this.calculateMetrics(this.leads);
         this.refreshMetrics();
@@ -645,6 +781,7 @@ export class CrmDashboard implements OnInit {
       rentalPeriodMonths: '',
       petType: '',
       petSize: '',
+      fromUploader: false,
     };
   }
 
@@ -654,10 +791,7 @@ export class CrmDashboard implements OnInit {
 
     if (notes) details.push(notes);
 
-    if (
-      this.manualLeadForm.goal === 'rent' &&
-      this.manualLeadForm.rentalPeriodMonths
-    ) {
+    if (this.manualLeadForm.goal === 'rent' && this.manualLeadForm.rentalPeriodMonths) {
       const period = this.rentalPeriodOptions.find(
         (option) => option.value === this.manualLeadForm.rentalPeriodMonths,
       );
@@ -690,27 +824,37 @@ export class CrmDashboard implements OnInit {
   }
 
   private calculateMetrics(leads: CrmLead[]): CrmMetrics {
-    const activeLeads = leads.filter(
-      (lead) => lead.status !== 'won' && lead.status !== 'lost',
-    );
+    const activeLeads = leads.filter((lead) => lead.status !== 'won' && lead.status !== 'lost');
     const tasks = activeLeads.flatMap((lead) =>
       lead.tasks?.length ? lead.tasks : lead.nextTask ? [lead.nextTask] : [],
     );
     const wonLeads = leads.filter((lead) => lead.status === 'won').length;
-    const closedLeads = leads.filter((lead) => lead.status === 'won' || lead.status === 'lost').length;
+    const closedLeads = leads.filter(
+      (lead) => lead.status === 'won' || lead.status === 'lost',
+    ).length;
 
     return {
       totalLeads: leads.length,
-      newLeads: leads.filter((lead) => lead.status === 'new').length,
+      newLeads: leads.filter((lead) => this.pipelineStatus(lead) === 'new').length,
       activeLeads: activeLeads.length,
       overdueTasks: tasks.filter((task) => this.isOverdue(task)).length,
-      upcomingViewings: tasks.filter((task) =>
-        task.type === 'viewing' && task.status !== 'completed' &&
-        (!task.dueAt || Date.parse(task.dueAt) >= Date.now()),
+      upcomingViewings: tasks.filter(
+        (task) =>
+          task.type === 'viewing' &&
+          task.status !== 'completed' &&
+          (!task.dueAt || Date.parse(task.dueAt) >= Date.now()),
       ).length,
       wonLeads,
       conversionRate: closedLeads ? (wonLeads / closedLeads) * 100 : 0,
     };
+  }
+
+  private pipelineStatus(lead: CrmLead): CrmLeadStatus {
+    return this.isUploaderLead(lead) && !lead.assignedAgentId?.trim() ? 'new' : lead.status;
+  }
+
+  private isDisplayedStatus(value: string | null): value is CrmLeadStatus {
+    return !!value && this.displayedStatuses.some((status) => status === value);
   }
 
   private scopeLeads(leads: CrmLead[]): CrmLead[] {
@@ -720,9 +864,7 @@ export class CrmDashboard implements OnInit {
     if (!userId) return [];
 
     if (this.authService.isCrmAgent) {
-      return leads.filter((lead) =>
-        (lead.assignedAgentId || '').toLowerCase() === userId,
-      );
+      return leads.filter((lead) => (lead.assignedAgentId || '').toLowerCase() === userId);
     }
 
     return leads.filter((lead) => {
@@ -748,12 +890,33 @@ export class CrmDashboard implements OnInit {
     return /^[A-Z]{3}$/.test(currency) ? currency : 'USD';
   }
 
+  private normalizedPhone(value?: string): string {
+    return (value || '').replace(/\D/g, '').replace(/^00/, '');
+  }
+
+  private phoneForSubmission(value: string): string {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+
+    if (trimmed.startsWith('+')) {
+      const parsed = parsePhoneNumberFromString(trimmed);
+      return parsed?.isPossible() ? parsed.number : '';
+    }
+
+    const digits = this.normalizedPhone(trimmed);
+    return digits.length >= 7 && digits.length <= 15 ? digits : '';
+  }
+
   private refreshMetrics(): void {
     this.crmService.getMetrics().subscribe({
       next: (metrics) => {
         const calculatedMetrics = this.calculateMetrics(this.leads);
         this.metrics = this.isManager
-          ? { ...metrics, overdueTasks: calculatedMetrics.overdueTasks }
+          ? {
+              ...metrics,
+              newLeads: calculatedMetrics.newLeads,
+              overdueTasks: calculatedMetrics.overdueTasks,
+            }
           : calculatedMetrics;
         this.cdr.markForCheck();
       },
@@ -789,22 +952,21 @@ export class CrmDashboard implements OnInit {
   }
 
   private focusableElements(dialog: HTMLElement): HTMLElement[] {
-    return Array.from(dialog.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    )).filter((element) => element.offsetParent !== null);
+    return Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => element.offsetParent !== null);
   }
 
   private apiError(error: HttpErrorResponse, fallback: string): string {
     if (error.status === 401) return 'Your session expired. Please sign in again.';
     if (error.status === 403) return 'You do not have permission to access these leads.';
 
-    const message = typeof error.error === 'string'
-      ? error.error
-      : error.error?.message || error.error?.title;
+    const message =
+      typeof error.error === 'string' ? error.error : error.error?.message || error.error?.title;
     return message || fallback;
   }
-
-
 
   generateQuestionnaireLink(): void {
     if (!this.canGenerateQuestionnaireLink || this.generatingQuestionnaireLink) {
@@ -815,17 +977,13 @@ export class CrmDashboard implements OnInit {
     this.linkCopied = false;
     this.errorMessage = '';
 
-    this.http.post<{
-      token: string;
-      path: string;
-    }>(
-      'https://websiteapi-production-c970.up.railway.app/api/Crm/questionnaire-links',
-      {}
-    ).subscribe({
+    this.crmService.generateQuestionnaireLink().subscribe({
       next: async (response) => {
         this.generatingQuestionnaireLink = false;
 
-        const fullUrl = `${window.location.origin}${response.path}`;
+        const cleanPath = `/${encodeURIComponent(response.slug)}`;
+        const shareUrl = new URL(cleanPath, window.location.origin);
+        const fullUrl = shareUrl.toString();
 
         try {
           await navigator.clipboard.writeText(fullUrl);
@@ -840,10 +998,7 @@ export class CrmDashboard implements OnInit {
         } catch (error) {
           console.error('Could not copy questionnaire link:', error);
 
-          window.prompt(
-            'Copy questionnaire link:',
-            fullUrl
-          );
+          window.prompt('Copy questionnaire link:', fullUrl);
         }
 
         this.cdr.markForCheck();
@@ -851,10 +1006,7 @@ export class CrmDashboard implements OnInit {
 
       error: (error: HttpErrorResponse) => {
         this.generatingQuestionnaireLink = false;
-        this.errorMessage = this.apiError(
-          error,
-          'Could not generate questionnaire link.'
-        );
+        this.errorMessage = this.apiError(error, 'Could not generate questionnaire link.');
         this.cdr.markForCheck();
       },
     });

@@ -61,8 +61,19 @@ export class App implements AfterViewInit {
   }
 
   get showNavigation(): boolean {
-    return !this.router.url.startsWith(
-      '/crm-questioner'
-    );
+    const path = this.router.url.split(/[?#]/, 1)[0];
+    const knownSingleSegmentPages = new Set([
+      'main', 'ExploreProperty', 'property', 'find-my-home', 'ai-home-match',
+      'about', 'services', 'apartment-detail', 'agent-profile', 'login', 'blog',
+      'upload-apartment', 'admin', 'crm', 'my-profile', 'my-listings',
+      'saved-listings', 'premium', 'balance', 'payment-methods', 'my-business',
+    ]);
+    const segments = path.split('/').filter(Boolean);
+    const isShortQuestionnaireUrl =
+      segments.length === 1 && !knownSingleSegmentPages.has(segments[0]);
+
+    return !path.startsWith('/crm-questioner') &&
+      !path.startsWith('/questions/') &&
+      !isShortQuestionnaireUrl;
   }
 }

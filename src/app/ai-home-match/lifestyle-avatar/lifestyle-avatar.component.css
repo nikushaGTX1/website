@@ -79,6 +79,16 @@
   align-self: flex-end;
 }
 
+.character-stage.character-group img[src*="daughter"] {
+  height: 72%;
+  align-self: flex-end;
+}
+
+.character-stage.character-group img[src*="dog"] {
+  height: 42%;
+  align-self: flex-end;
+}
+
 .character-stage.character-group img:nth-child(n + 3) {
   width: auto;
 }

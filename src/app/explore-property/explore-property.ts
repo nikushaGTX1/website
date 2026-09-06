@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { AppLanguage, TranslationService } from '../services/translation.service';
+import { PropertyMapPreviewAnchor } from '../maps/explore-property-map/explore-property-map.component';
 
 @Component({
   selector: 'app-explore-property',
@@ -17,6 +18,8 @@ import { AppLanguage, TranslationService } from '../services/translation.service
 export class ExploreProperty implements OnInit {
   apartments: Apartment[] = [];
   filteredApartments: Apartment[] = [];
+  pageApartments: Apartment[] = [];
+  visibleApartments: Apartment[] = [];
 
   loading = false;
   errorMessage = '';
@@ -24,7 +27,7 @@ export class ExploreProperty implements OnInit {
   bedroomOptions = ['Studio', '1 Bedroom', '2 Bedrooms', '3 Bedrooms', '4+ Bedrooms'];
   bathroomOptions = ['1+ Bathrooms', '2+ Bathrooms', '3+ Bathrooms'];
   propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
-  amenityOptions = ['Parking', 'Balcony', 'Elevator', 'Pool', 'Furnished'];
+  amenityOptions = ['Parking', 'Near Park', 'Balcony', 'Elevator', 'Pool', 'Furnished'];
 
   searchQuery = '';
   selectedType = 'For Rent';
@@ -105,13 +108,21 @@ export class ExploreProperty implements OnInit {
   drawAreaOpen = false;
   drawAreaInitialized = false;
 
-  selectedPriceMax = 3000;
+  selectedPriceMax = Number.MAX_SAFE_INTEGER;
   selectedBedrooms: string[] = [];
   selectedBathrooms: string[] = [];
   selectedPropertyTypes: string[] = [];
   selectedAmenities: string[] = [];
+  selectedMinArea = 0;
+  selectedMinFloor = 0;
 
   selectedApartment: Apartment | null = null;
+  mapPreviewApartment: Apartment | null = null;
+  hoveredApartmentId: number | null = null;
+  mapPreviewImageIndex = 0;
+  mapPreviewPosition = { left: 16, top: 16 };
+  private mapPreviewOffset = { x: 0, y: 0 };
+  private readonly mapGalleryRequests = new Set<number>();
   mapVisible = false;
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
@@ -138,6 +149,13 @@ export class ExploreProperty implements OnInit {
     if (!this.headerBedrooms) return rooms;
     const bedrooms = `${this.headerBedrooms} ${this.headerBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
     return `${rooms}, ${bedrooms}`;
+  }
+
+  get bedroomSummary(): string {
+    if (!this.headerBedrooms) return 'Any bedrooms';
+    return this.headerBedrooms === '4+'
+      ? '4+ Bedrooms'
+      : `${this.headerBedrooms} ${this.headerBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
   }
 
   get availableHeaderBedroomOptions() {
@@ -260,6 +278,16 @@ export class ExploreProperty implements OnInit {
 
   toggleAmenity(amenity: string): void {
     this.toggleFilterItem(this.selectedAmenities, amenity);
+    this.onSearch();
+  }
+
+  setMinimumArea(event: Event): void {
+    this.selectedMinArea = Number((event.target as HTMLSelectElement).value) || 0;
+    this.onSearch();
+  }
+
+  setMinimumFloor(event: Event): void {
+    this.selectedMinFloor = Number((event.target as HTMLSelectElement).value) || 0;
     this.onSearch();
   }
 
@@ -648,8 +676,25 @@ export class ExploreProperty implements OnInit {
   }
 
   get paginatedApartments(): Apartment[] {
+    return this.visibleApartments;
+  }
+
+  private updateVisibleApartments(): void {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.filteredApartments.slice(start, start + this.pageSize);
+    this.pageApartments = this.filteredApartments.slice(start, start + this.pageSize);
+    this.visibleApartments = this.pageApartments;
+  }
+
+  onMapVisibleApartmentsChanged(apartments: Apartment[]): void {
+    if (!apartments.length && this.pageApartments.length) return;
+    this.visibleApartments = apartments;
+    if (
+      this.selectedApartment &&
+      !apartments.some((apartment) => apartment.id === this.selectedApartment?.id)
+    ) {
+      this.selectedApartment = apartments[0] ?? null;
+    }
+    this.cdr.detectChanges();
   }
 
   get visiblePages(): number[] {
@@ -705,8 +750,27 @@ export class ExploreProperty implements OnInit {
       const nextType = queryParams.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
       if (nextType === this.selectedType) return;
       this.selectedType = nextType;
+      this.resetModeNavigationFilters(queryParams.get('location') || '');
       this.onSearch();
     });
+  }
+
+  private resetModeNavigationFilters(location: string): void {
+    this.location = location;
+    this.selectedLocationValue = location;
+    this.selectedStreetId = null;
+    this.homeType = '';
+    this.headerBedrooms = '';
+    this.headerRooms = '';
+    this.appliedBudgetMin = null;
+    this.appliedBudgetMax = null;
+    this.selectedPriceMax = Number.MAX_SAFE_INTEGER;
+    this.selectedAmenities = [];
+    this.selectedMinArea = 0;
+    this.selectedMinFloor = 0;
+    this.featureFilter = '';
+    this.drawnAreaActive = false;
+    this.mapPreviewApartment = null;
   }
 
   toggleFavorite(event: Event, apartment: Apartment): void {
@@ -755,6 +819,9 @@ export class ExploreProperty implements OnInit {
         console.error('API Error:', err);
         this.apartments = [];
         this.filteredApartments = [];
+        this.pageApartments = [];
+        this.visibleApartments = [];
+        this.selectedApartment = null;
         this.loading = false;
         this.errorMessage = 'Could not load apartments right now.';
         this.cdr.detectChanges();
@@ -852,6 +919,8 @@ export class ExploreProperty implements OnInit {
       const matchesPropertyType = this.matchesPropertyTypeFilter(apartment);
       const matchesAmenities = this.matchesAmenitiesFilter(apartment);
       const matchesFeature = this.matchesQuickFeature(apartment);
+      const matchesArea = !this.selectedMinArea || Number(apartment.sizeSquareMeters) >= this.selectedMinArea;
+      const matchesFloor = !this.selectedMinFloor || Number(apartment.floor) >= this.selectedMinFloor;
 
       return (
         matchesQuery &&
@@ -867,17 +936,20 @@ export class ExploreProperty implements OnInit {
         matchesBathrooms &&
         matchesPropertyType &&
         matchesAmenities &&
-        matchesFeature
+        matchesFeature &&
+        matchesArea &&
+        matchesFloor
       );
     });
 
     this.applySorting();
     this.currentPage = 1;
+    this.updateVisibleApartments();
 
-    if (this.filteredApartments.length === 0) {
+    if (this.visibleApartments.length === 0) {
       this.selectedApartment = null;
     } else {
-      this.selectApartment(this.filteredApartments[0], false);
+      this.selectApartment(this.visibleApartments[0], false);
     }
 
     this.cdr.detectChanges();
@@ -911,11 +983,13 @@ export class ExploreProperty implements OnInit {
     this.headerRooms = '';
     this.bedroomStep = 'rooms';
 
-    this.selectedPriceMax = 3000;
+    this.selectedPriceMax = Number.MAX_SAFE_INTEGER;
     this.selectedBedrooms = [];
     this.selectedBathrooms = [];
     this.selectedPropertyTypes = [];
     this.selectedAmenities = [];
+    this.selectedMinArea = 0;
+    this.selectedMinFloor = 0;
     this.featureFilter = '';
     this.drawnAreaActive = false;
     sessionStorage.removeItem('white-tower-drawn-area');
@@ -928,10 +1002,14 @@ export class ExploreProperty implements OnInit {
     this.currentSort = select.value;
     this.applySorting();
     this.currentPage = 1;
+    this.updateVisibleApartments();
+    this.selectedApartment = this.visibleApartments[0] ?? null;
   }
 
   goToPage(page: number): void {
     this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
+    this.updateVisibleApartments();
+    this.selectedApartment = this.visibleApartments[0] ?? null;
     document.querySelector('.results-header')?.scrollIntoView({
       behavior: 'smooth',
       block: 'start',
@@ -941,6 +1019,8 @@ export class ExploreProperty implements OnInit {
   onPageSizeChange(event: Event): void {
     this.pageSize = Number((event.target as HTMLSelectElement).value);
     this.currentPage = 1;
+    this.updateVisibleApartments();
+    this.selectedApartment = this.visibleApartments[0] ?? null;
   }
 
   focusFilters(): void {
@@ -963,6 +1043,110 @@ export class ExploreProperty implements OnInit {
     if (updateView) {
       this.cdr.detectChanges();
     }
+  }
+
+  selectMapApartment(apartment: Apartment): void {
+    const apartmentChanged = this.mapPreviewApartment?.id !== apartment.id;
+    this.selectedApartment = apartment;
+    this.mapPreviewApartment = apartment;
+    if (apartmentChanged) this.mapPreviewImageIndex = 0;
+    this.cdr.detectChanges();
+
+    if (this.getMapPreviewImages(apartment).length <= 1 && !this.mapGalleryRequests.has(apartment.id)) {
+      this.mapGalleryRequests.add(apartment.id);
+      this.apartmentService.getApartment(apartment.id).subscribe({
+        next: (detailedApartment) => {
+          this.mapGalleryRequests.delete(apartment.id);
+          if (this.mapPreviewApartment?.id !== apartment.id) return;
+          this.mapPreviewApartment = detailedApartment;
+          this.selectedApartment = detailedApartment;
+          this.mapPreviewImageIndex = Math.min(
+            this.mapPreviewImageIndex,
+            this.getMapPreviewImages(detailedApartment).length - 1,
+          );
+          this.cdr.detectChanges();
+        },
+        error: () => this.mapGalleryRequests.delete(apartment.id),
+      });
+    }
+  }
+
+  positionMapPreview(anchor: PropertyMapPreviewAnchor): void {
+    if (anchor.fromClick && this.mapPreviewApartment?.id === anchor.apartment.id) {
+      this.closeMapPreview();
+      return;
+    }
+    if (!anchor.fromClick && this.mapPreviewApartment?.id !== anchor.apartment.id) return;
+    if (!anchor.fromClick) {
+      this.mapPreviewPosition = {
+        left: anchor.x + this.mapPreviewOffset.x,
+        top: anchor.y + this.mapPreviewOffset.y,
+      };
+      return;
+    }
+    if (anchor.fromClick) this.selectMapApartment(anchor.apartment);
+    const gap = 22;
+    const edge = 16;
+    const cardWidth = Math.min(326, anchor.mapWidth - edge * 2);
+    const cardHeight = Math.min(350, anchor.mapHeight - edge * 2);
+    const markerLeft = anchor.x - anchor.markerWidth / 2;
+    const markerRight = anchor.x + anchor.markerWidth / 2;
+    const markerTop = anchor.y - anchor.markerHeight / 2;
+    const markerBottom = anchor.y + anchor.markerHeight / 2;
+    let left: number;
+    let top: number;
+
+    if (markerRight + gap + cardWidth <= anchor.mapWidth - edge) {
+      left = markerRight + gap;
+      top = anchor.y - cardHeight / 2;
+    } else if (markerLeft - gap - cardWidth >= edge) {
+      left = markerLeft - gap - cardWidth;
+      top = anchor.y - cardHeight / 2;
+    } else {
+      left = anchor.x - cardWidth / 2;
+      top = markerTop - gap - cardHeight;
+      if (top < edge) top = markerBottom + gap;
+    }
+
+    this.mapPreviewPosition = {
+      left: Math.max(edge, Math.min(left, anchor.mapWidth - cardWidth - edge)),
+      top: Math.max(edge, Math.min(top, anchor.mapHeight - cardHeight - edge)),
+    };
+    this.mapPreviewOffset = {
+      x: this.mapPreviewPosition.left - anchor.x,
+      y: this.mapPreviewPosition.top - anchor.y,
+    };
+  }
+
+  closeMapPreview(): void {
+    this.mapPreviewApartment = null;
+    this.selectedApartment = null;
+  }
+
+  getMapPreviewImages(apartment: Apartment): string[] {
+    const images = (apartment.imageUrls || []).filter(Boolean);
+    return images.length ? images : [apartment.imageUrl || '/property-placeholder.svg'];
+  }
+
+  changeMapPreviewImage(event: Event, direction: number, apartment: Apartment): void {
+    event.stopPropagation();
+    const imageCount = this.getMapPreviewImages(apartment).length;
+    this.mapPreviewImageIndex = Math.max(
+      0,
+      Math.min(this.mapPreviewImageIndex + direction, imageCount - 1),
+    );
+  }
+
+  setMapPreviewImage(event: Event, index: number): void {
+    event.stopPropagation();
+    this.mapPreviewImageIndex = index;
+  }
+
+  getMapPreviewDotIndexes(apartment: Apartment): number[] {
+    const count = this.getMapPreviewImages(apartment).length;
+    if (count <= 5) return Array.from({ length: count }, (_, index) => index);
+    const start = Math.max(0, Math.min(this.mapPreviewImageIndex - 2, count - 5));
+    return Array.from({ length: 5 }, (_, index) => start + index);
   }
 
   getApartmentLocation(apartment: Apartment): string {
@@ -1151,6 +1335,15 @@ export class ExploreProperty implements OnInit {
       if (normalized === 'air conditioning') return !!apartment.hasAirConditioning;
       if (normalized === 'balcony') return !!apartment.hasBalcony;
       if (normalized === 'elevator') return !!apartment.hasElevator;
+      if (normalized === 'pet friendly') return !!apartment.isPetFriendly;
+      if (normalized === 'near park') {
+        const minutes = Number(apartment.parkDistanceMinutes);
+        return Number.isFinite(minutes) && minutes >= 0 && minutes <= 10;
+      }
+      if (normalized === 'new building') {
+        const buildingText = `${apartment.apartmentStyle || ''} ${text}`;
+        return /new building|new build|newly built|ახალი კორპუს/i.test(buildingText);
+      }
       return text.includes(normalized);
     });
   }

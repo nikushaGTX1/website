@@ -769,6 +769,14 @@ fieldset button.selected {
   height: 126px;
 }
 
+.pet-option-image {
+  width: 52px;
+  height: 58px;
+  display: block;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
 .gender-first-step button {
   min-height: 210px;
 }
@@ -803,7 +811,8 @@ fieldset button.selected {
   align-self: flex-end;
 }
 
-.household-option-images.multiple img[src*="kid"] {
+.household-option-images.multiple img[src*="kid"],
+.household-option-images.multiple img[src*="daughter"] {
   height: 72%;
   align-self: flex-end;
 }

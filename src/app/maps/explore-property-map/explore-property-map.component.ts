@@ -18,8 +18,20 @@ import { Apartment } from '../../models/apartment';
 interface PropertyMarker {
   apartment: Apartment;
   marker: google.maps.marker.AdvancedMarkerElement;
+  wrapper: HTMLDivElement;
   button: HTMLButtonElement;
   tail: HTMLSpanElement;
+}
+
+export interface PropertyMapPreviewAnchor {
+  apartment: Apartment;
+  x: number;
+  y: number;
+  markerWidth: number;
+  markerHeight: number;
+  mapWidth: number;
+  mapHeight: number;
+  fromClick: boolean;
 }
 
 @Component({
@@ -29,9 +41,23 @@ interface PropertyMarker {
   styleUrl: './explore-property-map.component.css',
 })
 export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private static readonly georgiaBounds: google.maps.LatLngBoundsLiteral = {
+    south: 41.05,
+    west: 40.85,
+    north: 43.75,
+    east: 46.8,
+  };
+  private static readonly georgiaCameraBounds: google.maps.LatLngBoundsLiteral = {
+    south: 40.9,
+    west: 40.55,
+    north: 43.9,
+    east: 47.05,
+  };
   @Input() apartments: Apartment[] = [];
   @Input() selectedApartmentId: number | null = null;
   @Output() apartmentSelected = new EventEmitter<Apartment>();
+  @Output() previewAnchorChanged = new EventEmitter<PropertyMapPreviewAnchor>();
+  @Output() visibleApartmentsChanged = new EventEmitter<Apartment[]>();
   @ViewChild('mapCanvas') mapCanvas?: ElementRef<HTMLDivElement>;
 
   loading = true;
@@ -45,7 +71,11 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private markers: PropertyMarker[] = [];
   private viewReady = false;
   private renderRevision = 0;
+  private idleListener?: google.maps.MapsEventListener;
+  private boundsListener?: google.maps.MapsEventListener;
+  private previewFrame?: number;
   private readonly geocodeCache = new Map<string, google.maps.LatLngLiteral | null>();
+  private initialPropertyFocused = false;
 
   constructor(
     private readonly zone: NgZone,
@@ -65,6 +95,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
   ngOnDestroy(): void {
     this.renderRevision += 1;
+    this.idleListener?.remove();
+    this.boundsListener?.remove();
+    if (this.previewFrame) cancelAnimationFrame(this.previewFrame);
     this.clearMarkers();
   }
 
@@ -103,8 +136,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       ]);
 
       this.map = new Map(this.mapCanvas.nativeElement, {
-        center: { lat: 41.7151, lng: 44.8271 },
-        zoom: 11,
+        center: { lat: 42.1, lng: 43.5 },
+        zoom: 7,
+        minZoom: 7,
         ...(mapId ? { mapId } : {}),
         mapTypeId: this.mapType,
         mapTypeControl: false,
@@ -113,6 +147,26 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         clickableIcons: false,
         gestureHandling: 'greedy',
         zoomControl: true,
+        restriction: {
+          latLngBounds: ExplorePropertyMapComponent.georgiaCameraBounds,
+          // Google's elastic boundary keeps Georgia centered without exposing
+          // the clipped/blank edge produced when a wide map meets strict bounds.
+          strictBounds: false,
+        },
+      });
+
+      this.idleListener = this.map.addListener('idle', () => {
+        this.zone.run(() => {
+          this.emitVisibleApartments();
+          this.emitSelectedPreviewAnchor();
+        });
+      });
+      this.boundsListener = this.map.addListener('bounds_changed', () => {
+        if (this.previewFrame) cancelAnimationFrame(this.previewFrame);
+        this.previewFrame = requestAnimationFrame(() => {
+          this.previewFrame = undefined;
+          this.zone.run(() => this.emitSelectedPreviewAnchor());
+        });
       });
 
       // Keep the constructor available without loading the marker library again.
@@ -148,35 +202,78 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     );
 
     if (revision !== this.renderRevision) return;
+    const positionCounts = new Map<string, number>();
+    const positionIndexes = new Map<string, number>();
+    locatedApartments.forEach(({ position }) => {
+      const key = this.positionKey(position);
+      positionCounts.set(key, (positionCounts.get(key) || 0) + 1);
+    });
+
     for (const { apartment, position } of locatedApartments) {
-      const { button, tail } = this.createPricePin(apartment);
+      const key = this.positionKey(position);
+      const markerIndex = positionIndexes.get(key) || 0;
+      const markerCount = positionCounts.get(key) || 1;
+      positionIndexes.set(key, markerIndex + 1);
+      const offsetX = (markerIndex - (markerCount - 1) / 2) * 66;
+      const { wrapper, button, tail } = this.createPricePin(apartment, offsetX);
       const marker = new this.advancedMarkerConstructor({
         map: this.map,
         position,
-        content: button,
-        title: `${apartment.title || 'Property'} — ${this.compactPrice(apartment.price)}`,
+        content: wrapper,
         zIndex: apartment.id === this.selectedApartmentId ? 100 : 1,
-      });
-      marker.addListener('click', () => {
-        this.zone.run(() => this.apartmentSelected.emit(apartment));
       });
       button.addEventListener('click', (event) => {
         event.stopPropagation();
-        this.zone.run(() => this.apartmentSelected.emit(apartment));
+        this.zone.run(() => {
+          this.emitPreviewAnchor(apartment, button, true);
+        });
       });
-      this.markers.push({ apartment, marker, button, tail });
+      const showHoverState = () => this.setMarkerHoverState(apartment.id, true);
+      const hideHoverState = () => this.setMarkerHoverState(apartment.id, false);
+      button.addEventListener('pointerenter', showHoverState);
+      button.addEventListener('pointerleave', hideHoverState);
+      button.addEventListener('focus', showHoverState);
+      button.addEventListener('blur', hideHoverState);
+      this.markers.push({ apartment, marker, wrapper, button, tail });
     }
 
     this.mappedApartmentCount = this.markers.length;
     this.updateSelectedMarker();
-    if (fitBounds) this.fitVisibleProperties();
+    if (fitBounds) {
+      if (!this.initialPropertyFocused && this.markers.length) {
+        this.focusRandomProperty();
+        this.initialPropertyFocused = true;
+      } else {
+        this.fitVisibleProperties();
+      }
+    }
     this.refreshView();
   }
 
-  private createPricePin(apartment: Apartment): {
+  private focusRandomProperty(): void {
+    if (!this.map || !this.markers.length) return;
+    const item = this.markers[Math.floor(Math.random() * this.markers.length)];
+    const position = item.marker.position;
+    if (!position) return;
+    requestAnimationFrame(() => {
+      this.map?.moveCamera({
+        center: position as google.maps.LatLng | google.maps.LatLngLiteral,
+        zoom: 15,
+      });
+    });
+  }
+
+  private createPricePin(apartment: Apartment, offsetX = 0): {
+    wrapper: HTMLDivElement;
     button: HTMLButtonElement;
     tail: HTMLSpanElement;
   } {
+    const wrapper = document.createElement('div');
+    Object.assign(wrapper.style, {
+      position: 'relative',
+      transform: `translateX(${offsetX}px)`,
+      overflow: 'visible',
+    });
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = this.compactPrice(apartment.price);
@@ -202,7 +299,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       cursor: 'pointer',
       transform: 'translateY(-9px)',
       transformOrigin: 'center bottom',
-      transition: 'transform .18s ease, background .18s ease, color .18s ease',
+      outline: 'none',
+      transition:
+        'transform .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease',
     });
     const tail = document.createElement('span');
     Object.assign(tail.style, {
@@ -217,7 +316,12 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       zIndex: '-1',
     });
     button.appendChild(tail);
-    return { button, tail };
+    wrapper.appendChild(button);
+    return { wrapper, button, tail };
+  }
+
+  private positionKey(position: google.maps.LatLngLiteral): string {
+    return `${position.lat.toFixed(5)},${position.lng.toFixed(5)}`;
   }
 
   private async resolvePosition(apartment: Apartment): Promise<google.maps.LatLngLiteral | null> {
@@ -229,13 +333,22 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       lat >= -90 &&
       lat <= 90 &&
       lng >= -180 &&
-      lng <= 180
+      lng <= 180 &&
+      this.isInsideGeorgia(lat, lng)
     ) {
       return { lat, lng };
     }
 
     const normalizedStreet = this.normalizeStreetName(apartment.street || '');
     const normalizedAddress = this.normalizeStreetName(apartment.address || '');
+    const districtFallback = this.resolveDistrictPosition(apartment);
+
+    // Public listings can intentionally omit their precise street and point.
+    // In that case, do not wait for remote geocoding: place the marker at the
+    // saved district immediately so the initial camera always has a target.
+    if (!normalizedStreet && districtFallback) {
+      return districtFallback;
+    }
     const addresses = [
       [
         [apartment.buildingNumber, normalizedStreet].filter(Boolean).join(' '),
@@ -254,9 +367,14 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (this.geocoder) {
       for (const address of addresses) {
         try {
-          const result = await this.geocoder.geocode({ address });
+          const result = await this.geocoder.geocode({
+            address,
+            bounds: ExplorePropertyMapComponent.georgiaBounds,
+            componentRestrictions: { country: 'GE' },
+            region: 'GE',
+          });
           const location = result.results[0]?.geometry.location;
-          if (location) {
+          if (location && this.isInsideGeorgia(location.lat(), location.lng())) {
             const position = { lat: location.lat(), lng: location.lng() };
             this.geocodeCache.set(cacheKey, position);
             return position;
@@ -269,8 +387,41 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     }
 
     const streetPosition = await this.resolveStreetPosition(normalizedStreet);
-    this.geocodeCache.set(cacheKey, streetPosition);
-    return streetPosition;
+    const fallbackPosition = streetPosition || districtFallback;
+    this.geocodeCache.set(cacheKey, fallbackPosition);
+    return fallbackPosition;
+  }
+
+  private resolveDistrictPosition(apartment: Apartment): google.maps.LatLngLiteral | null {
+    const districtCenters: Record<string, google.maps.LatLngLiteral> = {
+      vake: { lat: 41.7085, lng: 44.7565 },
+      saburtalo: { lat: 41.7257, lng: 44.7478 },
+      vera: { lat: 41.7072, lng: 44.7832 },
+      mtatsminda: { lat: 41.6958, lng: 44.7908 },
+      didube: { lat: 41.7492, lng: 44.7782 },
+      digomi: { lat: 41.7837, lng: 44.7551 },
+      'didi digomi': { lat: 41.7948, lng: 44.7428 },
+      gldani: { lat: 41.7952, lng: 44.8177 },
+      nadzaladevi: { lat: 41.7571, lng: 44.799 },
+      isani: { lat: 41.6875, lng: 44.8352 },
+      samgori: { lat: 41.6896, lng: 44.8618 },
+      avlabari: { lat: 41.6936, lng: 44.8155 },
+      sololaki: { lat: 41.6895, lng: 44.8005 },
+      chugureti: { lat: 41.714, lng: 44.8065 },
+      krtsanisi: { lat: 41.6726, lng: 44.817 },
+    };
+    const key = (apartment.district || '').trim().toLowerCase();
+    const center = districtCenters[key];
+    if (!center) return null;
+
+    // Slightly separate privacy-redacted homes in the same district so each
+    // price remains visible without implying an exact building location.
+    const angle = ((apartment.id * 137.5) % 360) * (Math.PI / 180);
+    const radius = 0.002 + (apartment.id % 3) * 0.0007;
+    return {
+      lat: center.lat + Math.sin(angle) * radius,
+      lng: center.lng + Math.cos(angle) * radius,
+    };
   }
 
   private normalizeStreetName(value: string): string {
@@ -284,7 +435,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private async resolveStreetPosition(street: string): Promise<google.maps.LatLngLiteral | null> {
     if (!street) return null;
     try {
-      const response = await fetch(`/map-data/street?street=${encodeURIComponent(street)}`);
+      const response = await fetch(
+        `/map-data/street?street=${encodeURIComponent(street)}&bbox=41.05,40.85,43.75,46.80`,
+      );
       if (!response.ok) return null;
       const payload = (await response.json()) as { lines?: number[][][] };
       const longestLine = [...(payload.lines || [])].sort(
@@ -293,10 +446,19 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       if (!longestLine?.length) return null;
       const point = longestLine[Math.floor(longestLine.length / 2)];
       const [lng, lat] = point || [];
-      return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+      return Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        this.isInsideGeorgia(lat, lng)
+        ? { lat, lng }
+        : null;
     } catch {
       return null;
     }
+  }
+
+  private isInsideGeorgia(lat: number, lng: number): boolean {
+    const bounds = ExplorePropertyMapComponent.georgiaBounds;
+    return lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
   }
 
   private updateSelectedMarker(): void {
@@ -305,9 +467,59 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       item.button.style.background = selected ? '#451a8f' : '#fff';
       item.button.style.color = selected ? '#fff' : '#171421';
       item.button.style.transform = selected ? 'translateY(-9px) scale(1.1)' : 'translateY(-9px)';
+      item.button.style.boxShadow = selected
+        ? '0 9px 22px rgba(69, 26, 143, .32)'
+        : '0 5px 14px rgba(25, 16, 31, .22)';
       item.tail.style.background = selected ? '#451a8f' : '#fff';
       item.marker.zIndex = selected ? 100 : 1;
     }
+  }
+
+  private setMarkerHoverState(apartmentId: number, hovered: boolean): void {
+    const item = this.markers.find((marker) => marker.apartment.id === apartmentId);
+    if (!item) return;
+
+    const selected = apartmentId === this.selectedApartmentId;
+    item.button.style.background = selected ? '#451a8f' : '#fff';
+    item.button.style.color = selected ? '#fff' : '#171421';
+    item.button.style.transform = hovered
+      ? `translateY(-15px) scale(${selected ? '1.1' : '1.04'})`
+      : selected
+        ? 'translateY(-9px) scale(1.1)'
+        : 'translateY(-9px)';
+    item.button.style.boxShadow = hovered || selected
+      ? '0 9px 22px rgba(69, 26, 143, .32)'
+      : '0 5px 14px rgba(25, 16, 31, .22)';
+    item.tail.style.background = selected ? '#451a8f' : '#fff';
+    item.marker.zIndex = hovered ? 101 : selected ? 100 : 1;
+  }
+
+  private emitSelectedPreviewAnchor(): void {
+    const selected = this.markers.find(
+      (item) => item.apartment.id === this.selectedApartmentId,
+    );
+    if (selected) requestAnimationFrame(() => this.emitPreviewAnchor(selected.apartment, selected.button));
+  }
+
+  private emitPreviewAnchor(
+    apartment: Apartment,
+    button: HTMLButtonElement,
+    fromClick = false,
+  ): void {
+    const mapElement = this.mapCanvas?.nativeElement;
+    if (!mapElement) return;
+    const mapRect = mapElement.getBoundingClientRect();
+    const markerRect = button.getBoundingClientRect();
+    this.previewAnchorChanged.emit({
+      apartment,
+      x: markerRect.left - mapRect.left + markerRect.width / 2,
+      y: markerRect.top - mapRect.top + markerRect.height / 2,
+      markerWidth: markerRect.width,
+      markerHeight: markerRect.height,
+      mapWidth: mapRect.width,
+      mapHeight: mapRect.height,
+      fromClick,
+    });
   }
 
   private fitVisibleProperties(): void {
@@ -324,8 +536,31 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     }
     this.map.fitBounds(bounds, 70);
     google.maps.event.addListenerOnce(this.map, 'idle', () => {
-      if ((this.map?.getZoom() || 0) > 16) this.map?.setZoom(16);
+      const zoom = this.map?.getZoom() || 0;
+      if (zoom > 16) this.map?.setZoom(16);
+      if (zoom < 7) this.map?.setZoom(7);
     });
+  }
+
+  private emitVisibleApartments(): void {
+    const bounds = this.map?.getBounds();
+    // Do not replace the loaded results with an empty list during the map's
+    // first idle event, before async geocoding has produced its markers.
+    if (!bounds || !this.markers.length) return;
+    const visible = this.markers
+      .filter((item) => {
+        const position = item.marker.position;
+        if (!position) return false;
+        const point =
+          position instanceof google.maps.LatLng
+            ? position
+            : new google.maps.LatLng(position.lat, position.lng);
+        return bounds.contains(point);
+      })
+      .map((item) => item.apartment);
+    this.mappedApartmentCount = visible.length;
+    this.visibleApartmentsChanged.emit(visible);
+    this.refreshView();
   }
 
   private clearMarkers(): void {

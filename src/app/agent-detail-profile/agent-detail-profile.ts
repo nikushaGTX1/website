@@ -5,6 +5,7 @@ import { Agent } from '../models/agent';
 import { Apartment } from '../models/apartment';
 import { AgentService } from '../services/agent.service';
 import { ApartmentService } from '../services/apartment.service';
+import { SeoService } from '../services/seo.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 
 @Component({
@@ -25,6 +26,7 @@ export class AgentDetailProfile implements OnInit {
     private router: Router,
     private agentService: AgentService,
     private apartmentService: ApartmentService,
+    private seoService: SeoService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -41,9 +43,12 @@ export class AgentDetailProfile implements OnInit {
     }).subscribe({
       next: ({ agent, apartments }) => {
         this.agent = agent;
+        this.seoService.updateAgent(agent);
         this.listings = apartments
           .filter((apartment) => this.belongsToAgent(apartment, agent, agentId))
-          .sort((left, right) => Date.parse(right.createdAt || '') - Date.parse(left.createdAt || ''));
+          .sort(
+            (left, right) => Date.parse(right.createdAt || '') - Date.parse(left.createdAt || ''),
+          );
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -61,14 +66,18 @@ export class AgentDetailProfile implements OnInit {
   }
 
   get photo(): string {
-    return toMediaUrl(
-      this.agent?.profilePictureUrl || this.agent?.profilePicture || this.agent?.avatarUrl,
-    ) || '/agent1.jpg';
+    return (
+      toMediaUrl(
+        this.agent?.profilePictureUrl || this.agent?.profilePicture || this.agent?.avatarUrl,
+      ) || '/agent1.jpg'
+    );
   }
 
   get bio(): string {
-    return this.agent?.bio?.trim() ||
-      `${this.name} is a verified real estate professional dedicated to helping clients find the right property in Tbilisi.`;
+    return (
+      this.agent?.bio?.trim() ||
+      `${this.name} is a verified real estate professional dedicated to helping clients find the right property in Tbilisi.`
+    );
   }
 
   get rating(): number {
@@ -88,10 +97,12 @@ export class AgentDetailProfile implements OnInit {
   }
 
   get contactPhone(): string {
-    return this.agent?.phoneNumber?.trim() ||
+    return (
+      this.agent?.phoneNumber?.trim() ||
       this.listings.find((listing) => listing.phoneNumber?.trim())?.phoneNumber?.trim() ||
       this.listings.map((listing) => this.getListingMetadata(listing, 'Phone')).find(Boolean) ||
-      '';
+      ''
+    );
   }
 
   callAgent(): void {
@@ -117,7 +128,9 @@ export class AgentDetailProfile implements OnInit {
   }
 
   getListingImage(apartment: Apartment): string {
-    return toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg';
+    return (
+      toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg'
+    );
   }
 
   private belongsToAgent(apartment: Apartment, agent: Agent, routeAgentId: string): boolean {
@@ -139,27 +152,35 @@ export class AgentDetailProfile implements OnInit {
       apartment.applicationUserId,
       apartment.uploadedById,
       this.getListingMetadata(apartment, 'Owner ID'),
-    ].filter((value): value is string => !!value).map((value) => value.toLowerCase());
+    ]
+      .filter((value): value is string => !!value)
+      .map((value) => value.toLowerCase());
     const apartmentEmails = [
       apartment.agentEmail,
       apartment.userEmail,
       apartment.createdByEmail,
       apartment.uploadedByEmail,
       this.getListingMetadata(apartment, 'Owner Email'),
-    ].filter((value): value is string => !!value).map((value) => value.toLowerCase());
-    const apartmentNames = [
-      apartment.agentName,
-      apartment.uploadedByName,
-      apartment.ownerName,
-    ].filter((value): value is string => !!value).map((value) => value.trim().toLowerCase());
+    ]
+      .filter((value): value is string => !!value)
+      .map((value) => value.toLowerCase());
+    const apartmentNames = [apartment.agentName, apartment.uploadedByName, apartment.ownerName]
+      .filter((value): value is string => !!value)
+      .map((value) => value.trim().toLowerCase());
 
-    return apartmentIds.some((value) => agentIds.includes(value)) ||
+    return (
+      apartmentIds.some((value) => agentIds.includes(value)) ||
       apartmentEmails.some((value) => agentEmails.includes(value)) ||
-      apartmentNames.some((value) => agentNames.includes(value));
+      apartmentNames.some((value) => agentNames.includes(value))
+    );
   }
 
   private getListingMetadata(apartment: Apartment, label: string): string {
     const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return apartment.description?.match(new RegExp(`(?:^|\\|)\\s*${escapedLabel}:\\s*([^|\\r\\n]+)`, 'i'))?.[1]?.trim() || '';
+    return (
+      apartment.description
+        ?.match(new RegExp(`(?:^|\\|)\\s*${escapedLabel}:\\s*([^|\\r\\n]+)`, 'i'))?.[1]
+        ?.trim() || ''
+    );
   }
 }

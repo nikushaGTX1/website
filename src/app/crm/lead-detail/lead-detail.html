@@ -365,7 +365,7 @@
               currentLead.status === status
             "
             [class.past]="
-              statuses.indexOf(currentLead.status) > index &&
+              statusIndex(currentLead.status) > index &&
               currentLead.status !== 'lost'
             "
             [class.lost]="

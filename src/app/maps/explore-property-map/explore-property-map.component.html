@@ -2,7 +2,7 @@
   <div #mapCanvas class="map-canvas"></div>
 
   <div class="loading-cover" *ngIf="loading && !errorMessage">
-    <span>V</span><strong>Loading properties…</strong>
+    <span><img src="assets/images/loading.gif" alt="Loading"></span><strong>Loading properties…</strong>
   </div>
   <div class="map-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 

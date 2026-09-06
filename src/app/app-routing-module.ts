@@ -151,6 +151,24 @@ const routes: Routes = [
   },
 
   {
+    path: 'crm/clients/:status',
+    loadComponent: () =>
+      import('./crm/crm-dashboard/crm-dashboard')
+        .then(module => module.CrmDashboard),
+    title: 'CRM Clients | Velven',
+    canActivate: [authGuard, crmGuard]
+  },
+
+  {
+    path: 'crm/agents/:agentId',
+    loadComponent: () =>
+      import('./crm/crm-dashboard/crm-dashboard')
+        .then(module => module.CrmDashboard),
+    title: 'Agent Leads | Velven',
+    canActivate: [authGuard, crmGuard]
+  },
+
+  {
     path: 'crm/leads/:id',
 
     loadComponent: () =>
@@ -228,6 +246,18 @@ const routes: Routes = [
 
   {
     path: 'crm-questioner/:agentToken',
+    component: CrmQuestioner,
+    title: 'Apartment Questionnaire | Velven'
+  },
+
+  {
+    path: 'questions/:agentToken',
+    component: CrmQuestioner,
+    title: 'Apartment Questionnaire | Velven'
+  },
+
+  {
+    path: ':agentToken',
     component: CrmQuestioner,
     title: 'Apartment Questionnaire | Velven'
   },

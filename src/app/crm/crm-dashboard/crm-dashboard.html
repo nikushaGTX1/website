@@ -4,53 +4,47 @@
     [attr.inert]="createDialogOpen ? '' : null"
     [attr.aria-hidden]="createDialogOpen ? 'true' : null"
   >
-
     <!-- ===================================================== -->
     <!-- HEADER -->
     <!-- ===================================================== -->
 
     <header class="crm-header">
-
       <div>
         <p class="eyebrow">VELVEN CRM</p>
 
-        <h1>Lead pipeline</h1>
+        <h1>
+          {{
+            dedicatedStatus
+              ? statusLabel(dedicatedStatus) + ' clients'
+              : dedicatedAgentId
+                ? dedicatedAgentName + ' leads'
+                : 'Lead pipeline'
+          }}
+        </h1>
 
-        <p
-          class="header-copy"
-          *ngIf="!isUploader"
-        >
+        <p class="header-copy" *ngIf="!isUploader">
           Keep every inquiry, follow-up, and viewing moving toward the right home.
         </p>
 
-        <p
-          class="header-copy"
-          *ngIf="isUploader"
-        >
+        <p class="header-copy" *ngIf="isUploader">
           Track the progress of leads connected to your property uploads.
         </p>
       </div>
 
-
       <!-- HEADER ACTIONS -->
 
       <div class="header-actions">
-
+        <a class="admin-shortcut" routerLink="/crm" *ngIf="dedicatedStatus || dedicatedAgentId">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          All pipeline stages
+        </a>
         <!-- SYSTEM DASHBOARD -->
 
-        <a
-          class="admin-shortcut"
-          routerLink="/admin"
-          *ngIf="isAdmin"
-        >
-          <i
-            class="fa-solid fa-sliders"
-            aria-hidden="true"
-          ></i>
+        <a class="admin-shortcut" routerLink="/admin" *ngIf="isAdmin">
+          <i class="fa-solid fa-sliders" aria-hidden="true"></i>
 
           System dashboard
         </a>
-
 
         <!-- GENERATE QUESTIONNAIRE LINK -->
 
@@ -81,23 +75,13 @@
           }}
         </button>
 
-
         <!-- REFRESH -->
 
-        <button
-          type="button"
-          class="refresh-button"
-          (click)="loadDashboard()"
-          [disabled]="loading"
-        >
-          <i
-            class="fa-solid fa-rotate"
-            aria-hidden="true"
-          ></i>
+        <button type="button" class="refresh-button" (click)="loadDashboard()" [disabled]="loading">
+          <i class="fa-solid fa-rotate" aria-hidden="true"></i>
 
           {{ loading ? 'Refreshing…' : 'Refresh' }}
         </button>
-
 
         <!-- ADD LEAD -->
 
@@ -107,78 +91,43 @@
           *ngIf="canCreateLead"
           (click)="openCreateDialog()"
         >
-          <i
-            class="fa-solid fa-plus"
-            aria-hidden="true"
-          ></i>
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
 
           Add lead
         </button>
-
       </div>
-
     </header>
-
 
     <!-- ===================================================== -->
     <!-- MESSAGES -->
     <!-- ===================================================== -->
 
-    <p
-      class="page-message success"
-      role="status"
-      *ngIf="successMessage"
-    >
-      <i
-        class="fa-regular fa-circle-check"
-        aria-hidden="true"
-      ></i>
+    <p class="page-message success" role="status" *ngIf="successMessage">
+      <i class="fa-regular fa-circle-check" aria-hidden="true"></i>
 
       {{ successMessage }}
     </p>
 
-
-    <p
-      class="page-message error"
-      role="alert"
-      *ngIf="errorMessage"
-    >
-      <i
-        class="fa-solid fa-circle-exclamation"
-        aria-hidden="true"
-      ></i>
+    <p class="page-message error" role="alert" *ngIf="errorMessage">
+      <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
 
       {{ errorMessage }}
 
-      <button
-        type="button"
-        (click)="loadDashboard()"
-      >
-        Try again
-      </button>
+      <button type="button" (click)="loadDashboard()">Try again</button>
     </p>
-
 
     <!-- ===================================================== -->
     <!-- METRICS -->
     <!-- ===================================================== -->
 
-    <section
-      class="metrics-grid"
-      aria-label="CRM overview"
-    >
-
+    <section class="metrics-grid" aria-label="CRM overview">
       <article
         class="metric-card"
         *ngFor="let metric of metricCards"
         [class]="'metric-card ' + metric.tone"
       >
-
         <span class="metric-icon">
-          <i
-            [class]="metric.icon"
-            aria-hidden="true"
-          ></i>
+          <i [class]="metric.icon" aria-hidden="true"></i>
         </span>
 
         <div>
@@ -194,151 +143,84 @@
             {{ metric.detail }}
           </small>
         </div>
-
       </article>
-
     </section>
-
 
     <!-- ===================================================== -->
     <!-- FILTERS -->
     <!-- ===================================================== -->
 
-    <section
-      class="filter-panel"
-      aria-label="Lead filters"
-    >
-
+    <section class="filter-panel" aria-label="Lead filters">
       <!-- SEARCH -->
 
       <label class="search-field">
+        <span class="sr-only"> Search leads </span>
 
-        <span class="sr-only">
-          Search leads
-        </span>
-
-        <i
-          class="fa-solid fa-magnifying-glass"
-          aria-hidden="true"
-        ></i>
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
 
         <input
           type="search"
           [(ngModel)]="searchQuery"
           placeholder="Search name, contact, district or property"
         />
-
       </label>
-
 
       <!-- STATUS -->
 
       <label>
-
-        <span>
-          Status
-        </span>
+        <span> Status </span>
 
         <select [(ngModel)]="statusFilter">
+          <option value="all">All stages</option>
 
-          <option value="all">
-            All stages
-          </option>
-
-          <option
-            *ngFor="let status of statuses"
-            [value]="status"
-          >
+          <option *ngFor="let status of displayedStatuses" [value]="status">
             {{ statusLabel(status) }}
           </option>
-
         </select>
-
       </label>
-
 
       <!-- SOURCE -->
 
       <label>
-
-        <span>
-          Source
-        </span>
+        <span> Source </span>
 
         <select [(ngModel)]="sourceFilter">
+          <option value="all">All sources</option>
 
-          <option value="all">
-            All sources
-          </option>
-
-          <option
-            *ngFor="let source of sourceOptions"
-            [value]="source"
-          >
+          <option *ngFor="let source of sourceOptions" [value]="source">
             {{ source }}
           </option>
-
         </select>
-
       </label>
 
-
-      <!-- ASSIGNMENT -->
+      <!-- AGENTS -->
 
       <label *ngIf="isManager">
+        <span> Agents </span>
 
-        <span>
-          Assignment
-        </span>
-
-        <select [(ngModel)]="assignmentFilter">
-
-          <option value="all">
-            All visible leads
+        <select [(ngModel)]="agentFilter" (ngModelChange)="openAgentLeads($event)">
+          <option value="all">All agents</option>
+          <option *ngFor="let agent of agents" [value]="agentId(agent)">
+            {{ agentFirstLastName(agent) }}
           </option>
-
-          <option value="mine">
-            Assigned to me
-          </option>
-
-          <option value="unassigned">
-            Unassigned
-          </option>
-
         </select>
-
       </label>
-
 
       <!-- CLEAR FILTERS -->
 
-      <button
-        class="clear-filters"
-        type="button"
-        (click)="resetFilters()"
-        [disabled]="!hasFilters"
-      >
+      <button class="clear-filters" type="button" (click)="resetFilters()" [disabled]="!hasFilters">
         Clear filters
       </button>
-
     </section>
-
 
     <!-- ===================================================== -->
     <!-- PIPELINE -->
     <!-- ===================================================== -->
 
-    <section
-      class="pipeline-section"
-      [attr.aria-busy]="loading"
-    >
-
+    <section class="pipeline-section" [attr.aria-busy]="loading">
       <div class="pipeline-heading">
-
         <div>
-          <h2>
-            Pipeline board
-          </h2>
+          <h2>Pipeline board</h2>
 
           <p>
             {{ filteredLeads.length }}
@@ -347,127 +229,64 @@
           </p>
         </div>
 
-
         <span *ngIf="!isUploader">
-          <i
-            class="fa-solid fa-arrow-right"
-            aria-hidden="true"
-          ></i>
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
 
           Move a lead from its detail page
         </span>
 
-
         <span *ngIf="isUploader">
-          <i
-            class="fa-regular fa-eye"
-            aria-hidden="true"
-          ></i>
+          <i class="fa-regular fa-eye" aria-hidden="true"></i>
 
           Read-only progress view
         </span>
-
       </div>
-
 
       <!-- LOADING -->
 
-      <div
-        class="pipeline-loading"
-        *ngIf="loading"
-      >
-
-        <article *ngFor="let item of [1,2,3,4]">
+      <div class="pipeline-loading" *ngIf="loading">
+        <article *ngFor="let item of [1, 2, 3, 4]">
           <span></span>
           <span></span>
           <span></span>
         </article>
-
       </div>
-
 
       <!-- EMPTY -->
 
-      <div
-        class="pipeline-empty"
-        *ngIf="
-          !loading &&
-          !errorMessage &&
-          filteredLeads.length === 0
-        "
-      >
-
+      <div class="pipeline-empty" *ngIf="!loading && !errorMessage && filteredLeads.length === 0">
         <span>
-          <i
-            class="fa-regular fa-address-card"
-            aria-hidden="true"
-          ></i>
+          <i class="fa-regular fa-address-card" aria-hidden="true"></i>
         </span>
 
-
         <h2>
-          {{
-            hasFilters
-              ? 'No leads match these filters'
-              : 'Your pipeline is ready'
-          }}
+          {{ hasFilters ? 'No leads match these filters' : 'Your pipeline is ready' }}
         </h2>
-
 
         <p>
           {{
             hasFilters
               ? 'Try clearing a filter or searching a different contact.'
-              : (
-                  isUploader
-                    ? 'No leads have been connected to your uploaded properties yet.'
-                    : 'Add the first lead, or wait for a property viewing request.'
-                )
+              : isUploader
+                ? 'No leads have been connected to your uploaded properties yet.'
+                : 'Add the first lead, or wait for a property viewing request.'
           }}
         </p>
 
+        <button type="button" *ngIf="hasFilters" (click)="resetFilters()">Clear filters</button>
 
-        <button
-          type="button"
-          *ngIf="hasFilters"
-          (click)="resetFilters()"
-        >
-          Clear filters
-        </button>
-
-
-        <button
-          type="button"
-          *ngIf="!hasFilters && canCreateLead"
-          (click)="openCreateDialog()"
-        >
+        <button type="button" *ngIf="!hasFilters && canCreateLead" (click)="openCreateDialog()">
           Add first lead
         </button>
-
       </div>
-
 
       <!-- PIPELINE BOARD -->
 
-      <div
-        class="pipeline-scroll"
-        *ngIf="
-          !loading &&
-          filteredLeads.length > 0
-        "
-      >
-
-        <div
-          class="pipeline-board"
-          [class.filtered]="statusFilter !== 'all'"
-        >
-
+      <div class="pipeline-scroll" *ngIf="!loading && filteredLeads.length > 0">
+        <div class="pipeline-board" [class.filtered]="statusFilter !== 'all'">
           <section
             class="pipeline-column"
-            *ngFor="
-              let status of visibleStatuses;
-              trackBy: identifyStatus
-            "
+            *ngFor="let status of visibleStatuses; trackBy: identifyStatus"
             [class]="'pipeline-column status-' + status"
             [class.is-drop-target]="dragOverStatus === status"
             [attr.aria-labelledby]="'pipeline-' + status"
@@ -475,41 +294,29 @@
             (dragleave)="leaveLeadDrop(status, $event)"
             (drop)="dropLead(status, $event)"
           >
-
             <!-- COLUMN HEADER -->
 
             <header>
-
               <div>
-
-                <span
-                  class="status-dot"
-                  aria-hidden="true"
-                ></span>
+                <span class="status-dot" aria-hidden="true"></span>
 
                 <h3 [id]="'pipeline-' + status">
-                  {{ statusLabel(status) }}
+                  <a [routerLink]="['/crm/clients', status]">{{ statusLabel(status) }}</a>
                 </h3>
-
               </div>
-
 
               <strong>
                 {{ leadsForStatus(status).length }}
               </strong>
 
-
               <p>
                 {{ statusDescriptions[status] }}
               </p>
-
             </header>
-
 
             <!-- COLUMN LEADS -->
 
             <div class="column-leads">
-
               <div
                 class="lead-drop-placeholder"
                 *ngIf="dragOverStatus === status && draggedLeadId !== null"
@@ -520,134 +327,87 @@
 
               <a
                 class="lead-card"
-                *ngFor="
-                  let lead of leadsForStatus(status);
-                  trackBy: identifyLead
+                *ngFor="let lead of displayedLeadsForStatus(status); trackBy: identifyLead"
+                [routerLink]="['/crm/leads', lead.id]"
+                [attr.draggable]="
+                  canDragLeads && !statusUpdatingLeadIds.has(lead.id) ? 'true' : null
                 "
-                [routerLink]="[
-                  '/crm/leads',
-                  lead.id
-                ]"
-                [attr.draggable]="canDragLeads && !statusUpdatingLeadIds.has(lead.id) ? 'true' : null"
                 [class.is-dragging]="draggedLeadId === lead.id"
                 [class.is-updating]="statusUpdatingLeadIds.has(lead.id)"
+                [class.needs-attention]="needsAttention(lead)"
                 (dragstart)="startLeadDrag(lead, $event)"
                 (dragend)="finishLeadDrag()"
-                [attr.aria-label]="
-                  'Open lead ' +
-                  lead.fullName
-                "
+                [attr.aria-label]="'Open lead ' + lead.fullName"
               >
-
+                <div class="attention-badge" *ngIf="needsAttention(lead)">
+                  <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                  Needs Attention
+                </div>
                 <!-- LEAD TOP -->
 
                 <div class="lead-card-top">
-
                   <span class="lead-avatar">
                     {{ initials(lead) }}
                   </span>
 
-
                   <span class="lead-identity">
-
-                    <strong>
-                      {{ lead.fullName }}
-                    </strong>
+                    <span class="lead-name-line">
+                      <strong>{{ lead.fullName }}</strong>
+                      <small class="uploader-badge" *ngIf="isUploaderLead(lead)">
+                        <i class="fa-solid fa-upload" aria-hidden="true"></i>
+                        Uploader
+                      </small>
+                    </span>
 
                     <small>
                       {{ lead.source || 'manual' }}
                     </small>
-
                   </span>
 
-
-                  <i
-                    class="fa-solid fa-chevron-right"
-                    aria-hidden="true"
-                  ></i>
-
+                  <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                 </div>
-
 
                 <!-- CONTACT -->
 
                 <div class="lead-contact">
-
                   <span *ngIf="lead.phoneNumber">
-
-                    <i
-                      class="fa-solid fa-phone"
-                      aria-hidden="true"
-                    ></i>
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
 
                     {{ lead.phoneNumber }}
-
                   </span>
-
 
                   <span *ngIf="lead.email">
-
-                    <i
-                      class="fa-regular fa-envelope"
-                      aria-hidden="true"
-                    ></i>
+                    <i class="fa-regular fa-envelope" aria-hidden="true"></i>
 
                     {{ lead.email }}
-
                   </span>
-
                 </div>
-
 
                 <!-- CONTEXT -->
 
                 <div class="lead-context">
-
                   <span>
-
-                    <i
-                      class="fa-solid fa-wallet"
-                      aria-hidden="true"
-                    ></i>
+                    <i class="fa-solid fa-wallet" aria-hidden="true"></i>
 
                     {{ budgetLabel(lead) }}
-
                   </span>
-
 
                   <span *ngIf="lead.apartmentTitle">
-
-                    <i
-                      class="fa-regular fa-building"
-                      aria-hidden="true"
-                    ></i>
+                    <i class="fa-regular fa-building" aria-hidden="true"></i>
 
                     {{ lead.apartmentTitle }}
-
                   </span>
 
-
-                  <span
-                    *ngIf="
-                      lead.preferredDistricts?.length || isFlexibleWithLocation(lead)
-                    "
-                  >
-
-                    <i
-                      class="fa-solid fa-location-dot"
-                      aria-hidden="true"
-                    ></i>
+                  <span *ngIf="lead.preferredDistricts?.length || isFlexibleWithLocation(lead)">
+                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
 
                     {{
                       isFlexibleWithLocation(lead)
                         ? 'Flexible with location'
                         : lead.preferredDistricts?.join(', ')
                     }}
-
                   </span>
-
                 </div>
-
 
                 <!-- NEXT ACTION -->
 
@@ -656,7 +416,6 @@
                   *ngIf="nextAction(lead) as task"
                   [class.overdue]="isOverdue(task)"
                 >
-
                   <i
                     [class]="
                       task.type === 'viewing'
@@ -666,90 +425,60 @@
                     aria-hidden="true"
                   ></i>
 
-
                   <span>
-
                     <small>
                       {{
                         isOverdue(task)
                           ? 'Overdue'
-                          : (
-                              task.type === 'viewing'
-                                ? 'Viewing'
-                                : 'Next follow-up'
-                            )
+                          : task.type === 'viewing'
+                            ? 'Viewing'
+                            : 'Next follow-up'
                       }}
                     </small>
 
                     <b>
                       {{ formatDate(task.dueAt) }}
                     </b>
-
                   </span>
-
                 </div>
-
 
                 <!-- FOOTER -->
 
                 <footer>
-
                   <span>
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
 
-                    <i
-                      class="fa-regular fa-user"
-                      aria-hidden="true"
-                    ></i>
-
-                    {{
-                      lead.assignedAgentName ||
-                      'Unassigned'
-                    }}
-
+                    {{ lead.assignedAgentName || 'Unassigned' }}
                   </span>
 
-
-                  <span>
-                    View details
-                  </span>
-
+                  <span> View details </span>
                 </footer>
-
               </a>
 
-
-              <p
-                class="column-empty"
-                *ngIf="
-                  leadsForStatus(status).length === 0
-                "
+              <a
+                class="see-more-leads"
+                *ngIf="hasMoreLeadsForStatus(status)"
+                [routerLink]="['/crm/clients', status]"
               >
+                See more
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+
+              <p class="column-empty" *ngIf="leadsForStatus(status).length === 0">
                 No leads in this stage.
               </p>
-
             </div>
-
           </section>
-
         </div>
-
       </div>
-
     </section>
-
   </div>
-
 
   <!-- ===================================================== -->
   <!-- CREATE LEAD DIALOG -->
   <!-- ===================================================== -->
 
-  <div
-    class="dialog-backdrop"
-    *ngIf="createDialogOpen"
-    (click)="closeCreateDialog()"
-  >
-
+  <div class="dialog-backdrop" *ngIf="createDialogOpen" (click)="closeCreateDialog()">
     <section
       #createLeadDialog
       class="lead-dialog"
@@ -759,39 +488,22 @@
       tabindex="-1"
       (click)="$event.stopPropagation()"
     >
-
       <!-- DIALOG HEADER -->
 
       <header>
-
         <div class="lead-dialog-title">
-
           <span class="lead-dialog-icon">
-            <i
-              class="fa-solid fa-user-plus"
-              aria-hidden="true"
-            ></i>
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
           </span>
 
-
           <div>
+            <p>NEW OPPORTUNITY</p>
 
-            <p>
-              NEW OPPORTUNITY
-            </p>
+            <h2 id="create-lead-title">Add a lead</h2>
 
-            <h2 id="create-lead-title">
-              Add a lead
-            </h2>
-
-            <span>
-              Create a contact and place them directly in the pipeline.
-            </span>
-
+            <span> Create a contact and place them directly in the pipeline. </span>
           </div>
-
         </div>
-
 
         <button
           type="button"
@@ -799,60 +511,35 @@
           (click)="closeCreateDialog()"
           [disabled]="creatingLead"
         >
-
-          <i
-            class="fa-solid fa-xmark"
-            aria-hidden="true"
-          ></i>
-
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
-
       </header>
-
 
       <!-- ================================================= -->
       <!-- CREATE FORM -->
       <!-- ================================================= -->
 
       <form (ngSubmit)="createLead()">
-
-        <p
-          class="dialog-error"
-          role="alert"
-          *ngIf="createErrorMessage"
-        >
+        <p class="dialog-error" role="alert" *ngIf="createErrorMessage">
           {{ createErrorMessage }}
         </p>
 
-
         <div class="form-grid">
-
-
           <!-- =============================================== -->
           <!-- DEAL TYPE -->
           <!-- =============================================== -->
 
           <fieldset class="deal-type-field">
-
             <legend>
-
-              <i
-                class="fa-solid fa-handshake"
-                aria-hidden="true"
-              ></i>
+              <i class="fa-solid fa-handshake" aria-hidden="true"></i>
 
               Deal type *
-
             </legend>
 
-
             <div class="deal-type-options">
-
-
               <!-- RENT -->
 
               <label class="deal-type-option">
-
                 <input
                   data-initial-focus
                   type="radio"
@@ -863,40 +550,21 @@
                 />
 
                 <span class="deal-icon">
-
-                  <i
-                    class="fa-solid fa-key"
-                    aria-hidden="true"
-                  ></i>
-
+                  <i class="fa-solid fa-key" aria-hidden="true"></i>
                 </span>
-
 
                 <span class="deal-copy">
+                  <b> Rent </b>
 
-                  <b>
-                    Rent
-                  </b>
-
-                  <small>
-                    Rental opportunity
-                  </small>
-
+                  <small> Rental opportunity </small>
                 </span>
 
-
-                <i
-                  class="fa-solid fa-circle-check selection-check"
-                  aria-hidden="true"
-                ></i>
-
+                <i class="fa-solid fa-circle-check selection-check" aria-hidden="true"></i>
               </label>
-
 
               <!-- BUY -->
 
               <label class="deal-type-option">
-
                 <input
                   type="radio"
                   name="leadGoal"
@@ -906,98 +574,49 @@
                 />
 
                 <span class="deal-icon">
-
-                  <i
-                    class="fa-solid fa-house-circle-check"
-                    aria-hidden="true"
-                  ></i>
-
+                  <i class="fa-solid fa-house-circle-check" aria-hidden="true"></i>
                 </span>
-
 
                 <span class="deal-copy">
+                  <b> Buy </b>
 
-                  <b>
-                    Buy
-                  </b>
-
-                  <small>
-                    Purchase opportunity
-                  </small>
-
+                  <small> Purchase opportunity </small>
                 </span>
 
-
-                <i
-                  class="fa-solid fa-circle-check selection-check"
-                  aria-hidden="true"
-                ></i>
-
+                <i class="fa-solid fa-circle-check selection-check" aria-hidden="true"></i>
               </label>
-
             </div>
-
           </fieldset>
-
 
           <!-- =============================================== -->
           <!-- DEPENDENT FIELDS -->
           <!-- =============================================== -->
 
-          <fieldset
-            class="dependent-fields"
-            [disabled]="!manualLeadForm.goal"
-          >
-
-
+          <fieldset class="dependent-fields" [disabled]="!manualLeadForm.goal">
             <!-- ============================================= -->
             <!-- CONTACT -->
             <!-- ============================================= -->
 
             <div class="form-section-heading wide">
-
               <span>
-
-                <i
-                  class="fa-solid fa-address-card"
-                  aria-hidden="true"
-                ></i>
-
+                <i class="fa-solid fa-address-card" aria-hidden="true"></i>
               </span>
 
-
               <div>
+                <b> Contact details </b>
 
-                <b>
-                  Contact details
-                </b>
-
-                <small>
-                  Basic lead information
-                </small>
-
+                <small> Basic lead information </small>
               </div>
-
             </div>
-
 
             <!-- FULL NAME -->
 
             <label class="wide">
-
               <span class="field-label">
+                <i class="fa-solid fa-user" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-user"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Full name *
-                </span>
-
+                <span> Full name * </span>
               </span>
-
 
               <input
                 type="text"
@@ -1006,27 +625,16 @@
                 autocomplete="name"
                 required
               />
-
             </label>
-
 
             <!-- EMAIL -->
 
             <label>
-
               <span class="field-label">
+                <i class="fa-solid fa-envelope" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-envelope"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Email
-                </span>
-
+                <span> Email </span>
               </span>
-
 
               <input
                 type="email"
@@ -1034,26 +642,16 @@
                 [(ngModel)]="manualLeadForm.email"
                 autocomplete="email"
               />
-
             </label>
 
             <!-- PHONE -->
 
             <label>
-
               <span class="field-label">
+                <i class="fa-solid fa-phone" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-phone"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Phone number
-                </span>
-
+                <span> Phone number </span>
               </span>
-
 
               <input
                 type="tel"
@@ -1061,80 +659,69 @@
                 [(ngModel)]="manualLeadForm.phoneNumber"
                 autocomplete="tel"
               />
-
+              <small class="duplicate-warning" *ngIf="duplicateLead as duplicate" role="alert">
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                Duplicate detected — {{ duplicate.fullName }} already has this phone number or
+                email.
+              </small>
             </label>
-
 
             <!-- SOURCE -->
 
             <label>
-
               <span class="field-label">
+                <i class="fa-solid fa-bullseye" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-bullseye"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Lead source
-                </span>
-
+                <span> Lead source </span>
               </span>
 
-
-              <select
-                name="leadSource"
-                [(ngModel)]="manualLeadForm.source"
-              >
-
+              <select name="leadSource" [(ngModel)]="manualLeadForm.source">
                 <option
-                  *ngFor="
-                    let source of allowedLeadSources;
-                    trackBy: trackLeadSource
-                  "
+                  *ngFor="let source of allowedLeadSources; trackBy: trackLeadSource"
                   [value]="source.value"
                 >
                   {{ source.label }}
                 </option>
-
               </select>
-
             </label>
 
+            <button
+              class="uploader-origin-toggle"
+              type="button"
+              *ngIf="isManager"
+              [class.active]="manualLeadForm.fromUploader"
+              [attr.aria-pressed]="manualLeadForm.fromUploader"
+              (click)="toggleUploaderOrigin()"
+            >
+              <span><i class="fa-solid fa-upload" aria-hidden="true"></i></span>
+              <span>
+                <strong>From uploader</strong>
+                <small>Mark this lead as originally submitted by an uploader</small>
+              </span>
+              <i
+                [class]="
+                  manualLeadForm.fromUploader
+                    ? 'fa-solid fa-circle-check'
+                    : 'fa-regular fa-circle'
+                "
+                aria-hidden="true"
+              ></i>
+            </button>
 
             <!-- STATUS -->
 
             <label *ngIf="canChooseStartingStage; else fixedStartingStage">
-
               <span class="field-label">
+                <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-layer-group"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Starting stage
-                </span>
-
+                <span> Starting stage </span>
               </span>
 
-
-              <select
-                name="leadStatus"
-                [(ngModel)]="manualLeadForm.status"
-              >
-
-                <option
-                  *ngFor="let status of statuses"
-                  [value]="status"
-                >
+              <select name="leadStatus" [(ngModel)]="manualLeadForm.status">
+                <option *ngFor="let status of displayedStatuses" [value]="status">
                   {{ statusLabel(status) }}
                 </option>
-
               </select>
-
             </label>
 
             <ng-template #fixedStartingStage>
@@ -1144,142 +731,70 @@
                   <span>Starting stage</span>
                 </span>
 
-                <select
-                  name="leadStatus"
-                  [(ngModel)]="manualLeadForm.status"
-                  disabled
-                >
+                <select name="leadStatus" [(ngModel)]="manualLeadForm.status" disabled>
                   <option value="contacted">{{ statusLabel('contacted') }}</option>
                 </select>
               </label>
             </ng-template>
-
 
             <!-- ============================================= -->
             <!-- BUDGET / PROPERTY -->
             <!-- ============================================= -->
 
             <div class="form-section-heading wide">
-
               <span>
-
-                <i
-                  class="fa-solid fa-house"
-                  aria-hidden="true"
-                ></i>
-
+                <i class="fa-solid fa-house" aria-hidden="true"></i>
               </span>
 
-
               <div>
+                <b> Budget and property </b>
 
-                <b>
-                  Budget and property
-                </b>
-
-                <small>
-                  Financial range and home requirements
-                </small>
-
+                <small> Financial range and home requirements </small>
               </div>
-
             </div>
-
 
             <!-- CURRENCY -->
 
             <label>
-
               <span class="field-label">
+                <i class="fa-solid fa-coins" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-coins"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Budget currency
-                </span>
-
+                <span> Budget currency </span>
               </span>
 
+              <select name="leadCurrency" [(ngModel)]="manualLeadForm.currency">
+                <option value="USD">USD — US dollar</option>
 
-              <select
-                name="leadCurrency"
-                [(ngModel)]="manualLeadForm.currency"
-              >
+                <option value="GEL">GEL — Georgian lari</option>
 
-                <option value="USD">
-                  USD — US dollar
-                </option>
-
-                <option value="GEL">
-                  GEL — Georgian lari
-                </option>
-
-                <option value="EUR">
-                  EUR — Euro
-                </option>
-
+                <option value="EUR">EUR — Euro</option>
               </select>
-
             </label>
-
 
             <!-- BUDGET -->
 
             <div class="preference-field wide">
-
               <span class="field-label">
+                <i class="fa-solid fa-money-bill-trend-up" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-money-bill-trend-up"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Budget range
-                </span>
-
+                <span> Budget range </span>
               </span>
 
-
-              <button
-                type="button"
-                class="preference-trigger"
-                (click)="toggleLeadMenu('budget')"
-              >
-
+              <button type="button" class="preference-trigger" (click)="toggleLeadMenu('budget')">
                 <b>
-                  {{
-                    manualLeadForm.budgetMin ??
-                    leadBudgetMinimum | number
-                  }}
+                  {{ manualLeadForm.budgetMin ?? leadBudgetMinimum | number }}
                   –
-                  {{
-                    manualLeadForm.budgetMax ??
-                    leadBudgetMaximum | number
-                  }}
+                  {{ manualLeadForm.budgetMax ?? leadBudgetMaximum | number }}
                   {{ manualLeadForm.currency }}
                 </b>
 
                 <i class="fa-solid fa-chevron-down"></i>
-
               </button>
 
-
-              <div
-                class="preference-menu budget-menu"
-                *ngIf="leadMenu === 'budget'"
-              >
-
+              <div class="preference-menu budget-menu" *ngIf="leadMenu === 'budget'">
                 <div>
-
                   <label>
-
-                    <span>
-                      Minimum
-                    </span>
+                    <span> Minimum </span>
 
                     <input
                       type="number"
@@ -1289,15 +804,10 @@
                       [(ngModel)]="manualLeadForm.budgetMin"
                       (blur)="clampLeadBudget('budgetMin')"
                     />
-
                   </label>
 
-
                   <label>
-
-                    <span>
-                      Maximum
-                    </span>
+                    <span> Maximum </span>
 
                     <input
                       type="number"
@@ -1307,14 +817,10 @@
                       [(ngModel)]="manualLeadForm.budgetMax"
                       (blur)="clampLeadBudget('budgetMax')"
                     />
-
                   </label>
-
                 </div>
 
-
                 <div class="range-track">
-
                   <input
                     type="range"
                     [min]="leadBudgetMinimum"
@@ -1325,7 +831,6 @@
                     (ngModelChange)="updateLeadBudgetRange('budgetMin')"
                   />
 
-
                   <input
                     type="range"
                     [min]="leadBudgetMinimum"
@@ -1335,76 +840,39 @@
                     [(ngModel)]="manualLeadForm.budgetMax"
                     (ngModelChange)="updateLeadBudgetRange('budgetMax')"
                   />
-
                 </div>
 
-
-                <button
-                  type="button"
-                  class="menu-done"
-                  (click)="leadMenu = null"
-                >
-                  Done
-                </button>
-
+                <button type="button" class="menu-done" (click)="leadMenu = null">Done</button>
               </div>
-
             </div>
-
 
             <!-- PROPERTY TYPE -->
 
             <div class="preference-field">
-
               <span class="field-label">
+                <i class="fa-solid fa-building" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-building"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Property type
-                </span>
-
+                <span> Property type </span>
               </span>
 
-
-              <button
-                type="button"
-                class="preference-trigger"
-                (click)="toggleLeadMenu('property')"
-              >
-
+              <button type="button" class="preference-trigger" (click)="toggleLeadMenu('property')">
                 <b>
-                  {{
-                    manualLeadForm.preferredPropertyType ||
-                    'Choose property type'
-                  }}
+                  {{ manualLeadForm.preferredPropertyType || 'Choose property type' }}
                 </b>
 
                 <i class="fa-solid fa-chevron-down"></i>
-
               </button>
-
 
               <div
                 class="preference-menu option-menu property-menu"
                 *ngIf="leadMenu === 'property'"
               >
-
                 <button
                   type="button"
                   *ngFor="let type of propertyTypes"
-                  [class.selected]="
-                    manualLeadForm.preferredPropertyType === type
-                  "
-                  (click)="
-                    manualLeadForm.preferredPropertyType = type;
-                    leadMenu = null
-                  "
+                  [class.selected]="manualLeadForm.preferredPropertyType === type"
+                  (click)="manualLeadForm.preferredPropertyType = type; leadMenu = null"
                 >
-
                   <i
                     class="fa-solid"
                     [ngClass]="
@@ -1419,89 +887,47 @@
                   ></i>
 
                   {{ type }}
-
                 </button>
-
               </div>
-
             </div>
-
 
             <!-- ROOMS -->
 
             <div class="preference-field">
-
               <span class="field-label">
+                <i class="fa-solid fa-door-open" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-door-open"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Rooms
-                </span>
-
+                <span> Rooms </span>
               </span>
 
-
-              <button
-                type="button"
-                class="preference-trigger"
-                (click)="toggleLeadMenu('rooms')"
-              >
-
+              <button type="button" class="preference-trigger" (click)="toggleLeadMenu('rooms')">
                 <b>
-                  {{
-                    manualLeadForm.rooms
-                      ? manualLeadForm.rooms + ' rooms'
-                      : 'Choose rooms'
-                  }}
+                  {{ manualLeadForm.rooms ? manualLeadForm.rooms + ' rooms' : 'Choose rooms' }}
                 </b>
 
                 <i class="fa-solid fa-chevron-down"></i>
-
               </button>
 
-
-              <div
-                class="preference-menu option-menu number-menu"
-                *ngIf="leadMenu === 'rooms'"
-              >
-
+              <div class="preference-menu option-menu number-menu" *ngIf="leadMenu === 'rooms'">
                 <button
                   type="button"
                   *ngFor="let rooms of roomOptions"
-                  [class.selected]="
-                    manualLeadForm.rooms === rooms
-                  "
+                  [class.selected]="manualLeadForm.rooms === rooms"
                   (click)="selectRooms(rooms)"
                 >
                   {{ rooms }}{{ rooms === 8 ? '+' : '' }}
                 </button>
-
               </div>
-
             </div>
-
 
             <!-- BEDROOMS -->
 
             <div class="preference-field">
-
               <span class="field-label">
+                <i class="fa-solid fa-bed" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-bed"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Bedrooms
-                </span>
-
+                <span> Bedrooms </span>
               </span>
-
 
               <button
                 type="button"
@@ -1509,66 +935,41 @@
                 [disabled]="!manualLeadForm.rooms"
                 (click)="toggleLeadMenu('bedrooms')"
               >
-
                 <b>
                   {{
                     manualLeadForm.bedrooms
                       ? manualLeadForm.bedrooms + ' bedrooms'
-                      : (
-                          manualLeadForm.rooms
-                            ? 'Choose bedrooms'
-                            : 'Choose rooms first'
-                        )
+                      : manualLeadForm.rooms
+                        ? 'Choose bedrooms'
+                        : 'Choose rooms first'
                   }}
                 </b>
 
                 <i class="fa-solid fa-chevron-down"></i>
-
               </button>
 
-
-              <div
-                class="preference-menu option-menu number-menu"
-                *ngIf="leadMenu === 'bedrooms'"
-              >
-
+              <div class="preference-menu option-menu number-menu" *ngIf="leadMenu === 'bedrooms'">
                 <button
                   type="button"
                   *ngFor="let bedrooms of bedroomOptions"
-                  [class.selected]="
-                    manualLeadForm.bedrooms === bedrooms
-                  "
-                  (click)="
-                    manualLeadForm.bedrooms = bedrooms;
-                    leadMenu = null
-                  "
+                  [class.selected]="manualLeadForm.bedrooms === bedrooms"
+                  (click)="manualLeadForm.bedrooms = bedrooms; leadMenu = null"
                 >
                   {{ bedrooms }}
                 </button>
-
               </div>
-
             </div>
-
 
             <!-- ============================================= -->
             <!-- RENTAL AND PETS -->
             <!-- ============================================= -->
 
             <div class="form-section-heading wide">
-
               <span>
-
-                <i
-                  class="fa-solid fa-calendar-check"
-                  aria-hidden="true"
-                ></i>
-
+                <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
               </span>
 
-
               <div>
-
                 <b>
                   {{
                     manualLeadForm.goal === 'rent'
@@ -1584,198 +985,98 @@
                       : 'Pet requirements'
                   }}
                 </small>
-
               </div>
-
             </div>
-
 
             <!-- RENTAL PERIOD -->
 
-            <div
-              class="lead-choice-field"
-              *ngIf="manualLeadForm.goal === 'rent'"
-            >
-
+            <div class="lead-choice-field" *ngIf="manualLeadForm.goal === 'rent'">
               <span class="field-label">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
 
-                <i
-                  class="fa-regular fa-clock"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Rental period
-                </span>
-
+                <span> Rental period </span>
               </span>
 
-
               <div class="lead-choice-options rental-period-options">
-
                 <button
                   type="button"
                   *ngFor="let period of rentalPeriodOptions"
-                  [class.selected]="
-                    manualLeadForm.rentalPeriodMonths ===
-                    period.value
-                  "
-                  [attr.aria-pressed]="
-                    manualLeadForm.rentalPeriodMonths ===
-                    period.value
-                  "
-                  (click)="
-                    manualLeadForm.rentalPeriodMonths =
-                    period.value
-                  "
+                  [class.selected]="manualLeadForm.rentalPeriodMonths === period.value"
+                  [attr.aria-pressed]="manualLeadForm.rentalPeriodMonths === period.value"
+                  (click)="manualLeadForm.rentalPeriodMonths = period.value"
                 >
                   {{ period.label }}
                 </button>
-
               </div>
-
             </div>
-
 
             <!-- PET TYPE AND SIZE -->
 
-            <div
-              class="lead-choice-field"
-              [class.wide]="manualLeadForm.goal !== 'rent'"
-            >
-
+            <div class="lead-choice-field" [class.wide]="manualLeadForm.goal !== 'rent'">
               <span class="field-label">
+                <i class="fa-solid fa-paw" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-paw"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Pets
-                </span>
-
+                <span> Pets </span>
               </span>
 
-
               <div class="lead-choice-options pet-type-options">
-
                 <button
                   type="button"
                   *ngFor="let pet of petTypeOptions"
-                  [class.selected]="
-                    manualLeadForm.petType ===
-                    pet.value
-                  "
-                  [attr.aria-pressed]="
-                    manualLeadForm.petType ===
-                    pet.value
-                  "
+                  [class.selected]="manualLeadForm.petType === pet.value"
+                  [attr.aria-pressed]="manualLeadForm.petType === pet.value"
                   (click)="selectManualPet(pet.value)"
                 >
-
-                  <i
-                    class="fa-solid"
-                    [ngClass]="pet.icon"
-                    aria-hidden="true"
-                  ></i>
+                  <i class="fa-solid" [ngClass]="pet.icon" aria-hidden="true"></i>
 
                   {{ pet.label }}
-
                 </button>
-
               </div>
-
 
               <div
                 class="pet-size-panel"
-                *ngIf="
-                  manualLeadForm.petType === 'dog' ||
-                  manualLeadForm.petType === 'cat'
-                "
+                *ngIf="manualLeadForm.petType === 'dog' || manualLeadForm.petType === 'cat'"
               >
-
-                <span>
-                  Pet size
-                </span>
-
+                <span> Pet size </span>
 
                 <div class="lead-choice-options pet-size-options">
-
                   <button
                     type="button"
                     *ngFor="let size of petSizeOptions"
-                    [class.selected]="
-                      manualLeadForm.petSize ===
-                      size.value
-                    "
-                    [attr.aria-pressed]="
-                      manualLeadForm.petSize ===
-                      size.value
-                    "
-                    (click)="
-                      manualLeadForm.petSize =
-                      size.value
-                    "
+                    [class.selected]="manualLeadForm.petSize === size.value"
+                    [attr.aria-pressed]="manualLeadForm.petSize === size.value"
+                    (click)="manualLeadForm.petSize = size.value"
                   >
                     {{ size.label }}
                   </button>
-
                 </div>
-
               </div>
-
             </div>
-
 
             <!-- ============================================= -->
             <!-- PREFERENCES -->
             <!-- ============================================= -->
 
             <div class="form-section-heading wide">
-
               <span>
-
-                <i
-                  class="fa-solid fa-sliders"
-                  aria-hidden="true"
-                ></i>
-
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
               </span>
 
-
               <div>
+                <b> Preferences and assignment </b>
 
-                <b>
-                  Preferences and assignment
-                </b>
-
-                <small>
-                  Notes, preferred areas and lead ownership
-                </small>
-
+                <small> Notes, preferred areas and lead ownership </small>
               </div>
-
             </div>
-
 
             <!-- CLIENT WANTS -->
 
             <label class="wide">
-
               <span class="field-label">
+                <i class="fa-solid fa-list-check" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-list-check"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  What the client wants
-                </span>
-
+                <span> What the client wants </span>
               </span>
-
 
               <textarea
                 name="leadPreferences"
@@ -1783,27 +1084,16 @@
                 placeholder="Add details, priorities, special requests, or other commentary…"
                 rows="4"
               ></textarea>
-
             </label>
-
 
             <!-- DISTRICTS -->
 
             <label class="wide">
-
               <span class="field-label">
+                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-location-dot"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Preferred districts
-                </span>
-
+                <span> Preferred districts </span>
               </span>
-
 
               <input
                 type="text"
@@ -1812,111 +1102,56 @@
                 placeholder="Vake, Saburtalo, Vera"
               />
 
-
-              <small>
-                Separate multiple districts with commas.
-              </small>
-
+              <small> Separate multiple districts with commas. </small>
             </label>
-
 
             <!-- AGENT -->
 
-            <label
-              class="wide"
-              *ngIf="isManager"
-            >
-
+            <label class="wide" *ngIf="isManager">
               <span class="field-label">
+                <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
 
-                <i
-                  class="fa-solid fa-user-tie"
-                  aria-hidden="true"
-                ></i>
-
-                <span>
-                  Assign agent
-                </span>
-
+                <span> Assign agent </span>
               </span>
 
+              <select name="leadAgent" [(ngModel)]="manualLeadForm.assignedAgentId">
+                <option [ngValue]="null">Leave unassigned</option>
 
-              <select
-                name="leadAgent"
-                [(ngModel)]="manualLeadForm.assignedAgentId"
-              >
-
-                <option [ngValue]="null">
-                  Leave unassigned
-                </option>
-
-                <option
-                  *ngFor="let agent of agents"
-                  [value]="agentId(agent)"
-                >
+                <option *ngFor="let agent of agents" [value]="agentId(agent)">
                   {{ agentName(agent) }}
                 </option>
-
               </select>
-
             </label>
-
           </fieldset>
-
         </div>
-
 
         <!-- ================================================= -->
         <!-- DIALOG FOOTER -->
         <!-- ================================================= -->
 
         <footer>
-
           <button
             class="secondary-button"
             type="button"
             (click)="closeCreateDialog()"
             [disabled]="creatingLead"
           >
-
-            <i
-              class="fa-solid fa-xmark"
-              aria-hidden="true"
-            ></i>
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
 
             Cancel
-
           </button>
-
 
           <button
             class="primary-button"
             type="submit"
-            [disabled]="
-              creatingLead ||
-              !manualLeadForm.goal
-            "
+            [disabled]="creatingLead || !manualLeadForm.goal || !!duplicateLead"
           >
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
 
-            <i
-              class="fa-solid fa-plus"
-              aria-hidden="true"
-            ></i>
-
-            {{
-              creatingLead
-                ? 'Adding lead…'
-                : 'Add to pipeline'
-            }}
-
+            {{ creatingLead ? 'Adding lead…' : 'Add to pipeline' }}
           </button>
-
         </footer>
-
       </form>
-
     </section>
-
   </div>
-
 </main>

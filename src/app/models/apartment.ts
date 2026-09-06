@@ -28,6 +28,7 @@ export interface Apartment {
   longitude?: number;
   propertyLatitude?: number;
   propertyLongitude?: number;
+  rooms?: number;
   bedrooms?: number;
   bathrooms?: number;
   sizeSquareMeters?: number;
@@ -101,6 +102,7 @@ export interface CreateApartment {
   longitude?: number;
   propertyLatitude?: number;
   propertyLongitude?: number;
+  rooms?: number;
   bedrooms?: number;
   bathrooms?: number;
   sizeSquareMeters?: number;

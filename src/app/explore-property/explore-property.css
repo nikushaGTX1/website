@@ -306,7 +306,9 @@ svg {
   display: none;
 }
 .chip {
-  height: 36px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
   padding: 0 14px;
   flex: 0 0 auto;
   display: flex;
@@ -321,10 +323,43 @@ svg {
   white-space: nowrap;
   cursor: pointer;
   transition: 0.18s ease;
+  box-sizing: border-box;
 }
 .chip svg {
   width: 15px;
   height: 15px;
+}
+.filter-select {
+  justify-content: center;
+  cursor: default;
+}
+.compact-filter-chip {
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.chip.filter-select {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  border-radius: 22px;
+}
+.filter-select select {
+  width: auto;
+  height: 100%;
+  max-width: 105px;
+  padding: 0 16px 0 0;
+  color: inherit;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
 }
 .chip:hover,
 .chip.selected {
@@ -365,14 +400,48 @@ svg {
   background: var(--purple);
 }
 
-.explorer {
-  min-height: calc(100vh - 148px);
+.bedroom-search-popover {
+  width: 300px;
+}
+
+.bedroom-options {
   display: grid;
-  grid-template-columns: minmax(630px, 52%) 1fr;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.bedroom-options button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.bedroom-options button.selected {
+  color: #fff;
+  border-color: var(--purple);
+  background: var(--purple);
+}
+
+.explorer {
+  height: calc(100dvh - 238px);
+  min-height: 480px;
+  display: grid;
+  grid-template-columns: minmax(0, 49%) minmax(440px, 51%);
+  overflow: hidden;
 }
 .results-pane {
   min-width: 0;
   padding: 26px 25px 70px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.results-pane::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 .results-heading {
   margin-bottom: 21px;
@@ -414,7 +483,8 @@ svg {
 }
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 420px));
+  justify-content: start;
   gap: 30px 18px;
 }
 .property-card {
@@ -579,6 +649,57 @@ svg {
   width: 16px;
   height: 16px;
 }
+.card-nearby {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid #e8ecf2;
+}
+.card-nearby-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--purple);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.card-nearby-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.card-nearby-grid > span {
+  min-width: 0;
+  min-height: 56px;
+  padding: 7px 6px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-content: center;
+  border: 1px solid #e0e6ef;
+  border-radius: 10px;
+  background: #fff;
+}
+.card-nearby-grid i {
+  grid-row: 1 / 3;
+  align-self: center;
+  color: var(--purple);
+  font-size: 15px;
+}
+.card-nearby-grid b,
+.card-nearby-grid small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-nearby-grid b {
+  color: #263249;
+  font-size: 10px;
+}
+.card-nearby-grid small {
+  color: #758095;
+  font-size: 9px;
+}
 .price {
   margin-top: 10px;
   font-size: 13px;
@@ -656,12 +777,14 @@ svg {
 }
 
 .map-pane {
-  position: sticky;
-  top: 62px;
-  height: calc(100vh - 62px);
+  position: relative;
+  height: auto;
+  margin: 18px 18px 18px 0;
   overflow: hidden;
-  border-left: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 22px;
   background: #ebe7e1;
+  box-shadow: 0 8px 28px rgba(31, 24, 38, 0.08);
 }
 .map-pane app-explore-property-map {
   display: block;
@@ -671,69 +794,134 @@ svg {
 .map-preview {
   position: absolute;
   z-index: 7;
-  bottom: 20px;
-  left: 17px;
-  width: min(360px, calc(100% - 34px));
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(14px);
+  width: min(326px, calc(100% - 32px));
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff;
   box-shadow: 0 15px 35px rgba(28, 17, 36, 0.22);
 }
-.map-preview img {
-  width: 78px;
-  height: 68px;
-  flex: 0 0 78px;
-  border-radius: 11px;
+.map-preview-link {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+}
+.map-preview-gallery {
+  position: relative;
+  height: 212px;
+  background: #e9e9e9;
+}
+.map-preview-gallery > img {
+  width: 100%;
+  height: 100%;
+  display: block;
   object-fit: cover;
 }
-.map-preview > div {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.map-preview-heart,
+.map-preview-close,
+.map-preview-arrow,
+.map-preview-dots {
+  position: absolute;
+  z-index: 5;
 }
-.map-preview small {
-  color: var(--purple);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.map-preview app-currency-price {
-  font-size: 15px;
-  font-weight: 800;
-}
-.map-preview span {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 10px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.map-preview > button {
-  align-self: flex-start;
-  color: #807789;
+.map-preview-heart,
+.map-preview-close,
+.map-preview-arrow {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+  aspect-ratio: 1 / 1;
+  padding: 0 !important;
+  margin: 0;
+  display: grid;
+  place-items: center;
   border: 0;
-  background: transparent;
-  font-size: 22px;
+  border-radius: 999px !important;
+  color: #222;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(0,0,0,.2);
   cursor: pointer;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  line-height: 0;
+  box-sizing: border-box;
+}
+.map-preview-heart { top: 12px; right: 52px; }
+.map-preview-close { top: 12px; right: 12px; }
+.map-preview-heart svg,
+.map-preview-close svg,
+.map-preview-arrow svg { width: 18px; height: 18px; display: block; margin: auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.map-preview-heart.saved { color: var(--purple); }
+.map-preview-heart:hover,
+.map-preview-close:hover { background: #f7f7f7; }
+.map-preview-arrow {
+  top: 50%;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(-50%) scale(1);
+  transition: background .16s ease, transform .16s ease;
+}
+.map-preview-arrow:hover { background: #f7f7f7; transform: translateY(-50%) scale(1.04); }
+.map-preview-arrow.previous { left: 10px; }
+.map-preview-arrow.next { right: 10px; }
+.map-preview-dots {
+  right: 14px;
+  bottom: 11px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 10px;
+  pointer-events: none;
+}
+.map-preview-dots button {
+  width: 6px !important;
+  height: 6px !important;
+  min-width: 6px !important;
+  min-height: 6px !important;
+  max-width: 6px !important;
+  max-height: 6px !important;
+  flex: 0 0 6px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.6);
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  cursor: pointer;
+  appearance: none;
+  line-height: 0;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+.map-preview-dots button.active { background: #fff; transform: scale(1.25); }
+.map-preview-body { position: relative; z-index: 2; padding: 14px 15px 16px; background: #fff; color: #17131c; }
+.map-preview-title { margin: 0; overflow: hidden; font-size: 15px; font-weight: 750; line-height: 1.35; letter-spacing: -.01em; white-space: nowrap; text-overflow: ellipsis; }
+.map-preview-location { margin: 6px 0 0; display: flex; align-items: center; gap: 5px; min-width: 0; color: #68646b; font-size: 12px; line-height: 1.35; }
+.map-preview-location span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.map-preview-location svg,
+.map-preview-facts svg { width: 15px; height: 15px; flex: 0 0 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.map-preview-facts { margin-top: 9px; display: flex; align-items: center; gap: 13px; color: #5f5964; font-size: 11px; font-weight: 600; }
+.map-preview-facts > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.map-preview-price { margin-top: 11px; padding-top: 10px; border-top: 1px solid #eeeaf0; font-size: 15px; }
+.map-preview-price app-currency-price { font-weight: 800; }
+@media (max-width: 520px) {
+  .map-preview-gallery { height: 180px; }
 }
 .mobile-toggle {
+  display: none;
+}
+.mobile-filter-trigger {
   display: none;
 }
 
 @media (min-width: 1700px) {
   .explorer {
-    grid-template-columns: 50% 50%;
-  }
-  .cards-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 49%) minmax(540px, 51%);
   }
   .photo-wrap {
     height: 225px;
@@ -741,7 +929,7 @@ svg {
 }
 @media (max-width: 1100px) {
   .explorer {
-    grid-template-columns: 58% 42%;
+    grid-template-columns: minmax(0, 56%) minmax(320px, 44%);
   }
   .search-box {
     min-width: 540px;
@@ -750,7 +938,24 @@ svg {
     display: none;
   }
 }
+
+@media (min-width: 781px) and (max-height: 760px) {
+  .explorer {
+    height: calc(100dvh - 218px);
+    min-height: 430px;
+  }
+  .map-pane {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+}
 @media (max-width: 780px) {
+  :host {
+    overflow-x: clip;
+  }
+  .property-explorer {
+    min-height: 100dvh;
+  }
   .search-row {
     min-height: 73px;
     padding: 9px 14px;
@@ -761,6 +966,7 @@ svg {
     min-width: 0;
     height: 53px;
     padding-left: 17px;
+    box-shadow: 0 3px 12px rgba(35, 22, 51, 0.07);
   }
   .search-field {
     min-width: 0;
@@ -798,33 +1004,104 @@ svg {
   }
   .chip-scroll {
     justify-content: flex-start;
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chip-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .mobile-filter-trigger {
+    display: inline-flex;
+  }
+  .chip-scroll > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
   }
   .chip {
     height: 34px;
+    min-height: 34px;
+    max-height: 34px;
+  }
+  .chip.filter-select {
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
   }
   .explorer {
+    height: auto;
+    min-height: calc(100vh - 119px);
     display: block;
+    overflow: visible;
   }
   .results-pane {
-    padding: 20px 14px 90px;
+    padding: 22px 16px calc(96px + env(safe-area-inset-bottom));
+    overflow: visible;
   }
   .results-heading h1 {
-    font-size: 22px;
+    font-size: clamp(21px, 6vw, 25px);
+    line-height: 1.18;
+  }
+  .results-heading {
+    margin-bottom: 20px;
   }
   .sort {
     display: none;
   }
   .cards-grid {
     grid-template-columns: 1fr;
-    gap: 27px;
+    gap: 32px;
   }
   .photo-wrap {
-    height: 270px;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 16px;
+  }
+  .property-card:hover,
+  .property-card.active {
+    transform: none;
+  }
+  .heart {
+    width: 44px;
+    height: 44px;
+    top: 8px;
+    right: 8px;
+  }
+  .heart svg {
+    width: 23px;
+    height: 23px;
+  }
+  .card-body {
+    padding: 12px 1px 0;
+  }
+  .title-row {
+    gap: 10px;
+  }
+  .title-row h2 {
+    font-size: 16px;
+  }
+  .card-header-price {
+    font-size: 15px;
+  }
+  .property-location,
+  .facts {
+    font-size: 13px;
+  }
+  .facts {
+    gap: 10px;
+  }
+  .card-nearby-grid > span {
+    min-height: 70px;
   }
   .map-pane {
     position: fixed;
     z-index: 30;
     inset: 119px 0 0;
+    margin: 0;
+    border-radius: 0;
     display: none;
     height: auto;
     border: 0;
@@ -838,7 +1115,7 @@ svg {
   .mobile-toggle {
     position: fixed;
     z-index: 60;
-    bottom: 22px;
+    bottom: calc(18px + env(safe-area-inset-bottom));
     left: 50%;
     height: 47px;
     padding: 0 18px;
@@ -854,6 +1131,7 @@ svg {
     font-weight: 700;
     cursor: pointer;
     transform: translateX(-50%);
+    touch-action: manipulation;
   }
   .mobile-toggle svg {
     width: 18px;
@@ -865,6 +1143,9 @@ svg {
     right: 14px;
     left: 14px;
     width: auto;
+    max-height: calc(100dvh - 150px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .search-popover::before {
     display: none;
@@ -877,4 +1158,206 @@ svg {
     width: auto;
     transform: none;
   }
+}
+
+@media (max-width: 420px) {
+  .search-row {
+    padding-inline: 10px;
+  }
+  .search-box {
+    height: 50px;
+    padding-left: 14px;
+  }
+  .search-submit {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    margin-right: 4px;
+  }
+  .ai-cta {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+  .chip-bar {
+    padding-inline: 10px;
+  }
+  .results-pane {
+    padding-inline: 12px;
+  }
+  .photo-wrap {
+    aspect-ratio: 1.18 / 1;
+  }
+  .title-row {
+    flex-wrap: wrap;
+  }
+  .card-header-price {
+    padding-left: 0;
+  }
+  .card-nearby-grid {
+    gap: 5px;
+  }
+  .card-nearby-grid > span {
+    min-height: 66px;
+    padding-inline: 3px;
+  }
+  .map-preview {
+    width: calc(100% - 24px);
+  }
+}
+
+/* Image-led listing layout, matching the compact travel-card visual language. */
+@media (min-width: 781px) {
+  .explorer {
+    grid-template-columns: minmax(560px, 48%) minmax(440px, 52%);
+  }
+  .results-pane {
+    padding: 24px 24px 70px 46px;
+  }
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px 24px;
+  }
+  .photo-wrap {
+    height: clamp(205px, 17vw, 310px);
+  }
+  .map-pane {
+    margin: 18px 36px 18px 24px;
+  }
+}
+
+.property-card.active {
+  outline-color: transparent;
+}
+.photo-wrap {
+  border-radius: 20px;
+}
+.property-tag {
+  color: #171717;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.property-tag > span {
+  font-size: 12px;
+}
+.heart {
+  background: transparent;
+}
+.card-body {
+  padding: 12px 4px 0;
+}
+.title-row h2 {
+  font-size: 15px;
+}
+.card-header-price {
+  flex: 0 0 auto;
+  padding-left: 10px;
+  font-size: 14px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.card-header-price app-currency-price {
+  font-size: inherit;
+  font-weight: inherit;
+}
+.property-location {
+  margin: 3px 0;
+  color: #6a6a6a;
+  font-size: 14px;
+}
+.property-location svg {
+  display: none;
+}
+.facts {
+  gap: 5px;
+  color: #6a6a6a;
+  font-size: 14px;
+}
+.facts span {
+  gap: 3px;
+}
+.facts span:not(:last-child)::after {
+  content: none;
+}
+.facts svg {
+  display: block;
+  width: 15px;
+  height: 15px;
+  color: var(--purple);
+  stroke-width: 1.9;
+}
+.card-nearby {
+  display: block;
+  margin-top: 13px;
+  padding-top: 11px;
+  border-top: 1px solid #ece8f2;
+}
+.card-nearby-label {
+  margin-bottom: 9px;
+  color: var(--purple);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  text-transform: none;
+}
+.card-nearby-grid {
+  gap: 8px;
+}
+.card-nearby-grid > span {
+  min-height: 78px;
+  padding: 10px 6px 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid #ddd6e9;
+  border-radius: 11px;
+  background: #fff;
+  text-align: center;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+.property-card:hover .card-nearby-grid > span {
+  border-color: #cbbce4;
+}
+.card-nearby-grid > span:hover {
+  background: #faf8ff;
+  transform: translateY(-1px);
+}
+.card-nearby-grid i {
+  grid-row: auto;
+  align-self: auto;
+  margin-bottom: 2px;
+  color: var(--purple);
+  font-size: 17px;
+}
+.card-nearby-grid b,
+.card-nearby-grid small {
+  width: 100%;
+  line-height: 1.25;
+}
+.card-nearby-grid b {
+  color: #292234;
+  font-size: 10px;
+  font-weight: 750;
+}
+.card-nearby-grid small {
+  color: #777080;
+  font-size: 9px;
+}
+.price {
+  margin-top: 8px;
+  font-size: 14px;
+}
+.price app-currency-price {
+  font-size: 15px;
+  font-weight: 750;
+}
+.map-pane {
+  border-radius: 20px;
+  box-shadow: none;
 }

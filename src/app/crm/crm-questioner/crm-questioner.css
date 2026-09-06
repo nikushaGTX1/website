@@ -105,9 +105,6 @@
 
   object-fit: contain;
   object-position: center;
-
-  transform: scale(2.25);
-  transform-origin: center;
 }
 
 
@@ -2817,12 +2814,14 @@ h1 {
 
 .success-modal-brand {
   margin-bottom: 10px;
+}
 
-  color: var(--purple);
-
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.18em;
+.success-modal-brand img {
+  display: block;
+  width: 46px;
+  height: 56px;
+  margin: 0 auto;
+  object-fit: contain;
 }
 
 

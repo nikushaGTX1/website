@@ -166,7 +166,8 @@ export class AuthService {
   }
 
   hasAnyRole(roles: string[]): boolean {
-    const expected = roles.map((role) => role.toLowerCase());
+    const normalizeRole = (role: string): string => role.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const expected = roles.map(normalizeRole);
     const user = this.currentUser;
     const userRoles = [
       user?.role,
@@ -177,7 +178,7 @@ export class AuthService {
       ...this.readTokenRoles(),
     ]
       .filter((role): role is string => !!role)
-      .map((role) => role.toLowerCase());
+      .map(normalizeRole);
 
     return userRoles.some((role) => expected.includes(role));
   }
@@ -211,6 +212,7 @@ export class AuthService {
         parsed['role'],
         parsed['roles'],
         parsed['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+        parsed['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'],
       ];
 
       return roleClaims.flatMap((claim) => {

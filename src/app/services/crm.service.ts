@@ -45,6 +45,13 @@ export class CrmService {
     return this.http.get<CrmMetrics>(`${this.apiUrl}/metrics`);
   }
 
+  generateQuestionnaireLink(): Observable<{ token: string; slug: string; path: string }> {
+    return this.http.post<{ token: string; slug: string; path: string }>(
+      `${this.apiUrl}/questionnaire-links`,
+      {},
+    );
+  }
+
   createLead(request: CreateCrmLeadRequest): Observable<CrmLead> {
     return this.http.post<CrmLead>(`${this.apiUrl}/leads`, request);
   }

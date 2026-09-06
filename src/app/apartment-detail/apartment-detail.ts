@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
@@ -11,6 +18,7 @@ import { CrmService } from '../services/crm.service';
 import { toMediaUrl } from '../utils/api-media';
 import { NearbyPlace } from '../maps/google-property-map/google-property-map.component';
 import { AppLanguage, TranslationService } from '../services/translation.service';
+import { SeoService } from '../services/seo.service';
 
 interface Review {
   name: string;
@@ -92,14 +100,13 @@ export class ApartmentDetail implements OnInit {
     private favoriteService: FavoriteService,
     private authService: AuthService,
     private crmService: CrmService,
+    private seoService: SeoService,
     readonly translation: TranslationService,
   ) {}
 
   ngOnInit(): void {
     const apartmentId = Number(
-      this.route.snapshot.paramMap.get('id') ||
-      this.route.snapshot.queryParamMap.get('id') ||
-      0,
+      this.route.snapshot.paramMap.get('id') || this.route.snapshot.queryParamMap.get('id') || 0,
     );
 
     if (apartmentId) {
@@ -126,6 +133,7 @@ export class ApartmentDetail implements OnInit {
     this.apartmentService.getApartment(id).subscribe({
       next: (apartment) => {
         this.applyApartment(apartment);
+        this.seoService.updateApartment(apartment);
         this.favorite = this.favoriteService.isFavorite(apartment.id);
         this.loadApartmentAgent(apartment);
         this.loading = false;
@@ -183,14 +191,32 @@ export class ApartmentDetail implements OnInit {
 
   get address(): string {
     const language = this.translation.language$.value;
-    const source = this.apartment?.address?.trim() || '';
-    if (!source) return language === 'ru' ? 'Адрес не указан' : language === 'ka' ? 'მისამართი არ არის მითითებული' : 'Address not provided';
+    const apartment = this.apartment;
+    const source =
+      apartment?.address?.trim() ||
+      [
+        apartment?.street?.trim(),
+        apartment?.district?.trim(),
+        apartment?.city?.trim(),
+      ]
+        .filter((value, index, values): value is string => !!value && values.indexOf(value) === index)
+        .join(', ');
+    if (!source)
+      return language === 'ru'
+        ? 'Адрес не указан'
+        : language === 'ka'
+          ? 'მისამართი არ არის მითითებული'
+          : 'Address not provided';
     return this.localizedPlace(language, source);
   }
 
   get cityLine(): string {
     const address = this.address;
-    return address.includes(',') ? address.split(',')[0].trim() : 'Tbilisi, Georgia';
+    return address.includes(',')
+      ? address.split(',')[0].trim()
+      : address === 'Address not provided' || address === 'მისამართი არ არის მითითებული' || address === 'Адрес не указан'
+        ? 'Tbilisi, Georgia'
+        : address;
   }
 
   get price(): number {
@@ -230,6 +256,10 @@ export class ApartmentDetail implements OnInit {
     return this.galleryImages[this.activePhotoIndex] || '/property-placeholder.svg';
   }
 
+  get rooms(): number {
+    return this.apartment?.rooms || 0;
+  }
+
   get bedrooms(): number {
     return this.apartment?.bedrooms || 0;
   }
@@ -244,7 +274,9 @@ export class ApartmentDetail implements OnInit {
 
   get floorLabel(): string {
     const floor = this.apartment?.floor;
-    return floor === undefined || floor === null ? '—' : `${floor}${this.ordinalSuffix(floor)} floor`;
+    return floor === undefined || floor === null
+      ? '—'
+      : `${floor}${this.ordinalSuffix(floor)} floor`;
   }
 
   get buildingType(): string {
@@ -302,13 +334,25 @@ export class ApartmentDetail implements OnInit {
       { icon: 'fa-car', label: 'Private parking', value: this.yesNo(apartment.hasParking) },
       { icon: 'fa-building', label: 'Balcony', value: this.yesNo(apartment.hasBalcony) },
       { icon: 'fa-couch', label: 'Furnished', value: this.yesNo(apartment.isFurnished) },
-      { icon: 'fa-snowflake', label: 'Air conditioning', value: this.yesNo(apartment.hasAirConditioning) },
+      {
+        icon: 'fa-snowflake',
+        label: 'Air conditioning',
+        value: this.yesNo(apartment.hasAirConditioning),
+      },
       { icon: 'fa-elevator', label: 'Elevator', value: this.yesNo(apartment.hasElevator) },
       { icon: 'fa-paw', label: 'Pet-friendly', value: this.yesNo(apartment.isPetFriendly) },
       { icon: 'fa-bath', label: 'Bathtub', value: this.yesNo(apartment.hasBathtub) },
       { icon: 'fa-utensils', label: 'Dishwasher', value: this.yesNo(apartment.hasDishwasher) },
-      { icon: 'fa-briefcase', label: 'Home office', value: this.yesNo(apartment.hasHomeOfficeSpace) },
-      { icon: 'fa-kitchen-set', label: 'Large kitchen', value: this.yesNo(apartment.hasLargeKitchen) },
+      {
+        icon: 'fa-briefcase',
+        label: 'Home office',
+        value: this.yesNo(apartment.hasHomeOfficeSpace),
+      },
+      {
+        icon: 'fa-kitchen-set',
+        label: 'Large kitchen',
+        value: this.yesNo(apartment.hasLargeKitchen),
+      },
       { icon: 'fa-mountain-sun', label: 'View', value: this.yesNo(apartment.hasView) },
       { icon: 'fa-house', label: 'Style', value: apartment.apartmentStyle || 'Not specified' },
     ];
@@ -331,10 +375,33 @@ export class ApartmentDetail implements OnInit {
 
   openPhotoViewer(): void {
     this.photoViewerOpen = true;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>(`[data-viewer-photo="${this.activePhotoIndex}"]`)
+        ?.scrollIntoView({ block: 'center' });
+    });
   }
 
   closePhotoViewer(): void {
     this.photoViewerOpen = false;
+    document.body.style.overflow = '';
+  }
+
+  updateActiveViewerPhoto(event: Event): void {
+    const viewer = event.currentTarget as HTMLElement;
+    const viewerCenter = viewer.getBoundingClientRect().top + viewer.clientHeight / 2;
+    const photos = Array.from(viewer.querySelectorAll<HTMLElement>('[data-viewer-photo]'));
+    const closest = photos.reduce<{ index: number; distance: number }>(
+      (result, photo) => {
+        const rect = photo.getBoundingClientRect();
+        const distance = Math.abs(rect.top + rect.height / 2 - viewerCenter);
+        const index = Number(photo.dataset['viewerPhoto']);
+        return distance < result.distance ? { index, distance } : result;
+      },
+      { index: this.activePhotoIndex, distance: Number.POSITIVE_INFINITY },
+    );
+    this.activePhotoIndex = closest.index;
   }
 
   toggleFavorite(): void {
@@ -376,13 +443,16 @@ export class ApartmentDetail implements OnInit {
   openWhatsApp(): void {
     const phone = this.phoneNumber.replace(/\D/g, '');
     const message = encodeURIComponent(`Hello, I am interested in ${this.title}.`);
-    window.open(phone ? `https://wa.me/${phone}?text=${message}` : `https://wa.me/?text=${message}`, '_blank', 'noopener');
+    window.open(
+      phone ? `https://wa.me/${phone}?text=${message}` : `https://wa.me/?text=${message}`,
+      '_blank',
+      'noopener',
+    );
   }
 
   scheduleViewing(): void {
-    this.previouslyFocusedElement = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    this.previouslyFocusedElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const user = this.authService.currentUser;
     this.inquiryForm = {
       ...this.emptyInquiryForm(),
@@ -434,36 +504,38 @@ export class ApartmentDetail implements OnInit {
 
     this.inquirySubmitting = true;
     this.inquiryError = '';
-    this.crmService.submitInquiry({
-      apartmentId: this.apartment.id,
-      name,
-      email: email || undefined,
-      phone: phone || undefined,
-      requestedViewingAt,
-      message: this.inquiryForm.message.trim() || undefined,
-      consentToContact: true,
-      website: this.inquiryForm.website,
-    }).subscribe({
-      next: () => {
-        this.inquirySubmitting = false;
-        this.inquirySubmitted = true;
-        this.cdr.detectChanges();
-        setTimeout(() => this.focusInitialControl(this.viewingDialog?.nativeElement));
-      },
-      error: (error: HttpErrorResponse) => {
-        this.inquirySubmitting = false;
-        this.inquiryError = error.status === 429
-          ? 'Too many requests were sent. Please wait a few minutes and try again.'
-          : error.error?.message || 'Your request could not be sent. Please try again.';
-        this.cdr.detectChanges();
-      },
-    });
+    this.crmService
+      .submitInquiry({
+        apartmentId: this.apartment.id,
+        name,
+        email: email || undefined,
+        phone: phone || undefined,
+        requestedViewingAt,
+        message: this.inquiryForm.message.trim() || undefined,
+        consentToContact: true,
+        website: this.inquiryForm.website,
+      })
+      .subscribe({
+        next: () => {
+          this.inquirySubmitting = false;
+          this.inquirySubmitted = true;
+          this.cdr.detectChanges();
+          setTimeout(() => this.focusInitialControl(this.viewingDialog?.nativeElement));
+        },
+        error: (error: HttpErrorResponse) => {
+          this.inquirySubmitting = false;
+          this.inquiryError =
+            error.status === 429
+              ? 'Too many requests were sent. Please wait a few minutes and try again.'
+              : error.error?.message || 'Your request could not be sent. Please try again.';
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   get minimumViewingDate(): string {
     const date = new Date(Date.now() + 60 * 60 * 1000);
-    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-      .toISOString().slice(0, 16);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -509,22 +581,30 @@ export class ApartmentDetail implements OnInit {
   }
 
   private focusableElements(dialog: HTMLElement): HTMLElement[] {
-    return Array.from(dialog.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    )).filter((element) => element.offsetParent !== null);
+    return Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => element.offsetParent !== null);
   }
 
   openMaps(): void {
     const destination =
-      Number.isFinite(this.apartment?.propertyLatitude ?? this.apartment?.latitude) && Number.isFinite(this.apartment?.propertyLongitude ?? this.apartment?.longitude)
+      Number.isFinite(this.apartment?.propertyLatitude ?? this.apartment?.latitude) &&
+      Number.isFinite(this.apartment?.propertyLongitude ?? this.apartment?.longitude)
         ? `${this.apartment!.propertyLatitude ?? this.apartment!.latitude},${this.apartment!.propertyLongitude ?? this.apartment!.longitude}`
         : this.address;
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`, '_blank', 'noopener');
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`,
+      '_blank',
+      'noopener',
+    );
   }
 
   openWalkingDirections(place: NearbyPlace): void {
     const origin =
-      Number.isFinite(this.apartment?.propertyLatitude ?? this.apartment?.latitude) && Number.isFinite(this.apartment?.propertyLongitude ?? this.apartment?.longitude)
+      Number.isFinite(this.apartment?.propertyLatitude ?? this.apartment?.latitude) &&
+      Number.isFinite(this.apartment?.propertyLongitude ?? this.apartment?.longitude)
         ? `${this.apartment!.propertyLatitude ?? this.apartment!.latitude},${this.apartment!.propertyLongitude ?? this.apartment!.longitude}`
         : this.address;
     const destination = `${place.location.lat()},${place.location.lng()}`;
@@ -550,11 +630,23 @@ export class ApartmentDetail implements OnInit {
     if (!apartment) return [];
     const places = [
       { label: 'Nearest metro', icon: 'fa-train-subway', minutes: apartment.metroDistanceMinutes },
-      { label: 'Nearest school', icon: 'fa-graduation-cap', minutes: apartment.schoolDistanceMinutes },
+      {
+        label: 'Nearest school',
+        icon: 'fa-graduation-cap',
+        minutes: apartment.schoolDistanceMinutes,
+      },
       { label: 'Nearest gym', icon: 'fa-dumbbell', minutes: apartment.gymDistanceMinutes },
       { label: 'Nearest park', icon: 'fa-tree', minutes: apartment.parkDistanceMinutes },
-      { label: 'Nearest kindergarten', icon: 'fa-children', minutes: apartment.kindergartenDistanceMinutes },
-      { label: 'Nearest university', icon: 'fa-building-columns', minutes: apartment.universityDistanceMinutes },
+      {
+        label: 'Nearest kindergarten',
+        icon: 'fa-children',
+        minutes: apartment.kindergartenDistanceMinutes,
+      },
+      {
+        label: 'Nearest university',
+        icon: 'fa-building-columns',
+        minutes: apartment.universityDistanceMinutes,
+      },
     ];
     return places.filter((place): place is { label: string; icon: string; minutes: number } =>
       Number.isFinite(place.minutes),
@@ -570,25 +662,32 @@ export class ApartmentDetail implements OnInit {
   }
 
   get agentName(): string {
-    return this.apartment?.agentName?.trim() || (this.selectedAgent
-      ? this.selectedAgent.fullName || this.selectedAgent.name || this.selectedAgent.userName || this.selectedAgent.email || 'Agent'
-      : this.apartment?.uploadedByName ||
+    return (
+      this.apartment?.agentName?.trim() ||
+      (this.selectedAgent
+        ? this.selectedAgent.fullName ||
+          this.selectedAgent.name ||
+          this.selectedAgent.userName ||
+          this.selectedAgent.email ||
+          'Agent'
+        : this.apartment?.uploadedByName ||
           this.apartment?.ownerName ||
           this.getListingMetadata('Contact') ||
           this.getListingMetadata('Owner Email') ||
-          'Listing agent');
+          'Listing agent')
+    );
   }
 
   get agentProfileId(): string {
     return String(
       this.selectedAgent?.id ||
-      this.selectedAgent?.userId ||
-      this.apartment?.uploadedByUserId ||
-      this.apartment?.uploaderUserId ||
-      this.apartment?.uploadedById ||
-      this.apartment?.agentUserId ||
-      this.apartment?.agentId ||
-      '',
+        this.selectedAgent?.userId ||
+        this.apartment?.uploadedByUserId ||
+        this.apartment?.uploaderUserId ||
+        this.apartment?.uploadedById ||
+        this.apartment?.agentUserId ||
+        this.apartment?.agentId ||
+        '',
     );
   }
 
@@ -653,9 +752,8 @@ export class ApartmentDetail implements OnInit {
 
   get agentInitials(): string {
     const parts = this.agentName.trim().split(/\s+/).filter(Boolean);
-    const initials = parts.length > 1
-      ? `${parts[0][0]}${parts[1][0]}`
-      : parts[0]?.slice(0, 2) || 'U';
+    const initials =
+      parts.length > 1 ? `${parts[0][0]}${parts[1][0]}` : parts[0]?.slice(0, 2) || 'U';
     return initials.toUpperCase();
   }
 
@@ -708,7 +806,8 @@ export class ApartmentDetail implements OnInit {
     const date = new Date(Date.now() + 24 * 60 * 60 * 1000);
     date.setMinutes(Math.ceil(date.getMinutes() / 15) * 15, 0, 0);
     const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-      .toISOString().slice(0, 16);
+      .toISOString()
+      .slice(0, 16);
     return {
       name: '',
       email: '',
@@ -730,18 +829,21 @@ export class ApartmentDetail implements OnInit {
   }
 
   private get isForSale(): boolean {
-    const metadata = `${this.getListingMetadata('Deal')} ${this.getListingMetadata('Listing type')}`.toLowerCase();
+    const metadata =
+      `${this.getListingMetadata('Deal')} ${this.getListingMetadata('Listing type')}`.toLowerCase();
     return metadata.includes('sale') || metadata.includes('buy');
   }
 
   private localizedPropertyType(language: 'en' | 'ru'): string {
-    const type = `${this.getListingMetadata('Type')} ${this.apartment?.apartmentStyle || ''}`.toLowerCase();
+    const type =
+      `${this.getListingMetadata('Type')} ${this.apartment?.apartmentStyle || ''}`.toLowerCase();
     const house = type.includes('house') || type.includes('villa') || type.includes('cottage');
-    return language === 'ru' ? (house ? 'Дом' : 'Квартира') : (house ? 'House' : 'Apartment');
+    return language === 'ru' ? (house ? 'Дом' : 'Квартира') : house ? 'House' : 'Apartment';
   }
 
   private localizedPlace(language: AppLanguage, fallback?: string): string {
-    const source = fallback || this.apartment?.district?.trim() || this.apartment?.address?.trim() || 'Tbilisi';
+    const source =
+      fallback || this.apartment?.district?.trim() || this.apartment?.address?.trim() || 'Tbilisi';
     const places: Record<string, { en: string; ka: string; ru: string }> = {
       tbilisi: { en: 'Tbilisi', ka: 'თბილისი', ru: 'Тбилиси' },
       vake: { en: 'Vake', ka: 'ვაკე', ru: 'Ваке' },
@@ -762,14 +864,18 @@ export class ApartmentDetail implements OnInit {
         bedroomCount ? `${bedroomCount} спальн.` : '',
         bathroomCount ? `${bathroomCount} ванн.` : '',
         this.area ? `${this.area} м²` : '',
-      ].filter(Boolean).join(' · ');
+      ]
+        .filter(Boolean)
+        .join(' · ');
       return `Проверенный объект (${propertyType}) в районе ${place}.${facts ? ` ${facts}.` : ''} Свяжитесь с VELVEN, чтобы уточнить доступность и договориться о просмотре.`;
     }
     const facts = [
       bedroomCount ? `${bedroomCount} bedroom${bedroomCount === 1 ? '' : 's'}` : '',
       bathroomCount ? `${bathroomCount} bathroom${bathroomCount === 1 ? '' : 's'}` : '',
       this.area ? `${this.area} m²` : '',
-    ].filter(Boolean).join(' · ');
+    ]
+      .filter(Boolean)
+      .join(' · ');
     return `Verified ${propertyType} in ${place}.${facts ? ` ${facts}.` : ''} Contact VELVEN to confirm availability and arrange a viewing.`;
   }
 
@@ -814,17 +920,18 @@ export class ApartmentDetail implements OnInit {
 
     this.agentService.getAgents().subscribe({
       next: (agents) => {
-        this.selectedAgent = agents.find((agent) => {
-          const agentIds = [agent.id, agent.userId]
-            .filter((value) => value !== undefined && value !== null)
-            .map((value) => String(value).toLowerCase());
-          const agentEmail = agent.email?.toLowerCase();
+        this.selectedAgent =
+          agents.find((agent) => {
+            const agentIds = [agent.id, agent.userId]
+              .filter((value) => value !== undefined && value !== null)
+              .map((value) => String(value).toLowerCase());
+            const agentEmail = agent.email?.toLowerCase();
 
-          return (
-            ownerIds.some((ownerId) => agentIds.includes(ownerId.toLowerCase())) ||
-            (!!agentEmail && ownerEmails.includes(agentEmail))
-          );
-        }) || null;
+            return (
+              ownerIds.some((ownerId) => agentIds.includes(ownerId.toLowerCase())) ||
+              (!!agentEmail && ownerEmails.includes(agentEmail))
+            );
+          }) || null;
         this.agentImageIndex = 0;
         this.cdr.detectChanges();
       },
@@ -843,8 +950,7 @@ export class ApartmentDetail implements OnInit {
       price: apartment.price,
       rating: Math.min(4.8 + (apartment.id % 5) * 0.04, 5).toFixed(2),
       imageUrl:
-        toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) ||
-        '/property-placeholder.svg',
+        toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg',
     };
   }
 
@@ -857,9 +963,11 @@ export class ApartmentDetail implements OnInit {
   private getListingMetadata(label: string): string {
     const description = this.apartment?.description || '';
     const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return description.match(
-      new RegExp(`(?:^|[|\\r\\n])\\s*${escapedLabel}:\\s*([^|\\r\\n]+)`, 'i'),
-    )?.[1]?.trim() || '';
+    return (
+      description
+        .match(new RegExp(`(?:^|[|\\r\\n])\\s*${escapedLabel}:\\s*([^|\\r\\n]+)`, 'i'))?.[1]
+        ?.trim() || ''
+    );
   }
 
   private getApartmentImages(apartment: Apartment): string[] {
@@ -871,5 +979,4 @@ export class ApartmentDetail implements OnInit {
     this.realPhotoCount = uniqueImages.length;
     return uniqueImages;
   }
-
 }

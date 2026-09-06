@@ -1684,20 +1684,11 @@ togglePhoneCountryDropdown(): void {
     const normalizedRouteValue =
       routeValue.trim();
 
-    if (
-      !normalizedRouteValue
-        .toLowerCase()
-        .startsWith('agent-')
-    ) {
-      this.invalidAgentLink = true;
-      return;
-    }
+    const token = normalizedRouteValue
+      .replace(/^agent-/i, '')
+      .toLowerCase();
 
-    const token =
-      normalizedRouteValue
-        .substring('agent-'.length);
-
-    if (!token) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(token)) {
       this.invalidAgentLink = true;
       return;
     }
