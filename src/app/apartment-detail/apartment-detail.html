@@ -17,13 +17,31 @@
       </div>
       <section class="vp-gallery" data-protected-image>
         <button class="vp-gallery-main" (click)="selectPhoto(0); openPhotoViewer()">
-          <img [src]="galleryImages[0] || activePhoto" [alt]="title" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
+          <img
+            [src]="galleryImages[0] || activePhoto"
+            [alt]="title"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+            draggable="false"
+            (contextmenu)="preventImageAction($event)"
+            (dragstart)="preventImageAction($event)"
+          />
         </button>
         <button
           *ngFor="let image of galleryImages | slice: 1 : 5; let i = index"
           (click)="selectPhoto(i + 1); openPhotoViewer()"
         >
-          <img [src]="image" [alt]="title + ' photo ' + (i + 2)" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" /><span
+          <img
+            [src]="image"
+            [alt]="title + ' photo ' + (i + 2)"
+            loading="lazy"
+            decoding="async"
+            fetchpriority="low"
+            draggable="false"
+            (contextmenu)="preventImageAction($event)"
+            (dragstart)="preventImageAction($event)"
+          /><span
             class="vp-show-all"
             *ngIf="i === 3"
             ><i class="fa-regular fa-images"></i> Show all {{ photoCount }} photos</span
@@ -34,7 +52,7 @@
           *ngFor="let slot of [1, 2, 3, 4] | slice: galleryImages.length - 1"
           (click)="openPhotoViewer()"
         >
-          <img [src]="activePhoto" alt="" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
+          <img [src]="activePhoto" alt="" loading="lazy" decoding="async" fetchpriority="low" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
         </button>
       </section>
       <div class="vp-columns">
@@ -232,7 +250,19 @@
         </button>
         <button class="viewer-close" type="button" aria-label="Close photo viewer" (click)="$event.stopPropagation(); closePhotoViewer()">×</button>
         <div class="photo-viewer-track" (scroll)="updateActiveViewerPhoto($event)">
-          <img *ngFor="let image of galleryImages; let i = index" [src]="image" [alt]="title + ' photo ' + (i + 1)" [attr.data-viewer-photo]="i" draggable="false" (click)="$event.stopPropagation()" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
+          <img
+            *ngFor="let image of galleryImages; let i = index"
+            [src]="image"
+            [alt]="title + ' photo ' + (i + 1)"
+            [attr.data-viewer-photo]="i"
+            [attr.loading]="i < 2 ? 'eager' : 'lazy'"
+            decoding="async"
+            [attr.fetchpriority]="i === activePhotoIndex ? 'high' : 'low'"
+            draggable="false"
+            (click)="$event.stopPropagation()"
+            (contextmenu)="preventImageAction($event)"
+            (dragstart)="preventImageAction($event)"
+          />
         </div>
         <span>{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
       </div>
