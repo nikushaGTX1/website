@@ -1,10 +1,12 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import { Agent } from '../models/agent';
 import { Apartment } from '../models/apartment';
+import { CrmLead } from '../models/crm';
 import { AgentService } from '../services/agent.service';
 import { ApartmentService } from '../services/apartment.service';
+import { CrmService } from '../services/crm.service';
 import { SeoService } from '../services/seo.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 
@@ -20,12 +22,14 @@ export class AgentDetailProfile implements OnInit {
   loading = true;
   errorMessage = '';
   phoneDialogOpen = false;
+  private crmWonDeals: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private agentService: AgentService,
     private apartmentService: ApartmentService,
+    private crmService: CrmService,
     private seoService: SeoService,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -37,11 +41,22 @@ export class AgentDetailProfile implements OnInit {
       return;
     }
 
-    forkJoin({
-      agent: this.agentService.getAgent(agentId),
-      apartments: this.apartmentService.getApartments(),
-    }).subscribe({
-      next: ({ agent, apartments }) => {
+    this.agentService
+      .getAgent(agentId)
+      .pipe(
+        switchMap((agent) => {
+          const crmAgentId = agent.userId || agent.id || agentId;
+          return forkJoin({
+            agent: of(agent),
+            apartments: this.apartmentService.getApartments(),
+            wonLeads: this.crmService
+              .getLeads({ status: 'won', assignedAgentId: crmAgentId })
+              .pipe(catchError(() => of(null as CrmLead[] | null))),
+          });
+        }),
+      )
+      .subscribe({
+      next: ({ agent, apartments, wonLeads }) => {
         this.agent = agent;
         this.seoService.updateAgent(agent);
         this.listings = apartments
@@ -49,6 +64,9 @@ export class AgentDetailProfile implements OnInit {
           .sort(
             (left, right) => Date.parse(right.createdAt || '') - Date.parse(left.createdAt || ''),
           );
+        this.crmWonDeals = wonLeads === null
+          ? null
+          : wonLeads.filter((lead) => this.belongsToAgentCrm(lead, agent, agentId)).length;
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -93,7 +111,7 @@ export class AgentDetailProfile implements OnInit {
   }
 
   get closedDeals(): number {
-    return this.agent?.closedDeals || this.listings.length;
+    return this.crmWonDeals ?? this.agent?.closedDeals ?? this.listings.length;
   }
 
   get contactPhone(): string {
@@ -172,6 +190,23 @@ export class AgentDetailProfile implements OnInit {
       apartmentIds.some((value) => agentIds.includes(value)) ||
       apartmentEmails.some((value) => agentEmails.includes(value)) ||
       apartmentNames.some((value) => agentNames.includes(value))
+    );
+  }
+
+  private belongsToAgentCrm(lead: CrmLead, agent: Agent, routeAgentId: string): boolean {
+    const agentIds = [routeAgentId, agent.id, agent.userId]
+      .filter((value): value is string => !!value)
+      .map((value) => value.trim().toLowerCase());
+    const agentNames = [agent.fullName, agent.name, agent.userName]
+      .filter((value): value is string => !!value)
+      .map((value) => value.trim().toLowerCase());
+    const assignedId = lead.assignedAgentId?.trim().toLowerCase();
+    const assignedName = lead.assignedAgentName?.trim().toLowerCase();
+
+    return (
+      lead.status === 'won' &&
+      (!!assignedId && agentIds.includes(assignedId) ||
+        !!assignedName && agentNames.includes(assignedName))
     );
   }
 
