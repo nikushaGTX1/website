@@ -269,6 +269,55 @@ html[lang='ka'] body
   letter-spacing: 0;
 }
 
+/* Site-wide mobile containment. Component carousels and data rows may scroll
+ * internally, but routed pages must never widen the browser viewport. */
+@media (max-width: 768px) {
+  html,
+  body,
+  app-root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip !important;
+    overscroll-behavior-x: none;
+  }
+
+  app-root,
+  app-root > *,
+  .route-content,
+  .route-content > *,
+  main,
+  header,
+  footer,
+  nav,
+  section,
+  article,
+  aside,
+  form,
+  fieldset {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  img,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    min-width: 0;
+  }
+
+  body :is(h1, h2, h3, h4, h5, h6, p, a, label, legend, li, small, strong) {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* Language-aware layout ---------------------------------------------------
  * Translated copy is often wider than its English source. Keep controls and
  * grid/flex children shrinkable, and allow action text to use a second line
