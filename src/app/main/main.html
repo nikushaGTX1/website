@@ -30,9 +30,9 @@
             aria-haspopup="dialog"
             (click)="openLocationSearch()"
           >
-            <b><span class="location-svg" aria-hidden="true"></span></b>
+            <b><i class="fa-solid fa-location-dot" aria-hidden="true"></i></b>
             <span class="location-trigger-text">{{
-              searchLocation || 'Search area, street, building or landmark...'
+              searchLocation || 'Search location'
             }}</span>
             <i class="fa-solid fa-chevron-down location-chevron" aria-hidden="true"></i>
           </button>
@@ -304,7 +304,7 @@
             (click)="toggleSearchMenu('propertyType')"
           >
             <span
-              ><span class="layers-svg" aria-hidden="true"></span
+              ><i class="fa-solid fa-building" aria-hidden="true"></i
               >{{ searchPropertyType || 'Any property type' }}</span
             >
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
@@ -328,14 +328,14 @@
                 [attr.aria-selected]="searchPropertyType === option"
                 (click)="selectPropertyType(option)"
               >
-                <span
-                  class="property-option-svg"
-                  [class.flats-svg]="option === 'Apartament'"
-                  [class.shop-svg]="option === 'Commercial Place'"
-                  [class.house-option-svg]="option === 'House'"
-                  [class.country-house-svg]="option === 'Country house'"
+                <i
+                  class="property-option-icon fa-solid"
+                  [class.fa-building]="option === 'Apartament'"
+                  [class.fa-store]="option === 'Commercial Place'"
+                  [class.fa-house]="option === 'House'"
+                  [class.fa-house-chimney]="option === 'Country house'"
                   aria-hidden="true"
-                ></span
+                ></i
                 >{{ option }}
               </button>
             </div>

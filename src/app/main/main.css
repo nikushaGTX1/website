@@ -76,6 +76,13 @@
   width: 27px;
   height: 27px;
 }
+.property-option-icon {
+  width: 27px;
+  flex: 0 0 27px;
+  color: #526079;
+  font-size: 22px;
+  text-align: center;
+}
 .flats-svg {
   -webkit-mask: url('/flats.svg') center / contain no-repeat;
   mask: url('/flats.svg') center / contain no-repeat;
