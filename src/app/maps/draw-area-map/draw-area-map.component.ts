@@ -1297,33 +1297,41 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         pin.setAttribute('aria-label', `Open ${apartment.title}, ${price}`);
         Object.assign(pin.style, {
           position: 'absolute',
-          transform: 'translate(-50%, -100%)',
-          minWidth: '58px',
-          padding: '10px 12px',
-          borderRadius: '22px',
+          transform: 'translate(-50%, calc(-100% - 9px))',
+          minWidth: '64px',
+          minHeight: '40px',
+          padding: '0 14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxSizing: 'border-box',
+          borderRadius: '18px',
           background: '#fff',
-          color: '#171421',
-          border: '1px solid rgba(60, 48, 67, .12)',
-          boxShadow: '0 6px 16px rgba(25, 16, 31, .22)',
+          color: '#111827',
+          border: '1px solid rgba(31, 41, 55, .08)',
+          boxShadow: '0 7px 18px rgba(39, 31, 52, .18)',
           fontFamily: 'inherit',
-          fontSize: '12px',
+          fontSize: '13px',
           lineHeight: '1',
-          fontWeight: '800',
+          fontWeight: '850',
           whiteSpace: 'nowrap',
           pointerEvents: 'auto',
           cursor: 'pointer',
           zIndex: '9',
+          transition: 'transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease',
         });
         const tail = document.createElement('i');
         Object.assign(tail.style, {
           position: 'absolute',
           left: '50%',
-          bottom: '-5px',
-          width: '10px',
-          height: '10px',
+          bottom: '-11px',
+          width: '24px',
+          height: '13px',
           background: '#fff',
-          transform: 'translateX(-50%) rotate(45deg)',
-          boxShadow: '3px 3px 5px rgba(25, 16, 31, .08)',
+          transform: 'translateX(-50%)',
+          clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
+          filter: 'drop-shadow(0 4px 3px rgba(39, 31, 52, .10))',
+          transition: 'background 160ms ease',
         });
         pin.appendChild(tail);
         const setPinHighlighted = (highlighted: boolean) => {
@@ -1331,9 +1339,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           const selected = highlighted || active;
           pin!.style.background = selected ? '#451a8f' : '#fff';
           pin!.style.color = selected ? '#fff' : '#171421';
+          pin!.style.borderColor = selected ? '#451a8f' : 'rgba(31, 41, 55, .08)';
           pin!.style.transform = selected
-            ? 'translate(-50%, -100%) scale(1.08)'
-            : 'translate(-50%, -100%)';
+            ? 'translate(-50%, calc(-100% - 9px)) scale(1.06)'
+            : 'translate(-50%, calc(-100% - 9px))';
           pin!.style.boxShadow = selected
             ? '0 8px 20px rgba(69, 26, 143, .34)'
             : '0 6px 16px rgba(25, 16, 31, .22)';
@@ -1460,7 +1469,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.activePreviewTail = tail;
     pin.style.background = '#451a8f';
     pin.style.color = '#fff';
-    pin.style.transform = 'translate(-50%, -100%) scale(1.08)';
+    pin.style.borderColor = '#451a8f';
+    pin.style.transform = 'translate(-50%, calc(-100% - 9px)) scale(1.06)';
     pin.style.boxShadow = '0 8px 20px rgba(69, 26, 143, .34)';
     tail.style.background = '#451a8f';
     const listedImages = (apartment.imageUrls || []).filter(Boolean);
@@ -1581,7 +1591,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (this.activePreviewPin) {
       this.activePreviewPin.style.background = '#fff';
       this.activePreviewPin.style.color = '#171421';
-      this.activePreviewPin.style.transform = 'translate(-50%, -100%)';
+      this.activePreviewPin.style.borderColor = 'rgba(31, 41, 55, .08)';
+      this.activePreviewPin.style.transform = 'translate(-50%, calc(-100% - 9px))';
       this.activePreviewPin.style.boxShadow = '0 6px 16px rgba(25, 16, 31, .22)';
     }
     if (this.activePreviewTail) this.activePreviewTail.style.background = '#fff';
