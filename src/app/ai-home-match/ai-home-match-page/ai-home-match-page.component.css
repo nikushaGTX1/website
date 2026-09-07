@@ -74,7 +74,7 @@
   border-radius: 27px;
   padding: 32px;
   box-shadow: 0 20px 55px #251e5214;
-  animation: enter 0.28s ease;
+  animation: none;
 }
 .question-title {
   display: flex;

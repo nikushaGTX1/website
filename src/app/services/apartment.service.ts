@@ -305,6 +305,7 @@ export class ApartmentService {
       ['street', 'Street'],
       ['buildingNumber', 'BuildingNumber'],
       ['apartmentStyle', 'ApartmentStyle'],
+      ['parkingCondition', 'ParkingCondition'],
     ];
     const numberFields: Array<[keyof CreateApartment, string]> = [
       ['latitude', 'Latitude'],
@@ -327,6 +328,7 @@ export class ApartmentService {
     const booleanFields: Array<[keyof CreateApartment, string]> = [
       ['hasElevator', 'HasElevator'],
       ['hasParking', 'HasParking'],
+      ['isQuietStreet', 'IsQuietStreet'],
       ['hasBalcony', 'HasBalcony'],
       ['hasBathtub', 'HasBathtub'],
       ['hasAirConditioning', 'HasAirConditioning'],

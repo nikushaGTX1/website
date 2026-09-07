@@ -12,14 +12,12 @@ export interface HomeMatchProfile {
   budgetMin: number;
   budgetMax: number;
   currency: Currency;
-  includesUtilities?: boolean | null;
   gender: Gender;
   householdType: string;
   adults: number;
   children: number;
   childrenAgeGroups: string[];
   bedrooms?: number | null;
-  additionalRoom?: string;
   rentalDuration?: string;
   moveInTiming?: string;
   moveInDate?: string;
@@ -29,10 +27,7 @@ export interface HomeMatchProfile {
   parkingAutomaticallyPrioritized: boolean;
   lifestyles: string[];
   hasPet: boolean | null;
-  mainPreferences: string[];
-  additionalRequirements: string[];
   topPriorities: string[];
-  additionalNotes?: string;
 }
 
 export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
@@ -42,7 +37,6 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   budgetMin: 1000,
   budgetMax: 1800,
   currency: 'USD',
-  includesUtilities: null,
   gender: '',
   householdType: '',
   adults: 1,
@@ -53,7 +47,5 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   parkingAutomaticallyPrioritized: false,
   lifestyles: [],
   hasPet: null,
-  mainPreferences: [],
-  additionalRequirements: [],
   topPriorities: [],
 };

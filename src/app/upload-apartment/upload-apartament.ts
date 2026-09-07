@@ -39,6 +39,8 @@ type UploadForm = {
   totalFloors: number | null;
   hasElevator: boolean;
   hasParking: boolean;
+  parkingCondition: string;
+  isQuietStreet: boolean;
   hasBalcony: boolean;
   hasBathtub: boolean;
   hasAirConditioning: boolean;
@@ -60,6 +62,7 @@ type UploadForm = {
 type BooleanFeature =
   | 'hasElevator'
   | 'hasParking'
+  | 'isQuietStreet'
   | 'hasBalcony'
   | 'hasBathtub'
   | 'hasAirConditioning'
@@ -165,6 +168,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   readonly featureOptions: Array<{ label: string; field: BooleanFeature; icon: string }> = [
     { label: 'Elevator', field: 'hasElevator', icon: 'fa-solid fa-elevator' },
     { label: 'Parking', field: 'hasParking', icon: 'fa-solid fa-square-parking' },
+    { label: 'Quiet street', field: 'isQuietStreet', icon: 'fa-solid fa-volume-xmark' },
     { label: 'Balcony', field: 'hasBalcony', icon: 'fa-solid fa-building' },
     { label: 'Bathtub', field: 'hasBathtub', icon: 'fa-solid fa-bath' },
     { label: 'Air conditioning', field: 'hasAirConditioning', icon: 'fa-solid fa-snowflake' },
@@ -174,6 +178,12 @@ export class UploadApartment implements OnInit, OnDestroy {
     { label: 'Large kitchen', field: 'hasLargeKitchen', icon: 'fa-solid fa-utensils' },
     { label: 'Scenic view', field: 'hasView', icon: 'fa-solid fa-mountain-sun' },
     { label: 'Furnished', field: 'isFurnished', icon: 'fa-solid fa-couch' },
+  ];
+  readonly parkingTypeOptions = [
+    { label: 'Garage', value: 'Garage', points: 5 },
+    { label: 'Parking space with a yellow barrier', value: 'YellowBarrier', points: 4 },
+    { label: 'Parking in the yard with a remote-controlled barrier', value: 'RemoteControlledYardBarrier', points: 3 },
+    { label: 'Parking adjacent to the building', value: 'AdjacentToBuilding', points: 2 },
   ];
 
   form: UploadForm = {
@@ -202,6 +212,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     totalFloors: null,
     hasElevator: false,
     hasParking: false,
+    parkingCondition: '',
+    isQuietStreet: false,
     hasBalcony: false,
     hasBathtub: false,
     hasAirConditioning: false,
@@ -488,6 +500,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   toggle(field: 'hideAddress' | 'exchangePossible' | BooleanFeature): void {
     this.form[field] = !this.form[field];
+    if (field === 'hasParking' && !this.form.hasParking) this.form.parkingCondition = '';
   }
 
   get previewTitle(): string {
@@ -538,7 +551,10 @@ export class UploadApartment implements OnInit, OnDestroy {
       case 2:
         return !!this.form.totalPrice;
       case 3:
-        return !!(this.form.area || this.form.rooms || this.form.bedrooms);
+        return !!(
+          (this.form.area || this.form.rooms || this.form.bedrooms) &&
+          (!this.form.hasParking || this.form.parkingCondition)
+        );
       case 4:
         return !!(this.form.title.trim() && this.form.description.trim() && this.uploadedImageCount);
       case 5:
@@ -859,6 +875,10 @@ export class UploadApartment implements OnInit, OnDestroy {
       `Currency: ${this.form.currency}`,
       this.form.sqPrice ? `Sq. price: ${this.form.sqPrice}` : '',
       this.form.exchangePossible ? 'Exchange possible' : '',
+      this.form.hasParking && this.form.parkingCondition
+        ? `Parking type: ${this.parkingTypeOptions.find((option) => option.value === this.form.parkingCondition)?.label || this.form.parkingCondition}`
+        : '',
+      this.form.isQuietStreet ? 'Quiet street: Yes' : '',
       this.form.cadastralCode ? `Cadastral: ${this.form.cadastralCode}` : '',
       this.form.agentName ? `Contact: ${this.form.agentName}` : '',
       currentUser?.id ? `Owner ID: ${currentUser.id}` : '',
@@ -895,6 +915,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       totalFloors: this.form.totalFloors ?? 0,
       hasElevator: this.form.hasElevator,
       hasParking: this.form.hasParking,
+      parkingCondition: this.form.hasParking ? this.form.parkingCondition : undefined,
+      isQuietStreet: this.form.isQuietStreet,
       hasBalcony: this.form.hasBalcony,
       hasBathtub: this.form.hasBathtub,
       hasAirConditioning: this.form.hasAirConditioning,

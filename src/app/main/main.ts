@@ -9,6 +9,7 @@ import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { Router } from '@angular/router';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
+import { TranslationService } from '../services/translation.service';
 
 @Component({
   selector: 'app-main',
@@ -35,7 +36,6 @@ export class Main implements OnInit {
   streetSearch = '';
   selectedModalStreets: string[] = [];
   selectedModalStreetDetails: Array<{ streetId: number; street: string; district: string }> = [];
-  moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
   drawnStreetSuggestions: Array<{ id: number; label: string; value: string; district: string }> =
@@ -46,11 +46,12 @@ export class Main implements OnInit {
   searchBudget = '';
   budgetOpen = false;
   bedroomOpen = false;
-  bedroomStep: 'rooms' | 'bedrooms' = 'rooms';
   propertyTypeOpen = false;
   budgetCurrency: 'GEL' | 'USD' = 'GEL';
-  budgetMin: number | null = 0;
-  budgetMax: number | null = 5000;
+  budgetMin: number | null = null;
+  budgetMax: number | null = null;
+  budgetSliderMin = 0;
+  budgetSliderMax = 5000;
   appliedBudgetMin: number | null = null;
   appliedBudgetMax: number | null = null;
   selectedBudgetRange = '';
@@ -60,17 +61,12 @@ export class Main implements OnInit {
     { label: '$1,500 – $3,000', min: 1500, max: 3000 },
     { label: '$3,000 – $5,000', min: 3000, max: 5000 },
   ];
-  readonly roomOptions = [1, 2, 3, 4, 5].map((value) => ({
-    label: `${value} ${value === 1 ? 'Room' : 'Rooms'}`,
-    value: String(value),
-    icon: 'fa-solid fa-door-open',
-  }));
   readonly bedroomOptions = [
-    { label: '1 Bedroom', value: '1', icon: 'fa-solid fa-bed' },
-    { label: '2 Bedrooms', value: '2', icon: 'fa-solid fa-bed' },
-    { label: '3 Bedrooms', value: '3', icon: 'fa-solid fa-bed' },
-    { label: '4 Bedrooms', value: '4', icon: 'fa-solid fa-bed' },
-    { label: '4+ Bedrooms', value: '4+', icon: 'fa-solid fa-layer-group' },
+    { label: '1 Bedroom', value: '1' },
+    { label: '2 Bedrooms', value: '2' },
+    { label: '3 Bedrooms', value: '3' },
+    { label: '4 Bedrooms', value: '4' },
+    { label: '4+ Bedrooms', value: '4+' },
   ];
   readonly propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
   readonly popularLocationAreas = [
@@ -87,22 +83,7 @@ export class Main implements OnInit {
     { name: 'Vera', description: 'Historic central', icon: 'fa-solid fa-house-chimney' },
     { name: 'Mtatsminda', description: 'Old city & views', icon: 'fa-solid fa-landmark' },
   ];
-  readonly allLocationAreas = [
-    'Didube',
-    'Digomi',
-    'Didi Digomi',
-    'Gldani',
-    'Nadzaladevi',
-    'Isani',
-    'Samgori',
-    'Avlabari',
-    'Sololaki',
-    'Chugureti',
-    'Krtsanisi',
-    'Vashlijvari',
-  ];
   searchBedrooms = '';
-  searchRooms = '';
   public advancedFiltersOpen = false;
   drawAreaOpen = false;
   drawAreaInitialized = false;
@@ -113,6 +94,7 @@ export class Main implements OnInit {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private locationService: LocationService,
+    readonly translationService: TranslationService,
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
   ) {}
@@ -153,29 +135,20 @@ export class Main implements OnInit {
   }
 
   get bedroomSummary(): string {
-    if (!this.searchRooms) return 'Rooms';
-    const rooms = `${this.searchRooms} ${this.searchRooms === '1' ? 'Room' : 'Rooms'}`;
-    if (!this.searchBedrooms) return rooms;
-    const bedrooms = `${this.searchBedrooms} ${this.searchBedrooms === '1' ? 'Bedroom' : 'Bedrooms'}`;
-    return `${rooms}, ${bedrooms}`;
-  }
-
-  get availableBedroomOptions() {
-    const rooms = Number(this.searchRooms || 0);
-    return this.bedroomOptions.filter((option) => Number(option.value.replace('+', '')) <= rooms);
+    return this.bedroomOptions.find((option) => option.value === this.searchBedrooms)?.label || 'Bedrooms';
   }
 
   get budgetMinPercent(): number {
     return Math.min(
-      this.normalizedSliderValue(this.budgetMin),
-      this.normalizedSliderValue(this.budgetMax),
+      this.normalizedSliderValue(this.budgetSliderMin),
+      this.normalizedSliderValue(this.budgetSliderMax),
     );
   }
 
   get budgetMaxPercent(): number {
     return Math.max(
-      this.normalizedSliderValue(this.budgetMin),
-      this.normalizedSliderValue(this.budgetMax),
+      this.normalizedSliderValue(this.budgetSliderMin),
+      this.normalizedSliderValue(this.budgetSliderMax),
     );
   }
 
@@ -216,6 +189,8 @@ export class Main implements OnInit {
     this.budgetCurrency = 'USD';
     this.budgetMin = range.min;
     this.budgetMax = range.max;
+    this.budgetSliderMin = range.min;
+    this.budgetSliderMax = range.max;
   }
 
   applyBudget(): void {
@@ -226,19 +201,15 @@ export class Main implements OnInit {
   }
 
   resetBudget(): void {
-    this.budgetMin = 0;
-    this.budgetMax = 5000;
+    this.budgetMin = null;
+    this.budgetMax = null;
+    this.budgetSliderMin = 0;
+    this.budgetSliderMax = 5000;
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
     this.searchBudget = '';
     this.selectedBudgetRange = '';
     this.budgetOpen = false;
-  }
-
-  selectRooms(value: string): void {
-    this.searchRooms = value;
-    this.searchBedrooms = '';
-    this.bedroomStep = 'bedrooms';
   }
 
   selectBedrooms(value: string): void {
@@ -247,9 +218,7 @@ export class Main implements OnInit {
   }
 
   clearBedrooms(): void {
-    this.searchRooms = '';
     this.searchBedrooms = '';
-    this.bedroomStep = 'rooms';
     this.bedroomOpen = false;
   }
 
@@ -366,6 +335,8 @@ export class Main implements OnInit {
           (entry) =>
             entry.district.toLowerCase() === selectedArea.toLowerCase() ||
             this.locationService.districtName(entry, 'en').toLowerCase() ===
+              selectedArea.toLowerCase() ||
+            this.locationService.districtName(entry, 'ka').toLowerCase() ===
               selectedArea.toLowerCase(),
         )
         .flatMap((entry) =>
@@ -416,19 +387,16 @@ export class Main implements OnInit {
       ...new Set(
         this.locationEntries
           .filter((entry) => entry.city === 'Tbilisi')
-          .map((entry) => this.locationService.districtName(entry, 'en'))
-          .filter((area) => !!area && area !== 'System.Collections.Hashtable'),
+          .map((entry) => entry.district)
+          .filter(
+            (area) =>
+              !!area &&
+              area !== 'System.Collections.Hashtable' &&
+              /[A-Za-z]/.test(area) &&
+              !/[\u10A0-\u10FF]/.test(area),
+          ),
       ),
-    ].sort((left, right) => left.localeCompare(right));
-  }
-
-  public get additionalTbilisiAreas(): string[] {
-    const visibleAreas = new Set(
-      [...this.featuredLocationAreas.map((area) => area.name), ...this.allLocationAreas].map(
-        (area) => area.toLowerCase(),
-      ),
-    );
-    return this.apiTbilisiAreas.filter((area) => !visibleAreas.has(area.toLowerCase()));
+    ].sort((left, right) => left.localeCompare(right, 'en'));
   }
 
   public get selectedAreaDescription(): string {
@@ -634,6 +602,13 @@ export class Main implements OnInit {
     this.locationService.getLocations().subscribe({
       next: (locations) => {
         this.locationEntries = locations;
+        this.translationService.registerTranslations(
+          'ka',
+          locations.map((location) => ({
+            source: this.locationService.districtName(location, 'en'),
+            translation: this.locationService.districtName(location, 'ka'),
+          })),
+        );
         this.locationLoading = false;
         this.locationError = false;
         this.cdr.detectChanges();
@@ -799,7 +774,6 @@ export class Main implements OnInit {
         budgetMin: this.toUsd(this.appliedBudgetMin),
         budgetCurrency: this.budgetCurrency,
         bedrooms: this.searchBedrooms || null,
-        rooms: this.searchRooms || null,
       },
     });
   }

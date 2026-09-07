@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { HomeMatchResult } from '../models/home-match-result';
-import { MatchTradeOff } from '../models/home-match-result';
 import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { applyPriorityScoring } from '../services/priority-scoring';
@@ -15,6 +14,7 @@ export class HomeMatchResultsComponent implements OnChanges {
   @Input({ required: true }) profile!: HomeMatchProfile;
   @Output() edit = new EventEmitter<void>();
   readonly enrichingApartmentIds = new Set<number>();
+  private readonly failedImageIndexes = new WeakMap<HTMLImageElement, number>();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['matches']) {
@@ -27,10 +27,46 @@ export class HomeMatchResultsComponent implements OnChanges {
     );
   }
   image(result: HomeMatchResult): string {
-    return (
-      toMediaUrl(result.apartment.imageUrls?.[0] || result.apartment.imageUrl) ||
-      '/property-placeholder.svg'
+    return this.imageCandidates(result)[0] || '/property-placeholder.svg';
+  }
+
+  private imageCandidates(result: HomeMatchResult): string[] {
+    const images = [...(result.apartment.images || [])].sort(
+      (a, b) => Number(b.isCover) - Number(a.isCover) || (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
     );
+    return [...new Set([
+      ...images.map((item) => item.url),
+      ...(result.apartment.imageUrls || []),
+      result.apartment.imageUrl,
+    ].map((source) => toMediaUrl(source)).filter(Boolean))];
+  }
+
+  onImageError(event: Event, result: HomeMatchResult): void {
+    const image = event.target as HTMLImageElement;
+    const nextIndex = (this.failedImageIndexes.get(image) ?? 0) + 1;
+    const nextImage = this.imageCandidates(result)[nextIndex];
+    this.failedImageIndexes.set(image, nextIndex);
+    if (nextImage) image.src = nextImage;
+    else {
+      image.onerror = null;
+      image.classList.add('placeholder-image');
+      image.src = '/property-placeholder.svg';
+    }
+  }
+
+  rankHeadline(index: number): string {
+    if (index === 0) return 'Based on your profile, this is the best match for you';
+    return `Based on your profile, this is your ${this.ordinal(index + 1)} best match`;
+  }
+
+  rankLabel(index: number): string {
+    return index === 0 ? 'Top recommendation' : `${this.ordinal(index + 1)} recommendation`;
+  }
+
+  private ordinal(value: number): string {
+    const remainder = value % 100;
+    if (remainder >= 11 && remainder <= 13) return `${value}th`;
+    return `${value}${value % 10 === 1 ? 'st' : value % 10 === 2 ? 'nd' : value % 10 === 3 ? 'rd' : 'th'}`;
   }
 
   mapAddress(result: HomeMatchResult): string {
@@ -65,16 +101,6 @@ export class HomeMatchResultsComponent implements OnChanges {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
   }
 
-  label(score: number): string {
-    return score >= 95
-      ? 'Perfect Match'
-      : score >= 85
-        ? 'Excellent Match'
-        : score >= 70
-          ? 'Good Match'
-          : 'Possible Match';
-  }
-
   hasNearbyTimes(result: HomeMatchResult): boolean {
     const apartment = result.apartment;
     return [
@@ -84,23 +110,6 @@ export class HomeMatchResultsComponent implements OnChanges {
       apartment.gymDistanceMinutes,
       apartment.metroDistanceMinutes,
     ].some((value) => value !== undefined && value !== null);
-  }
-
-  visibleTradeOffs(result: HomeMatchResult): MatchTradeOff[] {
-    return (result.tradeOffs || []).filter((tradeOff) => {
-      const title = tradeOff.title.toLowerCase();
-      if (title.includes('gym') && result.apartment.gymDistanceMinutes !== undefined) return false;
-      if (title.includes('metro') && result.apartment.metroDistanceMinutes !== undefined)
-        return false;
-      if (title.includes('school') && result.apartment.schoolDistanceMinutes !== undefined)
-        return false;
-      if (
-        title.includes('kindergarten') &&
-        result.apartment.kindergartenDistanceMinutes !== undefined
-      )
-        return false;
-      return true;
-    });
   }
 
 }

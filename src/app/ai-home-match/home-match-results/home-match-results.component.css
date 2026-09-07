@@ -87,6 +87,73 @@ h1 {
   padding: 14px 0;
   border-bottom: 1px solid #eee;
 }
+
+/* Polished, rank-first recommendation cards. */
+.card.best-match {
+  border-color: #b9acec;
+  box-shadow: 0 24px 65px rgba(55, 36, 126, 0.16);
+}
+.media {
+  background: linear-gradient(145deg, #f2effb, #e8edf5);
+}
+.media img {
+  display: block;
+}
+.media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(22, 15, 48, 0.5));
+  pointer-events: none;
+}
+.score {
+  z-index: 1;
+  max-width: calc(100% - 32px);
+  padding: 13px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 28px rgba(25, 17, 57, 0.18);
+  backdrop-filter: blur(10px);
+}
+.score b {
+  margin-top: 3px;
+  color: #241b48;
+  font-size: 18px;
+  line-height: 1.25;
+}
+.score span {
+  color: #6753cc;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.body {
+  padding: 32px;
+}
+.reasons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.reasons li {
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid #e5e9e7;
+  border-radius: 11px;
+  background: #f8fbf9;
+}
+.view {
+  width: 100%;
+  box-sizing: border-box;
+  margin-right: 0;
+  text-align: center;
+  box-shadow: 0 9px 22px rgba(88, 69, 203, 0.22);
+}
+@media (max-width: 720px) {
+  .body { padding: 20px; }
+  .reasons { grid-template-columns: 1fr; }
+}
 .location-map {
   position: relative;
   height: 280px;
@@ -320,4 +387,59 @@ h1 {
   .location-map { height: 310px; }
   .map-caption { align-items: stretch; flex-direction: column; }
   .map-caption a { text-align: center; }
+}
+
+/* Keep the benefit list card styling after the base component rules. */
+.reasons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.reasons li {
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid #e5e9e7;
+  border-radius: 11px;
+  background: #f8fbf9;
+}
+@media (max-width: 720px) {
+  .reasons { grid-template-columns: 1fr; }
+}
+
+/* Results use a full-width photo header instead of a stretched side column. */
+.results {
+  max-width: 980px;
+}
+.card,
+.card.best-match {
+  grid-template-columns: minmax(0, 1fr);
+}
+.media {
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 16 / 7;
+  border-bottom: 1px solid #e7e4ed;
+}
+.media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.media img.placeholder-image {
+  padding: 48px;
+  box-sizing: border-box;
+  object-fit: contain;
+  background: linear-gradient(145deg, #f5f3fc, #e9eef8);
+}
+.body {
+  padding: 34px 38px 38px;
+}
+@media (max-width: 720px) {
+  .media { aspect-ratio: 4 / 3; }
+  .media img.placeholder-image { padding: 28px; }
+  .body { padding: 22px 18px 24px; }
 }

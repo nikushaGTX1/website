@@ -36,6 +36,8 @@ export interface Apartment {
   totalFloors?: number;
   hasElevator?: boolean;
   hasParking?: boolean;
+  parkingCondition?: string;
+  isQuietStreet?: boolean;
   hasBalcony?: boolean;
   hasBathtub?: boolean;
   hasAirConditioning?: boolean;
@@ -110,6 +112,8 @@ export interface CreateApartment {
   totalFloors?: number;
   hasElevator?: boolean;
   hasParking?: boolean;
+  parkingCondition?: string;
+  isQuietStreet?: boolean;
   hasBalcony?: boolean;
   hasBathtub?: boolean;
   hasAirConditioning?: boolean;

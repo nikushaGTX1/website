@@ -34,12 +34,19 @@ export interface HomeMatchApartment {
   propertyLongitude?: number;
   imageUrl?: string;
   imageUrls?: string[];
+  images?: Array<{
+    url?: string;
+    storagePath?: string;
+    sortOrder?: number;
+    isCover?: boolean;
+  }>;
   district?: string;
   bedrooms?: number;
   bathrooms?: number;
   sizeSquareMeters?: number;
   hasParking?: boolean;
   parkingCondition?: string;
+  isQuietStreet?: boolean;
   isPetFriendly?: boolean;
   gymDistanceMinutes?: number;
   schoolDistanceMinutes?: number;

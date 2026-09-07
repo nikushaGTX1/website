@@ -12,8 +12,42 @@
         >
           <label
             ><span>Where do you want to live?</span
-            ><input [(ngModel)]="location" placeholder="Area, street or landmark"
+            ><input
+              [(ngModel)]="location"
+              (input)="onLocationInput()"
+              placeholder="Area, street or landmark"
+              autocomplete="off"
           /></label>
+          <div class="location-suggestions" *ngIf="location.trim().length">
+            <p class="suggestion-status" *ngIf="locationLoading">Loading locations…</p>
+            <ng-container *ngIf="!locationLoading">
+              <section *ngIf="areaSuggestions.length">
+                <small>Districts</small>
+                <button
+                  type="button"
+                  *ngFor="let suggestion of areaSuggestions"
+                  (click)="selectLocation(suggestion)"
+                >
+                  <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                  <span><b>{{ suggestion.label }}</b><small>{{ suggestion.city }}</small></span>
+                </button>
+              </section>
+              <section *ngIf="streetSuggestions.length">
+                <small>Streets</small>
+                <button
+                  type="button"
+                  *ngFor="let suggestion of streetSuggestions"
+                  (click)="selectLocation(suggestion)"
+                >
+                  <i class="fa-solid fa-road" aria-hidden="true"></i>
+                  <span><b>{{ suggestion.label }}</b><small>{{ suggestion.district }}</small></span>
+                </button>
+              </section>
+              <p class="suggestion-status" *ngIf="!hasLocationSuggestions">
+                No matching districts or streets.
+              </p>
+            </ng-container>
+          </div>
           <div class="quick-locations">
             <button type="button" (click)="selectQuickLocation('')">All Tbilisi</button>
             <button

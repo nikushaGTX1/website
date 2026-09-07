@@ -35,9 +35,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     { title: 'How do you usually get around?' },
     { title: 'Which options best describe your lifestyle?' },
     { title: 'Do you have a pet?' },
-    { title: 'What would make the home feel right for you?', subtitle: 'Choose up to five.' },
-    { title: 'Is there anything else we should know?' },
-    { title: 'Rank your Top 3 priorities', subtitle: 'Choose them in order: first, second, then third.' },
+    { title: 'Rank your Top 5 priorities', subtitle: 'Choose them in order from most to least important.' },
   ];
   readonly districts = this.opts(
     [
@@ -107,82 +105,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       'FrequentTraveler',
     ],
   );
-  readonly preferences = this.opts(
-    [
-      'School nearby',
-      'Kindergarten nearby',
-      'Park nearby',
-      'Gym nearby',
-      'Metro nearby',
-      'Balcony',
-      'Good natural light',
-      'Quiet street',
-      'Large living room',
-      'Large kitchen',
-      'Separate workspace',
-      'Good view',
-      'Two or more bathrooms',
-      'Air conditioning in every bedroom',
-      'Security or concierge',
-      'Elevator',
-      'Yard or terrace',
-      'New building',
-      'Additional storage',
-    ],
-    [
-      'SchoolNearby',
-      'KindergartenNearby',
-      'ParkNearby',
-      'GymNearby',
-      'MetroNearby',
-      'Balcony',
-      'NaturalLight',
-      'QuietStreet',
-      'LargeLivingRoom',
-      'LargeKitchen',
-      'SeparateWorkspace',
-      'GoodView',
-      'MultipleBathrooms',
-      'BedroomAirConditioning',
-      'SecurityOrConcierge',
-      'Elevator',
-      'YardOrTerrace',
-      'NewBuilding',
-      'AdditionalStorage',
-    ],
-  );
-  readonly additional = this.opts(
-    [
-      'Low floor',
-      'High floor',
-      'Large elevator',
-      'Two or more bathrooms',
-      'Ability to replace furniture',
-      'Ability to remove furniture',
-      'Separate kitchen',
-      'All bedrooms must be isolated',
-      'Contract under a company name',
-      '24/7 security',
-      'Generator',
-      'Water reservoir',
-      'Other',
-    ],
-    [
-      'LowFloor',
-      'HighFloor',
-      'LargeElevator',
-      'MultipleBathrooms',
-      'ReplaceFurniture',
-      'RemoveFurniture',
-      'SeparateKitchen',
-      'IsolatedBedrooms',
-      'CompanyContract',
-      'Security24Hours',
-      'Generator',
-      'WaterReservoir',
-      'Other',
-    ],
-  );
   readonly transport = this.opts(
     ['Car', 'Metro', 'Walking', 'Public transport', 'Taxi', 'Multiple methods'],
     ['Car', 'Metro', 'Walking', 'PublicTransport', 'Taxi', 'MultipleMethods'],
@@ -215,6 +137,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.profile = {
       ...service.profile,
       gender: service.profile.gender || '',
+      adults: Math.min(4, Math.max(1, service.profile.adults || 1)),
       topPriorities: service.profile.topPriorities || [],
     };
     this.budgetForm.setValue({
@@ -255,9 +178,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     );
   }
   get householdLabel(): string {
-    return this.profile.householdType
-      ? this.profile.householdType.replace(/([a-z])([A-Z])/g, '$1 $2')
-      : 'Tell us who will live there';
+    if (!this.profile.householdType) return 'Tell us who will live there';
+    const household = this.profile.householdType.replace(/([a-z])([A-Z])/g, '$1 $2');
+    const adults = `${this.profile.adults} adult${this.profile.adults === 1 ? '' : 's'}`;
+    const children = this.profile.children
+      ? `, ${this.profile.children} ${this.profile.children === 1 ? 'child' : 'children'}`
+      : '';
+    return `${household} · ${adults}${children}`;
   }
   get locationLabel(): string {
     return this.profile.locationFlexible
@@ -275,40 +202,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   get currentStepIcon(): string {
     return [
       'solo', 'home', 'location', 'budget', 'family', 'family', 'bed', 'calendar',
-      'car', 'social', 'pet', 'home', 'spark', 'check',
+      'car', 'social', 'pet', 'check',
     ][this.step] || 'spark';
-  }
-  householdImages(value: unknown): string[] {
-    const adult = this.profile.gender === 'Female'
-      ? '/woman%20offset%20fix.svg'
-      : '/man%20offset%20fix.svg';
-    const man = '/man%20offset%20fix.svg';
-    const manTwo = '/man%20ver%202%20offset.svg';
-    const woman = '/woman%20offset%20fix.svg';
-    const womanTwo = '/woman%20ver%202%20offset.svg';
-    const couple = '/couple%20offset%20fix.svg';
-    const child = '/daughter%20offset.svg';
-
-    switch (value) {
-      case 'JustMe':
-        return [adult];
-      case 'Couple':
-        return [couple];
-      case 'ParentWithChildren':
-        return [adult, child];
-      case 'FamilyWithChildren':
-        return [couple, child];
-      case 'Friends':
-        return [manTwo, womanTwo];
-      case 'Roommates':
-        return [woman, womanTwo];
-      case 'Relatives':
-        return [man, woman, womanTwo];
-      case 'CorporateHousing':
-        return [man, woman, manTwo, womanTwo];
-      default:
-        return [adult];
-    }
   }
   optionIcon(value: unknown, label = ''): string {
     const raw = typeof value === 'number' ? label : (value ?? label);
@@ -363,7 +258,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       | 'propertyGoal'
       | 'gender'
       | 'householdType'
-      | 'additionalRoom'
       | 'rentalDuration'
       | 'moveInTiming'
       | 'purchaseTiming'
@@ -378,9 +272,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       | 'districts'
       | 'childrenAgeGroups'
       | 'transportation'
-      | 'lifestyles'
-      | 'mainPreferences'
-      | 'additionalRequirements',
+      | 'lifestyles',
     value: string,
     max?: number,
   ): void {
@@ -400,7 +292,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   changeCount(key: 'adults' | 'children', amount: number): void {
     const minimum = key === 'adults' ? 1 : 0;
-    this.profile[key] = Math.max(minimum, this.profile[key] + amount);
+    const maximum = key === 'adults' ? 4 : Number.MAX_SAFE_INTEGER;
+    this.profile[key] = Math.min(maximum, Math.max(minimum, this.profile[key] + amount));
     if (key === 'children' && this.profile.children === 0) this.profile.childrenAgeGroups = [];
     this.persist();
   }
@@ -412,10 +305,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.profile.hasPet = value;
     this.persist();
   }
-  setUtilities(value: boolean | null): void {
-    this.profile.includesUtilities = value;
-    this.persist();
-  }
   setMetro(value: number | null): void {
     this.profile.metroDistanceMinutes = value;
     this.persist();
@@ -424,7 +313,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     const priorities = this.profile.topPriorities;
     this.profile.topPriorities = priorities.includes(value)
       ? priorities.filter((priority) => priority !== value)
-      : priorities.length < 3
+      : priorities.length < 5
         ? [...priorities, value]
         : priorities;
     this.persist();
@@ -434,9 +323,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       | 'districts'
       | 'childrenAgeGroups'
       | 'transportation'
-      | 'lifestyles'
-      | 'mainPreferences'
-      | 'additionalRequirements',
+      | 'lifestyles',
     value: string,
   ): boolean {
     return this.profile[key].includes(value);
@@ -478,8 +365,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       case 3:
         return (
           this.budgetForm.valid &&
-          this.budgetForm.controls.max.value >= this.budgetForm.controls.min.value &&
-          this.profile.includesUtilities !== undefined
+          this.budgetForm.controls.max.value >= this.budgetForm.controls.min.value
         );
       case 4:
         return !!this.profile.householdType;
@@ -489,7 +375,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           (this.profile.children === 0 || !!this.profile.childrenAgeGroups.length)
         );
       case 6:
-        return this.profile.bedrooms !== undefined && !!this.profile.additionalRoom;
+        return this.profile.bedrooms !== undefined;
       case 7:
         return this.profile.propertyGoal === 'Rent'
           ? !!this.profile.rentalDuration &&
@@ -507,11 +393,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       case 10:
         return this.profile.hasPet !== null;
       case 11:
-        return this.profile.mainPreferences.length > 0 && this.profile.mainPreferences.length <= 5;
-      case 12:
-        return true;
-      case 13:
-        return this.profile.topPriorities.length === 3;
+        return this.profile.topPriorities.length === 5;
       default:
         return false;
     }
@@ -523,7 +405,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.profile.budgetMax = this.budgetForm.controls.max.value;
       this.profile.currency = this.budgetForm.controls.currency.value;
     }
-    if (this.step === 12) {
+    if (this.step === 10) {
       const suggestions = new Set(this.generateSuggestedPriorities().map((option) => option.value));
       this.profile.topPriorities = this.profile.topPriorities.filter((value) => suggestions.has(value));
     }
@@ -699,6 +581,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       add('Proximity to cafés or study spaces', 'StudySpacesNearby');
     }
     if (lifestyle.has('QuietLifestyle')) {
+      add('Quiet street', 'QuietStreet', true);
       add('Quiet Residential Environment', 'QuietResidentialEnvironment');
       add('Proximity to parks or green spaces', 'ParkNearby');
       add('Away from busy city center and nightlife', 'AwayFromNightlife');

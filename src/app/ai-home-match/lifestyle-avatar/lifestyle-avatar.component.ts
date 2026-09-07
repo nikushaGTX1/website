@@ -5,6 +5,7 @@ interface AvatarFigure {
   src: string;
   role: 'adult' | 'couple' | 'child' | 'pet';
   gender?: 'Male' | 'Female';
+  primary?: boolean;
 }
 
 @Component({
@@ -32,43 +33,38 @@ export class VelvenLifestyleAvatarComponent {
 
     const man = '/man%20offset%20fix.svg';
     const manTwo = '/man%20ver%202%20offset.svg';
+    const manThree = '/man%20ver%203%20offset.svg';
     const woman = '/woman%20offset%20fix.svg';
     const womanTwo = '/woman%20ver%202%20offset.svg';
-    const couple = '/couple%20offset%20fix.svg';
     const child = '/daughter%20offset.svg';
     const pet = '/dog%20visual%20two.svg';
-    const adult = (src: string, gender: 'Male' | 'Female'): AvatarFigure => ({
+    const adult = (src: string, gender: 'Male' | 'Female', primary = false): AvatarFigure => ({
       src,
       role: 'adult',
       gender,
+      primary,
     });
     const selectedChildren = Array.from(
       { length: Math.min(this.profile.children, 4) },
       (): AvatarFigure => ({ src: child, role: 'child' }),
     );
-    const householdChildren = selectedChildren.length
-      ? selectedChildren
-      : [{ src: child, role: 'child' } as AvatarFigure];
     const selectedPet: AvatarFigure[] = this.profile.hasPet ? [{ src: pet, role: 'pet' }] : [];
+    const availableAdults = this.profile.gender === 'Female'
+      ? [
+          adult(woman, 'Female', true),
+          adult(womanTwo, 'Female'),
+          adult('/avatar-business-woman-v1.png', 'Female'),
+          adult('/avatar-traveler-woman-v1.png', 'Female'),
+        ]
+      : [
+          adult(man, 'Male', true),
+          adult(manTwo, 'Male'),
+          adult(manThree, 'Male'),
+          adult('/avatar-business-man-v1.png', 'Male'),
+        ];
+    const selectedAdults = availableAdults.slice(0, Math.min(Math.max(this.profile.adults, 1), 4));
 
-    switch (this.profile.householdType) {
-      case 'Couple':
-        return [{ src: couple, role: 'couple' }, ...selectedChildren, ...selectedPet];
-      case 'ParentWithChildren':
-        return [adult(this.characterSrc, this.profile.gender as 'Male' | 'Female'), ...householdChildren, ...selectedPet];
-      case 'FamilyWithChildren':
-        return [{ src: couple, role: 'couple' }, ...householdChildren, ...selectedPet];
-      case 'Friends':
-        return [adult(manTwo, 'Male'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
-      case 'Roommates':
-        return [adult(woman, 'Female'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
-      case 'Relatives':
-        return [adult(man, 'Male'), adult(woman, 'Female'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
-      case 'CorporateHousing':
-        return [adult(man, 'Male'), adult(woman, 'Female'), adult(manTwo, 'Male'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
-      default:
-        return [adult(this.characterSrc, this.profile.gender as 'Male' | 'Female'), ...selectedChildren, ...selectedPet];
-    }
+    return [...selectedAdults, ...selectedChildren, ...selectedPet];
   }
 
   variantFigureSrc(figure: AvatarFigure): string {
@@ -81,7 +77,7 @@ export class VelvenLifestyleAvatarComponent {
       if (lifestyles.has('FrequentTraveler')) return this.variantAsset('traveler', 'couple');
       return figure.src;
     }
-    if (figure.role !== 'adult' || figure.gender !== this.profile.gender) return figure.src;
+    if (figure.role !== 'adult' || !figure.primary) return figure.src;
 
     const isWoman = figure.src.includes('woman');
     const lifestyles = new Set(this.profile.lifestyles);
@@ -103,10 +99,7 @@ export class VelvenLifestyleAvatarComponent {
   }
 
   get wearsGymOutfit(): boolean {
-    return (
-      this.profile.lifestyles.includes('Athlete') ||
-      this.profile.mainPreferences.includes('GymNearby')
-    );
+    return this.profile.lifestyles.includes('Athlete');
   }
 
   get adults(): unknown[] {

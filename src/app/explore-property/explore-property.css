@@ -200,6 +200,46 @@ svg {
   border-color: #a98bdc;
   box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.08);
 }
+.location-suggestions {
+  max-height: 260px;
+  margin-top: 8px;
+  overflow-y: auto;
+  border: 1px solid #ebe6f0;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(38, 24, 51, 0.09);
+}
+.location-suggestions section + section { border-top: 1px solid #eee9f2; }
+.location-suggestions section > small {
+  display: block;
+  padding: 9px 12px 5px;
+  color: #8a8190;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.location-suggestions section > button {
+  width: 100%;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 0;
+  background: transparent;
+  color: #2f2735;
+  cursor: pointer;
+  text-align: left;
+}
+.location-suggestions section > button:hover { background: #f7f3fb; }
+.location-suggestions section > button > i { width: 18px; color: #6633a0; text-align: center; }
+.location-suggestions section > button span,
+.location-suggestions section > button b,
+.location-suggestions section > button small { display: block; }
+.location-suggestions section > button span { min-width: 0; }
+.location-suggestions section > button b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.location-suggestions section > button small { margin-top: 2px; color: #8a8190; font-size: 9px; }
+.suggestion-status { margin: 0; padding: 12px; color: #7b7281; font-size: 10px; }
 .quick-locations,
 .budget-presets {
   margin: 14px 0;

@@ -1475,6 +1475,11 @@ select:focus {
 .lifestyle-copy small { margin-top: 3px; color: #817889; font-size: 9px; }
 .style-select > span { display: block; margin-bottom: 5px; color: #756b7d; font-size: 9px; font-weight: 700; }
 .style-select select { min-height: 40px; border-color: #ddd4e3; font-size: 11px; font-weight: 700; }
+.parking-type-select { display: block; max-width: 520px; margin-top: 16px; }
+.parking-type-select > span { color: #3b2948; font-size: 11px; }
+.parking-type-select select { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid #d8cee0; border-radius: 10px; background: #fcfaff; }
+.quiet-street-definition { margin: 12px 2px 0; color: #756b7d; font-size: 10px; line-height: 1.45; }
+.quiet-street-definition i { margin-right: 6px; color: #7140a6; }
 .smart-location-note { display: flex; gap: 10px; margin: 14px 2px 0; color: #827b88; font-size: 10px; line-height: 1.5; }
 .smart-location-note > i { margin-top: 2px; color: #7140a6; }
 .smart-location-note strong { display: block; color: #53495b; }

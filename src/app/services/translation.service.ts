@@ -16,6 +16,10 @@ type RussianTranslator = (value: string) => string | undefined;
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
   readonly language$ = new BehaviorSubject<AppLanguage>(this.savedLanguage());
+  private readonly registeredTranslations = new Map<Exclude<AppLanguage, 'en'>, Map<string, string>>([
+    ['ka', new Map<string, string>()],
+    ['ru', new Map<string, string>()],
+  ]);
   private readonly textStates = new WeakMap<Text, TextState>();
   private readonly attributeStates = new WeakMap<Element, Map<string, TextState>>();
   private observer?: MutationObserver;
@@ -70,6 +74,28 @@ export class TranslationService {
 
   label(language: AppLanguage = this.language$.value): string {
     return language === 'ka' ? 'GE' : language === 'ru' ? 'RU' : 'EN';
+  }
+
+  registerTranslations(
+    language: Exclude<AppLanguage, 'en'>,
+    values: Array<{ source: string; translation: string | null | undefined }>,
+  ): void {
+    const translations = this.registeredTranslations.get(language)!;
+    for (const value of values) {
+      const source = value.source?.trim();
+      const translation = value.translation?.trim();
+      if (source && translation) translations.set(source.toLocaleLowerCase('en'), translation);
+    }
+  }
+
+  translate(value: string, language: AppLanguage | null = null): string {
+    const selectedLanguage = language ?? this.language$.value;
+    if (selectedLanguage === 'en') return value;
+    return (
+      this.registeredTranslations
+        .get(selectedLanguage)
+        ?.get(value.trim().toLocaleLowerCase('en')) ?? value
+    );
   }
 
   private savedLanguage(): AppLanguage {

@@ -58,7 +58,7 @@
   display: block;
   object-fit: contain;
   object-position: center bottom;
-  animation: pop 0.35s ease;
+  animation: none;
 }
 
 .character-stage.character-group .character-figure {

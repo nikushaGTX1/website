@@ -54,13 +54,6 @@
     <div>
       <span>Pet</span><strong>{{ profile.hasPet ? 'Yes' : 'No' }}</strong>
     </div>
-    <div class="wide">
-      <span>Main preferences</span><strong>{{ list(profile.mainPreferences) }}</strong>
-    </div>
-    <div class="wide">
-      <span>Additional requirements</span
-      ><strong>{{ list(profile.additionalRequirements) }}</strong>
-    </div>
   </div>
   <p class="save-message" aria-live="polite">{{ saveMessage }}</p>
   <div class="actions">

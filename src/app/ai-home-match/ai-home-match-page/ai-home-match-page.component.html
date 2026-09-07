@@ -148,28 +148,6 @@
           >
             Maximum must be greater than or equal to minimum.
           </p>
-          <fieldset>
-            <legend>Should utilities and building service fees be included?</legend>
-            <button
-              type="button"
-              [class.selected]="profile.includesUtilities === true"
-              (click)="setUtilities(true)"
-            >
-              <svg class="option-icon small" aria-hidden="true"><use href="/ai-match-icons.svg#check"></use></svg>Yes</button
-            ><button
-              type="button"
-              [class.selected]="profile.includesUtilities === false"
-              (click)="setUtilities(false)"
-            >
-              <svg class="option-icon small" aria-hidden="true"><use href="/ai-match-icons.svg#no"></use></svg>No</button
-            ><button
-              type="button"
-              [class.selected]="profile.includesUtilities === null"
-              (click)="setUtilities(null)"
-            >
-              <svg class="option-icon small" aria-hidden="true"><use href="/ai-match-icons.svg#multi"></use></svg>It does not matter
-            </button>
-          </fieldset>
         </form>
         <div class="household-step" *ngSwitchCase="4">
           <div class="options">
@@ -180,17 +158,6 @@
             [attr.aria-pressed]="profile.householdType === option.value"
             (click)="choose('householdType', option.value)"
           >
-              <span
-                class="household-option-images"
-                [class.multiple]="householdImages(option.value).length > 1"
-                *ngIf="householdImages(option.value).length; else householdIcon"
-                aria-hidden="true"
-              >
-                <img *ngFor="let image of householdImages(option.value)" [src]="image" alt="" />
-              </span>
-              <ng-template #householdIcon>
-                <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>
-              </ng-template>
               {{ option.label }}
             </button>
           </div>
@@ -205,7 +172,7 @@
             >
               −</button
             ><b>{{ profile.adults }}</b
-            ><button type="button" (click)="changeCount('adults', 1)">+</button>
+            ><button type="button" (click)="changeCount('adults', 1)" [disabled]="profile.adults >= 4">+</button>
           </div>
           <div class="counter">
             <span><svg class="counter-icon" aria-hidden="true"><use href="/ai-match-icons.svg#family"></use></svg>Children</span
@@ -255,22 +222,6 @@
               <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
             </button>
           </div>
-          <fieldset>
-            <legend>Do you need an additional room?</legend>
-            <button
-              type="button"
-              *ngFor="
-                let option of opts(
-                  ['Home office', 'Guest room', 'Both', 'No'],
-                  ['HomeOffice', 'GuestRoom', 'Both', 'No']
-                )
-              "
-              [class.selected]="profile.additionalRoom === option.value"
-              (click)="choose('additionalRoom', option.value)"
-            >
-              <svg class="option-icon small" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
-            </button>
-          </fieldset>
         </div>
         <div *ngSwitchCase="7">
           <ng-container *ngIf="profile.propertyGoal === 'Rent'; else buyTiming"
@@ -417,53 +368,14 @@
         </div>
         <div *ngSwitchCase="11">
           <p class="selection-count" aria-live="polite">
-            {{ profile.mainPreferences.length }} of 5 selected
-          </p>
-          <div class="options compact">
-            <button
-              type="button"
-              *ngFor="let option of preferences"
-              [class.selected]="selected('mainPreferences', option.value)"
-              [disabled]="
-                profile.mainPreferences.length === 5 && !selected('mainPreferences', option.value)
-              "
-              [attr.aria-pressed]="selected('mainPreferences', option.value)"
-              (click)="toggle('mainPreferences', option.value, 5)"
-            >
-              <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
-            </button>
-          </div>
-        </div>
-        <div *ngSwitchCase="12">
-          <div class="options compact">
-            <button
-              type="button"
-              *ngFor="let option of additional"
-              [class.selected]="selected('additionalRequirements', option.value)"
-              [attr.aria-pressed]="selected('additionalRequirements', option.value)"
-              (click)="toggle('additionalRequirements', option.value)"
-            >
-              <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
-            </button>
-          </div>
-          <label class="notes"
-            >Additional notes<textarea
-              [(ngModel)]="profile.additionalNotes"
-              (ngModelChange)="persist()"
-              placeholder="For example: I need a large elevator, I want to replace the beds, or the lease must be under a company name."
-            ></textarea>
-          </label>
-        </div>
-        <div *ngSwitchCase="13">
-          <p class="selection-count" aria-live="polite">
-            {{ profile.topPriorities.length }} of 3 ranked
+            {{ profile.topPriorities.length }} of 5 ranked
           </p>
           <div class="options compact">
             <button
               type="button"
               *ngFor="let option of suggestedPriorities"
               [class.selected]="profile.topPriorities.includes(option.value)"
-              [disabled]="profile.topPriorities.length === 3 && !profile.topPriorities.includes(option.value)"
+              [disabled]="profile.topPriorities.length === 5 && !profile.topPriorities.includes(option.value)"
               [attr.aria-pressed]="profile.topPriorities.includes(option.value)"
               (click)="togglePriority(option.value)"
             >

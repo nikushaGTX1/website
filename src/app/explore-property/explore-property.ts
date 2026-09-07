@@ -37,8 +37,8 @@ export class ExploreProperty implements OnInit {
   bedroomStep: 'rooms' | 'bedrooms' = 'rooms';
   propertyTypeOpen = false;
   budgetCurrency: 'GEL' | 'USD' = 'GEL';
-  budgetMin: number | null = 0;
-  budgetMax: number | null = 5000;
+  budgetMin: number | null = null;
+  budgetMax: number | null = null;
   appliedBudgetMin: number | null = null;
   appliedBudgetMax: number | null = null;
   selectedBudgetRange = '';
@@ -238,8 +238,8 @@ export class ExploreProperty implements OnInit {
   }
 
   resetBudget(): void {
-    this.budgetMin = 0;
-    this.budgetMax = 5000;
+    this.budgetMin = null;
+    this.budgetMax = null;
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
     this.selectedBudgetRange = '';
@@ -643,8 +643,9 @@ export class ExploreProperty implements OnInit {
   onLocationInput(): void {
     this.selectedLocationArea = '';
     this.selectedLocationValue = '';
+    this.selectedStreetId = null;
     this.locationDisplayLanguage = this.locationService.languageForQuery(this.location);
-    this.openLocationSearch();
+    this.locationOpen = true;
   }
 
   private loadLocations(): void {
@@ -989,8 +990,8 @@ export class ExploreProperty implements OnInit {
   clearFilters(): void {
     this.searchQuery = '';
     this.priceRange = '';
-    this.budgetMin = 0;
-    this.budgetMax = 5000;
+    this.budgetMin = null;
+    this.budgetMax = null;
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
     this.homeType = '';

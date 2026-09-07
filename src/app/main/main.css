@@ -801,7 +801,7 @@
   position: relative;
   min-width: 0;
   min-height: 48px;
-  padding: 10px 12px 10px 35px;
+  padding: 10px 5px 10px 27px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -810,7 +810,7 @@
   border-radius: 8px;
   background: #fff;
   color: #334057;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 750;
   line-height: 1.15;
   text-align: center;
@@ -819,16 +819,30 @@
 }
 .all-area-grid button i {
   position: absolute;
-  left: 13px;
-  width: 15px;
+  left: 9px;
+  width: 13px;
   margin: 0;
-  flex: 0 0 15px;
+  flex: 0 0 13px;
   color: #451a8f;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1;
   text-align: center;
 }
 .all-area-grid button.selected { border-color: #451a8f; color: #451a8f; background: #f8f6ff; }
+.all-area-grid button:not(.more-areas-trigger) {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+}
+.all-area-grid button:not(.more-areas-trigger) > span {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+}
 .all-area-grid .more-areas-trigger {
   padding-inline: 12px;
   gap: 9px;
@@ -1395,7 +1409,9 @@
   padding-right: 5px;
   padding-left: 28px;
   font-size: 11px;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 :host-context(html:lang(ka)) .all-area-grid button:not(.more-areas-trigger) i {
@@ -3504,8 +3520,8 @@
   position: absolute;
   z-index: 1;
   top: 13px;
-  left: var(--range-start);
-  right: calc(100% - var(--range-end));
+  left: calc(var(--range-start) + var(--range-start-offset));
+  right: calc(100% - var(--range-end) + var(--range-end-offset));
   height: 4px;
   border-radius: 4px;
   background: #451a8f;
@@ -3625,12 +3641,20 @@
   margin-left: auto !important;
 }
 
+/* Keep the location pin-to-placeholder gap consistent with the other fields. */
+.search-fields .location-panel-trigger > .location-leading-icon {
+  width: auto !important;
+  min-width: 0 !important;
+  margin-right: 11px !important;
+}
+
 /* The location wrapper already owns the shared icon spacing. */
 .search-fields .field-control > b > i {
   width: auto !important;
   min-width: 0 !important;
   margin: 0 !important;
 }
+
 .date-control{position:relative}.date-control>i{position:absolute;z-index:1;top:50%;right:14px;color:#657084;transform:translateY(-50%);pointer-events:none}.search-fields .date-control input{padding-right:38px}.date-control input::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer}.main-budget-trigger>span>i,.main-bedroom-trigger>span>i{width:17px;margin-right:5px;color:#607088}.main-budget-trigger>b,.main-bedroom-trigger>b{font-size:11px}.main-budget-reset,.more-filters-toggle,.ai-home-link,.quick-filters button{gap:8px}
 
 /* Keep the original centered layout; only lift the hero image in its frame. */

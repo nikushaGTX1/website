@@ -391,6 +391,19 @@
               [(ngModel)]="form.contactPhone"
             />
           </div>
+          <p class="quiet-street-definition">
+            <i class="fa-solid fa-volume-low" aria-hidden="true"></i>
+            Mark “Quiet street” only when the street is not on or directly connected to a main avenue.
+          </p>
+          <label class="style-select parking-type-select" *ngIf="form.hasParking">
+            <span>Parking type</span>
+            <select name="parkingCondition" [(ngModel)]="form.parkingCondition" required>
+              <option value="" disabled>Select parking type</option>
+              <option *ngFor="let option of parkingTypeOptions" [value]="option.value">
+                {{ option.label }} — {{ option.points }} points
+              </option>
+            </select>
+          </label>
         </div>
         <div class="field-group agent-contact-group">
           <label class="field-label"><i class="fa-solid fa-user-tie"></i> Agent information <span class="req">*</span> <small>Public — shown to everyone on the listing</small></label>
