@@ -810,11 +810,19 @@ svg {
   height: 212px;
   background: #e9e9e9;
 }
-.map-preview-gallery > img {
+.map-preview-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 90ms ease-out;
+}
+.map-preview-image.active {
+  opacity: 1;
 }
 .map-preview-heart,
 .map-preview-close,

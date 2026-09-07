@@ -384,6 +384,12 @@
 
                     {{ lead.email }}
                   </span>
+
+                  <span *ngIf="nationalityLabel(lead) as nationality">
+                    <i class="fa-solid fa-earth-americas" aria-hidden="true"></i>
+
+                    {{ nationality }}
+                  </span>
                 </div>
 
                 <!-- CONTEXT -->

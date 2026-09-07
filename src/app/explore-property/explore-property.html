@@ -399,7 +399,17 @@
       <div class="map-preview" *ngIf="mapPreviewApartment as apartment" [style.left.px]="mapPreviewPosition.left" [style.top.px]="mapPreviewPosition.top">
         <a class="map-preview-link" [routerLink]="['/apartments', apartment.id]" [attr.aria-label]="apartment.title"></a>
         <div class="map-preview-gallery" data-protected-image>
-          <img [src]="getMapPreviewImages(apartment)[mapPreviewImageIndex]" [alt]="apartment.title || 'Property in Tbilisi'" (error)="onApartmentImageError($event)" />
+          <img
+            *ngFor="let image of getMapPreviewImages(apartment); let imageIndex = index; trackBy: trackMapPreviewImage"
+            class="map-preview-image"
+            [class.active]="imageIndex === mapPreviewImageIndex"
+            [src]="image"
+            [alt]="imageIndex === mapPreviewImageIndex ? (apartment.title || 'Property in Tbilisi') : ''"
+            [attr.aria-hidden]="imageIndex === mapPreviewImageIndex ? null : true"
+            loading="eager"
+            decoding="async"
+            (error)="onApartmentImageError($event)"
+          />
           <button class="map-preview-heart" type="button" [class.saved]="favoriteService.isFavorite(apartment.id)" aria-label="Save property" (click)="toggleFavorite($event, apartment)">
             <svg viewBox="0 0 24 24" [attr.fill]="favoriteService.isFavorite(apartment.id) ? 'currentColor' : 'none'" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"></path></svg>
           </button>

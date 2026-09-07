@@ -1,11 +1,19 @@
 <div class="avatar" [class.gym-active]="wearsGymOutfit">
-  <div class="character-stage" [class.character-group]="characterFigures.length > 1">
+  <div
+    class="character-stage"
+    [class.character-group]="characterFigures.length > 1"
+    [class.crowded-group]="characterFigures.length > 4"
+  >
     <ng-container *ngIf="characterFigures.length; else chooseGender">
       <span
         class="character-figure"
         *ngFor="let figure of characterFigures"
+        [class.adult-figure]="figure.role === 'adult'"
+        [class.couple-figure]="figure.role === 'couple'"
         [class.child-figure]="figure.role === 'child'"
         [class.pet-figure]="figure.role === 'pet'"
+        [class.female-figure]="figure.gender === 'Female'"
+        [class.variant-figure]="variantFigureSrc(figure) !== figure.src"
       >
         <img
           [src]="variantFigureSrc(figure)"

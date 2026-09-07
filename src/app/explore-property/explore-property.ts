@@ -1160,6 +1160,10 @@ export class ExploreProperty implements OnInit {
     this.mapPreviewImageIndex = index;
   }
 
+  trackMapPreviewImage(index: number, image: string): string {
+    return image;
+  }
+
   getMapPreviewDotIndexes(apartment: Apartment): number[] {
     const count = this.getMapPreviewImages(apartment).length;
     if (count <= 5) return Array.from({ length: count }, (_, index) => index);

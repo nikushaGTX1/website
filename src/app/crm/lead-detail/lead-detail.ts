@@ -89,9 +89,18 @@ interface QuestionnairePet {
   count?: number;
 }
 
+interface QuestionnaireNationality {
+  countryCode?: string | null;
+  countryName?: string | null;
+  callingCode?: string | null;
+  flag?: string | null;
+}
+
 
 interface QuestionnairePreferences {
   questionnaireVersion?: number;
+
+  nationality?: QuestionnaireNationality | string;
 
   moveIn?: string;
 
@@ -408,6 +417,14 @@ export class CrmLeadDetail implements OnInit {
       this.questionnairePreferences !==
       null
     );
+  }
+
+  get nationalityLabel(): string {
+    const nationality = this.questionnairePreferences?.nationality;
+    if (typeof nationality === 'string') return nationality.trim() || 'Not provided';
+    if (!nationality) return 'Not provided';
+    const country = nationality.countryName?.trim() || nationality.countryCode?.trim();
+    return country ? `${nationality.flag || ''} ${country}`.trim() : 'Not provided';
   }
 
 

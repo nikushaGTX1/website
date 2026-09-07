@@ -609,6 +609,26 @@ export class CrmDashboard implements OnInit {
     }
   }
 
+  nationalityLabel(lead: CrmLead): string {
+    if (!lead.preferences) return '';
+    try {
+      const preferences = JSON.parse(lead.preferences) as {
+        nationality?: string | {
+          countryCode?: string | null;
+          countryName?: string | null;
+          flag?: string | null;
+        };
+      };
+      const nationality = preferences.nationality;
+      if (typeof nationality === 'string') return nationality.trim();
+      if (!nationality) return '';
+      const country = nationality.countryName?.trim() || nationality.countryCode?.trim();
+      return country ? `${nationality.flag || ''} ${country}`.trim() : '';
+    } catch {
+      return '';
+    }
+  }
+
   nextAction(lead: CrmLead): CrmTask | undefined {
     if (lead.status === 'won' || lead.status === 'lost') {
       return undefined;

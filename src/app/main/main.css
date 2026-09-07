@@ -366,6 +366,11 @@
   color: #451a8f;
   font-weight: 400;
 }
+
+.hero h1 .hero-life {
+  display: inline-block;
+  padding-left: 0.24em;
+}
 .hero-copy p {
   margin: 8px 0 0;
   color: #526079;
