@@ -6,6 +6,8 @@ type GeorgianRule = {
 // Product copy lives in source control so it can be reviewed in context.
 // API-owned listing titles and descriptions are deliberately not translated here.
 const GEORGIAN_TRANSLATIONS = new Map<string, string>([
+  ['View more', '\u10db\u10d4\u10e2\u10d8\u10e1 \u10dc\u10d0\u10ee\u10d5\u10d0'],
+  ['View less', '\u10dc\u10d0\u10d9\u10da\u10d4\u10d1\u10d8\u10e1 \u10dc\u10d0\u10ee\u10d5\u10d0'],
   // Navigation and shared actions
   ['Skip to main content', 'მთავარ შინაარსზე გადასვლა'],
   ['Main navigation', 'მთავარი ნავიგაცია'],

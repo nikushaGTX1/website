@@ -6,6 +6,8 @@ type RussianRule = {
 // Reviewed product copy. User-authored listing titles and descriptions remain
 // exactly as submitted so the site never changes an owner's claims.
 const RUSSIAN_TRANSLATIONS = new Map<string, string>([
+  ['View more', '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0431\u043e\u043b\u044c\u0448\u0435'],
+  ['View less', '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u043c\u0435\u043d\u044c\u0448\u0435'],
   ['Main navigation', 'Главная навигация'],
   ['Velven home', 'Главная Velven'],
   ['Home', 'Главная'],

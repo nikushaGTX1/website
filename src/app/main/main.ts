@@ -36,6 +36,7 @@ export class Main implements OnInit {
   streetSearch = '';
   selectedModalStreets: string[] = [];
   selectedModalStreetDetails: Array<{ streetId: number; street: string; district: string }> = [];
+  moreAreasOpen = false;
   showAllStreets = false;
   inlineDrawnPolygon: GeoJsonPolygon | null = null;
   drawnStreetSuggestions: Array<{ id: number; label: string; value: string; district: string }> =
@@ -397,6 +398,14 @@ export class Main implements OnInit {
           ),
       ),
     ].sort((left, right) => left.localeCompare(right, 'en'));
+  }
+
+  public get visibleTbilisiAreas(): string[] {
+    return this.apiTbilisiAreas.slice(0, 12);
+  }
+
+  public get additionalTbilisiAreas(): string[] {
+    return this.apiTbilisiAreas.slice(12);
   }
 
   public get selectedAreaDescription(): string {
