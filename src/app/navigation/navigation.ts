@@ -26,10 +26,10 @@ export class Navigation implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isLoggedIn = this.authService.isLoggedIn;
-    this.canOpenAdmin = this.authService.isAgent;
+    this.canOpenAdmin = this.authService.isAgent || this.authService.isCrmManager;
     this.subscription = this.authService.currentUser$.subscribe(() => {
       this.isLoggedIn = this.authService.isLoggedIn;
-      this.canOpenAdmin = this.authService.isAgent;
+      this.canOpenAdmin = this.authService.isAgent || this.authService.isCrmManager;
     });
   }
 

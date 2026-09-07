@@ -15,7 +15,7 @@
   top: calc(100% + 9px);
   left: 0;
   width: 100%;
-  min-width: 320px;
+  min-width: min(320px, 100%);
   max-height: 470px;
   padding: 10px;
   overflow-y: auto;
@@ -1586,4 +1586,18 @@ select:focus {
   .autosave-note { display: none; }
   .folder-import-card { grid-template-columns: 1fr; }
   .folder-import-button { width: 100%; }
+}
+
+@media (max-width: 430px) {
+  .upload-page { padding-inline: 8px; }
+  .page-intro h1 { font-size: clamp(29px, 10vw, 36px); }
+  .progress-card,
+  .metric-grid { grid-template-columns: 1fr; }
+  .form-section,
+  .form-section.collapsed,
+  .feature-block { padding-inline: 13px; }
+  .plan-card { padding-inline: 16px; }
+  .plan-card-head { grid-template-columns: 48px minmax(0, 1fr); }
+  .plan-icon { width: 48px; height: 48px; }
+  .chip { flex-basis: 100%; }
 }

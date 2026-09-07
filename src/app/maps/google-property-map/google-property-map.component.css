@@ -293,3 +293,20 @@
     min-height: 300px;
   }
 }
+
+@media (max-width: 430px) {
+  .google-property-map {
+    min-height: 560px;
+  }
+  .google-property-map header,
+  .google-property-map form,
+  .google-property-map form > * {
+    width: 100%;
+  }
+  .map-area {
+    min-height: 260px;
+  }
+  .lower-panel {
+    max-height: 300px;
+  }
+}

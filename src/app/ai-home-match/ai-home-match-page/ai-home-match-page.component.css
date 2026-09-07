@@ -1185,3 +1185,50 @@ fieldset {
     padding-bottom: max(10px, env(safe-area-inset-bottom));
   }
 }
+
+@media (max-width: 430px) {
+  .velven > .match-hero {
+    min-height: 540px;
+    padding: 30px 14px 0;
+  }
+
+  .match-hero h1 {
+    font-size: clamp(38px, 13vw, 46px);
+  }
+
+  .hero-actions,
+  .options,
+  .options.compact,
+  .household-step .options {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .hero-actions > *,
+  .question > .actions > button {
+    min-height: 48px;
+  }
+
+  .velven main.wizard-shell,
+  .lifestyle-strip {
+    width: calc(100% - 20px);
+  }
+
+  .question,
+  .profile-card,
+  .lifestyle-strip {
+    padding-inline: 14px;
+  }
+
+  .question-title h2 {
+    font-size: clamp(27px, 9vw, 36px);
+  }
+
+  .question > .actions {
+    gap: 8px;
+  }
+
+  .question > .actions button {
+    padding-inline: 12px;
+  }
+}

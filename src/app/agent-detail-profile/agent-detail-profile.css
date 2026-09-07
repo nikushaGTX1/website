@@ -810,3 +810,21 @@
     padding: 70px 15px;
   }
 }
+
+@media (max-width: 390px) {
+  .agent-shell { width: calc(100% - 16px); }
+  .portrait-wrap { height: 300px; }
+  .profile-main h1 { font-size: clamp(30px, 10vw, 36px); }
+  .section-tabs {
+    justify-content: flex-start;
+    gap: 20px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .section-tabs::-webkit-scrollbar { display: none; }
+  .phone-dialog {
+    max-height: calc(100dvh - 12px);
+    overflow-y: auto;
+  }
+}

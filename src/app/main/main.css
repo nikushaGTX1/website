@@ -2436,6 +2436,11 @@
     font-size: clamp(35px, 10.8vw, 42px);
   }
 
+  .hero h1 .hero-life {
+    display: block;
+    padding-left: 0;
+  }
+
   .property-search {
     margin-top: 24px;
     padding-inline: 11px;
@@ -2604,6 +2609,53 @@
 
   .lifestyle-row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .lifestyle-row button {
+    width: 100%;
+    min-height: 56px;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 140px);
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .lifestyle-row button i {
+    width: 24px;
+    margin: 0;
+    text-align: center;
+  }
+
+  .lifestyle-row button span {
+    min-width: 0;
+  }
+
+  .nearby-grid > span {
+    min-height: 82px;
+    padding: 10px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 3px;
+    text-align: center;
+  }
+
+  .nearby-grid i {
+    grid-row: auto;
+    align-self: auto;
+    margin-bottom: 2px;
+  }
+
+  .nearby-grid b,
+  .nearby-grid small {
+    width: 100%;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    line-height: 1.25;
   }
 
   .testimonial-grid aside > b {

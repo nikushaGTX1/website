@@ -93,8 +93,16 @@ export class AdminPanel implements OnInit, OnDestroy {
     return this.authService.isAdmin;
   }
 
+  get isManager(): boolean {
+    return this.authService.isCrmManager;
+  }
+
+  get canOperateDashboard(): boolean {
+    return this.isAdmin || this.isManager;
+  }
+
   get canManageBlog(): boolean {
-    return this.authService.isAdmin || this.authService.isAgent;
+    return this.canOperateDashboard || this.authService.isAgent;
   }
 
   get waitingCount(): number {
@@ -172,7 +180,7 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.pendingService.refresh();
     this.pendingDebug = this.pendingService.getStorageDebug();
 
-    if (!this.isAdmin) {
+    if (!this.canOperateDashboard) {
       this.users = [];
       this.userIds = [];
       this.agents = [];
@@ -184,8 +192,12 @@ export class AdminPanel implements OnInit, OnDestroy {
     }
 
     forkJoin({
-      users: this.adminService.getUsers().pipe(catchError(() => of([] as User[]))),
-      userIds: this.adminService.getUserIds().pipe(catchError(() => of([] as string[]))),
+      users: this.isAdmin
+        ? this.adminService.getUsers().pipe(catchError(() => of([] as User[])))
+        : of([] as User[]),
+      userIds: this.isAdmin
+        ? this.adminService.getUserIds().pipe(catchError(() => of([] as string[])))
+        : of([] as string[]),
       agents: this.adminService.getAgents().pipe(catchError(() => of([] as Agent[]))),
       apartments: this.apartmentService.getApartments().pipe(catchError(() => of([] as Apartment[]))),
     }).subscribe({
@@ -242,8 +254,8 @@ export class AdminPanel implements OnInit, OnDestroy {
   approve(item: PendingApartment): void {
     if (this.actionId) return;
 
-    if (!this.isAdmin) {
-      this.errorMessage = 'Only admins can confirm apartment posts.';
+    if (!this.canOperateDashboard) {
+      this.errorMessage = 'Only managers and admins can confirm apartment posts.';
       this.successMessage = '';
       this.cdr.detectChanges();
       return;
@@ -572,8 +584,8 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   setAgentRating(agent: Agent): void {
-    if (!this.isAdmin) {
-      this.errorMessage = 'Only admins can set agent ratings.';
+    if (!this.canOperateDashboard) {
+      this.errorMessage = 'Only managers and admins can set agent ratings.';
       this.successMessage = '';
       this.cdr.detectChanges();
       return;
@@ -606,8 +618,8 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   deleteApartment(apartment: Apartment): void {
-    if (!this.isAdmin) {
-      this.errorMessage = 'Only admins can delete apartments.';
+    if (!this.canOperateDashboard) {
+      this.errorMessage = 'Only managers and admins can delete apartments.';
       this.cdr.detectChanges();
       return;
     }

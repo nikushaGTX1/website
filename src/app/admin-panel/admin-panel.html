@@ -22,11 +22,11 @@
       <span>Users</span>
       <strong>{{ users.length || userIds.length }}</strong>
     </button>
-    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'agents'" (click)="activeTab = 'agents'">
+    <button type="button" class="stat" *ngIf="canOperateDashboard" [class.active]="activeTab === 'agents'" (click)="activeTab = 'agents'">
       <span>Agents</span>
       <strong>{{ agents.length }}</strong>
     </button>
-    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'apartments'" (click)="activeTab = 'apartments'">
+    <button type="button" class="stat" *ngIf="canOperateDashboard" [class.active]="activeTab === 'apartments'" (click)="activeTab = 'apartments'">
       <span>Apartments</span>
       <strong>{{ apartments.length }}</strong>
     </button>
@@ -34,14 +34,15 @@
       <span>Blog</span>
       <strong>{{ blogPosts.length }}</strong>
     </button>
-    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'streets'" (click)="activeTab = 'streets'">
+    <button type="button" class="stat" *ngIf="canOperateDashboard" [class.active]="activeTab === 'streets'" (click)="activeTab = 'streets'">
       <span>Street geometry</span><strong>✓</strong>
     </button>
   </div>
 
   <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
   <p *ngIf="successMessage" class="message success">{{ successMessage }}</p>
-  <p *ngIf="!isAdmin" class="message info">Agent access: you can review pending posts only. User and agent management is admin-only.</p>
+  <p *ngIf="isManager && !isAdmin" class="message info">Manager access includes operational tools. User accounts, passwords, role assignment, and agent removal remain admin-only.</p>
+  <p *ngIf="!canOperateDashboard" class="message info">Agent access: you can review pending posts and manage blog content only.</p>
   <p *ngIf="pendingDebug" class="message info">{{ pendingDebug }}</p>
 
   <div class="admin-search">
@@ -87,7 +88,7 @@
         </div>
       </div>
       <div class="row-actions" *ngIf="item.status === 'pending'">
-        <button type="button" class="approve" (click)="approve(item)" [disabled]="actionId === item.id || !isAdmin">
+        <button type="button" class="approve" (click)="approve(item)" [disabled]="actionId === item.id || !canOperateDashboard">
           Confirm
         </button>
         <button type="button" class="decline" (click)="decline(item)" [disabled]="!!actionId">
@@ -102,7 +103,7 @@
     </article>
   </section>
 
-  <section class="admin-section" *ngIf="activeTab === 'streets' && isAdmin">
+  <section class="admin-section" *ngIf="activeTab === 'streets' && canOperateDashboard">
     <div class="section-title"><h2>Canonical street geometry review</h2><span>Only approved real road paths become public</span></div>
     <app-street-validation-map></app-street-validation-map>
   </section>
@@ -187,7 +188,7 @@
     </section>
   </div>
 
-  <section class="admin-section" *ngIf="activeTab === 'agents' && isAdmin">
+  <section class="admin-section" *ngIf="activeTab === 'agents' && canOperateDashboard">
     <div class="section-title">
       <h2>Agents</h2>
       <span>{{ filteredAgents.length }} active</span>
@@ -225,13 +226,13 @@
           Save rating
         </button>
       </div>
-      <button type="button" class="danger" (click)="removeAgent(agent)" [disabled]="actionId === (agent.userId || agent.id)">
+      <button *ngIf="isAdmin" type="button" class="danger" (click)="removeAgent(agent)" [disabled]="actionId === (agent.userId || agent.id)">
         Remove agent
       </button>
     </div>
   </section>
 
-  <section class="admin-section" *ngIf="activeTab === 'apartments' && isAdmin">
+  <section class="admin-section" *ngIf="activeTab === 'apartments' && canOperateDashboard">
     <div class="section-title">
       <h2>Published apartments</h2>
       <span>{{ filteredApartments.length }} live</span>

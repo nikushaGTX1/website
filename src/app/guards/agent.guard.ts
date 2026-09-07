@@ -6,7 +6,7 @@ export const agentGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isAgent) {
+  if (authService.isAgent || authService.isCrmManager) {
     return true;
   }
 
