@@ -74,6 +74,7 @@ export function tryNextProfileImageUrl(event: Event): boolean {
     `${apiOrigin}/${profileUploadsPath}/${fileName}`,
     `${apiOrigin}/wwwroot/${profileUploadsPath}/${fileName}`,
     `/${profileUploadsPath}/${fileName}`,
+    '/agent1.jpg',
   ].filter((url) => url !== image.src);
 
   const nextIndex = attemptedMediaFallbacks.get(image) || 0;

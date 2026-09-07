@@ -429,7 +429,7 @@
 }
 
 /* Switch translated navigation to the roomy menu before labels collide. */
-@media (min-width: 1021px) and (max-width: 1180px) {
+@media (min-width: 1021px) and (max-width: 1450px) {
   :host-context(html:lang(ka)) .navigation {
     min-height: 68px;
     justify-content: space-between;

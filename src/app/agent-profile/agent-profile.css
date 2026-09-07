@@ -72,11 +72,12 @@
   background-size: cover;
   background-position: center right;
   border-radius: 16px;
+  overflow: hidden;
 }
 
 .hero-content {
   max-width: 580px;
-  padding: 20px 0;
+  padding: 44px clamp(32px, 4.5vw, 64px);
 }
 
 .section-tag {
@@ -285,12 +286,16 @@
   overflow: hidden;
   margin-bottom: 16px;
   background-color: #f1f5f9;
+  border: 4px solid #ffffff;
+  box-shadow: 0 0 0 1px #ebe7f2, 0 8px 24px rgba(69, 26, 143, 0.12);
 }
 
 .avatar {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
 }
 
 .card-info {
