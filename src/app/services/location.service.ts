@@ -11,7 +11,7 @@ export class LocationService {
   private readonly catalogUrl = `${API_URL}/locations/catalog`;
   private readonly streetsUrl = `${API_URL}/Streets`;
   private readonly persistentCache = new PersistentDataCache(
-    'verified-location-catalog-v6',
+    'verified-location-catalog-v7',
     5 * 60 * 1000,
   );
   private locations$?: Observable<ApiLocation[]>;
@@ -68,7 +68,7 @@ export class LocationService {
   private async loadLocations(): Promise<ApiLocation[]> {
     const cached = await this.persistentCache.get<ApiLocation[]>('all');
     if (cached?.length) return cached;
-    const [areas, streets] = await Promise.all([
+    const [areas, streets, legacyLocations] = await Promise.all([
       firstValueFrom(this.http.get<Array<{
         id: number;
         parentId?: number;
@@ -88,15 +88,40 @@ export class LocationService {
         district: string;
         geometryStatus: string;
       }>>(this.streetsUrl)),
+      firstValueFrom(this.http.get<Array<{
+        city: string;
+        district: string;
+        districtGeorgian?: string | null;
+      }>>(`${API_URL}/Locations`)),
     ]);
     const city = areas.find((area) => area.type === 'city');
+    const legacyEnglishByGeorgian = new Map(
+      legacyLocations
+        .filter(
+          (location) =>
+            location.city === 'Tbilisi' &&
+            !!location.district?.trim() &&
+            !!location.districtGeorgian?.trim() &&
+            location.districtGeorgian !== 'System.Collections.Hashtable',
+        )
+        .map((location) => [
+          location.districtGeorgian!.trim().toLocaleLowerCase('ka'),
+          location.district.trim(),
+        ]),
+    );
     const locations: ApiLocation[] = areas
       .filter((area) => area.type === 'district')
-      .map((district) => ({
+      .map((district) => {
+        const catalogEnglish = district.nameEn.trim();
+        const englishName = /[A-Za-z]/.test(catalogEnglish)
+          ? catalogEnglish
+          : legacyEnglishByGeorgian.get(district.nameKa.trim().toLocaleLowerCase('ka')) ||
+            catalogEnglish;
+        return {
         id: district.id,
         city: city?.nameEn || 'Tbilisi',
         cityKa: city?.nameKa || 'თბილისი',
-        district: district.nameEn,
+        district: englishName,
         geometryStatus: district.geometryStatus,
         districtKa: district.nameKa,
         region: city?.nameEn || 'Tbilisi',
@@ -112,7 +137,8 @@ export class LocationService {
             aliases: street.aliases || [],
             geometryStatus: street.geometryStatus,
           })),
-      }));
+        };
+      });
     if (locations.length) await this.persistentCache.set('all', locations);
     return locations;
   }
