@@ -109,7 +109,7 @@
                 "
                 [value]="item"
               >
-                {{item.replace('FamilyMemberWorkplace',\"Family member's workplace\").replace('SpecificAddress','Specific address')}}
+                {{ proximityTargetLabel(item) }}
               </option></select
             ><label *ngIf="profile.proximityTarget && profile.proximityTarget !== 'No'"
               >Address<input

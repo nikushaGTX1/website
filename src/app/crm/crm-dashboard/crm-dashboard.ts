@@ -332,6 +332,7 @@ export class CrmDashboard implements OnInit {
           lead.phoneNumber,
           lead.source,
           lead.assignedAgentName,
+          lead.originalOwnerName,
           lead.apartmentTitle,
           ...(lead.preferredDistricts || []),
         ].some((value) => value?.toLowerCase().includes(query));
@@ -863,14 +864,14 @@ export class CrmDashboard implements OnInit {
     const userId = (this.authService.currentUser?.id || '').toLowerCase();
     if (!userId) return [];
 
-    if (this.authService.isCrmAgent) {
-      return leads.filter((lead) => (lead.assignedAgentId || '').toLowerCase() === userId);
-    }
-
     return leads.filter((lead) => {
+      const assignedToUser = this.authService.isCrmAgent &&
+        (lead.assignedAgentId || '').toLowerCase() === userId;
+      const originalOwnerUserId = (lead.originalOwnerUserId || '').toLowerCase();
       const uploaderUserId = (lead.uploaderUserId || '').toLowerCase();
       const createdByUserId = (lead.createdByUserId || '').toLowerCase();
-      return uploaderUserId === userId || createdByUserId === userId;
+      return assignedToUser || originalOwnerUserId === userId ||
+        uploaderUserId === userId || createdByUserId === userId;
     });
   }
 

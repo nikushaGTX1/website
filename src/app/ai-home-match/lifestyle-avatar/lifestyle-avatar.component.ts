@@ -1,5 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { HomeMatchProfile } from '../models/home-match-profile';
+
+interface AvatarFigure {
+  src: string;
+  role: 'adult' | 'child' | 'pet';
+  gender?: 'Male' | 'Female';
+}
+
 @Component({
   selector: 'app-velven-lifestyle-avatar',
   standalone: false,
@@ -17,36 +24,70 @@ export class VelvenLifestyleAvatarComponent {
   }
 
   get characterImages(): string[] {
+    return this.characterFigures.map((figure) => figure.src);
+  }
+
+  get characterFigures(): AvatarFigure[] {
     if (!this.characterSrc) return [];
 
     const man = '/man%20offset%20fix.svg';
     const manTwo = '/man%20ver%202%20offset.svg';
     const woman = '/woman%20offset%20fix.svg';
     const womanTwo = '/woman%20ver%202%20offset.svg';
-    const couple = '/couple%20offset%20fix.svg';
     const child = '/daughter%20offset.svg';
     const pet = '/dog%20visual%20two.svg';
-    const selectedChildren = Array(Math.min(this.profile.children, 4)).fill(child) as string[];
-    const householdChildren = selectedChildren.length ? selectedChildren : [child];
+    const adult = (src: string, gender: 'Male' | 'Female'): AvatarFigure => ({
+      src,
+      role: 'adult',
+      gender,
+    });
+    const selectedChildren = Array.from(
+      { length: Math.min(this.profile.children, 4) },
+      (): AvatarFigure => ({ src: child, role: 'child' }),
+    );
+    const householdChildren = selectedChildren.length
+      ? selectedChildren
+      : [{ src: child, role: 'child' } as AvatarFigure];
+    const selectedPet: AvatarFigure[] = this.profile.hasPet ? [{ src: pet, role: 'pet' }] : [];
 
     switch (this.profile.householdType) {
       case 'Couple':
-        return [couple, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [adult(man, 'Male'), adult(woman, 'Female'), ...selectedChildren, ...selectedPet];
       case 'ParentWithChildren':
-        return [this.characterSrc, ...householdChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [adult(this.characterSrc, this.profile.gender as 'Male' | 'Female'), ...householdChildren, ...selectedPet];
       case 'FamilyWithChildren':
-        return [couple, ...householdChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [adult(man, 'Male'), adult(woman, 'Female'), ...householdChildren, ...selectedPet];
       case 'Friends':
-        return [manTwo, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [adult(manTwo, 'Male'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
       case 'Roommates':
-        return [woman, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [adult(woman, 'Female'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
       case 'Relatives':
-        return [man, woman, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [adult(man, 'Male'), adult(woman, 'Female'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
       case 'CorporateHousing':
-        return [man, woman, manTwo, womanTwo, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [adult(man, 'Male'), adult(woman, 'Female'), adult(manTwo, 'Male'), adult(womanTwo, 'Female'), ...selectedChildren, ...selectedPet];
       default:
-        return [this.characterSrc, ...selectedChildren, ...(this.profile.hasPet ? [pet] : [])];
+        return [adult(this.characterSrc, this.profile.gender as 'Male' | 'Female'), ...selectedChildren, ...selectedPet];
     }
+  }
+
+  variantFigureSrc(figure: AvatarFigure): string {
+    if (figure.role !== 'adult' || figure.gender !== this.profile.gender) return figure.src;
+
+    const isWoman = figure.src.includes('woman');
+    const lifestyles = new Set(this.profile.lifestyles);
+
+    if (this.wearsGymOutfit) return this.variantAsset('athlete', isWoman);
+    if (lifestyles.has('Student')) return this.variantAsset('student', isWoman);
+    if (lifestyles.has('BusinessProfessional')) return this.variantAsset('business', isWoman);
+    if (lifestyles.has('HostsGuests')) return this.variantAsset('host', isWoman);
+    if (lifestyles.has('FrequentTraveler')) return this.variantAsset('traveler', isWoman);
+
+    return figure.src;
+  }
+
+  private variantAsset(variant: string, isWoman: boolean): string {
+    const subject = isWoman ? 'woman' : 'man';
+    return `/avatar-${variant}-${subject}-v1.png`;
   }
 
   get wearsGymOutfit(): boolean {

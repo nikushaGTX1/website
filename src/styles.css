@@ -28,7 +28,7 @@ body {
   margin: 0;
   color: #111827;
   background: #fff;
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: Manrope, Inter, "Segoe UI", Arial, sans-serif;
   line-height: 1.5;
   overflow-x: clip;
 }
@@ -51,7 +51,7 @@ html[lang='ru'] button,
 html[lang='ru'] input,
 html[lang='ru'] select,
 html[lang='ru'] textarea {
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: Manrope, Inter, "Segoe UI", Arial, sans-serif;
 }
 
 button,
@@ -246,6 +246,78 @@ app-root {
   }
 }
 
+/* Site typography: one visual voice with script-appropriate glyph coverage. */
+:root {
+  --font-site: Manrope, Inter, "Segoe UI", Arial, sans-serif;
+  --font-site-georgian: "Noto Sans Georgian", "Segoe UI", Arial, sans-serif;
+}
+
+html:not([lang='ka']) body,
+html:not([lang='ka']) body
+  *:not(i):not(code):not(pre):not(kbd):not(samp):not(.fa):not([class^='fa-']):not(
+    [class*=' fa-']
+  ):not(.material-icons):not(.material-symbols-outlined) {
+  font-family: var(--font-site) !important;
+}
+
+html[lang='ka'] body,
+html[lang='ka'] body
+  *:not(i):not(code):not(pre):not(kbd):not(samp):not(.fa):not([class^='fa-']):not(
+    [class*=' fa-']
+  ):not(.material-icons):not(.material-symbols-outlined) {
+  font-family: var(--font-site-georgian) !important;
+  letter-spacing: 0;
+}
+
+/* Site-wide mobile containment. Component carousels and data rows may scroll
+ * internally, but routed pages must never widen the browser viewport. */
+@media (max-width: 768px) {
+  html,
+  body,
+  app-root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip !important;
+    overscroll-behavior-x: none;
+  }
+
+  app-root,
+  app-root > *,
+  .route-content,
+  .route-content > *,
+  main,
+  header,
+  footer,
+  nav,
+  section,
+  article,
+  aside,
+  form,
+  fieldset {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  img,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    min-width: 0;
+  }
+
+  body :is(h1, h2, h3, h4, h5, h6, p, a, label, legend, li, small, strong) {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* Language-aware layout ---------------------------------------------------
  * Translated copy is often wider than its English source. Keep controls and
  * grid/flex children shrinkable, and allow action text to use a second line
@@ -291,6 +363,16 @@ html:lang(ru) :is(input, select, textarea) {
 html:lang(ka) :is(input, textarea)::placeholder,
 html:lang(ru) :is(input, textarea)::placeholder {
   text-overflow: ellipsis;
+}
+
+body.photo-viewer-active app-navigation,
+body.photo-viewer-active app-footer,
+body.photo-viewer-active .skip-link {
+  display: none !important;
+}
+
+body.photo-viewer-active .route-content {
+  isolation: auto !important;
 }
 
 @media (max-width: 768px) {

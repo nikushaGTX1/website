@@ -211,6 +211,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     private service: HomeMatchService,
     private cdr: ChangeDetectorRef,
   ) {
+    service.reset();
     this.profile = {
       ...service.profile,
       gender: service.profile.gender || '',
@@ -346,6 +347,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     if (/guest/.test(key)) return 'guest';
     if (/ai|decide|matter/.test(key)) return 'ai';
     return 'spark';
+  }
+  proximityTargetLabel(value: string): string {
+    const labels: Record<string, string> = {
+      FamilyMemberWorkplace: "Family member's workplace",
+      SpecificAddress: 'Specific address',
+    };
+    return labels[value] ?? value;
   }
   opts(labels: string[], values?: string[]): HomeMatchOption[] {
     return labels.map((label, index) => ({ label, value: values?.[index] || label }));

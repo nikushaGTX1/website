@@ -665,12 +665,14 @@ export class CrmLeadDetail implements OnInit {
   get canWorkLead():
     boolean {
 
-    return this.authService.canWorkCrmLeads;
+    const userId = this.authService.currentUser?.id?.toLowerCase();
+    return this.isManager || (!!userId && this.authService.isCrmAgent &&
+      this.lead?.assignedAgentId?.toLowerCase() === userId);
   }
 
 
   get canDeleteLead(): boolean {
-    return !!this.lead && this.canAccessLead(this.lead);
+    return !!this.lead && this.canWorkLead;
   }
 
 
@@ -2250,76 +2252,14 @@ export class CrmLeadDetail implements OnInit {
      ACCESS
   ======================================================= */
 
-  private canAccessLead(
-    lead:
-      CrmLead
-  ): boolean {
-
-    if (
-      this.isManager
-    ) {
-
-      return true;
-
-    }
-
-
-    const userId =
-      (
-        this.authService
-          .currentUser
-          ?.id ||
-        ''
-      )
-        .toLowerCase();
-
-
-    if (
-      !userId
-    ) {
-
-      return false;
-
-    }
-
-
-    if (
-      this.authService
-        .isCrmAgent
-    ) {
-
-      return (
-        (
-          lead.assignedAgentId ||
-          ''
-        )
-          .toLowerCase() ===
-        userId
-      );
-    }
-
-
-    return (
-
-      (
-        lead.uploaderUserId ||
-        ''
-      )
-        .toLowerCase() ===
-      userId
-
-      ||
-
-      (
-        lead.createdByUserId ||
-        ''
-      )
-        .toLowerCase() ===
-      userId
-
-    );
+  private canAccessLead(lead: CrmLead): boolean {
+    if (this.isManager) return true;
+    const userId = this.authService.currentUser?.id?.toLowerCase();
+    if (!userId) return false;
+    return (this.authService.isCrmAgent && lead.assignedAgentId?.toLowerCase() === userId) ||
+      [lead.originalOwnerUserId, lead.uploaderUserId, lead.createdByUserId]
+        .some((id) => id?.toLowerCase() === userId);
   }
-
 
   /* =======================================================
      EMPTY LEAD FORM

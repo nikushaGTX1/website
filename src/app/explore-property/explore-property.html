@@ -104,6 +104,7 @@
             <button
               type="button"
               [class.selected]="!headerBedrooms"
+              [attr.aria-pressed]="!headerBedrooms"
               (click)="selectHeaderBedrooms('')"
             >
               Any
@@ -111,7 +112,8 @@
             <button
               type="button"
               *ngFor="let option of headerBedroomOptions"
-              [class.selected]="headerBedrooms === option.value"
+              [class.selected]="isHeaderBedroomSelected(option.value)"
+              [attr.aria-pressed]="isHeaderBedroomSelected(option.value)"
               (click)="selectHeaderBedrooms(option.value)"
             >
               {{ option.value }}

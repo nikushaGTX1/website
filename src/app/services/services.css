@@ -1,7 +1,7 @@
 ﻿:host {
   display: block;
   color: #0b1933;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Manrope, Arial, Helvetica, sans-serif;
 }
 
 .services-page {
@@ -39,8 +39,17 @@
 }
 
 .hero-copy h1 em {
-  color: #bb8210;
+  color: #451a8f;
   font-weight: 400;
+}
+
+:host-context(html:lang(ka)) .hero-copy {
+  width: min(820px, 72vw);
+}
+
+:host-context(html:lang(ka)) .hero-copy h1 {
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 .gold-stroke {
@@ -48,7 +57,7 @@
   height: 17px;
   margin: 7px 0 20px;
   display: block;
-  border-top: 4px solid #bb8210;
+  border-top: 4px solid rgb(69, 26, 143);
   border-radius: 50%;
   transform: rotate(-8deg);
 }
@@ -117,11 +126,14 @@
 }
 
 .service-card svg {
+  display: block;
+  flex: 0 0 auto;
   width: 70px;
   height: 70px;
   margin-bottom: 22px;
   fill: none;
-  stroke: #451a8f;
+  color: #451a8f;
+  stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
@@ -199,7 +211,7 @@
 }
 
 .contact-intro h2 span {
-  color: #c38a19;
+  color: #8b95a5;
 }
 
 .contact-intro p {
@@ -313,9 +325,17 @@
     width: 100%;
   }
 
+  :host-context(html:lang(ka)) .hero-copy {
+    width: 100%;
+  }
+
   .hero-copy h1 {
     font-size: clamp(40px, 11vw, 56px);
     letter-spacing: -1.5px;
+  }
+
+  :host-context(html:lang(ka)) .hero-copy h1 {
+    font-size: clamp(32px, 9vw, 44px);
   }
 
   .services-content {

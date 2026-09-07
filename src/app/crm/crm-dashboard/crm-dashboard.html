@@ -362,6 +362,9 @@
                     <small>
                       {{ lead.source || 'manual' }}
                     </small>
+                    <small *ngIf="lead.originalOwnerName">
+                      Original lead owner: {{ lead.originalOwnerName }}
+                    </small>
                   </span>
 
                   <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>

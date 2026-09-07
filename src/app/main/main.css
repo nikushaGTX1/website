@@ -1738,8 +1738,7 @@
   height: 100%;
   object-fit: contain;
   
-  /* Applies the dark purple color overlay to SVG/PNG images */
-  filter: invert(10%) sepia(85%) saturate(5400%) hue-rotate(265deg) brightness(50%) contrast(110%);
+  filter: brightness(0) saturate(100%) invert(16%) sepia(76%) saturate(3482%) hue-rotate(257deg) brightness(80%) contrast(103%);
 }
 
 .process-grid h3 {
@@ -2009,7 +2008,7 @@
 
 /* Refined desktop scale and typography */
 :host {
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: Manrope, 'Segoe UI', Arial, sans-serif;
   font-size: 16px;
 }
 .hero-copy {
@@ -3684,4 +3683,21 @@
     padding-right: max(18px, env(safe-area-inset-right)) !important;
     padding-left: max(18px, env(safe-area-inset-left)) !important;
   }
+}
+
+/* Georgian hero copy is longer, so use a slightly quieter display scale. */
+:host-context(html:lang(ka)) .hero h1 {
+  font-size: clamp(28px, 3.8vw, 48px);
+}
+
+@media (max-width: 650px) {
+  :host-context(html:lang(ka)) .hero h1 {
+    font-size: clamp(34px, 9.5vw, 42px);
+  }
+
+  @media (max-width: 650px) {
+  .location-panel-trigger > b {
+    transform: translateX(-7px);
+  }
+}
 }
