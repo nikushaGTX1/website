@@ -2589,11 +2589,11 @@
   }
 
   .nearby-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .nearby-grid > span {
-    grid-template-columns: 30px 1fr;
+    grid-template-columns: 1fr;
   }
 
   .ai-preview {
@@ -2633,8 +2633,8 @@
   }
 
   .nearby-grid > span {
-    min-height: 82px;
-    padding: 10px 8px;
+    min-height: 78px;
+    padding: 9px 4px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2679,7 +2679,33 @@
   }
 
   .property-meta {
-    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .property-meta span {
+    gap: 4px;
+  }
+
+  .nearby-grid {
+    gap: 5px;
+  }
+
+  .nearby-grid > span {
+    min-height: 74px;
+  }
+
+  .nearby-grid i {
+    font-size: 16px;
+  }
+
+  .nearby-grid b {
+    font-size: 10px;
+  }
+
+  .nearby-grid small {
+    font-size: 9px;
   }
 }
 

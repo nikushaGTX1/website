@@ -911,7 +911,7 @@
     font-size: 0;
   }
   .vp-gallery {
-    height: 310px;
+    height: clamp(225px, 72vw, 310px);
     margin: 0 -14px;
     display: block;
     border-radius: 0;
@@ -925,7 +925,7 @@
   }
   .vp-columns {
     display: block;
-    margin-top: 25px;
+    margin-top: 20px;
   }
   .vp-intro h1 {
     font-size: 30px;
@@ -1266,9 +1266,30 @@
 }
 @media (max-width: 420px) {
   .vp-map {
-    height: auto;
+    height: 320px;
+  }
+  .vp-map-overlay {
     align-items: flex-start;
     flex-direction: column;
+    gap: 10px;
+  }
+  .vp-map-overlay button {
+    width: 100%;
+  }
+  .vp-eyebrow {
+    flex-wrap: wrap;
+  }
+  .vp-intro h1 {
+    font-size: clamp(27px, 9vw, 30px);
+  }
+  .vp-facts > div {
+    min-width: 0;
+    padding: 11px 9px;
+  }
+  .vp-facts span,
+  .vp-facts strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .viewer-nav.previous {
     left: 8px;
