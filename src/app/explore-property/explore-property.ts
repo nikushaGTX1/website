@@ -1,4 +1,12 @@
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -15,7 +23,8 @@ import { PropertyMapPreviewAnchor } from '../maps/explore-property-map/explore-p
   templateUrl: './explore-property.html',
   styleUrl: './explore-property.css',
 })
-export class ExploreProperty implements OnInit {
+export class ExploreProperty implements OnInit, OnDestroy {
+  @ViewChild('resultsPane') private resultsPane?: ElementRef<HTMLElement>;
   apartments: Apartment[] = [];
   filteredApartments: Apartment[] = [];
   pageApartments: Apartment[] = [];
@@ -739,6 +748,10 @@ export class ExploreProperty implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    window.addEventListener('wheel', this.forwardWheelToResults, {
+      capture: true,
+      passive: false,
+    });
     const params = this.route.snapshot.queryParamMap;
     this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
     this.location = params.get('location') || '';
@@ -773,6 +786,30 @@ export class ExploreProperty implements OnInit {
       this.onSearch();
     });
   }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('wheel', this.forwardWheelToResults, true);
+  }
+
+  private readonly forwardWheelToResults = (event: WheelEvent): void => {
+    if (
+      window.innerWidth <= 780 ||
+      event.ctrlKey ||
+      Math.abs(event.deltaX) > Math.abs(event.deltaY)
+    ) return;
+
+    const results = this.resultsPane?.nativeElement;
+    const target = event.target instanceof Element ? event.target : null;
+    if (!results || !target || results.contains(target)) return;
+
+    const nestedScroller = target.closest<HTMLElement>(
+      '.location-modal-body, .area-picker-column, .popover, .language-menu',
+    );
+    if (nestedScroller && nestedScroller.scrollHeight > nestedScroller.clientHeight) return;
+
+    event.preventDefault();
+    results.scrollBy({ top: event.deltaY, behavior: 'auto' });
+  };
 
   private resetModeNavigationFilters(location: string): void {
     this.location = location;
