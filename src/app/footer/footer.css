@@ -186,13 +186,35 @@
 @media (max-width: 390px) {
   .footer-container {
     width: calc(100% - 24px);
+    padding-top: 22px;
   }
 
   .footer-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px 10px;
   }
 
   .brand-column {
-    grid-column: auto;
+    grid-column: 1 / -1;
+  }
+
+  .footer-column {
+    min-width: 0;
+  }
+
+  .footer-column h4 {
+    margin-bottom: 11px;
+  }
+
+  .footer-column a,
+  .footer-column p {
+    max-width: 100%;
+    margin-bottom: 8px;
+    overflow-wrap: anywhere;
+    font-size: 10px;
+  }
+
+  .contact-column {
+    grid-column: span 2;
   }
 }
