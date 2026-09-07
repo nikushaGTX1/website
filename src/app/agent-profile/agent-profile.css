@@ -63,12 +63,12 @@
   align-items: center;
   background-image: linear-gradient(
       to right,
-      #f7fafc 0%,
-      #f7fafc 45%,
-      rgba(247, 250, 252, 0.2) 80%,
-      rgba(247, 250, 252, 0) 100%
+      rgba(12, 3, 38, 0.96) 0%,
+      rgba(20, 5, 58, 0.88) 38%,
+      rgba(28, 8, 72, 0.3) 65%,
+      rgba(28, 8, 72, 0.05) 100%
     ),
-    url("/herosss.webp");
+    url("/agents-hero-purple-v2.png");
   background-size: cover;
   background-position: center right;
   border-radius: 16px;
@@ -83,7 +83,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: #b45309;
+  color: #d9c8ff;
   text-transform: uppercase;
   display: block;
   margin-bottom: 8px;
@@ -93,13 +93,13 @@
   font-family: "Georgia", serif;
   font-size: 48px;
   font-weight: 400;
-  color: #0f172a;
+  color: #ffffff;
   margin: 0 0 16px 0;
   line-height: 1.1;
 }
 
 .sparkle-gold {
-  color: #d97706;
+  color: #a98aff;
   margin-left: 6px;
   font-size: 32px;
   vertical-align: top;
@@ -111,7 +111,7 @@
 
 .hero-subtitle {
   font-size: 15px;
-  color: #475569;
+  color: #e3dcf7;
   line-height: 1.6;
   margin: 0 0 32px 0;
 }
@@ -119,9 +119,10 @@
 .metrics-card {
   display: inline-flex;
   align-items: center;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 12px 34px rgba(7, 2, 25, 0.22);
+  backdrop-filter: blur(12px);
   border-radius: 12px;
   padding: 16px 24px;
   gap: 20px;
@@ -869,7 +870,22 @@
   }
 
   .hero-section {
-    background-image: none;
+    min-height: 620px;
+    align-items: flex-end;
+    padding: 220px 18px 28px;
+    background-image: linear-gradient(
+        to top,
+        rgba(12, 3, 38, 0.98) 0%,
+        rgba(18, 5, 53, 0.9) 42%,
+        rgba(25, 8, 66, 0.15) 78%
+      ),
+      url("/agents-hero-purple-v2.png");
+    background-position: 67% center;
+  }
+
+  .hero-content {
+    width: 100%;
+    padding: 0;
   }
 
   .metrics-card {
