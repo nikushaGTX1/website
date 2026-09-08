@@ -61,14 +61,7 @@
   margin-bottom: 48px;
   display: flex;
   align-items: center;
-  background-image: linear-gradient(
-      to right,
-      rgba(12, 3, 38, 0.96) 0%,
-      rgba(20, 5, 58, 0.88) 38%,
-      rgba(28, 8, 72, 0.3) 65%,
-      rgba(28, 8, 72, 0.05) 100%
-    ),
-    url("/agents-hero-purple-v2.png");
+  background-image: url("/agents-banner.jpeg");
   background-size: cover;
   background-position: center right;
   border-radius: 16px;
@@ -884,7 +877,7 @@
         rgba(18, 5, 53, 0.9) 42%,
         rgba(25, 8, 66, 0.15) 78%
       ),
-      url("/agents-hero-purple-v2.png");
+      url("/agents-banner.jpeg");
     background-position: 67% center;
   }
 
