@@ -4,10 +4,15 @@
       <div class="hero-copy">
         <span>✦ AI Home Match</span>
         <h1>Let AI find<br />your perfect home.</h1>
-        <p>Answer a few questions about your lifestyle, preferences and needs — and Velven AI will recommend properties that truly match you.</p>
+        <p>
+          Answer a few questions about your lifestyle, preferences and needs — and Velven AI will
+          recommend properties that truly match you.
+        </p>
         <div class="hero-actions">
           <button type="button" (click)="scrollToMatcher()">✦ &nbsp; Start AI Home Match</button>
-          <a href="#how-it-works" (click)="$event.preventDefault(); scrollToMatcher()">▷ &nbsp; How It Works</a>
+          <a href="#how-it-works" (click)="$event.preventDefault(); scrollToMatcher()"
+            >▷ &nbsp; How It Works</a
+          >
         </div>
       </div>
       <div class="hero-visual" aria-hidden="true">
@@ -30,7 +35,7 @@
     <div class="phase-status">
       <span>Step {{ currentPhase + 1 }} of {{ phaseLabels.length }}</span>
       <div><i [style.width.%]="progress"></i></div>
-      <b>{{ progress | number:'1.0-0' }}%</b>
+      <b>{{ progress | number: '1.0-0' }}%</b>
     </div>
   </section>
 
@@ -45,10 +50,20 @@
       </div>
       <ng-container [ngSwitch]="step">
         <div class="options gender-first-step" *ngSwitchCase="0">
-          <button type="button" [class.selected]="profile.gender === 'Male'" [attr.aria-pressed]="profile.gender === 'Male'" (click)="choose('gender', 'Male')">
+          <button
+            type="button"
+            [class.selected]="profile.gender === 'Male'"
+            [attr.aria-pressed]="profile.gender === 'Male'"
+            (click)="choose('gender', 'Male')"
+          >
             <img class="gender-option-image" src="/man offset fix.svg" alt="" />Male
           </button>
-          <button type="button" [class.selected]="profile.gender === 'Female'" [attr.aria-pressed]="profile.gender === 'Female'" (click)="choose('gender', 'Female')">
+          <button
+            type="button"
+            [class.selected]="profile.gender === 'Female'"
+            [attr.aria-pressed]="profile.gender === 'Female'"
+            (click)="choose('gender', 'Female')"
+          >
             <img class="gender-option-image" src="/woman offset fix.svg" alt="" />Female
           </button>
         </div>
@@ -59,14 +74,18 @@
             [attr.aria-pressed]="profile.propertyGoal === 'Rent'"
             (click)="choose('propertyGoal', 'Rent')"
           >
-            <svg class="option-icon" aria-hidden="true"><use href="/ai-match-icons.svg#home"></use></svg>Rent an apartment</button
+            <svg class="option-icon" aria-hidden="true">
+              <use href="/ai-match-icons.svg#home"></use></svg
+            >Rent an apartment</button
           ><button
             type="button"
             [class.selected]="profile.propertyGoal === 'Buy'"
             [attr.aria-pressed]="profile.propertyGoal === 'Buy'"
             (click)="choose('propertyGoal', 'Buy')"
           >
-            <svg class="option-icon" aria-hidden="true"><use href="/ai-match-icons.svg#home"></use></svg>Buy an apartment
+            <svg class="option-icon" aria-hidden="true">
+              <use href="/ai-match-icons.svg#home"></use></svg
+            >Buy an apartment
           </button>
         </div>
         <div *ngSwitchCase="2">
@@ -74,18 +93,32 @@
             <button
               type="button"
               *ngFor="let option of districts"
-              [class.selected]="selected('districts', option.value)"
-              [attr.aria-pressed]="selected('districts', option.value)"
-              (click)="toggle('districts', option.value)"
+              [class.selected]="
+                option.value === 'SelectOnMap'
+                  ? !!profile.selectedMapArea
+                  : selected('districts', option.value)
+              "
+              [attr.aria-pressed]="
+                option.value === 'SelectOnMap'
+                  ? !!profile.selectedMapArea
+                  : selected('districts', option.value)
+              "
+              (click)="selectDistrict(option.value)"
             >
-              <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}</button
+              <svg class="option-icon" aria-hidden="true">
+                <use
+                  [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"
+                ></use></svg
+              >{{ option.label }}</button
             ><button
               type="button"
               [class.selected]="profile.locationFlexible"
               [attr.aria-pressed]="profile.locationFlexible"
               (click)="flexible()"
             >
-              <svg class="option-icon" aria-hidden="true"><use href="/ai-match-icons.svg#location"></use></svg>I am flexible about location
+              <svg class="option-icon" aria-hidden="true">
+                <use href="/ai-match-icons.svg#location"></use></svg
+              >I am flexible about location
             </button>
           </div>
           <div class="sub">
@@ -131,16 +164,49 @@
           >
           <div class="budget-slider" role="group" aria-labelledby="budget-slider-label">
             <div class="budget-slider-heading">
-              <span id="budget-slider-label"><svg class="section-icon" aria-hidden="true"><use href="/ai-match-icons.svg#budget"></use></svg>Budget range</span>
-              <strong>{{ formatBudget(budgetForm.controls.min.value) }} – {{ formatBudget(budgetForm.controls.max.value) }}</strong>
+              <span id="budget-slider-label"
+                ><svg class="section-icon" aria-hidden="true">
+                  <use href="/ai-match-icons.svg#budget"></use></svg
+                >Budget range</span
+              >
+              <strong
+                >{{ formatBudget(budgetForm.controls.min.value) }} –
+                {{ formatBudget(budgetForm.controls.max.value) }}</strong
+              >
             </div>
             <div class="dual-range">
               <span class="range-rail" aria-hidden="true"></span>
-              <span class="range-selection" aria-hidden="true" [style.left.%]="budgetRangeStart" [style.width.%]="budgetRangeEnd - budgetRangeStart"></span>
-              <input class="range-input range-min" type="range" min="0" [max]="budgetSliderMax" [step]="budgetSliderStep" [value]="budgetForm.controls.min.value" (input)="updateBudgetFromSlider('min', $event)" aria-label="Minimum budget" />
-              <input class="range-input range-max" type="range" min="0" [max]="budgetSliderMax" [step]="budgetSliderStep" [value]="budgetForm.controls.max.value" (input)="updateBudgetFromSlider('max', $event)" aria-label="Maximum budget" />
+              <span
+                class="range-selection"
+                aria-hidden="true"
+                [style.left.%]="budgetRangeStart"
+                [style.width.%]="budgetRangeEnd - budgetRangeStart"
+              ></span>
+              <input
+                class="range-input range-min"
+                type="range"
+                min="0"
+                [max]="budgetSliderMax"
+                [step]="budgetSliderStep"
+                [value]="budgetForm.controls.min.value"
+                (input)="updateBudgetFromSlider('min', $event)"
+                aria-label="Minimum budget"
+              />
+              <input
+                class="range-input range-max"
+                type="range"
+                min="0"
+                [max]="budgetSliderMax"
+                [step]="budgetSliderStep"
+                [value]="budgetForm.controls.max.value"
+                (input)="updateBudgetFromSlider('max', $event)"
+                aria-label="Maximum budget"
+              />
             </div>
-            <div class="budget-slider-limits" aria-hidden="true"><span>{{ formatBudget(0) }}</span><span>{{ formatBudget(budgetSliderMax) }}</span></div>
+            <div class="budget-slider-limits" aria-hidden="true">
+              <span>{{ formatBudget(0) }}</span
+              ><span>{{ formatBudget(budgetSliderMax) }}</span>
+            </div>
           </div>
           <p
             class="validation"
@@ -155,16 +221,24 @@
               type="button"
               *ngFor="let option of household"
               [class.selected]="profile.householdType === option.value"
-            [attr.aria-pressed]="profile.householdType === option.value"
-            (click)="choose('householdType', option.value)"
-          >
+              [attr.aria-pressed]="profile.householdType === option.value"
+              (click)="choose('householdType', option.value)"
+            >
+              <svg class="option-icon" aria-hidden="true">
+                <use
+                  [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"
+                ></use>
+              </svg>
               {{ option.label }}
             </button>
           </div>
         </div>
         <div *ngSwitchCase="5" class="people">
           <div class="counter">
-            <span><svg class="counter-icon" aria-hidden="true"><use href="/ai-match-icons.svg#solo"></use></svg>Adults</span
+            <span
+              ><svg class="counter-icon" aria-hidden="true">
+                <use href="/ai-match-icons.svg#solo"></use></svg
+              >Adults</span
             ><button
               type="button"
               (click)="changeCount('adults', -1)"
@@ -172,10 +246,19 @@
             >
               −</button
             ><b>{{ profile.adults }}</b
-            ><button type="button" (click)="changeCount('adults', 1)" [disabled]="profile.adults >= 4">+</button>
+            ><button
+              type="button"
+              (click)="changeCount('adults', 1)"
+              [disabled]="profile.adults + profile.children >= 7"
+            >
+              +
+            </button>
           </div>
           <div class="counter">
-            <span><svg class="counter-icon" aria-hidden="true"><use href="/ai-match-icons.svg#family"></use></svg>Children</span
+            <span
+              ><svg class="counter-icon" aria-hidden="true">
+                <use href="/ai-match-icons.svg#family"></use></svg
+              >Children</span
             ><button
               type="button"
               (click)="changeCount('children', -1)"
@@ -183,7 +266,13 @@
             >
               −</button
             ><b>{{ profile.children }}</b
-            ><button type="button" (click)="changeCount('children', 1)">+</button>
+            ><button
+              type="button"
+              (click)="changeCount('children', 1)"
+              [disabled]="profile.adults + profile.children >= 7"
+            >
+              +
+            </button>
           </div>
           <fieldset *ngIf="profile.children">
             <legend>What age groups are the children in?</legend>
@@ -196,9 +285,15 @@
                 )
               "
               [class.selected]="selected('childrenAgeGroups', option.value)"
+              [disabled]="
+                !selected('childrenAgeGroups', option.value) &&
+                profile.childrenAgeGroups.length >= profile.children
+              "
               (click)="toggle('childrenAgeGroups', option.value)"
             >
-              <svg class="option-icon small" aria-hidden="true"><use href="/ai-match-icons.svg#family"></use></svg>{{ option.label }}
+              <svg class="option-icon small" aria-hidden="true">
+                <use href="/ai-match-icons.svg#family"></use></svg
+              >{{ option.label }}
             </button>
           </fieldset>
         </div>
@@ -219,7 +314,11 @@
               [class.selected]="profile.bedrooms === option.value"
               (click)="setBedrooms(option.value)"
             >
-              <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
+              <svg class="option-icon" aria-hidden="true">
+                <use
+                  [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"
+                ></use></svg
+              >{{ option.label }}
             </button>
           </div>
         </div>
@@ -250,7 +349,9 @@
                 [class.selected]="profile.rentalDuration === option.value"
                 (click)="choose('rentalDuration', option.value)"
               >
-                <svg class="option-icon small" aria-hidden="true"><use href="/ai-match-icons.svg#calendar"></use></svg>{{ option.label }}
+                <svg class="option-icon small" aria-hidden="true">
+                  <use href="/ai-match-icons.svg#calendar"></use></svg
+                >{{ option.label }}
               </button>
             </fieldset>
             <fieldset>
@@ -272,7 +373,9 @@
                 [class.selected]="profile.moveInTiming === option.value"
                 (click)="choose('moveInTiming', option.value)"
               >
-                <svg class="option-icon small" aria-hidden="true"><use href="/ai-match-icons.svg#calendar"></use></svg>{{ option.label }}</button
+                <svg class="option-icon small" aria-hidden="true">
+                  <use href="/ai-match-icons.svg#calendar"></use></svg
+                >{{ option.label }}</button
               ><label *ngIf="profile.moveInTiming === 'SpecificDate'"
                 >Move-in date<input
                   type="date"
@@ -305,7 +408,9 @@
                 [class.selected]="profile.purchaseTiming === option.value"
                 (click)="choose('purchaseTiming', option.value)"
               >
-                <svg class="option-icon small" aria-hidden="true"><use href="/ai-match-icons.svg#calendar"></use></svg>{{ option.label }}
+                <svg class="option-icon small" aria-hidden="true">
+                  <use href="/ai-match-icons.svg#calendar"></use></svg
+                >{{ option.label }}
               </button>
             </fieldset></ng-template
           >
@@ -317,29 +422,15 @@
               *ngFor="let option of transport"
               [class.selected]="selected('transportation', option.value)"
               [attr.aria-pressed]="selected('transportation', option.value)"
-            (click)="toggle('transportation', option.value)"
-          >
-              <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
+              (click)="toggle('transportation', option.value)"
+            >
+              <svg class="option-icon" aria-hidden="true">
+                <use
+                  [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"
+                ></use></svg
+              >{{ option.label }}
             </button>
           </div>
-          <fieldset *ngIf="profile.transportation.includes('Metro')">
-            <legend>How many minutes to the metro is acceptable?</legend>
-            <button
-              type="button"
-              *ngFor="
-                let option of [
-                  { label: 'Up to 5 minutes', value: 5 },
-                  { label: 'Up to 10 minutes', value: 10 },
-                  { label: 'Up to 15 minutes', value: 15 },
-                  { label: 'It does not matter', value: null },
-                ]
-              "
-              [class.selected]="profile.metroDistanceMinutes === option.value"
-              (click)="setMetro(option.value)"
-            >
-              <svg class="option-icon small" aria-hidden="true"><use href="/ai-match-icons.svg#metro"></use></svg>{{ option.label }}
-            </button>
-          </fieldset>
           <p class="notice" *ngIf="profile.parkingAutomaticallyPrioritized">
             Parking has been automatically prioritized.
           </p>
@@ -350,9 +441,14 @@
             *ngFor="let option of lifestyles"
             [class.selected]="selected('lifestyles', option.value)"
             [attr.aria-pressed]="selected('lifestyles', option.value)"
+            [disabled]="!selected('lifestyles', option.value) && profile.lifestyles.length >= 3"
             (click)="toggle('lifestyles', option.value)"
           >
-            <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>{{ option.label }}
+            <svg class="option-icon" aria-hidden="true">
+              <use
+                [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"
+              ></use></svg
+            >{{ option.label }}
           </button>
         </div>
         <div class="options" *ngSwitchCase="10">
@@ -363,7 +459,9 @@
             [class.selected]="profile.hasPet === false"
             (click)="setPet(false)"
           >
-            <svg class="option-icon" aria-hidden="true"><use href="/ai-match-icons.svg#no"></use></svg>No
+            <svg class="option-icon" aria-hidden="true">
+              <use href="/ai-match-icons.svg#no"></use></svg
+            >No
           </button>
         </div>
         <div *ngSwitchCase="11">
@@ -375,11 +473,17 @@
               type="button"
               *ngFor="let option of suggestedPriorities"
               [class.selected]="profile.topPriorities.includes(option.value)"
-              [disabled]="profile.topPriorities.length === 5 && !profile.topPriorities.includes(option.value)"
+              [disabled]="
+                profile.topPriorities.length === 5 && !profile.topPriorities.includes(option.value)
+              "
               [attr.aria-pressed]="profile.topPriorities.includes(option.value)"
               (click)="togglePriority(option.value)"
             >
-              <svg class="option-icon" aria-hidden="true"><use [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"></use></svg>
+              <svg class="option-icon" aria-hidden="true">
+                <use
+                  [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"
+                ></use>
+              </svg>
               <b *ngIf="profile.topPriorities.includes(option.value)">
                 #{{ profile.topPriorities.indexOf(option.value) + 1 }}
               </b>
@@ -405,31 +509,66 @@
       </div>
       <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
       <dl>
-        <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#location"></use></svg>Location</dt><dd>{{ locationLabel }}</dd></div>
-        <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#family"></use></svg>Who will live</dt><dd>{{ householdLabel }}</dd></div>
-        <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#solo"></use></svg>Gender</dt><dd>{{ profile.gender || 'Not selected yet' }}</dd></div>
-        <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#pet"></use></svg>Pets</dt><dd>{{ profile.hasPet === null ? 'Not answered' : profile.hasPet ? 'Pet owner' : 'No pets' }}</dd></div>
-        <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#social"></use></svg>Lifestyle</dt><dd>{{ profile.lifestyles.length ? profile.lifestyles.join(', ') : 'Building your profile' }}</dd></div>
-        <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#car"></use></svg>Transport</dt><dd>{{ profile.transportation.length ? profile.transportation.join(', ') : 'Not selected yet' }}</dd></div>
-        <div><dt><svg aria-hidden="true"><use href="/ai-match-icons.svg#budget"></use></svg>Budget</dt><dd>{{ profile.currency }} {{ profile.budgetMin | number }} – {{ profile.budgetMax | number }}</dd></div>
+        <div>
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#location"></use></svg>Location
+          </dt>
+          <dd>{{ locationLabel }}</dd>
+        </div>
+        <div>
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#family"></use></svg>Who will live
+          </dt>
+          <dd>{{ householdLabel }}</dd>
+        </div>
+        <div>
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#solo"></use></svg>Gender
+          </dt>
+          <dd>{{ profile.gender || 'Not selected yet' }}</dd>
+        </div>
+        <div>
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#pet"></use></svg>Pets
+          </dt>
+          <dd>
+            {{
+              profile.hasPet === null ? 'Not answered' : profile.hasPet ? 'Pet owner' : 'No pets'
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#social"></use></svg>Lifestyle
+          </dt>
+          <dd>
+            {{
+              profile.lifestyles.length ? profile.lifestyles.join(', ') : 'Building your profile'
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#car"></use></svg>Transport
+          </dt>
+          <dd>
+            {{
+              profile.transportation.length ? profile.transportation.join(', ') : 'Not selected yet'
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#budget"></use></svg>Budget
+          </dt>
+          <dd>
+            {{ profile.currency }} {{ profile.budgetMin | number }} –
+            {{ profile.budgetMax | number }}
+          </dd>
+        </div>
       </dl>
     </aside>
   </main>
-
-  <section class="lifestyle-strip">
-    <div>
-      <span>Lifestyle Avatar</span>
-      <h2>This is you.</h2>
-      <p>We build your avatar as you answer questions so we can understand your lifestyle better.</p>
-    </div>
-    <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
-    <ul>
-      <li>✓ Personalized household profile</li>
-      <li>✓ Location and commute priorities</li>
-      <li>✓ Lifestyle-aware recommendations</li>
-      <li>✓ Homes ranked for your real needs</li>
-    </ul>
-  </section>
 </div>
 <app-home-profile-summary
   *ngIf="view === 'review'"
@@ -457,3 +596,12 @@
   [profile]="profile"
   (edit)="edit()"
 ></app-home-match-results>
+
+<app-draw-area-map
+  *ngIf="mapVisible"
+  [visible]="mapVisible"
+  [selectedAreasInput]="profile.districts"
+  (detectedAreaChange)="pendingMapArea = $event"
+  (apply)="applyMap($event)"
+  (close)="mapVisible = false"
+></app-draw-area-map>

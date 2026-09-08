@@ -3,6 +3,7 @@
     class="character-stage"
     [class.character-group]="characterFigures.length > 1"
     [class.crowded-group]="characterFigures.length > 4"
+    [class.has-extra-people]="extraPeople > 0"
   >
     <ng-container *ngIf="characterFigures.length; else chooseGender">
       <span
@@ -20,8 +21,18 @@
           [alt]="profile.householdType ? '' : profile.gender + ' personalized lifestyle character'"
         />
       </span>
+      <span
+        class="extra-adults"
+        *ngIf="extraPeople"
+        [attr.aria-label]="extraPeople + ' more people'"
+      >
+        <svg aria-hidden="true"><use href="/ai-match-icons.svg#company"></use></svg>
+        <b>+{{ extraPeople }}</b>
+      </span>
     </ng-container>
-    <ng-template #chooseGender><span class="avatar-placeholder">Choose Male or Female</span></ng-template>
+    <ng-template #chooseGender
+      ><span class="avatar-placeholder">Choose Male or Female</span></ng-template
+    >
   </div>
   <p *ngIf="showSummary">{{ summary }}</p>
 </div>

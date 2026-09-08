@@ -1,3 +1,4 @@
+import { GeoJsonPolygon } from '../../services/apartment.service';
 export type PropertyGoal = 'Rent' | 'Buy';
 export type Currency = 'USD' | 'GEL' | 'EUR';
 export type Gender = 'Male' | 'Female' | '';
@@ -5,6 +6,7 @@ export interface HomeMatchProfile {
   propertyGoal: PropertyGoal | '';
   districts: string[];
   locationFlexible: boolean;
+  selectedMapArea?: GeoJsonPolygon;
   proximityTarget?: string;
   proximityAddress?: string;
   proximityLatitude?: number;

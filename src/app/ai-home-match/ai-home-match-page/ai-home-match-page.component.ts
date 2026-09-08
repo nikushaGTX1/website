@@ -5,6 +5,7 @@ import { HomeMatchResult } from '../models/home-match-result';
 import { HomeMatchOption, HomeMatchQuestion } from '../models/home-match-question';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchService } from '../services/home-match.service';
+import { GeoJsonPolygon } from '../../services/apartment.service';
 import { applyPriorityScoring } from '../services/priority-scoring';
 
 type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
@@ -33,9 +34,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     { title: 'How many bedrooms do you need?' },
     { title: 'Your timing' },
     { title: 'How do you usually get around?' },
-    { title: 'Which options best describe your lifestyle?' },
+    { title: 'Which options best describe your lifestyle?', subtitle: 'Choose up to 3 options.' },
     { title: 'Do you have a pet?' },
-    { title: 'Rank your Top 5 priorities', subtitle: 'Choose them in order from most to least important.' },
+    {
+      title: 'Rank your Top 5 priorities',
+      subtitle: 'Choose them in order from most to least important.',
+    },
   ];
   readonly districts = this.opts(
     [
@@ -64,22 +68,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     ],
   );
   readonly household = this.opts(
-    [
-      'Just me',
-      'Couple',
-      'Family with children',
-      'Relatives',
-      'Roommates',
-      'Company employees',
-    ],
-    [
-      'JustMe',
-      'Couple',
-      'FamilyWithChildren',
-      'Relatives',
-      'Roommates',
-      'CorporateHousing',
-    ],
+    ['Just me', 'Couple', 'Family with children', 'Relatives', 'Roommates', 'Company employees'],
+    ['JustMe', 'Couple', 'FamilyWithChildren', 'Relatives', 'Roommates', 'CorporateHousing'],
   );
   readonly lifestyles = this.opts(
     [
@@ -111,6 +101,30 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   );
   profile: HomeMatchProfile;
   step = 0;
+  mapVisible = false;
+  pendingMapArea = '';
+  get fixedHousehold(): boolean {
+    return ['JustMe', 'Couple'].includes(this.profile.householdType);
+  }
+  selectDistrict(value: string): void {
+    if (value === 'SelectOnMap') {
+      this.pendingMapArea = '';
+      this.mapVisible = true;
+    } else this.toggle('districts', value);
+  }
+  applyMap(polygon: GeoJsonPolygon): void {
+    this.profile.selectedMapArea = polygon;
+    const points = polygon.coordinates[0].slice(0, -1);
+    if (points.length) {
+      this.profile.proximityLongitude = points.reduce((sum, p) => sum + p[0], 0) / points.length;
+      this.profile.proximityLatitude = points.reduce((sum, p) => sum + p[1], 0) / points.length;
+    }
+    if (this.pendingMapArea && !this.profile.districts.includes(this.pendingMapArea))
+      this.profile.districts.push(this.pendingMapArea);
+    this.profile.locationFlexible = false;
+    this.mapVisible = false;
+    this.persist();
+  }
   view: ViewState = 'questions';
   matches: HomeMatchResult[] = [];
   errorMessage = '';
@@ -137,7 +151,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.profile = {
       ...service.profile,
       gender: service.profile.gender || '',
-      adults: Math.min(4, Math.max(1, service.profile.adults || 1)),
+      adults: Math.min(7, Math.max(1, service.profile.adults || 1)),
+      children: Math.min(
+        Math.max(0, 7 - Math.min(7, Math.max(1, service.profile.adults || 1))),
+        Math.max(0, service.profile.children || 0),
+      ),
       topPriorities: service.profile.topPriorities || [],
     };
     this.budgetForm.setValue({
@@ -191,7 +209,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ? 'Flexible'
       : this.profile.districts.length
         ? this.profile.districts.join(', ')
-        : 'Not selected yet';
+        : this.profile.selectedMapArea
+          ? 'Selected map area'
+          : 'Not selected yet';
   }
   scrollToMatcher(): void {
     document.querySelector('.wizard-shell')?.scrollIntoView({ behavior: 'smooth' });
@@ -200,44 +220,129 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return this.generateSuggestedPriorities();
   }
   get currentStepIcon(): string {
-    return [
-      'solo', 'home', 'location', 'budget', 'family', 'family', 'bed', 'calendar',
-      'car', 'social', 'pet', 'check',
-    ][this.step] || 'spark';
+    return (
+      [
+        'solo',
+        'home',
+        'location',
+        'budget',
+        'family',
+        'family',
+        'bed',
+        'calendar',
+        'car',
+        'social',
+        'pet',
+        'check',
+      ][this.step] || 'spark'
+    );
   }
   optionIcon(value: unknown, label = ''): string {
     const raw = typeof value === 'number' ? label : (value ?? label);
-    const key = String(raw).replace(/[^a-z0-9]/gi, '').toLowerCase();
+    const key = String(raw)
+      .replace(/[^a-z0-9]/gi, '')
+      .toLowerCase();
     const icons: Record<string, string> = {
-      rent: 'home', buy: 'home', studio: 'home',
-      justme: 'solo', couple: 'couple', parentwithchildren: 'family',
-      familywithchildren: 'family', friends: 'friends', relatives: 'family',
-      roommates: 'friends', corporatehousing: 'company',
-      car: 'car', metro: 'metro', walking: 'walk', publictransport: 'bus',
-      taxi: 'taxi', multiplemethods: 'multi',
-      athlete: 'athlete', remoteworker: 'laptop', businessprofessional: 'company',
-      student: 'student', familyfocused: 'family', quietlifestyle: 'quiet',
-      sociallifestyle: 'social', hostsguests: 'guest', frequenttraveler: 'multi',
-      schoolnearby: 'school', kindergartennearby: 'school', parknearby: 'park',
-      gymnearby: 'gym', metronearby: 'metro', balcony: 'balcony',
-      naturallight: 'light', quietstreet: 'quiet', largelivingroom: 'home',
-      largekitchen: 'kitchen', separateworkspace: 'office', goodview: 'view',
-      multiplebathrooms: 'bath', bedroomairconditioning: 'spark',
-      securityorconcierge: 'security', elevator: 'elevator', yardorterrace: 'park',
-      newbuilding: 'home', additionalstorage: 'storage', lowfloor: 'elevator',
-      highfloor: 'elevator', largeelevator: 'elevator', replacefurniture: 'furniture',
-      removefurniture: 'furniture', separatekitchen: 'kitchen', isolatedbedrooms: 'bed',
-      companycontract: 'company', security24hours: 'security', generator: 'spark',
-      waterreservoir: 'water', homeoffice: 'office', guestroom: 'guest', both: 'multi',
-      no: 'no', true: 'check', false: 'no', immediately: 'calendar',
-      specificdate: 'calendar', flexible: 'calendar', exploring: 'ai', unknown: 'ai',
-      selectonmap: 'location', otherdistrict: 'location', other: 'spark',
+      selectedlocationnearby: 'location',
+      workspace: 'office',
+      universitynearby: 'student',
+      publictransportnearby: 'bus',
+      everydayservicesnearby: 'shop',
+      cafesnearby: 'cafe',
+      cafesorcoworkingnearby: 'cafe',
+      cafesandrestaurantsnearby: 'cafe',
+      meetingplacesnearby: 'cafe',
+      studyspacesnearby: 'student',
+      supermarketnearby: 'shop',
+      pharmacynearby: 'medical',
+      clinicnearby: 'medical',
+      playgroundnearby: 'playground',
+      playgroundorsportsfieldnearby: 'playground',
+      parking: 'car',
+      companyleaseavailable: 'company',
+      modernmaintainedbuilding: 'company',
+      quietresidentialenvironment: 'quiet',
+      awayfromnightlife: 'quiet',
+      citycenternearby: 'company',
+      entertainmentnearby: 'social',
+      balconyorterrace: 'balcony',
+      rent: 'home',
+      buy: 'home',
+      studio: 'home',
+      justme: 'solo',
+      couple: 'couple',
+      parentwithchildren: 'family',
+      familywithchildren: 'family',
+      friends: 'friends',
+      relatives: 'family',
+      roommates: 'friends',
+      corporatehousing: 'company',
+      car: 'car',
+      metro: 'metro',
+      walking: 'walk',
+      publictransport: 'bus',
+      taxi: 'taxi',
+      multiplemethods: 'multi',
+      athlete: 'athlete',
+      remoteworker: 'laptop',
+      businessprofessional: 'company',
+      student: 'student',
+      familyfocused: 'family',
+      quietlifestyle: 'quiet',
+      sociallifestyle: 'social',
+      hostsguests: 'guest',
+      frequenttraveler: 'multi',
+      schoolnearby: 'school',
+      kindergartennearby: 'school',
+      parknearby: 'park',
+      gymnearby: 'gym',
+      metronearby: 'metro',
+      balcony: 'balcony',
+      naturallight: 'light',
+      quietstreet: 'quiet',
+      largelivingroom: 'home',
+      largekitchen: 'kitchen',
+      separateworkspace: 'office',
+      goodview: 'view',
+      multiplebathrooms: 'bath',
+      bedroomairconditioning: 'spark',
+      securityorconcierge: 'security',
+      elevator: 'elevator',
+      yardorterrace: 'park',
+      newbuilding: 'home',
+      additionalstorage: 'storage',
+      lowfloor: 'elevator',
+      highfloor: 'elevator',
+      largeelevator: 'elevator',
+      replacefurniture: 'furniture',
+      removefurniture: 'furniture',
+      separatekitchen: 'kitchen',
+      isolatedbedrooms: 'bed',
+      companycontract: 'company',
+      security24hours: 'security',
+      generator: 'spark',
+      waterreservoir: 'water',
+      homeoffice: 'office',
+      guestroom: 'guest',
+      both: 'multi',
+      no: 'no',
+      true: 'check',
+      false: 'no',
+      immediately: 'calendar',
+      specificdate: 'calendar',
+      flexible: 'calendar',
+      exploring: 'ai',
+      unknown: 'ai',
+      selectonmap: 'location',
+      otherdistrict: 'location',
+      other: 'spark',
     };
     if (icons[key]) return icons[key];
     if (/bedroom|age/.test(key)) return 'bed';
     if (/month|week|date|year/.test(key)) return 'calendar';
     if (/minute/.test(key)) return 'metro';
-    if (/location|district|vake|saburtalo|vera|mtatsminda|dighomi|isani|ortachala/.test(key)) return 'location';
+    if (/location|district|vake|saburtalo|vera|mtatsminda|dighomi|isani|ortachala/.test(key))
+      return 'location';
     if (/office/.test(key)) return 'office';
     if (/guest/.test(key)) return 'guest';
     if (/ai|decide|matter/.test(key)) return 'ai';
@@ -265,20 +370,34 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     value: string,
   ): void {
     (this.profile as Record<typeof key, string | undefined>)[key] = value;
+    if (key === 'householdType') {
+      const householdDefaults: Record<string, { adults: number; children: number }> = {
+        JustMe: { adults: 1, children: 0 },
+        Couple: { adults: 2, children: 0 },
+        FamilyWithChildren: { adults: 2, children: 1 },
+        Relatives: { adults: 3, children: 0 },
+        Roommates: { adults: 2, children: 0 },
+        CorporateHousing: { adults: 4, children: 0 },
+      };
+      const defaults = householdDefaults[value];
+      if (defaults) {
+        this.profile.adults = defaults.adults;
+        this.profile.children = defaults.children;
+        this.profile.childrenAgeGroups = [];
+      }
+    }
     this.persist();
   }
   toggle(
-    key:
-      | 'districts'
-      | 'childrenAgeGroups'
-      | 'transportation'
-      | 'lifestyles',
+    key: 'districts' | 'childrenAgeGroups' | 'transportation' | 'lifestyles',
     value: string,
     max?: number,
   ): void {
+    if (key === 'childrenAgeGroups') max = this.profile.children;
+    if (key === 'lifestyles') max = 3;
     let values = this.profile[key];
     if (values.includes(value)) values = values.filter((item) => item !== value);
-    else if (!max || values.length < max) values = [...values, value];
+    else if (max === undefined || values.length < max) values = [...values, value];
     this.profile[key] = values;
     if (key === 'districts' && values.length) this.profile.locationFlexible = false;
     if (key === 'transportation')
@@ -287,14 +406,23 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   flexible(): void {
     this.profile.locationFlexible = !this.profile.locationFlexible;
-    if (this.profile.locationFlexible) this.profile.districts = [];
+    if (this.profile.locationFlexible) {
+      this.profile.districts = [];
+      this.profile.selectedMapArea = undefined;
+      this.profile.proximityLatitude = undefined;
+      this.profile.proximityLongitude = undefined;
+    }
     this.persist();
   }
   changeCount(key: 'adults' | 'children', amount: number): void {
     const minimum = key === 'adults' ? 1 : 0;
-    const maximum = key === 'adults' ? 4 : Number.MAX_SAFE_INTEGER;
+    const maximum = key === 'adults' ? 7 - this.profile.children : 7 - this.profile.adults;
     this.profile[key] = Math.min(maximum, Math.max(minimum, this.profile[key] + amount));
-    if (key === 'children' && this.profile.children === 0) this.profile.childrenAgeGroups = [];
+    if (key === 'children')
+      this.profile.childrenAgeGroups = this.profile.childrenAgeGroups.slice(
+        0,
+        this.profile.children,
+      );
     this.persist();
   }
   setBedrooms(value: number | null): void {
@@ -319,11 +447,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.persist();
   }
   selected(
-    key:
-      | 'districts'
-      | 'childrenAgeGroups'
-      | 'transportation'
-      | 'lifestyles',
+    key: 'districts' | 'childrenAgeGroups' | 'transportation' | 'lifestyles',
     value: string,
   ): boolean {
     return this.profile[key].includes(value);
@@ -357,7 +481,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return !!this.profile.propertyGoal;
       case 2:
         return (
-          (this.profile.locationFlexible || !!this.profile.districts.length) &&
+          (this.profile.locationFlexible ||
+            !!this.profile.districts.length ||
+            !!this.profile.selectedMapArea) &&
           (!this.profile.proximityTarget ||
             this.profile.proximityTarget === 'No' ||
             !!this.profile.proximityAddress?.trim())
@@ -383,13 +509,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
               (this.profile.moveInTiming !== 'SpecificDate' || !!this.profile.moveInDate)
           : !!this.profile.purchaseTiming;
       case 8:
-        return (
-          !!this.profile.transportation.length &&
-          (!this.profile.transportation.includes('Metro') ||
-            this.profile.metroDistanceMinutes !== undefined)
-        );
+        return !!this.profile.transportation.length;
       case 9:
-        return !!this.profile.lifestyles.length;
+        return this.profile.lifestyles.length > 0 && this.profile.lifestyles.length <= 3;
       case 10:
         return this.profile.hasPet !== null;
       case 11:
@@ -407,14 +529,17 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     }
     if (this.step === 10) {
       const suggestions = new Set(this.generateSuggestedPriorities().map((option) => option.value));
-      this.profile.topPriorities = this.profile.topPriorities.filter((value) => suggestions.has(value));
+      this.profile.topPriorities = this.profile.topPriorities.filter((value) =>
+        suggestions.has(value),
+      );
     }
     this.persist();
-    if (this.step < this.questions.length - 1) this.step++;
-    else this.view = 'review';
+    if (this.step < this.questions.length - 1) {
+      this.step += this.step === 4 && this.fixedHousehold ? 2 : 1;
+    } else this.view = 'review';
   }
   back(): void {
-    if (this.step > 0) this.step--;
+    if (this.step > 0) this.step -= this.step === 6 && this.fixedHousehold ? 2 : 1;
   }
   edit(): void {
     this.view = 'questions';
@@ -487,7 +612,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       (!!this.profile.proximityTarget && this.profile.proximityTarget !== 'No') ||
       !!this.profile.proximityAddress?.trim();
     if (hasLocation) add('Proximity to selected location', 'SelectedLocationNearby');
-    add('Best value within budget', 'BestValueWithinBudget');
 
     const familyHousehold = ['ParentWithChildren', 'FamilyWithChildren'].includes(
       this.profile.householdType,
@@ -520,7 +644,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         add('Proximity to school', 'SchoolNearby');
         add('Proximity to metro', 'MetroNearby');
         add('Proximity to public transport', 'PublicTransportNearby');
-        add('Proximity to sports facilities', 'SportsFacilitiesNearby');
+        add('GYM', 'GymNearby');
       }
     }
 
@@ -550,9 +674,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
 
     const lifestyle = new Set(this.profile.lifestyles);
     if (lifestyle.has('Athlete')) {
-      add('Proximity to gym', 'GymNearby');
+      add('GYM', 'GymNearby');
       add('Proximity to park', 'ParkNearby');
-      add('Proximity to sports facilities', 'SportsFacilitiesNearby');
     }
     if (lifestyle.has('RemoteWorker')) {
       add('Workspace', 'Workspace');

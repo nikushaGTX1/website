@@ -3,6 +3,7 @@ import { HomeMatchResult } from '../models/home-match-result';
 import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { applyPriorityScoring } from '../services/priority-scoring';
+import { ApartmentService } from '../../services/apartment.service';
 @Component({
   selector: 'app-home-match-results',
   standalone: false,
@@ -16,9 +17,14 @@ export class HomeMatchResultsComponent implements OnChanges {
   readonly enrichingApartmentIds = new Set<number>();
   private readonly failedImageIndexes = new WeakMap<HTMLImageElement, number>();
 
+  constructor(private readonly apartmentService: ApartmentService) {}
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['matches']) {
-      this.matches.forEach((result) => Object.assign(result, applyPriorityScoring(result, this.profile)));
+      this.matches.forEach((result) => {
+        Object.assign(result, applyPriorityScoring(result, this.profile));
+        if (!this.imageCandidates(result).length) this.enrichApartment(result);
+      });
     }
   }
   get sorted(): HomeMatchResult[] {
@@ -34,11 +40,17 @@ export class HomeMatchResultsComponent implements OnChanges {
     const images = [...(result.apartment.images || [])].sort(
       (a, b) => Number(b.isCover) - Number(a.isCover) || (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
     );
-    return [...new Set([
-      ...images.map((item) => item.url),
-      ...(result.apartment.imageUrls || []),
-      result.apartment.imageUrl,
-    ].map((source) => toMediaUrl(source)).filter(Boolean))];
+    return [
+      ...new Set(
+        [
+          ...images.flatMap((item) => [item.url, item.storagePath]),
+          ...(result.apartment.imageUrls || []),
+          result.apartment.imageUrl,
+        ]
+          .map((source) => toMediaUrl(source))
+          .filter(Boolean),
+      ),
+    ];
   }
 
   onImageError(event: Event, result: HomeMatchResult): void {
@@ -48,10 +60,44 @@ export class HomeMatchResultsComponent implements OnChanges {
     this.failedImageIndexes.set(image, nextIndex);
     if (nextImage) image.src = nextImage;
     else {
-      image.onerror = null;
-      image.classList.add('placeholder-image');
-      image.src = '/property-placeholder.svg';
+      this.enrichApartment(result, image);
     }
+  }
+
+  private enrichApartment(result: HomeMatchResult, image?: HTMLImageElement): void {
+    const apartmentId = Number(result.apartment.id);
+    if (!Number.isFinite(apartmentId) || this.enrichingApartmentIds.has(apartmentId)) {
+      if (image) this.showPlaceholder(image);
+      return;
+    }
+
+    this.enrichingApartmentIds.add(apartmentId);
+    this.apartmentService.getApartment(apartmentId).subscribe({
+      next: (apartment) => {
+        Object.assign(result.apartment, apartment);
+        this.enrichingApartmentIds.delete(apartmentId);
+        if (image) {
+          const source = this.imageCandidates(result)[0];
+          if (source) {
+            this.failedImageIndexes.set(image, 0);
+            image.classList.remove('placeholder-image');
+            image.src = source;
+          } else {
+            this.showPlaceholder(image);
+          }
+        }
+      },
+      error: () => {
+        this.enrichingApartmentIds.delete(apartmentId);
+        if (image) this.showPlaceholder(image);
+      },
+    });
+  }
+
+  private showPlaceholder(image: HTMLImageElement): void {
+    image.onerror = null;
+    image.classList.add('placeholder-image');
+    image.src = '/property-placeholder.svg';
   }
 
   rankHeadline(index: number): string {
@@ -71,23 +117,17 @@ export class HomeMatchResultsComponent implements OnChanges {
 
   mapAddress(result: HomeMatchResult): string {
     return (
-      result.apartment.address ||
-      result.apartment.district ||
-      `${result.apartment.title}, Tbilisi`
+      result.apartment.address || result.apartment.district || `${result.apartment.title}, Tbilisi`
     );
   }
 
   latitude(result: HomeMatchResult): number | undefined {
-    const value = Number(
-      result.apartment.propertyLatitude ?? result.apartment.latitude,
-    );
+    const value = Number(result.apartment.propertyLatitude ?? result.apartment.latitude);
     return Number.isFinite(value) ? value : undefined;
   }
 
   longitude(result: HomeMatchResult): number | undefined {
-    const value = Number(
-      result.apartment.propertyLongitude ?? result.apartment.longitude,
-    );
+    const value = Number(result.apartment.propertyLongitude ?? result.apartment.longitude);
     return Number.isFinite(value) ? value : undefined;
   }
 
@@ -111,5 +151,4 @@ export class HomeMatchResultsComponent implements OnChanges {
       apartment.metroDistanceMinutes,
     ].some((value) => value !== undefined && value !== null);
   }
-
 }

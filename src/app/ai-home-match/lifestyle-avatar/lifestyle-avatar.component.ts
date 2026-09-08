@@ -28,6 +28,10 @@ export class VelvenLifestyleAvatarComponent {
     return this.characterFigures.map((figure) => figure.src);
   }
 
+  get extraPeople(): number {
+    return Math.max(0, this.profile.adults + this.profile.children - 4);
+  }
+
   get characterFigures(): AvatarFigure[] {
     if (!this.characterSrc) return [];
 
@@ -49,7 +53,13 @@ export class VelvenLifestyleAvatarComponent {
       (): AvatarFigure => ({ src: child, role: 'child' }),
     );
     const selectedPet: AvatarFigure[] = this.profile.hasPet ? [{ src: pet, role: 'pet' }] : [];
-    const availableAdults = this.profile.gender === 'Female'
+    const hasLifestyleVariant =
+      this.wearsGymOutfit ||
+      this.profile.lifestyles.some((value) =>
+        ['Student', 'BusinessProfessional', 'HostsGuests', 'FrequentTraveler'].includes(value),
+      );
+    const primaryWoman = this.profile.gender === 'Female';
+    const selectedGenderAdults = primaryWoman
       ? [
           adult(woman, 'Female', true),
           adult(womanTwo, 'Female'),
@@ -62,9 +72,54 @@ export class VelvenLifestyleAvatarComponent {
           adult(manThree, 'Male'),
           adult('/avatar-business-man-v1.png', 'Male'),
         ];
+    const mixedAdults = primaryWoman
+      ? [
+          adult(woman, 'Female', true),
+          adult(man, 'Male'),
+          adult(womanTwo, 'Female'),
+          adult(manTwo, 'Male'),
+        ]
+      : [
+          adult(man, 'Male', true),
+          adult(woman, 'Female'),
+          adult(manTwo, 'Male'),
+          adult(womanTwo, 'Female'),
+        ];
+    const availableAdults = [
+      'Couple',
+      'FamilyWithChildren',
+      'Relatives',
+      'Roommates',
+      'CorporateHousing',
+    ].includes(this.profile.householdType)
+      ? mixedAdults
+      : selectedGenderAdults;
+    if (this.profile.adults === 2 && hasLifestyleVariant) {
+      const remainingAdults = availableAdults.slice(2, Math.min(this.profile.adults, 4));
+      const visibleChildren = selectedChildren.slice(
+        0,
+        Math.max(0, 4 - Math.min(this.profile.adults, 4)),
+      );
+      return [
+        { src: this.characterSrc, role: 'couple' },
+        ...remainingAdults,
+        ...visibleChildren,
+        ...selectedPet,
+      ];
+    }
+    if (this.profile.householdType === 'Couple') {
+      return [
+        adult(this.characterSrc, this.profile.gender === 'Female' ? 'Female' : 'Male', true),
+        adult(
+          this.profile.gender === 'Female' ? man : woman,
+          this.profile.gender === 'Female' ? 'Male' : 'Female',
+        ),
+        ...selectedPet,
+      ];
+    }
     const selectedAdults = availableAdults.slice(0, Math.min(Math.max(this.profile.adults, 1), 4));
 
-    return [...selectedAdults, ...selectedChildren, ...selectedPet];
+    return [...selectedAdults, ...selectedChildren].slice(0, 4).concat(selectedPet);
   }
 
   variantFigureSrc(figure: AvatarFigure): string {
@@ -78,6 +133,7 @@ export class VelvenLifestyleAvatarComponent {
       return figure.src;
     }
     if (figure.role !== 'adult' || !figure.primary) return figure.src;
+    if (this.profile.adults > 2) return figure.src;
 
     const isWoman = figure.src.includes('woman');
     const lifestyles = new Set(this.profile.lifestyles);
@@ -92,9 +148,7 @@ export class VelvenLifestyleAvatarComponent {
   }
 
   private variantAsset(variant: string, subjectOrIsWoman: 'couple' | boolean): string {
-    const subject = subjectOrIsWoman === 'couple'
-      ? 'couple'
-      : subjectOrIsWoman ? 'woman' : 'man';
+    const subject = subjectOrIsWoman === 'couple' ? 'couple' : subjectOrIsWoman ? 'woman' : 'man';
     return `/avatar-${variant}-${subject}-v1.png`;
   }
 

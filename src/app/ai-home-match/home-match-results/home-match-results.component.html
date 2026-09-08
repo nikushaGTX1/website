@@ -7,6 +7,9 @@
       they fit your lifestyle.
     </p>
   </header>
+  <div class="results-avatar">
+    <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
+  </div>
   <div class="empty" *ngIf="!matches.length">
     <h2>We could not find a strong match yet.</h2>
     <p>
@@ -16,7 +19,11 @@
     <button type="button" (click)="edit.emit()">Adjust My Preferences</button
     ><a routerLink="/ExploreProperty">View All Apartments</a>
   </div>
-  <article *ngFor="let result of sorted; let matchIndex = index" class="card" [class.best-match]="matchIndex === 0">
+  <article
+    *ngFor="let result of sorted; let matchIndex = index"
+    class="card"
+    [class.best-match]="matchIndex === 0"
+  >
     <div class="media">
       <img
         [src]="image(result)"
@@ -36,14 +43,17 @@
           <h2>{{ result.apartment.title }}</h2>
           <p>{{ result.apartment.district || result.apartment.address }}</p>
         </div>
-        <strong><app-currency-price [usdPrice]="result.apartment.price" suffix="/mo"></app-currency-price></strong>
+        <strong
+          ><app-currency-price [usdPrice]="result.apartment.price" suffix="/mo"></app-currency-price
+        ></strong>
       </div>
       <div class="facts">
         <span *ngIf="result.apartment.bedrooms !== undefined"
           >{{ result.apartment.bedrooms }} bedrooms</span
         ><span *ngIf="result.apartment.bathrooms">{{ result.apartment.bathrooms }} bathrooms</span
         ><span *ngIf="result.apartment.sizeSquareMeters"
-          ><span class="measurement-svg" aria-hidden="true"></span>{{ result.apartment.sizeSquareMeters }} m²</span
+          ><span class="measurement-svg" aria-hidden="true"></span
+          >{{ result.apartment.sizeSquareMeters }} m²</span
         >
       </div>
       <section class="location-map" aria-label="Apartment location">
@@ -58,7 +68,10 @@
         <div class="map-caption">
           <div>
             <span class="map-pin" aria-hidden="true">&#9679;</span>
-            <p><strong>{{ result.apartment.district || 'Location' }}</strong><small>{{ result.apartment.address || 'Exact location shown on the map' }}</small></p>
+            <p>
+              <strong>{{ result.apartment.district || 'Location' }}</strong
+              ><small>{{ result.apartment.address || 'Exact location shown on the map' }}</small>
+            </p>
           </div>
           <a [href]="mapsUrl(result)" target="_blank" rel="noopener noreferrer">
             Open in Google Maps <span aria-hidden="true">&#8599;</span>
@@ -94,7 +107,9 @@
             ><b>Nearest metro</b>{{ result.apartment.metroDistanceMinutes }} min walk</span
           >
         </div>
-        <small *ngIf="hasNearbyTimes(result)">Walking times are based on the apartment's live location data.</small>
+        <small *ngIf="hasNearbyTimes(result)"
+          >Walking times are based on the apartment's live location data.</small
+        >
       </section>
       <p class="warning" *ngFor="let warning of result.warnings">⚠ {{ warning }}</p>
       <a class="view" [routerLink]="['/apartments', result.apartment.id]">View apartment</a>
