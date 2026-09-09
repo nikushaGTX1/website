@@ -1080,6 +1080,114 @@
   font-size: 11px;
 }
 .mortgage-calculator footer i { margin-right: 7px; }
+.vp-side-rail {
+  position: sticky;
+  top: 24px;
+  display: grid;
+  gap: 18px;
+}
+.vp-side-rail .vp-inquiry {
+  position: static;
+}
+.vp-side-rail .mortgage-calculator {
+  margin: 0;
+  padding: 22px;
+  border-radius: 21px;
+  box-shadow: 0 16px 44px rgba(32, 22, 42, 0.1);
+}
+.vp-side-rail .mortgage-calculator > header {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 11px;
+  margin-bottom: 20px;
+}
+.vp-side-rail .mortgage-icon {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+  border-radius: 12px;
+  font-size: 17px;
+}
+.vp-side-rail .mortgage-calculator h2 {
+  font-size: 21px;
+  line-height: 1.2;
+}
+.vp-side-rail .mortgage-calculator header p {
+  font-size: 12px;
+}
+.vp-side-rail .mortgage-badge {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin: 0;
+  padding: 7px 10px;
+  font-size: 10px;
+}
+.vp-side-rail .mortgage-fields {
+  gap: 13px 10px;
+  padding-bottom: 18px;
+}
+.vp-side-rail .mortgage-fields label > span {
+  margin-bottom: 6px;
+  font-size: 9px;
+}
+.vp-side-rail .mortgage-fields label > div {
+  height: 46px;
+  gap: 6px;
+  padding: 0 10px;
+}
+.vp-side-rail .mortgage-fields input {
+  font-size: 14px;
+}
+.vp-side-rail .mortgage-fields b {
+  flex: 0 0 auto;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.vp-side-rail .mortgage-summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+.vp-side-rail .mortgage-loan,
+.vp-side-rail .mortgage-payment {
+  margin: 0;
+  padding: 14px;
+  gap: 12px;
+}
+.vp-side-rail .mortgage-loan > span,
+.vp-side-rail .mortgage-payment > span {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+  border-radius: 12px;
+  font-size: 16px;
+}
+.vp-side-rail .mortgage-loan strong {
+  font-size: 18px;
+}
+.vp-side-rail .mortgage-payment strong {
+  font-size: 25px;
+}
+.vp-side-rail .mortgage-payment small {
+  font-size: 11px;
+}
+.vp-side-rail .mortgage-advisor {
+  min-height: 48px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.vp-side-rail .mortgage-toggle {
+  padding: 13px 8px 5px;
+  font-size: 12px;
+}
+.vp-side-rail .mortgage-details p {
+  font-size: 11px;
+}
+.vp-side-rail .mortgage-calculator footer {
+  font-size: 9px;
+  line-height: 1.5;
+}
 @media (max-width: 740px) {
   .vp-content {
     width: calc(100% - 28px);
@@ -1142,6 +1250,13 @@
   }
   .viewing-grid {
     grid-template-columns: 1fr;
+  }
+  .vp-side-rail {
+    position: static;
+    margin-top: 28px;
+  }
+  .vp-side-rail .vp-inquiry {
+    margin-top: 0;
   }
   .mortgage-calculator {
     padding: 22px 16px;
