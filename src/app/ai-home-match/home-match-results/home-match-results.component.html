@@ -1,5 +1,5 @@
 <section class="results">
-  <header [class.with-avatar]="profile.gender && profile.propertyGoal !== 'Buy'">
+  <header [class.with-avatar]="profile.gender">
     <div class="results-intro">
     <span>Velven recommendations</span>
     <h1>Your AI Home Matches</h1>
@@ -8,7 +8,7 @@
       they fit your lifestyle.
     </p>
     </div>
-  <div class="results-avatar" *ngIf="profile.gender && profile.propertyGoal !== 'Buy'">
+  <div class="results-avatar" *ngIf="profile.gender">
     <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
   </div>
   </header>

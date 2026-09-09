@@ -507,7 +507,7 @@
         <h3>Your Lifestyle Profile</h3>
         <button type="button" (click)="step = 1">✎ Edit Profile</button>
       </div>
-      <app-velven-lifestyle-avatar *ngIf="profile.propertyGoal !== 'Buy'" [profile]="profile"></app-velven-lifestyle-avatar>
+      <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
       <dl>
         <div>
           <dt>
@@ -521,7 +521,7 @@
           </dt>
           <dd>{{ householdLabel }}</dd>
         </div>
-        <div *ngIf="profile.propertyGoal !== 'Buy'">
+        <div>
           <dt>
             <svg aria-hidden="true"><use href="/ai-match-icons.svg#solo"></use></svg>Gender
           </dt>

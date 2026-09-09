@@ -175,7 +175,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get visibleSteps(): number[] {
     return [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((step) =>
-      !(this.profile.propertyGoal === 'Buy' && [0, 4, 5, 10].includes(step)) &&
+      !(this.profile.propertyGoal === 'Buy' && [4, 5, 10].includes(step)) &&
       !(step === 5 && this.fixedHousehold),
     );
   }
