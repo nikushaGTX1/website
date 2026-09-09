@@ -44,6 +44,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private static readonly boundaryRequests = new Map<string, Promise<number[][][][]>>();
   @Input() visible = false;
   @Input() compact = false;
+  @Input() mapOnly = false;
   @Input() dockPropertyPreview = false;
   @Input() selectedAreaInput = '';
   @Input() selectedAreasInput: string[] = [];
@@ -884,9 +885,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const polygon = this.currentPolygon();
     const missing: string[] = [];
     if (!polygon) missing.push('location');
-    if (!this.propertyType) missing.push('property type');
-    if (this.budget == null || this.budget <= 0) missing.push('budget');
-    if (!this.bedrooms) missing.push('bedrooms');
+    if (!this.mapOnly) {
+      if (!this.propertyType) missing.push('property type');
+      if (this.budget == null || this.budget <= 0) missing.push('budget');
+      if (!this.bedrooms) missing.push('bedrooms');
+    }
     if (missing.length) {
       this.validationMessage = `Please choose ${missing.join(', ')} before searching.`;
       return;

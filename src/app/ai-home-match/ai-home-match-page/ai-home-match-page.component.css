@@ -107,6 +107,33 @@
 .options.compact {
   grid-template-columns: repeat(3, 1fr);
 }
+.options.pet-options {
+  grid-template-columns: repeat(4, 1fr);
+}
+.pet-symbol {
+  font-size: 24px;
+}
+.pet-details {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid #e5e2ee;
+  border-radius: 14px;
+  background: #faf8ff;
+}
+.pet-details label {
+  font-weight: 700;
+}
+.pet-details input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px;
+  border: 1px solid #d9d5e1;
+  border-radius: 10px;
+  background: #fff;
+}
 .options button,
 fieldset button {
   border: 2px solid #e5e2e9;

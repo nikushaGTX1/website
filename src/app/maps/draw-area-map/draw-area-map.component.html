@@ -53,7 +53,37 @@
   <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
 </div>
 
-<div class="draw-backdrop" role="presentation" (click)="handleBackdrop($event)" *ngIf="!compact">
+<div class="draw-backdrop map-only-backdrop" role="presentation" (click)="handleBackdrop($event)" *ngIf="mapOnly">
+  <section class="draw-dialog map-only-dialog" role="dialog" aria-modal="true" aria-label="Draw an area on the map">
+    <div class="map-shell map-only-shell" [class.map-ready]="!loading && !errorMessage">
+      <div #mapContainer class="draw-map" aria-label="Interactive map of Tbilisi"></div>
+      <button type="button" class="close-button map-only-close" aria-label="Close map" (click)="close.emit()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <button
+        class="draw-tool-button"
+        [class.active]="drawingEnabled"
+        type="button"
+        (click)="startDrawing()"
+        [attr.aria-pressed]="drawingEnabled"
+        [title]="drawingEnabled ? 'Turn drawing off' : 'Draw a custom area'"
+      >
+        <i class="fa-solid" [class.fa-pencil]="!drawingEnabled" [class.fa-xmark]="drawingEnabled"></i>
+        {{ drawingEnabled ? 'Stop drawing' : 'Draw area' }}
+      </button>
+      <div class="map-only-actions">
+        <button type="button" class="clear-button" [disabled]="!hasPolygon" (click)="clearArea()">Clear area</button>
+        <button type="button" class="apply-button" [disabled]="!hasPolygon" (click)="applyArea()">Apply area</button>
+      </div>
+      <a class="osm-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Boundary data Â© OpenStreetMap</a>
+      <div class="map-loading-cover" *ngIf="loading"><span>V</span><strong>Loading mapâ€¦</strong></div>
+      <div class="map-message error" *ngIf="errorMessage">{{ errorMessage }}</div>
+      <div class="map-tip" *ngIf="!loading && !errorMessage && drawingEnabled"><i class="fa-solid fa-draw-polygon"></i> Click points to draw your own area</div>
+    </div>
+  </section>
+</div>
+
+<div class="draw-backdrop" role="presentation" (click)="handleBackdrop($event)" *ngIf="!compact && !mapOnly">
   <section class="draw-dialog" role="dialog" aria-modal="true" aria-labelledby="draw-area-title">
     <header class="dialog-header">
       <div class="mode-tabs">

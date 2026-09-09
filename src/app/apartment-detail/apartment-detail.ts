@@ -77,7 +77,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   mortgagePrice = 0;
   mortgageDownPayment = 0;
   mortgageInterestRate = 10;
-  mortgageLoanTermWeeks = 120;
+  mortgageLoanTermMonths = 120;
   mortgageDetailsOpen = false;
   private realPhotoCount = 0;
   private previouslyFocusedElement: HTMLElement | null = null;
@@ -235,7 +235,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   get mortgageMonthlyPayment(): number {
     const principal = this.mortgageLoanAmount;
-    const months = Math.max(1, (this.safeMortgageNumber(this.mortgageLoanTermWeeks) * 12) / 52);
+    const months = Math.max(1, this.safeMortgageNumber(this.mortgageLoanTermMonths));
     const monthlyRate = Math.max(0, this.safeMortgageNumber(this.mortgageInterestRate)) / 1200;
     if (!principal) return 0;
     if (!monthlyRate) return principal / months;
@@ -246,7 +246,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   get mortgageTotalRepayment(): number {
     return this.mortgageMonthlyPayment * Math.max(
       1,
-      (this.safeMortgageNumber(this.mortgageLoanTermWeeks) * 12) / 52,
+      this.safeMortgageNumber(this.mortgageLoanTermMonths),
     );
   }
 
@@ -261,7 +261,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   get mortgageLoanTermProgress(): number {
-    return Math.min(100, Math.max(0, ((this.mortgageLoanTermWeeks - 3) / 237) * 100));
+    return Math.min(100, Math.max(0, ((this.mortgageLoanTermMonths - 3) / 237) * 100));
   }
 
   formatMortgageMoney(value: number): string {
@@ -282,9 +282,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       100,
       Math.max(0, this.safeMortgageNumber(this.mortgageInterestRate)),
     );
-    this.mortgageLoanTermWeeks = Math.min(
+    this.mortgageLoanTermMonths = Math.min(
       240,
-      Math.max(3, Math.round(this.safeMortgageNumber(this.mortgageLoanTermWeeks))),
+      Math.max(3, Math.round(this.safeMortgageNumber(this.mortgageLoanTermMonths))),
     );
   }
 

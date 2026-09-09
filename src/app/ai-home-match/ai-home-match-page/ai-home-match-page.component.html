@@ -254,7 +254,7 @@
               +
             </button>
           </div>
-          <div class="counter">
+          <div class="counter" *ngIf="profile.householdType !== 'CorporateHousing'">
             <span
               ><svg class="counter-icon" aria-hidden="true">
                 <use href="/ai-match-icons.svg#family"></use></svg
@@ -422,6 +422,9 @@
               *ngFor="let option of transport"
               [class.selected]="selected('transportation', option.value)"
               [attr.aria-pressed]="selected('transportation', option.value)"
+              [disabled]="
+                !selected('transportation', option.value) && profile.transportation.length >= 3
+              "
               (click)="toggle('transportation', option.value)"
             >
               <svg class="option-icon" aria-hidden="true">
@@ -451,18 +454,17 @@
             >{{ option.label }}
           </button>
         </div>
-        <div class="options" *ngSwitchCase="10">
-          <button type="button" [class.selected]="profile.hasPet === true" (click)="setPet(true)">
-            <img class="pet-option-image" src="/dog visual one.svg" alt="" />Yes</button
-          ><button
-            type="button"
-            [class.selected]="profile.hasPet === false"
-            (click)="setPet(false)"
-          >
-            <svg class="option-icon" aria-hidden="true">
-              <use href="/ai-match-icons.svg#no"></use></svg
-            >No
-          </button>
+        <div *ngSwitchCase="10">
+          <div class="options pet-options">
+            <button type="button" [class.selected]="profile.petType === 'None'" (click)="setPetType('None')"><span class="pet-symbol">🚫</span>No</button>
+            <button type="button" [class.selected]="profile.petType === 'Dog'" (click)="setPetType('Dog')"><span class="pet-symbol">🐶</span>Dog</button>
+            <button type="button" [class.selected]="profile.petType === 'Cat'" (click)="setPetType('Cat')"><span class="pet-symbol">🐱</span>Cat</button>
+            <button type="button" [class.selected]="profile.petType === 'Other'" (click)="setPetType('Other')"><span class="pet-symbol">🐾</span>Other</button>
+          </div>
+          <div class="pet-details" *ngIf="profile.petType === 'Other'">
+            <label>What kind of animal do you have?<input type="text" [(ngModel)]="profile.petOtherType" (ngModelChange)="persist()" placeholder="Example: Rabbit" /></label>
+            <label>How many pets?<input type="number" min="1" max="20" [(ngModel)]="profile.petCount" (ngModelChange)="persist()" /></label>
+          </div>
         </div>
         <div *ngSwitchCase="11">
           <p class="selection-count" aria-live="polite">
@@ -600,6 +602,7 @@
 <app-draw-area-map
   *ngIf="mapVisible"
   [visible]="mapVisible"
+  [mapOnly]="true"
   [selectedAreasInput]="profile.districts"
   (detectedAreaChange)="pendingMapArea = $event"
   (apply)="applyMap($event)"

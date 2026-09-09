@@ -46,7 +46,7 @@
           <p>{{ result.apartment.district || result.apartment.address }}</p>
         </div>
         <strong
-          ><app-currency-price [usdPrice]="result.apartment.price" suffix="/mo"></app-currency-price
+          ><app-currency-price [usdPrice]="result.apartment.price" [suffix]="profile.propertyGoal === 'Buy' ? '' : '/mo'"></app-currency-price
         ></strong>
       </div>
       <div class="facts">
@@ -58,28 +58,6 @@
           >{{ result.apartment.sizeSquareMeters }} m²</span
         >
       </div>
-      <section class="location-map" aria-label="Apartment location">
-        <app-google-property-map
-          [address]="mapAddress(result)"
-          [apartmentTitle]="result.apartment.title"
-          [latitude]="latitude(result)"
-          [longitude]="longitude(result)"
-          [compact]="true"
-          [loadNearby]="false"
-        ></app-google-property-map>
-        <div class="map-caption">
-          <div>
-            <span class="map-pin" aria-hidden="true">&#9679;</span>
-            <p>
-              <strong>{{ result.apartment.district || 'Location' }}</strong
-              ><small>{{ result.apartment.address || 'Exact location shown on the map' }}</small>
-            </p>
-          </div>
-          <a [href]="mapsUrl(result)" target="_blank" rel="noopener noreferrer">
-            Open in Google Maps <span aria-hidden="true">&#8599;</span>
-          </a>
-        </div>
-      </section>
       <ul class="reasons">
         <li *ngFor="let reason of result.reasons">
           <b>✓ {{ reason.title }}</b
@@ -116,6 +94,28 @@
       </section>
       <p class="warning" *ngFor="let warning of result.warnings">⚠ {{ warning }}</p>
       <a class="view" [routerLink]="['/apartments', result.apartment.id]">View apartment</a>
+      <section class="location-map" aria-label="Apartment location">
+        <div class="map-caption">
+          <div>
+            <span class="map-pin" aria-hidden="true">&#9679;</span>
+            <p>
+              <strong>{{ result.apartment.district || 'Location' }}</strong
+              ><small>{{ result.apartment.address || 'Exact location shown on the map' }}</small>
+            </p>
+          </div>
+          <a [href]="mapsUrl(result)" target="_blank" rel="noopener noreferrer">
+            Open in Google Maps <span aria-hidden="true">&#8599;</span>
+          </a>
+        </div>
+        <app-google-property-map
+          [address]="mapAddress(result)"
+          [apartmentTitle]="result.apartment.title"
+          [latitude]="latitude(result)"
+          [longitude]="longitude(result)"
+          [compact]="true"
+          [loadNearby]="false"
+        ></app-google-property-map>
+      </section>
     </div>
   </article>
   <button class="edit" type="button" *ngIf="matches.length" (click)="edit.emit()">

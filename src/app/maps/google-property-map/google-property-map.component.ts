@@ -228,7 +228,8 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,
-        clickableIcons: false,
+        clickableIcons: true,
+        gestureHandling: this.compact ? 'greedy' : 'cooperative',
       });
       this.apartmentMarker = new google.maps.Marker({
         map: this.map,

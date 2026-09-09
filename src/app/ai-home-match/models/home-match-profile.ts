@@ -29,6 +29,9 @@ export interface HomeMatchProfile {
   parkingAutomaticallyPrioritized: boolean;
   lifestyles: string[];
   hasPet: boolean | null;
+  petType?: 'None' | 'Dog' | 'Cat' | 'Other';
+  petOtherType?: string;
+  petCount?: number;
   topPriorities: string[];
 }
 
@@ -49,5 +52,8 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   parkingAutomaticallyPrioritized: false,
   lifestyles: [],
   hasPet: null,
+  petType: undefined,
+  petOtherType: '',
+  petCount: 1,
   topPriorities: [],
 };

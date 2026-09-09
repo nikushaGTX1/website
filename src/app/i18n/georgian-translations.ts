@@ -8,6 +8,25 @@ type GeorgianRule = {
 const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['View more', '\u10db\u10d4\u10e2\u10d8\u10e1 \u10dc\u10d0\u10ee\u10d5\u10d0'],
   ['View less', '\u10dc\u10d0\u10d9\u10da\u10d4\u10d1\u10d8\u10e1 \u10dc\u10d0\u10ee\u10d5\u10d0'],
+  // Mortgage calculator
+  ['Mortgage Calculator', 'იპოთეკური კალკულატორი'],
+  ['Estimate your monthly payment', 'შეაფასეთ თქვენი ყოველთვიური გადასახადი'],
+  ['Plan smarter', 'დაგეგმეთ უკეთ'],
+  ['Property price', 'ქონების ფასი'],
+  ['Down payment', 'პირველადი შენატანი'],
+  ['Interest rate', 'საპროცენტო განაკვეთი'],
+  ['Loan term', 'სესხის ვადა'],
+  ['months', 'თვე'],
+  ['Loan term in months', 'სესხის ვადა თვეებში'],
+  ['Loan amount', 'სესხის თანხა'],
+  ['Estimated monthly payment', 'სავარაუდო ყოველთვიური გადასახადი'],
+  ['Principal', 'ძირითადი თანხა'],
+  ['Total interest', 'ჯამური პროცენტი'],
+  ['Total repayment', 'ჯამური გადასახდელი'],
+  ['Talk to an advisor', 'გაესაუბრეთ კონსულტანტს'],
+  ['Hide details', 'დეტალების დამალვა'],
+  ['View details', 'დეტალების ნახვა'],
+  ['Your information is secure and never shared. This is an illustrative estimate.', 'თქვენი ინფორმაცია დაცულია და არასდროს გაზიარდება. ეს მხოლოდ საორიენტაციო გაანგარიშებაა.'],
   // Navigation and shared actions
   ['Skip to main content', 'მთავარ შინაარსზე გადასვლა'],
   ['Main navigation', 'მთავარი ნავიგაცია'],
@@ -578,6 +597,25 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Try AI Home Match', 'სცადეთ სახლის AI შერჩევა'],
 
   // AI matching flow
+  ['AI Home Match', 'AI სახლის შერჩევა'],
+  ['Let AI find', 'მიეცით AI-ს საშუალება იპოვოს'],
+  ['your perfect home.', 'თქვენი იდეალური სახლი.'],
+  ['Start AI Home Match', 'დაიწყეთ AI სახლის შერჩევა'],
+  ['How It Works', 'როგორ მუშაობს'],
+  ['Home Details', 'სახლის დეტალები'],
+  ['Preferences', 'პრეფერენციები'],
+  ['Review', 'გადახედვა'],
+  ['How do you usually get around?', 'ჩვეულებრივ როგორ გადაადგილდებით?'],
+  ['Car', 'ავტომობილი'],
+  ['Metro', 'მეტრო'],
+  ['Walking', 'ფეხით'],
+  ['Public transport', 'საზოგადოებრივი ტრანსპორტი'],
+  ['Taxi', 'ტაქსი'],
+  ['Multiple methods', 'რამდენიმე საშუალება'],
+  ['Edit Profile', 'პროფილის რედაქტირება'],
+  ['Building your profile', 'თქვენი პროფილი იქმნება'],
+  ['Not selected yet', 'ჯერ არ არის არჩეული'],
+  ['Continue', 'გაგრძელება'],
   ["Let's find a home that fits your life.", 'მოდი, ვიპოვოთ სახლი, რომელიც თქვენს ცხოვრებას შეესაბამება.'],
   ['Nine thoughtful questions. One personalized shortlist.', 'ცხრა გააზრებული კითხვა. ერთი პერსონალური სია.'],
   ['Answer a few questions about your lifestyle, preferences and needs — and Velven AI will recommend properties that truly match you.', 'უპასუხეთ რამდენიმე კითხვას თქვენი ცხოვრების სტილის, პრეფერენციებისა და საჭიროებების შესახებ — Velven AI კი ნამდვილად შესაფერის ობიექტებს გირჩევთ.'],
@@ -1117,6 +1155,10 @@ const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
 );
 
 const GEORGIAN_RULES: GeorgianRule[] = [
+  {
+    pattern: /^Step (\d+) of (\d+)$/i,
+    translate: (match) => `ნაბიჯი ${match[1]} / ${match[2]}`,
+  },
   {
     pattern: /^(\d+)% complete$/i,
     translate: (match) => `${match[1]}% დასრულებულია`,

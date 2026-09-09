@@ -35,7 +35,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     { title: 'Your timing' },
     { title: 'How do you usually get around?' },
     { title: 'Which options best describe your lifestyle?', subtitle: 'Choose up to 3 options.' },
-    { title: 'Do you have a pet?' },
+    {
+      title: 'Do you have a pet?',
+      subtitle: 'Some apartments have special conditions regarding pets.',
+    },
     {
       title: 'Rank your Top 5 priorities',
       subtitle: 'Choose them in order from most to least important.',
@@ -77,7 +80,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       'I work from home',
       'Business professional',
       'Student',
-      'Family focused',
       'Quiet lifestyle',
       'Social and active lifestyle',
       'I often host guests',
@@ -88,7 +90,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       'RemoteWorker',
       'BusinessProfessional',
       'Student',
-      'FamilyFocused',
       'QuietLifestyle',
       'SocialLifestyle',
       'HostsGuests',
@@ -156,6 +157,17 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         Math.max(0, 7 - Math.min(7, Math.max(1, service.profile.adults || 1))),
         Math.max(0, service.profile.children || 0),
       ),
+      lifestyles: (service.profile.lifestyles || []).filter(
+        (lifestyle) => lifestyle !== 'FamilyFocused',
+      ),
+      petType:
+        service.profile.petType ??
+        (service.profile.hasPet === true
+          ? 'Dog'
+          : service.profile.hasPet === false
+            ? 'None'
+            : undefined),
+      petCount: Math.max(1, service.profile.petCount || 1),
       topPriorities: service.profile.topPriorities || [],
     };
     this.budgetForm.setValue({
@@ -412,8 +424,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     max?: number,
   ): void {
     if (key === 'transportation') {
-      this.profile.transportation = [value];
-      this.profile.parkingAutomaticallyPrioritized = value === 'Car';
+      const values = this.profile.transportation;
+      this.profile.transportation = values.includes(value)
+        ? values.filter((item) => item !== value)
+        : values.length < 3
+          ? [...values, value]
+          : values;
+      this.profile.parkingAutomaticallyPrioritized = this.profile.transportation.includes('Car');
       this.persist();
       return;
     }
@@ -451,8 +468,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.profile.bedrooms = value;
     this.persist();
   }
-  setPet(value: boolean): void {
-    this.profile.hasPet = value;
+  setPetType(value: 'None' | 'Dog' | 'Cat' | 'Other'): void {
+    this.profile.petType = value;
+    this.profile.hasPet = value !== 'None';
+    if (value !== 'Other') this.profile.petOtherType = '';
+    if (value === 'None') this.profile.petCount = 1;
     this.persist();
   }
   setMetro(value: number | null): void {
@@ -535,7 +555,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       case 9:
         return this.profile.lifestyles.length > 0 && this.profile.lifestyles.length <= 3;
       case 10:
-        return this.profile.hasPet !== null;
+        return (
+          !!this.profile.petType &&
+          (this.profile.petType !== 'Other' || !!this.profile.petOtherType?.trim()) &&
+          (this.profile.petType === 'None' || Number(this.profile.petCount) >= 1)
+        );
       case 11:
         return this.profile.topPriorities.length === 5;
       default:
@@ -577,7 +601,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['adults', 'children', 'childrenAgeGroups'], ['bedrooms'],
       ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
       ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized'],
-      ['lifestyles'], ['hasPet'], ['topPriorities'],
+      ['lifestyles'], ['hasPet', 'petType', 'petOtherType', 'petCount'], ['topPriorities'],
     ];
     for (const key of fields[step]) {
       const value = EMPTY_HOME_MATCH_PROFILE[key];
@@ -610,6 +634,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       .subscribe({
         next: (response) => {
           this.matches = (Array.isArray(response) ? response : response.matches)
+            .filter((match) => this.matchesPropertyGoal(match))
             .map((match) => applyPriorityScoring(match, this.profile))
             .sort((a, b) => (b.rankingScore || 0) - (a.rankingScore || 0));
           this.view = 'results';
@@ -621,6 +646,17 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         },
       });
   }
+
+  private matchesPropertyGoal(match: HomeMatchResult): boolean {
+    const apartment = match.apartment;
+    const text = `${apartment.title || ''} ${apartment.description || ''}`.toLowerCase();
+    const deal = text.match(/deal:\s*([^|\n]+)/i)?.[1]?.trim() || '';
+    return this.profile.propertyGoal === 'Buy'
+      ? deal === 'for sale' || (!deal && text.includes('for sale'))
+      : ['for rent', 'daily rent', 'lease'].includes(deal) ||
+          (!deal && (text.includes('for rent') || text.includes('daily rent')));
+  }
+
   save(): void {
     this.saving = true;
     this.saveMessage = '';

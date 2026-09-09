@@ -26,6 +26,51 @@
   background: #fff;
   box-shadow: 0 28px 80px rgba(15, 27, 50, 0.24);
 }
+.map-only-dialog {
+  width: min(1600px, 96vw);
+  height: 94vh;
+  overflow: hidden;
+}
+.map-only-shell,
+.map-only-shell .draw-map {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 18px;
+}
+.map-only-close {
+  position: absolute;
+  z-index: 6;
+  top: 16px;
+  right: 16px;
+}
+.map-only-actions {
+  position: absolute;
+  z-index: 6;
+  right: 16px;
+  bottom: 28px;
+  display: flex;
+  gap: 8px;
+}
+.map-only-actions button {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-weight: 800;
+}
+.map-only-actions .clear-button {
+  border: 1px solid #dce2ea;
+  background: #fff;
+}
+.map-only-actions .apply-button {
+  color: #fff;
+  background: #451a8f;
+}
+.map-only-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 button {
   border: 0;
   font: inherit;

@@ -801,6 +801,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const results = this.resultsPane?.nativeElement;
     const target = event.target instanceof Element ? event.target : null;
     if (!results || !target || results.contains(target)) return;
+    if (target.closest('app-explore-property-map')) return;
 
     const nestedScroller = target.closest<HTMLElement>(
       '.location-modal-body, .area-picker-column, .popover, .language-menu',

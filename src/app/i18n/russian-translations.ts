@@ -8,6 +8,29 @@ type RussianRule = {
 const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['View more', '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0431\u043e\u043b\u044c\u0448\u0435'],
   ['View less', '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u043c\u0435\u043d\u044c\u0448\u0435'],
+  // AI matching flow
+  ['AI Home Match', 'AI-подбор жилья'],
+  ['Let AI find', 'Позвольте AI найти'],
+  ['your perfect home.', 'ваш идеальный дом.'],
+  ['Start AI Home Match', 'Начать AI-подбор жилья'],
+  ['How It Works', 'Как это работает'],
+  ['Lifestyle', 'Образ жизни'],
+  ['Location', 'Расположение'],
+  ['Home Details', 'Параметры жилья'],
+  ['Preferences', 'Предпочтения'],
+  ['Budget', 'Бюджет'],
+  ['Review', 'Проверка'],
+  ['How do you usually get around?', 'Как вы обычно передвигаетесь?'],
+  ['Car', 'Автомобиль'],
+  ['Metro', 'Метро'],
+  ['Walking', 'Пешком'],
+  ['Public transport', 'Общественный транспорт'],
+  ['Taxi', 'Такси'],
+  ['Multiple methods', 'Несколько способов'],
+  ['Edit Profile', 'Редактировать профиль'],
+  ['Building your profile', 'Ваш профиль формируется'],
+  ['Not selected yet', 'Пока не выбрано'],
+  ['Continue', 'Продолжить'],
   ['Main navigation', 'Главная навигация'],
   ['Velven home', 'Главная Velven'],
   ['Home', 'Главная'],
@@ -140,6 +163,10 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
 
 const RUSSIAN_RULES: RussianRule[] = [
   {
+    pattern: /^Step (\d+) of (\d+)$/i,
+    translate: (match) => `Шаг ${match[1]} из ${match[2]}`,
+  },
+  {
     pattern: /^Show all (\d+) photos$/i,
     translate: (match) => `Показать все фото (${match[1]})`,
   },
@@ -164,6 +191,12 @@ const RUSSIAN_RULES: RussianRule[] = [
 export function russianTranslation(value: string): string | undefined {
   const exact = RUSSIAN_TRANSLATIONS.get(value);
   if (exact) return exact;
+
+  const decorated = value.match(/^(\s*[^A-Za-z]*?)([A-Za-z].*)$/);
+  if (decorated?.[1]) {
+    const translated = RUSSIAN_TRANSLATIONS.get(decorated[2]);
+    if (translated) return `${decorated[1]}${translated}`;
+  }
 
   for (const rule of RUSSIAN_RULES) {
     const match = value.match(rule.pattern);
