@@ -42,7 +42,7 @@
   <main class="wizard-shell" id="how-it-works">
     <section class="question">
       <div class="question-title">
-        <span>{{ step + 1 }}</span>
+        <span>{{ stepNumber }}</span>
         <div>
           <h2>{{ question.title }}</h2>
           <p *ngIf="question.subtitle">{{ question.subtitle }}</p>
@@ -493,7 +493,7 @@
         </div>
       </ng-container>
       <div class="actions">
-        <button type="button" class="back" (click)="back()" [disabled]="step === 0">← Back</button
+        <button type="button" class="back" (click)="back()" [disabled]="stepNumber === 1">← Back</button
         ><button type="button" class="continue" (click)="next()" [disabled]="!canContinue()">
           {{ step === questions.length - 1 ? 'Review My Profile' : 'Continue →' }}
         </button>
@@ -505,9 +505,9 @@
       </div>
       <div class="profile-card-head">
         <h3>Your Lifestyle Profile</h3>
-        <button type="button" (click)="step = 0">✎ Edit Profile</button>
+        <button type="button" (click)="step = 1">✎ Edit Profile</button>
       </div>
-      <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
+      <app-velven-lifestyle-avatar *ngIf="profile.propertyGoal !== 'Buy'" [profile]="profile"></app-velven-lifestyle-avatar>
       <dl>
         <div>
           <dt>
@@ -515,19 +515,19 @@
           </dt>
           <dd>{{ locationLabel }}</dd>
         </div>
-        <div>
+        <div *ngIf="profile.propertyGoal !== 'Buy'">
           <dt>
             <svg aria-hidden="true"><use href="/ai-match-icons.svg#family"></use></svg>Who will live
           </dt>
           <dd>{{ householdLabel }}</dd>
         </div>
-        <div>
+        <div *ngIf="profile.propertyGoal !== 'Buy'">
           <dt>
             <svg aria-hidden="true"><use href="/ai-match-icons.svg#solo"></use></svg>Gender
           </dt>
           <dd>{{ profile.gender || 'Not selected yet' }}</dd>
         </div>
-        <div>
+        <div *ngIf="profile.propertyGoal !== 'Buy'">
           <dt>
             <svg aria-hidden="true"><use href="/ai-match-icons.svg#pet"></use></svg>Pets
           </dt>

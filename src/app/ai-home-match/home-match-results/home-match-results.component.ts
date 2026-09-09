@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { finalize, timeout } from 'rxjs';
 import { HomeMatchResult } from '../models/home-match-result';
 import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
@@ -16,8 +17,9 @@ export class HomeMatchResultsComponent implements OnChanges {
   @Output() edit = new EventEmitter<void>();
   readonly enrichingApartmentIds = new Set<number>();
   private readonly failedImageIndexes = new WeakMap<HTMLImageElement, number>();
+  private readonly attemptedEnrichment = new WeakSet<HomeMatchResult>();
 
-  constructor(private readonly apartmentService: ApartmentService) {}
+  constructor(private readonly apartmentService: ApartmentService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['matches']) {
@@ -55,6 +57,7 @@ export class HomeMatchResultsComponent implements OnChanges {
 
   onImageError(event: Event, result: HomeMatchResult): void {
     const image = event.target as HTMLImageElement;
+    if (image.classList.contains('placeholder-image')) return;
     const nextIndex = (this.failedImageIndexes.get(image) ?? 0) + 1;
     const nextImage = this.imageCandidates(result)[nextIndex];
     this.failedImageIndexes.set(image, nextIndex);
@@ -66,13 +69,20 @@ export class HomeMatchResultsComponent implements OnChanges {
 
   private enrichApartment(result: HomeMatchResult, image?: HTMLImageElement): void {
     const apartmentId = Number(result.apartment.id);
-    if (!Number.isFinite(apartmentId) || this.enrichingApartmentIds.has(apartmentId)) {
+    if (!Number.isFinite(apartmentId) || this.enrichingApartmentIds.has(apartmentId) || this.attemptedEnrichment.has(result)) {
       if (image) this.showPlaceholder(image);
       return;
     }
 
+    this.attemptedEnrichment.add(result);
     this.enrichingApartmentIds.add(apartmentId);
-    this.apartmentService.getApartment(apartmentId).subscribe({
+    this.apartmentService.getApartment(apartmentId).pipe(
+      timeout(15000),
+      finalize(() => {
+        this.enrichingApartmentIds.delete(apartmentId);
+        this.cdr.markForCheck();
+      }),
+    ).subscribe({
       next: (apartment) => {
         Object.assign(result.apartment, apartment);
         this.enrichingApartmentIds.delete(apartmentId);

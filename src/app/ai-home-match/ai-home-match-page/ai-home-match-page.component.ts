@@ -3,7 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { HomeMatchResult } from '../models/home-match-result';
 import { HomeMatchOption, HomeMatchQuestion } from '../models/home-match-question';
-import { HomeMatchProfile } from '../models/home-match-profile';
+import { EMPTY_HOME_MATCH_PROFILE, HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchService } from '../services/home-match.service';
 import { GeoJsonPolygon } from '../../services/apartment.service';
 import { applyPriorityScoring } from '../services/priority-scoring';
@@ -100,7 +100,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     ['Car', 'Metro', 'Walking', 'PublicTransport', 'Taxi', 'MultipleMethods'],
   );
   profile: HomeMatchProfile;
-  step = 0;
+  step = 1;
   mapVisible = false;
   pendingMapArea = '';
   get fixedHousehold(): boolean {
@@ -171,7 +171,16 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return this.questions[this.step];
   }
   get progress(): number {
-    return ((this.step + 1) / this.questions.length) * 100;
+    return (this.stepNumber / this.visibleSteps.length) * 100;
+  }
+  get visibleSteps(): number[] {
+    return [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((step) =>
+      !(this.profile.propertyGoal === 'Buy' && [0, 4, 5, 10].includes(step)) &&
+      !(step === 5 && this.fixedHousehold),
+    );
+  }
+  get stepNumber(): number {
+    return this.visibleSteps.indexOf(this.step) + 1;
   }
   get budgetSliderMax(): number {
     const buying = this.profile.propertyGoal === 'Buy';
@@ -192,7 +201,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   get currentPhase(): number {
     return Math.min(
       this.phaseLabels.length - 1,
-      Math.floor((this.step * this.phaseLabels.length) / this.questions.length),
+      Math.floor(((this.stepNumber - 1) * this.phaseLabels.length) / this.visibleSteps.length),
     );
   }
   get householdLabel(): string {
@@ -217,7 +226,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     document.querySelector('.wizard-shell')?.scrollIntoView({ behavior: 'smooth' });
   }
   get suggestedPriorities(): HomeMatchOption[] {
-    return this.generateSuggestedPriorities();
+    const rank = (value: unknown): number => {
+      const index = this.profile.topPriorities.indexOf(String(value));
+      return index < 0 ? Infinity : index;
+    };
+    return this.generateSuggestedPriorities().sort((a, b) => rank(a.value) - rank(b.value));
   }
   get currentStepIcon(): string {
     return (
@@ -370,6 +383,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     value: string,
   ): void {
     (this.profile as Record<typeof key, string | undefined>)[key] = value;
+    if (key === 'propertyGoal') {
+      for (const step of [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) this.clearStep(step);
+    }
     if (key === 'householdType') {
       const householdDefaults: Record<string, { adults: number; children: number }> = {
         JustMe: { adults: 1, children: 0 },
@@ -527,7 +543,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.profile.budgetMax = this.budgetForm.controls.max.value;
       this.profile.currency = this.budgetForm.controls.currency.value;
     }
-    if (this.step === 10) {
+    if (this.visibleSteps[this.stepNumber] === 11) {
       const suggestions = new Set(this.generateSuggestedPriorities().map((option) => option.value));
       this.profile.topPriorities = this.profile.topPriorities.filter((value) =>
         suggestions.has(value),
@@ -535,11 +551,39 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     }
     this.persist();
     if (this.step < this.questions.length - 1) {
-      this.step += this.step === 4 && this.fixedHousehold ? 2 : 1;
+      this.step = this.visibleSteps[this.stepNumber];
     } else this.view = 'review';
   }
   back(): void {
-    if (this.step > 0) this.step -= this.step === 6 && this.fixedHousehold ? 2 : 1;
+    const previous = this.visibleSteps[this.stepNumber - 2];
+    if (previous === undefined) return;
+    const order = [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    for (const step of order.slice(order.indexOf(previous))) this.clearStep(step);
+    this.step = previous;
+    this.persist();
+  }
+  private clearStep(step: number): void {
+    const fields: (keyof HomeMatchProfile)[][] = [
+      ['gender'], ['propertyGoal'],
+      ['districts', 'locationFlexible', 'selectedMapArea', 'proximityTarget', 'proximityAddress', 'proximityLatitude', 'proximityLongitude'],
+      ['budgetMin', 'budgetMax', 'currency'],
+      ['householdType', 'adults', 'children', 'childrenAgeGroups'],
+      ['adults', 'children', 'childrenAgeGroups'], ['bedrooms'],
+      ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
+      ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized'],
+      ['lifestyles'], ['hasPet'], ['topPriorities'],
+    ];
+    for (const key of fields[step]) {
+      const value = EMPTY_HOME_MATCH_PROFILE[key];
+      Object.assign(this.profile, { [key]: Array.isArray(value) ? [] : value });
+    }
+    if (step === 2) {
+      this.mapVisible = false;
+      this.pendingMapArea = '';
+    }
+    if (step === 3) this.budgetForm.reset({
+      min: this.profile.budgetMin, max: this.profile.budgetMax, currency: this.profile.currency,
+    });
   }
   edit(): void {
     this.view = 'questions';

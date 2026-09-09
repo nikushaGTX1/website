@@ -48,7 +48,7 @@
         ></strong>
       </div>
       <div class="facts">
-        <span *ngIf="result.apartment.bedrooms !== undefined"
+        <span *ngIf="result.apartment.bedrooms != null"
           >{{ result.apartment.bedrooms }} bedrooms</span
         ><span *ngIf="result.apartment.bathrooms">{{ result.apartment.bathrooms }} bathrooms</span
         ><span *ngIf="result.apartment.sizeSquareMeters"
@@ -85,30 +85,31 @@
         </li>
       </ul>
       <section class="nearby-times" aria-live="polite">
-        <h3>Live Google walking times</h3>
-        <p *ngIf="enrichingApartmentIds.has(result.apartment.id)">
-          Checking places near this apartment…
+        <h3>Nearby walking times</h3>
+        <p *ngIf="!hasNearbyTimes(result) && enrichingApartmentIds.has(result.apartment.id)">
+          Loading apartment details…
         </p>
+        <p *ngIf="!hasNearbyTimes(result) && !enrichingApartmentIds.has(result.apartment.id)">Walking times are not available for this apartment.</p>
         <div *ngIf="hasNearbyTimes(result)" class="nearby-time-grid">
-          <span *ngIf="result.apartment.schoolDistanceMinutes !== undefined"
+          <span *ngIf="result.apartment.schoolDistanceMinutes != null"
             ><b>Nearest school</b>{{ result.apartment.schoolDistanceMinutes }} min walk</span
           >
-          <span *ngIf="result.apartment.kindergartenDistanceMinutes !== undefined"
+          <span *ngIf="result.apartment.kindergartenDistanceMinutes != null"
             ><b>Nearest kindergarten</b>{{ result.apartment.kindergartenDistanceMinutes }} min
             walk</span
           >
-          <span *ngIf="result.apartment.groceryDistanceMinutes !== undefined"
+          <span *ngIf="result.apartment.groceryDistanceMinutes != null"
             ><b>Nearest grocery</b>{{ result.apartment.groceryDistanceMinutes }} min walk</span
           >
-          <span *ngIf="result.apartment.gymDistanceMinutes !== undefined"
+          <span *ngIf="result.apartment.gymDistanceMinutes != null"
             ><b>Nearest gym</b>{{ result.apartment.gymDistanceMinutes }} min walk</span
           >
-          <span *ngIf="result.apartment.metroDistanceMinutes !== undefined"
+          <span *ngIf="result.apartment.metroDistanceMinutes != null"
             ><b>Nearest metro</b>{{ result.apartment.metroDistanceMinutes }} min walk</span
           >
         </div>
         <small *ngIf="hasNearbyTimes(result)"
-          >Walking times are based on the apartment's live location data.</small
+          >Walking times are provided in the apartment listing.</small
         >
       </section>
       <p class="warning" *ngFor="let warning of result.warnings">⚠ {{ warning }}</p>

@@ -20,7 +20,7 @@
         {{ profile.children }} child{{ profile.children === 1 ? '' : 'ren' }}</strong
       >
     </div>
-    <div>
+    <div *ngIf="profile.propertyGoal !== 'Buy'">
       <span>Gender</span><strong>{{ profile.gender }}</strong>
     </div>
     <div>
@@ -51,7 +51,7 @@
         profile.parkingAutomaticallyPrioritized ? 'Automatically prioritized' : 'Not prioritized'
       }}</strong>
     </div>
-    <div>
+    <div *ngIf="profile.propertyGoal !== 'Buy'">
       <span>Pet</span><strong>{{ profile.hasPet ? 'Yes' : 'No' }}</strong>
     </div>
   </div>
