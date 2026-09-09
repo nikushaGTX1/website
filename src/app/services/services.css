@@ -103,8 +103,16 @@
 
 .service-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 18px 22px;
+}
+
+.service-card {
+  grid-column: span 2;
+}
+
+.service-card:nth-child(4) {
+  grid-column: 2 / span 2;
 }
 
 .service-card {
@@ -301,6 +309,11 @@
 @media (max-width: 1050px) {
   .service-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .service-card,
+  .service-card:nth-child(4) {
+    grid-column: auto;
   }
 
   .contact-banner {

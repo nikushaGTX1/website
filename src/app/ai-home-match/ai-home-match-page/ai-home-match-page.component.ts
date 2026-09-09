@@ -409,6 +409,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     value: string,
     max?: number,
   ): void {
+    if (key === 'transportation') {
+      this.profile.transportation = [value];
+      this.profile.parkingAutomaticallyPrioritized = value === 'Car';
+      this.persist();
+      return;
+    }
     if (key === 'childrenAgeGroups') max = this.profile.children;
     if (key === 'lifestyles') max = 3;
     let values = this.profile[key];
@@ -416,8 +422,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     else if (max === undefined || values.length < max) values = [...values, value];
     this.profile[key] = values;
     if (key === 'districts' && values.length) this.profile.locationFlexible = false;
-    if (key === 'transportation')
-      this.profile.parkingAutomaticallyPrioritized = values.includes('Car');
     this.persist();
   }
   flexible(): void {

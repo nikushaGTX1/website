@@ -237,9 +237,44 @@
 
 /* --- Secondary Stats --- */
 .secondary-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 18px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: none;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.05);
+}
+
+.secondary-stats .stat-item {
+  min-width: 0;
+  padding: 18px;
+  align-items: center;
+  border: 1px solid #edf0f5;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #ffffff, #f8f7fc);
+}
+
+.secondary-stats .stat-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background: #f0eaff;
+}
+
+.secondary-stats .stat-item h3 {
+  margin: 0 0 2px;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.secondary-stats .stat-title,
+.secondary-stats .stat-desc {
+  margin-bottom: 0;
+}
+
+.secondary-stats .stat-desc {
+  max-width: 240px;
+  line-height: 1.45;
 }
 
 /* --- Trust Section --- */
@@ -508,6 +543,10 @@
   .trust-grid,
   .mission-grid,
   .footer-top {
+    grid-template-columns: 1fr;
+  }
+
+  .secondary-stats {
     grid-template-columns: 1fr;
   }
 
