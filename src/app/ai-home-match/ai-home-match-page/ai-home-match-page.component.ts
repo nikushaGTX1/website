@@ -133,11 +133,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   loadingMessage = 'Understanding your lifestyle...';
   private loadingTimer?: number;
   budgetForm = new FormGroup({
-    min: new FormControl(1000, {
+    min: new FormControl(0, {
       nonNullable: true,
       validators: [Validators.required, Validators.min(0)],
     }),
-    max: new FormControl(1800, {
+    max: new FormControl(1000, {
       nonNullable: true,
       validators: [Validators.required, Validators.min(0)],
     }),
@@ -175,7 +175,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get visibleSteps(): number[] {
     return [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((step) =>
-      !(this.profile.propertyGoal === 'Buy' && [4, 5, 10].includes(step)) &&
+      !(this.profile.propertyGoal === 'Buy' && [3, 4, 5, 10].includes(step)) &&
       !(step === 5 && this.fixedHousehold),
     );
   }
@@ -183,14 +183,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return this.visibleSteps.indexOf(this.step) + 1;
   }
   get budgetSliderMax(): number {
-    const buying = this.profile.propertyGoal === 'Buy';
-    if (this.budgetForm.controls.currency.value === 'GEL') {
-      return buying ? 5_000_000 : 50_000;
-    }
-    return buying ? 2_000_000 : 20_000;
+    return 10_000;
   }
   get budgetSliderStep(): number {
-    return this.profile.propertyGoal === 'Buy' ? 5_000 : 50;
+    return 50;
   }
   get budgetRangeStart(): number {
     return this.budgetPercent(this.budgetForm.controls.min.value);
@@ -385,6 +381,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     (this.profile as Record<typeof key, string | undefined>)[key] = value;
     if (key === 'propertyGoal') {
       for (const step of [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) this.clearStep(step);
+      if (value === 'Buy') {
+        this.profile.budgetMin = 0;
+        this.profile.budgetMax = 2_000_000;
+        this.profile.currency = 'USD';
+        this.budgetForm.setValue({ min: 0, max: 2_000_000, currency: 'USD' });
+      }
     }
     if (key === 'householdType') {
       const householdDefaults: Record<string, { adults: number; children: number }> = {

@@ -557,7 +557,7 @@
             }}
           </dd>
         </div>
-        <div>
+        <div *ngIf="profile.propertyGoal !== 'Buy'">
           <dt>
             <svg aria-hidden="true"><use href="/ai-match-icons.svg#budget"></use></svg>Budget
           </dt>

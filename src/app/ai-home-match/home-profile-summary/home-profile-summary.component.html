@@ -10,7 +10,7 @@
       <span>Location</span
       ><strong>{{ profile.locationFlexible ? 'Flexible' : list(profile.districts) }}</strong>
     </div>
-    <div>
+    <div *ngIf="profile.propertyGoal !== 'Buy'">
       <span>Budget</span><strong>{{ budget }}</strong>
     </div>
     <div>
