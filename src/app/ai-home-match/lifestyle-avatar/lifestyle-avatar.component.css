@@ -33,7 +33,15 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 3px;
+  gap: 0;
+}
+
+.character-stage.character-group .character-figure + .character-figure {
+  margin-left: -14%;
+}
+
+.character-stage.character-group .adult-figure + .adult-figure {
+  margin-left: -20%;
 }
 
 .avatar-placeholder {
@@ -65,11 +73,11 @@
   position: relative;
   inset: auto;
   height: 100%;
-  width: auto;
+  width: 46%;
   min-width: 0;
-  max-width: 38%;
-  flex: 0 1 auto;
-  aspect-ratio: 0.34;
+  max-width: 46%;
+  flex: 0 1 46%;
+  aspect-ratio: auto;
 }
 
 .character-stage.character-group .character-figure img {
@@ -80,21 +88,16 @@
 }
 
 .character-stage.character-group .character-figure.female-figure {
-  height: 86%;
+  height: 94%;
   align-self: flex-end;
-  aspect-ratio: 0.3;
-}
-
-.character-stage:not(.character-group) .character-figure.female-figure {
-  height: 86%;
-  top: auto;
+  aspect-ratio: auto;
 }
 
 .character-stage.character-group .child-figure {
-  width: 18%;
-  height: 50%;
-  max-width: 18%;
-  flex: 0 1 18%;
+  width: 28%;
+  height: 72%;
+  max-width: 28%;
+  flex: 0 1 28%;
   align-self: flex-end;
   aspect-ratio: auto;
 }
@@ -102,24 +105,25 @@
 .character-stage.character-group .pet-figure {
   position: relative;
   inset: auto;
-  height: 42%;
-  width: 28%;
-  max-width: 28%;
-  flex: 0 1 28%;
+  height: 46%;
+  width: 24%;
+  max-width: 24%;
+  flex: 0 1 24%;
   margin: 0;
   aspect-ratio: 0.67;
   z-index: 3;
 }
 
 .character-stage.character-group .variant-figure {
-  width: 38%;
+  width: 46%;
   height: 100%;
-  flex: 0 1 38%;
+  max-width: 46%;
+  flex: 0 1 46%;
   aspect-ratio: auto;
 }
 
 .character-stage.character-group .character-figure.female-figure.variant-figure {
-  height: 100%;
+  height: 94%;
 }
 
 .character-stage.character-group .couple-figure {
@@ -127,15 +131,8 @@
   aspect-ratio: 0.49;
 }
 
-.character-stage.character-group .couple-figure.variant-figure {
-  width: 72%;
-  max-width: 72%;
-  flex: 0 1 72%;
-  aspect-ratio: 0.67;
-}
-
 .character-stage.character-group.crowded-group {
-  gap: 1px;
+  gap: 0;
 }
 
 .character-stage.character-group.crowded-group .character-figure {
@@ -201,31 +198,4 @@
   * {
     animation: none !important;
   }
-}
-
-/* Keep transparent portrait canvases at the same visible adult height. */
-.character-figure.variant-figure img {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: auto;
-  height: 100%;
-  max-width: none;
-  transform: translateX(-50%);
-}
-
-.character-stage.character-group .couple-figure.variant-figure img {
-  height: 112%;
-}
-
-/* Lifestyle portraits use wider transparent canvases than the base SVGs.
-   Size them by height so the selected adult stays level with other adults. */
-.character-stage.character-group .variant-figure img {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: auto;
-  height: 100%;
-  max-width: none;
-  transform: translateX(-50%);
 }

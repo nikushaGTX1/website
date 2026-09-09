@@ -780,14 +780,10 @@ fieldset button.selected {
 }
 
 .gender-option-image {
-  width: 72px;
+  width: 96px;
   height: 138px;
   flex: 0 0 138px;
   object-fit: contain;
-}
-
-.gender-option-image[src*="woman"] {
-  height: 126px;
 }
 
 .pet-option-image {

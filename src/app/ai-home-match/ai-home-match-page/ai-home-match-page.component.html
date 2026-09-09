@@ -16,7 +16,7 @@
         </div>
       </div>
       <div class="hero-visual" aria-hidden="true">
-        <img src="/ai-match-family.png" alt="" />
+        <img src="/Characters/მთავარი ქალი.png" alt="" />
       </div>
     </div>
   </header>
@@ -56,7 +56,7 @@
             [attr.aria-pressed]="profile.gender === 'Male'"
             (click)="choose('gender', 'Male')"
           >
-            <img class="gender-option-image" src="/man offset fix.svg" alt="" />Male
+            <img class="gender-option-image" src="/Characters/mtavari kaci.png" alt="" />Male
           </button>
           <button
             type="button"
@@ -64,7 +64,7 @@
             [attr.aria-pressed]="profile.gender === 'Female'"
             (click)="choose('gender', 'Female')"
           >
-            <img class="gender-option-image" src="/woman offset fix.svg" alt="" />Female
+            <img class="gender-option-image" src="/Characters/მთავარი ქალი.png" alt="" />Female
           </button>
         </div>
         <div class="options" *ngSwitchCase="1">
@@ -457,8 +457,8 @@
         <div *ngSwitchCase="10">
           <div class="options pet-options">
             <button type="button" [class.selected]="profile.petType === 'None'" (click)="setPetType('None')"><span class="pet-symbol">🚫</span>No</button>
-            <button type="button" [class.selected]="profile.petType === 'Dog'" (click)="setPetType('Dog')"><span class="pet-symbol">🐶</span>Dog</button>
-            <button type="button" [class.selected]="profile.petType === 'Cat'" (click)="setPetType('Cat')"><span class="pet-symbol">🐱</span>Cat</button>
+            <button type="button" [class.selected]="profile.petType === 'Dog'" (click)="setPetType('Dog')"><img class="pet-option-image" src="/Characters/ძაღლი.png" alt="" />Dog</button>
+            <button type="button" [class.selected]="profile.petType === 'Cat'" (click)="setPetType('Cat')"><img class="pet-option-image" src="/Characters/კატა.png" alt="" />Cat</button>
             <button type="button" [class.selected]="profile.petType === 'Other'" (click)="setPetType('Other')"><span class="pet-symbol">🐾</span>Other</button>
           </div>
           <div class="pet-details" *ngIf="profile.petType === 'Other'">
