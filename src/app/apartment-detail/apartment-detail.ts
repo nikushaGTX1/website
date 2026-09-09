@@ -74,6 +74,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   inquirySubmitted = false;
   inquiryError = '';
   inquiryForm: ViewingInquiryForm = this.emptyInquiryForm();
+  mortgagePrice = 0;
+  mortgageDownPayment = 0;
+  mortgageInterestRate = 10;
+  mortgageLoanTermYears = 15;
+  mortgageDetailsOpen = false;
   private realPhotoCount = 0;
   private previouslyFocusedElement: HTMLElement | null = null;
 
@@ -222,6 +227,52 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   get price(): number {
     return this.apartment?.price || 0;
+  }
+
+  get mortgageLoanAmount(): number {
+    return Math.max(0, this.safeMortgageNumber(this.mortgagePrice) - this.safeMortgageNumber(this.mortgageDownPayment));
+  }
+
+  get mortgageMonthlyPayment(): number {
+    const principal = this.mortgageLoanAmount;
+    const months = Math.max(1, this.safeMortgageNumber(this.mortgageLoanTermYears) * 12);
+    const monthlyRate = Math.max(0, this.safeMortgageNumber(this.mortgageInterestRate)) / 1200;
+    if (!principal) return 0;
+    if (!monthlyRate) return principal / months;
+    const growth = Math.pow(1 + monthlyRate, months);
+    return (principal * monthlyRate * growth) / (growth - 1);
+  }
+
+  get mortgageTotalRepayment(): number {
+    return this.mortgageMonthlyPayment * Math.max(1, this.safeMortgageNumber(this.mortgageLoanTermYears) * 12);
+  }
+
+  get mortgageTotalInterest(): number {
+    return Math.max(0, this.mortgageTotalRepayment - this.mortgageLoanAmount);
+  }
+
+  formatMortgageMoney(value: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(Number.isFinite(value) ? value : 0);
+  }
+
+  normalizeMortgageInputs(): void {
+    this.mortgagePrice = Math.max(0, this.safeMortgageNumber(this.mortgagePrice));
+    this.mortgageDownPayment = Math.min(
+      this.mortgagePrice,
+      Math.max(0, this.safeMortgageNumber(this.mortgageDownPayment)),
+    );
+    this.mortgageInterestRate = Math.min(
+      100,
+      Math.max(0, this.safeMortgageNumber(this.mortgageInterestRate)),
+    );
+    this.mortgageLoanTermYears = Math.min(
+      50,
+      Math.max(1, Math.round(this.safeMortgageNumber(this.mortgageLoanTermYears))),
+    );
   }
 
   get listingType(): string {
@@ -816,6 +867,8 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   private applyApartment(apartment: Apartment): void {
     this.apartment = apartment;
+    this.mortgagePrice = Math.max(0, apartment.price || 0);
+    this.mortgageDownPayment = Math.round(this.mortgagePrice * 0.2);
     this.phoneRevealed = false;
     this.agentImageIndex = 0;
     this.galleryImages = this.getApartmentImages(apartment);
@@ -847,10 +900,18 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return value ? 'Yes' : 'No';
   }
 
-  private get isForSale(): boolean {
-    const metadata =
-      `${this.getListingMetadata('Deal')} ${this.getListingMetadata('Listing type')}`.toLowerCase();
-    return metadata.includes('sale') || metadata.includes('buy');
+  get isForSale(): boolean {
+    const deal =
+      this.getListingMetadata('Deal') || this.getListingMetadata('Listing type');
+    if (deal) return /sale|buy|იყიდება|продаж/i.test(deal);
+
+    const title = this.apartment?.title || '';
+    return /for\s+sale|buy|იყიდება|продаж/i.test(title);
+  }
+
+  private safeMortgageNumber(value: number): number {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
   }
 
   private localizedPropertyType(language: 'en' | 'ru'): string {

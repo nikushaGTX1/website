@@ -53,11 +53,6 @@ export class VelvenLifestyleAvatarComponent {
       (): AvatarFigure => ({ src: child, role: 'child' }),
     );
     const selectedPet: AvatarFigure[] = this.profile.hasPet ? [{ src: pet, role: 'pet' }] : [];
-    const hasLifestyleVariant =
-      this.wearsGymOutfit ||
-      this.profile.lifestyles.some((value) =>
-        ['Student', 'BusinessProfessional', 'HostsGuests', 'FrequentTraveler'].includes(value),
-      );
     const primaryWoman = this.profile.gender === 'Female';
     const selectedGenderAdults = primaryWoman
       ? [
@@ -94,19 +89,6 @@ export class VelvenLifestyleAvatarComponent {
     ].includes(this.profile.householdType)
       ? mixedAdults
       : selectedGenderAdults;
-    if (this.profile.adults === 2 && hasLifestyleVariant) {
-      const remainingAdults = availableAdults.slice(2, Math.min(this.profile.adults, 4));
-      const visibleChildren = selectedChildren.slice(
-        0,
-        Math.max(0, 4 - Math.min(this.profile.adults, 4)),
-      );
-      return [
-        { src: this.characterSrc, role: 'couple' },
-        ...remainingAdults,
-        ...visibleChildren,
-        ...selectedPet,
-      ];
-    }
     if (this.profile.householdType === 'Couple') {
       return [
         adult(this.characterSrc, this.profile.gender === 'Female' ? 'Female' : 'Male', true),
@@ -123,19 +105,9 @@ export class VelvenLifestyleAvatarComponent {
   }
 
   variantFigureSrc(figure: AvatarFigure): string {
-    if (figure.role === 'couple') {
-      const lifestyles = new Set(this.profile.lifestyles);
-      if (this.wearsGymOutfit) return this.variantAsset('athlete', 'couple');
-      if (lifestyles.has('Student')) return this.variantAsset('student', 'couple');
-      if (lifestyles.has('BusinessProfessional')) return this.variantAsset('business', 'couple');
-      if (lifestyles.has('HostsGuests')) return this.variantAsset('host', 'couple');
-      if (lifestyles.has('FrequentTraveler')) return this.variantAsset('traveler', 'couple');
-      return figure.src;
-    }
-    if (figure.role !== 'adult' || !figure.primary) return figure.src;
-    if (this.profile.adults > 2) return figure.src;
+    if (figure.role !== 'adult' || !figure.primary || figure.gender !== this.profile.gender) return figure.src;
 
-    const isWoman = figure.src.includes('woman');
+    const isWoman = figure.gender === 'Female';
     const lifestyles = new Set(this.profile.lifestyles);
 
     if (this.wearsGymOutfit) return this.variantAsset('athlete', isWoman);
@@ -147,8 +119,8 @@ export class VelvenLifestyleAvatarComponent {
     return figure.src;
   }
 
-  private variantAsset(variant: string, subjectOrIsWoman: 'couple' | boolean): string {
-    const subject = subjectOrIsWoman === 'couple' ? 'couple' : subjectOrIsWoman ? 'woman' : 'man';
+  private variantAsset(variant: string, isWoman: boolean): string {
+    const subject = isWoman ? 'woman' : 'man';
     return `/avatar-${variant}-${subject}-v1.png`;
   }
 

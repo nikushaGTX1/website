@@ -19,7 +19,7 @@
   max-width: 720px;
   margin: 0 auto 38px;
 }
-.results > header > span,
+.results-intro > span,
 .category {
   color: #5c49cb;
   text-transform: uppercase;
@@ -466,7 +466,65 @@ h1 {
 }
 
 .results-avatar {
-  height: 240px;
-  width: min(100%, 340px);
-  margin: 0 auto 32px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: end center;
+  height: 260px;
+  padding: 20px 20px 30px;
+  box-sizing: border-box;
+  border: 1px solid #e8e1f3;
+  border-radius: 110px 110px 24px 24px;
+  background: linear-gradient(180deg, #faf8ff, #eee8f6);
+}
+.results-avatar::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  bottom: 18px;
+  left: 8%;
+  width: 84%;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #77618e40, #77618e0a 65%, transparent 72%);
+}
+.results-avatar app-velven-lifestyle-avatar {
+  width: 100%;
+  height: 100%;
+}
+.results > header {
+  max-width: none;
+  margin-bottom: 32px;
+}
+.results > header.with-avatar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: center;
+  gap: 40px;
+  text-align: left;
+}
+.results-intro h1 {
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.18;
+  margin: 12px 0 16px;
+  overflow-wrap: anywhere;
+}
+.results-intro p {
+  margin: 0;
+  line-height: 1.65;
+}
+@media (max-width: 720px) {
+  .results {
+    padding: 32px 16px 56px;
+  }
+  .results > header.with-avatar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    text-align: center;
+  }
+  .results-avatar {
+    width: min(100%, 280px);
+    height: 220px;
+    margin: 0 auto;
+  }
 }

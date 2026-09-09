@@ -218,11 +218,14 @@
   height: 112%;
 }
 
-/* Keep each portrait inside its allocated space as the household grows. */
+/* Lifestyle portraits use wider transparent canvases than the base SVGs.
+   Size them by height so the selected adult stays level with other adults. */
 .character-stage.character-group .variant-figure img {
-  position: static;
-  width: 100%;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: auto;
   height: 100%;
-  max-width: 100%;
-  transform: none;
+  max-width: none;
+  transform: translateX(-50%);
 }

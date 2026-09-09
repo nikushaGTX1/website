@@ -1,15 +1,17 @@
 <section class="results">
-  <header>
+  <header [class.with-avatar]="profile.gender && profile.propertyGoal !== 'Buy'">
+    <div class="results-intro">
     <span>Velven recommendations</span>
     <h1>Your AI Home Matches</h1>
     <p>
       We found {{ matches.length }} home{{ matches.length === 1 ? '' : 's' }} ranked by how well
       they fit your lifestyle.
     </p>
-  </header>
-  <div class="results-avatar">
+    </div>
+  <div class="results-avatar" *ngIf="profile.gender && profile.propertyGoal !== 'Buy'">
     <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
   </div>
+  </header>
   <div class="empty" *ngIf="!matches.length">
     <h2>We could not find a strong match yet.</h2>
     <p>

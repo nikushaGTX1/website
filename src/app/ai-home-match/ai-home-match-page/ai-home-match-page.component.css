@@ -59,8 +59,8 @@
 }
 .question {
   min-width: 0;
-  max-height: 580px; 
-  height: 100%;
+  max-height: none;
+  height: auto;
   padding: 8px 38px 24px 0;
   display: flex;
   flex-direction: column;
@@ -326,18 +326,11 @@ fieldset input,
   min-height: 110px;
   resize: vertical;
 }
-section {
+.question {
   position: relative;
-  display: flex;
-  min-height: 600px; /* Set your fixed modal height */
-  flex-direction: column;
 }
 
-.content-area, 
-ng-container {
-  flex: 1; /* Pushes .actions to the very bottom */
-  overflow-y: auto; /* Allows content to scroll if it exceeds max height */
-}
+
 
 .actions {
   display: flex;
@@ -675,7 +668,7 @@ ng-container {
 
 .question {
   min-width: 0;
-  min-height: 560px;
+  min-height: 0;
   padding: 8px 38px 24px 0;
   display: flex;
   flex-direction: column;
@@ -912,16 +905,16 @@ fieldset {
 .question > [ngswitchcase],
 .question > div:not(.question-title):not(.actions),
 .question > form {
-  flex: 1 1 auto;
-  min-height: 0; /* Critical for flex child scrolling */
-  overflow-y: auto;
-  padding-right: 8px; /* Adds space so custom scrollbar doesn't clip content */
+  flex: 0 0 auto;
+  min-height: 0;
+  overflow: visible;
+  padding-right: 0; /* Adds space so custom scrollbar doesn't clip content */
 }
 
 .question > .actions {
   position: relative; /* Removes need for sticky position */
   z-index: 4;
-  margin-top: auto;   /* Pushes actions container to the bottom */
+  margin-top: 28px;
   padding: 20px 0 4px;
   background: #fff;
   border-top: 1px solid #e5e7eb;
@@ -1165,7 +1158,7 @@ fieldset {
   }
 
   .question {
-    min-height: 540px;
+    min-height: 0;
   }
 
   .question fieldset {
@@ -1230,5 +1223,78 @@ fieldset {
 
   .question > .actions button {
     padding-inline: 12px;
+  }
+}
+
+/* Content-sized questions keep short choices compact and long forms on the page. */
+.phase-progress {
+  box-sizing: border-box;
+}
+.question-title {
+  flex-shrink: 0;
+  margin-bottom: 24px;
+}
+.question h2 {
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.2;
+}
+.question-title p {
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+.question .options {
+  align-content: start;
+  grid-auto-rows: auto;
+}
+.question .options button,
+.question fieldset button {
+  min-height: 112px;
+  padding: 18px 20px;
+  gap: 10px;
+  font-size: 16px;
+}
+.question .gender-first-step button {
+  min-height: 230px;
+}
+.question > .actions {
+  flex: 0 0 auto;
+  gap: 16px;
+  margin-top: 28px;
+}
+.question > .actions button {
+  min-height: 56px;
+  padding: 16px 26px;
+  font-size: 17px;
+}
+.profile-card-head {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding-right: 30px;
+}
+@media (max-width: 900px) {
+  .profile-card {
+    order: 0;
+  }
+  .velven main.wizard-shell {
+    gap: 28px;
+  }
+}
+@media (max-width: 640px) {
+  .question {
+    min-height: 0;
+    padding: 0;
+  }
+  .question-title {
+    margin-bottom: 20px;
+  }
+  .question > .actions {
+    margin-top: 24px;
+    gap: 12px;
+  }
+  .question > .actions button {
+    max-width: 70%;
+  }
+  .gender-first-step {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
