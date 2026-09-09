@@ -168,6 +168,31 @@
               </div>
             </div>
           </section>
+          <section class="mortgage-calculator" *ngIf="isForSale" aria-labelledby="mortgage-title">
+            <header>
+              <span class="mortgage-icon"><i class="fa-solid fa-house"></i></span>
+              <div><h2 id="mortgage-title">Mortgage Calculator</h2><p>Estimate your monthly payment</p></div>
+              <span class="mortgage-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Plan smarter</span>
+            </header>
+            <div class="mortgage-fields">
+              <label><span>Property price</span><div class="mortgage-fixed"><i class="fa-solid fa-house"></i><b>$</b><input type="text" [value]="mortgagePrice | number: '1.0-0'" readonly aria-readonly="true" /></div></label>
+              <label class="mortgage-adjustable"><span>Down payment</span><div><i class="fa-solid fa-coins"></i><b>$</b><input type="number" min="0" [max]="mortgagePrice" step="1000" [(ngModel)]="mortgageDownPayment" (input)="normalizeMortgageInputs()" /></div><input class="mortgage-range" type="range" min="0" [max]="mortgagePrice" [step]="mortgagePrice >= 10000 ? 1000 : 100" [(ngModel)]="mortgageDownPayment" [style.--range-progress.%]="mortgageDownPaymentProgress" aria-label="Down payment" /></label>
+              <label><span>Interest rate</span><div class="mortgage-fixed"><i class="fa-solid fa-percent"></i><input type="number" [value]="mortgageInterestRate" readonly aria-readonly="true" /><b>%</b></div></label>
+              <label class="mortgage-adjustable"><span>Loan term</span><div><i class="fa-regular fa-calendar"></i><input type="number" min="1" max="50" step="1" [(ngModel)]="mortgageLoanTermYears" (input)="normalizeMortgageInputs()" /><b>years</b></div><input class="mortgage-range" type="range" min="1" max="50" step="1" [(ngModel)]="mortgageLoanTermYears" [style.--range-progress.%]="mortgageLoanTermProgress" aria-label="Loan term in years" /></label>
+            </div>
+            <div class="mortgage-summary">
+              <div class="mortgage-loan"><span><i class="fa-solid fa-calculator"></i></span><p>Loan amount<strong>{{ formatMortgageMoney(mortgageLoanAmount) }}</strong></p></div>
+              <div class="mortgage-payment" aria-live="polite"><span><i class="fa-solid fa-chart-column"></i></span><p>Estimated monthly payment<strong>{{ formatMortgageMoney(mortgageMonthlyPayment) }} <small>/ month</small></strong></p></div>
+            </div>
+            <div class="mortgage-details" *ngIf="mortgageDetailsOpen">
+              <p><span>Principal</span><strong>{{ formatMortgageMoney(mortgageLoanAmount) }}</strong></p>
+              <p><span>Total interest</span><strong>{{ formatMortgageMoney(mortgageTotalInterest) }}</strong></p>
+              <p><span>Total repayment</span><strong>{{ formatMortgageMoney(mortgageTotalRepayment) }}</strong></p>
+            </div>
+            <button type="button" class="mortgage-advisor" (click)="scheduleViewing()">Talk to an advisor <i class="fa-solid fa-arrow-right"></i></button>
+            <button type="button" class="mortgage-toggle" (click)="mortgageDetailsOpen = !mortgageDetailsOpen" [attr.aria-expanded]="mortgageDetailsOpen">{{ mortgageDetailsOpen ? 'Hide' : 'View' }} details <i class="fa-solid" [class.fa-chevron-up]="mortgageDetailsOpen" [class.fa-chevron-down]="!mortgageDetailsOpen"></i></button>
+            <footer><i class="fa-solid fa-shield-halved"></i> Your information is secure and never shared. This is an illustrative estimate.</footer>
+          </section>
           <section class="vp-service">
             <div>
               <small>THE VELVEN WAY</small>
@@ -243,31 +268,6 @@
               ><i class="fa-solid fa-phone"></i
             ></a>
           </div>
-        </section>
-        <section class="mortgage-calculator" *ngIf="isForSale" aria-labelledby="mortgage-title">
-          <header>
-            <span class="mortgage-icon"><i class="fa-solid fa-house"></i></span>
-            <div><h2 id="mortgage-title">Mortgage Calculator</h2><p>Estimate your monthly payment</p></div>
-            <span class="mortgage-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Plan smarter</span>
-          </header>
-          <div class="mortgage-fields">
-            <label><span>Property price</span><div><i class="fa-solid fa-house"></i><b>$</b><input type="number" min="0" step="1000" [(ngModel)]="mortgagePrice" (change)="normalizeMortgageInputs()" /></div></label>
-            <label><span>Down payment</span><div><i class="fa-solid fa-coins"></i><b>$</b><input type="number" min="0" [max]="mortgagePrice" step="1000" [(ngModel)]="mortgageDownPayment" (change)="normalizeMortgageInputs()" /></div></label>
-            <label><span>Interest rate</span><div><i class="fa-solid fa-percent"></i><input type="number" min="0" max="100" step="0.1" [(ngModel)]="mortgageInterestRate" (change)="normalizeMortgageInputs()" /><b>%</b></div></label>
-            <label><span>Loan term</span><div><i class="fa-regular fa-calendar"></i><input type="number" min="1" max="50" step="1" list="mortgage-term-options" [(ngModel)]="mortgageLoanTermYears" (input)="normalizeMortgageInputs()" /><b>yrs</b><datalist id="mortgage-term-options"><option value="5"></option><option value="10"></option><option value="15"></option><option value="20"></option><option value="25"></option><option value="30"></option></datalist></div></label>
-          </div>
-          <div class="mortgage-summary">
-            <div class="mortgage-loan"><span><i class="fa-solid fa-calculator"></i></span><p>Loan amount<strong>{{ formatMortgageMoney(mortgageLoanAmount) }}</strong></p></div>
-            <div class="mortgage-payment" aria-live="polite"><span><i class="fa-solid fa-chart-column"></i></span><p>Estimated monthly payment<strong>{{ formatMortgageMoney(mortgageMonthlyPayment) }} <small>/ month</small></strong></p></div>
-          </div>
-          <div class="mortgage-details" *ngIf="mortgageDetailsOpen">
-            <p><span>Principal</span><strong>{{ formatMortgageMoney(mortgageLoanAmount) }}</strong></p>
-            <p><span>Total interest</span><strong>{{ formatMortgageMoney(mortgageTotalInterest) }}</strong></p>
-            <p><span>Total repayment</span><strong>{{ formatMortgageMoney(mortgageTotalRepayment) }}</strong></p>
-          </div>
-          <button type="button" class="mortgage-advisor" (click)="scheduleViewing()">Talk to an advisor <i class="fa-solid fa-arrow-right"></i></button>
-          <button type="button" class="mortgage-toggle" (click)="mortgageDetailsOpen = !mortgageDetailsOpen" [attr.aria-expanded]="mortgageDetailsOpen">{{ mortgageDetailsOpen ? 'Hide' : 'View' }} details <i class="fa-solid" [class.fa-chevron-up]="mortgageDetailsOpen" [class.fa-chevron-down]="!mortgageDetailsOpen"></i></button>
-          <footer><i class="fa-solid fa-shield-halved"></i> Illustrative estimate, not a loan offer.</footer>
         </section>
         </aside>
       </div>

@@ -251,6 +251,16 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return Math.max(0, this.mortgageTotalRepayment - this.mortgageLoanAmount);
   }
 
+  get mortgageDownPaymentProgress(): number {
+    return this.mortgagePrice
+      ? Math.min(100, Math.max(0, (this.mortgageDownPayment / this.mortgagePrice) * 100))
+      : 0;
+  }
+
+  get mortgageLoanTermProgress(): number {
+    return Math.min(100, Math.max(0, ((this.mortgageLoanTermYears - 1) / 49) * 100));
+  }
+
   formatMortgageMoney(value: number): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
