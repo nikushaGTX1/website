@@ -107,6 +107,13 @@ img {
   height: auto;
 }
 
+/* Google Maps positions fixed-size tiles and rendering canvases internally.
+ * Do not apply the site's responsive media constraints inside a map. */
+.gm-style img,
+.gm-style canvas {
+  max-width: none;
+}
+
 [data-protected-image] img,
 img[data-protected-photo] {
   -webkit-user-drag: none;

@@ -88,6 +88,8 @@ export class Main implements OnInit {
   public advancedFiltersOpen = false;
   drawAreaOpen = false;
   drawAreaInitialized = false;
+  private readonly propertyImageIndexes = new Map<number, number>();
+  private readonly hydratedApartmentIds = new Set<number>();
 
   constructor(
     private apartmentService: ApartmentService,
@@ -123,6 +125,50 @@ export class Main implements OnInit {
         console.error('Favorite API error:', error);
       },
     });
+  }
+
+  getApartmentGallery(apartment: Apartment): string[] {
+    const images = [
+      ...(apartment.imageUrls || []),
+      apartment.imageUrl,
+      ...(apartment.images || []).map((image) => image.url || image.storagePath),
+    ]
+      .map((image) => toMediaUrl(image))
+      .filter((image): image is string => !!image);
+    return [...new Set(images)].length ? [...new Set(images)] : ['/property-placeholder.svg'];
+  }
+
+  getApartmentCardImage(apartment: Apartment): string {
+    const gallery = this.getApartmentGallery(apartment);
+    const index = Math.min(this.propertyImageIndexes.get(apartment.id) || 0, gallery.length - 1);
+    return gallery[index];
+  }
+
+  getApartmentCardImageIndex(apartment: Apartment): number {
+    return this.propertyImageIndexes.get(apartment.id) || 0;
+  }
+
+  getApartmentCardDotIndexes(apartment: Apartment): number[] {
+    const count = this.getApartmentGallery(apartment).length;
+    if (count <= 5) return Array.from({ length: count }, (_, index) => index);
+
+    const current = this.getApartmentCardImageIndex(apartment);
+    const start = Math.min(Math.max(current - 2, 0), count - 5);
+    return Array.from({ length: 5 }, (_, index) => start + index);
+  }
+
+  changeApartmentCardImage(event: Event, apartment: Apartment, direction: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const gallery = this.getApartmentGallery(apartment);
+    const current = this.getApartmentCardImageIndex(apartment);
+    this.propertyImageIndexes.set(apartment.id, (current + direction + gallery.length) % gallery.length);
+  }
+
+  setApartmentCardImage(event: Event, apartment: Apartment, index: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.propertyImageIndexes.set(apartment.id, index);
   }
 
   get budgetSummary(): string {
@@ -647,9 +693,15 @@ export class Main implements OnInit {
 
     this.apartmentService.getApartments().subscribe({
       next: (data) => {
-        this.apartments = data;
+        this.apartments = data.map((apartment) => {
+          const current = this.apartments.find((item) => item.id === apartment.id);
+          return current && this.getApartmentGallery(current).length > 1
+            ? { ...apartment, images: current.images, imageUrls: current.imageUrls, imageUrl: current.imageUrl }
+            : apartment;
+        });
         this.loading = false;
         this.cdr.detectChanges();
+        this.hydrateHomepageGalleries();
       },
       error: (err) => {
         console.error('Apartment API error:', err);
@@ -657,6 +709,28 @@ export class Main implements OnInit {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  private hydrateHomepageGalleries(): void {
+    for (const apartment of this.topApartments) {
+      if (this.hydratedApartmentIds.has(apartment.id)) continue;
+      this.hydratedApartmentIds.add(apartment.id);
+
+      this.apartmentService.getApartment(apartment.id).subscribe({
+        next: (detailedApartment) => {
+          this.hydratedApartmentIds.delete(apartment.id);
+          const index = this.apartments.findIndex((item) => item.id === detailedApartment.id);
+          if (index === -1) return;
+          this.apartments = [
+            ...this.apartments.slice(0, index),
+            detailedApartment,
+            ...this.apartments.slice(index + 1),
+          ];
+          this.cdr.detectChanges();
+        },
+        error: () => this.hydratedApartmentIds.delete(apartment.id),
+      });
+    }
   }
 
   loadAgents(): void {

@@ -139,12 +139,12 @@ export class HomeMatchResultsComponent implements OnChanges {
 
   latitude(result: HomeMatchResult): number | undefined {
     const value = Number(result.apartment.propertyLatitude ?? result.apartment.latitude);
-    return Number.isFinite(value) ? value : undefined;
+    return Number.isFinite(value) && value >= 40.8 && value <= 43.7 ? value : undefined;
   }
 
   longitude(result: HomeMatchResult): number | undefined {
     const value = Number(result.apartment.propertyLongitude ?? result.apartment.longitude);
-    return Number.isFinite(value) ? value : undefined;
+    return Number.isFinite(value) && value >= 39.8 && value <= 46.8 ? value : undefined;
   }
 
   mapsUrl(result: HomeMatchResult): string {

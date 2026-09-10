@@ -569,12 +569,40 @@
             ><i class="fa-solid fa-circle-check"></i> Verified</span
           >
           <img
-            [src]="getApartmentImage(apartment)"
+            [src]="getApartmentCardImage(apartment)"
             [alt]="getApartmentTitle(apartment)"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'"
             [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
             decoding="async"
           />
+          <button
+            type="button"
+            class="property-gallery-arrow previous"
+            aria-label="Previous property image"
+            [disabled]="getApartmentGallery(apartment).length <= 1"
+            (click)="changeApartmentCardImage($event, apartment, -1)"
+          >
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            class="property-gallery-arrow next"
+            aria-label="Next property image"
+            [disabled]="getApartmentGallery(apartment).length <= 1"
+            (click)="changeApartmentCardImage($event, apartment, 1)"
+          >
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+          </button>
+          <div class="property-gallery-dots" aria-label="Property images">
+            <button
+              type="button"
+              *ngFor="let imageIndex of getApartmentCardDotIndexes(apartment)"
+              [class.active]="getApartmentCardImageIndex(apartment) === imageIndex"
+              [attr.aria-label]="'Show property image ' + (imageIndex + 1)"
+              [attr.aria-current]="getApartmentCardImageIndex(apartment) === imageIndex ? 'true' : null"
+              (click)="setApartmentCardImage($event, apartment, imageIndex)"
+            ></button>
+          </div>
           <button
             type="button"
             class="favorite"
@@ -701,7 +729,7 @@
       </p>
       <a routerLink="/ai-home-match">Try AI Match <span>✦</span></a>
     </div>
-    <img class="ai-sportsman" src="/avatar-business-man-v1.png" alt="" aria-hidden="true" />
+    <img class="ai-sportsman" src="/ojaxi.png" alt="" aria-hidden="true" />
     <div class="ai-orb">✦</div>
     <div class="ai-preview">
       <img

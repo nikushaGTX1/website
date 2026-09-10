@@ -207,14 +207,19 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       setOptions({
         key: apiKey,
         v: 'weekly',
-        ...(mapId ? { mapIds: [mapId] } : {}),
+        ...(!this.compact && mapId ? { mapIds: [mapId] } : {}),
       });
       const [{ Map }, { Geocoder }] = await Promise.all([
         importLibrary('maps') as Promise<google.maps.MapsLibrary>,
         importLibrary('geocoding') as Promise<google.maps.GeocodingLibrary>,
       ]);
       const hasCoordinates =
-        Number.isFinite(this.latitude) && Number.isFinite(this.longitude);
+        Number.isFinite(this.latitude) &&
+        Number.isFinite(this.longitude) &&
+        this.latitude! >= 40.8 &&
+        this.latitude! <= 43.7 &&
+        this.longitude! >= 39.8 &&
+        this.longitude! <= 46.8;
       const location = hasCoordinates
         ? new google.maps.LatLng(this.latitude!, this.longitude!)
         : (await new Geocoder().geocode({ address: `${this.address}, Georgia` }))
@@ -224,7 +229,8 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.map = new Map(this.mapContainer.nativeElement, {
         center: location,
         zoom: 14,
-        ...(mapId ? { mapId } : {}),
+        ...(!this.compact && mapId ? { mapId } : {}),
+        ...(this.compact ? { renderingType: google.maps.RenderingType.RASTER } : {}),
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,

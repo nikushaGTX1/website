@@ -254,6 +254,41 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V7l6-4 6 4v14M9 10h2M13 10h2M9 14h2M13 14h2M10 21v-3h4v3"></path></svg>
         New building
       </button>
+      <div class="condition-filter" *ngIf="selectedType === 'For Sale'">
+        <button
+          class="chip compact-filter-chip condition-trigger"
+          type="button"
+          [class.selected]="selectedConditions.length > 0"
+          [attr.aria-expanded]="conditionOpen"
+          aria-haspopup="listbox"
+          (click)="$event.stopPropagation(); toggleConditionMenu()"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6 20v-8l6-7 6 7v8M9 20v-5h6v5"></path><path d="m16.5 4 .5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5.5-1.5Z"></path></svg>
+          <span><span>Condition</span><span *ngIf="selectedConditions.length"> ({{ selectedConditions.length }})</span></span>
+          <svg class="condition-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg>
+        </button>
+        <div
+          class="chip-popover condition-popover"
+          *ngIf="conditionOpen"
+          role="listbox"
+          aria-label="Property condition"
+          aria-multiselectable="true"
+          (click)="$event.stopPropagation()"
+        >
+          <h3>Condition</h3>
+          <button
+            type="button"
+            *ngFor="let condition of conditionOptions"
+            role="option"
+            [class.selected]="selectedConditions.includes(condition)"
+            [attr.aria-selected]="selectedConditions.includes(condition)"
+            (click)="toggleCondition(condition)"
+          >
+            <span>{{ condition }}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
+          </button>
+        </div>
+      </div>
     </div>
   </section>
 

@@ -122,6 +122,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
   selectedBathrooms: string[] = [];
   selectedPropertyTypes: string[] = [];
   selectedAmenities: string[] = [];
+  readonly conditionOptions = [
+    'Move-in ready',
+    'Renovated',
+    'White frame',
+    'Green frame',
+    'Needs renovation',
+  ];
+  selectedConditions: string[] = [];
+  conditionOpen = false;
   selectedMinArea = 0;
   selectedMinFloor = 0;
 
@@ -202,6 +211,20 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.bedroomOpen = false;
     this.propertyTypeOpen = false;
     this.locationOpen = false;
+    this.conditionOpen = false;
+  }
+
+  toggleConditionMenu(): void {
+    this.locationOpen = false;
+    this.propertyTypeOpen = false;
+    this.budgetOpen = false;
+    this.bedroomOpen = false;
+    this.conditionOpen = !this.conditionOpen;
+  }
+
+  toggleCondition(condition: string): void {
+    this.toggleFilterItem(this.selectedConditions, condition);
+    this.onSearch();
   }
 
   toggleSearchMenu(menu: 'location' | 'propertyType' | 'budget' | 'bedroom'): void {
@@ -210,6 +233,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.propertyTypeOpen = false;
     this.budgetOpen = false;
     this.bedroomOpen = false;
+    this.conditionOpen = false;
     if (willOpen) {
       if (menu === 'location') this.locationOpen = true;
       if (menu === 'propertyType') this.propertyTypeOpen = true;
@@ -823,6 +847,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.appliedBudgetMax = null;
     this.selectedPriceMax = Number.MAX_SAFE_INTEGER;
     this.selectedAmenities = [];
+    this.selectedConditions = [];
+    this.conditionOpen = false;
     this.selectedMinArea = 0;
     this.selectedMinFloor = 0;
     this.featureFilter = '';
@@ -975,6 +1001,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
       const matchesBathrooms = this.matchesBathroomFilter(apartment);
       const matchesPropertyType = this.matchesPropertyTypeFilter(apartment);
       const matchesAmenities = this.matchesAmenitiesFilter(apartment);
+      const matchesCondition = this.matchesConditionFilter(apartment);
       const matchesFeature = this.matchesQuickFeature(apartment);
       const matchesArea = !this.selectedMinArea || Number(apartment.sizeSquareMeters) >= this.selectedMinArea;
       const matchesFloor = !this.selectedMinFloor || Number(apartment.floor) >= this.selectedMinFloor;
@@ -993,6 +1020,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
         matchesBathrooms &&
         matchesPropertyType &&
         matchesAmenities &&
+        matchesCondition &&
         matchesFeature &&
         matchesArea &&
         matchesFloor
@@ -1021,6 +1049,25 @@ export class ExploreProperty implements OnInit, OnDestroy {
     }
   }
 
+  private matchesConditionFilter(apartment: Apartment): boolean {
+    if (this.selectedType !== 'For Sale' || !this.selectedConditions.length) return true;
+
+    const value = (apartment.condition || '').trim().toLowerCase();
+    if (!value) return false;
+
+    const aliases: Record<string, string[]> = {
+      'move-in ready': ['move-in ready', 'move in ready', 'newly renovated'],
+      renovated: ['renovated', 'old renovated', 'current renovation'],
+      'white frame': ['white frame', 'white plus'],
+      'green frame': ['green frame'],
+      'needs renovation': ['needs renovation', 'repairing', 'to be renovated'],
+    };
+
+    return this.selectedConditions.some((condition) =>
+      (aliases[condition.toLowerCase()] || [condition.toLowerCase()]).includes(value),
+    );
+  }
+
   isFilterActive(list: string[], item: string): boolean {
     return list.includes(item);
   }
@@ -1045,6 +1092,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedBathrooms = [];
     this.selectedPropertyTypes = [];
     this.selectedAmenities = [];
+    this.selectedConditions = [];
+    this.conditionOpen = false;
     this.selectedMinArea = 0;
     this.selectedMinFloor = 0;
     this.featureFilter = '';

@@ -339,7 +339,7 @@ svg {
   display: flex;
   justify-content: center;
   gap: 9px;
-  overflow-x: auto;
+  overflow: visible;
   scrollbar-width: none;
 }
 .chip-scroll::-webkit-scrollbar {
@@ -406,6 +406,62 @@ svg {
   color: var(--purple);
   border-color: #b69ae9;
   background: #f7f3ff;
+}
+.condition-filter {
+  position: relative;
+  flex: 0 0 auto;
+}
+.condition-chevron {
+  width: 13px !important;
+  height: 13px !important;
+  margin-left: 2px;
+  transition: transform 0.18s ease;
+}
+.condition-trigger[aria-expanded='true'] .condition-chevron {
+  transform: rotate(180deg);
+}
+.condition-popover {
+  top: calc(100% + 9px);
+  left: 0;
+  width: 240px;
+  padding: 12px;
+}
+.condition-popover h3 {
+  margin: 2px 4px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 750;
+}
+.condition-popover > button {
+  width: 100%;
+  min-height: 39px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #514a5a;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.condition-popover > button:hover,
+.condition-popover > button.selected {
+  color: var(--purple);
+  border-color: #d5c5f0;
+  background: #f7f3ff;
+}
+.condition-popover > button svg {
+  width: 15px;
+  height: 15px;
+  opacity: 0;
+}
+.condition-popover > button.selected svg {
+  opacity: 1;
 }
 .filters-chip {
   padding-inline: 16px;
@@ -1058,6 +1114,18 @@ svg {
     scrollbar-width: none;
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
+  }
+  .condition-filter {
+    position: static;
+  }
+  .condition-popover {
+    position: fixed;
+    top: 124px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
   }
   .chip-scroll::-webkit-scrollbar {
     display: none;

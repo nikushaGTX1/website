@@ -48,6 +48,7 @@ export interface Apartment {
   hasView?: boolean;
   isFurnished?: boolean;
   apartmentStyle?: string;
+  condition?: string;
   metroDistanceMinutes?: number;
   gymDistanceMinutes?: number;
   parkDistanceMinutes?: number;
@@ -124,6 +125,7 @@ export interface CreateApartment {
   hasView?: boolean;
   isFurnished?: boolean;
   apartmentStyle?: string;
+  condition?: string;
   metroDistanceMinutes?: number;
   gymDistanceMinutes?: number;
   parkDistanceMinutes?: number;

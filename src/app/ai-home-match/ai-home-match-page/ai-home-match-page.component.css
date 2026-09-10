@@ -589,9 +589,9 @@ fieldset input,
 }
 
 .hero-visual img {
-  width: 112%;
-  height: 112%;
-  margin: -2% 0 0 -6%;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   display: block;
   object-fit: contain;
   object-position: center bottom;

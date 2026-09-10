@@ -305,6 +305,7 @@ export class ApartmentService {
       ['street', 'Street'],
       ['buildingNumber', 'BuildingNumber'],
       ['apartmentStyle', 'ApartmentStyle'],
+      ['condition', 'Condition'],
       ['parkingCondition', 'ParkingCondition'],
     ];
     const numberFields: Array<[keyof CreateApartment, string]> = [
