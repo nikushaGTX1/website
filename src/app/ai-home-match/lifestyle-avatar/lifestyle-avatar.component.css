@@ -29,7 +29,7 @@
 }
 
 .character-stage.character-group {
-  width: min(100%, 260px);
+  width: min(100%, 360px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -136,7 +136,30 @@
 }
 
 .character-stage.character-group.crowded-group .character-figure {
-  max-width: 24%;
+  width: 38%;
+  max-width: 38%;
+  flex-basis: 38%;
+}
+
+.character-stage.character-group.crowded-group .child-figure {
+  width: 28%;
+  max-width: 28%;
+  flex-basis: 28%;
+}
+
+.character-stage.character-group.crowded-group .pet-figure {
+  width: 25%;
+  max-width: 25%;
+  height: 48%;
+  flex-basis: 25%;
+}
+
+.character-stage.character-group.crowded-group .character-figure + .character-figure {
+  margin-left: -15%;
+}
+
+.character-stage.character-group.crowded-group .adult-figure + .adult-figure {
+  margin-left: -21%;
 }
 
 .character-stage.has-extra-people {

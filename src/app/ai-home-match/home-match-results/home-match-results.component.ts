@@ -5,6 +5,12 @@ import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { applyPriorityScoring } from '../services/priority-scoring';
 import { ApartmentService } from '../../services/apartment.service';
+
+interface LifestyleInsight {
+  title: string;
+  reason: string;
+  icon: string;
+}
 @Component({
   selector: 'app-home-match-results',
   standalone: false,
@@ -160,5 +166,74 @@ export class HomeMatchResultsComponent implements OnChanges {
       apartment.gymDistanceMinutes,
       apartment.metroDistanceMinutes,
     ].some((value) => value !== undefined && value !== null);
+  }
+
+  lifestyleInsights(result: HomeMatchResult): LifestyleInsight[] {
+    const apartment = result.apartment;
+    const insights: LifestyleInsight[] = [];
+    const add = (title: string, reason: string, icon: string): void => {
+      if (!insights.some((item) => item.title === title)) insights.push({ title, reason, icon });
+    };
+    const childAges = new Set(this.profile.childrenAgeGroups);
+    const lifestyles = new Set(this.profile.lifestyles);
+    const drives = this.profile.transportation.includes('Car');
+
+    if (apartment.kindergartenDistanceMinutes != null && (childAges.has('Age0To3') || childAges.has('Age4To6'))) {
+      add(
+        `Kindergarten ${apartment.kindergartenDistanceMinutes} min away`,
+        childAges.has('Age4To6')
+          ? 'Because you have a 4–6-year-old child'
+          : 'Because you have a young child',
+        'fa-shapes',
+      );
+    }
+    if (apartment.schoolDistanceMinutes != null && (childAges.has('Age7To12') || childAges.has('Age13To17'))) {
+      add(
+        `School ${apartment.schoolDistanceMinutes} min away`,
+        'Because you have a school-age child',
+        'fa-school',
+      );
+    }
+    if (apartment.gymDistanceMinutes != null && lifestyles.has('Athlete')) {
+      add(
+        `Gym ${apartment.gymDistanceMinutes} min away`,
+        'Because you have an active lifestyle',
+        'fa-dumbbell',
+      );
+    }
+    const parkingCondition = apartment.parkingCondition?.trim().toLowerCase();
+    if (
+      drives &&
+      (apartment.hasParking === true ||
+        (!!parkingCondition && !['no', 'none', 'not available', 'false'].includes(parkingCondition)))
+    ) {
+      add('Parking included', 'Because you travel by car', 'fa-square-parking');
+    }
+    if (
+      lifestyles.has('HostsGuests') &&
+      apartment.bedrooms != null &&
+      apartment.bedrooms >= 2
+    ) {
+      add('Extra bedroom', 'Because you often host guests', 'fa-bed');
+    }
+    if (this.profile.hasPet && apartment.isPetFriendly) {
+      add('Pet-friendly home', `Because you live with ${this.profile.petType === 'Cat' ? 'a cat' : 'a pet'}`, 'fa-paw');
+    }
+    if (apartment.metroDistanceMinutes != null && this.profile.transportation.includes('Metro')) {
+      add(
+        `Metro ${apartment.metroDistanceMinutes} min away`,
+        'Because metro is part of your routine',
+        'fa-train-subway',
+      );
+    }
+    if (apartment.parkDistanceMinutes != null && (lifestyles.has('Athlete') || lifestyles.has('FamilyFocused'))) {
+      add(
+        `Park ${apartment.parkDistanceMinutes} min away`,
+        lifestyles.has('Athlete') ? 'Because you enjoy an active lifestyle' : 'Because outdoor family time matters to you',
+        'fa-tree',
+      );
+    }
+
+    return insights.slice(0, 6);
   }
 }

@@ -87,6 +87,24 @@ h1 {
   padding: 14px 0;
   border-bottom: 1px solid #eee;
 }
+.lifestyle-fit {
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid #e2d8f3;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fbf9ff, #f5f0fc);
+}
+.fit-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.fit-heading > span { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 38px; border-radius: 11px; color: #fff; background: linear-gradient(135deg, #54209a, #8236ca); }
+.fit-heading small, .fit-heading h3 { display: block; margin: 0; }
+.fit-heading small { color: #7551aa; font-size: 9px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.fit-heading h3 { margin-top: 2px; color: #281b3d; font-size: 16px; }
+.fit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.fit-grid article { min-width: 0; display: flex; align-items: flex-start; gap: 10px; padding: 11px; border: 1px solid rgba(91, 44, 145, .1); border-radius: 12px; background: rgba(255, 255, 255, .86); }
+.fit-grid article > i { width: 31px; height: 31px; display: grid; place-items: center; flex: 0 0 31px; border-radius: 9px; color: #692bb0; background: #eee3fc; }
+.fit-grid p, .fit-grid b, .fit-grid span { display: block; margin: 0; }
+.fit-grid b { color: #30233f; font-size: 13px; }
+.fit-grid span { margin-top: 3px; color: #756d7e; font-size: 11px; line-height: 1.35; }
 
 /* Polished, rank-first recommendation cards. */
 .card.best-match {
@@ -157,6 +175,7 @@ h1 {
   .reasons {
     grid-template-columns: 1fr;
   }
+  .fit-grid { grid-template-columns: 1fr; }
 }
 .location-map {
   position: relative;
@@ -468,11 +487,10 @@ h1 {
   display: grid;
   place-items: end center;
   height: 260px;
-  padding: 20px 20px 30px;
+  padding: 0;
   box-sizing: border-box;
-  border: 1px solid #e8e1f3;
-  border-radius: 110px 110px 24px 24px;
-  background: linear-gradient(180deg, #faf8ff, #eee8f6);
+  border: 0;
+  background: transparent;
 }
 .results-avatar::after {
   content: '';

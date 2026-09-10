@@ -21,14 +21,24 @@
 .eyebrow { display: inline-flex; align-items: center; gap: 7px; color: #6d28b7; font-size: 12px; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
 h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman", serif; font-size: clamp(36px, 5vw, 58px); font-weight: 500; line-height: 1.05; }
 .summary-header p { margin: 0; color: #746d82; font-size: 15px; }
-.profile-stage { position: relative; min-height: 620px; margin: 12px auto 0; }
+.profile-stage { position: relative; min-height: 620px; max-width: 1080px; margin: 12px auto 0; }
 .ambient-ring { position: absolute; left: 50%; top: 50%; pointer-events: none; border: 1px solid rgba(91, 38, 157, .12); border-radius: 50%; transform: translate(-50%, -50%); }
 .ring-one { width: 390px; height: 390px; }
 .ring-two { width: 540px; height: 540px; border-style: dashed; }
-.avatar-focus { position: absolute; z-index: 2; left: 50%; top: 50%; width: 330px; height: 430px; transform: translate(-50%, -50%); }
-.avatar-focus app-velven-lifestyle-avatar { position: relative; z-index: 2; display: block; width: 100%; height: 390px; --avatar-character-scale: 1.08; --avatar-character-origin: center bottom; }
+.avatar-focus { position: absolute; z-index: 4; left: 50%; top: 51%; width: 360px; height: 440px; transform: translate(-50%, -50%); }
+.avatar-focus app-velven-lifestyle-avatar {
+  position: relative;
+  z-index: 2;
+  top: -42px;
+  display: block;
+  width: 100%;
+  height: 390px;
+  transform: translateX(-5px);
+  --avatar-character-scale: .92;
+  --avatar-character-origin: center center;
+}
 .avatar-glow { position: absolute; left: 50%; bottom: 28px; width: 270px; height: 270px; border-radius: 50%; background: radial-gradient(circle, rgba(139, 92, 246, .25), rgba(232, 220, 251, .08) 57%, transparent 72%); transform: translateX(-50%); filter: blur(4px); }
-.avatar-caption { position: absolute; z-index: 3; left: 50%; bottom: 0; display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border: 1px solid rgba(93, 38, 158, .15); border-radius: 999px; color: #56219b; background: rgba(255, 255, 255, .94); box-shadow: 0 10px 24px rgba(69, 26, 143, .13); font-size: 12px; font-weight: 800; white-space: nowrap; transform: translateX(-50%); }
+.avatar-caption { position: absolute; z-index: 10; left: 50%; bottom: 4px; display: inline-flex; align-items: center; gap: 7px; min-width: max-content; padding: 9px 15px; border: 1px solid rgba(93, 38, 158, .2); border-radius: 999px; color: #56219b; background: #fff; box-shadow: 0 10px 24px rgba(69, 26, 143, .18); font-size: 12px; font-weight: 800; white-space: nowrap; transform: translateX(-50%); }
 .profile-attribute { position: absolute; z-index: 3; width: 220px; min-height: 66px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid rgba(82, 32, 154, .12); border-radius: 16px; background: rgba(255, 255, 255, .94); box-shadow: 0 12px 30px rgba(45, 28, 75, .09); animation: profile-float 6s ease-in-out infinite; }
 .profile-attribute:nth-of-type(even) { animation-delay: -2s; }
 .profile-attribute:nth-of-type(3n) { animation-delay: -4s; }

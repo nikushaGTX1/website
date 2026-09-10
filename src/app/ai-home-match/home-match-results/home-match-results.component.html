@@ -58,6 +58,20 @@
           >{{ result.apartment.sizeSquareMeters }} m²</span
         >
       </div>
+      <section class="lifestyle-fit" *ngIf="lifestyleInsights(result) as insights">
+        <ng-container *ngIf="insights.length">
+          <div class="fit-heading">
+            <span><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+            <div><small>AI lifestyle match</small><h3>Why this home fits you</h3></div>
+          </div>
+          <div class="fit-grid">
+            <article *ngFor="let insight of insights">
+              <i class="fa-solid" [ngClass]="insight.icon"></i>
+              <p><b>{{ insight.title }}</b><span>{{ insight.reason }}</span></p>
+            </article>
+          </div>
+        </ng-container>
+      </section>
       <ul class="reasons">
         <li *ngFor="let reason of result.reasons">
           <b>✓ {{ reason.title }}</b
