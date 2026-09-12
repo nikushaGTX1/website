@@ -46,6 +46,9 @@ export interface Apartment {
   hasHomeOfficeSpace?: boolean;
   hasLargeKitchen?: boolean;
   hasView?: boolean;
+  viewType?: string;
+  parkingPoints?: number;
+  minimumRentalPeriod?: string;
   isFurnished?: boolean;
   apartmentStyle?: string;
   condition?: string;
@@ -123,6 +126,9 @@ export interface CreateApartment {
   hasHomeOfficeSpace?: boolean;
   hasLargeKitchen?: boolean;
   hasView?: boolean;
+  viewType?: string;
+  parkingPoints?: number;
+  minimumRentalPeriod?: string;
   isFurnished?: boolean;
   apartmentStyle?: string;
   condition?: string;

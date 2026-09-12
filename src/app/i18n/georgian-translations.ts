@@ -1329,6 +1329,27 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['4–6 years', '4–6 წელი'],
   ['7–12 years', '7–12 წელი'],
   ['13–17 years', '13–17 წელი'],
+  // Listing extras: view type, parking score, rental period, duplicates
+  ['View Type', 'ხედის ტიპი'],
+  ['City View', 'ქალაქის ხედი'],
+  ['Nature View', 'ბუნების ხედი'],
+  ['No View', 'ხედის გარეშე'],
+  ['Minimum rental period', 'მინიმალური ქირის ვადა'],
+  ['Minimum 6 months', 'მინიმუმ 6 თვე'],
+  ['Minimum 12 months', 'მინიმუმ 12 თვე'],
+  ['Parking type', 'პარკინგის ტიპი'],
+  ['Select parking type', 'აირჩიეთ პარკინგის ტიპი'],
+  ['Garage', 'ავტოფარეხი'],
+  ['Private courtyard parking', 'კერძო ეზოს პარკინგი'],
+  ['Courtyard with a barrier/gate', 'ეზო ბარიერით/ჭიშკრით'],
+  ['Street parking', 'ქუჩის პარკინგი'],
+  ['Courtyard without a barrier/gate', 'ეზო ბარიერის/ჭიშკრის გარეშე'],
+  ['Parking is difficult', 'პარკინგი რთულია'],
+  ['Parking score', 'პარკინგის ქულა'],
+  ['Checking for duplicates…', 'დუბლიკატების შემოწმება…'],
+  ['Comparing area, price, street and building with existing listings.', 'ფართობის, ფასის, ქუჩისა და შენობის შედარება არსებულ განცხადებებთან.'],
+  ['Duplicate Found', 'დუბლიკატი ნაპოვნია'],
+  ['The original owner of this listing is', 'ამ განცხადების ორიგინალი მფლობელია'],
 ]);
 
 const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
@@ -1336,6 +1357,10 @@ const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
 );
 
 const GEORGIAN_RULES: GeorgianRule[] = [
+  {
+    pattern: /^Duplicate Found\. The original owner of this listing is (.+)\.$/i,
+    translate: (match) => `დუბლიკატი ნაპოვნია. ამ განცხადების ორიგინალი მფლობელია ${match[1]}.`,
+  },
   {
     pattern: /^Step (\d+) of (\d+)$/i,
     translate: (match) => `ნაბიჯი ${match[1]} / ${match[2]}`,

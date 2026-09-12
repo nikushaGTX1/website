@@ -168,6 +168,21 @@
           </div>
         </div>
 
+        <div class="field-group" *ngIf="isRentalDeal">
+          <label class="field-label">Minimum rental period</label>
+          <div class="chip-grid">
+            <button
+              *ngFor="let option of minimumRentalPeriodOptions"
+              type="button"
+              class="chip"
+              [class.selected]="form.minimumRentalPeriod === option"
+              (click)="selectRentalPeriod(option)"
+            >
+              {{ option }}
+            </button>
+          </div>
+        </div>
+
         <div class="field-group">
           <label class="field-label">Status <span class="req">*</span></label>
           <div class="chip-grid">
@@ -192,6 +207,21 @@
               class="chip"
               [class.selected]="form.condition === option"
               (click)="select('condition', option)"
+            >
+              {{ option }}
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">View Type</label>
+          <div class="chip-grid">
+            <button
+              *ngFor="let option of viewTypeOptions"
+              type="button"
+              class="chip"
+              [class.selected]="form.viewType === option"
+              (click)="selectViewType(option)"
             >
               {{ option }}
             </button>
@@ -234,7 +264,7 @@
                 <div class="location-status" *ngIf="!locationLoading && !uploadStreetSuggestions.length">{{ selectedDistrictValue ? uploadLocationText('No matching street found.', 'ქუჩა ვერ მოიძებნა.') : uploadLocationText('Choose a district first.', 'ჯერ აირჩიეთ უბანი.') }}</div>
               </div>
             </div>
-            <input type="text" name="streetNumber" placeholder="Street number" [(ngModel)]="form.streetNumber" (ngModelChange)="clearPropertyPoint()" />
+            <input type="text" name="streetNumber" placeholder="Street number" [(ngModel)]="form.streetNumber" (ngModelChange)="clearPropertyPoint(); clearDuplicateDismissal(); checkDuplicates()" />
           </div>
         </div>
 
@@ -256,7 +286,7 @@
         <div class="field-group">
           <label class="field-label">Price <span class="req">*</span></label>
           <div class="price-table">
-            <input type="number" name="totalPrice" placeholder="Total price" [(ngModel)]="form.totalPrice" />
+            <input type="number" name="totalPrice" placeholder="Total price" [(ngModel)]="form.totalPrice" (ngModelChange)="clearDuplicateDismissal(); checkDuplicates()" />
             <input type="number" name="sqPrice" placeholder="Sq. price" [(ngModel)]="form.sqPrice" />
             <div class="currency-toggle" aria-label="Currency">
               <button type="button" [class.active]="form.currency === 'GEL'" (click)="setCurrency('GEL')">₾</button>
@@ -281,11 +311,11 @@
         <div class="feature-block">
           <div class="feature-block-title"><div><span>Property specifications</span><small>The essentials buyers compare first</small></div><i class="fa-solid fa-ruler-combined"></i></div>
           <div class="metric-grid">
-            <label class="metric-field"><span><i class="fa-solid fa-vector-square"></i> Living area</span><div><input type="number" name="area" min="0" placeholder="0" [(ngModel)]="form.area" /><b>m²</b></div></label>
-            <label class="metric-field"><span><i class="fa-solid fa-door-open"></i> Rooms</span><div><input type="number" name="rooms" min="0" placeholder="0" [(ngModel)]="form.rooms" /></div></label>
-            <label class="metric-field"><span><i class="fa-solid fa-bed"></i> Bedrooms</span><div><input type="number" name="bedrooms" min="0" placeholder="0" [(ngModel)]="form.bedrooms" /></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-vector-square"></i> Living area</span><div><input type="number" name="area" min="0" placeholder="0" [(ngModel)]="form.area" (ngModelChange)="clearDuplicateDismissal(); checkDuplicates()" /><b>m²</b></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-door-open"></i> Rooms</span><div><input type="number" name="rooms" min="0" placeholder="0" [(ngModel)]="form.rooms" (ngModelChange)="clearDuplicateDismissal(); checkDuplicates()" /></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-bed"></i> Bedrooms</span><div><input type="number" name="bedrooms" min="0" placeholder="0" [(ngModel)]="form.bedrooms" (ngModelChange)="clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-bath"></i> Bathrooms</span><div><input type="number" name="bathrooms" min="0" placeholder="0" [(ngModel)]="form.bathrooms" /></div></label>
-            <label class="metric-field"><span><i class="fa-solid fa-stairs"></i> Property floor</span><div><input type="number" name="floor" min="0" placeholder="0" [(ngModel)]="form.floor" /></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-stairs"></i> Property floor</span><div><input type="number" name="floor" min="0" placeholder="0" [(ngModel)]="form.floor" (ngModelChange)="clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-regular fa-building"></i> Building floors</span><div><input type="number" name="totalFloors" min="0" placeholder="0" [(ngModel)]="form.totalFloors" /></div></label>
           </div>
         </div>
@@ -397,12 +427,13 @@
           </p>
           <label class="style-select parking-type-select" *ngIf="form.hasParking">
             <span>Parking type</span>
-            <select name="parkingCondition" [(ngModel)]="form.parkingCondition" required>
+            <select name="parkingCondition" [ngModel]="form.parkingCondition" (ngModelChange)="selectParkingType($event)" required>
               <option value="" disabled>Select parking type</option>
               <option *ngFor="let option of parkingTypeOptions" [value]="option.value">
                 {{ option.label }} — {{ option.points }} points
               </option>
             </select>
+            <small *ngIf="form.parkingCondition">Parking score: {{ parkingPointsFor(form.parkingCondition) }} / 5</small>
           </label>
         </div>
         <div class="field-group agent-contact-group">
@@ -417,6 +448,32 @@
       <p *ngIf="errorMessage" class="form-error">{{ errorMessage }}</p>
       <p *ngIf="successMessage" class="form-success">{{ successMessage }}</p>
       <p *ngIf="pendingDebug" class="form-debug">{{ pendingDebug }}</p>
+
+      <div class="review-message" role="alert" *ngIf="duplicateChecking">
+        <span class="review-message-icon"><i class="fa-solid fa-spinner fa-spin"></i></span>
+        <span class="review-message-copy">
+          <strong>Checking for duplicates…</strong>
+          <span>Comparing area, price, street and building with existing listings.</span>
+        </span>
+      </div>
+
+      <div class="review-message" role="alert" *ngIf="duplicateMatch as duplicate">
+        <span class="review-message-icon"><i class="fa-solid fa-circle-exclamation"></i></span>
+        <span class="review-message-copy">
+          <strong>Duplicate Found</strong>
+          <span>The original owner of this listing is {{ duplicateOwnerName }}.</span>
+          <small>Matched: {{ duplicate.district }}, {{ duplicate.street }}{{ duplicate.buildingNumber ? ', ' + duplicate.buildingNumber : '' }} · {{ duplicate.sizeSquareMeters }} m² · ${{ duplicate.price }}</small>
+        </span>
+        <button
+          type="button"
+          class="review-message-close"
+          aria-label="Dismiss duplicate warning"
+          title="Dismiss"
+          (click)="dismissDuplicate()"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
 
       <div class="form-actions">
         <button class="btn-back" type="button" (click)="saveDraft()"><i class="fa-regular fa-bookmark"></i> {{ draftSaved ? 'Draft saved' : 'Save draft' }}</button>

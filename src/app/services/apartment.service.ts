@@ -230,6 +230,12 @@ export class ApartmentService {
     const storedDistrict = apartment.district?.trim() || metaValue('District');
     const storedBuilding = apartment.buildingNumber?.trim() || metaValue('Building');
     const storedStreetId = apartment.streetId || Number(metaValue('Street ID')) || undefined;
+    const storedViewType = apartment.viewType?.trim() || metaValue('View type') || undefined;
+    const storedMinRental =
+      apartment.minimumRentalPeriod?.trim() || metaValue('Minimum rental') || undefined;
+    const storedParkingPointsRaw = metaValue('Parking score');
+    const storedParkingPoints =
+      apartment.parkingPoints ?? (storedParkingPointsRaw ? Number(storedParkingPointsRaw) : undefined);
     const storedAddress =
       apartment.address?.trim() ||
       [storedStreet, storedBuilding, storedDistrict].filter(Boolean).join(', ') ||
@@ -260,6 +266,9 @@ export class ApartmentService {
       street: storedStreet || apartment.street,
       streetId: storedStreetId,
       buildingNumber: storedBuilding || apartment.buildingNumber,
+      viewType: storedViewType,
+      minimumRentalPeriod: storedMinRental,
+      parkingPoints: Number.isFinite(Number(storedParkingPoints)) ? Number(storedParkingPoints) : apartment.parkingPoints,
       imageUrl,
       imageUrls: galleryUrls.length ? galleryUrls : legacyUrls,
       images: gallery,
@@ -307,6 +316,8 @@ export class ApartmentService {
       ['apartmentStyle', 'ApartmentStyle'],
       ['condition', 'Condition'],
       ['parkingCondition', 'ParkingCondition'],
+      ['viewType', 'ViewType'],
+      ['minimumRentalPeriod', 'MinimumRentalPeriod'],
     ];
     const numberFields: Array<[keyof CreateApartment, string]> = [
       ['latitude', 'Latitude'],
@@ -319,6 +330,7 @@ export class ApartmentService {
       ['sizeSquareMeters', 'SizeSquareMeters'],
       ['floor', 'Floor'],
       ['totalFloors', 'TotalFloors'],
+      ['parkingPoints', 'ParkingPoints'],
       ['metroDistanceMinutes', 'MetroDistanceMinutes'],
       ['gymDistanceMinutes', 'GymDistanceMinutes'],
       ['parkDistanceMinutes', 'ParkDistanceMinutes'],

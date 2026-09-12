@@ -1,6 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { ApartmentService } from '../services/apartment.service';
 import { CreateApartment } from '../models/apartment';
 import { AuthService } from '../services/auth.service';
@@ -49,6 +49,8 @@ type UploadForm = {
   hasHomeOfficeSpace: boolean;
   hasLargeKitchen: boolean;
   hasView: boolean;
+  viewType: string;
+  minimumRentalPeriod: string;
   isFurnished: boolean;
   apartmentStyle: string;
   imageUrl: string;
@@ -181,10 +183,16 @@ export class UploadApartment implements OnInit, OnDestroy {
   ];
   readonly parkingTypeOptions = [
     { label: 'Garage', value: 'Garage', points: 5 },
-    { label: 'Parking space with a yellow barrier', value: 'YellowBarrier', points: 4 },
-    { label: 'Parking in the yard with a remote-controlled barrier', value: 'RemoteControlledYardBarrier', points: 3 },
-    { label: 'Parking adjacent to the building', value: 'AdjacentToBuilding', points: 2 },
+    { label: 'Private courtyard parking', value: 'PrivateCourtyard', points: 4 },
+    { label: 'Courtyard with a barrier/gate', value: 'CourtyardWithBarrier', points: 3 },
+    { label: 'Street parking', value: 'StreetParking', points: 2 },
+    { label: 'Courtyard without a barrier/gate', value: 'CourtyardWithoutBarrier', points: 1 },
+    { label: 'Parking is difficult', value: 'DifficultParking', points: 0 },
   ];
+
+  readonly viewTypeOptions = ['City View', 'Nature View', 'No View'];
+
+  readonly minimumRentalPeriodOptions = ['Minimum 6 months', 'Minimum 12 months'];
 
   form: UploadForm = {
     realEstateType: 'Apartment',
@@ -222,6 +230,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     hasHomeOfficeSpace: false,
     hasLargeKitchen: false,
     hasView: false,
+    viewType: '',
+    minimumRentalPeriod: '',
     isFurnished: false,
     apartmentStyle: 'Modern',
     imageUrl: '',
@@ -254,6 +264,9 @@ export class UploadApartment implements OnInit, OnDestroy {
   selectedDistrictValue = '';
   selectedStreetValue = '';
   selectedStreetId: number | null = null;
+  duplicateChecking = false;
+  duplicateMatch: import('../models/apartment').Apartment | null = null;
+  duplicateDismissedForKey = '';
   private readonly dismissedNotificationsKey = 'dismissedApartmentApprovalNotifications';
   private readonly subscriptions = new Subscription();
   private dismissedNotificationIds = new Set<string>();
@@ -422,6 +435,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.selectedStreetValue = '';
     this.selectedStreetId = null;
     this.locationPicker = null;
+    this.clearDuplicateDismissal();
+    this.checkDuplicates();
   }
 
   selectUploadStreet(suggestion: LocationSuggestion): void {
@@ -432,6 +447,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.selectedDistrictValue = suggestion.districtValue || '';
     this.form.location = suggestion.district || suggestion.districtValue || '';
     this.locationPicker = null;
+    this.clearDuplicateDismissal();
+    this.checkDuplicates();
   }
 
   clearPropertyPoint(): void {
@@ -501,6 +518,159 @@ export class UploadApartment implements OnInit, OnDestroy {
   toggle(field: 'hideAddress' | 'exchangePossible' | BooleanFeature): void {
     this.form[field] = !this.form[field];
     if (field === 'hasParking' && !this.form.hasParking) this.form.parkingCondition = '';
+  }
+
+  parkingPointsFor(value: string): number {
+    return this.parkingTypeOptions.find((option) => option.value === value)?.points ?? 0;
+  }
+
+  selectParkingType(value: string): void {
+    this.form.parkingCondition = value;
+    this.form.hasParking = this.parkingPointsFor(value) > 0;
+    this.clearDuplicateDismissal();
+  }
+
+  selectViewType(value: string): void {
+    this.form.viewType = value;
+    this.form.hasView = value === 'City View' || value === 'Nature View';
+  }
+
+  selectRentalPeriod(value: string): void {
+    this.form.minimumRentalPeriod = this.form.minimumRentalPeriod === value ? '' : value;
+  }
+
+  get isRentalDeal(): boolean {
+    return this.form.dealType !== 'For Sale';
+  }
+
+  get duplicateSignature(): string {
+    return JSON.stringify([
+      this.selectedDistrictValue,
+      this.selectedStreetId ?? this.selectedStreetValue,
+      (this.form.streetNumber || '').trim().toLowerCase(),
+      Number(this.form.area || 0),
+      Number(this.form.totalPrice || 0),
+      Number(this.form.rooms || 0),
+      Number(this.form.bedrooms || 0),
+      Number(this.form.floor || 0),
+    ]);
+  }
+
+  clearDuplicateDismissal(): void {
+    this.duplicateDismissedForKey = '';
+  }
+
+  get duplicateOwnerName(): string {
+    const match = this.duplicateMatch;
+    if (!match) return '';
+    return (
+      match.ownerName?.trim() ||
+      match.agentName?.trim() ||
+      match.uploadedByName?.trim() ||
+      match.createdByEmail?.trim() ||
+      match.uploadedByEmail?.trim() ||
+      'the original agent'
+    );
+  }
+
+  checkDuplicates(): void {
+    if (!this.selectedDistrictValue || !this.selectedStreetId || !this.form.area || !this.form.totalPrice) {
+      this.duplicateMatch = null;
+      return;
+    }
+    if (this.duplicateDismissedForKey === this.duplicateSignature) return;
+    this.duplicateChecking = true;
+    this.apartmentService.getApartments().subscribe({
+      next: (apartments) => {
+        this.duplicateChecking = false;
+        this.duplicateMatch = this.findDuplicate(apartments);
+      },
+      error: () => {
+        this.duplicateChecking = false;
+      },
+    });
+  }
+
+  dismissDuplicate(): void {
+    this.duplicateDismissedForKey = this.duplicateSignature;
+    this.duplicateMatch = null;
+  }
+
+  private normalizeText(value: string | null | undefined): string {
+    return (value || '').trim().toLowerCase().replace(/[\s_]+/g, ' ');
+  }
+
+  private toUsdPrice(): number {
+    const price = Number(this.form.totalPrice || 0);
+    if (!price) return 0;
+    return this.form.currency === 'GEL' ? price / 2.7 : price;
+  }
+
+  private findDuplicate(apartments: import('../models/apartment').Apartment[]): import('../models/apartment').Apartment | null {
+    const district = this.normalizeText(this.selectedDistrictValue);
+    const streetId = this.selectedStreetId;
+    const streetName = this.normalizeText(this.selectedStreetValue || this.form.street);
+    const building = this.normalizeText(this.form.streetNumber);
+    const area = Number(this.form.area || 0);
+    const priceUsd = this.toUsdPrice();
+    const rooms = Number(this.form.rooms || 0);
+    const bedrooms = Number(this.form.bedrooms || 0);
+    const floor = Number(this.form.floor || 0);
+
+    let best: import('../models/apartment').Apartment | null = null;
+    let bestScore = 0;
+
+    for (const apartment of apartments) {
+      let score = 0;
+      // Street must match by id when available, otherwise by normalized name.
+      const sameStreet = streetId != null && apartment.streetId != null
+        ? apartment.streetId === streetId
+        : streetName && this.normalizeText(apartment.street) === streetName;
+      if (!sameStreet) continue;
+      if (district && this.normalizeText(apartment.district) !== district) continue;
+
+      // Building number is a strong signal when both sides provide it.
+      const apartmentBuilding = this.normalizeText(apartment.buildingNumber);
+      if (building && apartmentBuilding) {
+        if (building !== apartmentBuilding) continue;
+        score += 2;
+      }
+
+      // Area (square meters) must be close — this is a required criterion.
+      const apartmentArea = Number(apartment.sizeSquareMeters || 0);
+      if (!area || !apartmentArea || Math.abs(apartmentArea - area) > 1) continue;
+      score += 2;
+
+      // Price must be close (converted to USD).
+      const apartmentPrice = Number(apartment.price || 0);
+      if (!priceUsd || !apartmentPrice) continue;
+      const priceDiff = Math.abs(apartmentPrice - priceUsd) / Math.max(apartmentPrice, priceUsd);
+      if (priceDiff > 0.03 && Math.abs(apartmentPrice - priceUsd) > 100) continue;
+      score += 2;
+
+      if (rooms && Number(apartment.rooms || 0) === rooms) score += 1;
+      if (bedrooms && Number(apartment.bedrooms || 0) === bedrooms) score += 1;
+      if (floor && Number(apartment.floor || 0) === floor) score += 1;
+
+      // Coordinates very close to each other add confidence.
+      const lat = Number(apartment.propertyLatitude ?? apartment.latitude);
+      const lng = Number(apartment.propertyLongitude ?? apartment.longitude);
+      if (
+        Number.isFinite(Number(this.form.propertyLatitude)) &&
+        Number.isFinite(Number(this.form.propertyLongitude)) &&
+        Number.isFinite(lat) && Number.isFinite(lng)
+      ) {
+        const distance = Math.hypot(lat - Number(this.form.propertyLatitude), lng - Number(this.form.propertyLongitude));
+        if (distance < 0.0005) score += 2;
+      }
+
+      if (score > bestScore && score >= 6) {
+        bestScore = score;
+        best = apartment;
+      }
+    }
+
+    return best;
   }
 
   get previewTitle(): string {
@@ -790,6 +960,28 @@ export class UploadApartment implements OnInit, OnDestroy {
       return;
     }
 
+    // Fresh duplicate check right before publishing so agents cannot post
+    // the same apartment twice (area + price + street + rooms/bedrooms/floor).
+    if (this.duplicateDismissedForKey !== this.duplicateSignature) {
+      try {
+        const apartments = await firstValueFrom(this.apartmentService.getApartments());
+        const duplicate = this.findDuplicate(apartments || []);
+        if (duplicate) {
+          this.duplicateMatch = duplicate;
+          this.errorMessage = `Duplicate Found. The original owner of this listing is ${this.duplicateOwnerName}.`;
+          this.activeStep = 1;
+          return;
+        }
+        this.duplicateMatch = null;
+      } catch {
+        // If the listing catalogue cannot be loaded, continue with publishing
+        // rather than blocking the agent.
+      }
+    } else if (this.duplicateMatch) {
+      this.errorMessage = `Duplicate Found. The original owner of this listing is ${this.duplicateOwnerName}.`;
+      return;
+    }
+
     this.loading = true;
     const calculationAddress = [
       this.selectedStreetValue,
@@ -878,6 +1070,11 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.hasParking && this.form.parkingCondition
         ? `Parking type: ${this.parkingTypeOptions.find((option) => option.value === this.form.parkingCondition)?.label || this.form.parkingCondition}`
         : '',
+      this.form.parkingCondition
+        ? `Parking score: ${this.parkingPointsFor(this.form.parkingCondition)}`
+        : '',
+      this.form.viewType ? `View type: ${this.form.viewType}` : '',
+      this.form.minimumRentalPeriod ? `Minimum rental: ${this.form.minimumRentalPeriod}` : '',
       this.form.isQuietStreet ? 'Quiet street: Yes' : '',
       this.form.cadastralCode ? `Cadastral: ${this.form.cadastralCode}` : '',
       this.form.agentName ? `Contact: ${this.form.agentName}` : '',
@@ -915,7 +1112,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       totalFloors: this.form.totalFloors ?? 0,
       hasElevator: this.form.hasElevator,
       hasParking: this.form.hasParking,
-      parkingCondition: this.form.hasParking ? this.form.parkingCondition : undefined,
+      parkingCondition: this.form.parkingCondition || undefined,
+      parkingPoints: this.form.parkingCondition ? this.parkingPointsFor(this.form.parkingCondition) : undefined,
       isQuietStreet: this.form.isQuietStreet,
       hasBalcony: this.form.hasBalcony,
       hasBathtub: this.form.hasBathtub,
@@ -925,6 +1123,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       hasHomeOfficeSpace: this.form.hasHomeOfficeSpace,
       hasLargeKitchen: this.form.hasLargeKitchen,
       hasView: this.form.hasView,
+      viewType: this.form.viewType || undefined,
+      minimumRentalPeriod: this.form.minimumRentalPeriod || undefined,
       isFurnished: this.form.isFurnished,
       apartmentStyle: this.form.apartmentStyle,
       metroDistanceMinutes: nearbyTimes.metroDistanceMinutes,
