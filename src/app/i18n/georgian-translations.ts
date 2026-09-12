@@ -1207,6 +1207,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Do you have a pet?', 'გყავთ შინაური ცხოველი?'],
   ['Some apartments have special conditions regarding pets.', 'ზოგიერთ ბინაში ცხოველებთან დაკავშირებით განსაკუთრებული პირობებია.'],
   ['Rank your Top 5 priorities', 'დაალაგეთ თქვენი ტოპ 5 პრიორიტეტი'],
+  ['Rank your Top 3 priorities', 'დაალაგეთ თქვენი ტოპ 3 პრიორიტეტი'],
   ['Choose them in order from most to least important.', 'აირჩიეთ ისინი მნიშვნელობის მიხედვით, ყველაზე მნიშვნელოვანიდან ნაკლებად მნიშვნელოვანისკენ.'],
   ['Ortachala', 'ორთაჭალა'],
   ['Other district', 'სხვა უბანი'],
@@ -1420,6 +1421,10 @@ const GEORGIAN_RULES: GeorgianRule[] = [
   {
     pattern: /^(\d+) properties? saved$/i,
     translate: (match) => `შენახულია ${match[1]} ობიექტი`,
+  },
+  {
+    pattern: /^(\d+) of 3 ranked$/i,
+    translate: (match) => `${match[1]} / 3 დალაგებულია`,
   },
   {
     pattern: /^(\d+) of 5 ranked$/i,

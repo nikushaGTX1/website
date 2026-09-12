@@ -30,6 +30,8 @@
   width: min(1600px, 96vw);
   height: 94vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .map-only-shell,
 .map-only-shell .draw-map {
@@ -38,6 +40,16 @@
   min-height: 0;
   border: 0;
   border-radius: 18px;
+}
+.map-only-shell {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+.map-only-shell .draw-map {
+  position: absolute;
+  inset: 0;
 }
 .map-only-close {
   position: absolute;
@@ -1134,5 +1146,53 @@ h3 {
   :host.is-compact .compact-map-shell.interactive .compact-draw-map {
     pointer-events: auto;
     touch-action: none;
+  }
+}
+
+/* Full-screen map dialog on phones: keeps Google zoom controls clear of
+   the Clear/Apply buttons and removes the dead white space below the map. */
+@media (max-width: 760px) {
+  .draw-backdrop.map-only-backdrop {
+    padding: 0;
+  }
+  .draw-dialog.map-only-dialog {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .map-only-shell,
+  .map-only-shell .draw-map {
+    border-radius: 0;
+  }
+  .map-only-close {
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+    width: 44px;
+    height: 44px;
+  }
+  .map-only-dialog .draw-tool-button {
+    top: calc(10px + env(safe-area-inset-top));
+    left: 10px;
+    min-height: 44px;
+  }
+  .map-only-actions {
+    left: 10px;
+    right: 64px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 8px;
+  }
+  .map-only-actions button {
+    min-height: 48px;
+    padding: 0 10px;
+    font-size: 14px;
+  }
+  .map-only-actions .clear-button,
+  .map-only-actions .apply-button {
+    width: 100%;
   }
 }

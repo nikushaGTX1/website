@@ -444,6 +444,14 @@ body.photo-viewer-active .route-content {
   isolation: auto !important;
 }
 
+body.draw-map-open {
+  overflow: hidden;
+}
+
+body.draw-map-open app-navigation {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
   html:lang(ka) :is(button, [role='button']),
   html:lang(ru) :is(button, [role='button']) {

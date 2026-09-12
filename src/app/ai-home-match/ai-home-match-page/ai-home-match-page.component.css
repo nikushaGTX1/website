@@ -430,9 +430,15 @@ fieldset input,
   .question {
     padding: 22px 16px;
   }
-  .options,
+  .options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
   .options.compact {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .options.pet-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .budget {
     grid-template-columns: 1fr;
@@ -1185,7 +1191,8 @@ fieldset {
   }
 
   .question fieldset {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .household-step .options {
@@ -1212,12 +1219,40 @@ fieldset {
     font-size: clamp(38px, 13vw, 46px);
   }
 
-  .hero-actions,
-  .options,
-  .options.compact,
-  .household-step .options {
+  .hero-actions {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .options,
+  .options.compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .household-step .options,
+  .options.pet-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .question .options button,
+  .question fieldset button {
+    min-height: 84px;
+    padding: 10px 8px;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .option-icon {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
+  .question fieldset {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .hero-actions > *,

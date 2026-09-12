@@ -131,6 +131,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   ) {}
 
   ngAfterViewInit(): void {
+    this.syncBodyClass();
     void this.initializeMap();
     this.locationService.getLocations().subscribe({
       next: (locations) => {
@@ -142,6 +143,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    this.syncBodyClass();
     const preserveDrawnPolygon = this.preserveDrawnPolygonOnInputChange;
     this.preserveDrawnPolygonOnInputChange = false;
     let areaSelectionChanged = false;
@@ -172,6 +174,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   ngOnDestroy(): void {
+    document.body.classList.remove('draw-map-open');
     this.draw?.stop();
     this.clearApartmentCountOverlays();
     this.clearApartmentPriceOverlays();
@@ -910,6 +913,15 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (event.target === event.currentTarget) this.close.emit();
   }
 
+  /**
+   * Hides the site navigation while the full-screen map is open so the
+   * Draw and close buttons can never end up underneath the sticky header
+   * on phones (same pattern as the photo viewer).
+   */
+  private syncBodyClass(): void {
+    document.body.classList.toggle('draw-map-open', this.visible && this.mapOnly);
+  }
+
   private async initializeMap(): Promise<void> {
     const apiKey = document
       .querySelector<HTMLMetaElement>('meta[name="google-maps-api-key"]')
@@ -1088,6 +1100,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.loading = false;
       this.errorMessage = '';
       this.cdr.detectChanges();
+      // The dialog animates in and mobile CSS can change the container size
+      // after init. Force the map to re-measure so no white gap remains.
+      window.setTimeout(() => {
+        if (!this.map) return;
+        const center = this.map.getCenter();
+        const zoom = this.map.getZoom();
+        google.maps.event.trigger(this.map, 'resize');
+        if (center) this.map.setCenter(center);
+        if (zoom !== undefined) this.map.setZoom(zoom);
+      }, 450);
       if (this.selectedAreasInput.length) {
         try {
           await this.chooseAreas(this.selectedAreasInput);

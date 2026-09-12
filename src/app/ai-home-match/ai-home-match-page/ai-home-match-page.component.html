@@ -468,7 +468,7 @@
         </div>
         <div *ngSwitchCase="11">
           <p class="selection-count" aria-live="polite">
-            {{ profile.topPriorities.length }} of 5 ranked
+            {{ profile.topPriorities.length }} of 3 ranked
           </p>
           <div class="options compact">
             <button
@@ -476,7 +476,7 @@
               *ngFor="let option of suggestedPriorities"
               [class.selected]="profile.topPriorities.includes(option.value)"
               [disabled]="
-                profile.topPriorities.length === 5 && !profile.topPriorities.includes(option.value)
+                profile.topPriorities.length === 3 && !profile.topPriorities.includes(option.value)
               "
               [attr.aria-pressed]="profile.topPriorities.includes(option.value)"
               (click)="togglePriority(option.value)"

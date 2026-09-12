@@ -40,7 +40,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       subtitle: 'Some apartments have special conditions regarding pets.',
     },
     {
-      title: 'Rank your Top 5 priorities',
+      title: 'Rank your Top 3 priorities',
       subtitle: 'Choose them in order from most to least important.',
     },
   ];
@@ -483,7 +483,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     const priorities = this.profile.topPriorities;
     this.profile.topPriorities = priorities.includes(value)
       ? priorities.filter((priority) => priority !== value)
-      : priorities.length < 5
+      : priorities.length < 3
         ? [...priorities, value]
         : priorities;
     this.persist();
@@ -561,7 +561,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           (this.profile.petType === 'None' || Number(this.profile.petCount) >= 1)
         );
       case 11:
-        return this.profile.topPriorities.length === 5;
+        return this.profile.topPriorities.length === 3;
       default:
         return false;
     }
