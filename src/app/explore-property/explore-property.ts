@@ -825,7 +825,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const results = this.resultsPane?.nativeElement;
     const target = event.target instanceof Element ? event.target : null;
     if (!results || !target || results.contains(target)) return;
-    if (target.closest('app-explore-property-map')) return;
+
+    // Wheel over the map scrolls the cards too — the map only zooms once
+    // the list cannot move further in that direction.
+    if (target.closest('app-explore-property-map')) {
+      const atTop = results.scrollTop <= 0;
+      const atBottom =
+        results.scrollTop >= results.scrollHeight - results.clientHeight - 1;
+      if ((event.deltaY > 0 && atBottom) || (event.deltaY < 0 && atTop)) return;
+    }
 
     const nestedScroller = target.closest<HTMLElement>(
       '.location-modal-body, .area-picker-column, .popover, .language-menu',
@@ -833,7 +841,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (nestedScroller && nestedScroller.scrollHeight > nestedScroller.clientHeight) return;
 
     event.preventDefault();
-    results.scrollBy({ top: event.deltaY, behavior: 'auto' });
+    // Stop the event before it reaches Google Maps, otherwise the map zooms
+    // while the list scrolls and the motion feels hard and too fast.
+    event.stopPropagation();
+    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? results.clientHeight : 1;
+    results.scrollBy({ top: event.deltaY * unit, behavior: 'smooth' });
   };
 
   private resetModeNavigationFilters(location: string): void {
