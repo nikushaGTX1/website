@@ -6,6 +6,7 @@ interface AvatarFigure {
   role: 'adult' | 'couple' | 'child' | 'pet';
   gender?: 'Male' | 'Female';
   primary?: boolean;
+  ageGroup?: string;
 }
 
 @Component({
@@ -48,8 +49,8 @@ export class VelvenLifestyleAvatarComponent {
     const childByAge: Record<string, string> = {
       Age0To3: childAssets[0],
       Age4To6: childAssets[1],
-      Age7To12: childAssets[2],
-      Age13To17: childAssets[3],
+      Age7To12: '/Characters/Firefly.png',
+      Age13To17: '/Characters/Firefly_RemoveBackground.png',
     };
     const adult = (src: string, gender: 'Male' | 'Female', primary = false): AvatarFigure => ({
       src,
@@ -60,6 +61,7 @@ export class VelvenLifestyleAvatarComponent {
     const selectedChildren = Array.from({ length: Math.min(this.profile.children, 4) }, (_, index): AvatarFigure => ({
       src: childByAge[this.profile.childrenAgeGroups[index]] || childAssets[index],
       role: 'child',
+      ageGroup: this.profile.childrenAgeGroups[index],
     }));
     const selectedPet: AvatarFigure[] = this.profile.hasPet
       ? [{ src: this.profile.petType === 'Cat' ? '/Characters/კატა.png' : '/Characters/ძაღლი.png', role: 'pet' }]

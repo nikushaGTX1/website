@@ -1291,6 +1291,29 @@ export class ExploreProperty implements OnInit, OnDestroy {
     return street || district || 'Address not provided';
   }
 
+  getFloorLabel(apartment: Apartment): string {
+    const floor = Number(apartment.floor);
+    if (!Number.isFinite(floor) || floor <= 0) return '—';
+
+    if (this.translationService.language$.value === 'ka') {
+      return `\u10db\u10d4-${floor} \u10e1\u10d0\u10e0\u10d7\u10e3\u10da\u10d8`;
+    }
+    if (this.translationService.language$.value === 'ru') return `${floor} этаж`;
+
+    return `${floor}${this.floorOrdinalSuffix(floor)} floor`;
+  }
+
+  private floorOrdinalSuffix(floor: number): string {
+    const lastTwoDigits = floor % 100;
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) return 'th';
+    switch (floor % 10) {
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
+    }
+  }
+
   private matchesPriceRange(price: number): boolean {
     switch (this.priceRange) {
       case '0-1000':

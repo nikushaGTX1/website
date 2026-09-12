@@ -44,7 +44,8 @@ svg {
   background: #fff;
 }
 .search-row {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 45;
   min-height: 86px;
   padding: 14px 32px;
@@ -325,7 +326,7 @@ svg {
 .chip-bar {
   position: sticky;
   z-index: 40;
-  top: 0;
+  top: 86px;
   height: 62px;
   padding: 0 25px;
   display: flex;
@@ -1061,6 +1062,7 @@ svg {
     min-height: 100dvh;
   }
   .search-row {
+    top: 64px;
     min-height: 73px;
     padding: 9px 14px;
     gap: 8px;
@@ -1102,7 +1104,7 @@ svg {
     display: none;
   }
   .chip-bar {
-    top: 64px;
+    top: 137px;
     height: 55px;
     padding: 0 12px;
   }

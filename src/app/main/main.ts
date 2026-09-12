@@ -19,6 +19,7 @@ import { TranslationService } from '../services/translation.service';
 })
 export class Main implements OnInit {
   apartments: Apartment[] = [];
+  apartmentsForSelectedMode: Apartment[] = [];
   agents: Agent[] = [];
   loading = true;
   agentsLoading = true;
@@ -272,6 +273,12 @@ export class Main implements OnInit {
   selectPropertyType(value: string): void {
     this.searchPropertyType = value;
     this.propertyTypeOpen = false;
+  }
+
+  selectSearchMode(mode: 'rent' | 'buy'): void {
+    this.searchMode = mode;
+    this.updateApartmentsForSelectedMode();
+    this.hydrateHomepageGalleries();
   }
 
   get areaSuggestions(): LocationSuggestion[] {
@@ -683,7 +690,7 @@ export class Main implements OnInit {
   }
 
   get topApartments(): Apartment[] {
-    return this.apartments
+    return this.apartmentsForSelectedMode
       .filter((apartment) => this.isDisplayableApartment(apartment))
       .slice(0, 4);
   }
@@ -699,6 +706,7 @@ export class Main implements OnInit {
             ? { ...apartment, images: current.images, imageUrls: current.imageUrls, imageUrl: current.imageUrl }
             : apartment;
         });
+        this.updateApartmentsForSelectedMode();
         this.loading = false;
         this.cdr.detectChanges();
         this.hydrateHomepageGalleries();
@@ -905,6 +913,22 @@ export class Main implements OnInit {
 
   private isDisplayableApartment(apartment: Apartment): boolean {
     return !!apartment.title?.trim() && Number(apartment.price) > 0;
+  }
+
+  private matchesSearchMode(apartment: Apartment): boolean {
+    const text = `${apartment.title || ''} ${apartment.description || ''}`.toLowerCase();
+    const deal = text.match(/deal:\s*([^|\n\r]+)/i)?.[1]?.trim() || '';
+    const listingType = deal || text;
+    const isForSale = /\b(for\s+sale|sale|buy)\b|იყიდება|продаж/i.test(listingType);
+    const isForRent = /\b(for\s+rent|rent|daily\s+rent|lease)\b|ქირავდება|аренд/i.test(listingType);
+
+    return this.searchMode === 'buy' ? isForSale : isForRent;
+  }
+
+  private updateApartmentsForSelectedMode(): void {
+    this.apartmentsForSelectedMode = this.apartments.filter((apartment) =>
+      this.matchesSearchMode(apartment),
+    );
   }
 
   private normalizeBudget(value: number | null): number | null {

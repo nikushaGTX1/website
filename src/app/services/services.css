@@ -162,6 +162,9 @@
 
 .service-card a {
   margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   color: #451a8f;
   font-size: 13px;
   font-weight: 700;
@@ -169,8 +172,23 @@
 }
 
 .service-card a span {
-  margin-left: 12px;
-  font-size: 18px;
+  width: 23px;
+  height: 23px;
+  margin: 0;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #d8c9f3;
+  border-radius: 50%;
+  background: #f7f3ff;
+  font-size: 15px;
+  line-height: 1;
+  transition: transform .18s ease, background .18s ease, color .18s ease;
+}
+
+.service-card a:hover span {
+  color: #fff;
+  background: #451a8f;
+  transform: translateX(3px);
 }
 
 .contact-banner {
@@ -179,7 +197,7 @@
   padding: 30px 34px;
   position: relative;
   display: grid;
-  grid-template-columns: 100px 1fr 1.15fr 200px;
+  grid-template-columns: 84px minmax(250px, 1fr) minmax(280px, 1.05fr) 170px;
   align-items: center;
   gap: 20px;
   overflow: hidden;
@@ -214,7 +232,7 @@
 
 .contact-intro h2 {
   margin: 0 0 11px;
-  font-size: 30px;
+  font-size: 27px;
   line-height: 1.08;
 }
 
@@ -260,19 +278,25 @@
 }
 
 .contact-details > a {
-  width: 190px;
+  width: 205px;
   height: 42px;
   margin-top: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  border-radius: 6px;
+  gap: 10px;
+  padding: 0 15px;
+  border-radius: 9px;
   color: #fff;
   background: #451a8f;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
+  white-space: nowrap;
+}
+
+.contact-details > a span {
+  display: none;
 }
 
 .skyline {
@@ -387,5 +411,14 @@
     grid-column: 1 / -1;
     padding-top: 22px;
     border-top: 1px solid #b9d4f5;
+  }
+
+  .contact-details > a {
+    width: 100%;
+    max-width: 280px;
+    padding: 0 16px;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11px;
   }
 }

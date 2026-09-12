@@ -38,7 +38,7 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
   --avatar-character-origin: center center;
 }
 .avatar-glow { position: absolute; left: 50%; bottom: 28px; width: 270px; height: 270px; border-radius: 50%; background: radial-gradient(circle, rgba(139, 92, 246, .25), rgba(232, 220, 251, .08) 57%, transparent 72%); transform: translateX(-50%); filter: blur(4px); }
-.avatar-caption { position: absolute; z-index: 10; left: 50%; bottom: 4px; display: inline-flex; align-items: center; gap: 7px; min-width: max-content; padding: 9px 15px; border: 1px solid rgba(93, 38, 158, .2); border-radius: 999px; color: #56219b; background: #fff; box-shadow: 0 10px 24px rgba(69, 26, 143, .18); font-size: 12px; font-weight: 800; white-space: nowrap; transform: translateX(-50%); }
+.avatar-caption { position: absolute; z-index: 10; left: 50%; bottom: 38px; display: inline-flex; align-items: center; gap: 7px; min-width: max-content; padding: 9px 15px; border: 1px solid rgba(93, 38, 158, .2); border-radius: 999px; color: #56219b; background: #fff; box-shadow: 0 10px 24px rgba(69, 26, 143, .18); font-size: 12px; font-weight: 800; white-space: nowrap; transform: translateX(-50%); }
 .profile-attribute { position: absolute; z-index: 3; width: 220px; min-height: 66px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid rgba(82, 32, 154, .12); border-radius: 16px; background: rgba(255, 255, 255, .94); box-shadow: 0 12px 30px rgba(45, 28, 75, .09); animation: profile-float 6s ease-in-out infinite; }
 .profile-attribute:nth-of-type(even) { animation-delay: -2s; }
 .profile-attribute:nth-of-type(3n) { animation-delay: -4s; }

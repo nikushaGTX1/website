@@ -102,6 +102,21 @@
   aspect-ratio: auto;
 }
 
+.character-stage.character-group .child-figure.school-age-figure {
+  width: 30%;
+  height: 78%;
+  max-width: 30%;
+  flex-basis: 30%;
+}
+
+/* Teenagers use a taller character silhouette while their feet stay on the shared baseline. */
+.character-stage.character-group .child-figure.teen-figure {
+  width: 34%;
+  height: 90%;
+  max-width: 34%;
+  flex-basis: 34%;
+}
+
 .character-stage.character-group .pet-figure {
   position: relative;
   inset: auto;

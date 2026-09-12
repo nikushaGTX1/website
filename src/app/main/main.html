@@ -11,10 +11,10 @@
       (submit)="searchHomes(); $event.preventDefault()"
     >
       <div class="search-tabs" role="tablist" aria-label="Property type">
-        <button type="button" [class.active]="searchMode === 'rent'" (click)="searchMode = 'rent'">
+        <button type="button" [class.active]="searchMode === 'rent'" (click)="selectSearchMode('rent')">
           <span class="home-icon home-svg" aria-hidden="true"></span><span>Rent</span>
         </button>
-        <button type="button" [class.active]="searchMode === 'buy'" (click)="searchMode = 'buy'">
+        <button type="button" [class.active]="searchMode === 'buy'" (click)="selectSearchMode('buy')">
           <span class="home-icon home-svg" aria-hidden="true"></span><span>Buy</span>
         </button>
       </div>
@@ -135,7 +135,7 @@
                     [visible]="true"
                     [compact]="true"
                     [dockPropertyPreview]="true"
-                    [apartments]="apartments"
+                    [apartments]="apartmentsForSelectedMode"
                     [selectedAreaInput]="selectedLocationArea"
                     [selectedAreasInput]="selectedLocationAreas"
                     [selectedStreetsInput]="selectedModalStreetDetails"
@@ -882,7 +882,7 @@
 <app-draw-area-map
   *ngIf="drawAreaInitialized"
   [visible]="drawAreaOpen"
-  [apartments]="apartments"
+  [apartments]="apartmentsForSelectedMode"
   (close)="closeDrawArea()"
   (apply)="applyDrawnArea($event)"
 >
