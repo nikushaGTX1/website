@@ -224,6 +224,34 @@
   font-size: 9px;
   letter-spacing: 0.09em;
 }
+/* Agent check rendered inside the price card: single clean strip. */
+.vp-inquiry .vp-proof {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 13px;
+  background: #f7f3ff;
+}
+.vp-inquiry .vp-proof-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+.vp-inquiry .vp-proof h3 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+}
+.vp-proof-check {
+  flex: none;
+  color: var(--purple);
+  font-size: 16px;
+}
 .vp-section {
   padding: 38px 0;
   border-bottom: 1px solid var(--line);
@@ -623,20 +651,22 @@
 .photo-viewer-track {
   width: 100%;
   height: 100%;
-  padding: 80px max(24px, calc((100vw - 1100px) / 2)) 90px;
+  padding: 80px 24px 90px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 22px;
   overflow-y: auto;
+  overflow-x: clip;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   touch-action: pan-y;
   box-sizing: border-box;
 }
 .photo-viewer-track img {
-  width: min(1100px, calc(100vw - 64px));
-  height: calc(100dvh - 150px);
+  width: 100%;
+  max-width: 100%;
+  height: calc(100dvh - 170px);
   flex: 0 0 auto;
   object-fit: contain;
   background: #0f0a14;
@@ -710,10 +740,12 @@
   .photo-viewer-track {
     padding: 72px 12px 76px;
     gap: 12px;
+    scrollbar-gutter: auto;
   }
 
   .photo-viewer-track img {
-    width: calc(100vw - 24px);
+    width: 100%;
+    max-width: 100%;
     height: calc(100dvh - 148px);
   }
 
@@ -1693,8 +1725,24 @@
     height: 100%;
   }
   .vp-columns {
-    display: block;
+    display: flex;
+    flex-direction: column;
     margin-top: 20px;
+  }
+  .vp-columns > .vp-main,
+  .vp-columns > .vp-side-rail {
+    display: contents;
+  }
+  /* Mobile order: title/address, then price card (with agent check inside). */
+  .vp-columns .vp-intro {
+    order: 1;
+  }
+  .vp-columns .vp-inquiry {
+    order: 2;
+  }
+  .vp-columns .vp-main > :not(.vp-intro),
+  .vp-columns .vp-side-rail > :not(.vp-inquiry) {
+    order: 3;
   }
   .vp-intro h1 {
     font-size: 30px;

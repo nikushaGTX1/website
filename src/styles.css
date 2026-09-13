@@ -444,6 +444,13 @@ body.photo-viewer-active .route-content {
   isolation: auto !important;
 }
 
+/* Full-screen photo viewer must ignore the generic dialog size cap above,
+ * otherwise the page peeks out on the right/bottom edge. */
+.route-content .photo-viewer {
+  max-width: none;
+  max-height: none;
+}
+
 body.draw-map-open {
   overflow: hidden;
 }
