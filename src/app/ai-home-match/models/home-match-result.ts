@@ -52,6 +52,7 @@ export interface HomeMatchApartment {
   schoolDistanceMinutes?: number;
   kindergartenDistanceMinutes?: number;
   groceryDistanceMinutes?: number;
+  cafeDistanceMinutes?: number;
   metroDistanceMinutes?: number;
   parkDistanceMinutes?: number;
   universityDistanceMinutes?: number;

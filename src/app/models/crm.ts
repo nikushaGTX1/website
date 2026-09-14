@@ -60,6 +60,16 @@ export interface CrmLead {
   currency?: string;
   preferences?: string;
   message?: string;
+  /** Job-application fields returned for leads submitted through the careers form. */
+  position?: string;
+  vacancyTitle?: string;
+  experience?: string;
+  experienceLevel?: string;
+  languages?: string[] | string;
+  cvUrl?: string;
+  resumeUrl?: string;
+  cvFileUrl?: string;
+  cvFileName?: string;
   assignedAgentId?: string;
   assignedAgentName?: string;
   budgetMin?: number;
@@ -98,6 +108,28 @@ export interface CrmMetrics {
   upcomingViewings: number;
   wonLeads: number;
   conversionRate: number;
+}
+
+export interface CrmJobApplication {
+  id: number;
+  fullName: string;
+  phoneNumber: string;
+  position: string;
+  experience: string;
+  languages?: string;
+  cvFileName?: string;
+  cvUrl?: string;
+  cvFileSize?: number;
+  isConfirmed: boolean;
+  confirmedAt?: string;
+  createdAt: string;
+}
+
+export interface CrmVacancyPosition {
+  id: number;
+  title: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface CrmLeadFilters {

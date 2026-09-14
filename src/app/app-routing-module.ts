@@ -86,6 +86,12 @@ const routes: Routes = [
   },
 
   {
+    path: 'careers',
+    loadComponent: () => import('./careers/careers').then(module => module.Careers),
+    title: 'Careers | Velven'
+  },
+
+  {
     path: 'services',
     component: Services,
     title: 'Real Estate Services | Velven'

@@ -147,6 +147,94 @@
     </section>
 
     <!-- ===================================================== -->
+    <!-- VACANCY APPLICATIONS -->
+    <!-- ===================================================== -->
+
+    <section class="vacancies-section" *ngIf="isManager" aria-labelledby="vacancies-heading">
+      <header class="vacancies-heading">
+        <div>
+          <span class="vacancies-icon" aria-hidden="true">
+            <i class="fa-solid fa-briefcase"></i>
+          </span>
+          <div>
+            <p>RECRUITMENT</p>
+            <h2 id="vacancies-heading">Vacancies</h2>
+            <small>Job applications, candidate details and CVs</small>
+          </div>
+        </div>
+        <strong>{{ vacancyApplications.length }}</strong>
+      </header>
+
+      <div class="vacancy-empty" *ngIf="!loading && vacancyApplications.length === 0">
+        <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+        <div>
+          <b>No job applications yet</b>
+          <span>New career submissions will appear here automatically.</span>
+        </div>
+      </div>
+
+      <div class="vacancy-list" *ngIf="vacancyApplications.length > 0">
+        <article class="vacancy-card" [class.confirmed]="applicant.isConfirmed" *ngFor="let applicant of vacancyApplications; trackBy: identifyApplication">
+          <span class="application-status" [class.confirmed]="applicant.isConfirmed">
+            <i [class]="applicant.isConfirmed ? 'fa-solid fa-circle-check' : 'fa-regular fa-clock'" aria-hidden="true"></i>
+            {{ applicant.isConfirmed ? 'Confirmed' : 'New application' }}
+          </span>
+          <div class="vacancy-applicant">
+            <span class="lead-avatar">{{ initials(applicant) }}</span>
+            <div>
+              <h3>{{ applicant.fullName }}</h3>
+              <p>{{ applicant.position }}</p>
+              <time [attr.datetime]="applicant.createdAt">Applied {{ formatDate(applicant.createdAt) }}</time>
+            </div>
+          </div>
+
+          <dl class="vacancy-details">
+            <div>
+              <dt>Phone</dt>
+              <dd>
+                <a *ngIf="applicant.phoneNumber; else missingPhone" [href]="'tel:' + applicant.phoneNumber">{{ applicant.phoneNumber }}</a>
+                <ng-template #missingPhone>Not provided</ng-template>
+              </dd>
+            </div>
+            <div>
+              <dt>Experience</dt>
+              <dd>{{ applicant.experience }}</dd>
+            </div>
+            <div>
+              <dt>Languages</dt>
+              <dd>{{ applicant.languages || 'Not specified' }}</dd>
+            </div>
+          </dl>
+
+          <div class="vacancy-actions">
+            <button
+              class="cv-button"
+              type="button"
+              *ngIf="applicant.cvUrl; else noCv"
+              (click)="downloadApplicationCv(applicant)"
+            >
+              <i class="fa-regular fa-file-pdf" aria-hidden="true"></i>
+              {{ applicant.cvFileName || 'Download CV' }}
+              <i class="fa-solid fa-download" aria-hidden="true"></i>
+            </button>
+            <ng-template #noCv>
+              <span class="cv-missing"><i class="fa-regular fa-file" aria-hidden="true"></i> No CV attached</span>
+            </ng-template>
+            <span class="vacancy-action-spacer"></span>
+            <button class="confirm-application" type="button" (click)="confirmApplication(applicant)" [disabled]="applicant.isConfirmed || vacancyActionId === applicant.id">
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+              {{ applicant.isConfirmed ? 'Confirmed' : 'Confirm' }}
+            </button>
+            <button class="delete-application" type="button" (click)="deleteApplication(applicant)" [disabled]="vacancyActionId === applicant.id" aria-label="Delete application">
+              <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+              Delete
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================================================== -->
     <!-- FILTERS -->
     <!-- ===================================================== -->
 

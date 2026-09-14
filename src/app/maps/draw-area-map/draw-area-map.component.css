@@ -53,7 +53,7 @@
 }
 .map-only-close {
   position: absolute;
-  z-index: 6;
+  z-index: 20;
   top: 16px;
   right: 16px;
 }
@@ -1114,8 +1114,8 @@ h3 {
 @media (max-width: 650px) {
   .compact-map-shell,
   .compact-draw-map {
-    height: clamp(390px, 58dvh, 540px);
-    min-height: clamp(390px, 58dvh, 540px);
+    height: clamp(330px, 48svh, 440px);
+    min-height: clamp(330px, 48svh, 440px);
   }
   .draw-tool-button {
     top: 12px;
@@ -1138,10 +1138,34 @@ h3 {
   }
 }
 
+@media (max-width: 390px) {
+  .compact-map-controls {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    gap: 7px;
+  }
+
+  .compact-map-controls > .draw-tool-button {
+    min-height: 42px;
+    padding-inline: 12px;
+  }
+
+  .compact-street-search > label {
+    height: 42px;
+    padding-inline: 9px;
+    gap: 7px;
+  }
+
+  .compact-street-search input {
+    font-size: 11px;
+  }
+}
+
 @media (max-width: 650px) {
   :host.is-compact .compact-draw-map {
-    pointer-events: none;
-    touch-action: pan-y;
+    pointer-events: auto;
+    touch-action: none;
   }
   :host.is-compact .compact-map-shell.interactive .compact-draw-map {
     pointer-events: auto;

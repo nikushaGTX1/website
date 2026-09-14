@@ -5,6 +5,7 @@ export interface NearbyWalkingTimes {
   schoolDistanceMinutes?: number;
   kindergartenDistanceMinutes?: number;
   groceryDistanceMinutes?: number;
+  cafeDistanceMinutes?: number;
   gymDistanceMinutes?: number;
   metroDistanceMinutes?: number;
   parkDistanceMinutes?: number;
@@ -194,6 +195,7 @@ export class GoogleNearbyTimeService {
     const categories: Array<{ type: string; key: NearbyTimeKey }> = [
       { type: 'preschool', key: 'kindergartenDistanceMinutes' },
       { type: 'supermarket', key: 'groceryDistanceMinutes' },
+      { type: 'cafe', key: 'cafeDistanceMinutes' },
       { type: 'gym', key: 'gymDistanceMinutes' },
       { type: 'subway_station', key: 'metroDistanceMinutes' },
       { type: 'park', key: 'parkDistanceMinutes' },

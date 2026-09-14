@@ -2,14 +2,14 @@
   <header class="match-hero">
     <div class="hero-inner">
       <div class="hero-copy">
-        <span>✦ AI Home Match</span>
+        <span>AI HOME MATCH</span>
         <h1>Let AI find<br />your perfect home.</h1>
         <p>
           Answer a few questions about your lifestyle, preferences and needs — and Velven AI will
           recommend properties that truly match you.
         </p>
         <div class="hero-actions">
-          <button type="button" (click)="scrollToMatcher()">✦ &nbsp; Start AI Home Match</button>
+          <button type="button" (click)="scrollToMatcher()">Find My Match</button>
           <a href="#how-it-works" (click)="$event.preventDefault(); scrollToMatcher()"
             >▷ &nbsp; How It Works</a
           >
@@ -145,11 +145,36 @@
                 {{ proximityTargetLabel(item) }}
               </option></select
             ><label *ngIf="profile.proximityTarget && profile.proximityTarget !== 'No'"
+              class="proximity-address-field"
               >Address<input
                 [(ngModel)]="profile.proximityAddress"
-                (ngModelChange)="persist()"
+                (ngModelChange)="onProximityAddressInput()"
+                (focus)="proximitySuggestOpen = true"
+                (blur)="onProximityAddressBlur()"
+                (keydown.escape)="proximitySuggestOpen = false"
                 placeholder="Enter a nearby address"
-            /></label>
+                autocomplete="off"
+              />
+              <div
+                class="proximity-suggestions"
+                *ngIf="proximitySuggestOpen && proximitySuggestions.length"
+              >
+                <button
+                  type="button"
+                  *ngFor="let suggestion of proximitySuggestions"
+                  (pointerdown)="selectProximitySuggestion(suggestion)"
+                >
+                  <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                  <span
+                    ><b>{{ suggestion.label }}</b
+                    ><small>{{ suggestion.district }}</small></span
+                  >
+                </button>
+              </div>
+              <p class="proximity-no-match" *ngIf="showProximityNoResults">
+                No matching street found.
+              </p></label
+            >
           </div>
         </div>
         <form class="budget" *ngSwitchCase="3" [formGroup]="budgetForm">
@@ -285,11 +310,7 @@
                 )
               "
               [class.selected]="selected('childrenAgeGroups', option.value)"
-              [disabled]="
-                !selected('childrenAgeGroups', option.value) &&
-                profile.childrenAgeGroups.length >= profile.children
-              "
-              (click)="toggle('childrenAgeGroups', option.value)"
+              (click)="selectChildAge(option.value)"
             >
               <svg class="option-icon small" aria-hidden="true">
                 <use href="/ai-match-icons.svg#family"></use></svg
@@ -468,15 +489,15 @@
         </div>
         <div *ngSwitchCase="11">
           <p class="selection-count" aria-live="polite">
-            {{ profile.topPriorities.length }} of 3 ranked
+            {{ profile.topPriorities.length }} of 5 ranked
           </p>
-          <div class="options compact">
+          <div class="options compact priority-options">
             <button
               type="button"
               *ngFor="let option of suggestedPriorities"
               [class.selected]="profile.topPriorities.includes(option.value)"
               [disabled]="
-                profile.topPriorities.length === 3 && !profile.topPriorities.includes(option.value)
+                profile.topPriorities.length === 5 && !profile.topPriorities.includes(option.value)
               "
               [attr.aria-pressed]="profile.topPriorities.includes(option.value)"
               (click)="togglePriority(option.value)"
@@ -486,10 +507,10 @@
                   [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"
                 ></use>
               </svg>
-              <b *ngIf="profile.topPriorities.includes(option.value)">
-                #{{ profile.topPriorities.indexOf(option.value) + 1 }}
-              </b>
-              {{ option.label }}
+              <span class="priority-label">
+                <b *ngIf="profile.topPriorities.includes(option.value)">#{{ profile.topPriorities.indexOf(option.value) + 1 }}</b>
+                {{ option.label }}
+              </span>
             </button>
           </div>
         </div>
@@ -603,7 +624,7 @@
   *ngIf="mapVisible"
   [visible]="mapVisible"
   [mapOnly]="true"
-  [selectedAreasInput]="profile.districts"
+  [selectedAreasInput]="noPreselectedMapAreas"
   (detectedAreaChange)="pendingMapArea = $event"
   (apply)="applyMap($event)"
   (close)="mapVisible = false"

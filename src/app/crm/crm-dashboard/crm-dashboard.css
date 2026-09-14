@@ -12,6 +12,7 @@
 
 .crm-header,
 .metrics-grid,
+.vacancies-section,
 .filter-panel,
 .pipeline-section,
 .page-message {
@@ -209,6 +210,83 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.vacancies-section {
+  margin-bottom: 16px;
+  overflow: hidden;
+  border: 1px solid #ddd5ee;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(56, 36, 91, 0.08);
+}
+.vacancies-heading {
+  min-height: 88px;
+  padding: 17px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #e8e3ef;
+  background: linear-gradient(110deg, #f6f1ff, #fff 68%);
+}
+.vacancies-heading > div { display: flex; align-items: center; gap: 14px; }
+.vacancies-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 46px;
+  border-radius: 12px;
+  background: #eee7ff;
+  color: #5c36b4;
+  font-size: 18px;
+}
+.vacancies-heading p { margin: 0 0 2px; color: #7049c8; font-size: 9px; font-weight: 900; letter-spacing: .11em; }
+.vacancies-heading h2 { margin: 0; color: #211a28; font-size: 21px; }
+.vacancies-heading small { display: block; margin-top: 3px; color: #7d7585; font-size: 11px; }
+.vacancies-heading > strong {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #451a8f;
+  color: #fff;
+  font-size: 13px;
+}
+.vacancy-empty { padding: 20px; display: flex; align-items: center; gap: 12px; color: #858090; }
+.vacancy-empty > i { font-size: 22px; color: #9a84ce; }
+.vacancy-empty b, .vacancy-empty span { display: block; }
+.vacancy-empty b { margin-bottom: 3px; color: #4e4658; font-size: 12px; }
+.vacancy-empty span { font-size: 11px; }
+.vacancy-list { padding: 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; background: #fcfbfe; }
+.vacancy-card { position: relative; min-width: 0; padding: 22px; overflow: hidden; border: 1px solid #e3ddeb; border-radius: 15px; background: linear-gradient(145deg, #fff, #fdfcff); box-shadow: 0 8px 24px rgba(45, 30, 68, .055); transition: transform .2s, box-shadow .2s, border-color .2s; }
+.vacancy-card:hover { border-color: #b7a5dc; box-shadow: 0 14px 30px rgba(59, 34, 96, .1); transform: translateY(-2px); }
+.vacancy-card.confirmed { border-color: #b9e1cf; background: linear-gradient(145deg, #fff, #f5fcf8); }
+.application-status { position: absolute; top: 17px; right: 17px; padding: 6px 9px; display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; background: #fff2dc; color: #98600a; font-size: 9px; font-weight: 900; }
+.application-status.confirmed { background: #e3f6ec; color: #16704b; }
+.vacancy-applicant { padding-right: 110px; display: flex; align-items: center; gap: 12px; }
+.vacancy-applicant > div { min-width: 0; }
+.vacancy-applicant h3 { margin: 0; overflow: hidden; color: #241d2b; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.vacancy-applicant p { margin: 3px 0; color: #5e3cad; font-size: 11px; font-weight: 800; }
+.vacancy-applicant time { color: #8c8593; font-size: 9px; }
+.vacancy-details { margin: 19px 0 0; padding: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-radius: 11px; background: #f8f6fb; }
+.vacancy-details div { min-width: 0; }
+.vacancy-details dt { margin-bottom: 3px; color: #918997; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.vacancy-details dd { margin: 0; overflow-wrap: anywhere; color: #463e4d; font-size: 11px; }
+.vacancy-details a { color: #5333a6; text-decoration: none; }
+.vacancy-notes { margin: 14px 0 0; padding: 10px 11px; color: #625a68; background: #faf9fb; border-radius: 8px; font-size: 10px; line-height: 1.55; white-space: pre-line; }
+.vacancy-actions { margin-top: 18px; padding-top: 15px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #ece7f0; }
+.cv-button, .cv-missing, .applicant-record { min-height: 36px; display: inline-flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 800; text-decoration: none; }
+.cv-button { padding: 0 11px; border: 0; border-radius: 8px; color: #fff; background: #451a8f; cursor: pointer; }
+.cv-missing { color: #99919f; }
+.applicant-record { color: #5c3ab4; }
+.vacancy-action-spacer { flex: 1; }
+.confirm-application, .delete-application { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font: inherit; font-size: 10px; font-weight: 900; cursor: pointer; }
+.confirm-application { border: 1px solid #b8deca; background: #edfaf3; color: #18714e; }
+.confirm-application:disabled { opacity: .65; cursor: default; }
+.delete-application { border: 1px solid #efcaca; background: #fff7f7; color: #ae3038; }
 
 .filter-panel {
   padding: 14px;
@@ -1534,6 +1612,7 @@ button:disabled {
   .metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .vacancy-list { grid-template-columns: 1fr; }
   .metric-card {
     min-height: 105px;
     padding: 14px;
@@ -1642,6 +1721,15 @@ button:disabled {
   .lead-dialog-icon {
     display: none;
   }
+  .vacancies-heading { padding: 15px; }
+  .vacancies-heading small { display: none; }
+  .vacancy-list { padding: 10px; }
+  .vacancy-details { grid-template-columns: 1fr; }
+  .vacancy-applicant { padding-right: 0; padding-top: 34px; }
+  .vacancy-actions { align-items: stretch; flex-direction: column; }
+  .vacancy-action-spacer { display: none; }
+  .confirm-application, .delete-application { justify-content: center; }
+  .cv-button, .applicant-record { justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

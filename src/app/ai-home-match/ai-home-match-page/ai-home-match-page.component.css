@@ -1284,10 +1284,100 @@ fieldset {
   }
 }
 
+/* Georgian words must never split letter-by-letter: wrap only at spaces. */
+.question .options button,
+.question fieldset button,
+.question fieldset label {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+/* Proximity address autocomplete (location DB suggestions). */
+.proximity-address-field {
+  position: relative;
+}
+.proximity-suggestions {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  border: 1px solid #dfe4eb;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 32px rgba(20, 32, 59, 0.16);
+}
+.proximity-suggestions button {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 12px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  border-bottom: 1px solid #edf0f4;
+  border-radius: 0;
+  background: #fff;
+  color: #344158;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.proximity-suggestions button:last-child {
+  border-bottom: 0;
+}
+.proximity-suggestions button:hover {
+  background: #f7faff;
+  color: #451a8f;
+}
+.proximity-suggestions button i {
+  color: #451a8f;
+  font-size: 13px;
+}
+.proximity-suggestions button span {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+}
+.proximity-suggestions button b,
+.proximity-suggestions button small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.proximity-suggestions button small {
+  color: #7a8498;
+  font-size: 11px;
+  font-weight: 500;
+}
+.proximity-no-match {
+  margin: 8px 0 0;
+  color: #7a8498;
+  font-size: 12px;
+  text-align: center;
+}
+
 /* Content-sized questions keep short choices compact and long forms on the page. */
 .phase-progress {
   box-sizing: border-box;
 }
+
+.priority-options .priority-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.priority-options .priority-label b { color: #451a8f; white-space: nowrap; }
 .question-title {
   flex-shrink: 0;
   margin-bottom: 24px;

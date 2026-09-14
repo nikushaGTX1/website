@@ -274,14 +274,19 @@
 }
 
 .newsletter-icon {
-  background: #ffffff;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  background: linear-gradient(135deg, #451a8f, #6d3fd4);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
+  box-shadow: 0 6px 16px rgba(69, 26, 143, 0.28);
+}
+
+.newsletter-icon svg {
+  stroke: #ffffff;
 }
 
 .newsletter-card h3 {

@@ -32,7 +32,7 @@
           >
             <i class="location-leading-icon fa-solid fa-location-dot" aria-hidden="true"></i>
             <span class="location-trigger-text">{{
-              searchLocation || 'Search area, street, building or landmark...'
+              searchLocation || 'Search area, Streets, Draw'
             }}</span>
             <i class="fa-solid fa-chevron-down location-chevron" aria-hidden="true"></i>
           </button>
@@ -146,8 +146,8 @@
                   >
                   </app-draw-area-map>
                   <div class="area-map-card">
-                    <i class="fa-solid fa-city"></i
-                    ><span
+                    <i class="fa-solid fa-city area-card-icon" aria-hidden="true"></i>
+                    <span
                       ><b>{{ selectedLocationAreas.length ? selectedLocationAreas.join(', ') : (selectedLocationArea || drawnDetectedArea || 'Tbilisi') }}</b
                       ><small>{{
                         selectedModalStreets.length
@@ -155,6 +155,14 @@
                           : selectedAreaDescription
                       }}</small></span
                     >
+                    <button
+                      type="button"
+                      class="area-card-close"
+                      aria-label="Clear area"
+                      (click)="clearModalLocation()"
+                    >
+                      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    </button>
                   </div>
                 </aside>
               </div>
@@ -206,7 +214,7 @@
                 name="location"
                 [(ngModel)]="searchLocation"
                 (input)="onLocationInput()"
-                placeholder="Search area, street, building or landmark..."
+                placeholder="Search area, Streets, Draw"
                 autocomplete="off"
                 aria-label="Search locations"
               />
@@ -564,7 +572,9 @@
         *ngFor="let apartment of topApartments; let index = index"
         [routerLink]="['/apartments', apartment.id]"
       >
-        <div class="property-image" data-protected-image>
+        <div class="property-image" data-protected-image
+          (touchstart)="beginApartmentSwipe($event)"
+          (touchend)="endApartmentSwipe($event, apartment)">
           <span class="property-badge verified" *ngIf="isExclusiveListing(apartment)"
             ><i class="fa-solid fa-circle-check"></i> Verified</span
           >
@@ -727,7 +737,7 @@
         Tell us what you’re looking for and our AI will do the hard work. Get personalized matches
         that feel just right.
       </p>
-      <a routerLink="/ai-home-match">Try AI Match <span>✦</span></a>
+      <a routerLink="/ai-home-match">Try Velven Match <span>✦</span></a>
     </div>
     <img class="ai-sportsman" src="/ojaxi.png" alt="" aria-hidden="true" />
     <div class="ai-orb">✦</div>

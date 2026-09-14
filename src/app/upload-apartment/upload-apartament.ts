@@ -1129,6 +1129,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       apartmentStyle: this.form.apartmentStyle,
       metroDistanceMinutes: nearbyTimes.metroDistanceMinutes,
       gymDistanceMinutes: nearbyTimes.gymDistanceMinutes,
+      groceryDistanceMinutes: nearbyTimes.groceryDistanceMinutes,
+      cafeDistanceMinutes: nearbyTimes.cafeDistanceMinutes,
       parkDistanceMinutes: nearbyTimes.parkDistanceMinutes,
       schoolDistanceMinutes: nearbyTimes.schoolDistanceMinutes,
       kindergartenDistanceMinutes: nearbyTimes.kindergartenDistanceMinutes,

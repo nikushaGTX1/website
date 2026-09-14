@@ -646,6 +646,11 @@
   position: fixed;
   z-index: 12000;
   inset: 0;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
   background: #0f0a14f5;
 }
 .photo-viewer-track {
@@ -1036,7 +1041,9 @@
   font-size: 16px;
 }
 .mortgage-fields b {
+  flex: 0 0 auto;
   font-weight: 600;
+  white-space: nowrap;
 }
 .mortgage-fields input.mortgage-range {
   width: 100%;
@@ -1475,6 +1482,43 @@
   }
   .viewer-nav.next {
     right: 8px;
+  }
+}
+
+/* Keep nearby places compact on narrow detail pages. */
+@media (max-width: 740px) {
+  .mortgage-fields label > div {
+    gap: 7px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .mortgage-fields b {
+    font-size: 12px;
+  }
+
+  .vp-nearby {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .vp-nearby > div {
+    min-width: 0;
+    min-height: 88px;
+    padding: 12px 8px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .vp-nearby p {
+    min-width: 0;
+    align-items: center;
+  }
+
+  .vp-nearby strong {
+    overflow-wrap: anywhere;
   }
 }
 

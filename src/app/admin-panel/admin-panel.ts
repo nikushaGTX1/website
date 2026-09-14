@@ -10,6 +10,8 @@ import { ApartmentService } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { BlogService } from '../services/blog.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
+import { CrmVacancyPosition } from '../models/crm';
+import { CrmService } from '../services/crm.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 
 @Component({
@@ -24,9 +26,11 @@ export class AdminPanel implements OnInit, OnDestroy {
   apartments: Apartment[] = [];
   blogPosts: BlogPost[] = [];
   pendingApartments: PendingApartment[] = [];
+  vacancyPositions: CrmVacancyPosition[] = [];
+  newVacancyPosition = '';
   userIds: string[] = [];
 
-  activeTab: 'pending' | 'users' | 'agents' | 'apartments' | 'blog' | 'streets' = 'pending';
+  activeTab: 'pending' | 'users' | 'agents' | 'apartments' | 'blog' | 'streets' | 'vacancies' = 'pending';
 
   blogForm: CreateBlogPost = {
     title: '',
@@ -62,6 +66,7 @@ export class AdminPanel implements OnInit, OnDestroy {
     private authService: AuthService,
     private blogService: BlogService,
     private pendingService: PendingApartmentService,
+    private crmService: CrmService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -167,6 +172,13 @@ export class AdminPanel implements OnInit, OnDestroy {
     );
   }
 
+  get filteredVacancyPositions(): CrmVacancyPosition[] {
+    const query = this.normalizedSearch;
+    return this.vacancyPositions.filter((position) =>
+      !query || position.title.toLowerCase().includes(query),
+    );
+  }
+
   private get normalizedSearch(): string {
     return this.adminSearch.trim().toLowerCase();
   }
@@ -200,6 +212,9 @@ export class AdminPanel implements OnInit, OnDestroy {
         : of([] as string[]),
       agents: this.adminService.getAgents().pipe(catchError(() => of([] as Agent[]))),
       apartments: this.apartmentService.getApartments().pipe(catchError(() => of([] as Apartment[]))),
+      vacancyPositions: this.isAdmin
+        ? this.crmService.getVacancyPositions(true).pipe(catchError(() => of([] as CrmVacancyPosition[])))
+        : of([] as CrmVacancyPosition[]),
     }).subscribe({
       next: (data) => {
         console.log('Admin dashboard loaded:', data);
@@ -216,6 +231,7 @@ export class AdminPanel implements OnInit, OnDestroy {
           return ratings;
         }, {});
         this.apartments = data.apartments;
+        this.vacancyPositions = data.vacancyPositions;
 
         this.loading = false;
         this.cdr.detectChanges();
@@ -225,6 +241,45 @@ export class AdminPanel implements OnInit, OnDestroy {
 
         this.loading = false;
         this.errorMessage = 'Could not load dashboard.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  addVacancyPosition(): void {
+    const title = this.newVacancyPosition.trim();
+    if (!this.isAdmin || !title || this.actionId) return;
+    this.actionId = 'vacancy:new';
+    this.crmService.createVacancyPosition(title).subscribe({
+      next: (position) => {
+        this.vacancyPositions = [...this.vacancyPositions, position]
+          .sort((a, b) => a.title.localeCompare(b.title));
+        this.newVacancyPosition = '';
+        this.actionId = '';
+        this.successMessage = `${position.title} was added to the careers form.`;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.actionId = '';
+        this.errorMessage = 'Could not add this vacancy position.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  deleteVacancyPosition(position: CrmVacancyPosition): void {
+    if (!this.isAdmin || this.actionId || !window.confirm(`Delete the “${position.title}” position?`)) return;
+    this.actionId = `vacancy:${position.id}`;
+    this.crmService.deleteVacancyPosition(position.id).subscribe({
+      next: () => {
+        this.vacancyPositions = this.vacancyPositions.filter((item) => item.id !== position.id);
+        this.actionId = '';
+        this.successMessage = `${position.title} was removed from the careers form.`;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.actionId = '';
+        this.errorMessage = 'Could not delete this vacancy position.';
         this.cdr.detectChanges();
       },
     });

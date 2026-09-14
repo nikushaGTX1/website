@@ -97,17 +97,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
   ];
   readonly allLocationAreas = [
     'Didube',
-    'Digomi',
     'Didi Digomi',
-    'Gldani',
-    'Nadzaladevi',
-    'Isani',
-    'Samgori',
+    'Digomi',
     'Avlabari',
-    'Sololaki',
+    'Isani',
+    'Gldani',
     'Chugureti',
+    'Nadzaladevi',
     'Krtsanisi',
     'Vashlijvari',
+    'Sololaki',
+    'Samgori',
   ];
   locationDisplayLanguage: AppLanguage = 'ka';
   headerBedrooms = '';
@@ -701,8 +701,16 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   private locationAreaRank(district: string): number {
-    const popularAreas = ['Vake', 'Saburtalo', 'Vera', 'Didi Digomi', 'Mtatsminda', 'Avlabari'];
-    const index = popularAreas.indexOf(district);
+    const popularAreas = [
+      'Vake', 'Saburtalo', 'Vera', 'Mtatsminda',
+      'Didi Digomi', 'Digomi', 'Didube', 'Avlabari',
+      'Isani', 'Gldani', 'Chugureti', 'Bagebi',
+      'Ortachala', 'Nadzaladevi', 'Krtsanisi', 'Vashlijvari',
+      'Sololaki', 'Samgori', 'Avchala', 'Abanotubani',
+    ];
+    const index = popularAreas.findIndex(
+      (area) => area.toLowerCase() === district.trim().toLowerCase(),
+    );
     return index === -1 ? popularAreas.length : index;
   }
 

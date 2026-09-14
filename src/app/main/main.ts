@@ -90,6 +90,7 @@ export class Main implements OnInit {
   drawAreaOpen = false;
   drawAreaInitialized = false;
   private readonly propertyImageIndexes = new Map<number, number>();
+  private propertySwipeStartX: number | null = null;
   private readonly hydratedApartmentIds = new Set<number>();
 
   constructor(
@@ -170,6 +171,19 @@ export class Main implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.propertyImageIndexes.set(apartment.id, index);
+  }
+
+  beginApartmentSwipe(event: TouchEvent): void {
+    this.propertySwipeStartX = event.touches[0]?.clientX ?? null;
+  }
+
+  endApartmentSwipe(event: TouchEvent, apartment: Apartment): void {
+    const endX = event.changedTouches[0]?.clientX;
+    if (this.propertySwipeStartX == null || endX == null) return;
+    const distance = endX - this.propertySwipeStartX;
+    this.propertySwipeStartX = null;
+    if (Math.abs(distance) < 42 || this.getApartmentGallery(apartment).length < 2) return;
+    this.changeApartmentCardImage(event, apartment, distance < 0 ? 1 : -1);
   }
 
   get budgetSummary(): string {
@@ -437,6 +451,7 @@ export class Main implements OnInit {
   }
 
   public get apiTbilisiAreas(): string[] {
+    const featured = new Set(this.featuredLocationAreas.map((area) => area.name.toLowerCase()));
     return [
       ...new Set(
         this.locationEntries
@@ -448,9 +463,13 @@ export class Main implements OnInit {
               area !== 'System.Collections.Hashtable' &&
               /[A-Za-z]/.test(area) &&
               !/[\u10A0-\u10FF]/.test(area),
-          ),
+          )
+          .filter((area) => !featured.has(area.toLowerCase())),
       ),
-    ].sort((left, right) => left.localeCompare(right, 'en'));
+    ].sort((left, right) => {
+      const rankDifference = this.locationAreaRank(left) - this.locationAreaRank(right);
+      return rankDifference || left.localeCompare(right, 'en');
+    });
   }
 
   public get visibleTbilisiAreas(): string[] {
@@ -684,8 +703,16 @@ export class Main implements OnInit {
   }
 
   private locationAreaRank(district: string): number {
-    const popularAreas = ['Vake', 'Saburtalo', 'Vera', 'Didi Digomi', 'Mtatsminda', 'Avlabari'];
-    const index = popularAreas.indexOf(district);
+    const popularAreas = [
+      'Vake', 'Saburtalo', 'Vera', 'Mtatsminda',
+      'Didi Digomi', 'Digomi', 'Didube', 'Avlabari',
+      'Isani', 'Gldani', 'Chugureti', 'Bagebi',
+      'Ortachala', 'Nadzaladevi', 'Krtsanisi', 'Vashlijvari',
+      'Sololaki', 'Samgori', 'Avchala', 'Abanotubani',
+    ];
+    const index = popularAreas.findIndex(
+      (area) => area.toLowerCase() === district.trim().toLowerCase(),
+    );
     return index === -1 ? popularAreas.length : index;
   }
 

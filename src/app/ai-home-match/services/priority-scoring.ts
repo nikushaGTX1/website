@@ -1,7 +1,7 @@
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchApartment, HomeMatchResult } from '../models/home-match-result';
 
-const PRIORITY_MULTIPLIERS = [3, 2, 1] as const;
+const PRIORITY_MULTIPLIERS = [5, 4, 3, 2, 1] as const;
 const PRIORITY_LABELS: Record<string, string> = {
   MetroNearby: 'Proximity to metro',
   SchoolNearby: 'Proximity to school',
@@ -69,7 +69,7 @@ function scorePriority(priority: string, apartment: HomeMatchApartment): number 
 }
 
 export function applyPriorityScoring(result: HomeMatchResult, profile: HomeMatchProfile): HomeMatchResult {
-  const rawScores = profile.topPriorities.slice(0, 3).map((priority) =>
+  const rawScores = profile.topPriorities.slice(0, 5).map((priority) =>
     priority === 'UniversityNearby' && !profile.transportation.includes('Walking')
       ? 0
       : scorePriority(priority, result.apartment),
@@ -79,9 +79,9 @@ export function applyPriorityScoring(result: HomeMatchResult, profile: HomeMatch
     0,
   );
   const satisfied = rawScores.filter((score) => score > 0).length;
-  const coverageBonus = satisfied === 3 ? 10 : satisfied === 2 ? 4 : 0;
+  const coverageBonus = satisfied === 5 ? 15 : satisfied === 4 ? 10 : satisfied === 3 ? 6 : satisfied === 2 ? 3 : 0;
   const priorityScore = weightedScore + coverageBonus;
-  const priorityBreakdown = profile.topPriorities.slice(0, 3).map((priority, index) => ({
+  const priorityBreakdown = profile.topPriorities.slice(0, 5).map((priority, index) => ({
     priority: PRIORITY_LABELS[priority] || priority.replace(/([a-z])([A-Z])/g, '$1 $2'),
     rank: index + 1,
     baseScore: rawScores[index],

@@ -26,13 +26,15 @@
     class="card"
     [class.best-match]="matchIndex === 0"
   >
-    <div class="media">
-      <img
-        [src]="image(result)"
-        [class.placeholder-image]="image(result) === '/property-placeholder.svg'"
-        [alt]="result.apartment.title"
-        (error)="onImageError($event, result)"
-      />
+    <div class="media-column">
+      <div class="media">
+        <img
+          [src]="image(result)"
+          [class.placeholder-image]="image(result) === '/property-placeholder.svg'"
+          [alt]="result.apartment.title"
+          (error)="onImageError($event, result)"
+        />
+      </div>
       <div class="score">
         <span>{{ rankLabel(matchIndex) }}</span>
         <b>{{ rankHeadline(matchIndex) }}</b>
@@ -72,12 +74,6 @@
           </div>
         </ng-container>
       </section>
-      <ul class="reasons">
-        <li *ngFor="let reason of result.reasons">
-          <b>✓ {{ reason.title }}</b
-          ><span *ngIf="reason.description">{{ reason.description }}</span>
-        </li>
-      </ul>
       <section class="nearby-times" aria-live="polite">
         <h3>Nearby walking times</h3>
         <p *ngIf="!hasNearbyTimes(result) && enrichingApartmentIds.has(result.apartment.id)">
@@ -85,10 +81,10 @@
         </p>
         <p *ngIf="!hasNearbyTimes(result) && !enrichingApartmentIds.has(result.apartment.id)">Walking times are not available for this apartment.</p>
         <div *ngIf="hasNearbyTimes(result)" class="nearby-time-grid">
-          <span *ngIf="result.apartment.schoolDistanceMinutes != null"
+          <span *ngIf="isFamilyProfile() && result.apartment.schoolDistanceMinutes != null"
             ><b>Nearest school</b>{{ result.apartment.schoolDistanceMinutes }} min walk</span
           >
-          <span *ngIf="result.apartment.kindergartenDistanceMinutes != null"
+          <span *ngIf="isFamilyProfile() && result.apartment.kindergartenDistanceMinutes != null"
             ><b>Nearest kindergarten</b>{{ result.apartment.kindergartenDistanceMinutes }} min
             walk</span
           >
@@ -100,6 +96,9 @@
           >
           <span *ngIf="result.apartment.metroDistanceMinutes != null"
             ><b>Nearest metro</b>{{ result.apartment.metroDistanceMinutes }} min walk</span
+          >
+          <span *ngIf="result.apartment.cafeDistanceMinutes != null"
+            ><b>Nearest café</b>{{ result.apartment.cafeDistanceMinutes }} min walk</span
           >
         </div>
         <small *ngIf="hasNearbyTimes(result)"

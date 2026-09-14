@@ -87,6 +87,10 @@ const routeSeo = new Map([
     title: 'About Velven | Tbilisi Real Estate Platform',
     description: 'Learn how Velven makes apartment searches in Tbilisi clearer with verified listings, local expertise and smart matching.',
   }],
+  ['/careers', {
+    title: 'Careers at Velven | Join Our Team',
+    description: 'Apply to join Velven and help shape a clearer, more personal real estate experience in Georgia.',
+  }],
   ['/services', {
     title: 'Real Estate Services in Tbilisi | Velven',
     description: 'Explore professional property search, listing and real estate support services for renters, buyers and owners in Tbilisi.',
@@ -97,7 +101,7 @@ let sitemapCache;
 
 function crmQuestionnaireSeo(pathname) {
   const isLegacyPath = /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname);
-  const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|about|services|apartment-detail|agent-profile|login|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(pathname);
+  const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|about|careers|services|apartment-detail|agent-profile|login|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(pathname);
   const isShortPath = /^\/(?:agent-)?[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(pathname)
     && !reservedShortPath;
   if (!isLegacyPath && !isShortPath) return undefined;
@@ -1154,6 +1158,7 @@ async function dynamicSitemap() {
     ['/blog', 'weekly', '0.7'],
     ['/ai-home-match', 'monthly', '0.6'],
     ['/about', 'monthly', '0.7'],
+    ['/careers', 'monthly', '0.6'],
     ['/services', 'monthly', '0.8'],
     ['/find-my-home', 'monthly', '0.7'],
   ];

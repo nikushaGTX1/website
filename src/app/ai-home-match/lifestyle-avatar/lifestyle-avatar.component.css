@@ -37,11 +37,11 @@
 }
 
 .character-stage.character-group .character-figure + .character-figure {
-  margin-left: -14%;
+  margin-left: -20%;
 }
 
 .character-stage.character-group .adult-figure + .adult-figure {
-  margin-left: -20%;
+  margin-left: -27%;
 }
 
 .avatar-placeholder {
@@ -170,11 +170,11 @@
 }
 
 .character-stage.character-group.crowded-group .character-figure + .character-figure {
-  margin-left: -15%;
+  margin-left: -21%;
 }
 
 .character-stage.character-group.crowded-group .adult-figure + .adult-figure {
-  margin-left: -21%;
+  margin-left: -28%;
 }
 
 .character-stage.has-extra-people {

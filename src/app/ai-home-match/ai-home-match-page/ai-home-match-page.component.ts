@@ -6,6 +6,8 @@ import { HomeMatchOption, HomeMatchQuestion } from '../models/home-match-questio
 import { EMPTY_HOME_MATCH_PROFILE, HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchService } from '../services/home-match.service';
 import { GeoJsonPolygon } from '../../services/apartment.service';
+import { ApiLocation } from '../../models/location';
+import { LocationService } from '../../services/location.service';
 import { applyPriorityScoring } from '../services/priority-scoring';
 
 type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
@@ -40,7 +42,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       subtitle: 'Some apartments have special conditions regarding pets.',
     },
     {
-      title: 'Rank your Top 3 priorities',
+      title: 'Rank your Top 5 priorities',
       subtitle: 'Choose them in order from most to least important.',
     },
   ];
@@ -54,7 +56,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       'Didi Dighomi',
       'Isani',
       'Ortachala',
-      'Other district',
       'Select on map',
     ],
     [
@@ -66,7 +67,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       'DidiDighomi',
       'Isani',
       'Ortachala',
-      'OtherDistrict',
       'SelectOnMap',
     ],
   );
@@ -104,6 +104,14 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   step = 1;
   mapVisible = false;
   pendingMapArea = '';
+  locationEntries: ApiLocation[] = [];
+  locationsLoaded = false;
+  proximitySuggestOpen = false;
+  // The map always opens clean (no pre-drawn district boundaries) so the
+  // user draws the area manually with the DRAW button, like on Main.
+  // Must stay a stable reference: a fresh [] each CD cycle would look like
+  // an input change and wipe an in-progress drawing.
+  readonly noPreselectedMapAreas: string[] = [];
   get fixedHousehold(): boolean {
     return ['JustMe', 'Couple'].includes(this.profile.householdType);
   }
@@ -147,6 +155,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   constructor(
     private service: HomeMatchService,
     private cdr: ChangeDetectorRef,
+    private locationService: LocationService,
   ) {
     service.reset();
     this.profile = {
@@ -174,6 +183,15 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       min: this.profile.budgetMin,
       max: this.profile.budgetMax,
       currency: this.profile.currency,
+    });
+    this.locationService.getLocations().subscribe({
+      next: (locations) => {
+        this.locationEntries = locations;
+        this.locationsLoaded = true;
+      },
+      error: () => {
+        this.locationsLoaded = true;
+      },
     });
   }
   ngOnDestroy(): void {
@@ -207,10 +225,21 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return this.budgetPercent(this.budgetForm.controls.max.value);
   }
   get currentPhase(): number {
-    return Math.min(
-      this.phaseLabels.length - 1,
-      Math.floor(((this.stepNumber - 1) * this.phaseLabels.length) / this.visibleSteps.length),
-    );
+    // Use the question ID as the source of truth so phase labels cannot drift.
+    if (this.step === 1 || this.step === 0) return 0;
+    if (this.step === 2) return 1;
+    if ([4, 5, 6, 7].includes(this.step)) return 2;
+    if ([8, 9, 10].includes(this.step)) return 3;
+    if (this.step === 3) return 4;
+    if (this.step === 11) return 5;
+    return 0;
+  }
+
+  selectChildAge(value: string): void {
+    // This question captures the household's relevant child age bracket.
+    // Choosing another bracket replaces the previous choice; the user advances manually.
+    this.profile.childrenAgeGroups = [value];
+    this.persist();
   }
   get householdLabel(): string {
     if (!this.profile.householdType) return 'Tell us who will live there';
@@ -376,6 +405,84 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     };
     return labels[value] ?? value;
   }
+
+  get proximityQuery(): string {
+    return (this.profile.proximityAddress || '').trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+  }
+
+  get proximitySuggestions(): Array<{ id: number; label: string; value: string; district: string }> {
+    if (this.proximityQuery.length < 2 || !this.locationEntries.length) return [];
+    const seen = new Set<number>();
+    const suggestions: Array<{ id: number; label: string; value: string; district: string }> = [];
+    for (const entry of this.locationEntries.filter((item) => item.city === 'Tbilisi')) {
+      for (const language of ['ka', 'en'] as const) {
+        for (const street of this.locationService.streetNames(entry, language)) {
+          if (!street.id || seen.has(street.id)) continue;
+          if (
+            street.label.toLocaleLowerCase().includes(this.proximityQuery) ||
+            street.value.toLocaleLowerCase().includes(this.proximityQuery)
+          ) {
+            seen.add(street.id);
+            suggestions.push({
+              id: street.id,
+              label: street.label,
+              value: street.value,
+              district: this.locationService.districtName(entry, language),
+            });
+            if (suggestions.length >= 6) return suggestions;
+          }
+        }
+      }
+    }
+    return suggestions;
+  }
+
+  get showProximityNoResults(): boolean {
+    return (
+      this.proximitySuggestOpen &&
+      this.locationsLoaded &&
+      this.proximityQuery.length >= 2 &&
+      this.proximitySuggestions.length === 0
+    );
+  }
+
+  onProximityAddressInput(): void {
+    // A custom typed address has no verified coordinates until a suggestion is picked.
+    this.profile.proximityLatitude = undefined;
+    this.profile.proximityLongitude = undefined;
+    this.proximitySuggestOpen = true;
+    this.persist();
+  }
+
+  onProximityAddressBlur(): void {
+    window.setTimeout(() => {
+      this.proximitySuggestOpen = false;
+    }, 150);
+  }
+
+  selectProximitySuggestion(suggestion: { id: number; label: string; value: string }): void {
+    this.profile.proximityAddress = suggestion.label;
+    this.proximitySuggestOpen = false;
+    this.persist();
+    this.locationService.getStreet(suggestion.id).subscribe({
+      next: (record) => {
+        const geometry = record.geometry;
+        const path =
+          geometry?.type === 'LineString'
+            ? (geometry.coordinates as number[][])
+            : geometry?.type === 'MultiLineString'
+              ? (geometry.coordinates as number[][][])[0]
+              : undefined;
+        if (path?.length) {
+          const middle = path[Math.floor(path.length / 2)];
+          this.profile.proximityLongitude = middle[0];
+          this.profile.proximityLatitude = middle[1];
+        }
+        this.persist();
+      },
+      error: () => undefined,
+    });
+  }
   opts(labels: string[], values?: string[]): HomeMatchOption[] {
     return labels.map((label, index) => ({ label, value: values?.[index] || label }));
   }
@@ -391,6 +498,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     value: string,
   ): void {
     (this.profile as Record<typeof key, string | undefined>)[key] = value;
+    if (key === 'proximityTarget') this.proximitySuggestOpen = false;
     if (key === 'propertyGoal') {
       for (const step of [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) this.clearStep(step);
       if (value === 'Buy') {
@@ -483,7 +591,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     const priorities = this.profile.topPriorities;
     this.profile.topPriorities = priorities.includes(value)
       ? priorities.filter((priority) => priority !== value)
-      : priorities.length < 3
+      : priorities.length < 5
         ? [...priorities, value]
         : priorities;
     this.persist();
@@ -561,7 +669,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           (this.profile.petType === 'None' || Number(this.profile.petCount) >= 1)
         );
       case 11:
-        return this.profile.topPriorities.length === 3;
+        return this.profile.topPriorities.length === 5;
       default:
         return false;
     }
@@ -699,11 +807,15 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       !!this.profile.proximityAddress?.trim();
     if (hasLocation) add('Proximity to selected location', 'SelectedLocationNearby');
 
-    const familyHousehold = ['ParentWithChildren', 'FamilyWithChildren'].includes(
-      this.profile.householdType,
+    const familyHousehold =
+      this.profile.children > 0 ||
+      ['ParentWithChildren', 'FamilyWithChildren'].includes(this.profile.householdType);
+    const ages = new Set(
+      familyHousehold
+        ? this.profile.childrenAgeGroups.slice(0, Math.max(0, this.profile.children))
+        : [],
     );
-    const ages = new Set(this.profile.childrenAgeGroups);
-    if (familyHousehold || this.profile.lifestyles.includes('FamilyFocused')) {
+    if (familyHousehold) {
       if (!ages.size) {
         add('Proximity to school', 'SchoolNearby');
         add('Proximity to kindergarten', 'KindergartenNearby');
@@ -802,6 +914,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       add('Large living room', 'LargeLivingRoom');
       add('Balcony or terrace', 'BalconyOrTerrace');
     }
+
+    // Always offer enough meaningful choices to complete a five-item ranking.
+    add('Proximity to supermarket', 'SupermarketNearby');
+    add('Proximity to metro', 'MetroNearby');
+    add('GYM', 'GymNearby');
+    add('Proximity to park', 'ParkNearby');
+    add('Proximity to pharmacy', 'PharmacyNearby');
 
     return [...suggestions.values()];
   }

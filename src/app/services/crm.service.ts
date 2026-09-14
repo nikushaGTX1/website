@@ -7,6 +7,8 @@ import {
   CreateCrmTaskRequest,
   CrmInquiryRequest,
   CrmInquiryResponse,
+  CrmJobApplication,
+  CrmVacancyPosition,
   CrmLead,
   CrmLeadActivity,
   CrmLeadFilters,
@@ -43,6 +45,40 @@ export class CrmService {
 
   getMetrics(): Observable<CrmMetrics> {
     return this.http.get<CrmMetrics>(`${this.apiUrl}/metrics`);
+  }
+
+  getJobApplications(): Observable<CrmJobApplication[]> {
+    return this.http.get<CrmJobApplication[]>(`${this.apiUrl}/job-applications`);
+  }
+
+  downloadJobApplicationCv(applicationId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/job-applications/${applicationId}/cv`, {
+      responseType: 'blob',
+    });
+  }
+
+  confirmJobApplication(applicationId: number): Observable<CrmJobApplication> {
+    return this.http.patch<CrmJobApplication>(
+      `${this.apiUrl}/job-applications/${applicationId}/confirm`,
+      {},
+    );
+  }
+
+  deleteJobApplication(applicationId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/job-applications/${applicationId}`);
+  }
+
+  getVacancyPositions(includeInactive = false): Observable<CrmVacancyPosition[]> {
+    const suffix = includeInactive ? '/all' : '';
+    return this.http.get<CrmVacancyPosition[]>(`${this.apiUrl}/vacancy-positions${suffix}`);
+  }
+
+  createVacancyPosition(title: string): Observable<CrmVacancyPosition> {
+    return this.http.post<CrmVacancyPosition>(`${this.apiUrl}/vacancy-positions`, { title });
+  }
+
+  deleteVacancyPosition(positionId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/vacancy-positions/${positionId}`);
   }
 
   generateQuestionnaireLink(): Observable<{ token: string; slug: string; path: string }> {

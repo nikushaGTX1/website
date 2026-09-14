@@ -1,0 +1,53 @@
+:host { display: block; background: #f6f7fb; color: #182135; font-family: Arial, Helvetica, sans-serif; }
+.careers-page { min-height: calc(100vh - 76px); padding: 34px 16px 64px; }
+.application-card { width: min(910px, 100%); margin: 0 auto; padding: 42px 48px 48px; border: 1px solid #e1e4eb; border-radius: 28px; background: #fff; box-shadow: 0 14px 40px rgba(25, 34, 52, .045); }
+.application-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.application-header .brand { color: #451a8f; font: 500 35px/1 Georgia, serif; text-decoration: none; }
+.application-header > span { color: #707889; font-size: 14px; font-weight: 700; }
+.application-intro { margin-top: 54px; }
+.application-intro h1, .success-state h1 { margin: 0; color: #111827; font-size: clamp(32px, 5vw, 43px); line-height: 1.12; }
+.application-intro p { max-width: 520px; margin: 18px 0 0; color: #7b8493; font-size: 17px; line-height: 1.7; }
+form { margin-top: 43px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 24px; }
+label { min-width: 0; }
+label > span { display: block; margin-bottom: 10px; color: #344054; font-size: 14px; font-weight: 800; }
+label > span b { color: #344054; }
+label > span small { margin-left: 7px; color: #a0a6b0; font-size: 12px; font-weight: 500; }
+.wide { grid-column: 1 / -1; }
+input, select { width: 100%; height: 66px; padding: 0 18px; border: 1px solid #dfe3e8; border-radius: 12px; background: #fff; color: #344054; font: inherit; font-size: 15px; outline: none; }
+select { appearance: none; padding-right: 48px; background-image: linear-gradient(45deg, transparent 50%, #747b86 50%), linear-gradient(135deg, #747b86 50%, transparent 50%); background-position: calc(100% - 23px) 29px, calc(100% - 17px) 29px; background-size: 6px 6px; background-repeat: no-repeat; }
+input::placeholder { color: #abb1ba; }
+input:focus, select:focus { border-color: #6841c2; box-shadow: 0 0 0 3px rgba(69, 26, 143, .1); }
+.upload-label { margin-top: 2px; }
+.upload-box { width: 100%; min-height: 112px; padding: 18px 25px; display: flex; align-items: center; gap: 20px; border: 1px dashed #d6d9df; border-radius: 12px; background: #fff; color: #4e327f; text-align: left; cursor: pointer; }
+.upload-box:hover { border-color: #7b55cc; background: #fcfaff; }
+.upload-box > i { width: 56px; height: 56px; display: grid; place-items: center; flex: 0 0 56px; border-radius: 12px; background: #f2ebff; color: #5a2da1; font-size: 18px; }
+.upload-box span, .upload-box strong, .upload-box small { display: block; }
+.upload-box strong { overflow-wrap: anywhere; font-size: 14px; }
+.upload-box small { margin-top: 9px; color: #9198a4; font-size: 12px; font-weight: 500; }
+.form-error { margin: 18px 0 0; padding: 11px 13px; border-radius: 9px; background: #fff1f1; color: #a62d35; font-size: 13px; font-weight: 700; }
+form footer { margin-top: 38px; padding-top: 31px; border-top: 1px solid #edf0f3; text-align: center; }
+.submit-button { width: 100%; min-height: 70px; display: flex; align-items: center; justify-content: center; gap: 18px; border: 0; border-radius: 13px; background: #451a8f; color: #fff; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+.submit-button:hover { background: #5725aa; }
+.submit-button:disabled { opacity: .65; cursor: wait; }
+form footer > small { display: block; margin-top: 18px; color: #9aa1ad; font-size: 11px; }
+.success-state { min-height: 520px; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+.success-state > span { width: 76px; height: 76px; margin-bottom: 25px; display: grid; place-items: center; border-radius: 50%; background: #eee8ff; color: #451a8f; font-size: 27px; }
+.success-state p { max-width: 560px; margin: 17px auto 28px; color: #768091; font-size: 15px; line-height: 1.7; }
+.success-state button { min-height: 48px; padding: 0 20px; border: 0; border-radius: 9px; background: #451a8f; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+@media (max-width: 650px) {
+  .careers-page { padding: 12px 8px 40px; }
+  .application-card { padding: 27px 20px 32px; border-radius: 20px; }
+  .application-header .brand { font-size: 29px; }
+  .application-header > span { font-size: 12px; }
+  .application-intro { margin-top: 42px; }
+  .application-intro p { font-size: 14px; }
+  form { margin-top: 34px; }
+  .form-grid { grid-template-columns: 1fr; gap: 21px; }
+  .wide { grid-column: auto; }
+  input, select { height: 58px; }
+  .upload-box { padding: 15px; }
+  .upload-box > i { width: 46px; height: 46px; flex-basis: 46px; }
+  .submit-button { min-height: 60px; }
+}

@@ -440,6 +440,10 @@ body.photo-viewer-active .skip-link {
   display: none !important;
 }
 
+body.photo-viewer-active {
+  overflow: hidden;
+}
+
 body.photo-viewer-active .route-content {
   isolation: auto !important;
 }

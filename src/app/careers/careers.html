@@ -1,0 +1,85 @@
+<main class="careers-page">
+  <section class="application-card" aria-labelledby="application-title">
+    <header class="application-header">
+      <a class="brand" routerLink="/main" aria-label="Velven home">Velven</a>
+      <span>Careers at Velven</span>
+    </header>
+
+    <div class="application-intro" *ngIf="!submitted; else successState">
+      <h1 id="application-title">Join our team</h1>
+      <p>Become part of a strong team and take the first step together with Velven.</p>
+    </div>
+
+    <form *ngIf="!submitted" #applicationForm="ngForm" (ngSubmit)="submit()" novalidate>
+      <div class="form-grid">
+        <label>
+          <span>Full name <b>*</b></span>
+          <input name="fullName" [(ngModel)]="form.fullName" placeholder="Your full name" autocomplete="name" required />
+        </label>
+
+        <label>
+          <span>Phone number <b>*</b></span>
+          <input name="phoneNumber" [(ngModel)]="form.phoneNumber" placeholder="+995 5XX XX XX XX" autocomplete="tel" inputmode="tel" required />
+        </label>
+
+        <label class="wide">
+          <span>Desired position <b>*</b></span>
+          <select name="position" [(ngModel)]="form.position" required>
+            <option value="" disabled>{{ loadingPositions ? 'Loading positions…' : 'Select a position' }}</option>
+            <option *ngFor="let position of positions" [value]="position.title">{{ position.title }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Real estate experience <b>*</b></span>
+          <select name="experience" [(ngModel)]="form.experience" required>
+            <option value="" disabled>Select experience</option>
+            <option *ngFor="let experience of experienceOptions" [value]="experience">{{ experience }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Languages <small>optional</small></span>
+          <input name="languages" [(ngModel)]="form.languages" placeholder="e.g. Georgian, English" />
+        </label>
+
+        <label class="wide upload-label">
+          <span>Resume / CV <small>optional</small></span>
+          <input #fileInput class="sr-only" type="file" accept=".pdf,.doc,.docx" (change)="onFileSelected($event)" />
+          <button
+            class="upload-box"
+            type="button"
+            (click)="chooseFile()"
+            (drop)="onFileDropped($event)"
+            (dragover)="allowFileDrop($event)"
+          >
+            <i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>
+            <span>
+              <strong>{{ cvFile ? cvFile.name : 'Choose a file or drag it here' }}</strong>
+              <small>PDF, DOC, DOCX · Maximum 5 MB</small>
+            </span>
+          </button>
+        </label>
+      </div>
+
+      <p class="form-error" role="alert" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+      <footer>
+        <button class="submit-button" type="submit" [disabled]="submitting">
+          {{ submitting ? 'Sending application…' : 'Send application' }}
+          <i [class]="submitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-arrow-right'" aria-hidden="true"></i>
+        </button>
+        <small>Your information will be stored securely.</small>
+      </footer>
+    </form>
+
+    <ng-template #successState>
+      <section class="success-state" role="status">
+        <span><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+        <h1 id="application-title">Application received</h1>
+        <p>Thank you for your interest in Velven. Our team will contact you if your experience matches an open position.</p>
+        <button type="button" (click)="submitted = false">Submit another application</button>
+      </section>
+    </ng-template>
+  </section>
+</main>

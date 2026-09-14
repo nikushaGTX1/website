@@ -981,8 +981,9 @@
   font-size: 9px !important;
   font-weight: 750 !important;
 }
-.area-map-card { position: absolute; right: 14px; bottom: 14px; left: 14px; padding: 14px; display: grid; grid-template-columns: 46px 1fr; gap: 12px; border-radius: 10px; background: rgba(255,255,255,.94); box-shadow: 0 6px 18px #1d2a401b; }
-.area-map-card > i { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 9px; background: #eee9ff; color: #451a8f; font-size: 21px; }
+.area-map-card { position: absolute; right: 14px; bottom: 14px; left: 14px; padding: 14px; display: grid; grid-template-columns: 46px minmax(0, 1fr) 30px; align-items: start; gap: 12px; border-radius: 10px; background: rgba(255,255,255,.94); box-shadow: 0 6px 18px #1d2a401b; }
+.area-card-close { width: 30px; height: 30px; min-width: 30px; padding: 0 !important; display: grid; place-items: center; border: 0; border-radius: 50%; background: #efe9ff; color: #451a8f; font-size: 13px; line-height: 1; box-sizing: border-box; cursor: pointer; }
+.area-map-card > .area-card-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 9px; background: #eee9ff; color: #451a8f; font-size: 21px; }
 .area-map-card span, .area-map-card b, .area-map-card small { display: block; }
 .area-map-card b { font-size: 12px; }.area-map-card small { margin-top: 5px; color: #677287; font-size: 9px; line-height: 1.45; }
 .location-modal-footer { min-height: 78px; padding: 14px 18px 14px 26px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #e8eaf0; }
@@ -3239,7 +3240,7 @@
     padding: max(14px, env(safe-area-inset-top)) 16px 12px;
     align-items: flex-start;
     background: #fff;
-    margin-top: 30%;
+    margin-top: 0;
   }
 
   .location-modal-header > div {
@@ -3418,10 +3419,11 @@
     bottom: 10px;
     left: 10px;
     padding: 10px;
-    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-columns: 38px minmax(0, 1fr) 30px;
+    gap: 10px;
   }
 
-  .area-map-card > i {
+  .area-map-card > .area-card-icon {
     width: 38px;
     height: 38px;
   }
@@ -3482,11 +3484,30 @@
 
 @media (max-width: 380px) {
   .featured-area-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .featured-area-grid button {
-    min-height: 72px;
+    min-height: 62px;
+    padding: 9px 7px;
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .featured-area-grid button > i:first-child { font-size: 18px; }
+  .featured-area-grid b { font-size: 11px; }
+  .featured-area-grid small { display: none; }
+
+  .smart-location-grid > button {
+    min-height: 70px;
+    padding: 9px;
+    gap: 8px;
+  }
+
+  .location-tool-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
   }
 
   .location-steps small {
@@ -3777,7 +3798,8 @@
     min-height: 100dvh !important;
     height: auto !important;
     max-height: none !important;
-    display: block;
+    display: flex;
+    flex-direction: column;
     overflow-x: clip !important;
     overflow-y: visible !important;
     padding-bottom: env(safe-area-inset-bottom);
@@ -3789,28 +3811,30 @@
   }
 
   .location-modal-header {
-    position: relative !important;
+    position: sticky !important;
     z-index: 10001 !important;
-    top: auto !important;
+    top: 0 !important;
     right: auto !important;
     bottom: auto !important;
     left: auto !important;
-    border-bottom: 0 !important;
+    min-height: 82px;
+    padding: max(12px, env(safe-area-inset-top)) 64px 10px 14px;
+    border-bottom: 1px solid #ece8f3 !important;
     background: #fff !important;
     box-shadow: none;
   }
 
   .location-modal-footer {
-    position: relative !important;
+    position: sticky !important;
     z-index: 10002 !important;
     right: auto !important;
-    bottom: auto !important;
+    bottom: 0 !important;
     left: auto !important;
     width: 100% !important;
     max-height: none;
     overflow: visible;
     padding-bottom: max(10px, env(safe-area-inset-bottom));
-    display: flex !important;
+    display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
     background: #fff !important;
@@ -3832,16 +3856,24 @@
     touch-action: auto;
   }
 
+  .location-modal-body {
+    display: flex !important;
+    flex-direction: column;
+  }
+
   .location-map-preview,
   .inline-google-draw {
     display: block;
   }
 
   .location-map-preview {
-    min-height: clamp(390px, 58dvh, 540px);
-    height: clamp(390px, 58dvh, 540px);
+    order: -1;
+    min-height: clamp(330px, 48svh, 440px);
+    height: clamp(330px, 48svh, 440px);
     max-height: none;
-    touch-action: pan-y;
+    touch-action: auto;
+    border-top: 0 !important;
+    border-bottom: 1px solid #e9e5f0;
   }
 
   .inline-google-draw {
@@ -3854,6 +3886,80 @@
     display: grid !important;
     grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr) !important;
     gap: 9px;
+  }
+
+  .location-modal-footer .selected-location {
+    display: none !important;
+  }
+
+  .area-picker-column {
+    padding: 14px 12px 18px !important;
+  }
+
+  .area-picker-column > h3 {
+    margin: 0 0 9px;
+  }
+
+  .area-picker-column > h3:not(:first-child) {
+    margin-top: 16px;
+  }
+
+  .featured-area-grid {
+    margin-bottom: 16px;
+  }
+
+  .featured-area-grid button {
+    min-height: 64px;
+  }
+
+  .featured-area-grid small {
+    display: none;
+  }
+
+  .all-area-grid button {
+    min-height: 40px;
+    padding: 6px 7px 6px 28px;
+    line-height: 1.2;
+  }
+
+  .all-area-grid { gap: 6px; }
+
+  .area-map-card {
+    right: 58px !important;
+    bottom: 24px !important;
+    left: 8px !important;
+    min-height: 54px;
+    padding: 8px !important;
+    grid-template-columns: 34px minmax(0, 1fr) 34px !important;
+    align-items: center;
+    gap: 8px !important;
+    border: 1px solid rgba(69, 26, 143, .12);
+  }
+
+  .area-map-card > .area-card-icon {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 16px;
+  }
+
+  .area-map-card b {
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .area-map-card small {
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .area-card-close {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
   }
 
   .location-modal-header > .location-modal-close {
@@ -3885,14 +3991,17 @@
   font-size: clamp(28px, 3.8vw, 48px);
 }
 
+/* Give the Georgian owner callout a little more breathing room. */
+:host-context(html:lang(ka)) .testimonial-grid aside :is(.eyebrow, h2, p, a) {
+  letter-spacing: 0.025em;
+}
+
 @media (max-width: 650px) {
   :host-context(html:lang(ka)) .hero h1 {
     font-size: clamp(34px, 9.5vw, 42px);
   }
 
-  @media (max-width: 650px) {
   .location-panel-trigger > b {
     transform: translateX(-7px);
   }
-}
 }

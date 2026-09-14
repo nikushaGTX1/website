@@ -204,9 +204,17 @@
 }
 
 .metric-icon {
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   color: #451a8f;
+}
+
+.metric-icon svg {
+  width: 21px;
+  height: 21px;
+  vector-effect: non-scaling-stroke;
 }
 
 .metric-text {

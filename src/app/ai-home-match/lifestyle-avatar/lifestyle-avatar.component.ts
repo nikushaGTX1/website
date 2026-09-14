@@ -49,8 +49,8 @@ export class VelvenLifestyleAvatarComponent {
     const childByAge: Record<string, string> = {
       Age0To3: childAssets[0],
       Age4To6: childAssets[1],
-      Age7To12: '/Characters/Firefly.png',
-      Age13To17: '/Characters/Firefly_RemoveBackground.png',
+      Age7To12: '/Characters/Firefly_RemoveBackground.png',
+      Age13To17: '/Characters/Firefly.png',
     };
     const adult = (src: string, gender: 'Male' | 'Female', primary = false): AvatarFigure => ({
       src,

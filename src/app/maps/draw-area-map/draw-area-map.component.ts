@@ -21,6 +21,12 @@ import { firstValueFrom } from 'rxjs';
 import { Apartment } from '../../models/apartment';
 import { Router } from '@angular/router';
 
+type DistrictBoundaryState = {
+  id: number | null;
+  status: 'loading' | 'ready' | 'unavailable';
+  polygons: number[][][][];
+};
+
 @Component({
   selector: 'app-draw-area-map',
   standalone: false,
@@ -118,6 +124,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private activePriceAreas: string[] = [];
   private zoomListener?: google.maps.MapsEventListener;
   private selectionRevision = 0;
+  private readonly districtBoundaryStates = new Map<string | number, DistrictBoundaryState>();
   private streetRevision = 0;
   private drawnAreaRevision = 0;
   private preserveDrawnPolygonOnInputChange = false;
@@ -136,6 +143,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.locationService.getLocations().subscribe({
       next: (locations) => {
         this.locations = locations.filter((location) => location.city === 'Tbilisi');
+        // Map setup and the location catalog load independently. If the map
+        // won that race, retry the latest selection now that district IDs and
+        // geometry statuses are available.
+        if (this.draw && this.map && this.selectedAreasInput.length) {
+          void this.chooseAreas(this.selectedAreasInput);
+        }
         this.cdr.detectChanges();
       },
       error: () => undefined,
@@ -501,8 +514,13 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (revision !== this.selectionRevision) return;
     if (!drawableAreas.length) {
       this.selectedArea = '';
-      this.selectedAreas = [];
+      // Preserve the user's independent selections even while geometry is
+      // awaiting approval; a later valid selection must not clear them.
+      this.selectedAreas = requestedAreas;
       this.hasPolygon = false;
+      // Missing district geometry is not a fatal map error. Each district's
+      // availability is tracked independently below.
+      this.errorMessage = '';
       this.polygonChange.emit(null);
       this.cdr.detectChanges();
       return;
@@ -523,7 +541,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const validFeatures = features.filter((_, index) => results[index]?.valid);
     if (validFeatures.length) {
       this.selectedArea = drawableAreas.map((item) => item.area).join(', ');
-      this.selectedAreas = drawableAreas.map((item) => item.area);
+      this.selectedAreas = requestedAreas;
+      this.errorMessage = '';
       this.selectedStreet = '';
       this.streetSearch = '';
       // Keep approved street geometry available without exposing the old
@@ -553,6 +572,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   startDrawing(): void {
     if (this.drawingEnabled) {
       this.setDrawingEnabled(false);
+      if (!this.hasPolygon && this.selectedAreasInput.length) {
+        void this.chooseAreas(this.selectedAreasInput);
+      }
       return;
     }
     this.drawnAreaRevision++;
@@ -587,14 +609,38 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private async loadBoundary(area: string): Promise<number[][][][]> {
     const cacheKey = `area:${area.toLowerCase()}`;
     const cached = this.boundaryCache.get(cacheKey);
-    if (cached) return cached;
+    if (cached) {
+      this.updateBoundaryState(cacheKey, cached);
+      return cached;
+    }
+    const previous = this.districtBoundaryStates.get(cacheKey);
+    this.districtBoundaryStates.set(cacheKey, {
+      id: previous?.id ?? null,
+      status: 'loading',
+      polygons: previous?.polygons || [],
+    });
     const pending = DrawAreaMapComponent.boundaryRequests.get(cacheKey);
-    if (pending) return pending;
+    if (pending) {
+      const polygons = await pending;
+      this.updateBoundaryState(cacheKey, polygons);
+      return polygons;
+    }
     const request = this.loadPersistedBoundary(area, cacheKey).finally(() =>
       DrawAreaMapComponent.boundaryRequests.delete(cacheKey),
     );
     DrawAreaMapComponent.boundaryRequests.set(cacheKey, request);
-    return request;
+    const polygons = await request;
+    this.updateBoundaryState(cacheKey, polygons);
+    return polygons;
+  }
+
+  private updateBoundaryState(cacheKey: string, polygons: number[][][][]): void {
+    const previous = this.districtBoundaryStates.get(cacheKey);
+    this.districtBoundaryStates.set(cacheKey, {
+      id: previous?.id ?? null,
+      status: polygons.length ? 'ready' : 'unavailable',
+      polygons,
+    });
   }
 
   private async loadPersistedBoundary(area: string, cacheKey: string): Promise<number[][][][]> {
@@ -629,22 +675,39 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
             Number(left.geometryStatus === 'approved'),
         )[0];
       if (!areaRecord) return [];
+      const stateKey = `area:${area.toLowerCase()}`;
+      this.districtBoundaryStates.set(stateKey, {
+        id: areaRecord.id,
+        status: 'loading',
+        polygons: this.districtBoundaryStates.get(stateKey)?.polygons || [],
+      });
       if (areaRecord.geometryStatus !== 'approved') {
-        this.errorMessage = `${area} boundary is awaiting verification.`;
+        this.districtBoundaryStates.set(areaRecord.id, {
+          id: areaRecord.id,
+          status: 'unavailable',
+          polygons: [],
+        });
         return [];
       }
       const response = await firstValueFrom(this.locationService.getArea(areaRecord.id));
       if (!response.geometry) {
-        this.errorMessage = `${area} boundary is awaiting verification.`;
+        this.districtBoundaryStates.set(areaRecord.id, {
+          id: areaRecord.id,
+          status: 'unavailable',
+          polygons: [],
+        });
         return [];
       }
       const geometry = response.geometry;
       const polygons = this.geoJsonPolygons(geometry);
-      this.errorMessage = '';
+      this.districtBoundaryStates.set(areaRecord.id, {
+        id: areaRecord.id,
+        status: polygons.length ? 'ready' : 'unavailable',
+        polygons,
+      });
       this.boundaryCache.set(cacheKey, polygons);
       return polygons;
     } catch {
-      this.errorMessage = `${area} boundary could not be loaded.`;
       return [];
     }
   }

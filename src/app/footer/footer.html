@@ -2,13 +2,6 @@
   <div class="footer-container">
     <div class="footer-grid">
       <div class="brand-column">
-        <a class="brand" routerLink="/main" aria-label="Velven home">
-          <span class="brand-mark" aria-hidden="true">
-            <img src="/logosh2-mark-v2.png" width="644" height="790" alt="" />
-          </span>
-          <span class="brand-name" aria-hidden="true">VELVEN</span>
-        </a>
-
         <p>Find a home that fits your life.<br />Verified properties. Smart search.<br />Real results.</p>
         <div class="socials" aria-label="Social links">
           <a href="#" aria-label="Facebook">
@@ -27,7 +20,7 @@
         <h4>Explore</h4>
         <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'buy' }">Buy</a>
         <a routerLink="/ExploreProperty" [queryParams]="{ listing: 'rent' }">Rent</a>
-        <a routerLink="/ai-home-match">AI Match</a>
+        <a routerLink="/ai-home-match">Velven Match</a>
         <a routerLink="/agent-profile">Agents</a>
         <a routerLink="/services">Services</a>
         <a routerLink="/blog">Blog</a>
@@ -36,7 +29,7 @@
       <div class="footer-column">
         <h4>Company</h4>
         <a routerLink="/about">About Us</a>
-        <a routerLink="/about">Careers</a>
+        <a routerLink="/careers">Careers</a>
         <a routerLink="/blog">Press</a>
         <a routerLink="/services">FAQ</a>
         <a href="mailto:hello@velven.ge">Contact Us</a>
@@ -66,6 +59,11 @@
       </div>
     </div>
 
-    <div class="footer-bottom">© 2026 Velven. All rights reserved.</div>
+    <div class="footer-bottom">
+      <span>© 2026 Velven. All rights reserved.</span>
+      <a class="footer-bottom-logo" routerLink="/main" aria-label="Velven home">
+        <img src="/logosh2-mark-v2.png" width="644" height="790" alt="" />
+      </a>
+    </div>
   </div>
 </footer>

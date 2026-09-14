@@ -54,6 +54,8 @@ export interface Apartment {
   condition?: string;
   metroDistanceMinutes?: number;
   gymDistanceMinutes?: number;
+  groceryDistanceMinutes?: number;
+  cafeDistanceMinutes?: number;
   parkDistanceMinutes?: number;
   schoolDistanceMinutes?: number;
   kindergartenDistanceMinutes?: number;
@@ -134,6 +136,8 @@ export interface CreateApartment {
   condition?: string;
   metroDistanceMinutes?: number;
   gymDistanceMinutes?: number;
+  groceryDistanceMinutes?: number;
+  cafeDistanceMinutes?: number;
   parkDistanceMinutes?: number;
   schoolDistanceMinutes?: number;
   kindergartenDistanceMinutes?: number;

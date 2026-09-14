@@ -17,6 +17,7 @@ import {
   CRM_LEAD_STATUSES,
   CreateCrmLeadRequest,
   CrmLead,
+  CrmJobApplication,
   CrmLeadStatus,
   CrmMetrics,
   CrmTask,
@@ -72,6 +73,8 @@ export class CrmDashboard implements OnInit {
   };
 
   leads: CrmLead[] = [];
+  jobApplications: CrmJobApplication[] = [];
+  vacancyActionId: number | null = null;
   agents: Agent[] = [];
   metrics: CrmMetrics = this.emptyMetrics();
   loading = true;
@@ -312,9 +315,17 @@ export class CrmDashboard implements OnInit {
   }
 
   get sourceOptions(): string[] {
-    return [...new Set(this.leads.map((lead) => lead.source).filter(Boolean))].sort((left, right) =>
+    return [...new Set(this.propertyLeads.map((lead) => lead.source).filter(Boolean))].sort((left, right) =>
       left.localeCompare(right),
     );
+  }
+
+  get vacancyApplications(): CrmJobApplication[] {
+    return this.jobApplications;
+  }
+
+  get propertyLeads(): CrmLead[] {
+    return this.leads.filter((lead) => !this.isVacancyApplication(lead));
   }
 
   get visibleStatuses(): readonly CrmLeadStatus[] {
@@ -323,7 +334,7 @@ export class CrmDashboard implements OnInit {
 
   get filteredLeads(): CrmLead[] {
     const query = this.searchQuery.trim().toLowerCase();
-    return this.leads.filter((lead) => {
+    return this.propertyLeads.filter((lead) => {
       const matchesSearch =
         !query ||
         [
@@ -345,6 +356,67 @@ export class CrmDashboard implements OnInit {
     });
   }
 
+  isVacancyApplication(lead: CrmLead): boolean {
+    const source = (lead.source || '').trim().toLowerCase().replace(/[\s_]+/g, '-');
+    return ['vacancy', 'vacancies', 'career', 'careers', 'job', 'job-application'].includes(source);
+  }
+
+  downloadApplicationCv(application: CrmJobApplication): void {
+    if (!application.cvUrl) return;
+    this.crmService.downloadJobApplicationCv(application.id).subscribe({
+      next: (file) => {
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = application.cvFileName || 'cv';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url));
+      },
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage = this.apiError(error, 'Could not download this CV.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  confirmApplication(application: CrmJobApplication): void {
+    if (application.isConfirmed || this.vacancyActionId !== null) return;
+    this.vacancyActionId = application.id;
+    this.crmService.confirmJobApplication(application.id).subscribe({
+      next: (updated) => {
+        this.jobApplications = this.jobApplications.map((item) =>
+          item.id === updated.id ? updated : item,
+        );
+        this.vacancyActionId = null;
+        this.successMessage = `${updated.fullName}'s application was confirmed.`;
+        this.cdr.markForCheck();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.vacancyActionId = null;
+        this.errorMessage = this.apiError(error, 'Could not confirm this application.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  deleteApplication(application: CrmJobApplication): void {
+    if (this.vacancyActionId !== null || !window.confirm(`Delete ${application.fullName}'s application?`)) return;
+    this.vacancyActionId = application.id;
+    this.crmService.deleteJobApplication(application.id).subscribe({
+      next: () => {
+        this.jobApplications = this.jobApplications.filter((item) => item.id !== application.id);
+        this.vacancyActionId = null;
+        this.successMessage = `${application.fullName}'s application was deleted.`;
+        this.cdr.markForCheck();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.vacancyActionId = null;
+        this.errorMessage = this.apiError(error, 'Could not delete this application.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   get hasFilters(): boolean {
     return (
       !!this.searchQuery ||
@@ -360,23 +432,20 @@ export class CrmDashboard implements OnInit {
 
     forkJoin({
       leads: this.crmService.getLeads(),
+      applications: this.isManager
+        ? this.crmService.getJobApplications().pipe(catchError(() => of([] as CrmJobApplication[])))
+        : of([] as CrmJobApplication[]),
       metrics: this.crmService.getMetrics().pipe(catchError(() => of(null))),
       agents: this.isManager
         ? this.agentService.getAgents().pipe(catchError(() => of([] as Agent[])))
         : of([] as Agent[]),
     }).subscribe({
-      next: ({ leads, metrics, agents }) => {
+      next: ({ leads, applications, metrics, agents }) => {
         this.leads = this.scopeLeads(leads);
+        this.jobApplications = applications;
         this.agents = agents;
-        const calculatedMetrics = this.calculateMetrics(this.leads);
-        this.metrics =
-          this.isManager && metrics
-            ? {
-                ...metrics,
-                newLeads: calculatedMetrics.newLeads,
-                overdueTasks: calculatedMetrics.overdueTasks,
-              }
-            : calculatedMetrics;
+        const calculatedMetrics = this.calculateMetrics(this.propertyLeads);
+        this.metrics = calculatedMetrics;
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -523,7 +592,7 @@ export class CrmDashboard implements OnInit {
     this.crmService.createLead(request).subscribe({
       next: (createdLead) => {
         this.leads = [createdLead, ...this.leads];
-        this.metrics = this.calculateMetrics(this.leads);
+        this.metrics = this.calculateMetrics(this.propertyLeads);
         this.refreshMetrics();
         this.creatingLead = false;
         this.closeCreateDialog();
@@ -569,7 +638,7 @@ export class CrmDashboard implements OnInit {
     void this.router.navigate(['/crm/agents', agentId]);
   }
 
-  initials(lead: CrmLead): string {
+  initials(lead: { fullName: string }): string {
     return (
       lead.fullName
         .split(/\s+/)
@@ -679,6 +748,10 @@ export class CrmDashboard implements OnInit {
     return lead.id;
   }
 
+  identifyApplication(_: number, application: CrmJobApplication): number {
+    return application.id;
+  }
+
   identifyStatus(_: number, status: CrmLeadStatus): string {
     return status;
   }
@@ -740,14 +813,14 @@ export class CrmDashboard implements OnInit {
             movedLead,
             ...remainingLeads.slice(targetIndex),
           ];
-    this.metrics = this.calculateMetrics(this.leads);
+    this.metrics = this.calculateMetrics(this.propertyLeads);
     this.errorMessage = '';
 
     this.crmService.updateLeadStatus(lead.id, status).subscribe({
       next: (updatedLead) => {
         this.leads = this.leads.map((item) => (item.id === lead.id ? updatedLead : item));
         this.statusUpdatingLeadIds.delete(lead.id);
-        this.metrics = this.calculateMetrics(this.leads);
+        this.metrics = this.calculateMetrics(this.propertyLeads);
         this.refreshMetrics();
         this.successMessage = `${updatedLead.fullName} moved to ${this.statusLabel(status)}.`;
         this.cdr.markForCheck();
@@ -755,7 +828,7 @@ export class CrmDashboard implements OnInit {
       error: (error: HttpErrorResponse) => {
         this.leads = previousLeads;
         this.statusUpdatingLeadIds.delete(lead.id);
-        this.metrics = this.calculateMetrics(this.leads);
+        this.metrics = this.calculateMetrics(this.propertyLeads);
         this.errorMessage = this.apiError(error, `Could not move ${lead.fullName}.`);
         this.cdr.markForCheck();
       },
@@ -931,14 +1004,7 @@ export class CrmDashboard implements OnInit {
   private refreshMetrics(): void {
     this.crmService.getMetrics().subscribe({
       next: (metrics) => {
-        const calculatedMetrics = this.calculateMetrics(this.leads);
-        this.metrics = this.isManager
-          ? {
-              ...metrics,
-              newLeads: calculatedMetrics.newLeads,
-              overdueTasks: calculatedMetrics.overdueTasks,
-            }
-          : calculatedMetrics;
+        this.metrics = this.calculateMetrics(this.propertyLeads);
         this.cdr.markForCheck();
       },
       error: () => undefined,

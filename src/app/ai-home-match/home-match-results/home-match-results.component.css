@@ -49,18 +49,18 @@ h1 {
   position: relative;
   min-height: 390px;
 }
+.media-column { min-width: 0; display: flex; flex-direction: column; background: #f5f2fa; }
 .media img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 .score {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  background: #fffffff2;
-  padding: 12px 15px;
-  border-radius: 14px;
+  position: static;
+  margin: 0;
+  padding: 15px 17px;
+  border-radius: 0;
+  background: #f7f4fc;
 }
 .score b,
 .score span {
@@ -118,25 +118,19 @@ h1 {
   display: block;
 }
 .media::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 55%, rgba(22, 15, 48, 0.5));
-  pointer-events: none;
+  display: none;
 }
 .score {
-  z-index: 1;
-  max-width: calc(100% - 32px);
-  padding: 13px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 28px rgba(25, 17, 57, 0.18);
-  backdrop-filter: blur(10px);
+  z-index: auto;
+  max-width: none;
+  border-top: 1px solid #e6dff0;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 .score b {
   margin-top: 3px;
   color: #241b48;
-  font-size: 18px;
+  font-size: 14px;
   line-height: 1.25;
 }
 .score span {
@@ -449,15 +443,15 @@ h1 {
   width: 100%;
   min-height: 0;
   height: auto;
-  aspect-ratio: 16 / 7;
+  aspect-ratio: auto;
   border-bottom: 1px solid #e7e4ed;
 }
 .media img {
-  position: absolute;
-  inset: 0;
+  position: static;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-height: 640px;
+  object-fit: contain;
   object-position: center;
 }
 .media img.placeholder-image {
@@ -472,6 +466,12 @@ h1 {
 @media (max-width: 720px) {
   .media {
     aspect-ratio: 4 / 3;
+  }
+  .media img {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    max-height: none;
   }
   .media img.placeholder-image {
     padding: 28px;

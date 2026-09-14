@@ -37,6 +37,9 @@
     <button type="button" class="stat" *ngIf="canOperateDashboard" [class.active]="activeTab === 'streets'" (click)="activeTab = 'streets'">
       <span>Street geometry</span><strong>✓</strong>
     </button>
+    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'vacancies'" (click)="activeTab = 'vacancies'">
+      <span>Job positions</span><strong>{{ vacancyPositions.length }}</strong>
+    </button>
   </div>
 
   <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
@@ -106,6 +109,26 @@
   <section class="admin-section" *ngIf="activeTab === 'streets' && canOperateDashboard">
     <div class="section-title"><h2>Canonical street geometry review</h2><span>Only approved real road paths become public</span></div>
     <app-street-validation-map></app-street-validation-map>
+  </section>
+
+  <section class="admin-section vacancy-position-section" *ngIf="activeTab === 'vacancies' && isAdmin">
+    <div class="section-title">
+      <div><p class="section-kicker">Recruitment settings</p><h2>Career positions</h2></div>
+      <span>{{ vacancyPositions.length }} available</span>
+    </div>
+    <p class="vacancy-position-copy">Positions added here appear immediately in the public job application form.</p>
+    <form class="vacancy-position-form" (ngSubmit)="addVacancyPosition()">
+      <label><span>New position title</span><input name="newVacancyPosition" [(ngModel)]="newVacancyPosition" maxlength="160" placeholder="e.g. Senior property consultant" required></label>
+      <button type="submit" [disabled]="!newVacancyPosition.trim() || actionId === 'vacancy:new'"><i class="fa-solid fa-plus"></i> Add position</button>
+    </form>
+    <div class="vacancy-position-list">
+      <article *ngFor="let position of filteredVacancyPositions">
+        <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+        <div><strong>{{ position.title }}</strong><small>Visible on careers page</small></div>
+        <button type="button" (click)="deleteVacancyPosition(position)" [disabled]="actionId === 'vacancy:' + position.id"><i class="fa-regular fa-trash-can"></i> Delete</button>
+      </article>
+    </div>
+    <div class="empty-state" *ngIf="filteredVacancyPositions.length === 0">No job positions found.</div>
   </section>
 
   <section class="admin-section users-section" *ngIf="activeTab === 'users' && isAdmin">

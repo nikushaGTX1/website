@@ -159,13 +159,26 @@ export class HomeMatchResultsComponent implements OnChanges {
 
   hasNearbyTimes(result: HomeMatchResult): boolean {
     const apartment = result.apartment;
-    return [
-      apartment.schoolDistanceMinutes,
-      apartment.kindergartenDistanceMinutes,
+    const relevantTimes = [
       apartment.groceryDistanceMinutes,
       apartment.gymDistanceMinutes,
       apartment.metroDistanceMinutes,
-    ].some((value) => value !== undefined && value !== null);
+      apartment.cafeDistanceMinutes,
+    ];
+    if (this.isFamilyProfile()) {
+      relevantTimes.push(
+        apartment.schoolDistanceMinutes,
+        apartment.kindergartenDistanceMinutes,
+      );
+    }
+    return relevantTimes.some((value) => value !== undefined && value !== null);
+  }
+
+  isFamilyProfile(): boolean {
+    return (
+      this.profile.children > 0 ||
+      this.profile.householdType === 'FamilyWithChildren'
+    );
   }
 
   lifestyleInsights(result: HomeMatchResult): LifestyleInsight[] {
@@ -174,9 +187,25 @@ export class HomeMatchResultsComponent implements OnChanges {
     const add = (title: string, reason: string, icon: string): void => {
       if (!insights.some((item) => item.title === title)) insights.push({ title, reason, icon });
     };
-    const childAges = new Set(this.profile.childrenAgeGroups);
+    const childAges = new Set(
+      this.isFamilyProfile() && this.profile.children > 0
+        ? this.profile.childrenAgeGroups.slice(0, this.profile.children)
+        : [],
+    );
     const lifestyles = new Set(this.profile.lifestyles);
     const drives = this.profile.transportation.includes('Car');
+    const hasDog = this.profile.hasPet === true && this.profile.petType === 'Dog';
+
+    // A nearby park is more meaningful for a dog owner than the generic
+    // athlete/family explanation, so keep it first and protect it from the
+    // six-insight limit below.
+    if (hasDog && apartment.parkDistanceMinutes != null) {
+      add(
+        `Park ${apartment.parkDistanceMinutes} min away`,
+        'Because you can walk your dog nearby',
+        'fa-dog',
+      );
+    }
 
     if (apartment.kindergartenDistanceMinutes != null && (childAges.has('Age0To3') || childAges.has('Age4To6'))) {
       add(
@@ -226,7 +255,11 @@ export class HomeMatchResultsComponent implements OnChanges {
         'fa-train-subway',
       );
     }
-    if (apartment.parkDistanceMinutes != null && (lifestyles.has('Athlete') || lifestyles.has('FamilyFocused'))) {
+    if (
+      !hasDog &&
+      apartment.parkDistanceMinutes != null &&
+      (lifestyles.has('Athlete') || lifestyles.has('FamilyFocused'))
+    ) {
       add(
         `Park ${apartment.parkDistanceMinutes} min away`,
         lifestyles.has('Athlete') ? 'Because you enjoy an active lifestyle' : 'Because outdoor family time matters to you',
