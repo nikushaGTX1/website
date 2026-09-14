@@ -91,6 +91,8 @@
             [src]="agent.avatarUrl || '/agent1.jpg'"
             [alt]="agent.name"
             class="avatar"
+            loading="lazy"
+            decoding="async"
             (error)="fixAgentImage($event)"
           />
         </div>
@@ -195,6 +197,8 @@
       <img
         src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=80"
         alt="Our real estate team working together"
+        loading="lazy"
+        decoding="async"
       />
     </div>
     <div class="team-content">

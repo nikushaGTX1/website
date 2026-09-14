@@ -91,6 +91,9 @@ export class Main implements OnInit {
   drawAreaInitialized = false;
   private readonly propertyImageIndexes = new Map<number, number>();
   private propertySwipeStartX: number | null = null;
+  private propertySwipePointerId: number | null = null;
+  private propertySwipeDistance = 0;
+  private suppressApartmentNavigation = false;
   private readonly hydratedApartmentIds = new Set<number>();
 
   constructor(
@@ -173,17 +176,39 @@ export class Main implements OnInit {
     this.propertyImageIndexes.set(apartment.id, index);
   }
 
-  beginApartmentSwipe(event: TouchEvent): void {
-    this.propertySwipeStartX = event.touches[0]?.clientX ?? null;
+  beginApartmentSwipe(event: PointerEvent): void {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    this.propertySwipeStartX = event.clientX;
+    this.propertySwipePointerId = event.pointerId;
+    this.propertySwipeDistance = 0;
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
   }
 
-  endApartmentSwipe(event: TouchEvent, apartment: Apartment): void {
-    const endX = event.changedTouches[0]?.clientX;
-    if (this.propertySwipeStartX == null || endX == null) return;
-    const distance = endX - this.propertySwipeStartX;
-    this.propertySwipeStartX = null;
+  moveApartmentSwipe(event: PointerEvent): void {
+    if (this.propertySwipeStartX == null || event.pointerId !== this.propertySwipePointerId) return;
+    this.propertySwipeDistance = event.clientX - this.propertySwipeStartX;
+  }
+
+  endApartmentSwipe(event: PointerEvent, apartment: Apartment): void {
+    if (this.propertySwipeStartX == null || event.pointerId !== this.propertySwipePointerId) return;
+    const distance = event.clientX - this.propertySwipeStartX;
+    this.cancelApartmentSwipe();
     if (Math.abs(distance) < 42 || this.getApartmentGallery(apartment).length < 2) return;
+    this.suppressApartmentNavigation = true;
     this.changeApartmentCardImage(event, apartment, distance < 0 ? 1 : -1);
+  }
+
+  cancelApartmentSwipe(): void {
+    this.propertySwipeStartX = null;
+    this.propertySwipePointerId = null;
+    this.propertySwipeDistance = 0;
+  }
+
+  preventApartmentNavigationAfterSwipe(event: MouseEvent): void {
+    if (!this.suppressApartmentNavigation) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.suppressApartmentNavigation = false;
   }
 
   get budgetSummary(): string {
@@ -747,24 +772,35 @@ export class Main implements OnInit {
   }
 
   private hydrateHomepageGalleries(): void {
-    for (const apartment of this.topApartments) {
-      if (this.hydratedApartmentIds.has(apartment.id)) continue;
-      this.hydratedApartmentIds.add(apartment.id);
+    // Gallery hydration fires one detail request per card. Keep it off the
+    // critical path so first paint isn't blocked by API round trips.
+    const run = (): void => {
+      for (const apartment of this.topApartments) {
+        if (this.hydratedApartmentIds.has(apartment.id)) continue;
+        this.hydratedApartmentIds.add(apartment.id);
 
-      this.apartmentService.getApartment(apartment.id).subscribe({
-        next: (detailedApartment) => {
-          this.hydratedApartmentIds.delete(apartment.id);
-          const index = this.apartments.findIndex((item) => item.id === detailedApartment.id);
-          if (index === -1) return;
-          this.apartments = [
-            ...this.apartments.slice(0, index),
-            detailedApartment,
-            ...this.apartments.slice(index + 1),
-          ];
-          this.cdr.detectChanges();
-        },
-        error: () => this.hydratedApartmentIds.delete(apartment.id),
-      });
+        this.apartmentService.getApartment(apartment.id).subscribe({
+          next: (detailedApartment) => {
+            this.hydratedApartmentIds.delete(apartment.id);
+            const index = this.apartments.findIndex((item) => item.id === detailedApartment.id);
+            if (index === -1) return;
+            this.apartments = [
+              ...this.apartments.slice(0, index),
+              detailedApartment,
+              ...this.apartments.slice(index + 1),
+            ];
+            this.cdr.detectChanges();
+          },
+          error: () => this.hydratedApartmentIds.delete(apartment.id),
+        });
+      }
+    };
+
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+    if (typeof idle === 'function') {
+      idle.call(window, run, { timeout: 2500 });
+    } else {
+      window.setTimeout(run, 800);
     }
   }
 

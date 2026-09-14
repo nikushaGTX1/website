@@ -343,6 +343,8 @@
             <img
               [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'"
               [alt]="apartment.title || 'Property in Tbilisi'"
+              loading="lazy"
+              decoding="async"
               (error)="onApartmentImageError($event)"
             />
             <button

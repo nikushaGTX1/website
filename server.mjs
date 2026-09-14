@@ -599,11 +599,11 @@ async function fetchApartmentImage(value) {
       body: Buffer.from(await upstreamResponse.arrayBuffer()),
       contentType: upstreamResponse.headers.get('content-type') || 'image/jpeg',
       etag: upstreamResponse.headers.get('etag'),
-      expiresAt: Date.now() + 50 * 60_000,
+      expiresAt: Date.now() + 180 * 60_000,
     };
 
     apartmentImageCache.set(cacheKey, image);
-    if (apartmentImageCache.size > 100) {
+    if (apartmentImageCache.size > 200) {
       apartmentImageCache.delete(apartmentImageCache.keys().next().value);
     }
     return image;
@@ -670,7 +670,9 @@ app.get('/media/apartment-image', async (request, response) => {
     const source = String(request.query.url || '');
     const image = await fetchApartmentImage(source);
     response.setHeader('Content-Type', image.contentType);
-    response.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
+    // Listing photos are stable per object path (the proxy cache key strips
+    // rotating signed-URL tokens), so browsers can keep them for a day.
+    response.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
     if (image.etag) {
       response.setHeader('ETag', image.etag);
     }

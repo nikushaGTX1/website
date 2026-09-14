@@ -573,8 +573,11 @@
         [routerLink]="['/apartments', apartment.id]"
       >
         <div class="property-image" data-protected-image
-          (touchstart)="beginApartmentSwipe($event)"
-          (touchend)="endApartmentSwipe($event, apartment)">
+          (pointerdown)="beginApartmentSwipe($event)"
+          (pointermove)="moveApartmentSwipe($event)"
+          (pointerup)="endApartmentSwipe($event, apartment)"
+          (pointercancel)="cancelApartmentSwipe()"
+          (click)="preventApartmentNavigationAfterSwipe($event)">
           <span class="property-badge verified" *ngIf="isExclusiveListing(apartment)"
             ><i class="fa-solid fa-circle-check"></i> Verified</span
           >
@@ -584,25 +587,8 @@
             [attr.loading]="index === 0 ? 'eager' : 'lazy'"
             [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
             decoding="async"
+            draggable="false"
           />
-          <button
-            type="button"
-            class="property-gallery-arrow previous"
-            aria-label="Previous property image"
-            [disabled]="getApartmentGallery(apartment).length <= 1"
-            (click)="changeApartmentCardImage($event, apartment, -1)"
-          >
-            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-          </button>
-          <button
-            type="button"
-            class="property-gallery-arrow next"
-            aria-label="Next property image"
-            [disabled]="getApartmentGallery(apartment).length <= 1"
-            (click)="changeApartmentCardImage($event, apartment, 1)"
-          >
-            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-          </button>
           <div class="property-gallery-dots" aria-label="Property images">
             <button
               type="button"
@@ -748,6 +734,8 @@
           topApartments.length ? getApartmentImage(topApartments[0]) : '/property-placeholder.svg'
         "
         alt="Recommended apartment"
+        loading="lazy"
+        decoding="async"
       />
       <div>
         <small>Best match for you</small
@@ -852,7 +840,7 @@
           and our agent was incredible.</q
         >
         <div>
-          <img src="/agent1.jpg" alt="" />
+          <img src="/agent1.jpg" alt="" loading="lazy" decoding="async" />
           <p><strong>Sarah A.</strong><span>★★★★★ · Tbilisi</span></p>
         </div>
       </article>
@@ -862,7 +850,7 @@
           place within a week.</q
         >
         <div>
-          <img src="/agent2.jpg" alt="" />
+          <img src="/agent2.jpg" alt="" loading="lazy" decoding="async" />
           <p><strong>Omar K.</strong><span>★★★★★ · Vake</span></p>
         </div>
       </article>
@@ -872,7 +860,7 @@
           estate needs.</q
         >
         <div>
-          <img src="/agent3.jpg" alt="" />
+          <img src="/agent3.jpg" alt="" loading="lazy" decoding="async" />
           <p><strong>Maya K.</strong><span>★★★★★ · Saburtalo</span></p>
         </div>
       </article>
