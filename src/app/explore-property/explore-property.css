@@ -509,10 +509,17 @@ svg {
 
 .bedroom-options button {
   min-height: 38px;
+  min-width: 0;
+  padding: 0 4px;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: #fff;
+  font-size: 12px;
+  white-space: nowrap;
   cursor: pointer;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .bedroom-options button.selected {

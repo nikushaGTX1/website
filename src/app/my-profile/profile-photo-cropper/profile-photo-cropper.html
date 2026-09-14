@@ -1,0 +1,64 @@
+<div class="cropper-backdrop" (click)="onBackdrop($event)">
+  <section class="cropper-dialog" role="dialog" aria-modal="true" aria-label="Adjust profile photo">
+    <header class="cropper-header">
+      <button
+        type="button"
+        class="cropper-icon-btn"
+        aria-label="Close photo editor"
+        (click)="cancelled.emit()"
+      >
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      <span class="cropper-title">Drag the image to adjust</span>
+      <button
+        type="button"
+        class="cropper-upload-btn"
+        (click)="confirm()"
+        [disabled]="confirming || !imageLoaded"
+      >
+        <i class="fa-solid fa-upload" aria-hidden="true"></i>
+        <span>Upload</span>
+      </button>
+    </header>
+
+    <div class="cropper-stage-wrap">
+      <div
+        #stage
+        class="cropper-stage"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerUp($event)"
+        (wheel)="onWheel($event)"
+      >
+        <img
+          *ngIf="imageLoaded"
+          [src]="imageSrc"
+          [style.width.px]="displayWidth"
+          [style.height.px]="displayHeight"
+          [style.transform]="transform"
+          alt=""
+          draggable="false"
+        />
+        <div class="cropper-mask" aria-hidden="true"></div>
+        <div class="cropper-ring" aria-hidden="true"></div>
+        <p class="cropper-loading" *ngIf="!imageLoaded">Loading...</p>
+      </div>
+
+      <div class="cropper-zoom" role="group" aria-label="Photo zoom">
+        <button type="button" aria-label="Zoom in" (click)="zoomIn()">+</button>
+        <button type="button" aria-label="Zoom out" (click)="zoomOut()">−</button>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="cropper-confirm"
+      aria-label="Use photo"
+      (click)="confirm()"
+      [disabled]="confirming || !imageLoaded"
+    >
+      <i class="fa-solid fa-check" aria-hidden="true"></i>
+    </button>
+  </section>
+</div>

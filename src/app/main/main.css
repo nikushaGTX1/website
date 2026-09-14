@@ -2990,13 +2990,18 @@
 .budget-presets button,
 .bedroom-options button {
   min-height: 46px;
+  min-width: 0;
   border: 1px solid #dce3ec;
   border-radius: 10px;
   background: #fff;
   color: #526079;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 650;
+  white-space: nowrap;
   cursor: pointer;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .budget-presets button.active,

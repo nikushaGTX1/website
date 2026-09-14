@@ -257,4 +257,10 @@
       </section>
     </div>
   </div>
+  <app-profile-photo-cropper
+    *ngIf="cropperSrc"
+    [imageSrc]="cropperSrc"
+    (confirmed)="onCropConfirmed($event)"
+    (cancelled)="onCropCancelled()"
+  ></app-profile-photo-cropper>
 </main>

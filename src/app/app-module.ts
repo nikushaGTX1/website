@@ -14,6 +14,7 @@ import { Login } from './login/login';
 import { Blog } from './blog/blog';
 import { ProfileBurgerMenu } from './profile-burger-menu/profile-burger-menu';
 import { MyProfile } from './my-profile/my-profile';
+import { ProfilePhotoCropperComponent } from './my-profile/profile-photo-cropper/profile-photo-cropper';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { apiPerformanceInterceptor } from './interceptors/api-performance.interceptor';
 import { UploadApartment } from './upload-apartment/upload-apartament';
@@ -52,6 +53,7 @@ import { CrmLink } from './crm/crm-link/crm-link';
     Blog,
     ProfileBurgerMenu,
     MyProfile,
+    ProfilePhotoCropperComponent,
     UploadApartment,
     AdminPanel,
     MyListings,

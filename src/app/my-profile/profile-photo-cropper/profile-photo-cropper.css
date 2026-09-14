@@ -1,0 +1,195 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: block;
+  font-family: Inter, 'Segoe UI', Arial, sans-serif;
+}
+.cropper-backdrop {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: rgba(10, 8, 14, 0.92);
+}
+.cropper-dialog {
+  position: relative;
+  width: min(560px, 100vw);
+  height: 100vh;
+  height: 100dvh;
+  max-height: 760px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0c0a10;
+}
+@media (min-width: 700px) {
+  .cropper-backdrop {
+    padding: 24px;
+  }
+  .cropper-dialog {
+    height: min(94vh, 760px);
+    border-radius: 18px;
+  }
+}
+.cropper-header {
+  min-height: 56px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #141118;
+  color: #fff;
+}
+.cropper-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 700;
+}
+.cropper-icon-btn {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.cropper-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.cropper-upload-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cropper-upload-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.cropper-upload-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.cropper-stage-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  touch-action: none;
+}
+.cropper-stage {
+  position: relative;
+  width: min(84vw, 340px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+.cropper-stage:active {
+  cursor: grabbing;
+}
+.cropper-stage img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+.cropper-mask {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side circle,
+    transparent 98.5%,
+    rgba(5, 3, 8, 0.62) 100%
+  );
+}
+.cropper-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+}
+.cropper-loading {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  color: #cfc8e0;
+  font-size: 14px;
+}
+.cropper-zoom {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  display: grid;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(30, 26, 38, 0.85);
+  transform: translateY(-50%);
+}
+.cropper-zoom button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.cropper-zoom button + button {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.cropper-zoom button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.cropper-confirm {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #22b573;
+  color: #fff;
+  font-size: 24px;
+  box-shadow: 0 10px 28px rgba(34, 181, 115, 0.45);
+  cursor: pointer;
+}
+.cropper-confirm:hover {
+  background: #1da367;
+}
+.cropper-confirm:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

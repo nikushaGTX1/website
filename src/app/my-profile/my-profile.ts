@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
@@ -19,6 +19,7 @@ export class MyProfile implements OnInit, OnDestroy {
   phoneNumber = '';
   profilePicture: File | null = null;
   profilePreview = '';
+  cropperSrc = '';
   isDragging = false;
 
   loading = false;
@@ -29,6 +30,8 @@ export class MyProfile implements OnInit, OnDestroy {
   errorMessage = '';
 
   private subscription?: Subscription;
+
+  @ViewChild('profilePictureInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   constructor(
     private authService: AuthService,
@@ -57,6 +60,7 @@ export class MyProfile implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
     this.clearLocalPreview();
+    this.closeCropper();
   }
 
   logout(): void {
@@ -321,8 +325,29 @@ export class MyProfile implements OnInit, OnDestroy {
     }
 
     this.clearLocalPreview();
+    this.closeCropper();
+    this.cropperSrc = URL.createObjectURL(file);
+  }
+
+  onCropConfirmed(file: File): void {
+    this.successMessage = '';
+    this.errorMessage = '';
+    this.closeCropper();
+    this.clearLocalPreview();
     this.profilePicture = file;
     this.profilePreview = URL.createObjectURL(file);
+  }
+
+  onCropCancelled(): void {
+    this.closeCropper();
+    if (this.fileInput) this.fileInput.nativeElement.value = '';
+  }
+
+  private closeCropper(): void {
+    if (this.cropperSrc) {
+      URL.revokeObjectURL(this.cropperSrc);
+      this.cropperSrc = '';
+    }
   }
 
   private clearLocalPreview(): void {
