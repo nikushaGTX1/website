@@ -103,7 +103,7 @@ export class AgentDetailProfile implements OnInit {
   }
 
   get location(): string {
-    return this.agent?.location || 'Tbilisi, Georgia';
+    return this.agent?.location || 'Tbilisi';
   }
 
   get yearsExperience(): number {
@@ -111,7 +111,7 @@ export class AgentDetailProfile implements OnInit {
   }
 
   get closedDeals(): number {
-    return this.crmWonDeals ?? this.agent?.closedDeals ?? this.listings.length;
+    return this.agent?.closedDeals ?? this.crmWonDeals ?? this.listings.length;
   }
 
   get contactPhone(): string {

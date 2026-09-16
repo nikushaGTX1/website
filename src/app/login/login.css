@@ -110,7 +110,10 @@
   padding: 12px 14px 12px 42px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  font-size: 0.95rem;
+  /* iOS Safari auto-zooms the page on focus when an input's font-size is
+   * under 16px. Keep it at 16px so tapping into login/register never zooms
+   * the whole site in. */
+  font-size: 16px;
   background-color: #ffffff;
   color: #0f172a;
   transition: all 0.2s ease;

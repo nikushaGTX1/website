@@ -693,6 +693,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Checking places near this apartment…', 'ბინის გარშემო ადგილები მოწმდება…'],
   ['Live Google walking times', 'Google-ის რეალური ფეხით სავალი დრო'],
   ['Nearest metro', 'მეტრო'],
+  ['Vake Park', 'ვაკის პარკი'],
   ['Nearest school', 'სკოლა'],
   ['Nearest kindergarten', 'საბავშვო ბაღი'],
   ['Nearest gym', 'სპორტდარბაზი'],
