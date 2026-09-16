@@ -1215,40 +1215,6 @@
   object-fit: cover;
   pointer-events: none;
 }
-.property-gallery-dots {
-  position: absolute;
-  z-index: 3;
-  right: 52px;
-  bottom: 12px;
-  left: 52px;
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-}
-.property-gallery-dots button {
-  width: 7px !important;
-  min-width: 7px !important;
-  max-width: 7px !important;
-  height: 7px !important;
-  min-height: 0 !important;
-  max-height: 7px !important;
-  padding: 0 !important;
-  flex: 0 0 7px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.62);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
-  cursor: pointer;
-  transition: width 0.18s ease, background 0.18s ease;
-}
-.property-gallery-dots button.active {
-  width: 18px !important;
-  min-width: 18px !important;
-  max-width: 18px !important;
-  flex-basis: 18px;
-  border-radius: 5px;
-  background: #fff;
-}
 .property-badge {
   position: absolute;
   z-index: 2;
@@ -3887,10 +3853,6 @@
 
   .featured-area-grid button {
     min-height: 64px;
-  }
-
-  .featured-area-grid small {
-    display: none;
   }
 
   .all-area-grid button {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -17,7 +17,7 @@ import { TranslationService } from '../services/translation.service';
   templateUrl: './main.html',
   styleUrl: './main.css',
 })
-export class Main implements OnInit {
+export class Main implements OnInit, OnDestroy {
   apartments: Apartment[] = [];
   apartmentsForSelectedMode: Apartment[] = [];
   agents: Agent[] = [];
@@ -25,7 +25,14 @@ export class Main implements OnInit {
   agentsLoading = true;
   searchMode: 'rent' | 'buy' = 'rent';
   searchLocation = '';
-  locationOpen = false;
+  private _locationOpen = false;
+  get locationOpen(): boolean {
+    return this._locationOpen;
+  }
+  set locationOpen(value: boolean) {
+    this._locationOpen = value;
+    document.body.classList.toggle('location-picker-open', value);
+  }
   locationLoading = false;
   locationError = false;
   showLocationResults = false;
@@ -89,11 +96,6 @@ export class Main implements OnInit {
   public advancedFiltersOpen = false;
   drawAreaOpen = false;
   drawAreaInitialized = false;
-  private readonly propertyImageIndexes = new Map<number, number>();
-  private propertySwipeStartX: number | null = null;
-  private propertySwipePointerId: number | null = null;
-  private propertySwipeDistance = 0;
-  private suppressApartmentNavigation = false;
   private readonly hydratedApartmentIds = new Set<number>();
 
   constructor(
@@ -106,6 +108,10 @@ export class Main implements OnInit {
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
   ) {}
+
+  ngOnDestroy(): void {
+    document.body.classList.remove('location-picker-open');
+  }
 
   ngOnInit(): void {
     this.loadApartments();
@@ -144,71 +150,7 @@ export class Main implements OnInit {
   }
 
   getApartmentCardImage(apartment: Apartment): string {
-    const gallery = this.getApartmentGallery(apartment);
-    const index = Math.min(this.propertyImageIndexes.get(apartment.id) || 0, gallery.length - 1);
-    return gallery[index];
-  }
-
-  getApartmentCardImageIndex(apartment: Apartment): number {
-    return this.propertyImageIndexes.get(apartment.id) || 0;
-  }
-
-  getApartmentCardDotIndexes(apartment: Apartment): number[] {
-    const count = this.getApartmentGallery(apartment).length;
-    if (count <= 5) return Array.from({ length: count }, (_, index) => index);
-
-    const current = this.getApartmentCardImageIndex(apartment);
-    const start = Math.min(Math.max(current - 2, 0), count - 5);
-    return Array.from({ length: 5 }, (_, index) => start + index);
-  }
-
-  changeApartmentCardImage(event: Event, apartment: Apartment, direction: number): void {
-    event.preventDefault();
-    event.stopPropagation();
-    const gallery = this.getApartmentGallery(apartment);
-    const current = this.getApartmentCardImageIndex(apartment);
-    this.propertyImageIndexes.set(apartment.id, (current + direction + gallery.length) % gallery.length);
-  }
-
-  setApartmentCardImage(event: Event, apartment: Apartment, index: number): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.propertyImageIndexes.set(apartment.id, index);
-  }
-
-  beginApartmentSwipe(event: PointerEvent): void {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
-    this.propertySwipeStartX = event.clientX;
-    this.propertySwipePointerId = event.pointerId;
-    this.propertySwipeDistance = 0;
-    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
-  }
-
-  moveApartmentSwipe(event: PointerEvent): void {
-    if (this.propertySwipeStartX == null || event.pointerId !== this.propertySwipePointerId) return;
-    this.propertySwipeDistance = event.clientX - this.propertySwipeStartX;
-  }
-
-  endApartmentSwipe(event: PointerEvent, apartment: Apartment): void {
-    if (this.propertySwipeStartX == null || event.pointerId !== this.propertySwipePointerId) return;
-    const distance = event.clientX - this.propertySwipeStartX;
-    this.cancelApartmentSwipe();
-    if (Math.abs(distance) < 42 || this.getApartmentGallery(apartment).length < 2) return;
-    this.suppressApartmentNavigation = true;
-    this.changeApartmentCardImage(event, apartment, distance < 0 ? 1 : -1);
-  }
-
-  cancelApartmentSwipe(): void {
-    this.propertySwipeStartX = null;
-    this.propertySwipePointerId = null;
-    this.propertySwipeDistance = 0;
-  }
-
-  preventApartmentNavigationAfterSwipe(event: MouseEvent): void {
-    if (!this.suppressApartmentNavigation) return;
-    event.preventDefault();
-    event.stopPropagation();
-    this.suppressApartmentNavigation = false;
+    return this.getApartmentGallery(apartment)[0];
   }
 
   get budgetSummary(): string {

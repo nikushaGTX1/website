@@ -153,7 +153,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         streetViewControl: false,
         fullscreenControl: true,
         clickableIcons: false,
-        gestureHandling: 'greedy',
+        gestureHandling: window.innerWidth <= 780 ? 'greedy' : 'cooperative',
         zoomControl: true,
         restriction: {
           latLngBounds: ExplorePropertyMapComponent.georgiaCameraBounds,

@@ -2,24 +2,176 @@
 > site@0.0.0 ng
 > ng serve --host 127.0.0.1 --port 4200
 
-[33m>[39m Building...
-[32m√[39m Building...
-[1mInitial chunk files[22m[2m | [22m[1mNames[22m        [2m | [22m[1mRaw size[22m
-[32mmain.js[39m            [2m | [22m[2mmain[22m         [2m | [22m [36m1.28 MB[39m[2m | [22m
-[32mstyles.css[39m         [2m | [22m[2mstyles[22m       [2m | [22m [36m4.37 kB[39m[2m | [22m
+[33m❯[39m Building...
+[32m✔[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m3.09 MB[39m[2m | [22m
+[32mchunk-LWKRXYXB.js[39m  [2m | [22m[2m-[22m                    [2m | [22m [36m11.01 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m               [2m | [22m  [36m8.56 kB[39m[2m | [22m
+[32mchunk-CZJLB7T5.js[39m  [2m | [22m[2m-[22m                    [2m | [22m  [36m1.08 kB[39m[2m | [22m
+[32mchunk-WFRIKH55.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m207 bytes[39m[2m | [22m
 
-[1m [22m                  [2m | [22m[1mInitial total[22m[2m | [22m [1m1.29 MB[22m
+[1m [22m                  [2m | [22m[1mInitial total[22m        [2m | [22m  [1m3.11 MB[22m
 
-Application bundle generation complete. [4.230 seconds] - 2026-07-26T19:28:23.006Z
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-YHLRFNBB.js[39m  [2m | [22m[2mcrm-dashboard[22m        [2m | [22m[36m264.92 kB[39m[2m | [22m
+[32mchunk-RE62VSOO.js[39m  [2m | [22m[2mlead-detail[22m          [2m | [22m[36m234.40 kB[39m[2m | [22m
+[32mchunk-BQFNKKZ5.js[39m  [2m | [22m[2mgeorgian-translations[22m[2m | [22m[36m231.34 kB[39m[2m | [22m
+[32mchunk-X6UTUD2S.js[39m  [2m | [22m[2mcareers[22m              [2m | [22m [36m36.22 kB[39m[2m | [22m
+[32mchunk-RRYYESMA.js[39m  [2m | [22m[2mrussian-translations[22m [2m | [22m [36m19.29 kB[39m[2m | [22m
+[32mchunk-LSBCVRQQ.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m299 bytes[39m[2m | [22m
+
+Application bundle generation complete. [5.721 seconds] - 2026-09-16T15:33:47.393Z
 
 Watch mode enabled. Watching for file changes...
 NOTE: Raw file sizes do not reflect development server per-request transformations.
   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4200[22m/[39m
-[33m>[39m Changes detected. Rebuilding...
-[32m√[39m Changes detected. Rebuilding...
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
 [1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
-[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m1.30 MB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
 
-Application bundle generation complete. [3.033 seconds] - 2026-07-26T19:29:56.856Z
+Application bundle generation complete. [5.153 seconds] - 2026-09-16T15:50:12.457Z
 
 Component update sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.920 seconds] - 2026-09-16T15:50:13.382Z
+
+Component update sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.517 seconds] - 2026-09-16T16:02:00.300Z
+
+Component update sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [1.128 seconds] - 2026-09-16T16:09:22.575Z
+
+Component update sent to client(s).
+Page reload sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.637 seconds] - 2026-09-16T16:10:01.558Z
+
+Page reload sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m [2m | [22m[1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m[2m | [22m [36m8.63 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.010 seconds] - 2026-09-16T16:10:10.645Z
+
+Stylesheet update sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.658 seconds] - 2026-09-16T16:10:24.939Z
+
+Page reload sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.690 seconds] - 2026-09-16T16:10:32.990Z
+
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m3.09 MB[39m[2m | [22m
+[32mchunk-LWKRXYXB.js[39m  [2m | [22m[2m-[22m                    [2m | [22m [36m11.01 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m               [2m | [22m  [36m8.63 kB[39m[2m | [22m
+[32mchunk-CZJLB7T5.js[39m  [2m | [22m[2m-[22m                    [2m | [22m  [36m1.08 kB[39m[2m | [22m
+[32mchunk-WFRIKH55.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m207 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m        [2m | [22m  [1m3.11 MB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-YHLRFNBB.js[39m  [2m | [22m[2mcrm-dashboard[22m        [2m | [22m[36m264.92 kB[39m[2m | [22m
+[32mchunk-RE62VSOO.js[39m  [2m | [22m[2mlead-detail[22m          [2m | [22m[36m234.40 kB[39m[2m | [22m
+[32mchunk-BQFNKKZ5.js[39m  [2m | [22m[2mgeorgian-translations[22m[2m | [22m[36m231.34 kB[39m[2m | [22m
+[32mchunk-X6UTUD2S.js[39m  [2m | [22m[2mcareers[22m              [2m | [22m [36m36.22 kB[39m[2m | [22m
+[32mchunk-RRYYESMA.js[39m  [2m | [22m[2mrussian-translations[22m [2m | [22m [36m19.29 kB[39m[2m | [22m
+[32mchunk-LSBCVRQQ.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m299 bytes[39m[2m | [22m
+
+Application bundle generation complete. [0.735 seconds] - 2026-09-16T16:10:41.666Z
+
+Page reload sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.755 seconds] - 2026-09-16T16:12:20.286Z
+
+Component update sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.654 seconds] - 2026-09-16T16:12:38.979Z
+
+Page reload sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.703 seconds] - 2026-09-16T16:12:43.878Z
+
+Page reload sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.09 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.613 seconds] - 2026-09-16T16:13:01.729Z
+
+Component update sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m [36m3.08 MB[39m[2m | [22m
+
+Application bundle generation complete. [0.633 seconds] - 2026-09-16T16:15:51.653Z
+
+Component update sent to client(s).
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+Application bundle generation failed. [0.616 seconds] - 2026-09-16T16:16:12.851Z
+
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m3.08 MB[39m[2m | [22m
+[32mchunk-LWKRXYXB.js[39m  [2m | [22m[2m-[22m                    [2m | [22m [36m11.01 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m               [2m | [22m  [36m8.63 kB[39m[2m | [22m
+[32mchunk-CZJLB7T5.js[39m  [2m | [22m[2m-[22m                    [2m | [22m  [36m1.08 kB[39m[2m | [22m
+[32mchunk-WFRIKH55.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m207 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m        [2m | [22m  [1m3.10 MB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m
+[32mchunk-YHLRFNBB.js[39m  [2m | [22m[2mcrm-dashboard[22m        [2m | [22m[36m264.92 kB[39m[2m | [22m
+[32mchunk-RE62VSOO.js[39m  [2m | [22m[2mlead-detail[22m          [2m | [22m[36m234.40 kB[39m[2m | [22m
+[32mchunk-BQFNKKZ5.js[39m  [2m | [22m[2mgeorgian-translations[22m[2m | [22m[36m231.34 kB[39m[2m | [22m
+[32mchunk-X6UTUD2S.js[39m  [2m | [22m[2mcareers[22m              [2m | [22m [36m36.22 kB[39m[2m | [22m
+[32mchunk-RRYYESMA.js[39m  [2m | [22m[2mrussian-translations[22m [2m | [22m [36m19.29 kB[39m[2m | [22m
+[32mchunk-LSBCVRQQ.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m299 bytes[39m[2m | [22m
+
+Application bundle generation complete. [0.632 seconds] - 2026-09-16T16:16:23.786Z
+
+Page reload sent to client(s).

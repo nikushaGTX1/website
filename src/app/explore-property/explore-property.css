@@ -539,7 +539,7 @@ svg {
   min-width: 0;
   padding: 26px 25px 70px;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: auto;
   scrollbar-width: none;
 }
 .results-pane::-webkit-scrollbar {

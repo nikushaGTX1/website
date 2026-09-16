@@ -572,12 +572,7 @@
         *ngFor="let apartment of topApartments; let index = index"
         [routerLink]="['/apartments', apartment.id]"
       >
-        <div class="property-image" data-protected-image
-          (pointerdown)="beginApartmentSwipe($event)"
-          (pointermove)="moveApartmentSwipe($event)"
-          (pointerup)="endApartmentSwipe($event, apartment)"
-          (pointercancel)="cancelApartmentSwipe()"
-          (click)="preventApartmentNavigationAfterSwipe($event)">
+        <div class="property-image" data-protected-image>
           <span class="property-badge verified" *ngIf="isExclusiveListing(apartment)"
             ><i class="fa-solid fa-circle-check"></i> Verified</span
           >
@@ -589,16 +584,6 @@
             decoding="async"
             draggable="false"
           />
-          <div class="property-gallery-dots" aria-label="Property images">
-            <button
-              type="button"
-              *ngFor="let imageIndex of getApartmentCardDotIndexes(apartment)"
-              [class.active]="getApartmentCardImageIndex(apartment) === imageIndex"
-              [attr.aria-label]="'Show property image ' + (imageIndex + 1)"
-              [attr.aria-current]="getApartmentCardImageIndex(apartment) === imageIndex ? 'true' : null"
-              (click)="setApartmentCardImage($event, apartment, imageIndex)"
-            ></button>
-          </div>
           <button
             type="button"
             class="favorite"
@@ -630,7 +615,7 @@
           </p>
           <div class="property-meta">
             <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
-            <span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span>
+            <span *ngIf="apartment.bathrooms"><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms }} Baths</span>
             <span
               ><span class="measurement-svg" aria-hidden="true"></span
               >{{ apartment.sizeSquareMeters || '—' }} m²</span

@@ -567,8 +567,10 @@
   }
 }
 
-/* Authoritative phone navigation */
-@media (max-width: 650px) {
+/* Authoritative phone navigation. Threshold matches explore-property.css's
+ * own mobile breakpoint (780px), which hardcodes this header's sticky height
+ * to offset its sticky search/filter bars — keep both in sync. */
+@media (max-width: 780px) {
   :host {
     position: sticky;
     top: 0;

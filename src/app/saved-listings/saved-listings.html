@@ -53,7 +53,7 @@
             <p class="location"><i class="fa-solid fa-location-dot"></i>{{ getLocation(apartment) }}</p>
             <div class="specs">
               <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
-              <span><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms || '—' }} Baths</span>
+              <span *ngIf="apartment.bathrooms"><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms }} Baths</span>
               <span><span class="measurement-svg" aria-hidden="true"></span>{{ apartment.sizeSquareMeters || '—' }} m²</span>
             </div>
             <small>Saved recently</small>

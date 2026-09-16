@@ -1,0 +1,153 @@
+[1m[31mComponent update failed: Cannot read properties of undefined (reading 'querySelector')
+TypeError: Cannot read properties of undefined (reading 'querySelector')
+    at r.getMapEventElement (http://127.0.0.1:4200/@fs/C:/Users/user/Desktop/site/.angular/cache/21.2.19/site/vite/deps/terra-draw-google-maps-adapter.js?v=487c6463:116:71)
+    at unregister (http://127.0.0.1:4200/@fs/C:/Users/user/Desktop/site/.angular/cache/21.2.19/site/vite/deps/chunk-GKECQAMX.js?v=487c6463:3455:12)
+    at li.unregister (http://127.0.0.1:4200/@fs/C:/Users/user/Desktop/site/.angular/cache/21.2.19/site/vite/deps/chunk-GKECQAMX.js?v=487c6463:3417:50)
+    at http://127.0.0.1:4200/@fs/C:/Users/user/Desktop/site/.angular/cache/21.2.19/site/vite/deps/chunk-GKECQAMX.js?v=487c6463:3512:10
+    at Array.forEach (<anonymous>)
+    at r.unregister (http://127.0.0.1:4200/@fs/C:/Users/user/Desktop/site/.angular/cache/21.2.19/site/vite/deps/chunk-GKECQAMX.js?v=487c6463:3511:21)
+    at r.unregister (http://127.0.0.1:4200/@fs/C:/Users/user/Desktop/site/.angular/cache/21.2.19/site/vite/deps/terra-draw-google-maps-adapter.js?v=487c6463:103:11)
+    at bi.stop (http://127.0.0.1:4200/@fs/C:/Users/user/Desktop/site/.angular/cache/21.2.19/site/vite/deps/chunk-GKECQAMX.js?v=487c6463:4329:60)
+    at _DrawAreaMapComponent.ngOnDestroy (http://127.0.0.1:4200/main.js:35289:16)
+    at executeOnDestroys (http://127.0.0.1:4200/@fs/C:/Users/user/Desktop/site/.angular/cache/21.2.19/site/vite/deps/chunk-XGI5745C.js?v=487c6463:8351:20)
+Please consider reporting the error at https://github.com/angular/angular-cli/issues[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'OnDestroy'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:20:37:
+[37m      20 │ export class Main implements OnInit, [32mOnDestroy[37m {
+         ╵                                      [32m~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertyImageIndexes' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:154:32:
+[37m      154 │ ...ndex = Math.min(this.[32mpropertyImageIndexes[37m.get(apartment.id) ||...
+          ╵                         [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertyImageIndexes' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:159:16:
+[37m      159 │     return this.[32mpropertyImageIndexes[37m.get(apartment.id) || 0;
+          ╵                 [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertyImageIndexes' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:167:9:
+[37m      167 │     this.[32mpropertyImageIndexes[37m.set(apartment.id, (current + direct...
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeStartX' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:172:9:
+[37m      172 │     this.[32mpropertySwipeStartX[37m = event.clientX;
+          ╵          [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipePointerId' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:173:9:
+[37m      173 │     this.[32mpropertySwipePointerId[37m = event.pointerId;
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeDistance' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:174:9:
+[37m      174 │     this.[32mpropertySwipeDistance[37m = 0;
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeStartX' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:179:13:
+[37m      179 │     if (this.[32mpropertySwipeStartX[37m == null || event.pointerId !== t...
+          ╵              [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipePointerId' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:179:69:
+[37m      179 │ ... null || event.pointerId !== this.[32mpropertySwipePointerId[37m) return;
+          ╵                                      [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeDistance' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:180:9:
+[37m      180 │     this.[32mpropertySwipeDistance[37m = event.clientX - this.propertySwi...
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeStartX' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:180:54:
+[37m      180 │ ...propertySwipeDistance = event.clientX - this.[32mpropertySwipeStartX[37m;
+          ╵                                                 [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeStartX' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:184:13:
+[37m      184 │     if (this.[32mpropertySwipeStartX[37m == null || event.pointerId !== t...
+          ╵              [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipePointerId' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:184:69:
+[37m      184 │ ... null || event.pointerId !== this.[32mpropertySwipePointerId[37m) return;
+          ╵                                      [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeStartX' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:185:42:
+[37m      185 │     const distance = event.clientX - this.[32mpropertySwipeStartX[37m;
+          ╵                                           [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'suppressApartmentNavigation' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:188:9:
+[37m      188 │     this.[32msuppressApartmentNavigation[37m = true;
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeStartX' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:193:9:
+[37m      193 │     this.[32mpropertySwipeStartX[37m = null;
+          ╵          [32m~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipePointerId' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:194:9:
+[37m      194 │     this.[32mpropertySwipePointerId[37m = null;
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'propertySwipeDistance' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:195:9:
+[37m      195 │     this.[32mpropertySwipeDistance[37m = 0;
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'suppressApartmentNavigation' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:199:14:
+[37m      199 │     if (!this.[32msuppressApartmentNavigation[37m) return;
+          ╵               [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'suppressApartmentNavigation' does not exist on type 'Main'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/main/main.ts:202:9:
+[37m      202 │     this.[32msuppressApartmentNavigation[37m = false;
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

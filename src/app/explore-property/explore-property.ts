@@ -145,7 +145,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
   currentPage = 1;
-  pageSize = 12;
+  pageSize = 6;
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.filteredApartments.length / this.pageSize));
@@ -834,6 +834,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const target = event.target instanceof Element ? event.target : null;
     if (!results || !target || results.contains(target)) return;
 
+    // Footer content scrolls the page normally; everything above it
+    // (navbar, filter bar, map) forwards into the results list instead.
+    if (target.closest('footer, app-footer')) return;
+
     // Keep map wheel gestures inside Google Maps. They must never move the
     // independent property-card results pane.
     if (target.closest('app-explore-property-map')) return;
@@ -843,12 +847,19 @@ export class ExploreProperty implements OnInit, OnDestroy {
     );
     if (nestedScroller && nestedScroller.scrollHeight > nestedScroller.clientHeight) return;
 
+    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? results.clientHeight : 1;
+    const delta = event.deltaY * unit;
+    const atTop = results.scrollTop <= 0;
+    const atBottom = results.scrollTop + results.clientHeight >= results.scrollHeight - 1;
+    // Once the list has nowhere left to scroll in this direction, let the
+    // event fall through to the page so the footer stays reachable.
+    if ((delta < 0 && atTop) || (delta > 0 && atBottom)) return;
+
     event.preventDefault();
     // Stop the event before it reaches Google Maps, otherwise the map zooms
     // while the list scrolls and the motion feels hard and too fast.
     event.stopPropagation();
-    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? results.clientHeight : 1;
-    results.scrollBy({ top: event.deltaY * unit, behavior: 'smooth' });
+    results.scrollBy({ top: delta, behavior: 'smooth' });
   };
 
   private resetModeNavigationFilters(location: string): void {
@@ -1491,7 +1502,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
       if (normalized === 'pet friendly') return !!apartment.isPetFriendly;
       if (normalized === 'near park') {
         const minutes = Number(apartment.parkDistanceMinutes);
-        return Number.isFinite(minutes) && minutes >= 0 && minutes <= 10;
+        if (apartment.parkDistanceMinutes != null && Number.isFinite(minutes)) {
+          return minutes >= 0 && minutes <= 10;
+        }
+        return text.includes('park');
       }
       if (normalized === 'new building') {
         const buildingText = `${apartment.apartmentStyle || ''} ${text}`;
