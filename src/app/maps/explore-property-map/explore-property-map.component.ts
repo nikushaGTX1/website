@@ -95,7 +95,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.viewReady) return;
-    if (changes['apartments'] && this.map) void this.renderMarkers(true);
+    // Filtering should update the pins without unexpectedly moving or zooming
+    // the map. The initial load and the recenter control still fit all homes.
+    if (changes['apartments'] && this.map) void this.renderMarkers(false);
     if (changes['selectedApartmentId']) this.updateSelectedMarker();
   }
 

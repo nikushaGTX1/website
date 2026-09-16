@@ -834,14 +834,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const target = event.target instanceof Element ? event.target : null;
     if (!results || !target || results.contains(target)) return;
 
-    // Wheel over the map scrolls the cards too — the map only zooms once
-    // the list cannot move further in that direction.
-    if (target.closest('app-explore-property-map')) {
-      const atTop = results.scrollTop <= 0;
-      const atBottom =
-        results.scrollTop >= results.scrollHeight - results.clientHeight - 1;
-      if ((event.deltaY > 0 && atBottom) || (event.deltaY < 0 && atTop)) return;
-    }
+    // Keep map wheel gestures inside Google Maps. They must never move the
+    // independent property-card results pane.
+    if (target.closest('app-explore-property-map')) return;
 
     const nestedScroller = target.closest<HTMLElement>(
       '.location-modal-body, .area-picker-column, .popover, .language-menu',

@@ -557,6 +557,7 @@
   width: 100%;
   padding: 0;
   color: #526079;
+  font: inherit;
   cursor: pointer;
   text-align: left;
 }
@@ -565,8 +566,8 @@
   flex: 1;
   overflow: hidden;
   color: #8a94a6;
-  font-size: 13px;
-  font-weight: 500 !important;
+  font-size: inherit;
+  font-weight: inherit;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
