@@ -324,7 +324,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
   applyQuickLocation(): void {
     this.selectedLocationValue = this.location;
     this.locationOpen = false;
-    this.onSearch();
+    const wasDrawnArea = this.drawnAreaActive;
+    this.clearDrawnAreaState();
+    if (wasDrawnArea) {
+      this.loadApartments();
+    } else {
+      this.onSearch();
+    }
   }
 
   toggleAmenity(amenity: string): void {
@@ -670,7 +676,20 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedStreetId = suggestion.type === 'Street' && suggestion.id ? suggestion.id : null;
     this.selectedLocationArea = suggestion.type === 'Area' ? this.selectedLocationValue : '';
     this.locationOpen = false;
-    this.onSearch();
+    const wasDrawnArea = this.drawnAreaActive;
+    this.clearDrawnAreaState();
+    if (wasDrawnArea) {
+      this.loadApartments();
+    } else {
+      this.onSearch();
+    }
+  }
+
+  private clearDrawnAreaState(): void {
+    this.drawnAreaActive = false;
+    this.inlineDrawnPolygon = null;
+    this.drawnDetectedArea = '';
+    sessionStorage.removeItem('white-tower-drawn-area');
   }
 
   onLocationInput(): void {

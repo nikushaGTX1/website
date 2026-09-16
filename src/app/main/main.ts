@@ -576,10 +576,11 @@ export class Main implements OnInit, OnDestroy {
         : effectiveAreas.join(',')
       : '';
     this.selectedStreetId = this.selectedModalStreetDetails.at(-1)?.streetId ?? null;
-    if (this.inlineDrawnPolygon) {
+    if (this.inlineDrawnPolygon && this.drawnDetectedArea) {
       sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(this.inlineDrawnPolygon));
     } else {
       sessionStorage.removeItem('white-tower-drawn-area');
+      this.inlineDrawnPolygon = null;
     }
     this.locationOpen = false;
   }
@@ -856,11 +857,13 @@ export class Main implements OnInit, OnDestroy {
   }
 
   searchHomes(): void {
+    const useDrawnArea =
+      !!this.inlineDrawnPolygon && !!this.drawnDetectedArea && !this.selectedLocationValue;
     void this.router.navigate(['/ExploreProperty'], {
       queryParams: {
         mode: this.searchMode,
-        area: this.inlineDrawnPolygon ? 'drawn' : null,
-        location: this.inlineDrawnPolygon
+        area: useDrawnArea ? 'drawn' : null,
+        location: useDrawnArea
           ? null
           : this.selectedLocationValue || this.searchLocation || null,
         street_id: this.selectedStreetId || null,
