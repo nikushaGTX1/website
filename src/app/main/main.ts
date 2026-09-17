@@ -792,22 +792,12 @@ export class Main implements OnInit, OnDestroy {
     tryNextProfileImageUrl(event);
   }
 
-  getApartmentImage(apartment: Apartment): string {
-    return (
-      toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg'
-    );
-  }
-
   getApartmentTitle(apartment: Apartment): string {
     return apartment.title?.trim() || `Apartment #${apartment.id}`;
   }
 
   isExclusiveListing(apartment: Apartment): boolean {
     return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(apartment.description || '');
-  }
-
-  getApartmentAddress(apartment: Apartment): string {
-    return apartment.address?.trim() || 'Address not provided';
   }
 
   getApartmentLocationLabel(apartment: Apartment): string {

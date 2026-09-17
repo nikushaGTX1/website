@@ -702,42 +702,38 @@
 
   <section class="content-section ai-match">
     <div class="ai-copy">
-      <span class="eyebrow">Personalized discovery</span>
-      <h2>AI Home Match <b>✦</b></h2>
-      <p>
-        Tell us what you’re looking for and our AI will do the hard work. Get personalized matches
-        that feel just right.
-      </p>
-      <a routerLink="/ai-home-match">Try Velven Match <span>✦</span></a>
+      <span class="eyebrow">AI Home Match</span>
+      <h2>A home that <b>feels like you.</b></h2>
+      <p>Tell us about your lifestyle. Discover homes that match what matters.</p>
+      <a routerLink="/ai-home-match">Find my match <span>→</span></a>
     </div>
-    <img class="ai-sportsman" src="/ojaxi.png" alt="" aria-hidden="true" />
-    <div class="ai-orb">✦</div>
-    <div class="ai-preview">
-      <img
-        data-protected-photo
-        [src]="
-          topApartments.length ? getApartmentImage(topApartments[0]) : '/property-placeholder.svg'
-        "
-        alt="Recommended apartment"
-        loading="lazy"
-        decoding="async"
-      />
-      <div>
-        <small>Best match for you</small
-        ><strong>{{
-          topApartments.length ? getApartmentTitle(topApartments[0]) : 'Your ideal home'
-        }}</strong
-        ><span>{{
-          topApartments.length ? getApartmentAddress(topApartments[0]) : 'Tbilisi, Georgia'
-        }}</span>
-      </div>
+    <img
+      class="ai-sportsman"
+      src="/ojaxi.png"
+      alt="A family with two children and their golden retriever"
+    />
+    <img class="ai-lifestyle-flow" src="/ai-match-lifestyle.png" alt="" aria-hidden="true" />
+    <div class="ai-match-card">
+      <h3>Matched to your lifestyle</h3>
+      <ul>
+        <li>
+          <i class="fa-solid fa-train-subway" aria-hidden="true"></i><span>Near Metro</span
+          ><b><i class="fa-solid fa-check" aria-hidden="true"></i></b>
+        </li>
+        <li>
+          <i class="fa-solid fa-paw" aria-hidden="true"></i><span>Pet Friendly</span
+          ><b><i class="fa-solid fa-check" aria-hidden="true"></i></b>
+        </li>
+        <li>
+          <i class="fa-solid fa-bed" aria-hidden="true"></i><span>2–3 Bedrooms</span
+          ><b><i class="fa-solid fa-check" aria-hidden="true"></i></b>
+        </li>
+        <li>
+          <i class="fa-solid fa-sack-dollar" aria-hidden="true"></i><span>Within Budget</span
+          ><b><i class="fa-solid fa-check" aria-hidden="true"></i></b>
+        </li>
+      </ul>
     </div>
-    <ul>
-      <li>Near Metro <b>✓</b></li>
-      <li>Pet Friendly <b>✓</b></li>
-      <li>2–3 Bedrooms <b>✓</b></li>
-      <li>Within Budget <b>✓</b></li>
-    </ul>
   </section>
 
   <section class="content-section lifestyle">

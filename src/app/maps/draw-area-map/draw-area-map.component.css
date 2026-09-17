@@ -327,7 +327,9 @@ button {
   color: #26334c;
   background: transparent;
   font: inherit;
-  font-size: 12px;
+  /* iOS Safari auto-zooms the page on focus when an input's font-size is
+   * under 16px. */
+  font-size: 16px;
 }
 h3 {
   margin: 16px 0 9px;
@@ -854,7 +856,7 @@ button:disabled {
   font-size: 15px;
 }
 .area-search input {
-  font-size: 14px;
+  font-size: 16px;
 }
 h3 {
   font-size: 12px;
@@ -1044,7 +1046,9 @@ h3 {
   background: transparent;
   color: #273249;
   font: inherit;
-  font-size: 12px;
+  /* iOS Safari auto-zooms the page on focus when an input's font-size is
+   * under 16px. */
+  font-size: 16px;
 }
 .compact-street-results {
   overflow: hidden;
@@ -1158,7 +1162,7 @@ h3 {
   }
 
   .compact-street-search input {
-    font-size: 11px;
+    font-size: 16px;
   }
 }
 

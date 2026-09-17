@@ -207,7 +207,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       setOptions({
         key: apiKey,
         v: 'weekly',
-        ...(!this.compact && mapId ? { mapIds: [mapId] } : {}),
+        ...(mapId ? { mapIds: [mapId] } : {}),
       });
       const [{ Map }, { Geocoder }] = await Promise.all([
         importLibrary('maps') as Promise<google.maps.MapsLibrary>,
@@ -229,8 +229,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.map = new Map(this.mapContainer.nativeElement, {
         center: location,
         zoom: 14,
-        ...(!this.compact && mapId ? { mapId } : {}),
-        ...(this.compact ? { renderingType: google.maps.RenderingType.RASTER } : {}),
+        ...(mapId ? { mapId } : {}),
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: true,
