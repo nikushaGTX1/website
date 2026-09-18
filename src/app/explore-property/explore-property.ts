@@ -147,6 +147,162 @@ export class ExploreProperty implements OnInit, OnDestroy {
   currentPage = 1;
   pageSize = 6;
 
+  private readonly cardImageIndexes = new Map<number, number>();
+  private cardSwipeStartX: number | null = null;
+  private cardSwipePointerId: number | null = null;
+  private suppressCardClick = false;
+
+  private readonly cardGalleries = new Map<number, string[]>();
+  private readonly cardGalleryRequests = new Set<number>();
+
+  // The list endpoint only returns the cover photo; fetch the full gallery
+  // once per card so swiping has more than one image to move through.
+  private loadCardGallery(apartment: Apartment): void {
+    if (this.cardGalleries.has(apartment.id) || this.cardGalleryRequests.has(apartment.id)) return;
+    this.cardGalleryRequests.add(apartment.id);
+    this.apartmentService.getApartment(apartment.id).subscribe({
+      next: (detailed) => {
+        this.cardGalleryRequests.delete(apartment.id);
+        const images = (detailed.imageUrls || []).filter(Boolean);
+        if (images.length > 1) {
+          this.cardGalleries.set(apartment.id, images);
+          this.queuePreload(images);
+          this.cdr.detectChanges();
+        }
+      },
+      error: () => this.cardGalleryRequests.delete(apartment.id),
+    });
+  }
+
+  private readonly preloaded = new Set<string>();
+  private readonly cardSlide = new Map<number, string>();
+  private cardSlideToggle = false;
+
+  private readonly preloadQueue: string[] = [];
+  private preloadActive = 0;
+
+  // Loads every gallery photo in the background, a few at a time, so
+  // swiping never waits on the network without flooding the connection.
+  private queuePreload(urls: string[]): void {
+    for (const url of urls) {
+      if (url && !this.preloaded.has(url)) {
+        this.preloaded.add(url);
+        this.preloadQueue.push(url);
+      }
+    }
+    this.drainPreloadQueue();
+  }
+
+  private drainPreloadQueue(): void {
+    while (this.preloadActive < 4 && this.preloadQueue.length) {
+      const url = this.preloadQueue.shift()!;
+      this.preloadActive++;
+      const image = new Image();
+      image.decoding = 'async';
+      const done = (): void => {
+        this.preloadActive--;
+        this.drainPreloadQueue();
+      };
+      image.onload = done;
+      image.onerror = done;
+      image.src = url;
+    }
+  }
+
+  private preloadImage(url?: string): void {
+    if (!url || this.preloaded.has(url)) return;
+    this.preloaded.add(url);
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = url;
+  }
+
+  cardSlideClass(apartment: Apartment): string {
+    return this.cardSlide.get(apartment.id) || '';
+  }
+
+  private slideCard(apartment: Apartment, direction: 1 | -1): void {
+    const images = this.cardImages(apartment);
+    const count = images.length;
+    const next = (this.cardImageIndex(apartment) + direction + count) % count;
+    this.cardImageIndexes.set(apartment.id, next);
+    // Alternate two class names so the CSS animation restarts every swipe.
+    this.cardSlideToggle = !this.cardSlideToggle;
+    const side = direction === 1 ? 'left' : 'right';
+    this.cardSlide.set(apartment.id, `slide-${side}-${this.cardSlideToggle ? 'a' : 'b'}`);
+    this.preloadImage(images[(next + direction + count) % count]);
+  }
+
+  private prefetchCardGalleries(): void {
+    this.pageApartments.forEach((apartment) => this.loadCardGallery(apartment));
+  }
+
+  onCardHover(apartment: Apartment): void {
+    this.loadCardGallery(apartment);
+  }
+
+  cardImages(apartment: Apartment): string[] {
+    const gallery = this.cardGalleries.get(apartment.id);
+    if (gallery?.length) return gallery;
+    if (apartment.imageUrls?.length) return apartment.imageUrls;
+    return apartment.imageUrl ? [apartment.imageUrl] : [];
+  }
+
+  cardImageIndex(apartment: Apartment): number {
+    const count = this.cardImages(apartment).length;
+    return Math.min(this.cardImageIndexes.get(apartment.id) || 0, Math.max(count - 1, 0));
+  }
+
+  cardImage(apartment: Apartment): string {
+    return this.cardImages(apartment)[this.cardImageIndex(apartment)] || '/property-placeholder.svg';
+  }
+
+  private cardSwipeStartY = 0;
+
+  trackApartmentById(_index: number, apartment: Apartment): number {
+    return apartment.id;
+  }
+
+  touchCardStart(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (!touch) return;
+    this.cardSwipeStartX = touch.clientX;
+    this.cardSwipeStartY = touch.clientY;
+    this.cardSwipePointerId = -1;
+  }
+
+  touchCardMove(event: TouchEvent, apartment: Apartment): void {
+    const touch = event.touches[0];
+    if (!touch || this.cardSwipeStartX == null || this.cardSwipePointerId !== -1) return;
+    const dx = touch.clientX - this.cardSwipeStartX;
+    const dy = touch.clientY - this.cardSwipeStartY;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    this.cardSwipeStartX = null;
+    this.cardSwipePointerId = null;
+    const count = this.cardImages(apartment).length;
+    if (count < 2) return;
+    this.suppressCardClick = true;
+    this.slideCard(apartment, dx < 0 ? 1 : -1);
+    this.cdr.detectChanges();
+  }
+
+  endCardSwipe(): void {
+    this.cardSwipeStartX = null;
+    this.cardSwipePointerId = null;
+  }
+
+  cancelCardSwipe(): void {
+    this.cardSwipeStartX = null;
+    this.cardSwipePointerId = null;
+  }
+
+  preventCardClickAfterSwipe(event: Event): void {
+    if (!this.suppressCardClick) return;
+    this.suppressCardClick = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.filteredApartments.length / this.pageSize));
   }
@@ -769,6 +925,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const start = (this.currentPage - 1) * this.pageSize;
     this.pageApartments = this.filteredApartments.slice(start, start + this.pageSize);
     this.visibleApartments = this.pageApartments;
+    this.prefetchCardGalleries();
   }
 
   onMapVisibleApartmentsChanged(apartments: Apartment[]): void {

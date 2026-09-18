@@ -619,6 +619,10 @@ svg {
   outline-color: #d8c8f3;
 }
 .card-link {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  touch-action: pan-y;
   position: absolute;
   z-index: 2;
   inset: 0;
@@ -1512,3 +1516,17 @@ svg {
   border-radius: 20px;
   box-shadow: none;
 }
+
+/* Photo swipe transition (touch only; class set from explore-property.ts) */
+@keyframes card-slide-from-right { from { transform: translateX(32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
+@keyframes card-slide-from-left { from { transform: translateX(-32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
+.photo-wrap img.slide-left-a,
+.photo-wrap img.slide-left-b { animation: card-slide-from-right 0.28s ease-out; }
+.photo-wrap img.slide-right-a,
+.photo-wrap img.slide-right-b { animation: card-slide-from-left 0.28s ease-out; }
+.photo-wrap img.slide-left-a { animation-name: card-slide-from-right; }
+.photo-wrap img.slide-left-b { animation-name: card-slide-from-right-b; }
+.photo-wrap img.slide-right-a { animation-name: card-slide-from-left; }
+.photo-wrap img.slide-right-b { animation-name: card-slide-from-left-b; }
+@keyframes card-slide-from-right-b { from { transform: translateX(32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
+@keyframes card-slide-from-left-b { from { transform: translateX(-32%); opacity: 0.35; } to { transform: none; opacity: 1; } }

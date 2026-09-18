@@ -327,7 +327,7 @@
         </div>
         <article
           class="property-card"
-          *ngFor="let apartment of paginatedApartments"
+          *ngFor="let apartment of paginatedApartments; trackBy: trackApartmentById"
           [class.active]="selectedApartment?.id === apartment.id"
           (mouseenter)="hoveredApartmentId = apartment.id; selectApartment(apartment)"
           (mouseleave)="hoveredApartmentId = null"
@@ -338,10 +338,18 @@
             class="card-link"
             [routerLink]="['/apartments', apartment.id]"
             [attr.aria-label]="apartment.title"
+            draggable="false"
+            (dragstart)="$event.preventDefault()"
+            (touchstart)="touchCardStart($event)"
+            (touchmove)="touchCardMove($event, apartment)"
+            (touchend)="endCardSwipe()"
+            (touchcancel)="cancelCardSwipe()"
+            (click)="preventCardClickAfterSwipe($event)"
           ></a>
           <div class="photo-wrap" data-protected-image>
             <img
-              [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'"
+              [src]="cardImage(apartment)"
+              [ngClass]="cardSlideClass(apartment)"
               [alt]="apartment.title || 'Property in Tbilisi'"
               loading="lazy"
               decoding="async"
@@ -368,7 +376,7 @@
                 ></path>
               </svg>
             </button>
-            <span class="photo-count">1 / {{ apartment.imageUrls?.length || 1 }}</span>
+            <span class="photo-count">{{ cardImageIndex(apartment) + 1 }} / {{ cardImages(apartment).length || 1 }}</span>
           </div>
           <div class="card-body">
             <div class="title-row">

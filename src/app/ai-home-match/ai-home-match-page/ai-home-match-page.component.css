@@ -1590,3 +1590,43 @@ fieldset {
     margin-bottom: 0;
   }
 }
+
+/* Mobile: profile head + character stay on top; the details list moves
+ * below the question. display:contents lets the card's children take part
+ * in the wizard grid ordering individually. */
+@media (max-width: 900px) {
+  .profile-card {
+    display: contents;
+  }
+  .profile-step-icon {
+    display: none;
+  }
+  .profile-card-head {
+    order: -3;
+    padding: 10px 12px;
+    border: 1px solid #e5e9ef;
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+    background: #fff;
+  }
+  .profile-card > app-velven-lifestyle-avatar {
+    order: -2;
+    margin: 0;
+    padding: 0 12px 10px;
+    border: 1px solid #e5e9ef;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+    background: #fff;
+  }
+  .question {
+    order: 0;
+  }
+  .profile-card > dl {
+    order: 1;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid #e5e9ef;
+    border-radius: 12px;
+    background: #fff;
+  }
+}
