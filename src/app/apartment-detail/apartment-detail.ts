@@ -440,40 +440,49 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   gallerySlideDirection: 'left' | 'right' | null = null;
   private gallerySwipeStartX: number | null = null;
-  private gallerySwipePointerId: number | null = null;
   private suppressGalleryTap = false;
   private gallerySlideResetTimer?: number;
 
-  beginGallerySwipe(event: PointerEvent): void {
-    if (event.pointerType === 'mouse' && event.button !== 0) return;
-    this.gallerySwipeStartX = event.clientX;
-    this.gallerySwipePointerId = event.pointerId;
-    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  private gallerySwipeStartY = 0;
+  private gallerySlideToggle = false;
+
+  touchGalleryStart(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (!touch) return;
+    this.gallerySwipeStartX = touch.clientX;
+    this.gallerySwipeStartY = touch.clientY;
   }
 
-  endGallerySwipe(event: PointerEvent): void {
-    if (this.gallerySwipeStartX == null || event.pointerId !== this.gallerySwipePointerId) return;
-    const distance = event.clientX - this.gallerySwipeStartX;
+  // Committed on move so a cancelled touch can't swallow the swipe.
+  touchGalleryMove(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (!touch || this.gallerySwipeStartX == null) return;
+    const dx = touch.clientX - this.gallerySwipeStartX;
+    const dy = touch.clientY - this.gallerySwipeStartY;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
     this.gallerySwipeStartX = null;
-    this.gallerySwipePointerId = null;
-    if (Math.abs(distance) < 42 || this.galleryImages.length < 2) return;
+    if (this.galleryImages.length < 2) return;
     this.suppressGalleryTap = true;
-    if (distance < 0) {
-      this.nextPhoto();
-      this.gallerySlideDirection = 'left';
-    } else {
-      this.previousPhoto();
-      this.gallerySlideDirection = 'right';
+    if (dx < 0) this.nextPhoto();
+    else this.previousPhoto();
+    // Alternate class names so the CSS animation restarts on every swipe.
+    this.gallerySlideToggle = !this.gallerySlideToggle;
+    this.gallerySlideDirection = (dx < 0 ? 'left' : 'right');
+    this.gallerySlideKey = this.gallerySlideToggle ? 'a' : 'b';
+    const count = this.galleryImages.length;
+    for (const offset of [1, -1]) {
+      const image = new Image();
+      image.src = this.galleryImages[(this.activePhotoIndex + offset + count) % count];
     }
-    window.clearTimeout(this.gallerySlideResetTimer);
-    this.gallerySlideResetTimer = window.setTimeout(() => {
-      this.gallerySlideDirection = null;
-    }, 350);
   }
 
-  cancelGallerySwipe(): void {
+  gallerySlideKey: 'a' | 'b' = 'a';
+
+  touchGalleryEnd(): void {
     this.gallerySwipeStartX = null;
-    this.gallerySwipePointerId = null;
+    // A finished swipe must not count as a tap on the next click.
+    window.clearTimeout(this.gallerySlideResetTimer);
+    this.gallerySlideResetTimer = window.setTimeout(() => (this.suppressGalleryTap = false), 400);
   }
 
   openPhotoViewerUnlessSwiped(event: Event): void {
@@ -484,6 +493,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       return;
     }
     this.openPhotoViewer();
+  }
+
+  viewerBg(image: string): string {
+    return `url("${image.replace(/"/g, '%22')}")`;
   }
 
   openPhotoViewer(): void {

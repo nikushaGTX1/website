@@ -92,12 +92,12 @@
   filter: brightness(0.94);
   transform: scale(1.025);
 }
-.vp-gallery-main img.gallery-slide-left {
-  animation: gallery-slide-in-left 0.32s ease;
-}
-.vp-gallery-main img.gallery-slide-right {
-  animation: gallery-slide-in-right 0.32s ease;
-}
+.vp-gallery-main img.gallery-slide-left-a { animation: gallery-slide-in-left 0.32s ease; }
+.vp-gallery-main img.gallery-slide-left-b { animation: gallery-slide-in-left-b 0.32s ease; }
+.vp-gallery-main img.gallery-slide-right-a { animation: gallery-slide-in-right 0.32s ease; }
+.vp-gallery-main img.gallery-slide-right-b { animation: gallery-slide-in-right-b 0.32s ease; }
+@keyframes gallery-slide-in-left-b { from { transform: translateX(28%); opacity: 0.4; } to { transform: translateX(0); opacity: 1; } }
+@keyframes gallery-slide-in-right-b { from { transform: translateX(-28%); opacity: 0.4; } to { transform: translateX(0); opacity: 1; } }
 @keyframes gallery-slide-in-left {
   from {
     transform: translateX(28%);
@@ -770,15 +770,20 @@
 
 @media (max-width: 600px) {
   .photo-viewer-track {
-    padding: 72px 12px 76px;
-    gap: 12px;
+    padding: 64px 0 64px;
+    gap: 6px;
+    justify-content: flex-start;
     scrollbar-gutter: auto;
   }
 
   .photo-viewer-track img {
     width: 100%;
     max-width: 100%;
-    height: calc(100dvh - 148px);
+    height: auto;
+    max-height: calc(100dvh - 148px);
+    aspect-ratio: 4 / 3;
+    object-fit: contain;
+    background: transparent;
   }
 
   .viewer-back {
@@ -1929,4 +1934,91 @@
   .viewer-nav.next {
     right: 8px;
   }
+}
+
+.vp-gallery {
+  position: relative;
+}
+.vp-photo-count {
+  display: none;
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(15, 10, 20, 0.66);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  pointer-events: none;
+}
+
+@media (max-width: 740px) {
+  .vp-photo-count {
+    display: block;
+  }
+}
+
+/* Main photo is shown whole (object-fit: contain). Whatever space a
+ * portrait/panorama photo leaves is filled with a blurred, darkened copy of
+ * the same photo instead of flat bars, so any aspect ratio looks intentional. */
+.vp-gallery-main {
+  background: #15101c;
+}
+.vp-gallery-main img.vp-gallery-bg {
+  position: absolute;
+  inset: -24px;
+  width: calc(100% + 48px);
+  height: calc(100% + 48px);
+  max-width: none;
+  object-fit: cover;
+  filter: blur(22px) brightness(0.55) saturate(1.1);
+  transform: none;
+  transition: none;
+  pointer-events: none;
+}
+.vp-gallery-main img.vp-gallery-photo {
+  position: relative;
+  z-index: 1;
+  object-fit: contain;
+}
+.vp-gallery button:hover .vp-gallery-bg {
+  transform: none;
+  filter: blur(22px) brightness(0.55) saturate(1.1);
+}
+
+/* Fullscreen viewer: each photo keeps its own shape (portrait or wide) and
+ * the space around it is filled by a blurred copy instead of flat bars. */
+.viewer-frame {
+  position: relative;
+  width: 100%;
+  min-height: 40vh;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #15101c;
+}
+.viewer-frame::before {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  background: var(--viewer-bg) center / cover no-repeat;
+  filter: blur(24px) brightness(0.5) saturate(1.1);
+  pointer-events: none;
+}
+.photo-viewer-track .viewer-frame img {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(100dvh - 148px);
+  aspect-ratio: auto;
+  object-fit: contain;
+  background: transparent;
 }
