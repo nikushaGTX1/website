@@ -42,6 +42,10 @@
 
   <main class="wizard-shell" id="how-it-works">
     <section class="question">
+      <div class="mobile-step" aria-label="Progress">
+        <span>Step {{ stepNumber }} / {{ visibleSteps.length }}</span>
+        <div class="mobile-step-bar"><i [style.width.%]="progress"></i></div>
+      </div>
       <div class="question-title">
         <span>{{ stepNumber }}</span>
         <div>
