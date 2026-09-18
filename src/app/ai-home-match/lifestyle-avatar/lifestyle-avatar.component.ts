@@ -47,11 +47,8 @@ export class VelvenLifestyleAvatarComponent {
       '/Characters/ყველაზე დიდი ბავშვი.png',
     ];
     const childByAge: Record<string, string> = {
-      // 'საშუალო ბავშვი' (toddler proportions, bigger head-to-body ratio)
-      // reads younger than 'ყველაზე პატარა ბავშვი' despite its filename —
-      // assign by how each character actually looks, not by file name.
-      Age0To3: childAssets[1],
-      Age4To6: childAssets[0],
+      Age0To3: '/Characters/kid2.png',
+      Age4To6: '/Characters/kid1.png',
       Age7To12: '/Characters/Firefly_RemoveBackground.png',
       Age13To17: '/Characters/Firefly.png',
     };
