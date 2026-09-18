@@ -2,7 +2,7 @@
   <section class="hero" [class.location-dialog-open]="locationOpen">
     <div class="hero-copy">
       <span class="eyebrow">Verified homes. Personalized search.</span>
-      <h1>Find a home <br />that fits <em>your</em><span class="hero-life">life</span></h1>
+      <h1>Find a home <br />that fits <em>your</em>&nbsp;<span class="hero-life">life</span></h1>
     </div>
 
     <form
@@ -145,10 +145,13 @@
                     (streetSelected)="toggleModalStreet($event)"
                   >
                   </app-draw-area-map>
-                  <div class="area-map-card">
+                  <div
+                    class="area-map-card"
+                    *ngIf="selectedLocationAreas.length || selectedLocationArea || drawnDetectedArea"
+                  >
                     <i class="fa-solid fa-city area-card-icon" aria-hidden="true"></i>
                     <span
-                      ><b>{{ selectedLocationAreas.length ? selectedLocationAreas.join(', ') : (selectedLocationArea || drawnDetectedArea || 'Tbilisi') }}</b
+                      ><b>{{ selectedLocationAreas.length ? selectedLocationAreas.join(', ') : (selectedLocationArea || drawnDetectedArea) }}</b
                       ><small>{{
                         selectedModalStreets.length
                           ? 'Street: ' + selectedModalStreets.join(', ')
@@ -625,10 +628,16 @@
             <span class="nearby-label">Nearby</span>
             <div class="nearby-grid">
               <span
+                *ngIf="apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes < 30"
                 ><i class="fa-solid fa-train-subway"></i><b>Metro</b
+                ><small>{{ apartment.metroDistanceMinutes }} min walk</small></span
+              >
+              <span
+                *ngIf="apartment.metroDistanceMinutes == null || apartment.metroDistanceMinutes >= 30"
+                ><i class="fa-solid fa-tree"></i><b>Park</b
                 ><small>{{
-                  apartment.metroDistanceMinutes != null
-                    ? apartment.metroDistanceMinutes + ' min walk'
+                  apartment.parkDistanceMinutes != null
+                    ? apartment.parkDistanceMinutes + ' min walk'
                     : 'Not nearby'
                 }}</small></span
               >

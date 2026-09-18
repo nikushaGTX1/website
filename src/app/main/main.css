@@ -503,7 +503,6 @@
 
 .hero h1 .hero-life {
   display: inline-block;
-  padding-left: 0.24em;
 }
 .hero-copy p {
   margin: 8px 0 0;
@@ -1310,6 +1309,8 @@
 }
 .property-card {
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 384px;
   border: 1px solid #e0e6ef;
@@ -1393,6 +1394,9 @@
   box-shadow: 0 4px 14px rgba(18, 31, 51, 0.1);
 }
 .property-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 20px;
 }
 .property-info h3 {
@@ -1568,7 +1572,7 @@
 .view-details {
   width: 100%;
   height: 44px;
-  margin-top: 16px;
+  margin-top: auto;
   padding: 0 17px;
   display: flex;
   align-items: center;
@@ -2427,8 +2431,8 @@
   }
 
   .section-heading h2 {
-    font-size: 30px;
-    line-height: 1.1;
+    font-size: 24px;
+    line-height: 1.15;
   }
 
   .section-heading a {
@@ -2558,7 +2562,6 @@
 
   .hero h1 .hero-life {
     display: block;
-    padding-left: 0;
   }
 
   .property-search {
@@ -2688,7 +2691,6 @@
     margin-left: 0;
   }
 
-  .property-grid,
   .benefit-grid,
   .ai-match,
   .process-grid,
@@ -2696,6 +2698,29 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     width: 100%;
+  }
+
+  .property-grid {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 14px;
+    padding: 0 14px 6px;
+    margin: 0 -14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .property-grid::-webkit-scrollbar {
+    display: none;
+  }
+  .property-grid > * {
+    flex: 0 0 88%;
+    max-width: 88%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .property-card {
@@ -2722,18 +2747,21 @@
 
   .lifestyle-row button {
     width: 100%;
-    min-height: 56px;
+    min-height: 50px;
     display: grid;
-    grid-template-columns: 24px minmax(0, 140px);
+    grid-template-columns: 18px minmax(0, 140px);
     justify-content: center;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     text-align: left;
+    font-size: 12px;
+    line-height: 1.25;
   }
 
   .lifestyle-row button i {
-    width: 24px;
+    width: 18px;
     margin: 0;
+    font-size: 14px;
     text-align: center;
   }
 
@@ -2742,7 +2770,8 @@
   }
 
   .nearby-grid > span {
-    min-height: 78px;
+    height: 78px;
+    overflow: hidden;
     padding: 9px 4px;
     display: flex;
     align-items: center;
@@ -2802,7 +2831,8 @@
   }
 
   .nearby-grid > span {
-    min-height: 74px;
+    height: 74px;
+    overflow: hidden;
   }
 
   .nearby-grid i {
@@ -4003,6 +4033,7 @@
   font-size: clamp(28px, 3.8vw, 48px);
 }
 
+
 /* Give the Georgian owner callout a little more breathing room. */
 :host-context(html:lang(ka)) .testimonial-grid aside :is(.eyebrow, h2, p, a) {
   letter-spacing: 0.025em;
@@ -4011,6 +4042,16 @@
 @media (max-width: 650px) {
   :host-context(html:lang(ka)) .hero h1 {
     font-size: clamp(34px, 9.5vw, 42px);
+  }
+
+  /* Georgian labels run longer/denser than English, so the lifestyle
+   * buttons need a smaller size to keep each label on one line. */
+  :host-context(html:lang(ka)) .lifestyle-row button {
+    font-size: 10px;
+  }
+
+  :host-context(html:lang(ka)) .section-heading h2 {
+    font-size: 20px;
   }
 
   .location-panel-trigger > b {

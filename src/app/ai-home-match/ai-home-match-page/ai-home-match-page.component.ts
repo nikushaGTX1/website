@@ -97,8 +97,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     ],
   );
   readonly transport = this.opts(
-    ['Car', 'Metro', 'Walking', 'Public transport', 'Taxi', 'Multiple methods'],
-    ['Car', 'Metro', 'Walking', 'PublicTransport', 'Taxi', 'MultipleMethods'],
+    ['Car', 'Metro', 'Walking', 'Multiple methods'],
+    ['Car', 'Metro', 'Walking', 'MultipleMethods'],
   );
   profile: HomeMatchProfile;
   step = 1;
@@ -631,12 +631,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return !!this.profile.propertyGoal;
       case 2:
         return (
-          (this.profile.locationFlexible ||
-            !!this.profile.districts.length ||
-            !!this.profile.selectedMapArea) &&
-          (!this.profile.proximityTarget ||
-            this.profile.proximityTarget === 'No' ||
-            !!this.profile.proximityAddress?.trim())
+          this.profile.locationFlexible ||
+          !!this.profile.districts.length ||
+          !!this.profile.selectedMapArea
         );
       case 3:
         return (

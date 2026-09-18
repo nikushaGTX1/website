@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 
 @Component({
@@ -7,7 +7,7 @@ import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
   templateUrl: './property-point-picker.component.html',
   styleUrl: './property-point-picker.component.css',
 })
-export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
+export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() address = '';
   @Input() latitude: number | null = null;
   @Input() longitude: number | null = null;
@@ -18,11 +18,16 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
   private marker?: google.maps.Marker;
   private geocoder?: google.maps.Geocoder;
   private geocodeRevision = 0;
+  private mapResizeObserver?: ResizeObserver;
   loading = true;
   errorMessage = '';
   pointConfirmed = false;
 
   ngAfterViewInit(): void { void this.initialize(); }
+
+  ngOnDestroy(): void {
+    this.mapResizeObserver?.disconnect();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['address'] && this.map) void this.showAddress();
@@ -76,6 +81,25 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges {
           this.setPoint(point.lat(), point.lng(), true);
         }
       });
+
+      // The surrounding layout can still be animating/reflowing when the map
+      // first mounts, which locks Google Maps into whatever size it saw at
+      // that instant. Re-measure whenever the container's real size changes.
+      let lastMapSize = '';
+      this.mapResizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry || !this.map) return;
+        const size = `${entry.contentRect.width}x${entry.contentRect.height}`;
+        if (size === lastMapSize) return;
+        lastMapSize = size;
+        const center = this.map.getCenter();
+        const zoom = this.map.getZoom();
+        google.maps.event.trigger(this.map, 'resize');
+        if (center) this.map.setCenter(center);
+        if (zoom !== undefined) this.map.setZoom(zoom);
+      });
+      this.mapResizeObserver.observe(this.mapElement.nativeElement);
+
       if (this.address.trim()) await this.showAddress();
       else if (this.hasPoint) this.setPoint(this.latitude!, this.longitude!, false);
     } catch {

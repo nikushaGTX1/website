@@ -16,10 +16,19 @@
         </div>
       </div>
       <section class="vp-gallery" data-protected-image>
-        <button class="vp-gallery-main" (click)="selectPhoto(0); openPhotoViewer()">
+        <button
+          class="vp-gallery-main"
+          (click)="openPhotoViewerUnlessSwiped($event)"
+          (pointerdown)="beginGallerySwipe($event)"
+          (pointermove)="$event.stopPropagation()"
+          (pointerup)="endGallerySwipe($event)"
+          (pointercancel)="cancelGallerySwipe()"
+        >
           <img
-            [src]="galleryImages[0] || activePhoto"
+            [src]="activePhoto"
             [alt]="title"
+            [class.gallery-slide-left]="gallerySlideDirection === 'left'"
+            [class.gallery-slide-right]="gallerySlideDirection === 'right'"
             loading="eager"
             fetchpriority="high"
             decoding="async"

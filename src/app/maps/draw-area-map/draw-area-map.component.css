@@ -1050,6 +1050,13 @@ h3 {
    * under 16px. */
   font-size: 16px;
 }
+.compact-street-search input::placeholder {
+  overflow: visible;
+  /* Keep the real input text at 16px (see above) but shrink the placeholder
+   * on its own so longer translations (e.g. Georgian) fit the narrow box
+   * instead of getting clipped. */
+  font-size: 12px;
+}
 .compact-street-results {
   overflow: hidden;
   margin-top: 6px;
@@ -1205,6 +1212,19 @@ h3 {
     top: calc(10px + env(safe-area-inset-top));
     left: 10px;
     min-height: 44px;
+  }
+  /* The draw/close buttons sit in this same top row. Push the tip below
+   * them and let it wrap so a longer translation never overlaps either
+   * button instead of stretching centered behind them. */
+  .map-only-shell .map-tip {
+    top: calc(64px + env(safe-area-inset-top));
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: none;
+    transform: none;
+    white-space: normal;
+    text-align: center;
   }
   .map-only-actions {
     left: 10px;

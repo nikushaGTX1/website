@@ -438,6 +438,54 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     this.activePhotoIndex = index;
   }
 
+  gallerySlideDirection: 'left' | 'right' | null = null;
+  private gallerySwipeStartX: number | null = null;
+  private gallerySwipePointerId: number | null = null;
+  private suppressGalleryTap = false;
+  private gallerySlideResetTimer?: number;
+
+  beginGallerySwipe(event: PointerEvent): void {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    this.gallerySwipeStartX = event.clientX;
+    this.gallerySwipePointerId = event.pointerId;
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+
+  endGallerySwipe(event: PointerEvent): void {
+    if (this.gallerySwipeStartX == null || event.pointerId !== this.gallerySwipePointerId) return;
+    const distance = event.clientX - this.gallerySwipeStartX;
+    this.gallerySwipeStartX = null;
+    this.gallerySwipePointerId = null;
+    if (Math.abs(distance) < 42 || this.galleryImages.length < 2) return;
+    this.suppressGalleryTap = true;
+    if (distance < 0) {
+      this.nextPhoto();
+      this.gallerySlideDirection = 'left';
+    } else {
+      this.previousPhoto();
+      this.gallerySlideDirection = 'right';
+    }
+    window.clearTimeout(this.gallerySlideResetTimer);
+    this.gallerySlideResetTimer = window.setTimeout(() => {
+      this.gallerySlideDirection = null;
+    }, 350);
+  }
+
+  cancelGallerySwipe(): void {
+    this.gallerySwipeStartX = null;
+    this.gallerySwipePointerId = null;
+  }
+
+  openPhotoViewerUnlessSwiped(event: Event): void {
+    if (this.suppressGalleryTap) {
+      this.suppressGalleryTap = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    this.openPhotoViewer();
+  }
+
   openPhotoViewer(): void {
     this.photoViewerOpen = true;
     document.body.classList.add('photo-viewer-active');
@@ -458,6 +506,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     document.body.classList.remove('photo-viewer-active');
     document.body.style.overflow = '';
+    window.clearTimeout(this.gallerySlideResetTimer);
   }
 
   preventImageAction(event: Event): void {

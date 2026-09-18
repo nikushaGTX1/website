@@ -79,6 +79,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private renderRevision = 0;
   private idleListener?: google.maps.MapsEventListener;
   private boundsListener?: google.maps.MapsEventListener;
+  private mapResizeObserver?: ResizeObserver;
   private previewFrame?: number;
   private readonly geocodeCache = new Map<string, google.maps.LatLngLiteral | null>();
   private initialPropertyFocused = false;
@@ -105,6 +106,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     this.renderRevision += 1;
     this.idleListener?.remove();
     this.boundsListener?.remove();
+    this.mapResizeObserver?.disconnect();
     if (this.previewFrame) cancelAnimationFrame(this.previewFrame);
     this.clearMarkers();
   }
@@ -176,6 +178,24 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
           this.zone.run(() => this.emitSelectedPreviewAnchor());
         });
       });
+
+      // The surrounding layout can still be animating/reflowing when the map
+      // first mounts, which locks Google Maps into whatever size it saw at
+      // that instant. Re-measure whenever the container's real size changes.
+      let lastMapSize = '';
+      this.mapResizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry || !this.map) return;
+        const size = `${entry.contentRect.width}x${entry.contentRect.height}`;
+        if (size === lastMapSize) return;
+        lastMapSize = size;
+        const center = this.map.getCenter();
+        const zoom = this.map.getZoom();
+        google.maps.event.trigger(this.map, 'resize');
+        if (center) this.map.setCenter(center);
+        if (zoom !== undefined) this.map.setZoom(zoom);
+      });
+      this.mapResizeObserver.observe(this.mapCanvas.nativeElement);
 
       // Keep the constructor available without loading the marker library again.
       this.advancedMarkerConstructor = AdvancedMarkerElement;

@@ -66,6 +66,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
   private apartmentMarker?: google.maps.Marker;
   private placeMarkers: google.maps.Marker[] = [];
   private directionsRenderer?: google.maps.DirectionsRenderer;
+  private mapResizeObserver?: ResizeObserver;
   private viewReady = false;
   private allPlaces: NearbyPlace[] = [];
 
@@ -105,6 +106,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
     }
   }
   ngOnDestroy(): void {
+    this.mapResizeObserver?.disconnect();
     this.clearPlaceMarkers();
     this.apartmentMarker?.setMap(null);
     this.directionsRenderer?.setMap(null);
@@ -179,6 +181,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
 
   private async initialize(): Promise<void> {
     if (!this.mapContainer || !this.address.trim()) return;
+    this.mapResizeObserver?.disconnect();
     this.loading = true;
     this.mapReady = false;
     this.errorMessage = '';
@@ -232,7 +235,8 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         ...(mapId ? { mapId } : {}),
         mapTypeControl: false,
         streetViewControl: false,
-        fullscreenControl: true,
+        fullscreenControl: false,
+        zoomControl: false,
         clickableIcons: true,
         gestureHandling: this.compact ? 'greedy' : 'cooperative',
       });
@@ -242,6 +246,24 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         title: this.apartmentTitle,
         label: { text: 'H', color: '#fff', fontWeight: '700' },
       });
+
+      // The surrounding layout can still be animating/reflowing when the map
+      // first mounts, which locks Google Maps into whatever size it saw at
+      // that instant. Re-measure whenever the container's real size changes.
+      let lastMapSize = '';
+      this.mapResizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry || !this.map) return;
+        const size = `${entry.contentRect.width}x${entry.contentRect.height}`;
+        if (size === lastMapSize) return;
+        lastMapSize = size;
+        const center = this.map.getCenter();
+        const zoom = this.map.getZoom();
+        google.maps.event.trigger(this.map, 'resize');
+        if (center) this.map.setCenter(center);
+        if (zoom !== undefined) this.map.setZoom(zoom);
+      });
+      this.mapResizeObserver.observe(this.mapContainer.nativeElement);
       await new Promise<void>((resolve) => {
         google.maps.event.addListenerOnce(this.map!, 'idle', () => resolve());
       });

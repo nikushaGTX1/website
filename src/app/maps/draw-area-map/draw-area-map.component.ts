@@ -123,6 +123,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private activeStreetPaths: number[][][] = [];
   private activePriceAreas: string[] = [];
   private zoomListener?: google.maps.MapsEventListener;
+  private mapResizeObserver?: ResizeObserver;
   private selectionRevision = 0;
   private readonly districtBoundaryStates = new Map<string | number, DistrictBoundaryState>();
   private streetRevision = 0;
@@ -188,6 +189,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   ngOnDestroy(): void {
     document.body.classList.remove('draw-map-open');
+    this.mapResizeObserver?.disconnect();
     this.draw?.stop();
     this.clearApartmentCountOverlays();
     this.clearApartmentPriceOverlays();
@@ -1032,7 +1034,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         },
         gestureHandling: 'greedy',
         scrollwheel: true,
-        zoomControl: true,
+        zoomControl: false,
         disableDoubleClickZoom: true,
         keyboardShortcuts: true,
         mapTypeControl: false,
@@ -1069,16 +1071,24 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
             validation: (feature, context) => {
               const distinctPoints = this.distinctPolygonPointCount(feature);
               return {
+                // Only accept a finish once the path has actually been
+                // closed back into a loop (geometry becomes a Polygon).
+                // An open path finishing as a LineString is not an area.
                 valid:
                   context.updateType !== 'finish' ||
-                  feature.geometry.type !== 'Polygon' ||
-                  distinctPoints >= 4,
-                reason: 'Choose at least four points to draw an area.',
+                  (feature.geometry.type === 'Polygon' && distinctPoints >= 4),
+                reason:
+                  feature.geometry.type === 'Polygon'
+                    ? 'Choose at least four points to draw an area.'
+                    : 'Click the starting point again to close the shape.',
               };
             },
             styles: {
+              // Dash the in-progress path so it reads as an unfinished
+              // guideline, not a shape, until the last point closes the loop.
               lineStringColor: '#451a8f',
-              lineStringWidth: 3,
+              lineStringWidth: 2,
+              lineStringDash: [6, 6],
               polygonFillColor: '#451a8f',
               polygonFillOpacity: 0.1,
               polygonOutlineColor: '#451a8f',
@@ -1164,15 +1174,23 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.errorMessage = '';
       this.cdr.detectChanges();
       // The dialog animates in and mobile CSS can change the container size
-      // after init. Force the map to re-measure so no white gap remains.
-      window.setTimeout(() => {
-        if (!this.map) return;
+      // after init, sometimes more than once and not on a fixed schedule.
+      // Watch the container itself instead of guessing a delay, so the map
+      // never gets stuck at whatever size it happened to init at.
+      let lastSize = '';
+      this.mapResizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry || !this.map) return;
+        const size = `${entry.contentRect.width}x${entry.contentRect.height}`;
+        if (size === lastSize) return;
+        lastSize = size;
         const center = this.map.getCenter();
         const zoom = this.map.getZoom();
         google.maps.event.trigger(this.map, 'resize');
         if (center) this.map.setCenter(center);
         if (zoom !== undefined) this.map.setZoom(zoom);
-      }, 450);
+      });
+      this.mapResizeObserver.observe(mapElement.nativeElement);
       if (this.selectedAreasInput.length) {
         try {
           await this.chooseAreas(this.selectedAreasInput);

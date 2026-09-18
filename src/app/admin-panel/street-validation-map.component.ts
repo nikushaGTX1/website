@@ -28,6 +28,7 @@ export class StreetValidationMapComponent implements AfterViewInit, OnDestroy {
   allowOutsideDistrict = false;
   readonly districts = ['Vake','Saburtalo','Vera','Mtatsminda','Didube','Digomi','Didi Digomi','Gldani','Nadzaladevi','Isani','Samgori','Avlabari','Sololaki','Chugureti','Krtsanisi','Vashlijvari'];
   private map?: google.maps.Map;
+  private mapResizeObserver?: ResizeObserver;
   private lines: google.maps.Polyline[] = [];
   private polygons: google.maps.Polygon[] = [];
   private subscription = new Subscription();
@@ -35,7 +36,11 @@ export class StreetValidationMapComponent implements AfterViewInit, OnDestroy {
   constructor(private admin: AdminService, private cdr: ChangeDetectorRef) {}
 
   ngAfterViewInit(): void { void this.initializeMap(); this.reload(); this.loadAudit(); }
-  ngOnDestroy(): void { this.subscription.unsubscribe(); this.clearGeometry(); }
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+    this.mapResizeObserver?.disconnect();
+    this.clearGeometry();
+  }
 
   reload(): void {
     this.loading = true; this.errorMessage = '';
@@ -167,6 +172,24 @@ export class StreetValidationMapComponent implements AfterViewInit, OnDestroy {
       center: { lat: 41.7151, lng: 44.7833 }, zoom: 12,
       ...(mapId ? { mapId } : {}), mapTypeControl: false, streetViewControl: false,
     });
+
+    // The surrounding layout can still be animating/reflowing when the map
+    // first mounts, which locks Google Maps into whatever size it saw at
+    // that instant. Re-measure whenever the container's real size changes.
+    let lastMapSize = '';
+    this.mapResizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry || !this.map) return;
+      const size = `${entry.contentRect.width}x${entry.contentRect.height}`;
+      if (size === lastMapSize) return;
+      lastMapSize = size;
+      const center = this.map.getCenter();
+      const zoom = this.map.getZoom();
+      google.maps.event.trigger(this.map, 'resize');
+      if (center) this.map.setCenter(center);
+      if (zoom !== undefined) this.map.setZoom(zoom);
+    });
+    this.mapResizeObserver.observe(this.mapElement.nativeElement);
   }
 
   private draw(street: AdminStreetDetail): void {

@@ -1,11 +1,15 @@
 <main class="careers-page">
   <section class="application-card" aria-labelledby="application-title">
     <header class="application-header">
-      <a class="brand" routerLink="/main" aria-label="Velven home">Velven</a>
-      <span>Careers at Velven</span>
+      <a class="brand" routerLink="/main" aria-label="Velven home">
+        <img class="brand-mark" src="/logosh2-mark-v2.png" width="644" height="790" alt="" aria-hidden="true" />
+        <span>Velven</span>
+      </a>
+      <span class="header-tag">Careers at Velven</span>
     </header>
 
     <div class="application-intro" *ngIf="!submitted; else successState">
+      <span class="eyebrow">We're hiring</span>
       <h1 id="application-title">Join our team</h1>
       <p>Become part of a strong team and take the first step together with Velven.</p>
     </div>
