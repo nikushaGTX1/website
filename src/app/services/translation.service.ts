@@ -15,6 +15,13 @@ type RussianTranslator = (value: string) => string | undefined;
 
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
+  private readonly observerOptions: MutationObserverInit = {
+    childList: true,
+    subtree: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['placeholder', 'title', 'aria-label'],
+  };
   readonly language$ = new BehaviorSubject<AppLanguage>(this.savedLanguage());
   private readonly registeredTranslations = new Map<Exclude<AppLanguage, 'en'>, Map<string, string>>([
     ['ka', new Map<string, string>()],
@@ -50,13 +57,7 @@ export class TranslationService {
           this.schedule();
         }
       });
-      this.observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-        attributes: true,
-        attributeFilter: ['placeholder', 'title', 'aria-label'],
-      });
+      this.observePage();
       this.schedule();
     });
   }
@@ -117,21 +118,23 @@ export class TranslationService {
     const translator = this.activeTranslator;
     if (this.language$.value === 'en' || !translator) return;
 
-    for (const record of records) {
-      if (record.type === 'characterData') {
-        this.translateTextImmediately(record.target as Text);
-        continue;
-      }
+    this.writeWithoutObservation(() => {
+      for (const record of records) {
+        if (record.type === 'characterData') {
+          this.translateTextImmediately(record.target as Text);
+          continue;
+        }
 
-      if (record.type === 'attributes' && record.target instanceof Element) {
-        this.translateAttributesImmediately(record.target);
-        continue;
-      }
+        if (record.type === 'attributes' && record.target instanceof Element) {
+          this.translateAttributesImmediately(record.target);
+          continue;
+        }
 
-      for (const node of Array.from(record.addedNodes)) {
-        this.translateNodeImmediately(node);
+        for (const node of Array.from(record.addedNodes)) {
+          this.translateNodeImmediately(node);
+        }
       }
-    }
+    });
   }
 
   private translateNodeImmediately(node: Node): void {
@@ -220,23 +223,25 @@ export class TranslationService {
   }
 
   private restoreEnglish(): void {
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    while (walker.nextNode()) {
-      const node = walker.currentNode as Text;
-      const state = this.textStates.get(node);
-      if (state) {
-        node.data = `${state.leadingWhitespace ?? ''}${state.original}${state.trailingWhitespace ?? ''}`;
-        state.translated = undefined;
+    this.writeWithoutObservation(() => {
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) {
+        const node = walker.currentNode as Text;
+        const state = this.textStates.get(node);
+        if (state) {
+          node.data = `${state.leadingWhitespace ?? ''}${state.original}${state.trailingWhitespace ?? ''}`;
+          state.translated = undefined;
+        }
       }
-    }
 
-    for (const element of Array.from(document.body.querySelectorAll('*'))) {
-      const states = this.attributeStates.get(element);
-      states?.forEach((state, name) => {
-        element.setAttribute(name, state.original);
-        state.translated = undefined;
-      });
-    }
+      for (const element of Array.from(document.body.querySelectorAll('*'))) {
+        const states = this.attributeStates.get(element);
+        states?.forEach((state, name) => {
+          element.setAttribute(name, state.original);
+          state.translated = undefined;
+        });
+      }
+    });
   }
 
   private async translatePage(): Promise<void> {
@@ -252,11 +257,35 @@ export class TranslationService {
 
     if (generation !== this.generation || language !== this.language$.value) return;
 
-    for (const target of targets) {
-      const translated = translations.get(target.state.original);
-      if (!translated || target.state.translated === translated) continue;
-      target.write(translated);
-      target.state.translated = translated;
+    this.writeWithoutObservation(() => {
+      for (const target of targets) {
+        const translated = translations.get(target.state.original);
+        if (!translated || target.state.translated === translated) continue;
+        target.write(translated);
+        target.state.translated = translated;
+      }
+    });
+  }
+
+  /**
+   * MutationObserver reports DOM changes made by the translator itself. On a
+   * large page those records can recursively generate enough work to starve
+   * input handling. Disconnect for our own synchronous writes, then resume
+   * observation so later Angular-rendered content is still translated.
+   */
+  private writeWithoutObservation(write: () => void): void {
+    const observer = this.observer;
+    observer?.disconnect();
+    try {
+      write();
+    } finally {
+      this.observePage();
+    }
+  }
+
+  private observePage(): void {
+    if (this.observer && document.body) {
+      this.observer.observe(document.body, this.observerOptions);
     }
   }
 

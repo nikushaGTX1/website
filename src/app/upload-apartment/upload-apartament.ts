@@ -12,6 +12,7 @@ import {
   NearbyWalkingTimes,
 } from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
+import { AiPricingService } from '../services/ai-pricing.service';
 
 type UploadForm = {
   realEstateType: string;
@@ -178,7 +179,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     { label: 'Pet friendly', field: 'isPetFriendly', icon: 'fa-solid fa-paw' },
     { label: 'Home office', field: 'hasHomeOfficeSpace', icon: 'fa-solid fa-laptop' },
     { label: 'Large kitchen', field: 'hasLargeKitchen', icon: 'fa-solid fa-utensils' },
-    { label: 'Scenic view', field: 'hasView', icon: 'fa-solid fa-mountain-sun' },
+    { label: 'Scenic view', field: 'hasView', icon: 'fa-solid fa-panorama' },
     { label: 'Furnished', field: 'isFurnished', icon: 'fa-solid fa-couch' },
   ];
   readonly parkingTypeOptions = [
@@ -278,6 +279,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     private locationService: LocationService,
     private nearbyTimeService: GoogleNearbyTimeService,
     private translationService: TranslationService,
+    private aiPricingService: AiPricingService,
   ) {
     this.dismissedNotificationIds = this.readDismissedNotificationIds();
     this.subscriptions.add(
@@ -427,7 +429,12 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.openLocationPicker('street');
   }
 
-  selectUploadArea(suggestion: LocationSuggestion): void {
+  selectUploadArea(suggestion: LocationSuggestion, event?: Event): void {
+    // pointerdown (not click) so this runs before the input's blur closes
+    // the suggestion list — otherwise the first tap only dismisses the
+    // list and the user has to click the same suggestion a second time.
+    event?.preventDefault();
+    event?.stopPropagation();
     this.clearPropertyPoint();
     this.form.location = suggestion.label;
     this.selectedDistrictValue = suggestion.value || suggestion.label;
@@ -439,7 +446,10 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.checkDuplicates();
   }
 
-  selectUploadStreet(suggestion: LocationSuggestion): void {
+  selectUploadStreet(suggestion: LocationSuggestion, event?: Event): void {
+    // pointerdown (not click) — see selectUploadArea for why.
+    event?.preventDefault();
+    event?.stopPropagation();
     this.clearPropertyPoint();
     this.form.street = suggestion.label;
     this.selectedStreetValue = suggestion.value || suggestion.label;
@@ -456,10 +466,11 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.form.propertyLongitude = null;
   }
 
-  uploadLocationText(english: string, georgian: string): string {
-    return this.translationService.language$.value === 'ka'
-      ? georgian
-      : english;
+  uploadLocationText(english: string, georgian: string, russian?: string): string {
+    const language = this.translationService.language$.value;
+    if (language === 'ka') return georgian;
+    if (language === 'ru') return russian ?? this.translationService.translate(english, 'ru');
+    return english;
   }
 
   select(field: keyof UploadForm, value: string): void {
@@ -558,6 +569,87 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   clearDuplicateDismissal(): void {
     this.duplicateDismissedForKey = '';
+  }
+
+  /**
+   * Clamps a numeric property field to a sensible, non-negative range,
+   * rounding to a whole number where the field can't be fractional
+   * (rooms/bedrooms/bathrooms/floors). Runs on every change so an
+   * out-of-range or malformed value (typed past the min/max spinner,
+   * or pasted in) can never be saved, without capping the range so low
+   * that a legitimate large/luxury property gets rejected.
+   */
+  clampNumericField(
+    field: 'area' | 'rooms' | 'bedrooms' | 'bathrooms' | 'floor' | 'totalFloors',
+    options: { min: number; max: number; integer: boolean },
+  ): void {
+    const raw = this.form[field];
+    if (raw === null || raw === undefined || Number.isNaN(raw)) return;
+    let value = Number(raw);
+    if (options.integer) value = Math.round(value);
+    value = Math.min(options.max, Math.max(options.min, value));
+    if (value !== raw) this.form[field] = value;
+  }
+
+  aiPriceLoading = false;
+  aiPriceError = '';
+  aiSuggestedPrice: number | null = null;
+
+  get canCalculateAiPrice(): boolean {
+    return !this.aiPriceLoading && !!this.form.area && this.form.area > 0 && !!this.form.location;
+  }
+
+  calculateAiPrice(): void {
+    if (!this.canCalculateAiPrice) {
+      this.aiPriceError = 'Add the living area and location before calculating a price.';
+      return;
+    }
+    this.aiPriceLoading = true;
+    this.aiPriceError = '';
+    this.aiSuggestedPrice = null;
+    this.aiPricingService
+      .estimate({
+        RealEstateType: this.form.realEstateType,
+        DealType: this.form.dealType,
+        Condition: this.form.condition,
+        Area: this.form.area ?? 0,
+        Rooms: this.form.rooms,
+        Bedrooms: this.form.bedrooms,
+        Bathrooms: this.form.bathrooms,
+        Floor: this.form.floor,
+        TotalFloors: this.form.totalFloors,
+        District: this.form.location,
+        Street: this.form.street,
+      })
+      .subscribe({
+        next: (result) => {
+          this.aiSuggestedPrice = result.price;
+          this.aiPriceLoading = false;
+        },
+        error: (error: HttpErrorResponse) => {
+          this.aiPriceLoading = false;
+          this.aiPriceError =
+            error.status === 404
+              ? 'AI price calculation is not available right now. Please enter a price manually.'
+              : 'Could not calculate a price. Please try again.';
+        },
+      });
+  }
+
+  applyAiSuggestedPrice(): void {
+    if (this.aiSuggestedPrice == null) return;
+    this.form.totalPrice = Math.round(this.aiSuggestedPrice);
+    this.aiSuggestedPrice = null;
+    this.clearDuplicateDismissal();
+    this.checkDuplicates();
+  }
+
+  get floorExceedsTotalFloors(): boolean {
+    return (
+      this.form.floor != null &&
+      this.form.totalFloors != null &&
+      this.form.floor > this.form.totalFloors
+    );
   }
 
   get duplicateOwnerName(): string {

@@ -1,5 +1,5 @@
 <div class="velven" *ngIf="view === 'questions'">
-  <header class="match-hero">
+  <header class="match-hero" *ngIf="!quizStarted">
     <div class="hero-inner">
       <div class="hero-copy">
         <span>Velven Match</span>
@@ -21,23 +21,24 @@
     </div>
   </header>
 
-  <section class="phase-progress" aria-label="AI Home Match progress">
-    <div class="phase-list">
-      <div
-        *ngFor="let label of phaseLabels; let index = index"
-        [class.active]="index === currentPhase"
-        [class.complete]="index < currentPhase"
-      >
-        <b>{{ index + 1 }}</b>
-        <span>{{ label }}</span>
+  <ng-container *ngIf="quizStarted">
+    <section class="phase-progress" aria-label="AI Home Match progress">
+      <div class="phase-list">
+        <div
+          *ngFor="let label of phaseLabels; let index = index"
+          [class.active]="index === currentPhase"
+          [class.complete]="index < currentPhase"
+        >
+          <b>{{ index + 1 }}</b>
+          <span>{{ label }}</span>
+        </div>
       </div>
-    </div>
-    <div class="phase-status">
-      <span>Step {{ currentPhase + 1 }} of {{ phaseLabels.length }}</span>
-      <div><i [style.width.%]="progress"></i></div>
-      <b>{{ progress | number: '1.0-0' }}%</b>
-    </div>
-  </section>
+      <div class="phase-status">
+        <span>Step {{ currentPhase + 1 }} of {{ phaseLabels.length }}</span>
+        <div><i [style.width.%]="progress"></i></div>
+        <b>{{ progress | number: '1.0-0' }}%</b>
+      </div>
+    </section>
 
   <main class="wizard-shell" id="how-it-works">
     <section class="question">
@@ -592,6 +593,7 @@
       </dl>
     </aside>
   </main>
+  </ng-container>
 </div>
 <app-home-profile-summary
   *ngIf="view === 'review'"

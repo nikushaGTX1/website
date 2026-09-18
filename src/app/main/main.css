@@ -329,7 +329,9 @@
     grid-template-columns: minmax(150px, 0.82fr) minmax(150px, 0.9fr) minmax(150px, 1fr) minmax(190px, 0.95fr);
     align-items: center;
     min-height: 236px;
-    max-height: 260px;
+    /* Translated copy can wrap to additional lines. A fixed maximum height
+     * clipped the Georgian CTA below the banner boundary. */
+    max-height: none;
     gap: clamp(4px, 1vw, 18px);
     padding: 0 clamp(14px, 2vw, 28px);
     border-radius: 14px;
@@ -1329,7 +1331,10 @@
   height: 240px;
   overflow: hidden;
   cursor: grab;
-  touch-action: pan-y;
+  /* The cards become a horizontal carousel on small screens. Allow a swipe
+   * that begins on the photo to reach that scroller as well as normal
+   * vertical page scrolling. `pan-y` alone blocked horizontal gestures. */
+  touch-action: pan-x pan-y;
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
@@ -1385,13 +1390,23 @@
   top: 16px;
   width: 44px;
   height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
   border: 1px solid #d9e0e9;
   border-radius: 50%;
   background: #fff;
   color: #516078;
   font-size: 19px;
+  line-height: 1;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(18, 31, 51, 0.1);
+}
+.favorite i {
+  display: block;
+  width: 1em;
+  line-height: 1;
+  text-align: center;
 }
 .property-info {
   display: flex;
@@ -4065,7 +4080,7 @@
     grid-template-columns: minmax(150px, .82fr) minmax(150px, .9fr) minmax(150px, 1fr) minmax(190px, .95fr);
     align-items: center;
     min-height: 236px;
-    max-height: 260px;
+    max-height: none;
     gap: clamp(4px, 1vw, 18px);
     padding: 0 clamp(14px, 2vw, 28px);
     border-radius: 14px;

@@ -67,15 +67,23 @@
   color: #3f6fcf;
   background: #f0f5ff;
 }
+.location-suggestions button > span {
+  flex: 1;
+  min-width: 0;
+}
 .location-suggestions button :is(span, b, small) {
   display: block;
 }
 .location-suggestions button b {
-  overflow: hidden;
+  /* Long Georgian street/district names wrap onto a second line instead
+   * of being ellipsis-truncated, so the full name stays readable. */
+  overflow: visible;
   color: inherit;
   font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
 }
 .location-suggestions button em {
   margin-left: 7px;
@@ -1046,14 +1054,50 @@ select:focus {
   font-size: 14px;
 }
 
+.ai-price-error {
+  margin-top: 8px !important;
+  color: #a62d35;
+  font-weight: 700;
+}
+
+.ai-price-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px !important;
+  color: #171421;
+}
+
+.ai-price-apply {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 7px;
+  background: #451a8f;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .ai-btn {
   height: 38px;
   padding: 0 18px;
-  border: 1px solid #dadada;
+  border: 1px solid #451a8f;
   border-radius: 7px;
+  background: #451a8f;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ai-btn:disabled {
+  border-color: #dadada;
   background: #fff;
   color: #b6b6b6;
-  font: inherit;
+  cursor: wait;
 }
 
 .photo-upload-head {

@@ -276,6 +276,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
     this.selectedBudgetRange = '';
+    // A `?budget=` query param on load sets this ceiling independently of
+    // budgetMin/budgetMax; without clearing it too, results stay capped
+    // even after the popover fields themselves show as reset.
+    this.selectedPriceMax = Number.MAX_SAFE_INTEGER;
     this.budgetOpen = false;
     this.onSearch();
   }
@@ -333,8 +337,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
     }
   }
 
-  toggleAmenity(amenity: string): void {
-    this.toggleFilterItem(this.selectedAmenities, amenity);
+  toggleAmenity(amenity: string, event?: Event): void {
+    event?.stopPropagation();
+    this.selectedAmenities = this.selectedAmenities.includes(amenity)
+      ? this.selectedAmenities.filter((selected) => selected !== amenity)
+      : [...this.selectedAmenities, amenity];
     this.onSearch();
   }
 

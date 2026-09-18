@@ -366,6 +366,17 @@ svg {
   transition: 0.18s ease;
   box-sizing: border-box;
 }
+.chip-scroll > .chip,
+.chip-scroll > .condition-filter {
+  width: 150px;
+  flex: 0 0 150px;
+}
+.chip-scroll > .chip {
+  justify-content: center;
+}
+.condition-trigger {
+  width: 100%;
+}
 .chip svg {
   width: 15px;
   height: 15px;
@@ -382,10 +393,10 @@ svg {
   box-sizing: border-box;
 }
 .chip.filter-select {
-  height: 44px;
-  min-height: 44px;
-  max-height: 44px;
-  border-radius: 22px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  border-radius: 18px;
 }
 .filter-select select {
   width: auto;
@@ -1143,18 +1154,33 @@ svg {
     display: inline-flex;
   }
   .chip-scroll > * {
-    flex: 0 0 auto;
+    width: 160px;
+    flex: 0 0 160px;
     scroll-snap-align: start;
   }
-  .chip {
-    height: 34px;
-    min-height: 34px;
-    max-height: 34px;
+  .chip-scroll > .chip,
+  .chip-scroll > .condition-filter,
+  .chip-scroll .condition-trigger {
+    width: 160px;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    flex-basis: 160px;
+    padding-inline: 10px;
+    font-size: 11.5px;
+    line-height: 1.25;
+    white-space: normal;
+    text-wrap: balance;
   }
   .chip.filter-select {
-    height: 36px;
-    min-height: 36px;
-    max-height: 36px;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    border-radius: 18px;
+  }
+  .filter-select select {
+    min-height: 0;
+    font-size: 12px;
   }
   .explorer {
     height: auto;

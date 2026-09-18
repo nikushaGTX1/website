@@ -1407,6 +1407,50 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Because you often host guests', 'რადგან ხშირად მასპინძლობთ სტუმრებს'],
   ['Pet-friendly home', 'ცხოველებისთვის მეგობრული სახლი'],
   ['Because metro is part of your routine', 'რადგან მეტრო თქვენი ყოველდღიური გადაადგილების ნაწილია'],
+
+  // --- Keys missing everywhere (never registered in any language) ---
+  ['Search area, Streets, Draw', 'მოძებნეთ უბანი, ქუჩა ან მონიშნეთ რუკაზე'],
+  ['A home that', 'სახლი, რომელიც'],
+  ['fits your life.', 'შენს ცხოვრებას ერგება.'],
+  ['feels like you.', 'გერგება.'],
+  ['Velven Match', 'Velven Match'],
+  ['Find My Match', 'იპოვე შენი სახლი'],
+  ['Tell us about your lifestyle. Discover homes that match what matters.', 'გვითხარით, რა არის შენთვის მნიშვნელოვანი. შეგირჩევთ სახლებს შენი ცხოვრების სტილის, სურვილებისა და ბიუჯეტის მიხედვით.'],
+  ['Find my match', 'იპოვე შენი სახლი'],
+  ['Matched to your lifestyle', 'შენს სტილს მორგებული'],
+  ['2–3 Bedrooms', '2–3 საძინებელი'],
+  ['$800 – $1,500', '$800 – $1,500'],
+  ['$1,500 – $3,000', '$1,500 – $3,000'],
+  ['$3,000 – $5,000', '$3,000 – $5,000'],
+  ['Property in Tbilisi', 'ბინა თბილისში'],
+  ['Minimum area', 'მინიმალური ფართობი'],
+  ['Minimum floor', 'მინიმალური სართული'],
+  ['uploaded', 'ატვირთულია'],
+  ["Property floor cannot be higher than the building's total floors.", 'ბინის სართული არ უნდა აღემატებოდეს შენობის სართულების საერთო რაოდენობას.'],
+  ['Add the living area and location before calculating a price.', 'ფასის გამოსათვლელად მიუთითეთ საერთო ფართობი და მდებარეობა.'],
+  ['Could not calculate a price. Please try again.', 'ფასის გამოთვლა ვერ მოხერხდა. სცადეთ ხელახლა.'],
+  ['AI price calculation is not available right now. Please enter a price manually.', 'AI-ს მიერ ფასის გამოთვლა ამჟამად მიუწვდომელია. გთხოვთ, მიუთითოთ ფასი ხელით.'],
+  ['Calculating…', 'გამოითვლება…'],
+  ['Suggested price:', 'შემოთავაზებული ფასი:'],
+  ['Use this price', 'ამ ფასის გამოყენება'],
+
+  // Placeholders used across public, admin, map and CRM screens
+  ['+995 5XX XX XX XX', '+995 5XX XX XX XX'],
+  ['Add a call note, customer update, or useful context…', 'დაამატეთ ზარის ჩანაწერი, მომხმარებლის განახლება ან მნიშვნელოვანი ინფორმაცია…'],
+  ['Add a short profile description', 'დაამატეთ პროფილის მოკლე აღწერა'],
+  ['Apartment, house…', 'ბინა, სახლი…'],
+  ['Call about viewing availability', 'დარეკვა დათვალიერების ხელმისაწვდომობაზე'],
+  ['e.g. Senior property consultant', 'მაგ. უძრავი ქონების უფროსი კონსულტანტი'],
+  ['Enter full name', 'შეიყვანეთ სრული სახელი'],
+  ['Enter username', 'შეიყვანეთ მომხმარებლის სახელი'],
+  ['Must-haves, timing, lifestyle or deal notes', 'აუცილებელი პირობები, ვადები, ცხოვრების სტილი ან გარიგების შენიშვნები'],
+  ['name@example.com', 'name@example.com'],
+  ['Optional context', 'დამატებითი ინფორმაცია (არასავალდებულო)'],
+  ['Search exact street name', 'მოძებნეთ ქუჩის ზუსტი სახელი'],
+  ['Search name, contact, district or property', 'მოძებნეთ სახელი, კონტაქტი, უბანი ან ობიექტი'],
+  ['Search neighborhood in Tbilisi…', 'მოძებნეთ უბანი თბილისში…'],
+  ['Vake, Saburtalo, Vera', 'ვაკე, საბურთალო, ვერა'],
+  ['you@example.com', 'you@example.com'],
 ]);
 
 const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
@@ -1437,6 +1481,23 @@ const GEORGIAN_RULES: GeorgianRule[] = [
   {
     pattern: /^Duplicate Found\. The original owner of this listing is (.+)\.$/i,
     translate: (match) => `დუბლიკატი ნაპოვნია. ამ განცხადების ორიგინალი მფლობელია ${match[1]}.`,
+  },
+  {
+    // The duplicate-found message renders as two separate DOM nodes
+    // ("Duplicate Found" and this sentence), so the combined rule above
+    // never actually matches in practice. This standalone rule covers the
+    // second node on its own.
+    pattern: /^The original owner of this listing is (.+)\.$/i,
+    translate: (match) => `ამ განცხადების ორიგინალი მფლობელია ${match[1]}.`,
+  },
+  {
+    pattern: /^Homes (for sale|for rent) in (.+)$/i,
+    translate: (match) =>
+      `სახლები ${match[1].toLowerCase() === 'for sale' ? 'იყიდება' : 'ქირავდება'} — ${match[2]}`,
+  },
+  {
+    pattern: /^([\d,.\s]+) verified homes in this map area$/i,
+    translate: (match) => `${match[1].trim()} გადამოწმებული სახლი რუკის ამ არეალში`,
   },
   {
     pattern: /^Step (\d+) of (\d+)$/i,

@@ -224,7 +224,7 @@
         class="chip compact-filter-chip"
         type="button"
         [class.selected]="selectedAmenities.includes('Parking')"
-        (click)="toggleAmenity('Parking')"
+        (click)="toggleAmenity('Parking', $event)"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9"></circle>
@@ -236,7 +236,7 @@
         class="chip compact-filter-chip"
         type="button"
         [class.selected]="selectedAmenities.includes('Pet friendly')"
-        (click)="toggleAmenity('Pet friendly')"
+        (click)="toggleAmenity('Pet friendly', $event)"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="2"></circle><circle cx="17" cy="7" r="2"></circle><circle cx="5" cy="13" r="2"></circle><circle cx="19" cy="13" r="2"></circle><path d="M8 18c0-3 2-5 4-5s4 2 4 5c0 2-2 3-4 3s-4-1-4-3Z"></path></svg>
         Pets allowed
@@ -245,12 +245,12 @@
         class="chip compact-filter-chip"
         type="button"
         [class.selected]="selectedAmenities.includes('Near Park')"
-        (click)="toggleAmenity('Near Park')"
+        (click)="toggleAmenity('Near Park', $event)"
       >
         <i class="fa-solid fa-tree" aria-hidden="true"></i>
         Near Park
       </button>
-      <button *ngIf="selectedType === 'For Sale'" class="chip" type="button" [class.selected]="selectedAmenities.includes('New building')" (click)="toggleAmenity('New building')">
+      <button *ngIf="selectedType === 'For Sale'" class="chip" type="button" [class.selected]="selectedAmenities.includes('New building')" (click)="toggleAmenity('New building', $event)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V7l6-4 6 4v14M9 10h2M13 10h2M9 14h2M13 14h2M10 21v-3h4v3"></path></svg>
         New building
       </button>

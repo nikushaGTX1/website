@@ -101,6 +101,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     ['Car', 'Metro', 'Walking', 'MultipleMethods'],
   );
   profile: HomeMatchProfile;
+  quizStarted = false;
   step = 1;
   mapVisible = false;
   pendingMapArea = '';
@@ -260,6 +261,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           : 'Not selected yet';
   }
   scrollToMatcher(): void {
+    this.quizStarted = true;
     document.querySelector('.wizard-shell')?.scrollIntoView({ behavior: 'smooth' });
   }
   get suggestedPriorities(): HomeMatchOption[] {

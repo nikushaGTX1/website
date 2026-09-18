@@ -47,8 +47,11 @@ export class VelvenLifestyleAvatarComponent {
       '/Characters/ყველაზე დიდი ბავშვი.png',
     ];
     const childByAge: Record<string, string> = {
-      Age0To3: childAssets[0],
-      Age4To6: childAssets[1],
+      // 'საშუალო ბავშვი' (toddler proportions, bigger head-to-body ratio)
+      // reads younger than 'ყველაზე პატარა ბავშვი' despite its filename —
+      // assign by how each character actually looks, not by file name.
+      Age0To3: childAssets[1],
+      Age4To6: childAssets[0],
       Age7To12: '/Characters/Firefly_RemoveBackground.png',
       Age13To17: '/Characters/Firefly.png',
     };
@@ -103,12 +106,14 @@ export class VelvenLifestyleAvatarComponent {
       ? mixedAdults
       : selectedGenderAdults;
     if (this.profile.householdType === 'Couple') {
+      // Pair the primary character with the *secondary* look for the other
+      // gender (not the plain "main man"/"main woman" pairing) so a couple
+      // reads differently from two Relatives adults, which use the two
+      // main characters together.
+      const isPrimaryFemale = this.profile.gender === 'Female';
       return [
-        adult(this.characterSrc, this.profile.gender === 'Female' ? 'Female' : 'Male', true),
-        adult(
-          this.profile.gender === 'Female' ? man : woman,
-          this.profile.gender === 'Female' ? 'Male' : 'Female',
-        ),
+        adult(this.characterSrc, isPrimaryFemale ? 'Female' : 'Male', true),
+        adult(isPrimaryFemale ? manTwo : womanTwo, isPrimaryFemale ? 'Male' : 'Female'),
         ...selectedPet,
       ];
     }
