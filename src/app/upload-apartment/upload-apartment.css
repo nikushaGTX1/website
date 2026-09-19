@@ -1334,8 +1334,28 @@ select:focus {
 
 @media (max-width: 960px) {
   .plan-choice {
-    grid-template-columns: 1fr;
-    max-width: 560px;
+    display: flex;
+    grid-template-columns: none;
+    max-width: none;
+    width: auto;
+    gap: 0;
+    padding: 0 0 6px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .plan-choice::-webkit-scrollbar {
+    display: none;
+  }
+
+  .plan-choice > * {
+    flex: 0 0 100%;
+    max-width: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .upload-layout {

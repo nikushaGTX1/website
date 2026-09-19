@@ -349,15 +349,59 @@
               ><span>Email</span
               ><input type="email" name="email" [(ngModel)]="inquiryForm.email" /></label
             ><label><span>Phone</span><input name="phone" [(ngModel)]="inquiryForm.phone" /></label
-            ><label class="wide"
-              ><span>Preferred date and time *</span
-              ><input
-                type="datetime-local"
-                name="date"
-                [(ngModel)]="inquiryForm.requestedViewingAt"
-                [min]="minimumViewingDate"
-                required /></label
-            ><label class="wide"
+            ><div class="wide velven-datepicker" (click)="$event.stopPropagation()">
+              <span>Preferred date and time *</span>
+              <button
+                type="button"
+                class="velven-datepicker-trigger"
+                (click)="toggleViewingCalendar()"
+                [class.open]="viewingCalendarOpen"
+              >
+                <i class="fa-regular fa-calendar"></i>
+                <span>{{ viewingDateLabel || 'Choose date and time' }}</span>
+                <i class="fa-solid fa-chevron-down"></i>
+              </button>
+              <div class="velven-calendar-panel" *ngIf="viewingCalendarOpen">
+                <div class="velven-calendar-head">
+                  <button type="button" (click)="shiftViewingMonth(-1)" [disabled]="!canGoToPrevViewingMonth()">
+                    <i class="fa-solid fa-chevron-left"></i>
+                  </button>
+                  <strong>{{ viewingCalendarLabel }}</strong>
+                  <button type="button" (click)="shiftViewingMonth(1)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                </div>
+                <div class="velven-calendar-weekdays">
+                  <span *ngFor="let day of viewingWeekdayLabels">{{ day }}</span>
+                </div>
+                <div class="velven-calendar-days">
+                  <button
+                    type="button"
+                    *ngFor="let day of viewingCalendarDays"
+                    class="velven-calendar-day"
+                    [class.muted]="!day.inMonth"
+                    [class.selected]="day.selected"
+                    [class.today]="day.isToday"
+                    [disabled]="day.disabled"
+                    (click)="selectViewingDay(day)"
+                  >
+                    {{ day.date }}
+                  </button>
+                </div>
+                <div class="velven-calendar-time">
+                  <i class="fa-regular fa-clock"></i>
+                  <select [ngModel]="viewingHour" (ngModelChange)="setViewingHour($event)" name="viewingHour">
+                    <option *ngFor="let h of viewingHourOptions" [value]="h">{{ h }}</option>
+                  </select>
+                  <span>:</span>
+                  <select [ngModel]="viewingMinute" (ngModelChange)="setViewingMinute($event)" name="viewingMinute">
+                    <option *ngFor="let m of viewingMinuteOptions" [value]="m">{{ m }}</option>
+                  </select>
+                </div>
+                <button type="button" class="velven-calendar-done" (click)="closeViewingCalendar()">Done</button>
+              </div>
+            </div>
+            <label class="wide"
               ><span>Message</span
               ><textarea name="message" [(ngModel)]="inquiryForm.message"></textarea></label
             ><input

@@ -677,6 +677,152 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
   }
 
+  viewingCalendarOpen = false;
+  viewingCalendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  viewingWeekdayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  viewingHourOptions = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  viewingMinuteOptions = ['00', '15', '30', '45'];
+
+  private parseViewingValue(): { y: number; m: number; d: number; h: number; min: number } | null {
+    const value = this.inquiryForm.requestedViewingAt;
+    if (!value) return null;
+    const [datePart, timePart] = value.split('T');
+    const [y, m, d] = (datePart || '').split('-').map(Number);
+    const [h, min] = (timePart || '00:00').split(':').map(Number);
+    if (!y || !m || !d) return null;
+    return { y, m: m - 1, d, h: h || 0, min: min || 0 };
+  }
+
+  private writeViewingValue(y: number, m: number, d: number, h: number, min: number): void {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    this.inquiryForm.requestedViewingAt = `${y}-${pad(m + 1)}-${pad(d)}T${pad(h)}:${pad(min)}`;
+  }
+
+  toggleViewingCalendar(): void {
+    this.viewingCalendarOpen = !this.viewingCalendarOpen;
+    if (this.viewingCalendarOpen) {
+      const parsed = this.parseViewingValue();
+      const base = parsed ? new Date(parsed.y, parsed.m, parsed.d) : new Date();
+      this.viewingCalendarMonth = new Date(base.getFullYear(), base.getMonth(), 1);
+    }
+  }
+
+  closeViewingCalendar(): void {
+    this.viewingCalendarOpen = false;
+  }
+
+  @HostListener('document:click')
+  handleDocumentClickForCalendar(): void {
+    this.viewingCalendarOpen = false;
+  }
+
+  shiftViewingMonth(offset: number): void {
+    this.viewingCalendarMonth = new Date(
+      this.viewingCalendarMonth.getFullYear(),
+      this.viewingCalendarMonth.getMonth() + offset,
+      1,
+    );
+  }
+
+  canGoToPrevViewingMonth(): boolean {
+    const now = new Date();
+    return (
+      this.viewingCalendarMonth.getFullYear() > now.getFullYear() ||
+      (this.viewingCalendarMonth.getFullYear() === now.getFullYear() &&
+        this.viewingCalendarMonth.getMonth() > now.getMonth())
+    );
+  }
+
+  get viewingCalendarLabel(): string {
+    return this.viewingCalendarMonth.toLocaleDateString(undefined, {
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  get viewingDateLabel(): string {
+    const parsed = this.parseViewingValue();
+    if (!parsed) return '';
+    const date = new Date(parsed.y, parsed.m, parsed.d, parsed.h, parsed.min);
+    return date.toLocaleString(undefined, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  get viewingCalendarDays(): {
+    date: number;
+    inMonth: boolean;
+    selected: boolean;
+    isToday: boolean;
+    disabled: boolean;
+    fullYear: number;
+    fullMonth: number;
+  }[] {
+    const year = this.viewingCalendarMonth.getFullYear();
+    const month = this.viewingCalendarMonth.getMonth();
+    const firstOfMonth = new Date(year, month, 1);
+    const startOffset = firstOfMonth.getDay();
+    const gridStart = new Date(year, month, 1 - startOffset);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const parsed = this.parseViewingValue();
+
+    const days = [];
+    for (let i = 0; i < 42; i++) {
+      const cell = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+      const cellDay = new Date(cell.getFullYear(), cell.getMonth(), cell.getDate());
+      days.push({
+        date: cell.getDate(),
+        inMonth: cell.getMonth() === month,
+        selected: !!parsed && parsed.y === cell.getFullYear() && parsed.m === cell.getMonth() && parsed.d === cell.getDate(),
+        isToday: cellDay.getTime() === today.getTime(),
+        disabled: cellDay.getTime() < today.getTime(),
+        fullYear: cell.getFullYear(),
+        fullMonth: cell.getMonth(),
+      });
+    }
+    return days;
+  }
+
+  selectViewingDay(day: { date: number; fullYear: number; fullMonth: number; disabled: boolean }): void {
+    if (day.disabled) return;
+    const parsed = this.parseViewingValue();
+    const h = parsed?.h ?? 12;
+    const min = parsed?.min ?? 0;
+    this.writeViewingValue(day.fullYear, day.fullMonth, day.date, h, min);
+  }
+
+  get viewingHour(): string {
+    const parsed = this.parseViewingValue();
+    return parsed ? String(parsed.h).padStart(2, '0') : '12';
+  }
+
+  get viewingMinute(): string {
+    const parsed = this.parseViewingValue();
+    return parsed ? String(parsed.min).padStart(2, '0') : '00';
+  }
+
+  setViewingHour(value: string): void {
+    const parsed = this.parseViewingValue();
+    const base = parsed ?? this.defaultViewingDate();
+    this.writeViewingValue(base.y, base.m, base.d, Number(value), base.min);
+  }
+
+  setViewingMinute(value: string): void {
+    const parsed = this.parseViewingValue();
+    const base = parsed ?? this.defaultViewingDate();
+    this.writeViewingValue(base.y, base.m, base.d, base.h, Number(value));
+  }
+
+  private defaultViewingDate(): { y: number; m: number; d: number; h: number; min: number } {
+    const now = new Date(Date.now() + 60 * 60 * 1000);
+    return { y: now.getFullYear(), m: now.getMonth(), d: now.getDate(), h: now.getHours(), min: 0 };
+  }
+
   @HostListener('document:keydown', ['$event'])
   handleDialogKeydown(event: KeyboardEvent): void {
     if (this.photoViewerOpen && event.key === 'Escape') {

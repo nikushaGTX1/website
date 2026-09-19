@@ -19,6 +19,35 @@
         <img src="/ojaxi.png" alt="" />
       </div>
     </div>
+    <div class="how-it-works-strip">
+      <h2>How Velven Match Works</h2>
+      <div class="how-it-works-steps">
+        <div class="how-it-works-step">
+          <span class="step-number">01</span>
+          <i class="fa-regular fa-user"></i>
+          <div>
+            <h3>Tell us about you</h3>
+            <p>Your lifestyle and home preferences</p>
+          </div>
+        </div>
+        <div class="how-it-works-step">
+          <span class="step-number">02</span>
+          <i class="fa-solid fa-sliders"></i>
+          <div>
+            <h3>Set your priorities</h3>
+            <p>Location, budget, and must-have features</p>
+          </div>
+        </div>
+        <div class="how-it-works-step">
+          <span class="step-number">03</span>
+          <i class="fa-solid fa-house"></i>
+          <div>
+            <h3>See matching homes</h3>
+            <p>Options tailored to how you live</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 
   <ng-container *ngIf="quizStarted">
@@ -192,52 +221,6 @@
               <option>EUR</option>
             </select></label
           >
-          <div class="budget-slider" role="group" aria-labelledby="budget-slider-label">
-            <div class="budget-slider-heading">
-              <span id="budget-slider-label"
-                ><svg class="section-icon" aria-hidden="true">
-                  <use href="/ai-match-icons.svg#budget"></use></svg
-                >Budget range</span
-              >
-              <strong
-                >{{ formatBudget(budgetForm.controls.min.value) }} –
-                {{ formatBudget(budgetForm.controls.max.value) }}</strong
-              >
-            </div>
-            <div class="dual-range">
-              <span class="range-rail" aria-hidden="true"></span>
-              <span
-                class="range-selection"
-                aria-hidden="true"
-                [style.left.%]="budgetRangeStart"
-                [style.width.%]="budgetRangeEnd - budgetRangeStart"
-              ></span>
-              <input
-                class="range-input range-min"
-                type="range"
-                min="0"
-                [max]="budgetSliderMax"
-                [step]="budgetSliderStep"
-                [value]="budgetForm.controls.min.value"
-                (input)="updateBudgetFromSlider('min', $event)"
-                aria-label="Minimum budget"
-              />
-              <input
-                class="range-input range-max"
-                type="range"
-                min="0"
-                [max]="budgetSliderMax"
-                [step]="budgetSliderStep"
-                [value]="budgetForm.controls.max.value"
-                (input)="updateBudgetFromSlider('max', $event)"
-                aria-label="Maximum budget"
-              />
-            </div>
-            <div class="budget-slider-limits" aria-hidden="true">
-              <span>{{ formatBudget(0) }}</span
-              ><span>{{ formatBudget(budgetSliderMax) }}</span>
-            </div>
-          </div>
           <p
             class="validation"
             *ngIf="budgetForm.controls.max.value < budgetForm.controls.min.value"

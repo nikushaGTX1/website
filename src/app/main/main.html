@@ -410,7 +410,7 @@
                   [(ngModel)]="budgetMin"
                   min="0"
                   max="5000"
-                  (ngModelChange)="budgetSliderMin = budgetMin ?? 0; selectedBudgetRange = ''"
+                  (ngModelChange)="selectedBudgetRange = ''"
               /></label>
               <b aria-hidden="true">–</b>
               <label
@@ -421,38 +421,8 @@
                   [(ngModel)]="budgetMax"
                   min="0"
                   max="5000"
-                  (ngModelChange)="budgetSliderMax = budgetMax ?? 5000; selectedBudgetRange = ''"
+                  (ngModelChange)="selectedBudgetRange = ''"
               /></label>
-            </div>
-            <div
-              class="budget-sliders"
-              [style.--range-start]="budgetMinPercent + '%'"
-              [style.--range-end]="budgetMaxPercent + '%'"
-              [style.--range-start-offset.px]="11 - budgetMinPercent * 0.22"
-              [style.--range-end-offset.px]="11 - (100 - budgetMaxPercent) * 0.22"
-            >
-              <span class="range-fill" aria-hidden="true"></span>
-              <input
-                type="range"
-                name="budgetMinSlider"
-                min="0"
-                max="5000"
-                step="100"
-                [(ngModel)]="budgetSliderMin"
-                (ngModelChange)="budgetMin = budgetSliderMin; selectedBudgetRange = ''"
-              />
-              <input
-                type="range"
-                name="budgetMaxSlider"
-                min="0"
-                max="5000"
-                step="100"
-                [(ngModel)]="budgetSliderMax"
-                (ngModelChange)="budgetMax = budgetSliderMax; selectedBudgetRange = ''"
-              />
-            </div>
-            <div class="budget-scale">
-              <span>$0</span><span>$1K</span><span>$2K</span><span>$5K+</span>
             </div>
             <div class="main-budget-actions">
               <button class="main-budget-reset" type="button" (click)="resetBudget()">

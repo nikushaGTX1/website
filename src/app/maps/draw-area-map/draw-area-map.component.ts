@@ -1371,6 +1371,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.countOverlays = [];
   }
 
+  private formatCompactPrice(price: number): string {
+    const rounded = Math.round(price);
+    if (rounded >= 1000) {
+      const thousands = rounded / 1000;
+      const text = thousands >= 100 ? Math.round(thousands).toString() : thousands.toFixed(1).replace(/\.0$/, '');
+      return `${text}K`;
+    }
+    return rounded.toLocaleString('en-US');
+  }
+
   private renderApartmentPriceOverlays(areas: string[], polygon?: GeoJsonPolygon | null): void {
     if (!this.map) return;
     this.activePriceAreas = areas;
@@ -1392,7 +1402,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     });
 
     for (const { apartment, position } of listings) {
-      const price = `$${Math.round(apartment.price).toLocaleString('en-US')}`;
+      const price = `$${this.formatCompactPrice(apartment.price)}`;
       const overlay = new google.maps.OverlayView();
       let pin: HTMLDivElement | undefined;
       overlay.onAdd = () => {

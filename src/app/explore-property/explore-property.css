@@ -384,6 +384,20 @@ svg {
 .filter-select {
   justify-content: center;
   cursor: default;
+  position: relative;
+}
+.filter-select::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+  opacity: 0.6;
 }
 .compact-filter-chip {
   height: 40px;
@@ -402,7 +416,7 @@ svg {
   width: auto;
   height: 100%;
   max-width: 105px;
-  padding: 0 16px 0 0;
+  padding: 0 18px 0 0;
   color: inherit;
   border: 0;
   outline: 0;
@@ -412,6 +426,12 @@ svg {
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+.filter-select select::-ms-expand {
+  display: none;
 }
 .chip:hover,
 .chip.selected {

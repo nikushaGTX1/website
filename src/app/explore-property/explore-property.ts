@@ -1685,10 +1685,12 @@ export class ExploreProperty implements OnInit, OnDestroy {
       if (normalized === 'pet friendly') return !!apartment.isPetFriendly;
       if (normalized === 'near park') {
         const minutes = Number(apartment.parkDistanceMinutes);
-        if (apartment.parkDistanceMinutes != null && Number.isFinite(minutes)) {
-          return minutes >= 0 && minutes <= 10;
-        }
-        return text.includes('park');
+        const withinDistance =
+          apartment.parkDistanceMinutes != null && Number.isFinite(minutes) && minutes >= 0 && minutes <= 15;
+        // Also match on the listing text so a park mentioned in the
+        // description/title isn't excluded just because the distance
+        // field wasn't filled in (or was filled in slightly too high).
+        return withinDistance || text.includes('park');
       }
       if (normalized === 'new building') {
         const buildingText = `${apartment.apartmentStyle || ''} ${text}`;

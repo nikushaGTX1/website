@@ -645,9 +645,12 @@
 .search-fields label > span,
 .search-fields .location-field > span {
   display: block;
+  overflow: hidden;
   margin-bottom: 9px;
   font-size: 12px;
   font-weight: 800;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .field-control {
   display: flex;
@@ -2718,10 +2721,10 @@
   .property-grid {
     display: flex;
     justify-content: flex-start;
-    width: 100%;
-    gap: 14px;
-    padding: 0 14px 6px;
-    margin: 0 -14px;
+    width: auto;
+    gap: 0;
+    padding: 0 0 6px;
+    margin: 0;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
@@ -2732,8 +2735,8 @@
     display: none;
   }
   .property-grid > * {
-    flex: 0 0 88%;
-    max-width: 88%;
+    flex: 0 0 100%;
+    max-width: 100%;
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }

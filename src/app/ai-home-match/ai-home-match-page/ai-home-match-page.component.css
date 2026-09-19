@@ -192,11 +192,33 @@ fieldset input,
   gap: 12px;
 }
 .budget label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  font-size: 12px;
   font-weight: 700;
+  color: #6b6478;
+  white-space: nowrap;
 }
 .budget input,
 .budget select {
   width: 100%;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-weight: 700;
+  color: #201c34;
+}
+/* Hide the native number spinner so both fields render at the same width
+ * instead of one having arrows and the other not. */
+.budget input[type='number']::-webkit-outer-spin-button,
+.budget input[type='number']::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+.budget input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 .budget fieldset,
 .budget .validation {
@@ -485,7 +507,7 @@ fieldset input,
   max-width: none;
   min-height: 430px;
   margin: 0;
-  padding: 35px 24px 24px;
+  padding: 60px 24px 24px;
   position: relative;
   overflow: hidden;
   text-align: left;
@@ -496,7 +518,10 @@ fieldset input,
 .match-hero::after {
   content: "";
   position: absolute;
-  inset: 32px max(0px, calc((100vw - 1180px) / 2)) 0 50%;
+  top: 32px;
+  right: max(0px, calc((100vw - 1180px) / 2));
+  left: 50%;
+  height: 370px;
   opacity: 0.35;
   background:
     linear-gradient(90deg, transparent 49.5%, #e5eaf2 50%, transparent 50.5%) 0 0 / 145px 145px,
@@ -600,6 +625,95 @@ fieldset input,
   display: block;
   object-fit: contain;
   object-position: center bottom;
+}
+
+.how-it-works-strip {
+  width: min(1180px, 100%);
+  margin: 44px auto 0;
+  padding: 34px 0 4px;
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid #e7ebf1;
+}
+
+.how-it-works-strip h2 {
+  margin: 0 0 26px;
+  color: var(--match-navy);
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.how-it-works-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.how-it-works-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 0 22px;
+  border-left: 1px solid #e7ebf1;
+}
+
+.how-it-works-step:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.how-it-works-step .step-number {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f1edfb;
+  color: var(--match-blue);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.how-it-works-step > i {
+  flex: none;
+  margin-top: 9px;
+  color: var(--match-blue);
+  font-size: 17px;
+}
+
+.how-it-works-step h3 {
+  margin: 0 0 4px;
+  color: var(--match-navy);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.how-it-works-step p {
+  margin: 0;
+  color: #7c8494;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .how-it-works-steps {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .how-it-works-step {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid #e7ebf1;
+    padding-top: 18px;
+  }
+  .how-it-works-step:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
 }
 
 .phase-progress {

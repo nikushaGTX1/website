@@ -101,7 +101,7 @@ export class TranslationService {
 
   private savedLanguage(): AppLanguage {
     const saved = localStorage.getItem('velven-language');
-    return saved === 'ka' || saved === 'ru' ? saved : 'en';
+    return saved === 'ka' || saved === 'ru' || saved === 'en' ? saved : 'ka';
   }
 
   private schedule(): void {

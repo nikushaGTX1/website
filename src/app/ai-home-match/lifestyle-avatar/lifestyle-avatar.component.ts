@@ -40,12 +40,6 @@ export class VelvenLifestyleAvatarComponent {
     const manTwo = '/Characters/მეორე კაცი.png';
     const woman = '/Characters/მთავარი ქალი.png';
     const womanTwo = '/Characters/მეორე ქალი.png';
-    const childAssets = [
-      '/Characters/ყველაზე პატარა ბავშვი.png',
-      '/Characters/საშუალო ბავშვი.png',
-      '/Characters/მოზრდილი ბავშვი.png',
-      '/Characters/ყველაზე დიდი ბავშვი.png',
-    ];
     const childByAge: Record<string, string> = {
       Age0To3: '/Characters/kid2.png',
       Age4To6: '/Characters/kid1.png',
@@ -59,7 +53,7 @@ export class VelvenLifestyleAvatarComponent {
       primary,
     });
     const selectedChildren = Array.from({ length: Math.min(this.profile.children, 4) }, (_, index): AvatarFigure => ({
-      src: childByAge[this.profile.childrenAgeGroups[index]] || childAssets[index],
+      src: childByAge[this.profile.childrenAgeGroups[index]] || childByAge['Age0To3'],
       role: 'child',
       ageGroup: this.profile.childrenAgeGroups[index],
     }));

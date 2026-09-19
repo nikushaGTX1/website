@@ -213,18 +213,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   get stepNumber(): number {
     return this.visibleSteps.indexOf(this.step) + 1;
   }
-  get budgetSliderMax(): number {
-    return 10_000;
-  }
-  get budgetSliderStep(): number {
-    return 50;
-  }
-  get budgetRangeStart(): number {
-    return this.budgetPercent(this.budgetForm.controls.min.value);
-  }
-  get budgetRangeEnd(): number {
-    return this.budgetPercent(this.budgetForm.controls.max.value);
-  }
   get currentPhase(): number {
     // Use the question ID as the source of truth so phase labels cannot drift.
     if (this.step === 1 || this.step === 0) return 0;
@@ -604,27 +592,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   ): boolean {
     return this.profile[key].includes(value);
   }
-  updateBudgetFromSlider(bound: 'min' | 'max', event: Event): void {
-    const value = Number((event.target as HTMLInputElement).value);
-    if (!Number.isFinite(value)) return;
-
-    const minControl = this.budgetForm.controls.min;
-    const maxControl = this.budgetForm.controls.max;
-    if (bound === 'min') {
-      minControl.setValue(Math.min(value, maxControl.value));
-      minControl.markAsDirty();
-    } else {
-      maxControl.setValue(Math.max(value, minControl.value));
-      maxControl.markAsDirty();
-    }
-  }
-  formatBudget(value: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: this.budgetForm.controls.currency.value,
-      maximumFractionDigits: 0,
-    }).format(value || 0);
-  }
   canContinue(): boolean {
     switch (this.step) {
       case 0:
@@ -902,7 +869,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     }
     if (lifestyle.has('QuietLifestyle')) {
       add('Quiet street', 'QuietStreet', true);
-      add('Quiet Residential Environment', 'QuietResidentialEnvironment');
       add('Proximity to parks or green spaces', 'ParkNearby');
       add('Away from busy city center and nightlife', 'AwayFromNightlife');
     }
@@ -922,10 +888,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     add('Proximity to pharmacy', 'PharmacyNearby');
 
     return [...suggestions.values()];
-  }
-  private budgetPercent(value: number): number {
-    const safeValue = Math.max(0, Math.min(Number(value) || 0, this.budgetSliderMax));
-    return (safeValue / this.budgetSliderMax) * 100;
   }
   private startLoadingMessages(): void {
     const messages = [

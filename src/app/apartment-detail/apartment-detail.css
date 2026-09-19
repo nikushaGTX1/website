@@ -915,6 +915,201 @@
   position: absolute !important;
   left: -10000px !important;
 }
+.velven-datepicker {
+  display: grid;
+  gap: 6px;
+  color: #5c5562;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  position: relative;
+}
+.velven-datepicker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid #dcd6e1;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  text-transform: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #201c34;
+  transition: border-color 0.15s ease;
+}
+.velven-datepicker-trigger:hover,
+.velven-datepicker-trigger.open {
+  border-color: #451a8f;
+}
+.velven-datepicker-trigger i:first-child {
+  color: #451a8f;
+  font-size: 13px;
+}
+.velven-datepicker-trigger span {
+  flex: 1;
+  text-align: left;
+}
+.velven-datepicker-trigger i:last-child {
+  font-size: 11px;
+  color: #9990a6;
+  transition: transform 0.15s ease;
+}
+.velven-datepicker-trigger.open i:last-child {
+  transform: rotate(180deg);
+}
+.velven-calendar-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  width: auto;
+  max-width: 320px;
+  padding: 14px;
+  border: 1px solid #e6e0eb;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 18px 40px rgba(69, 26, 143, 0.16);
+}
+.velven-calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.velven-calendar-head strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: #201c34;
+  text-transform: capitalize;
+}
+.velven-calendar-head button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: #f4f1fa;
+  color: #451a8f;
+  cursor: pointer;
+  font-size: 11px;
+}
+.velven-calendar-head button:hover:not(:disabled) {
+  background: #ece4fb;
+}
+.velven-calendar-head button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.velven-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 2px;
+}
+.velven-calendar-weekdays span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #9990a6;
+  text-transform: uppercase;
+}
+.velven-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 34px;
+  gap: 2px;
+}
+.velven-calendar-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #34303e;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.velven-calendar-day:hover:not(:disabled) {
+  background: #f4f1fa;
+}
+.velven-calendar-day.muted {
+  color: #cabee0;
+  font-weight: 500;
+}
+.velven-calendar-day.today {
+  color: #451a8f;
+  box-shadow: inset 0 0 0 1px #b9a4e6;
+}
+.velven-calendar-day.selected {
+  background: #451a8f;
+  color: white;
+  box-shadow: none;
+}
+.velven-calendar-day:disabled {
+  color: #e3dfea;
+  cursor: not-allowed;
+}
+.velven-calendar-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #ece7f5;
+}
+.velven-calendar-time i {
+  color: #451a8f;
+  font-size: 13px;
+}
+.velven-calendar-time select {
+  padding: 6px 8px;
+  border: 1px solid #dcd6e1;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #201c34;
+  background: white;
+  cursor: pointer;
+}
+.velven-calendar-time select:focus,
+.velven-calendar-time select:hover {
+  border-color: #451a8f;
+}
+.velven-calendar-time span {
+  font-weight: 800;
+  color: #9990a6;
+}
+.velven-calendar-done {
+  width: 100%;
+  margin-top: 14px;
+  padding: 9px;
+  border: none;
+  border-radius: 8px;
+  background: #451a8f;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.velven-calendar-done:hover {
+  background: #38156f;
+}
 .viewing-dialog footer {
   margin-top: 19px;
   display: flex;
@@ -1899,6 +2094,16 @@
   }
   .viewing-grid .wide {
     grid-column: auto;
+  }
+  .velven-calendar-panel {
+    max-width: none;
+    padding: 12px;
+  }
+  .velven-calendar-days {
+    grid-auto-rows: 30px;
+  }
+  .velven-calendar-day {
+    font-size: 11px;
   }
 }
 @media (max-width: 420px) {

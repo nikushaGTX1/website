@@ -59,8 +59,6 @@ export class Main implements OnInit, OnDestroy {
   budgetCurrency: 'GEL' | 'USD' = 'GEL';
   budgetMin: number | null = null;
   budgetMax: number | null = null;
-  budgetSliderMin = 0;
-  budgetSliderMax = 5000;
   appliedBudgetMin: number | null = null;
   appliedBudgetMax: number | null = null;
   selectedBudgetRange = '';
@@ -167,20 +165,6 @@ export class Main implements OnInit, OnDestroy {
     return this.bedroomOptions.find((option) => option.value === this.searchBedrooms)?.label || 'Bedrooms';
   }
 
-  get budgetMinPercent(): number {
-    return Math.min(
-      this.normalizedSliderValue(this.budgetSliderMin),
-      this.normalizedSliderValue(this.budgetSliderMax),
-    );
-  }
-
-  get budgetMaxPercent(): number {
-    return Math.max(
-      this.normalizedSliderValue(this.budgetSliderMin),
-      this.normalizedSliderValue(this.budgetSliderMax),
-    );
-  }
-
   @HostListener('document:click')
   closeBudget(): void {
     this.budgetOpen = false;
@@ -218,8 +202,6 @@ export class Main implements OnInit, OnDestroy {
     this.budgetCurrency = 'USD';
     this.budgetMin = range.min;
     this.budgetMax = range.max;
-    this.budgetSliderMin = range.min;
-    this.budgetSliderMax = range.max;
   }
 
   applyBudget(): void {
@@ -232,8 +214,6 @@ export class Main implements OnInit, OnDestroy {
   resetBudget(): void {
     this.budgetMin = null;
     this.budgetMax = null;
-    this.budgetSliderMin = 0;
-    this.budgetSliderMax = 5000;
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
     this.searchBudget = '';
@@ -937,9 +917,5 @@ export class Main implements OnInit, OnDestroy {
   private toUsd(value: number | null): number | null {
     if (value == null) return null;
     return this.budgetCurrency === 'GEL' ? Math.round(value / 2.7) : value;
-  }
-
-  private normalizedSliderValue(value: number | null): number {
-    return Math.min(100, Math.max(0, Number(value || 0) / 50));
   }
 }
