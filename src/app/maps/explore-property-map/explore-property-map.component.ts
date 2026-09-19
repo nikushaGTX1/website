@@ -62,6 +62,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   @Input() apartments: Apartment[] = [];
   @Input() selectedApartmentId: number | null = null;
   @Output() apartmentSelected = new EventEmitter<Apartment>();
+  @Output() mapClicked = new EventEmitter<void>();
   @Output() previewAnchorChanged = new EventEmitter<PropertyMapPreviewAnchor>();
   @Output() visibleApartmentsChanged = new EventEmitter<Apartment[]>();
   @ViewChild('mapCanvas') mapCanvas?: ElementRef<HTMLDivElement>;
@@ -78,6 +79,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private viewReady = false;
   private renderRevision = 0;
   private idleListener?: google.maps.MapsEventListener;
+  private clickListener?: google.maps.MapsEventListener;
   private boundsListener?: google.maps.MapsEventListener;
   private mapResizeObserver?: ResizeObserver;
   private previewFrame?: number;
@@ -105,6 +107,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   ngOnDestroy(): void {
     this.renderRevision += 1;
     this.idleListener?.remove();
+    this.clickListener?.remove();
     this.boundsListener?.remove();
     this.mapResizeObserver?.disconnect();
     if (this.previewFrame) cancelAnimationFrame(this.previewFrame);
@@ -165,6 +168,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         },
       });
 
+      this.clickListener = this.map.addListener('click', () => {
+        this.zone.run(() => this.mapClicked.emit());
+      });
       this.idleListener = this.map.addListener('idle', () => {
         this.zone.run(() => {
           this.emitVisibleApartments();

@@ -335,21 +335,25 @@
         >
           <a
             class="card-link"
-            [routerLink]="['/apartments', apartment.id]"
-            [attr.aria-label]="apartment.title"
+            [attr.href]="'/apartments/' + apartment.id"
+            [attr.aria-label]="apartment.title | listingTitle"
             draggable="false"
             (dragstart)="$event.preventDefault()"
             (touchstart)="touchCardStart($event)"
             (touchmove)="touchCardMove($event, apartment)"
             (touchend)="endCardSwipe()"
             (touchcancel)="cancelCardSwipe()"
-            (click)="preventCardClickAfterSwipe($event)"
+            (mousedown)="mouseCardStart($event)"
+            (mousemove)="mouseCardMove($event, apartment)"
+            (mouseup)="endCardSwipe()"
+            (mouseleave)="cancelCardSwipe()"
+            (click)="openCard($event, apartment)"
           ></a>
           <div class="photo-wrap" data-protected-image>
             <img
               [src]="cardImage(apartment)"
               [ngClass]="cardSlideClass(apartment)"
-              [alt]="apartment.title || 'Property in Tbilisi'"
+              [alt]="(apartment.title | listingTitle) || 'Property in Tbilisi'"
               loading="lazy"
               decoding="async"
               (error)="onApartmentImageError($event)"
@@ -375,11 +379,11 @@
                 ></path>
               </svg>
             </button>
-            <span class="photo-count">{{ cardImageIndex(apartment) + 1 }} / {{ cardImages(apartment).length || 1 }}</span>
+<span class="photo-count">{{ cardImageIndex(apartment) + 1 }} / {{ cardImages(apartment).length || 1 }}</span>
           </div>
           <div class="card-body">
             <div class="title-row">
-              <h2>{{ apartment.title || getApartmentLocation(apartment) }}</h2>
+              <h2>{{ (apartment.title | listingTitle) || getApartmentLocation(apartment) }}</h2>
               <span class="card-header-price">
                 <app-currency-price
                   [usdPrice]="apartment.price"
@@ -472,18 +476,19 @@
         [apartments]="pageApartments"
         [selectedApartmentId]="hoveredApartmentId ?? (mapPreviewApartment ? mapPreviewApartment.id : null)"
         (apartmentSelected)="selectMapApartment($event)"
+        (mapClicked)="closeMapPreview()"
         (previewAnchorChanged)="positionMapPreview($event)"
         (visibleApartmentsChanged)="onMapVisibleApartmentsChanged($event)"
       ></app-explore-property-map>
       <div class="map-preview" *ngIf="mapPreviewApartment as apartment" [style.left.px]="mapPreviewPosition.left" [style.top.px]="mapPreviewPosition.top">
-        <a class="map-preview-link" [routerLink]="['/apartments', apartment.id]" [attr.aria-label]="apartment.title"></a>
+        <a class="map-preview-link" [routerLink]="['/apartments', apartment.id]" [attr.aria-label]="apartment.title | listingTitle"></a>
         <div class="map-preview-gallery" data-protected-image>
           <img
             *ngFor="let image of getMapPreviewImages(apartment); let imageIndex = index; trackBy: trackMapPreviewImage"
             class="map-preview-image"
             [class.active]="imageIndex === mapPreviewImageIndex"
             [src]="image"
-            [alt]="imageIndex === mapPreviewImageIndex ? (apartment.title || 'Property in Tbilisi') : ''"
+            [alt]="imageIndex === mapPreviewImageIndex ? ((apartment.title | listingTitle) || 'Property in Tbilisi') : ''"
             [attr.aria-hidden]="imageIndex === mapPreviewImageIndex ? null : true"
             loading="eager"
             decoding="async"
@@ -502,7 +507,7 @@
           </div>
         </div>
         <div class="map-preview-body">
-          <h3 class="map-preview-title">{{ apartment.title || getApartmentLocation(apartment) }}</h3>
+          <h3 class="map-preview-title">{{ (apartment.title | listingTitle) || getApartmentLocation(apartment) }}</h3>
           <p class="map-preview-location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><span>{{ getApartmentStreet(apartment) }}</span></p>
           <div class="map-preview-facts">
             <span *ngIf="apartment.bedrooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18v-8M21 18v-5a2 2 0 0 0-2-2H7a4 4 0 0 0-4 4v3M3 16h18M7 11V7h5a2 2 0 0 1 2 2v2"></path></svg>{{ apartment.bedrooms }} bed<span *ngIf="apartment.bedrooms !== 1">s</span></span>

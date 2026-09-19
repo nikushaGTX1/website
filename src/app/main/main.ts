@@ -69,11 +69,12 @@ export class Main implements OnInit, OnDestroy {
     { label: '$3,000 – $5,000', min: 3000, max: 5000 },
   ];
   readonly bedroomOptions = [
-    { label: '1 Bedroom', value: '1' },
-    { label: '2 Bedrooms', value: '2' },
-    { label: '3 Bedrooms', value: '3' },
-    { label: '4 Bedrooms', value: '4' },
-    { label: '4+ Bedrooms', value: '4+' },
+    { label: 'Any', value: '' },
+    { label: '1', value: '1' },
+    { label: '2', value: '2' },
+    { label: '3', value: '3' },
+    { label: '4', value: '4' },
+    { label: '4+', value: '4+' },
   ];
   readonly propertyTypeOptions = ['Apartament', 'House', 'Commercial Place', 'Country house'];
   readonly popularLocationAreas = [
@@ -162,7 +163,8 @@ export class Main implements OnInit, OnDestroy {
   }
 
   get bedroomSummary(): string {
-    return this.bedroomOptions.find((option) => option.value === this.searchBedrooms)?.label || 'Bedrooms';
+    if (!this.searchBedrooms) return 'Bedrooms';
+    return this.searchBedrooms === '1' ? '1 Bedroom' : `${this.searchBedrooms} Bedrooms`;
   }
 
   @HostListener('document:click')
@@ -223,11 +225,6 @@ export class Main implements OnInit, OnDestroy {
 
   selectBedrooms(value: string): void {
     this.searchBedrooms = value;
-    this.bedroomOpen = false;
-  }
-
-  clearBedrooms(): void {
-    this.searchBedrooms = '';
     this.bedroomOpen = false;
   }
 
@@ -810,16 +807,18 @@ export class Main implements OnInit, OnDestroy {
       district = matchedArea ? this.locationService.districtName(matchedArea, 'en') : '';
     }
 
-    if (!district) return city;
+    const language = this.translationService.language$.value;
+    const cityLabel = language === 'ka' && /^tbilisi$/i.test(city) ? 'თბილისი' : city;
+    if (!district) return cityLabel;
     const matchedDistrict = this.locationEntries.find(
       (entry) =>
         entry.district.toLowerCase() === district.toLowerCase() ||
         this.locationService.districtName(entry, 'ka').toLowerCase() === district.toLowerCase(),
     );
     const districtLabel = matchedDistrict
-      ? this.locationService.districtName(matchedDistrict, 'en')
+      ? this.locationService.districtName(matchedDistrict, language)
       : district;
-    return `${city} ${districtLabel}`;
+    return `${cityLabel} ${districtLabel}`;
   }
 
   getApartmentDescription(apartment: Apartment): string {

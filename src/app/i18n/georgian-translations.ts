@@ -1423,6 +1423,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Find My Match', 'იპოვე შენი სახლი'],
   ['Tell us about your lifestyle. Discover homes that match what matters.', 'გვითხარით, რა არის შენთვის მნიშვნელოვანი. შეგირჩევთ სახლებს შენი ცხოვრების სტილის, სურვილებისა და ბიუჯეტის მიხედვით.'],
   ['Tell us about your lifestyle and what matters most to you. We’ll match you with handpicked homes that suit your routines, preferences, and priorities.', 'გვითხარით თქვენი ცხოვრების სტილისა და ყველაზე მნიშვნელოვანის შესახებ. შეგირჩევთ სახლებს, რომლებიც ესადაგება თქვენს ჩვევებს, სურვილებსა და პრიორიტეტებს.'],
+  ['Choose one or more areas', 'აირჩიეთ ერთი ან რამდენიმე უბანი'],
   ['How Velven Match Works', 'როგორ მუშაობს Velven Match'],
   ['Tell us about you', 'მოგვიყევი შენზე'],
   ['Your lifestyle and home preferences', 'შენი ცხოვრების სტილი და სახლის სურვილები'],

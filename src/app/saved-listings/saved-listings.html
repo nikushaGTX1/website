@@ -49,7 +49,7 @@
           </div>
           <div class="card-body">
             <app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price>
-            <h2>{{ apartment.title || 'Apartment in Tbilisi' }}</h2>
+            <h2>{{ (apartment.title | listingTitle) || 'Apartment in Tbilisi' }}</h2>
             <p class="location"><i class="fa-solid fa-location-dot"></i>{{ getLocation(apartment) }}</p>
             <div class="specs">
               <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>

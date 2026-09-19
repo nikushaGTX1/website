@@ -657,6 +657,14 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     if (this.step < this.questions.length - 1) {
       this.step = this.visibleSteps[this.stepNumber];
     } else this.view = 'review';
+    this.scrollToStepTop();
+  }
+  private scrollToStepTop(): void {
+    setTimeout(() => {
+      const shell = document.querySelector<HTMLElement>('.wizard-shell');
+      const top = shell ? shell.getBoundingClientRect().top + window.scrollY - 96 : 0;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
   }
   back(): void {
     const previous = this.visibleSteps[this.stepNumber - 2];
@@ -665,6 +673,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     for (const step of order.slice(order.indexOf(previous))) this.clearStep(step);
     this.step = previous;
     this.persist();
+    this.scrollToStepTop();
   }
   private clearStep(step: number): void {
     const fields: (keyof HomeMatchProfile)[][] = [

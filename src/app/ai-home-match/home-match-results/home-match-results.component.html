@@ -44,7 +44,7 @@
       <span class="category">Personalized for your lifestyle</span>
       <div class="heading">
         <div>
-          <h2>{{ result.apartment.title }}</h2>
+          <h2>{{ result.apartment.title | listingTitle }}</h2>
           <p>{{ result.apartment.district || result.apartment.address }}</p>
         </div>
         <strong

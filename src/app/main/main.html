@@ -91,6 +91,7 @@
                     </button>
                   </div>
                   <h3>All areas</h3>
+                  <p class="area-subtitle">Choose one or more areas</p>
                   <div class="all-area-grid">
                     <button
                       type="button"
@@ -99,8 +100,8 @@
                       [class.selected]="isAreaSelected(area)"
                       (click)="chooseAreaForModal(area)"
                     >
-                      <i class="fa-solid fa-building" aria-hidden="true"></i>
                       <span>{{ translationService.translate(area, translationService.language$ | async) }}</span>
+                      <em class="area-radio" aria-hidden="true"></em>
                     </button>
                     <ng-container *ngIf="moreAreasOpen">
                       <button
@@ -110,8 +111,8 @@
                         [class.selected]="isAreaSelected(area)"
                         (click)="chooseAreaForModal(area)"
                       >
-                        <i class="fa-solid fa-building" aria-hidden="true"></i>
                         <span>{{ translationService.translate(area, translationService.language$ | async) }}</span>
+                        <em class="area-radio" aria-hidden="true"></em>
                       </button>
                     </ng-container>
                     <button
@@ -123,7 +124,7 @@
                       (click)="moreAreasOpen = !moreAreasOpen"
                     >
                       {{ moreAreasOpen ? 'View less' : 'View more' }}
-                      <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                     </button>
                     <span class="areas-loading" *ngIf="locationLoading">Loading locations...</span>
                   </div>
@@ -389,17 +390,6 @@
               <i class="fa-solid fa-xmark"></i>
             </button>
             <h3>Choose your price range</h3>
-            <div class="budget-presets">
-              <button
-                type="button"
-                *ngFor="let range of budgetRanges"
-                [class.active]="selectedBudgetRange === range.label"
-                (click)="selectBudgetRange(range)"
-              >
-                {{ range.label }}
-              </button>
-            </div>
-            <div class="budget-divider"></div>
             <h4>Custom range</h4>
             <div class="main-budget-fields">
               <label
@@ -423,6 +413,17 @@
                   max="5000"
                   (ngModelChange)="selectedBudgetRange = ''"
               /></label>
+            </div>
+            <div class="budget-divider"></div>
+            <div class="budget-presets">
+              <button
+                type="button"
+                *ngFor="let range of budgetRanges"
+                [class.active]="selectedBudgetRange === range.label"
+                (click)="selectBudgetRange(range)"
+              >
+                {{ range.label }}
+              </button>
             </div>
             <div class="main-budget-actions">
               <button class="main-budget-reset" type="button" (click)="resetBudget()">
@@ -470,7 +471,6 @@
                 {{ option.label }}
               </button>
             </div>
-            <button class="bedroom-clear" type="button" (click)="clearBedrooms()">Clear</button>
           </div>
         </label>
         <button class="search-submit" type="submit">
@@ -551,7 +551,7 @@
           >
           <img
             [src]="getApartmentCardImage(apartment)"
-            [alt]="getApartmentTitle(apartment)"
+            [alt]="getApartmentTitle(apartment) | listingTitle"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'"
             [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
             decoding="async"
@@ -582,7 +582,7 @@
           <h3>
             <app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price>
           </h3>
-          <strong class="property-title">{{ getApartmentTitle(apartment) }}</strong>
+          <strong class="property-title">{{ getApartmentTitle(apartment) | listingTitle }}</strong>
           <p class="property-address">
             <i class="fa-solid fa-location-dot"></i> {{ getApartmentLocationLabel(apartment) }}
           </p>

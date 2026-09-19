@@ -13,7 +13,7 @@
   min-height: 100vh;
 }
 .vp-content {
-  width: min(1260px, calc(100% - 56px));
+  width: min(1320px, calc(100% - 64px));
   margin: auto;
   padding-bottom: 90px;
 }
@@ -57,7 +57,8 @@
   color: var(--purple);
 }
 .vp-gallery {
-  height: 428px;
+  height: auto;
+  aspect-ratio: 2.5 / 1;
   display: grid;
   grid-template: repeat(2, 1fr) / 2fr 1fr 1fr;
   gap: 8px;
@@ -2226,4 +2227,22 @@
   aspect-ratio: auto;
   object-fit: contain;
   background: transparent;
+}
+
+/* Touch devices: no zoom or slide effects while swiping the gallery. */
+@media (hover: none), (max-width: 740px) {
+  .vp-gallery button:hover img,
+  .vp-gallery button:hover .vp-gallery-bg {
+    transform: none;
+    filter: none;
+  }
+  .vp-gallery img {
+    transition: none;
+  }
+  .vp-gallery-main img.gallery-slide-left-a,
+  .vp-gallery-main img.gallery-slide-left-b,
+  .vp-gallery-main img.gallery-slide-right-a,
+  .vp-gallery-main img.gallery-slide-right-b {
+    animation: none;
+  }
 }

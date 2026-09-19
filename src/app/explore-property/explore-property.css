@@ -632,17 +632,22 @@ svg {
   border-radius: 18px;
   outline: 2px solid transparent;
   outline-offset: 5px;
-  cursor: pointer;
+  cursor: default;
   transition: 0.2s ease;
 }
-.property-card:hover,
 .property-card.active {
   transform: translateY(-2px);
+}
+@media (hover: hover) and (pointer: fine) {
+  .property-card:hover {
+    transform: translateY(-2px);
+  }
 }
 .property-card.active {
   outline-color: #d8c8f3;
 }
 .card-link {
+  cursor: default;
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
   user-select: none;
@@ -673,8 +678,10 @@ svg {
   object-fit: cover;
   transition: transform 0.45s ease;
 }
-.property-card:hover .photo-wrap img {
-  transform: scale(1.035);
+@media (hover: hover) and (pointer: fine) {
+  .property-card:hover .photo-wrap img {
+    transform: scale(1.035);
+  }
 }
 .property-tag {
   position: absolute;

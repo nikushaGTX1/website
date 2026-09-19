@@ -109,7 +109,7 @@
             ></a>
             <div class="listing-body">
               <app-currency-price [usdPrice]="apartment.price"></app-currency-price>
-              <h3>{{ apartment.title || 'Property in Tbilisi' }}</h3>
+              <h3>{{ (apartment.title | listingTitle) || 'Property in Tbilisi' }}</h3>
               <p><i class="fa-solid fa-location-dot"></i>{{ apartment.address || 'Tbilisi' }}</p>
               <div class="listing-specs">
                 <span><i class="fa-solid fa-door-open"></i>{{ apartment.rooms || '—' }} rooms</span

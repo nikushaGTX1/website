@@ -25,7 +25,7 @@
         <div class="title">
           <div>
             <span>{{ location(match) }}</span>
-            <h2>{{ match.apartment.title }}</h2>
+            <h2>{{ match.apartment.title | listingTitle }}</h2>
           </div>
           <strong><app-currency-price [usdPrice]="match.apartment.price" suffix="/mo"></app-currency-price></strong>
         </div>

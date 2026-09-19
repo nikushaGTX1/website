@@ -5,6 +5,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
+import { ListingTitlePipe } from './shared/listing-title.pipe';
 import { Main } from './main/main';
 import { Navigation } from './navigation/navigation';
 import { Footer } from './footer/footer';
@@ -43,6 +44,7 @@ import { CrmLink } from './crm/crm-link/crm-link';
 
 @NgModule({
   declarations: [
+    ListingTitlePipe,
     App,
     Main,
     Navigation,

@@ -151,6 +151,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   private cardSwipeStartX: number | null = null;
   private cardSwipePointerId: number | null = null;
   private suppressCardClick = false;
+  private mouseDragged = false;
 
   private readonly cardGalleries = new Map<number, string[]>();
   private readonly cardGalleryRequests = new Set<number>();
@@ -286,6 +287,27 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  mouseCardStart(event: MouseEvent): void {
+    if (event.button !== 0) return;
+    this.cardSwipeStartX = event.clientX;
+    this.cardSwipeStartY = event.clientY;
+    this.cardSwipePointerId = -2;
+    this.mouseDragged = false;
+  }
+
+  mouseCardMove(event: MouseEvent, apartment: Apartment): void {
+    if (this.cardSwipeStartX == null || this.cardSwipePointerId !== -2) return;
+    const dx = event.clientX - this.cardSwipeStartX;
+    const dy = event.clientY - this.cardSwipeStartY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this.mouseDragged = true;
+    if (Math.abs(dx) < 14 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    this.cardSwipeStartX = null;
+    this.cardSwipePointerId = null;
+    if (this.cardImages(apartment).length < 2) return;
+    this.suppressCardClick = true;
+    this.slideCard(apartment, dx < 0 ? 1 : -1);
+  }
+
   endCardSwipe(): void {
     this.cardSwipeStartX = null;
     this.cardSwipePointerId = null;
@@ -296,11 +318,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.cardSwipePointerId = null;
   }
 
-  preventCardClickAfterSwipe(event: Event): void {
-    if (!this.suppressCardClick) return;
-    this.suppressCardClick = false;
+  openCard(event: MouseEvent, apartment: Apartment): void {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
     event.preventDefault();
-    event.stopPropagation();
+    if (this.suppressCardClick || this.mouseDragged) {
+      this.suppressCardClick = false;
+      this.mouseDragged = false;
+      return;
+    }
+    void this.router.navigate(['/apartments', apartment.id]);
   }
 
   get totalPages(): number {

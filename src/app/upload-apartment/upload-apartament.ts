@@ -105,20 +105,6 @@ export class UploadApartment implements OnInit, OnDestroy {
   readonly maxImages = 15;
   readonly listingPlans: ListingPlanOption[] = [
     {
-      id: 'basic',
-      title: 'Basic List',
-      icon: 'fa-solid fa-house',
-      description: 'A simple listing with agent support and essential closing help.',
-      cta: 'Choose Basic',
-      benefits: [
-        'Property listing',
-        'Agent service',
-        'AI Property Match',
-        'Client check & appointment confirmation',
-        'Contract & legal service',
-      ],
-    },
-    {
       id: 'exclusive',
       title: 'Velven Exclusive',
       icon: 'fa-regular fa-gem',
@@ -133,6 +119,20 @@ export class UploadApartment implements OnInit, OnDestroy {
         'Key management & showing service',
         'Tenant screening & verification',
         'One-time re-rental service',
+      ],
+    },
+    {
+      id: 'basic',
+      title: 'Basic List',
+      icon: 'fa-solid fa-house',
+      description: 'A simple listing with agent support and essential closing help.',
+      cta: 'Choose Basic',
+      benefits: [
+        'Property listing',
+        'Agent service',
+        'AI Property Match',
+        'Client check & appointment confirmation',
+        'Contract & legal service',
       ],
     },
   ];

@@ -367,7 +367,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           this.normalizeStreetQuery(street.value).includes(query) ||
           street.aliases.some((alias) => this.normalizeStreetQuery(alias).includes(query)),
       )
-      .filter((street, index, list) => list.findIndex((item) => item.id === street.id) === index)
+      .filter((street, index, list) => {
+        const key = (item: { label: string; district: string }) =>
+          `${this.normalizeStreetQuery(item.label)}|${item.district.trim().toLowerCase()}`;
+        return list.findIndex((item) => key(item) === key(street)) === index;
+      })
       .slice(0, 7);
   }
 
@@ -832,107 +836,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       path.forEach(([lng, lat]) => bounds.extend({ lat, lng }));
     }
 
-    const map = this.map;
-    const glow = new google.maps.OverlayView();
-    let canvas: HTMLCanvasElement | undefined;
-    glow.onAdd = () => {
-      canvas = document.createElement('canvas');
-      canvas.setAttribute('aria-hidden', 'true');
-      Object.assign(canvas.style, {
-        position: 'absolute',
-        pointerEvents: 'none',
-        zIndex: '1',
-        mixBlendMode: 'multiply',
-      });
-      glow.getPanes()?.overlayMouseTarget.appendChild(canvas);
-    };
-    glow.draw = () => {
-      if (!canvas) return;
-      const visibleBounds = map.getBounds();
-      if (!visibleBounds) return;
-      const projection = glow.getProjection();
-      const northEast = projection.fromLatLngToDivPixel(visibleBounds.getNorthEast());
-      const southWest = projection.fromLatLngToDivPixel(visibleBounds.getSouthWest());
-      if (!northEast || !southWest) return;
-      const originX = Math.min(northEast.x, southWest.x);
-      const originY = Math.min(northEast.y, southWest.y);
-      const width = Math.max(1, Math.abs(northEast.x - southWest.x));
-      const height = Math.max(1, Math.abs(southWest.y - northEast.y));
-      const shortestSide = Math.min(
-        map.getDiv().clientWidth || width,
-        map.getDiv().clientHeight || height,
-      );
-      const viewportScale = Math.max(0.68, Math.min(1.16, shortestSide / 560));
-      const zoom = map.getZoom() || 15;
-      const zoomScale = Math.max(0.82, Math.min(1.12, 1 + (15 - zoom) * 0.055));
-      const glowScale = viewportScale * zoomScale;
-      const outerWidth = Math.round(70 * glowScale);
-      const middleWidth = Math.round(42 * glowScale);
-      const innerWidth = Math.round(17 * glowScale);
-      const overscan = Math.ceil(outerWidth / 2 + 18 * glowScale);
-      const scale = Math.min(window.devicePixelRatio || 1, 2);
-      const canvasWidth = width + overscan * 2;
-      const canvasHeight = height + overscan * 2;
-      canvas.width = Math.round(canvasWidth * scale);
-      canvas.height = Math.round(canvasHeight * scale);
-      canvas.style.left = `${originX - overscan}px`;
-      canvas.style.top = `${originY - overscan}px`;
-      canvas.style.width = `${canvasWidth}px`;
-      canvas.style.height = `${canvasHeight}px`;
-      canvas.style.filter = `blur(${Math.max(8, Math.round(13 * glowScale))}px)`;
-      const context = canvas.getContext('2d');
-      if (!context) return;
-      context.scale(scale, scale);
-      context.lineCap = 'round';
-      context.lineJoin = 'round';
-
-      const drawGlowLayer = (widthPx: number, opacity: number, color: string) => {
-        context.lineWidth = widthPx;
-        context.strokeStyle = color;
-        context.globalAlpha = opacity;
-        for (const path of paths) {
-          context.beginPath();
-          let hasPoint = false;
-          path.forEach(([lng, lat], index) => {
-            const point = glow.getProjection().fromLatLngToDivPixel({ lat, lng });
-            if (!point) return;
-            const x = point.x - originX + overscan;
-            const y = point.y - originY + overscan;
-            if (!hasPoint || index === 0) context.moveTo(x, y);
-            else context.lineTo(x, y);
-            hasPoint = true;
-          });
-          if (hasPoint) context.stroke();
-        }
-      };
-
-      drawGlowLayer(outerWidth, 0.18, '#ddd6fe');
-      drawGlowLayer(middleWidth, 0.27, '#c4b5fd');
-      drawGlowLayer(innerWidth, 0.2, '#a78bfa');
-      context.globalAlpha = 1;
-    };
-    glow.onRemove = () => {
-      canvas?.remove();
-      canvas = undefined;
-    };
-    glow.setMap(map);
-    this.streetLines.push(glow);
-
-    // Draw the approved road centre line above the district polygon. This is
-    // generic for every street returned by the API, including MultiLineString
-    // roads split into disconnected sections.
-    for (const path of paths) {
-      const line = new google.maps.Polyline({
-        map,
-        path: path.map(([lng, lat]) => ({ lat, lng })),
-        clickable: false,
-        strokeColor: '#d93025',
-        strokeOpacity: 0.95,
-        strokeWeight: 4,
-        zIndex: 30,
-      });
-      this.streetLines.push(line);
-    }
 
     if (fitToStreets && !bounds.isEmpty()) this.map.fitBounds(bounds, 90);
   }
@@ -1794,14 +1697,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         fontSize: '17px',
         zIndex: '2',
       });
-      icon.animate(
-        [
-          { transform: 'translateY(0)' },
-          { transform: 'translateY(-7px)' },
-          { transform: 'translateY(0)' },
-        ],
-        { duration: 1800, iterations: Infinity, easing: 'ease-in-out' },
-      );
       Object.assign(label.style, {
         maxWidth: '190px',
         overflow: 'hidden',
@@ -1838,6 +1733,14 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         zIndex: '0',
         pointerEvents: 'none',
       });
+      marker.animate(
+        [
+          { transform: 'translate(-21px, -54px)' },
+          { transform: 'translate(-21px, -62px)' },
+          { transform: 'translate(-21px, -54px)' },
+        ],
+        { duration: 1800, iterations: Infinity, easing: 'ease-in-out' },
+      );
       overlay.getPanes()?.floatPane.appendChild(marker);
     };
     overlay.draw = () => {

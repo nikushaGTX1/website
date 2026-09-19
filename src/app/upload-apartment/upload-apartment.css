@@ -1339,7 +1339,7 @@ select:focus {
     max-width: none;
     width: auto;
     gap: 0;
-    padding: 0 0 6px;
+    padding: 26px 0 26px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;

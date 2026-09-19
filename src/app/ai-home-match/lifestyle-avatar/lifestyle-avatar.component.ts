@@ -52,11 +52,21 @@ export class VelvenLifestyleAvatarComponent {
       gender,
       primary,
     });
-    const selectedChildren = Array.from({ length: Math.min(this.profile.children, 4) }, (_, index): AvatarFigure => ({
-      src: childByAge[this.profile.childrenAgeGroups[index]] || childByAge['Age0To3'],
-      role: 'child',
-      ageGroup: this.profile.childrenAgeGroups[index],
-    }));
+    // Never repeat a child character: use the age-matched asset first, then
+    // fall back to the next unused one so siblings look different.
+    const childPool = [childByAge['Age0To3'], childByAge['Age4To6'], childByAge['Age7To12'], childByAge['Age13To17']];
+    const usedChildren = new Set<string>();
+    const selectedChildren = Array.from({ length: Math.min(this.profile.children, 4) }, (_, index): AvatarFigure => {
+      const ageGroup = this.profile.childrenAgeGroups[index];
+      const preferred = childByAge[ageGroup];
+      const src =
+        (preferred && !usedChildren.has(preferred) ? preferred : undefined) ??
+        childPool.find((candidate) => !usedChildren.has(candidate)) ??
+        childPool[index % childPool.length];
+      usedChildren.add(src);
+      const sizeGroup = (Object.keys(childByAge) as string[]).find((key) => childByAge[key] === src);
+      return { src, role: 'child', ageGroup: sizeGroup };
+    });
     const selectedPet: AvatarFigure[] = this.profile.hasPet
       ? [{ src: this.profile.petType === 'Cat' ? '/Characters/კატა.png' : '/Characters/ძაღლი.png', role: 'pet' }]
       : [];
