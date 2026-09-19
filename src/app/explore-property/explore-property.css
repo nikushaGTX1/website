@@ -374,6 +374,10 @@ svg {
 .chip-scroll > .chip {
   justify-content: center;
 }
+.condition-trigger span {
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
 .condition-trigger {
   width: 100%;
 }
@@ -1195,6 +1199,10 @@ svg {
     line-height: 1.25;
     white-space: normal;
     text-wrap: balance;
+  }
+  .chip-scroll .condition-trigger span {
+    overflow-wrap: normal;
+    word-break: keep-all;
   }
   .chip.filter-select {
     height: 48px !important;
