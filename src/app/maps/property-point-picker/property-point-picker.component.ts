@@ -126,7 +126,9 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
       const match = result.results[0];
       if (!match) return;
       const point = match.geometry.location;
-      this.setPoint(point.lat(), point.lng(), false);
+      // The geocoded pin counts as the selection; clicking the map refines it.
+      this.pointConfirmed = true;
+      this.setPoint(point.lat(), point.lng(), true);
       if (match.geometry.viewport) this.map.fitBounds(match.geometry.viewport);
       this.map.setZoom(Math.min(this.map.getZoom() || 15, 16));
       this.errorMessage = '';
