@@ -424,12 +424,17 @@
             <div class="card-nearby">
               <span class="card-nearby-label">Nearby</span>
               <div class="card-nearby-grid">
-                <span>
+                <span *ngIf="apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes < 30">
                   <i class="fa-solid fa-train-subway" aria-hidden="true"></i>
                   <b>Metro</b>
+                  <small>{{ apartment.metroDistanceMinutes }} min walk</small>
+                </span>
+                <span *ngIf="apartment.metroDistanceMinutes == null || apartment.metroDistanceMinutes >= 30">
+                  <i class="fa-solid fa-tree" aria-hidden="true"></i>
+                  <b>Park</b>
                   <small>{{
-                    apartment.metroDistanceMinutes != null
-                      ? apartment.metroDistanceMinutes + ' min walk'
+                    apartment.parkDistanceMinutes != null
+                      ? apartment.parkDistanceMinutes + ' min walk'
                       : 'Not nearby'
                   }}</small>
                 </span>

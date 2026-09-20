@@ -322,7 +322,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   get rooms(): number {
-    return this.apartment?.rooms || 0;
+    if (this.apartment?.rooms) return this.apartment.rooms;
+    // Older listings only carry the room count as a "Rooms: N" tag in the description.
+    const tagged = /(?:^||)s*Rooms:s*(d+)/i.exec(this.apartment?.description || '');
+    return tagged ? Number(tagged[1]) : 0;
   }
 
   get bedrooms(): number {
@@ -445,22 +448,35 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   private gallerySwipeStartY = 0;
   private gallerySlideToggle = false;
+  private gallerySwipeAxis: 'x' | 'y' | null = null;
+  private gallerySwipeCommitted = false;
 
   touchGalleryStart(event: TouchEvent): void {
     const touch = event.touches[0];
     if (!touch) return;
     this.gallerySwipeStartX = touch.clientX;
     this.gallerySwipeStartY = touch.clientY;
+    this.gallerySwipeAxis = null;
+    this.gallerySwipeCommitted = false;
   }
 
   // Committed on move so a cancelled touch can't swallow the swipe.
   touchGalleryMove(event: TouchEvent): void {
     const touch = event.touches[0];
+    // Once a swipe changed the photo, keep swallowing the rest of the drag so the page can't scroll.
+    if (this.gallerySwipeCommitted && event.cancelable) event.preventDefault();
     if (!touch || this.gallerySwipeStartX == null) return;
     const dx = touch.clientX - this.gallerySwipeStartX;
     const dy = touch.clientY - this.gallerySwipeStartY;
-    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    // Decide the gesture axis early. A horizontal drag belongs to the gallery only,
+    // so cancel the browser's page scroll; a vertical drag stays a normal page scroll.
+    if (!this.gallerySwipeAxis && Math.max(Math.abs(dx), Math.abs(dy)) > 6) {
+      this.gallerySwipeAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if (this.gallerySwipeAxis === 'x' && event.cancelable) event.preventDefault();
+    if (this.gallerySwipeAxis !== 'x' || Math.abs(dx) < 40) return;
     this.gallerySwipeStartX = null;
+    this.gallerySwipeCommitted = true;
     if (this.galleryImages.length < 2) return;
     this.suppressGalleryTap = true;
     if (dx < 0) this.nextPhoto();
