@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { ApartmentService } from '../services/apartment.service';
 import { CreateApartment } from '../models/apartment';
@@ -281,6 +282,11 @@ export class UploadApartment implements OnInit, OnDestroy {
   draftSaved = false;
   successMessage = '';
   showSuccessModal = false;
+  successModalEdited = false;
+  editId: number | null = null;
+  editPendingId: string | null = null;
+  editLoading = false;
+  private editOriginalMeta = '';
   successModalPending = false;
   errorMessage = '';
   userMessages: PendingApartment[] = [];
@@ -316,6 +322,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     private aiPricingService: AiPricingService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.dismissedNotificationIds = this.readDismissedNotificationIds();
     this.subscriptions.add(
@@ -324,11 +332,16 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.pendingDebug = this.pendingService.getStorageDebug();
   }
 
+  get isEditMode(): boolean {
+    return this.editId !== null || this.editPendingId !== null;
+  }
+
   ngOnInit(): void {
     const currentUser = this.authService.currentUser;
     this.form.agentName = currentUser?.fullName || currentUser?.userName || '';
     this.form.agentPhone = currentUser?.phoneNumber || '';
     this.pendingService.refresh();
+    this.startEditFromRoute();
     this.locationLoading = true;
     this.locationService.getLocations().subscribe({
       next: (locations) => {
@@ -344,6 +357,114 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  /** Editing reuses this exact form: /upload-apartment?edit=ID or ?pending=ID. */
+  private startEditFromRoute(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const pendingId = params.get('pending');
+    const editId = Number(params.get('edit'));
+    if (pendingId) {
+      const request = this.pendingService.getAll().find((item) => item.id === pendingId);
+      if (request) {
+        this.editPendingId = pendingId;
+        this.applyExistingListing(request.apartment);
+      }
+      return;
+    }
+    if (Number.isFinite(editId) && editId > 0) {
+      this.editId = editId;
+      this.editLoading = true;
+      this.apartmentService.getApartment(editId).subscribe({
+        next: (apartment) => {
+          this.editLoading = false;
+          this.applyExistingListing(apartment);
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.editLoading = false;
+          this.editId = null;
+          this.errorMessage = 'Could not load this listing for editing.';
+        },
+      });
+    }
+  }
+
+  private metaTag(meta: string, name: string): string {
+    const prefix = name.toLowerCase() + ':';
+    const match = meta.split('|').map((part) => part.trim()).find((part) => part.toLowerCase().startsWith(prefix));
+    return match ? match.slice(prefix.length).trim() : '';
+  }
+
+  private applyExistingListing(source: Partial<import('../models/apartment').Apartment & CreateApartment>): void {
+    const description = source.description || '';
+    const splitAt = description.lastIndexOf('\n\n');
+    const tail = splitAt >= 0 ? description.slice(splitAt + 2) : '';
+    const hasMeta = tail.startsWith('Listing plan:');
+    const meta = hasMeta ? tail : '';
+    this.editOriginalMeta = meta;
+    const tag = (name: string): string => this.metaTag(meta, name);
+    const num = (value: unknown): number | null => {
+      const n = Number(value);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    };
+    const f = this.form;
+    f.description = hasMeta ? description.slice(0, splitAt) : description;
+    f.title = source.title || f.title;
+    f.totalPrice = num(source.price);
+    f.sqPrice = num(tag('Sq. price'));
+    f.currency = tag('Currency').toUpperCase() === 'GEL' ? 'GEL' : '$';
+    f.exchangePossible = /Exchange possible/i.test(meta);
+    f.realEstateType = tag('Type') || f.realEstateType;
+    f.dealType = tag('Deal') || f.dealType;
+    f.buildingStatus = tag('Status') || f.buildingStatus;
+    f.condition = tag('Condition') || source.condition || f.condition;
+    this.selectedListingPlan = /Basic/i.test(tag('Listing plan')) ? 'basic' : 'exclusive';
+    f.area = num(source.sizeSquareMeters) ?? num(tag('Area').replace(/[^0-9.]/g, ''));
+    f.rooms = num(source.rooms) ?? num(tag('Rooms'));
+    f.bedrooms = source.bedrooms ?? num(tag('Bedrooms'));
+    f.bathrooms = source.bathrooms ?? num(tag('Bathrooms'));
+    f.floor = num(source.floor);
+    f.totalFloors = num(source.totalFloors);
+    const flags: BooleanFeature[] = [
+      'hasElevator', 'hasParking', 'isQuietStreet', 'hasBalcony', 'hasBathtub', 'hasAirConditioning',
+      'hasDishwasher', 'isPetFriendly', 'hasHomeOfficeSpace', 'hasLargeKitchen', 'hasView', 'isFurnished',
+    ];
+    for (const flag of flags) f[flag] = !!(source as Record<string, unknown>)[flag];
+    const tagged: BooleanFeature[] = [
+      'hasLargeLivingRoom', 'hasPlaygroundNearby', 'hasCoworkingNearby', 'hasSecurity',
+      'isModernBuilding', 'hasIsolatedBedrooms', 'isAwayFromNightlife', 'hasCompanyLease',
+    ];
+    for (const option of this.featureOptions) {
+      if (tagged.includes(option.field)) f[option.field] = meta.includes(option.label + ': Yes');
+    }
+    const parkingLabel = tag('Parking type');
+    f.parkingCondition = source.parkingCondition ||
+      this.parkingTypeOptions.find((o) => o.label === parkingLabel)?.value || '';
+    f.viewType = source.viewType || tag('View type');
+    f.minimumRentalPeriod = source.minimumRentalPeriod || tag('Minimum rental');
+    f.apartmentStyle = source.apartmentStyle || f.apartmentStyle;
+    f.cadastralCode = tag('Cadastral');
+    const district = source.district || tag('District');
+    const street = source.street || tag('Street');
+    this.selectedDistrictValue = district;
+    f.location = district;
+    this.selectedStreetValue = street;
+    f.street = street;
+    this.selectedStreetId = source.streetId || num(tag('Street ID'));
+    f.streetNumber = source.buildingNumber || tag('Building');
+    f.propertyLatitude = num(source.propertyLatitude ?? source.latitude);
+    f.propertyLongitude = num(source.propertyLongitude ?? source.longitude);
+    f.contactName = source.ownerName || '';
+    f.contactPhone = source.ownerPhoneNumber || '';
+    f.agentName = source.agentName || f.agentName;
+    f.agentPhone = source.agentPhoneNumber || source.phoneNumber || f.agentPhone;
+    const images = source.imageUrls?.length
+      ? source.imageUrls
+      : (source.images || []).map((image) => image.url || '').filter(Boolean);
+    f.imageUrls = images.length ? [...images] : source.imageUrl ? [source.imageUrl] : [];
+    f.imageUrl = f.imageUrls[0] || '';
+    this.activeStep = 0;
   }
 
   dismissNotification(message: PendingApartment): void {
@@ -702,6 +823,10 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   checkDuplicates(): void {
+    if (this.isEditMode) {
+      this.duplicateMatch = null;
+      return;
+    }
     if (!this.selectedDistrictValue || !this.selectedStreetId || !this.form.area || !this.form.totalPrice) {
       this.duplicateMatch = null;
       return;
@@ -1090,7 +1215,9 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     // Fresh duplicate check right before publishing so agents cannot post
     // the same apartment twice (area + price + street + rooms/bedrooms/floor).
-    if (this.duplicateDismissedForKey !== this.duplicateSignature) {
+    if (this.isEditMode) {
+      this.duplicateMatch = null;
+    } else if (this.duplicateDismissedForKey !== this.duplicateSignature) {
       try {
         const apartments = await firstValueFrom(this.apartmentService.getApartments());
         const duplicate = this.findDuplicate(apartments || []);
@@ -1130,6 +1257,34 @@ export class UploadApartment implements OnInit, OnDestroy {
     // Google callbacks resume outside NgZone, which would leave the page stuck
     // on "loading" until the next click. Re-enter the zone before sending.
     await new Promise<void>((resolve) => this.zone.run(() => resolve()));
+
+    if (this.editPendingId) {
+      this.pendingService.updateSubmission(this.editPendingId, this.toCreateApartment(false, nearbyTimes));
+      this.loading = false;
+      this.successMessage = 'Changes saved and sent for approval.';
+      this.openSuccessModal(true, true);
+      return;
+    }
+
+    if (this.editId) {
+      this.apartmentService.updateApartment(this.editId, this.toCreateApartment(true, nearbyTimes)).subscribe({
+        next: () => {
+          this.loading = false;
+          this.successMessage = 'Listing updated.';
+          this.openSuccessModal(false, true);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.loading = false;
+          this.errorMessage = error.status === 403
+            ? 'You do not have permission to change this listing.'
+            : error.status === 401
+              ? 'Your session expired. Please sign in again.'
+              : `Could not update the listing (HTTP ${error.status || 'network error'}).`;
+          this.cdr.detectChanges();
+        },
+      });
+      return;
+    }
 
     if (!this.authService.isAdmin) {
       this.pendingService.submit(this.toCreateApartment(false, nearbyTimes), this.authService.currentUser).subscribe({
@@ -1176,8 +1331,9 @@ export class UploadApartment implements OnInit, OnDestroy {
     });
   }
 
-  private openSuccessModal(pending: boolean): void {
+  private openSuccessModal(pending: boolean, edited = false): void {
     this.zone.run(() => {
+      this.successModalEdited = edited;
       this.successModalPending = pending;
       this.showSuccessModal = true;
       this.cdr.detectChanges();
@@ -1186,6 +1342,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   closeSuccessModal(): void {
     this.showSuccessModal = false;
+    if (this.successModalEdited) void this.router.navigate(['/my-listings']);
   }
 
   private toCreateApartment(
@@ -1198,6 +1355,9 @@ export class UploadApartment implements OnInit, OnDestroy {
     const title = this.form.title.trim() || `${this.form.realEstateType} ${this.form.dealType}`;
     const currentUser = this.authService.currentUser;
     const planLabel = this.isExclusivePlan ? 'Velven Exclusive' : 'Basic List';
+    // When editing, the listing keeps its original owner, not whoever is editing it.
+    const ownerId = this.isEditMode ? this.metaTag(this.editOriginalMeta, 'Owner ID') : currentUser?.id;
+    const ownerEmail = this.isEditMode ? this.metaTag(this.editOriginalMeta, 'Owner Email') : currentUser?.email;
     const meta = [
       `Listing plan: ${planLabel}`,
       `Type: ${this.form.realEstateType}`,
@@ -1235,8 +1395,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.hasCompanyLease ? 'Company lease available: Yes' : '',
       this.form.cadastralCode ? `Cadastral: ${this.form.cadastralCode}` : '',
       this.form.agentName ? `Contact: ${this.form.agentName}` : '',
-      currentUser?.id ? `Owner ID: ${currentUser.id}` : '',
-      currentUser?.email ? `Owner Email: ${currentUser.email}` : '',
+      ownerId ? `Owner ID: ${ownerId}` : '',
+      ownerEmail ? `Owner Email: ${ownerEmail}` : '',
     ]
       .filter(Boolean)
       .join(' | ');

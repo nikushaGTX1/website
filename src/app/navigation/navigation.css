@@ -728,3 +728,19 @@
     box-shadow: none;
   }
 }
+
+/* Collapsed menu on small laptops/tablets: keep the account controls on the
+ * right so the profile dropdown opens inside the screen instead of off the left edge. */
+@media (min-width: 621px) and (max-width: 1020px) {
+  .nav-actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 1021px) and (max-width: 1450px) {
+  :host-context(html:lang(ka)) .nav-actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}

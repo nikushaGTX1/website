@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Apartment, CreateApartment } from '../models/apartment';
@@ -6,10 +6,6 @@ import { User } from '../models/user';
 import { ApartmentService } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
-import { ApiLocation, LocationSuggestion } from '../models/location';
-import { LocationService } from '../services/location.service';
-
-type ListingForm = CreateApartment;
 
 @Component({
   selector: 'app-my-listings',
@@ -21,28 +17,16 @@ export class MyListings implements OnInit, OnDestroy {
   user: User | null = null;
   listings: Apartment[] = [];
   pendingListings: PendingApartment[] = [];
-  editingId: number | null = null;
-  editingPendingId: string | null = null;
-  editForm: ListingForm = this.createEmptyForm();
-
   loading = false;
   saving = false;
   successMessage = '';
   errorMessage = '';
-  locationEntries: ApiLocation[] = [];
-  locationLoading = false;
-  locationError = false;
-  editLocationPicker: 'area' | 'street' | null = null;
-  selectedEditDistrictValue = '';
-  selectedEditStreetValue = '';
-
   private subscriptions = new Subscription();
 
   constructor(
     private apartmentService: ApartmentService,
     private authService: AuthService,
     private pendingService: PendingApartmentService,
-    private locationService: LocationService,
   ) {}
 
   ngOnInit(): void {
@@ -61,24 +45,6 @@ export class MyListings implements OnInit, OnDestroy {
       })
     );
 
-    this.locationLoading = true;
-    this.subscriptions.add(
-      this.locationService.getLocations().subscribe({
-        next: (locations) => {
-          this.locationEntries = locations;
-          this.locationLoading = false;
-        },
-        error: () => {
-          this.locationLoading = false;
-          this.locationError = true;
-        },
-      }),
-    );
-  }
-
-  @HostListener('document:click')
-  closeEditLocationPicker(): void {
-    this.editLocationPicker = null;
   }
 
   ngOnDestroy(): void {
@@ -102,158 +68,13 @@ export class MyListings implements OnInit, OnDestroy {
     });
   }
 
-  startEdit(apartment: Apartment): void {
-    this.editingId = apartment.id;
-    this.editingPendingId = null;
-    this.successMessage = '';
-    this.errorMessage = '';
-    this.editForm = this.toListingForm(apartment);
-    this.selectedEditDistrictValue = apartment.district || '';
-    this.selectedEditStreetValue = apartment.street || '';
-  }
-
-  startPendingEdit(request: PendingApartment): void {
-    this.editingId = null;
-    this.editingPendingId = request.id;
-    this.successMessage = '';
-    this.errorMessage = '';
-    this.editForm = this.toListingForm(request.apartment);
-    this.selectedEditDistrictValue = request.apartment.district || '';
-    this.selectedEditStreetValue = '';
-  }
-
-  cancelEdit(): void {
-    this.editingId = null;
-    this.editingPendingId = null;
-    this.editForm = this.createEmptyForm();
-    this.editLocationPicker = null;
-    this.selectedEditDistrictValue = '';
-    this.selectedEditStreetValue = '';
-  }
-
-  get editAreaSuggestions(): LocationSuggestion[] {
-    const query = (this.editForm.district || '').trim().toLowerCase();
-    const language = this.locationService.languageForQuery(this.editForm.district);
-    return this.locationEntries
-      .filter((entry) => entry.city === 'Tbilisi')
-      .filter((entry) =>
-        !query ||
-        entry.district.toLowerCase().includes(query) ||
-        this.locationService.districtName(entry, language).toLowerCase().includes(query),
-      )
-      .slice(0, 10)
-      .map((entry) => ({
-        label: this.locationService.districtName(entry, language),
-        value: entry.district,
-        type: 'Area',
-      }));
-  }
-
-  get editStreetSuggestions(): LocationSuggestion[] {
-    const query = (this.editForm.address || '').trim().toLowerCase();
-    const language = this.locationService.languageForQuery(
-      this.editForm.address,
-      this.editForm.district,
-    );
-    if (!this.selectedEditDistrictValue && query.length < 2) return [];
-    const suggestions: LocationSuggestion[] = [];
-
-    for (const entry of this.locationEntries.filter((item) =>
-      item.city === 'Tbilisi' &&
-      (!this.selectedEditDistrictValue || item.district === this.selectedEditDistrictValue),
-    )) {
-      for (const street of this.locationService.streetNames(entry, language)) {
-        if (!query || street.value.toLowerCase().includes(query) || street.label.toLowerCase().includes(query)) {
-          suggestions.push({
-            label: street.label,
-            value: street.value,
-            type: 'Street',
-            district: this.locationService.districtName(entry, language),
-          });
-          if (suggestions.length === 10) return suggestions;
-        }
-      }
-    }
-    return suggestions;
-  }
-
-  openEditLocationPicker(type: 'area' | 'street'): void {
-    this.editLocationPicker = type;
-  }
-
-  onEditDistrictInput(): void {
-    this.selectedEditDistrictValue = '';
-    this.openEditLocationPicker('area');
-  }
-
-  onEditAddressInput(): void {
-    this.selectedEditStreetValue = '';
-    this.openEditLocationPicker('street');
-  }
-
-  selectEditArea(suggestion: LocationSuggestion): void {
-    this.editForm.district = suggestion.label;
-    this.selectedEditDistrictValue = suggestion.value || suggestion.label;
-    this.editLocationPicker = null;
-  }
-
-  selectEditStreet(suggestion: LocationSuggestion): void {
-    this.editForm.address = suggestion.label;
-    this.selectedEditStreetValue = suggestion.value || suggestion.label;
-    this.editForm.street = this.selectedEditStreetValue;
-    this.editLocationPicker = null;
-  }
-
-  editLocationText(english: string, georgian: string): string {
-    return this.locationService.languageForQuery(
-      this.editForm.address,
-      this.editForm.district,
-    ) === 'ka'
-      ? georgian
-      : english;
-  }
-
-  savePendingEdit(request: PendingApartment): void {
-    if (!this.validateForm()) return;
-
-    this.pendingService.updateSubmission(request.id, this.normalizedForm());
-    this.successMessage = 'Changes saved and sent for approval.';
-    this.errorMessage = '';
-    this.cancelEdit();
-  }
-
   deletePendingListing(request: PendingApartment): void {
     if (!confirm(`Delete "${request.apartment.title}"?`)) return;
 
     if (this.pendingService.remove(request.id)) {
       this.successMessage = 'Upload request deleted.';
       this.errorMessage = '';
-      this.cancelEdit();
-    }
-  }
-
-  saveEdit(apartment: Apartment): void {
-    if (this.saving) return;
-
-    this.successMessage = '';
-    this.errorMessage = '';
-
-    if (!this.validateForm()) return;
-
-    this.saving = true;
-
-    this.apartmentService.updateApartment(apartment.id, this.normalizedForm()).subscribe({
-      next: () => {
-        this.saving = false;
-        this.successMessage = 'Listing updated.';
-        this.cancelEdit();
-        this.loadListings();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.saving = false;
-        this.errorMessage = this.getApiError(error, 'Could not update this listing.');
-      },
-    });
+          }
   }
 
   deleteListing(apartment: Apartment): void {
@@ -270,11 +91,6 @@ export class MyListings implements OnInit, OnDestroy {
         this.errorMessage = this.getApiError(error, 'Could not delete this listing.');
       },
     });
-  }
-
-  onImagesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.editForm.imageFiles = Array.from(input.files || []).slice(0, 15);
   }
 
   getStatusLabel(status: PendingApartment['status']): string {
@@ -330,90 +146,6 @@ export class MyListings implements OnInit, OnDestroy {
       Number(request.price) === Number(apartment.price) &&
       normalize(request.address) === normalize(apartment.address)
     );
-  }
-
-  private createEmptyForm(): ListingForm {
-    return {
-      title: '',
-      description: '',
-      price: 0,
-      address: '',
-      imageUrl: '',
-      imageUrls: [],
-    };
-  }
-
-  private toListingForm(apartment: Partial<Apartment & CreateApartment>): ListingForm {
-    return {
-      title: apartment.title || '',
-      description: apartment.description || '',
-      price: Number(apartment.price) || 0,
-      address: apartment.address || '',
-      city: apartment.city || 'Tbilisi',
-      region: apartment.region || '',
-      district: apartment.district || '',
-      street: apartment.street || '',
-      bedrooms: apartment.bedrooms ?? 0,
-      bathrooms: apartment.bathrooms ?? 0,
-      sizeSquareMeters: apartment.sizeSquareMeters ?? 0,
-      floor: apartment.floor ?? 0,
-      totalFloors: apartment.totalFloors ?? 1,
-      hasElevator: !!apartment.hasElevator,
-      hasParking: !!apartment.hasParking,
-      hasBalcony: !!apartment.hasBalcony,
-      hasBathtub: !!apartment.hasBathtub,
-      hasAirConditioning: !!apartment.hasAirConditioning,
-      hasDishwasher: !!apartment.hasDishwasher,
-      isPetFriendly: !!apartment.isPetFriendly,
-      hasHomeOfficeSpace: !!apartment.hasHomeOfficeSpace,
-      hasLargeKitchen: !!apartment.hasLargeKitchen,
-      hasView: !!apartment.hasView,
-      isFurnished: !!apartment.isFurnished,
-      apartmentStyle: apartment.apartmentStyle || '',
-      imageUrl: apartment.imageUrl || '',
-      imageUrls: [...(apartment.imageUrls || [])],
-    };
-  }
-
-  private validateForm(): boolean {
-    this.successMessage = '';
-    this.errorMessage = '';
-
-    if (!this.editForm.title.trim() || Number(this.editForm.price) <= 0) {
-      this.errorMessage = 'Title and a valid price are required.';
-      return false;
-    }
-
-    return true;
-  }
-
-  private normalizedForm(): ListingForm {
-    return {
-      ...this.editForm,
-      title: this.editForm.title.trim(),
-      description: this.editForm.description.trim(),
-      price: Number(this.editForm.price),
-      address: this.selectedEditStreetValue || this.editForm.address?.trim(),
-      city: this.editForm.city?.trim() || 'Tbilisi',
-      region:
-        this.locationEntries.find(
-          (entry) => entry.district === (this.selectedEditDistrictValue || this.editForm.district),
-        )?.region ||
-        this.editForm.region?.trim() ||
-        '',
-      district:
-        this.selectedEditDistrictValue ||
-        this.editForm.district?.trim() ||
-        this.editForm.address?.trim() ||
-        'Tbilisi',
-      street: this.selectedEditStreetValue || this.editForm.street?.trim() || this.editForm.address?.trim(),
-      bedrooms: Number(this.editForm.bedrooms) || 0,
-      bathrooms: Number(this.editForm.bathrooms) || 0,
-      sizeSquareMeters: Number(this.editForm.sizeSquareMeters) || 0,
-      floor: Number(this.editForm.floor) || 0,
-      totalFloors: Math.max(1, Number(this.editForm.totalFloors) || 1),
-      imageUrl: this.editForm.imageUrl?.trim() || undefined,
-    };
   }
 
   private getApiError(error: HttpErrorResponse, fallback: string): string {

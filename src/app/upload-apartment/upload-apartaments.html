@@ -44,6 +44,8 @@
     All properties are verified. We protect your privacy and your time.
   </p>
 
+  <div class="edit-mode-banner" *ngIf="isEditMode"><i class="fa-solid fa-pen-to-square"></i><span>{{ editLoading ? 'Loading your listing…' : 'You are editing your listing. Change anything and press save.' }}</span></div>
+
   <div class="upload-layout" *ngIf="selectedListingPlan">
     <aside class="upload-sidebar" aria-label="Listing progress">
       <div class="chosen-plan-card" [class.exclusive]="isExclusivePlan">
@@ -499,10 +501,10 @@
 <div class="upload-success-backdrop" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
   <div class="upload-success-modal" role="dialog" aria-modal="true" aria-labelledby="upload-success-title" (click)="$event.stopPropagation()">
     <span class="upload-success-icon"><i class="fa-solid fa-circle-check"></i></span>
-    <h3 id="upload-success-title" data-no-translate>{{ successModalPending ? 'განცხადება გაიგზავნა!' : 'განცხადება აიტვირთა!' }}</h3>
-    <p data-no-translate>{{ successModalPending ? 'თქვენი განცხადება გაიგზავნა ადმინისტრატორთან დასადასტურებლად. დამტკიცების შემდეგ ის გამოქვეყნდება.' : 'თქვენი განცხადება წარმატებით გამოქვეყნდა.' }}</p>
-    <h4 data-no-translate>{{ successModalPending ? 'Listing submitted!' : 'Listing uploaded!' }}</h4>
-    <p data-no-translate>{{ successModalPending ? 'Your apartment was sent for admin confirmation. It will be published after approval.' : 'Your apartment listing was published successfully.' }}</p>
+    <h3 id="upload-success-title" data-no-translate>{{ successModalEdited ? 'განცხადება განახლდა!' : successModalPending ? 'განცხადება გაიგზავნა!' : 'განცხადება აიტვირთა!' }}</h3>
+    <p data-no-translate>{{ successModalEdited ? 'ცვლილებები წარმატებით შეინახა.' : successModalPending ? 'თქვენი განცხადება გაიგზავნა ადმინისტრატორთან დასადასტურებლად. დამტკიცების შემდეგ ის გამოქვეყნდება.' : 'თქვენი განცხადება წარმატებით გამოქვეყნდა.' }}</p>
+    <h4 data-no-translate>{{ successModalEdited ? 'Listing updated!' : successModalPending ? 'Listing submitted!' : 'Listing uploaded!' }}</h4>
+    <p data-no-translate>{{ successModalEdited ? 'Your changes were saved successfully.' : successModalPending ? 'Your apartment was sent for admin confirmation. It will be published after approval.' : 'Your apartment listing was published successfully.' }}</p>
     <button type="button" (click)="closeSuccessModal()" data-no-translate>OK / კარგი</button>
   </div>
 </div>

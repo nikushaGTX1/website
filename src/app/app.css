@@ -44,3 +44,9 @@
 @media (prefers-reduced-motion: reduce) {
   .route-content { animation: none; }
 }
+
+/* The route container only receives programmatic focus (skip link); never draw a ring around the whole page. */
+.route-content:focus,
+.route-content:focus-visible {
+  outline: none;
+}

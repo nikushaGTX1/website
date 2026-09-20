@@ -53,7 +53,10 @@ export class AgentProfile implements OnInit {
       next: (agents) => {
         console.log('Agents loaded:', agents);
 
-        this.allAgents = agents.map((agent) => this.toAgentCard(agent));
+        // The site administrator account is an agent in the database but must not be listed publicly.
+        this.allAgents = agents
+          .filter((agent) => !/^admin(istrator)?$/i.test((agent.userName || '').trim()) && !/^admin(istrator)?$/i.test((agent.fullName || agent.name || '').trim()))
+          .map((agent) => this.toAgentCard(agent));
         this.onFilterChange();
 
         this.isLoading = false;
