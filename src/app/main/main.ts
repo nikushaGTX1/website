@@ -32,6 +32,64 @@ export class Main implements OnInit, OnDestroy {
   set locationOpen(value: boolean) {
     this._locationOpen = value;
     document.body.classList.toggle('location-picker-open', value);
+    if (value) this.sheetHeight = null; // reopen at the default height
+  }
+
+  /** Mobile bottom sheet: height in px while dragged/snapped, null = CSS default (about half). */
+  sheetHeight: number | null = null;
+  sheetDragging = false;
+  private sheetDragStartY = 0;
+  private sheetDragStartHeight = 0;
+  private sheetDragMoved = false;
+  private sheetLastY = 0;
+  private sheetVelocity = 0;
+
+  private sheetBounds(handle: HTMLElement): { min: number; half: number; max: number } {
+    const body = handle.closest('.location-modal-body') as HTMLElement | null;
+    const total = body?.clientHeight || window.innerHeight * 0.7;
+    return { min: 92, half: Math.round(total * 0.46), max: Math.round(total - 8) };
+  }
+
+  sheetPointerDown(event: PointerEvent): void {
+    const handle = event.currentTarget as HTMLElement;
+    const sheet = handle.parentElement as HTMLElement;
+    handle.setPointerCapture(event.pointerId);
+    this.sheetDragging = true;
+    this.sheetDragMoved = false;
+    this.sheetDragStartY = event.clientY;
+    this.sheetLastY = event.clientY;
+    this.sheetVelocity = 0;
+    this.sheetDragStartHeight = sheet.getBoundingClientRect().height;
+  }
+
+  sheetPointerMove(event: PointerEvent): void {
+    if (!this.sheetDragging) return;
+    const handle = event.currentTarget as HTMLElement;
+    const { min, max } = this.sheetBounds(handle);
+    const delta = this.sheetDragStartY - event.clientY;
+    if (Math.abs(delta) > 4) this.sheetDragMoved = true;
+    this.sheetVelocity = this.sheetLastY - event.clientY; // + when moving up
+    this.sheetLastY = event.clientY;
+    this.sheetHeight = Math.min(max, Math.max(min, this.sheetDragStartHeight + delta));
+  }
+
+  sheetPointerUp(event: PointerEvent): void {
+    if (!this.sheetDragging) return;
+    this.sheetDragging = false;
+    const handle = event.currentTarget as HTMLElement;
+    const { min, half, max } = this.sheetBounds(handle);
+    const current = this.sheetHeight ?? this.sheetDragStartHeight;
+    const points = [min, half, max];
+    if (!this.sheetDragMoved) {
+      // A tap toggles between the small and the half height.
+      this.sheetHeight = current > half - 20 ? min : half;
+      return;
+    }
+    // Flick: follow the direction of the swipe, otherwise snap to the nearest point.
+    const projected = current + this.sheetVelocity * 12;
+    this.sheetHeight = points.reduce((best, point) =>
+      Math.abs(point - projected) < Math.abs(best - projected) ? point : best,
+    );
   }
   locationLoading = false;
   locationError = false;

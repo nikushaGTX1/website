@@ -4250,3 +4250,123 @@
 .testimonial-grid aside a {
   margin-top: 10px;
 }
+
+/* Location picker on phones: the map fills the screen and the area list is a draggable
+   bottom sheet (Airbnb style). Drag the handle up for the list, down for a bigger map. */
+.sheet-handle {
+  display: none;
+}
+@media (max-width: 650px) {
+  .location-picker-dialog {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    overflow: hidden !important;
+  }
+  .location-modal-header,
+  .location-modal-footer {
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+  }
+  .location-modal-body {
+    position: relative;
+    display: block !important;
+    min-height: 0;
+    overflow: hidden !important;
+    touch-action: none;
+  }
+  .location-modal-body > * {
+    padding: 0;
+  }
+  .location-map-preview {
+    position: absolute !important;
+    inset: 0;
+    display: block !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    order: 0;
+    border: 0 !important;
+    touch-action: auto;
+  }
+  .inline-google-draw {
+    display: block !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  .area-map-card {
+    top: 10px !important;
+    bottom: auto !important;
+  }
+  .area-picker-column {
+    position: absolute !important;
+    z-index: 5;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: var(--sheet-h, 46%) !important;
+    max-height: none !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 22px 22px 0 0;
+    background: #fff;
+    box-shadow: 0 -10px 30px rgba(20, 32, 58, 0.2);
+    transition: height 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    touch-action: none;
+  }
+  .area-picker-column.dragging {
+    transition: none;
+  }
+  .sheet-handle {
+    flex: none;
+    padding: 12px 0 10px;
+    display: grid;
+    place-items: center;
+    cursor: grab;
+    touch-action: none;
+  }
+  .sheet-handle span {
+    width: 46px;
+    height: 5px;
+    border-radius: 3px;
+    background: #cfc8dc;
+  }
+  .sheet-scroll {
+    min-height: 0;
+    padding: 0 14px 18px;
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+@media (max-width: 650px) {
+  .location-map-preview > .inline-google-draw {
+    position: absolute;
+    inset: 0;
+    display: block !important;
+    width: 100%;
+    height: 100% !important;
+  }
+}
+@media (max-width: 650px) {
+  /* Contain the map's own z-index so the bottom sheet always sits above it. */
+  .location-map-preview {
+    z-index: 1;
+    isolation: isolate;
+  }
+  .location-map-preview > .inline-google-draw {
+    z-index: 0 !important;
+  }
+}

@@ -13,15 +13,29 @@ import {
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import Supercluster from 'supercluster';
 import { Apartment } from '../../models/apartment';
 
-interface PropertyMarker {
+interface MapPoint {
   apartment: Apartment;
+  lat: number;
+  lng: number;
+}
+
+type MarkerKind = 'apartment' | 'cluster' | 'group';
+
+interface PropertyMarker {
+  key: string;
+  kind: MarkerKind;
+  apartment?: Apartment;
   marker: google.maps.marker.AdvancedMarkerElement;
   wrapper: HTMLDivElement;
   button: HTMLButtonElement;
-  tail: HTMLSpanElement;
+  tail?: HTMLSpanElement;
 }
+
+/** Apartments closer than this (meters) are treated as the same building. */
+const SAME_BUILDING_METERS = 25;
 
 export interface PropertyMapPreviewAnchor {
   apartment: Apartment;
@@ -65,6 +79,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   @Output() mapClicked = new EventEmitter<void>();
   @Output() previewAnchorChanged = new EventEmitter<PropertyMapPreviewAnchor>();
   @Output() visibleApartmentsChanged = new EventEmitter<Apartment[]>();
+  /** Several apartments share one building: the parent shows them in a group panel. */
+  @Output() groupSelected = new EventEmitter<Apartment[]>();
   @ViewChild('mapCanvas') mapCanvas?: ElementRef<HTMLDivElement>;
 
   loading = true;
@@ -75,7 +91,12 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
   private map?: google.maps.Map;
   private geocoder?: google.maps.Geocoder;
-  private markers: PropertyMarker[] = [];
+  private markers = new Map<string, PropertyMarker>();
+  private points: MapPoint[] = [];
+  private index?: Supercluster<{ id: number }, { id: number }>;
+  private syncTimer?: number;
+  private lastViewportKey = '';
+  private pointsRevision = 0;
   private viewReady = false;
   private renderRevision = 0;
   private idleListener?: google.maps.MapsEventListener;
@@ -100,12 +121,14 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (!this.viewReady) return;
     // Filtering should update the pins without unexpectedly moving or zooming
     // the map. The initial load and the recenter control still fit all homes.
-    if (changes['apartments'] && this.map) void this.renderMarkers(false);
+    if (changes['apartments'] && this.map) void this.rebuildPoints(false);
     if (changes['selectedApartmentId']) this.updateSelectedMarker();
   }
 
   ngOnDestroy(): void {
     this.renderRevision += 1;
+    this.pointsRevision += 1;
+    if (this.syncTimer) window.clearTimeout(this.syncTimer);
     this.idleListener?.remove();
     this.clickListener?.remove();
     this.boundsListener?.remove();
@@ -171,11 +194,18 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       this.clickListener = this.map.addListener('click', () => {
         this.zone.run(() => this.mapClicked.emit());
       });
+      // 'idle' fires once the pan/zoom has finished, so nothing runs while dragging.
+      // The short debounce merges the idle events of rapid consecutive gestures.
       this.idleListener = this.map.addListener('idle', () => {
-        this.zone.run(() => {
-          this.emitVisibleApartments();
-          this.emitSelectedPreviewAnchor();
-        });
+        if (this.syncTimer) window.clearTimeout(this.syncTimer);
+        this.syncTimer = window.setTimeout(() => {
+          this.syncTimer = undefined;
+          this.syncMarkers();
+          this.zone.run(() => {
+            this.emitVisibleApartments();
+            this.emitSelectedPreviewAnchor();
+          });
+        }, 60);
       });
       this.boundsListener = this.map.addListener('bounds_changed', () => {
         if (this.previewFrame) cancelAnimationFrame(this.previewFrame);
@@ -206,7 +236,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       // Keep the constructor available without loading the marker library again.
       this.advancedMarkerConstructor = AdvancedMarkerElement;
       this.geocoder = new Geocoder();
-      await this.renderMarkers(true);
+      await this.rebuildPoints(true);
     } catch (error) {
       console.error('Explore map failed to load:', error);
       this.errorMessage = 'The property map could not be loaded.';
@@ -218,83 +248,232 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
   private advancedMarkerConstructor?: typeof google.maps.marker.AdvancedMarkerElement;
 
-  private async renderMarkers(fitBounds: boolean): Promise<void> {
+  /** Resolves every apartment's position once, then (re)builds the cluster index. */
+  private async rebuildPoints(fitBounds: boolean): Promise<void> {
     if (!this.map || !this.advancedMarkerConstructor) return;
-    const revision = ++this.renderRevision;
-    this.clearMarkers();
+    const revision = ++this.pointsRevision;
 
-    const locatedApartments = (
-      await Promise.all(
-        this.apartments.map(async (apartment) => ({
-          apartment,
-          position: await this.resolvePosition(apartment),
-        })),
-      )
-    ).filter(
-      (item): item is { apartment: Apartment; position: google.maps.LatLngLiteral } =>
-        item.position !== null,
-    );
-
-    if (revision !== this.renderRevision) return;
-    const positionCounts = new Map<string, number>();
-    const positionIndexes = new Map<string, number>();
-    locatedApartments.forEach(({ position }) => {
-      const key = this.positionKey(position);
-      positionCounts.set(key, (positionCounts.get(key) || 0) + 1);
-    });
-
-    for (const { apartment, position } of locatedApartments) {
-      const key = this.positionKey(position);
-      const markerIndex = positionIndexes.get(key) || 0;
-      const markerCount = positionCounts.get(key) || 1;
-      positionIndexes.set(key, markerIndex + 1);
-      const offsetX = (markerIndex - (markerCount - 1) / 2) * 66;
-      const { wrapper, button, tail } = this.createPricePin(apartment, offsetX);
-      const marker = new this.advancedMarkerConstructor({
-        map: this.map,
-        position,
-        content: wrapper,
-        zIndex: apartment.id === this.selectedApartmentId ? 100 : 1,
-      });
-      button.addEventListener('click', (event) => {
-        event.stopPropagation();
-        this.zone.run(() => {
-          this.emitPreviewAnchor(apartment, button, true);
-        });
-      });
-      const showHoverState = () => this.setMarkerHoverState(apartment.id, true);
-      const hideHoverState = () => this.setMarkerHoverState(apartment.id, false);
-      button.addEventListener('pointerenter', showHoverState);
-      button.addEventListener('pointerleave', hideHoverState);
-      button.addEventListener('focus', showHoverState);
-      button.addEventListener('blur', hideHoverState);
-      this.markers.push({ apartment, marker, wrapper, button, tail });
-    }
-
-    this.mappedApartmentCount = this.markers.length;
-    this.updateSelectedMarker();
-    if (fitBounds) {
-      if (!this.initialPropertyFocused && this.markers.length) {
-        this.focusRandomProperty();
-        this.initialPropertyFocused = true;
-      } else {
-        this.fitVisibleProperties();
+    // Resolve positions in small batches so listings without stored coordinates
+    // (which may need geocoding) never open dozens of requests at once.
+    const points: MapPoint[] = [];
+    const batchSize = 12;
+    for (let start = 0; start < this.apartments.length; start += batchSize) {
+      const batch = this.apartments.slice(start, start + batchSize);
+      const resolved = await Promise.all(
+        batch.map(async (apartment) => ({ apartment, position: await this.resolvePosition(apartment) })),
+      );
+      if (revision !== this.pointsRevision) return; // a newer filter/result set replaced this one
+      for (const { apartment, position } of resolved) {
+        if (position) points.push({ apartment, lat: position.lat, lng: position.lng });
       }
     }
+    if (revision !== this.pointsRevision) return;
+
+    this.points = points;
+    // maxZoom is above the map's zoom limit, so apartments at the same spot always stay
+    // in one cluster (a building) instead of being spread over each other.
+    const index = new Supercluster<{ id: number }, { id: number }>({
+      radius: 100,
+      minZoom: 0,
+      maxZoom: 24,
+      minPoints: 2,
+      nodeSize: 64,
+    });
+    index.load(
+      points.map((point) => ({
+        type: 'Feature' as const,
+        properties: { id: point.apartment.id },
+        geometry: { type: 'Point' as const, coordinates: [point.lng, point.lat] },
+      })),
+    );
+    this.index = index;
+    this.mappedApartmentCount = points.length;
+    this.lastViewportKey = '';
+
+    if (fitBounds) this.fitVisibleProperties();
+    this.syncMarkers();
     this.refreshView();
   }
 
-  private focusRandomProperty(): void {
-    if (!this.map || !this.markers.length) return;
-    const item = this.markers[Math.floor(Math.random() * this.markers.length)];
-    const position = item.marker.position;
-    if (!position) return;
-    requestAnimationFrame(() => {
-      this.map?.moveCamera({
-        center: position as google.maps.LatLng | google.maps.LatLngLiteral,
-        zoom: 15,
-      });
+  /** Renders only what the current viewport and zoom need: clusters, buildings and single prices. */
+  private syncMarkers(): void {
+    if (!this.map || !this.index || !this.advancedMarkerConstructor) return;
+    const bounds = this.map.getBounds();
+    const zoom = this.map.getZoom();
+    if (!bounds || zoom === undefined) return;
+
+    const north = bounds.getNorthEast().lat();
+    const east = bounds.getNorthEast().lng();
+    const south = bounds.getSouthWest().lat();
+    const west = bounds.getSouthWest().lng();
+    // Query slightly beyond the viewport so small pans do not reveal empty edges.
+    const latPad = (north - south) * 0.15;
+    const lngPad = (east - west) * 0.15;
+    const bbox: [number, number, number, number] = [
+      Math.max(-180, west - lngPad),
+      Math.max(-85, south - latPad),
+      Math.min(180, east + lngPad),
+      Math.min(85, north + latPad),
+    ];
+    const clusterZoom = Math.min(24, Math.max(0, Math.floor(zoom)));
+    const key = [bbox.map((v) => v.toFixed(5)).join(','), clusterZoom, this.points.length, this.pointsRevision].join('|');
+    if (key === this.lastViewportKey) return;
+    this.lastViewportKey = key;
+
+    const features = this.index.getClusters(bbox, clusterZoom);
+    const wanted = new Map<string, () => PropertyMarker>();
+
+    for (const feature of features) {
+      const [lng, lat] = feature.geometry.coordinates;
+      const props = feature.properties as { cluster?: boolean; cluster_id?: number; point_count?: number; id?: number };
+      if (props.cluster && props.cluster_id !== undefined) {
+        const clusterId = props.cluster_id;
+        const count = props.point_count || 0;
+        const isBuilding = this.isSameBuilding(clusterId);
+        const markerKey = (isBuilding ? 'g:' : 'c:') + clusterId + ':' + count;
+        wanted.set(markerKey, () => this.createClusterMarker(markerKey, clusterId, count, isBuilding, { lat, lng }));
+      } else if (props.id !== undefined) {
+        const point = this.pointById(props.id);
+        if (!point) continue;
+        const markerKey = 'a:' + point.apartment.id;
+        wanted.set(markerKey, () => this.createApartmentMarker(markerKey, point));
+      }
+    }
+
+    // Keep markers that are still wanted (no flicker), drop the rest, add the new ones.
+    for (const [markerKey, entry] of this.markers) {
+      if (!wanted.has(markerKey)) {
+        entry.marker.map = null;
+        this.markers.delete(markerKey);
+      }
+    }
+    for (const [markerKey, factory] of wanted) {
+      if (!this.markers.has(markerKey)) this.markers.set(markerKey, factory());
+    }
+    this.updateSelectedMarker();
+  }
+
+  private pointsById?: Map<number, MapPoint>;
+  private pointsByIdRevision = -1;
+
+  private pointById(id: number): MapPoint | undefined {
+    if (this.pointsByIdRevision !== this.pointsRevision || !this.pointsById) {
+      this.pointsById = new Map(this.points.map((point) => [point.apartment.id, point]));
+      this.pointsByIdRevision = this.pointsRevision;
+    }
+    return this.pointsById.get(id);
+  }
+
+  /** True when a cluster cannot be separated by zooming: same coordinates or the same building. */
+  private isSameBuilding(clusterId: number): boolean {
+    if (!this.index) return false;
+    if (this.index.getClusterExpansionZoom(clusterId) > 20) return true;
+    const leaves = this.index.getLeaves(clusterId, 60);
+    if (leaves.length < 2) return false;
+    const [firstLng, firstLat] = leaves[0].geometry.coordinates;
+    return leaves.every((leaf) => {
+      const [lng, lat] = leaf.geometry.coordinates;
+      return this.distanceMeters(firstLat, firstLng, lat, lng) <= SAME_BUILDING_METERS;
     });
+  }
+
+  private distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLng = (lng2 - lng1) * rad;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
+    return 2 * 6371000 * Math.asin(Math.sqrt(a));
+  }
+
+  private createApartmentMarker(key: string, point: MapPoint): PropertyMarker {
+    const apartment = point.apartment;
+    const { wrapper, button, tail } = this.createPricePin(apartment);
+    const marker = new this.advancedMarkerConstructor!({
+      map: this.map,
+      position: { lat: point.lat, lng: point.lng },
+      content: wrapper,
+      zIndex: apartment.id === this.selectedApartmentId ? 100 : 1,
+    });
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.zone.run(() => this.emitPreviewAnchor(apartment, button, true));
+    });
+    const showHoverState = () => this.setMarkerHoverState(apartment.id, true);
+    const hideHoverState = () => this.setMarkerHoverState(apartment.id, false);
+    button.addEventListener('pointerenter', showHoverState);
+    button.addEventListener('pointerleave', hideHoverState);
+    button.addEventListener('focus', showHoverState);
+    button.addEventListener('blur', hideHoverState);
+    return { key, kind: 'apartment', apartment, marker, wrapper, button, tail };
+  }
+
+  private createClusterMarker(
+    key: string,
+    clusterId: number,
+    count: number,
+    isBuilding: boolean,
+    position: google.maps.LatLngLiteral,
+  ): PropertyMarker {
+    // Bigger clusters get a bigger disc; 44px is the minimum comfortable touch target.
+    const size = Math.round(Math.min(66, 44 + Math.log10(Math.max(count, 1)) * 12));
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'relative';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = count > 999 ? '999+' : String(count);
+    button.setAttribute(
+      'aria-label',
+      isBuilding ? count + ' homes in this building' : count + ' homes, zoom in to see them',
+    );
+    Object.assign(button.style, {
+      width: size + 'px',
+      height: size + 'px',
+      display: 'grid',
+      placeItems: 'center',
+      border: '3px solid rgba(255,255,255,.95)',
+      borderRadius: isBuilding ? '14px' : '50%',
+      background: isBuilding ? '#171421' : '#451a8f',
+      color: '#fff',
+      boxShadow: '0 6px 18px rgba(25, 16, 31, .32)',
+      fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+      fontSize: count > 99 ? '14px' : '16px',
+      fontWeight: '800',
+      lineHeight: '1',
+      cursor: 'pointer',
+      outline: 'none',
+      transition: 'transform .16s ease, box-shadow .16s ease',
+      touchAction: 'manipulation',
+    });
+    button.addEventListener('pointerenter', () => (button.style.transform = 'scale(1.08)'));
+    button.addEventListener('pointerleave', () => (button.style.transform = ''));
+    button.addEventListener('click', (event) => {
+      // A cluster click must not reach the map: it would count as a click on empty map.
+      event.stopPropagation();
+      this.zone.run(() => this.onClusterClicked(clusterId, isBuilding, position));
+    });
+    wrapper.appendChild(button);
+    const marker = new this.advancedMarkerConstructor!({
+      map: this.map,
+      position,
+      content: wrapper,
+      zIndex: 5,
+    });
+    return { key, kind: isBuilding ? 'group' : 'cluster', marker, wrapper, button };
+  }
+
+  private onClusterClicked(clusterId: number, isBuilding: boolean, position: google.maps.LatLngLiteral): void {
+    if (!this.index || !this.map) return;
+    if (isBuilding) {
+      const ids = this.index.getLeaves(clusterId, Infinity).map((leaf) => (leaf.properties as { id: number }).id);
+      const apartments = ids
+        .map((id) => this.pointById(id)?.apartment)
+        .filter((apartment): apartment is Apartment => !!apartment)
+        .sort((a, b) => a.price - b.price);
+      this.groupSelected.emit(apartments);
+      return;
+    }
+    const target = Math.min(this.index.getClusterExpansionZoom(clusterId), 20);
+    this.map.moveCamera({ center: position, zoom: Math.max(target, (this.map.getZoom() || 0) + 1) });
   }
 
   private createPricePin(apartment: Apartment, offsetX = 0): {
@@ -495,29 +674,33 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     return lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
   }
 
+  private apartmentMarkers(): PropertyMarker[] {
+    return [...this.markers.values()].filter((item) => item.kind === 'apartment' && item.apartment);
+  }
+
   private updateSelectedMarker(): void {
-    for (const item of this.markers) {
-      const selected = item.apartment.id === this.selectedApartmentId;
+    for (const item of this.apartmentMarkers()) {
+      const selected = item.apartment!.id === this.selectedApartmentId;
       item.button.style.background = selected ? '#451a8f' : '#fff';
       item.button.style.color = selected ? '#fff' : '#171421';
       item.button.style.transform = selected ? 'translateY(-9px) scale(1.1)' : 'translateY(-9px)';
       item.button.style.boxShadow = selected
         ? '0 9px 22px rgba(69, 26, 143, .32)'
         : '0 5px 14px rgba(25, 16, 31, .22)';
-      item.tail.style.background = selected ? '#451a8f' : '#fff';
+      if (item.tail) item.tail.style.background = selected ? '#451a8f' : '#fff';
       item.marker.zIndex = selected ? 100 : 1;
     }
   }
 
   private setMarkerHoverState(apartmentId: number, hovered: boolean): void {
-    const item = this.markers.find((marker) => marker.apartment.id === apartmentId);
-    if (!item) return;
+    const item = this.markers.get('a:' + apartmentId);
+    if (!item || !item.tail) return;
 
     const selected = apartmentId === this.selectedApartmentId;
     item.button.style.background = selected ? '#451a8f' : '#fff';
     item.button.style.color = selected ? '#fff' : '#171421';
     item.button.style.transform = hovered
-      ? `translateY(-15px) scale(${selected ? '1.1' : '1.04'})`
+      ? 'translateY(-15px) scale(' + (selected ? '1.1' : '1.04') + ')'
       : selected
         ? 'translateY(-9px) scale(1.1)'
         : 'translateY(-9px)';
@@ -529,10 +712,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   }
 
   private emitSelectedPreviewAnchor(): void {
-    const selected = this.markers.find(
-      (item) => item.apartment.id === this.selectedApartmentId,
-    );
-    if (selected) requestAnimationFrame(() => this.emitPreviewAnchor(selected.apartment, selected.button));
+    const selected = this.selectedApartmentId === null ? undefined : this.markers.get('a:' + this.selectedApartmentId);
+    if (selected?.apartment) requestAnimationFrame(() => this.emitPreviewAnchor(selected.apartment!, selected.button));
   }
 
   private emitPreviewAnchor(
@@ -557,18 +738,21 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   }
 
   private fitVisibleProperties(): void {
-    if (!this.map || !this.markers.length) return;
-    const bounds = new google.maps.LatLngBounds();
-    this.markers.forEach((item) => {
-      const position = item.marker.position;
-      if (position) bounds.extend(position);
-    });
-    if (this.markers.length === 1) {
-      this.map.setCenter(bounds.getCenter());
+    if (!this.map || !this.points.length) return;
+    // Ignore far-away outliers (a listing in another city) so the first view is the main area.
+    const lats = this.points.map((point) => point.lat).sort((a, b) => a - b);
+    const lngs = this.points.map((point) => point.lng).sort((a, b) => a - b);
+    const trim = this.points.length >= 20 ? Math.floor(this.points.length * 0.04) : 0;
+    const south = lats[trim];
+    const north = lats[lats.length - 1 - trim];
+    const west = lngs[trim];
+    const east = lngs[lngs.length - 1 - trim];
+    if (this.points.length === 1 || (north - south < 0.0005 && east - west < 0.0005)) {
+      this.map.setCenter({ lat: (north + south) / 2, lng: (east + west) / 2 });
       this.map.setZoom(15);
       return;
     }
-    this.map.fitBounds(bounds, 70);
+    this.map.fitBounds({ south, west, north, east }, 70);
     google.maps.event.addListenerOnce(this.map, 'idle', () => {
       const zoom = this.map?.getZoom() || 0;
       if (zoom > 16) this.map?.setZoom(16);
@@ -581,27 +765,18 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private emitVisibleApartments(): void {
     const bounds = this.map?.getBounds();
     // Do not replace the loaded results with an empty list during the map's
-    // first idle event, before async geocoding has produced its markers.
-    if (!bounds || !this.markers.length) return;
-    const visible = this.markers
-      .filter((item) => {
-        const position = item.marker.position;
-        if (!position) return false;
-        const point =
-          position instanceof google.maps.LatLng
-            ? position
-            : new google.maps.LatLng(position.lat, position.lng);
-        return bounds.contains(point);
-      })
-      .map((item) => item.apartment);
-    this.mappedApartmentCount = visible.length;
+    // first idle event, before async geocoding has produced its points.
+    if (!bounds || !this.points.length) return;
+    const visible = this.points
+      .filter((point) => bounds.contains({ lat: point.lat, lng: point.lng }))
+      .map((point) => point.apartment);
     this.visibleApartmentsChanged.emit(visible);
     this.refreshView();
   }
 
   private clearMarkers(): void {
     this.markers.forEach((item) => (item.marker.map = null));
-    this.markers = [];
+    this.markers.clear();
   }
 
   private compactPrice(price: number): string {

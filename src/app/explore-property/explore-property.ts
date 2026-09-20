@@ -1,3 +1,4 @@
+import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import {
   ChangeDetectorRef,
   Component,
@@ -270,6 +271,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const touch = event.touches[0];
     if (!touch) return;
     this.cardTouchOnPhoto = !!(event.target as Element | null)?.closest?.('.photo-wrap');
+    if (this.cardTouchOnPhoto) lockPageScroll();
     this.cardSwipeStartX = touch.clientX;
     this.cardSwipeStartY = touch.clientY;
     this.cardSwipePointerId = -1;
@@ -316,11 +318,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
   endCardSwipe(): void {
     this.cardSwipeStartX = null;
     this.cardSwipePointerId = null;
+    this.cardTouchOnPhoto = false;
+    unlockPageScroll();
   }
 
   cancelCardSwipe(): void {
     this.cardSwipeStartX = null;
     this.cardSwipePointerId = null;
+    this.cardTouchOnPhoto = false;
+    unlockPageScroll();
   }
 
   openCard(event: MouseEvent, apartment: Apartment): void {
@@ -959,16 +965,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.prefetchCardGalleries();
   }
 
-  onMapVisibleApartmentsChanged(apartments: Apartment[]): void {
-    if (!apartments.length && this.pageApartments.length) return;
-    this.visibleApartments = apartments;
-    if (
-      this.selectedApartment &&
-      !apartments.some((apartment) => apartment.id === this.selectedApartment?.id)
-    ) {
-      this.selectedApartment = apartments[0] ?? null;
-    }
-    this.cdr.detectChanges();
+  onMapVisibleApartmentsChanged(_apartments: Apartment[]): void {
+    // The map now shows every matching home as clusters and prices, so the card list keeps
+    // its own filtered pagination instead of being replaced by the map viewport.
   }
 
   get visiblePages(): number[] {
@@ -1391,7 +1390,28 @@ export class ExploreProperty implements OnInit, OnDestroy {
     }
   }
 
+  mapGroupApartments: Apartment[] | null = null;
+
+  openMapGroup(apartments: Apartment[]): void {
+    this.mapPreviewApartment = null;
+    this.selectedApartment = null;
+    this.mapGroupApartments = apartments.length ? apartments : null;
+    this.cdr.detectChanges();
+  }
+
+  openApartmentFromGroup(apartment: Apartment): void {
+    this.mapGroupApartments = null;
+    this.selectMapApartment(apartment);
+    this.mapPreviewPosition = { left: 16, top: 16 };
+    this.mapPreviewOffset = { x: 0, y: 0 };
+  }
+
+  trackGroupApartment(_: number, apartment: Apartment): number {
+    return apartment.id;
+  }
+
   selectMapApartment(apartment: Apartment): void {
+    this.mapGroupApartments = null;
     const apartmentChanged = this.mapPreviewApartment?.id !== apartment.id;
     this.selectedApartment = apartment;
     this.mapPreviewApartment = apartment;
@@ -1467,6 +1487,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   closeMapPreview(): void {
     this.mapPreviewApartment = null;
     this.selectedApartment = null;
+    this.mapGroupApartments = null;
   }
 
   getMapPreviewImages(apartment: Apartment): string[] {

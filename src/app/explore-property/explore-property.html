@@ -478,13 +478,31 @@
     </section>
     <aside class="map-pane" aria-label="Property map">
       <app-explore-property-map
-        [apartments]="pageApartments"
+        [apartments]="filteredApartments"
         [selectedApartmentId]="hoveredApartmentId ?? (mapPreviewApartment ? mapPreviewApartment.id : null)"
         (apartmentSelected)="selectMapApartment($event)"
         (mapClicked)="closeMapPreview()"
+        (groupSelected)="openMapGroup($event)"
         (previewAnchorChanged)="positionMapPreview($event)"
         (visibleApartmentsChanged)="onMapVisibleApartmentsChanged($event)"
       ></app-explore-property-map>
+      <div class="map-group-panel" *ngIf="mapGroupApartments as group" role="dialog" aria-label="Homes in this building">
+        <header>
+          <strong>{{ group.length }} homes in this building</strong>
+          <button type="button" aria-label="Close" (click)="closeMapPreview()"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <div class="map-group-list">
+          <button type="button" class="map-group-card" *ngFor="let item of group; trackBy: trackGroupApartment" (click)="openApartmentFromGroup(item)">
+            <img [src]="item.imageUrls?.[0] || item.imageUrl || '/property-placeholder.svg'" [alt]="item.title | listingTitle" loading="lazy" decoding="async" (error)="onApartmentImageError($event)" />
+            <span class="map-group-price">${{ item.price | number: '1.0-0' }}</span>
+            <span class="map-group-meta">
+              <span *ngIf="item.bedrooms"><i class="fa-solid fa-bed"></i> {{ item.bedrooms }}</span>
+              <span *ngIf="item.sizeSquareMeters"><i class="fa-solid fa-expand"></i> {{ item.sizeSquareMeters }} m²</span>
+              <span *ngIf="item.floor"><i class="fa-solid fa-layer-group"></i> {{ item.floor }}/{{ item.totalFloors }}</span>
+            </span>
+          </button>
+        </div>
+      </div>
       <div class="map-preview" *ngIf="mapPreviewApartment as apartment" [style.left.px]="mapPreviewPosition.left" [style.top.px]="mapPreviewPosition.top">
         <a class="map-preview-link" [routerLink]="['/apartments', apartment.id]" [attr.aria-label]="apartment.title | listingTitle"></a>
         <div class="map-preview-gallery" data-protected-image>

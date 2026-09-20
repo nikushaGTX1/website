@@ -1244,3 +1244,17 @@ h3 {
     width: 100%;
   }
 }
+
+/* Inside the phone location picker the map fills its whole container (bottom-sheet layout). */
+@media (max-width: 650px) {
+  :host(.inline-google-draw) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  :host(.inline-google-draw) .compact-map-shell,
+  :host(.inline-google-draw) .compact-draw-map {
+    height: 100%;
+    min-height: 0;
+  }
+}

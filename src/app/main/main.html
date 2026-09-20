@@ -70,7 +70,23 @@
               </header>
 
               <div class="location-modal-body">
-                <section class="area-picker-column">
+                <section
+                  class="area-picker-column"
+                  [class.dragging]="sheetDragging"
+                  [style.--sheet-h]="sheetHeight !== null ? sheetHeight + 'px' : null"
+                >
+                  <div
+                    class="sheet-handle"
+                    role="separator"
+                    aria-label="Drag to resize the list"
+                    (pointerdown)="sheetPointerDown($event)"
+                    (pointermove)="sheetPointerMove($event)"
+                    (pointerup)="sheetPointerUp($event)"
+                    (pointercancel)="sheetPointerUp($event)"
+                  >
+                    <span></span>
+                  </div>
+                  <div class="sheet-scroll">
                   <h3>Popular areas</h3>
                   <div class="featured-area-grid">
                     <button
@@ -127,6 +143,7 @@
                       <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                     </button>
                     <span class="areas-loading" *ngIf="locationLoading">Loading locations...</span>
+                  </div>
                   </div>
                 </section>
 

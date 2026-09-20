@@ -1033,12 +1033,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         const polygons =
           this.draw?.getSnapshot().filter((feature) => feature.geometry?.type === 'Polygon') || [];
         if (polygons.length > 1)
-          this.draw?.removeFeatures(polygons.slice(0, -1).map((feature) => feature.id));
+          this.draw?.removeFeatures(polygons.slice(0, -1).map((feature) => feature.id!));
         const latest = this.draw
           ?.getSnapshot()
           .find((feature) => feature.geometry?.type === 'Polygon');
         if (latest && this.distinctPolygonPointCount(latest) < 4) {
-          this.draw?.removeFeatures([latest.id]);
+          this.draw?.removeFeatures([latest.id!]);
           this.draw?.setMode('polyline');
           this.hasPolygon = false;
           this.polygonChange.emit(null);

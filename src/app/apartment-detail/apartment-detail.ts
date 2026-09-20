@@ -1,3 +1,4 @@
+import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectorRef,
@@ -17,6 +18,22 @@ import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
 import { CrmService } from '../services/crm.service';
 import { toMediaUrl } from '../utils/api-media';
+import {
+  CountryCode,
+  getCountries,
+  getCountryCallingCode,
+  parsePhoneNumberFromString,
+} from 'libphonenumber-js/min';
+import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
+
+polyfillCountryFlagEmojis();
+
+interface PhoneCountryOption {
+  code: CountryCode;
+  name: string;
+  flag: string;
+  callingCode: string;
+}
 import { NearbyPlace } from '../maps/google-property-map/google-property-map.component';
 import { AppLanguage, TranslationService } from '../services/translation.service';
 import { SeoService } from '../services/seo.service';
@@ -458,6 +475,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     this.gallerySwipeStartY = touch.clientY;
     this.gallerySwipeAxis = null;
     this.gallerySwipeCommitted = false;
+    lockPageScroll();
   }
 
   // Committed on move so a cancelled touch can't swallow the swipe.
@@ -497,6 +515,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   touchGalleryEnd(): void {
     this.gallerySwipeStartX = null;
+    unlockPageScroll();
     // A finished swipe must not count as a tap on the next click.
     window.clearTimeout(this.gallerySlideResetTimer);
     this.gallerySlideResetTimer = window.setTimeout(() => (this.suppressGalleryTap = false), 400);
@@ -614,9 +633,22 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       ...this.emptyInquiryForm(),
       name: user?.fullName || user?.userName || '',
       email: user?.email || '',
-      phone: user?.phoneNumber || '',
+      phone: '',
       message: `I would like to schedule a viewing for ${this.title}.`,
     };
+    this.viewingTimeOfDay = 'any';
+    this.phoneCountry = 'GE';
+    this.phoneDropdownOpen = false;
+    const savedPhone = parsePhoneNumberFromString(user?.phoneNumber || '', 'GE');
+    if (savedPhone?.country) {
+      this.phoneCountry = savedPhone.country;
+      this.inquiryForm.phone = savedPhone.formatNational();
+    } else {
+      this.inquiryForm.phone = user?.phoneNumber || '';
+    }
+    const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    this.viewingCalendarMonth = new Date(start.getFullYear(), start.getMonth(), 1);
+    this.writeViewingValue(start.getFullYear(), start.getMonth(), start.getDate(), this.timeOfDayHours.any, 0);
     this.inquiryError = '';
     this.inquirySubmitted = false;
     this.viewingDialogOpen = true;
@@ -638,23 +670,26 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
     const name = this.inquiryForm.name.trim();
     const email = this.inquiryForm.email.trim();
-    const phone = this.inquiryForm.phone.trim();
+    // Numbers are parsed against the chosen country; typing a full +number overrides it.
+    const parsedPhone = parsePhoneNumberFromString(this.inquiryForm.phone.trim(), this.phoneCountry);
+    const phone = parsedPhone?.isValid() ? parsedPhone.formatInternational() : '';
+    const nationalPhone = this.inquiryForm.phone.replace(/[^\d]/g, '');
     const requestedViewingAt = this.toIsoDate(this.inquiryForm.requestedViewingAt);
 
     if (!name) {
       this.inquiryError = 'Please enter your name.';
       return;
     }
-    if (!email && !phone) {
-      this.inquiryError = 'Add an email address or phone number.';
+    if (nationalPhone.length < 5) {
+      this.inquiryError = 'Please enter your phone number.';
+      return;
+    }
+    if (!phone) {
+      this.inquiryError = 'Please enter a valid phone number.';
       return;
     }
     if (!requestedViewingAt || Date.parse(requestedViewingAt) <= Date.now()) {
       this.inquiryError = 'Choose a future date and time for the viewing.';
-      return;
-    }
-    if (!this.inquiryForm.consentToContact) {
-      this.inquiryError = 'Please confirm that Velven may contact you about this property.';
       return;
     }
 
@@ -667,8 +702,8 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         email: email || undefined,
         phone: phone || undefined,
         requestedViewingAt,
-        message: this.inquiryForm.message.trim() || undefined,
-        consentToContact: true,
+        message: [this.inquiryForm.message.trim(), `Preferred time: ${this.viewingTimeLabel}`].filter(Boolean).join(' | '),
+        consentToContact: true, // the form states that an agent will contact the customer
         website: this.inquiryForm.website,
       })
       .subscribe({
@@ -689,6 +724,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       });
   }
 
+  private get viewingTimeLabel(): string {
+    return { morning: 'Morning', noon: 'Midday', evening: 'Evening', any: 'Any time' }[this.viewingTimeOfDay];
+  }
+
   get minimumViewingDate(): string {
     const date = new Date(Date.now() + 60 * 60 * 1000);
     return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
@@ -696,7 +735,86 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   viewingCalendarOpen = false;
   viewingCalendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  viewingWeekdayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  viewingTimeOfDay: 'morning' | 'noon' | 'evening' | 'any' = 'any';
+  phoneCountry: CountryCode = 'GE';
+  phoneDropdownOpen = false;
+  phoneSearch = '';
+  private phoneCountriesCache: { locale: string; list: PhoneCountryOption[] } | null = null;
+
+  get phoneCountries(): PhoneCountryOption[] {
+    const locale = this.calendarLocale;
+    if (this.phoneCountriesCache?.locale === locale) return this.phoneCountriesCache.list;
+    let names: Intl.DisplayNames;
+    try {
+      names = new Intl.DisplayNames([locale], { type: 'region' });
+    } catch {
+      names = new Intl.DisplayNames(['en'], { type: 'region' });
+    }
+    const list = getCountries()
+      .map((code) => ({
+        code,
+        name: names.of(code) ?? code,
+        flag: String.fromCodePoint(...[...code].map((char) => 127397 + char.charCodeAt(0))),
+        callingCode: `+${getCountryCallingCode(code)}`,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, locale));
+    this.phoneCountriesCache = { locale, list };
+    return list;
+  }
+
+  get selectedPhoneCountry(): PhoneCountryOption | undefined {
+    return this.phoneCountries.find((country) => country.code === this.phoneCountry);
+  }
+
+  get filteredPhoneCountries(): PhoneCountryOption[] {
+    const query = this.phoneSearch.trim().toLowerCase();
+    if (!query) return this.phoneCountries;
+    return this.phoneCountries.filter(
+      (country) =>
+        country.name.toLowerCase().includes(query) ||
+        country.code.toLowerCase().includes(query) ||
+        country.callingCode.includes(query),
+    );
+  }
+
+  togglePhoneDropdown(): void {
+    this.phoneDropdownOpen = !this.phoneDropdownOpen;
+    this.phoneSearch = '';
+  }
+
+  selectPhoneCountry(country: PhoneCountryOption): void {
+    this.phoneCountry = country.code;
+    this.phoneDropdownOpen = false;
+    this.phoneSearch = '';
+  }
+  private readonly timeOfDayHours = { morning: 10, noon: 13, evening: 18, any: 12 } as const;
+
+  get viewingTimeOptions(): { value: 'morning' | 'noon' | 'evening' | 'any'; label: string }[] {
+    return [
+      { value: 'morning', label: 'Morning' },
+      { value: 'noon', label: 'Midday' },
+      { value: 'evening', label: 'Evening' },
+      { value: 'any', label: 'Any time' },
+    ];
+  }
+
+  private get calendarLocale(): string {
+    const language = this.translation.language$.value;
+    return language === 'ka' ? 'ka-GE' : language === 'ru' ? 'ru-RU' : 'en-US';
+  }
+
+  /** Monday-first weekday initials in the current language. */
+  get viewingWeekdayLabels(): string[] {
+    return Array.from({ length: 7 }, (_, i) =>
+      new Date(2024, 0, 1 + i).toLocaleDateString(this.calendarLocale, { weekday: 'short' }),
+    );
+  }
+
+  setViewingTimeOfDay(value: 'morning' | 'noon' | 'evening' | 'any'): void {
+    this.viewingTimeOfDay = value;
+    const parsed = this.parseViewingValue();
+    if (parsed) this.writeViewingValue(parsed.y, parsed.m, parsed.d, this.timeOfDayHours[value], 0);
+  }
   viewingHourOptions = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
   viewingMinuteOptions = ['00', '15', '30', '45'];
 
@@ -731,6 +849,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   @HostListener('document:click')
   handleDocumentClickForCalendar(): void {
     this.viewingCalendarOpen = false;
+    this.phoneDropdownOpen = false;
   }
 
   shiftViewingMonth(offset: number): void {
@@ -751,7 +870,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   get viewingCalendarLabel(): string {
-    return this.viewingCalendarMonth.toLocaleDateString(undefined, {
+    return this.viewingCalendarMonth.toLocaleDateString(this.calendarLocale, {
       month: 'long',
       year: 'numeric',
     });
@@ -782,7 +901,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const year = this.viewingCalendarMonth.getFullYear();
     const month = this.viewingCalendarMonth.getMonth();
     const firstOfMonth = new Date(year, month, 1);
-    const startOffset = firstOfMonth.getDay();
+    const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday-first grid
     const gridStart = new Date(year, month, 1 - startOffset);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -807,10 +926,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   selectViewingDay(day: { date: number; fullYear: number; fullMonth: number; disabled: boolean }): void {
     if (day.disabled) return;
-    const parsed = this.parseViewingValue();
-    const h = parsed?.h ?? 12;
-    const min = parsed?.min ?? 0;
-    this.writeViewingValue(day.fullYear, day.fullMonth, day.date, h, min);
+    this.writeViewingValue(day.fullYear, day.fullMonth, day.date, this.timeOfDayHours[this.viewingTimeOfDay], 0);
   }
 
   get viewingHour(): string {

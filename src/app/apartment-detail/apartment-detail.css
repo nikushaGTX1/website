@@ -2311,3 +2311,514 @@
     transition: none !important;
   }
 }
+
+/* Price card redesign: deal label, big price, verified line, two buttons, agent row. */
+.vp-inquiry {
+  padding: 30px 28px 26px;
+  border-radius: 26px;
+  border: 1px solid #ece8f4;
+  background: #fff;
+  box-shadow: 0 18px 46px rgba(69, 26, 143, 0.1);
+}
+.vp-inquiry .vp-deal {
+  display: block;
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.vp-inquiry .vp-price {
+  padding: 8px 0 0;
+  display: block;
+  border-bottom: 0;
+}
+.vp-inquiry .vp-price strong {
+  display: block;
+  color: #0f1b31;
+  font-family: Inter, 'Noto Sans Georgian', 'Segoe UI', Arial, sans-serif;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.vp-inquiry .vp-price app-currency-price {
+  --currency-suffix-size: 0.4em;
+  --currency-approx-size: 18px;
+  font-size: 44px;
+}
+.vp-inquiry .vp-price .primary-price {
+  font-size: inherit;
+}
+.vp-inquiry .vp-proof {
+  margin: 22px 0 18px;
+  padding: 0;
+  gap: 12px;
+  border: 0;
+  background: none;
+}
+.vp-inquiry .vp-proof-icon {
+  width: auto;
+  height: auto;
+  background: none;
+  color: var(--purple);
+  font-size: 26px;
+}
+.vp-inquiry .vp-proof h3 {
+  margin: 0;
+  color: #1b1626;
+  font-size: 17px;
+  font-weight: 600;
+}
+.vp-inquiry .vp-primary,
+.vp-inquiry .vp-secondary {
+  min-height: 56px;
+  padding: 12px 16px;
+  border-radius: 15px;
+  font-size: 17px;
+  font-weight: 700;
+  gap: 12px;
+}
+.vp-inquiry .vp-primary {
+  background: #46208f;
+  box-shadow: none;
+}
+.vp-inquiry .vp-secondary {
+  margin-top: 12px;
+  border: 1.5px solid #d9cdf1;
+  background: #fff;
+  color: var(--purple);
+}
+.vp-inquiry .vp-no-charge {
+  margin: 18px 0 20px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.vp-inquiry .vp-agent {
+  padding-top: 20px;
+  gap: 16px;
+}
+.vp-inquiry .vp-agent > .vp-agent-avatar,
+.vp-inquiry .vp-agent-avatar {
+  width: 56px;
+  height: 56px;
+  background: #efe8fb;
+  color: var(--purple);
+  font-size: 20px;
+  font-weight: 800;
+}
+.vp-inquiry .vp-agent strong {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.vp-inquiry .vp-agent span {
+  font-size: 15px;
+  line-height: 1.35;
+}
+.vp-inquiry .vp-agent > a:last-child {
+  width: 52px;
+  height: 52px;
+  background: #efe8fb;
+  font-size: 19px;
+}
+@media (max-width: 980px) {
+  .vp-inquiry {
+    padding: 24px 20px 22px;
+  }
+  .vp-inquiry .vp-price strong,
+  .vp-inquiry .vp-price app-currency-price {
+    font-size: 38px;
+  }
+}
+
+/* Viewing request dialog */
+.viewing-dialog.vd {
+  width: min(480px, calc(100vw - 24px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  padding: 26px 30px 26px;
+  overflow-y: auto;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 30px 80px rgba(21, 16, 28, 0.35);
+}
+.viewing-dialog.vd > .vd-head {
+  margin-bottom: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+}
+.vd-logo {
+  color: #451a8f;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+.viewing-dialog.vd > .vd-head > .vd-close {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6e6878;
+  font-size: 20px;
+  cursor: pointer;
+}
+.vd-form h2 {
+  margin: 0;
+  color: #171421;
+  font-family: 'Noto Sans Georgian', Inter, 'Segoe UI', Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.vd-sub {
+  margin: 8px 0 22px;
+  color: #6e6878;
+  font-size: 16px;
+}
+.vd-cal-head {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+}
+.vd-cal-head strong {
+  min-width: 170px;
+  color: #171421;
+  font-size: 19px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: capitalize;
+}
+.vd-cal-head button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #2a2233;
+  font-size: 15px;
+  cursor: pointer;
+}
+.vd-cal-head button:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+.vd-weekdays,
+.vd-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+}
+.vd-weekdays {
+  margin-bottom: 6px;
+  color: #4a4356;
+  font-size: 14px;
+}
+.vd-weekdays span {
+  padding: 6px 0;
+}
+.vd-days {
+  row-gap: 4px;
+}
+.vd-day {
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #171421;
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+.vd-day:disabled {
+  color: #bdb8c6;
+  cursor: default;
+}
+.vd-day.blank {
+  visibility: hidden;
+}
+.vd-day.today:not(.selected) {
+  border: 1.5px solid #451a8f;
+  border-radius: 50%;
+  color: #451a8f;
+}
+.vd-day.selected {
+  background: #46208f;
+  color: #fff;
+  font-weight: 700;
+}
+.vd-divider {
+  margin: 14px 0 18px;
+  height: 1px;
+  background: #ece8f4;
+}
+.vd-label {
+  margin-bottom: 8px;
+  display: block;
+  color: #171421;
+  font-size: 15px;
+  font-weight: 600;
+}
+.vd-times {
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.vd-times button {
+  min-height: 46px;
+  padding: 6px 4px;
+  border: 1.5px solid #e2dde9;
+  border-radius: 12px;
+  background: #fff;
+  color: #2a2233;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.vd-times button.active {
+  border-color: #451a8f;
+  background: #f4effd;
+  color: #451a8f;
+  font-weight: 700;
+}
+.vd-field {
+  margin-bottom: 16px;
+  display: block;
+}
+.vd-input {
+  height: 54px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1.5px solid #e2dde9;
+  border-radius: 14px;
+  background: #fff;
+  color: #7d7689;
+}
+.vd-input:focus-within {
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.12);
+}
+.vd-input input,
+.vd-input select {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #171421;
+  font: inherit;
+  font-size: 16px;
+}
+.vd-input input {
+  flex: 1;
+}
+.vd-phone select {
+  width: 84px;
+  padding-right: 6px;
+  border-right: 1.5px solid #e2dde9;
+  cursor: pointer;
+}
+.vd-error {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fdeeee;
+  color: #b42318;
+  font-size: 14px;
+}
+.vd-submit {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 14px;
+  background: #46208f;
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.vd-submit:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.vd-note {
+  margin: 14px 0 0;
+  color: #6e6878;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+.vd-success {
+  padding: 24px 0 8px;
+  text-align: center;
+}
+.vd-success-icon {
+  color: #1f9d6b;
+  font-size: 54px;
+}
+.vd-success h3 {
+  margin: 12px 0 8px;
+  font-size: 24px;
+}
+.vd-success p {
+  margin: 0 0 22px;
+  color: #6e6878;
+  font-size: 16px;
+  line-height: 1.5;
+}
+@media (max-width: 520px) {
+  .viewing-dialog.vd {
+    padding: 20px 16px 22px;
+    border-radius: 22px;
+  }
+  .vd-form h2 {
+    font-size: 25px;
+  }
+  .vd-day {
+    height: 40px;
+    font-size: 16px;
+  }
+  .vd-times {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.viewing-dialog.vd > .vd-head {
+  background: none;
+  border-bottom: 0;
+}
+.viewing-dialog.vd > .vd-head > .vd-logo {
+  max-width: none;
+  overflow: visible;
+  color: #451a8f;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.viewing-dialog.vd .vd-form {
+  padding: 0;
+}
+.viewing-dialog.vd .vd-success {
+  padding: 24px 0 8px;
+}
+.vd-phone .vd-prefix {
+  padding-right: 12px;
+  border-right: 1.5px solid #e2dde9;
+  color: #171421;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.vd-phone input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Phone field with searchable country picker */
+.vd-phone-field {
+  position: relative;
+}
+.vd-phone {
+  padding-left: 8px;
+}
+.vd-country {
+  height: 38px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 8px;
+  border: 0;
+  border-right: 1.5px solid #e2dde9;
+  border-radius: 10px 0 0 10px;
+  background: transparent;
+  color: #171421;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vd-country i {
+  color: #7d7689;
+  font-size: 11px;
+}
+.vd-flag {
+  font-family: 'Twemoji Country Flags', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-size: 22px;
+  line-height: 1;
+}
+.vd-country-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  border: 1.5px solid #e2dde9;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(21, 16, 28, 0.18);
+  overflow: hidden;
+}
+.vd-country-search {
+  margin: 0;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #ece8f4;
+  color: #7d7689;
+}
+.vd-country-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: 15px;
+}
+.vd-country-list {
+  max-height: 230px;
+  overflow-y: auto;
+}
+.vd-country-list button {
+  width: 100%;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: #fff;
+  color: #171421;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.vd-country-list button:hover,
+.vd-country-list button.active {
+  background: #f4effd;
+}
+.vd-country-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vd-country-list .vd-code {
+  color: #6e6878;
+  font-weight: 600;
+}
