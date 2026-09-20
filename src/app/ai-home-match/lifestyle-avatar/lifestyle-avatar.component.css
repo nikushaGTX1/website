@@ -45,11 +45,11 @@
 }
 
 .character-stage.character-group .adult-figure + .adult-figure {
-  margin-left: -16%;
+  margin-left: -25%;
 }
 
 .character-stage.character-group .adult-figure + .child-figure {
-  margin-left: -14%;
+  margin-left: -24%;
 }
 
 .character-stage.character-group .child-figure + .child-figure {
@@ -167,11 +167,11 @@
 }
 
 .character-stage.character-group.crowded-group .adult-figure + .adult-figure {
-  margin-left: -16%;
+  margin-left: -25%;
 }
 
 .character-stage.character-group.crowded-group .adult-figure + .child-figure {
-  margin-left: -14%;
+  margin-left: -24%;
 }
 
 .character-stage.character-group.crowded-group .child-figure + .child-figure {
@@ -238,7 +238,7 @@
 /* Pets stand beside the family, never on top of a child or adult. */
 .character-stage.character-group .character-figure + .pet-figure,
 .character-stage.character-group.crowded-group .character-figure + .pet-figure {
-  margin-left: 3%;
+  margin-left: -12%;
 }
 
 .character-stage.character-group {
