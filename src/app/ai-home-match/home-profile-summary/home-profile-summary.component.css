@@ -192,3 +192,57 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
 @media (max-width: 560px) {
   .profile-stage { grid-template-columns: 1fr; padding-top: 375px; }
 }
+
+.answer-review {
+  width: min(100%, 720px);
+  margin: 28px auto 0;
+  padding: 20px 22px;
+  border: 1px solid #e7e4ed;
+  border-radius: 22px;
+  background: #fff;
+  text-align: left;
+}
+.answer-review h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+.answer-review ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.answer-review li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid #efedf4;
+}
+.answer-review li:first-child {
+  border-top: 0;
+}
+.answer-text {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.answer-text small {
+  color: #7a7488;
+  font-size: 12px;
+  font-weight: 650;
+}
+.answer-text strong {
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+.answer-review button {
+  flex: none;
+  padding: 8px 14px;
+  color: #5342b4;
+  border: 1px solid #cfc8f1;
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}

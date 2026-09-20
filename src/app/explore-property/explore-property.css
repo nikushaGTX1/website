@@ -1662,3 +1662,160 @@ svg {
 .map-group-meta i {
   color: #451a8f;
 }
+
+/* Mobile: selected marker card docks to the bottom of the map and slides up. */
+@keyframes map-preview-slide-up {
+  from { transform: translateY(calc(100% + 96px)); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@media (max-width: 780px) {
+  .map-preview {
+    top: auto !important;
+    right: 12px;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    left: 12px !important;
+    width: auto;
+    max-width: 560px;
+    margin: 0 auto;
+    animation: map-preview-slide-up 0.32s cubic-bezier(0.22, 0.8, 0.28, 1) both;
+  }
+  .map-preview-gallery { height: 220px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-preview { animation: none; }
+}
+
+/* "იპოვე სასურველი უბანი" — bottom map action (mobile only). */
+.map-area-action { display: none; }
+@media (max-width: 780px) {
+  .map-area-action {
+    position: absolute;
+    z-index: 7;
+    left: 50%;
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    max-width: calc(100% - 28px);
+    height: 46px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    transform: translateX(-50%);
+    color: #451a8f;
+    border: 1px solid #e3dcf3;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 10px 26px rgba(28, 17, 36, 0.24);
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+    animation: map-area-action-in 0.25s ease-out both;
+  }
+  .map-area-action:active { transform: translateX(-50%) scale(0.97); }
+  .map-group-panel {
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    max-height: calc(100% - 100px);
+    animation: map-preview-slide-up 0.32s cubic-bezier(0.22, 0.8, 0.28, 1) both;
+  }
+}
+@keyframes map-area-action-in {
+  from { opacity: 0; transform: translate(-50%, 14px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Area picker bottom sheet. Fixed above the mobile map (z-index 30) and the toggle (60). */
+@keyframes area-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes area-sheet-down { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes area-sheet-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes area-sheet-fade-out { from { opacity: 1; } to { opacity: 0; } }
+.area-sheet-backdrop {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(23, 20, 33, 0.48);
+  overscroll-behavior: contain;
+  animation: area-sheet-fade-in 0.22s ease-out both;
+}
+.area-sheet-backdrop.closing { animation: area-sheet-fade-out 0.26s ease-in both; }
+.area-sheet {
+  width: 100%;
+  max-width: 620px;
+  max-height: min(88dvh, 720px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px 24px 0 0;
+  background: #fff;
+  box-shadow: 0 -12px 40px rgba(28, 17, 36, 0.25);
+  animation: area-sheet-up 0.3s cubic-bezier(0.22, 0.8, 0.28, 1) both;
+}
+.area-sheet-backdrop.closing .area-sheet { animation: area-sheet-down 0.26s ease-in both; }
+.area-sheet-handle { padding: 10px 0 2px; display: flex; justify-content: center; flex: none; }
+.area-sheet-handle span { width: 42px; height: 4px; border-radius: 4px; background: #d9d3e3; }
+.area-sheet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 10px 20px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.area-sheet h3 { margin: 12px 0 12px; color: #2f3a4f; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.area-sheet-subtitle { margin: -6px 0 12px; color: #7d8598; font-size: 16px; }
+.area-sheet-featured,
+.area-sheet-all { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.area-sheet-featured button,
+.area-sheet-all button {
+  position: relative;
+  min-height: 62px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #171421;
+  border: 1px solid #e3e0ea;
+  border-radius: 16px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.area-sheet-featured button > i:first-child { flex: none; width: 26px; color: #451a8f; font-size: 22px; text-align: center; }
+.area-sheet-featured span { min-width: 0; display: grid; gap: 2px; }
+.area-sheet-featured b { font-size: 15px; }
+.area-sheet-featured small { color: #7d8598; font-size: 11px; line-height: 1.25; }
+.area-sheet-all button { justify-content: space-between; font-size: 15px; font-weight: 800; }
+.area-sheet-all em { flex: none; width: 24px; height: 24px; border: 2px solid #d3d0dc; border-radius: 50%; background: #fff; }
+.area-sheet-featured button.selected,
+.area-sheet-all button.selected { border-color: #451a8f; background: #f5f1ff; }
+.area-sheet-all button.selected em { border-color: #451a8f; background: #451a8f; box-shadow: inset 0 0 0 4px #fff; }
+.area-sheet-check { position: absolute; top: 8px; right: 8px; color: #451a8f; font-size: 15px; }
+.area-sheet-all .area-sheet-more { grid-column: 1 / -1; justify-content: center; color: #451a8f; }
+.area-sheet-footer {
+  flex: none;
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 12px;
+  border-top: 1px solid #ece8f4;
+  background: #fff;
+}
+.area-sheet-footer button { height: 52px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; touch-action: manipulation; }
+.area-sheet-cancel { color: #59627a; border: 1px solid #e3e0ea; background: #fff; }
+.area-sheet-apply { color: #fff; border: 0; background: #451a8f; box-shadow: 0 8px 20px rgba(69, 26, 143, 0.28); }
+@media (min-width: 781px) {
+  .area-sheet-backdrop { align-items: center; }
+  .area-sheet { border-radius: 24px; }
+}
+@media (max-width: 380px) {
+  .area-sheet-featured, .area-sheet-all { gap: 8px; }
+  .area-sheet-scroll { padding-inline: 14px; }
+  .area-sheet-featured button, .area-sheet-all button { padding-inline: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .area-sheet, .area-sheet-backdrop, .map-area-action, .map-group-panel { animation-duration: 0.01ms !important; }
+}

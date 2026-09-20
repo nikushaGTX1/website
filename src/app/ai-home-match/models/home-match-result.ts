@@ -1,3 +1,5 @@
+import type { RequirementEvaluation } from '../services/mandatory-requirements';
+
 export interface MatchReason {
   title: string;
   description?: string;
@@ -74,4 +76,6 @@ export interface HomeMatchResult {
   tradeOffs?: MatchTradeOff[];
   warnings?: string[];
   scoreBreakdown?: ScoreBreakdownItem[];
+  /** Set by the client: how the home fares against the mandatory requirements. */
+  requirement?: RequirementEvaluation;
 }

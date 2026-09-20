@@ -808,6 +808,99 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.locationOpen = false;
   }
 
+  /** Bottom-sheet area picker ("იპოვე სასურველი უბანი"). Selections are draft until applied. */
+  areaSheetOpen = false;
+  areaSheetClosing = false;
+  private areaSheetSnapshot: {
+    areas: string[];
+    area: string;
+    streets: string[];
+    streetDetails: Array<{ streetId: number; street: string; district: string }>;
+    streetId: number | null;
+    polygon: GeoJsonPolygon | null;
+    detectedArea: string;
+  } | null = null;
+  private areaSheetTimer?: number;
+  mapFitRevision = 0;
+
+  areaLabel(area: string): string {
+    return this.translationService.translate(area, this.translationService.language$.value);
+  }
+
+  openAreaSheet(): void {
+    if (this.areaSheetOpen && !this.areaSheetClosing) return;
+    window.clearTimeout(this.areaSheetTimer);
+    this.areaSheetClosing = false;
+    this.areaSheetSnapshot = {
+      areas: [...this.selectedLocationAreas],
+      area: this.selectedLocationArea,
+      streets: [...this.selectedModalStreets],
+      streetDetails: this.selectedModalStreetDetails.map((item) => ({ ...item })),
+      streetId: this.selectedStreetId,
+      polygon: this.inlineDrawnPolygon,
+      detectedArea: this.drawnDetectedArea,
+    };
+    this.mapGroupApartments = null;
+    this.mapPreviewApartment = null;
+    this.selectedApartment = null;
+    this.areaSheetOpen = true;
+    lockPageScroll();
+  }
+
+  /** Cancel: drop the draft and restore the filters exactly as they were when the sheet opened. */
+  cancelAreaSheet(): void {
+    const snapshot = this.areaSheetSnapshot;
+    if (snapshot) {
+      this.selectedLocationAreas = snapshot.areas;
+      this.selectedLocationArea = snapshot.area;
+      this.selectedModalStreets = snapshot.streets;
+      this.selectedModalStreetDetails = snapshot.streetDetails;
+      this.selectedStreetId = snapshot.streetId;
+      this.inlineDrawnPolygon = snapshot.polygon;
+      this.drawnDetectedArea = snapshot.detectedArea;
+    }
+    this.closeAreaSheet();
+  }
+
+  applyAreaSheet(): void {
+    this.mapFitRevision += 1;
+    if (this.selectedLocationAreas.length || this.inlineDrawnPolygon) {
+      this.applyModalLocation();
+    } else {
+      // Nothing chosen means "all of Tbilisi".
+      this.location = '';
+      this.selectedLocationValue = '';
+      this.selectedStreetId = null;
+      this.clearDrawnAreaState();
+      this.onSearch();
+    }
+    this.closeAreaSheet();
+  }
+
+  private closeAreaSheet(): void {
+    this.areaSheetSnapshot = null;
+    if (!this.areaSheetOpen) return;
+    this.areaSheetClosing = true;
+    window.clearTimeout(this.areaSheetTimer);
+    // Let the slide-down animation play before the sheet leaves the DOM.
+    this.areaSheetTimer = window.setTimeout(() => {
+      this.areaSheetOpen = false;
+      this.areaSheetClosing = false;
+      unlockPageScroll();
+      this.cdr.detectChanges();
+    }, 260);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.areaSheetOpen && !this.areaSheetClosing) this.cancelAreaSheet();
+  }
+
+  /** The bottom action shows only while nothing else is docked to the bottom of the map. */
+  get showAreaAction(): boolean {
+    return !this.mapPreviewApartment && !this.mapGroupApartments && !this.areaSheetOpen;
+  }
+
   onInlinePolygon(polygon: GeoJsonPolygon | null): void {
     this.inlineDrawnPolygon = polygon;
     this.drawnStreetsLoading = !!polygon;
@@ -1034,6 +1127,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     window.removeEventListener('wheel', this.forwardWheelToResults, true);
+    window.clearTimeout(this.areaSheetTimer);
+    if (this.areaSheetOpen) unlockPageScroll();
   }
 
   private readonly forwardWheelToResults = (event: WheelEvent): void => {

@@ -9,6 +9,7 @@ import { GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { applyPriorityScoring } from '../services/priority-scoring';
+import { answerLabel, answerList, isPastDate, todayIso } from '../services/answer-labels';
 
 type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
 @Component({
@@ -100,6 +101,15 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     ['Car', 'Metro', 'Walking', 'Multiple methods'],
     ['Car', 'Metro', 'Walking', 'MultipleMethods'],
   );
+  readonly answerLabel = answerLabel;
+  readonly answerList = answerList;
+  /** Earliest selectable specific move-in date. */
+  get today(): string {
+    return todayIso();
+  }
+  get moveInDateInPast(): boolean {
+    return this.profile.moveInTiming === 'SpecificDate' && isPastDate(this.profile.moveInDate);
+  }
   profile: HomeMatchProfile;
   quizStarted = false;
   step = 1;
@@ -232,7 +242,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get householdLabel(): string {
     if (!this.profile.householdType) return 'Tell us who will live there';
-    const household = this.profile.householdType.replace(/([a-z])([A-Z])/g, '$1 $2');
+    const household = answerLabel(this.profile.householdType);
     const adults = `${this.profile.adults} adult${this.profile.adults === 1 ? '' : 's'}`;
     const children = this.profile.children
       ? `, ${this.profile.children} ${this.profile.children === 1 ? 'child' : 'children'}`
@@ -243,7 +253,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return this.profile.locationFlexible
       ? 'Flexible'
       : this.profile.districts.length
-        ? this.profile.districts.join(', ')
+        ? answerList(this.profile.districts)
         : this.profile.selectedMapArea
           ? 'Selected map area'
           : 'Not selected yet';
@@ -622,7 +632,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return this.profile.propertyGoal === 'Rent'
           ? !!this.profile.rentalDuration &&
               !!this.profile.moveInTiming &&
-              (this.profile.moveInTiming !== 'SpecificDate' || !!this.profile.moveInDate)
+              (this.profile.moveInTiming !== 'SpecificDate' ||
+                (!!this.profile.moveInDate && !isPastDate(this.profile.moveInDate)))
           : !!this.profile.purchaseTiming;
       case 8:
         return !!this.profile.transportation.length;
@@ -669,8 +680,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   back(): void {
     const previous = this.visibleSteps[this.stepNumber - 2];
     if (previous === undefined) return;
-    const order = [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-    for (const step of order.slice(order.indexOf(previous))) this.clearStep(step);
+    // Going back must never erase answers: every step keeps what the user already chose.
     this.step = previous;
     this.persist();
     this.scrollToStepTop();
@@ -701,6 +711,18 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   edit(): void {
     this.view = 'questions';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  /** Opens the answer summary, where every answer has its own "Change" action. */
+  showReview(): void {
+    this.view = 'review';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  goToStep(step: number): void {
+    if (!this.visibleSteps.includes(step)) return;
+    this.step = step;
+    this.view = 'questions';
+    this.quizStarted = true;
+    this.scrollToStepTop();
   }
   submit(): void {
     this.view = 'loading';

@@ -4,6 +4,7 @@ import { HomeMatchResult } from '../models/home-match-result';
 import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { applyPriorityScoring } from '../services/priority-scoring';
+import { evaluateMandatoryRequirements } from '../services/mandatory-requirements';
 import { ApartmentService } from '../../services/apartment.service';
 
 interface LifestyleInsight {
@@ -31,14 +32,29 @@ export class HomeMatchResultsComponent implements OnChanges {
     if (changes['matches']) {
       this.matches.forEach((result) => {
         Object.assign(result, applyPriorityScoring(result, this.profile));
+        result.requirement = evaluateMandatoryRequirements(result.apartment, this.profile);
         if (!this.imageCandidates(result).length) this.enrichApartment(result);
       });
     }
   }
-  get sorted(): HomeMatchResult[] {
-    return [...this.matches].sort(
-      (a, b) => (b.rankingScore ?? b.matchScore) - (a.rankingScore ?? a.matchScore),
-    );
+  /** Homes that fail a mandatory requirement stay hidden until the user asks for alternatives. */
+  showAlternatives = false;
+
+  private byStatus(status: 'exact' | 'confirm' | 'alternative'): HomeMatchResult[] {
+    return this.matches
+      .filter((result) => (result.requirement?.status ?? 'exact') === status)
+      .sort((a, b) => (b.rankingScore ?? b.matchScore) - (a.rankingScore ?? a.matchScore));
+  }
+  /** Meet every mandatory requirement and need no confirmation. */
+  get exactMatches(): HomeMatchResult[] {
+    return this.byStatus('exact');
+  }
+  /** Meet every requirement we can check, but something must be confirmed with the owner. */
+  get confirmMatches(): HomeMatchResult[] {
+    return this.byStatus('confirm');
+  }
+  get alternativeMatches(): HomeMatchResult[] {
+    return this.byStatus('alternative');
   }
   image(result: HomeMatchResult): string {
     return this.imageCandidates(result)[0] || '/property-placeholder.svg';
@@ -114,6 +130,18 @@ export class HomeMatchResultsComponent implements OnChanges {
     image.onerror = null;
     image.classList.add('placeholder-image');
     image.src = '/property-placeholder.svg';
+  }
+
+  cardLabel(kind: 'exact' | 'confirm' | 'alternative', index: number): string {
+    if (kind === 'confirm') return 'Needs confirmation';
+    if (kind === 'alternative') return 'Alternative';
+    return this.rankLabel(index);
+  }
+
+  cardHeadline(kind: 'exact' | 'confirm' | 'alternative', index: number): string {
+    if (kind === 'confirm') return 'Possible match. Please confirm the details below.';
+    if (kind === 'alternative') return 'Does not meet all of your requirements';
+    return this.rankHeadline(index);
   }
 
   rankHeadline(index: number): string {

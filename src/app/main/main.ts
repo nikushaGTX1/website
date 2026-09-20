@@ -50,6 +50,13 @@ export class Main implements OnInit, OnDestroy {
     return { min: 92, half: Math.round(total * 0.46), max: Math.round(total - 8) };
   }
 
+  /** Pressing a price on the map slides the areas sheet down to its handle so the listing card is visible. */
+  collapseAreaSheet(): void {
+    if (window.innerWidth > 650) return;
+    this.sheetHeight = 92;
+    this.cdr.detectChanges();
+  }
+
   sheetPointerDown(event: PointerEvent): void {
     const handle = event.currentTarget as HTMLElement;
     const sheet = handle.parentElement as HTMLElement;

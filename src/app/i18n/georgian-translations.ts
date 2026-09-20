@@ -1510,6 +1510,33 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['you@example.com', 'you@example.com'],
 ]);
 
+// Velven Match: requirement statuses, review page and validation messages.
+GEORGIAN_TRANSLATIONS.set("No exact matches found", "ზუსტი შესატყვისი ვერ მოიძებნა");
+GEORGIAN_TRANSLATIONS.set("No home meets all of your requirements exactly.", "არცერთი ბინა არ აკმაყოფილებს თქვენს ყველა მოთხოვნას.");
+GEORGIAN_TRANSLATIONS.set("None of the available homes meets all of your must-have requirements (location, bedrooms and budget).", "არცერთი ხელმისაწვდომი ბინა არ აკმაყოფილებს თქვენს ყველა სავალდებულო მოთხოვნას (მდებარეობა, საძინებლები და ბიუჯეტი).");
+GEORGIAN_TRANSLATIONS.set("The homes below match them but still need a detail confirmed.", "ქვემოთ მოცემული ბინები მათ შეესაბამება, მაგრამ ერთი დეტალის დადასტურება მაინც საჭიროა.");
+GEORGIAN_TRANSLATIONS.set("Alternatives", "ალტერნატივები");
+GEORGIAN_TRANSLATIONS.set("Alternative", "ალტერნატივა");
+GEORGIAN_TRANSLATIONS.set("Needs confirmation", "საჭიროებს დადასტურებას");
+GEORGIAN_TRANSLATIONS.set("Possible match. Please confirm the details below.", "შესაძლო შესატყვისი. გთხოვთ, დაადასტუროთ ქვემოთ მითითებული დეტალები.");
+GEORGIAN_TRANSLATIONS.set("Does not meet all of your requirements", "არ აკმაყოფილებს თქვენს ყველა მოთხოვნას");
+GEORGIAN_TRANSLATIONS.set("These homes match your requirements, but a detail must be confirmed with the owner.", "ეს ბინები შეესაბამება თქვენს მოთხოვნებს, თუმცა ერთი დეტალი მფლობელთან უნდა დადასტურდეს.");
+GEORGIAN_TRANSLATIONS.set("These homes do not meet all of your requirements.", "ეს ბინები არ აკმაყოფილებს თქვენს ყველა მოთხოვნას.");
+GEORGIAN_TRANSLATIONS.set("Location could not be verified", "მდებარეობის დადასტურება ვერ მოხერხდა");
+GEORGIAN_TRANSLATIONS.set("Number of bedrooms is not specified in the listing", "განცხადებაში საძინებლების რაოდენობა მითითებული არ არის");
+GEORGIAN_TRANSLATIONS.set("Choose Male or Female", "აირჩიეთ მამრობითი ან მდედრობითი სქესი");
+GEORGIAN_TRANSLATIONS.set("Specific date", "კონკრეტული თარიღი");
+GEORGIAN_TRANSLATIONS.set("Please choose today or a future date.", "აირჩიეთ დღევანდელი ან მომავალი თარიღი.");
+GEORGIAN_TRANSLATIONS.set("We show homes with the selected number of bedrooms or more.", "ვაჩვენებთ ბინებს არჩეული ან მეტი რაოდენობის საძინებლით.");
+GEORGIAN_TRANSLATIONS.set("Move-in", "შესვლის დრო");
+GEORGIAN_TRANSLATIONS.set("Top priorities", "მთავარი პრიორიტეტები");
+GEORGIAN_TRANSLATIONS.set("Top 5 priorities", "ტოპ 5 პრიორიტეტი");
+GEORGIAN_TRANSLATIONS.set("Review your answers", "გადახედეთ თქვენს პასუხებს");
+GEORGIAN_TRANSLATIONS.set("Rental period", "ქირავნობის ვადა");
+GEORGIAN_TRANSLATIONS.set("Purchase timing", "შეძენის დრო");
+GEORGIAN_TRANSLATIONS.set("No pet", "შინაური ცხოველის გარეშე");
+GEORGIAN_TRANSLATIONS.set("4 or more", "4 ან მეტი");
+
 const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
   [...GEORGIAN_TRANSLATIONS].map(([source, translation]) => [source.toLocaleLowerCase('en'), translation]),
 );
@@ -1667,6 +1694,52 @@ const GEORGIAN_RULES: GeorgianRule[] = [
     pattern: /^Remove (.+)$/i,
     translate: (match) => `${match[1]} — წაშლა`,
   },
+  {
+    pattern: /^Show alternatives \((\d+)\)$/i,
+    translate: (match) => `ალტერნატივების ჩვენება (${match[1]})`,
+  },
+  {
+    pattern: /^We found (\d+) homes?\s+that\s+meet your requirements, ranked by how well\s+they fit your lifestyle\.$/i,
+    translate: (match) =>
+      `ვიპოვეთ ${match[1]} ბინა, რომელიც აკმაყოფილებს თქვენს მოთხოვნებს და დალაგებულია თქვენს ცხოვრების სტილთან შესაბამისობით.`,
+  },
+  {
+    pattern: /^Location: (.+), not (.+)$/i,
+    translate: (match) => `მდებარეობა: ${match[1]}, და არა ${match[2]}`,
+  },
+  {
+    pattern: /^Location: (.+), outside your selected map area$/i,
+    translate: (match) => `მდებარეობა: ${match[1]}, არჩეული არეალის გარეთ`,
+  },
+  {
+    pattern: /^Bedrooms: (\d+), you need (\d+\+?)$/i,
+    translate: (match) => `საძინებლები: ${match[1]}, გჭირდებათ ${match[2]}`,
+  },
+  {
+    pattern: /^(Cat|Dog|Pet) permission needs to be confirmed$/i,
+    translate: (match) =>
+      match[1].toLowerCase() === 'cat'
+        ? 'კატის ყოლის ნებართვა უნდა დადასტურდეს'
+        : match[1].toLowerCase() === 'dog'
+          ? 'ძაღლის ყოლის ნებართვა უნდა დადასტურდეს'
+          : 'შინაური ცხოველის ყოლის ნებართვა უნდა დადასტურდეს',
+  },
+  {
+    pattern: /^(\d+) or more$/i,
+    translate: (match) => `${match[1]} ან მეტი`,
+  },
+  {
+    pattern: /^(\d+) adults?$/i,
+    translate: (match) => `${match[1]} მოზრდილი`,
+  },
+  {
+    pattern: /^(\d+) child(?:ren)?$/i,
+    translate: (match) => `${match[1]} ბავშვი`,
+  },
+  {
+    pattern: /^Step (\d+) \/ (\d+)$/i,
+    translate: (match) => `ნაბიჯი ${match[1]} / ${match[2]}`,
+  },
 ];
 
 export function georgianTranslation(value: string): string | undefined {
@@ -1689,6 +1762,14 @@ export function georgianTranslation(value: string): string | undefined {
   for (const rule of GEORGIAN_RULES) {
     const match = value.match(rule.pattern);
     if (match) return rule.translate(match);
+  }
+
+  // Composed answers such as "Roommates · 3 adults" or "Active and athletic, Quiet lifestyle":
+  // translate only when every part is known, so unrelated text is never half-translated.
+  for (const separator of [' · ', ', ']) {
+    if (!value.includes(separator)) continue;
+    const parts = value.split(separator).map((part) => georgianTranslation(part.trim()));
+    if (parts.every((part): part is string => !!part)) return parts.join(separator);
   }
 
   return undefined;

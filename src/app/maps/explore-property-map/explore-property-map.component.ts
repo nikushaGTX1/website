@@ -75,6 +75,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   };
   @Input() apartments: Apartment[] = [];
   @Input() selectedApartmentId: number | null = null;
+  /** Bump to re-fit the camera to the next loaded result set (e.g. after a new area is applied). */
+  @Input() fitRevision = 0;
+  private pendingFit = false;
   @Output() apartmentSelected = new EventEmitter<Apartment>();
   @Output() mapClicked = new EventEmitter<void>();
   @Output() previewAnchorChanged = new EventEmitter<PropertyMapPreviewAnchor>();
@@ -121,6 +124,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (!this.viewReady) return;
     // Filtering should update the pins without unexpectedly moving or zooming
     // the map. The initial load and the recenter control still fit all homes.
+    if (changes['fitRevision'] && !changes['fitRevision'].firstChange) this.pendingFit = true;
     if (changes['apartments'] && this.map) void this.rebuildPoints(false);
     if (changes['selectedApartmentId']) this.updateSelectedMarker();
   }
@@ -290,7 +294,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     this.mappedApartmentCount = points.length;
     this.lastViewportKey = '';
 
-    if (fitBounds) this.fitVisibleProperties();
+    if (fitBounds || (this.pendingFit && points.length)) this.fitVisibleProperties();
+    if (points.length) this.pendingFit = false;
     this.syncMarkers();
     this.refreshView();
   }
@@ -420,11 +425,57 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     wrapper.style.position = 'relative';
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = count > 999 ? '999+' : String(count);
     button.setAttribute(
       'aria-label',
       isBuilding ? count + ' homes in this building' : count + ' homes, zoom in to see them',
     );
+    if (isBuilding) {
+      // One pill per building: building icon + the real number of listings in it.
+      button.innerHTML =
+        '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="flex:none">' +
+        '<path d="M6 2h12a1 1 0 0 1 1 1v18h-5v-4h-4v4H5V3a1 1 0 0 1 1-1Zm2.5 3.5v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Z"/></svg>' +
+        '<span></span>';
+      (button.querySelector('span') as HTMLSpanElement).textContent =
+        count + (count === 1 ? ' unit' : ' units');
+      Object.assign(button.style, {
+        width: 'auto',
+        minWidth: '44px',
+        height: '44px',
+        padding: '0 16px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        border: '2px solid rgba(255,255,255,.95)',
+        borderRadius: '999px',
+        background: '#5b21d1',
+        color: '#fff',
+        boxShadow: '0 8px 22px rgba(69, 26, 143, .38)',
+        fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+        fontSize: '15px',
+        fontWeight: '800',
+        lineHeight: '1',
+        whiteSpace: 'nowrap',
+        cursor: 'pointer',
+        outline: 'none',
+        transition: 'transform .16s ease, box-shadow .16s ease',
+        touchAction: 'manipulation',
+      });
+      button.addEventListener('pointerenter', () => (button.style.transform = 'scale(1.06)'));
+      button.addEventListener('pointerleave', () => (button.style.transform = ''));
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.zone.run(() => this.onClusterClicked(clusterId, isBuilding, position));
+      });
+      wrapper.appendChild(button);
+      const groupMarker = new this.advancedMarkerConstructor!({
+        map: this.map,
+        position,
+        content: wrapper,
+        zIndex: 5,
+      });
+      return { key, kind: 'group', marker: groupMarker, wrapper, button };
+    }
+    button.textContent = count > 999 ? '999+' : String(count);
     Object.assign(button.style, {
       width: size + 'px',
       height: size + 'px',

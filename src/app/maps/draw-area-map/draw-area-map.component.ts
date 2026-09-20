@@ -20,6 +20,7 @@ import { PersistentDataCache } from '../../utils/persistent-data-cache';
 import { firstValueFrom } from 'rxjs';
 import { Apartment } from '../../models/apartment';
 import { Router } from '@angular/router';
+import Supercluster from 'supercluster';
 
 type DistrictBoundaryState = {
   id: number | null;
@@ -71,6 +72,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     Array<{ id: number; label: string; value: string; district: string }>
   >();
   @Output() detectedAreaChange = new EventEmitter<string>();
+  /** A listing price was pressed: the host can make room (e.g. collapse its bottom sheet). */
+  @Output() propertyPreviewOpened = new EventEmitter<Apartment>();
   @Output() streetSelected = new EventEmitter<{
     id: number;
     label: string;
@@ -110,7 +113,14 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private draw?: import('terra-draw').TerraDraw;
   private streetLines: Array<google.maps.OverlayView | google.maps.Polyline> = [];
   private countOverlays: google.maps.OverlayView[] = [];
-  private priceOverlays: google.maps.OverlayView[] = [];
+  /** Listings currently in scope, clustered per viewport so hundreds of prices never pile up. */
+  private priceListings: Array<{ apartment: Apartment; position: google.maps.LatLngLiteral }> = [];
+  private priceIndex?: Supercluster<{ id: number }, { id: number }>;
+  private priceMarkers = new Map<string, google.maps.OverlayView>();
+  private lastPriceKey = '';
+  private expandedBuilding: string | null = null;
+  private priceIdleListener?: google.maps.MapsEventListener;
+  private priceClickListener?: google.maps.MapsEventListener;
   private propertyPreviewOverlay?: google.maps.OverlayView;
   private previewApartmentId: number | null = null;
   private activePreviewPin?: HTMLDivElement;
@@ -195,6 +205,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.clearApartmentPriceOverlays();
     this.clearPropertyPreview();
     this.zoomListener?.remove();
+    this.priceIdleListener?.remove();
+    this.priceClickListener?.remove();
     this.clearStreetFocus();
     this.clearDrawDeleteControl();
     this.clearSelectedBoundaryOverlay();
@@ -776,11 +788,18 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       const { Geocoder } = (await importLibrary('geocoding')) as google.maps.GeocodingLibrary;
       const response = await new Geocoder().geocode({
         address: [streetName, street.district, 'Tbilisi, Georgia'].filter(Boolean).join(', '),
+        componentRestrictions: { country: 'GE' },
+        region: 'GE',
+        bounds: { south: 41.6, west: 44.6, north: 41.9, east: 45.05 },
       });
       const match = response.results[0];
       if (!match) return false;
 
       const position = match.geometry.location;
+      // Ignore results outside Tbilisi so a stray address never pans the map elsewhere.
+      if (position.lat() < 41.55 || position.lat() > 41.95 || position.lng() < 44.55 || position.lng() > 45.15) {
+        return false;
+      }
       this.map.setCenter(position);
       this.map.setZoom(17);
       this.renderStreetPointFocus(position, streetName);
@@ -790,6 +809,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
+  /**
+   * Temporary "searched place" pin for streets without stored geometry. It is a purple VELVEN
+   * pill, clearly different from the white price pins of listings, and it is replaced
+   * whenever another street is selected (clearStreetFocus).
+   */
   private renderStreetPointFocus(position: google.maps.LatLng, streetName: string): void {
     if (!this.map) return;
     this.clearStreetFocus();
@@ -799,21 +823,30 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     overlay.onAdd = () => {
       marker = document.createElement('div');
       marker.className = 'street-point-focus';
-      marker.setAttribute('aria-label', `Selected street: ${streetName}`);
+      marker.setAttribute('role', 'img');
+      marker.setAttribute('aria-label', `Searched street: ${streetName}`);
       marker.innerHTML = '<i class="fa-solid fa-location-dot" aria-hidden="true"></i><span></span>';
-      const label = marker.querySelector('span');
-      if (label) label.textContent = streetName;
+      const label = marker.querySelector('span') as HTMLElement;
+      label.textContent = streetName;
+      Object.assign(label.style, { overflow: 'hidden', textOverflow: 'ellipsis' });
       Object.assign(marker.style, {
         position: 'absolute',
-        transform: 'translate(-50%, -100%)',
-        padding: '8px 11px',
-        borderRadius: '10px',
+        transform: 'translate(-50%, calc(-100% - 8px))',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        maxWidth: '220px',
+        padding: '7px 12px',
+        border: '2px solid #fff',
+        borderRadius: '999px',
         color: '#fff',
-        background: '#d93025',
-        boxShadow: '0 8px 22px rgba(217,48,37,.3)',
+        background: '#5b21d1',
+        boxShadow: '0 8px 22px rgba(69,26,143,.34)',
+        fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
         fontSize: '11px',
         fontWeight: '800',
         whiteSpace: 'nowrap',
+        pointerEvents: 'none',
       });
       overlay.getPanes()?.floatPane.appendChild(marker);
     };
@@ -824,7 +857,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       marker.style.left = `${point.x}px`;
       marker.style.top = `${point.y}px`;
     };
-    overlay.onRemove = () => marker?.remove();
+    overlay.onRemove = () => {
+      marker?.remove();
+      marker = undefined;
+    };
     overlay.setMap(map);
     this.streetFocusOverlay = overlay;
   }
@@ -945,9 +981,21 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         fullscreenControl: false,
         clickableIcons: false,
       });
+      // The wheel zooms the map only: once Google Maps has handled it, stop it from also
+      // scrolling the page or panel behind the map.
+      mapElement.nativeElement.addEventListener('wheel', (event: WheelEvent) => event.preventDefault(), { passive: false });
       this.zoomListener = this.map.addListener('zoom_changed', () =>
         this.syncApartmentOverlayVisibility(),
       );
+      // Panning changes which clusters/prices are in view; 'idle' fires once the move settles.
+      this.priceIdleListener = this.map.addListener('idle', () => this.syncApartmentOverlayVisibility());
+      // Tapping empty map folds an opened building back into its "N units" pill.
+      this.priceClickListener = this.map.addListener('click', () => {
+        if (!this.expandedBuilding) return;
+        this.expandedBuilding = null;
+        this.lastPriceKey = '';
+        this.syncPriceClusters();
+      });
 
       // The Google adapter binds to controls created inside `.gm-style`.
       // Those elements do not exist immediately after `new Map()`, so wait
@@ -1304,100 +1352,304 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       return [{ apartment, position: position! }];
     });
 
-    for (const { apartment, position } of listings) {
-      const price = `$${this.formatCompactPrice(apartment.price)}`;
-      const overlay = new google.maps.OverlayView();
-      let pin: HTMLDivElement | undefined;
-      overlay.onAdd = () => {
-        pin = document.createElement('div');
-        pin.textContent = price;
-        pin.setAttribute('role', 'button');
-        pin.setAttribute('tabindex', '0');
-        pin.setAttribute('aria-label', `Open ${apartment.title}, ${price}`);
-        Object.assign(pin.style, {
-          position: 'absolute',
-          transform: 'translate(-50%, calc(-100% - 9px))',
-          minWidth: '64px',
-          minHeight: '40px',
-          padding: '0 14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxSizing: 'border-box',
-          borderRadius: '18px',
-          background: '#fff',
-          color: '#111827',
-          border: '1px solid rgba(31, 41, 55, .08)',
-          boxShadow: '0 7px 18px rgba(39, 31, 52, .18)',
-          fontFamily: 'inherit',
-          fontSize: '13px',
-          lineHeight: '1',
-          fontWeight: '850',
-          whiteSpace: 'nowrap',
-          pointerEvents: 'auto',
-          cursor: 'pointer',
-          zIndex: '9',
-          transition: 'transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease',
-        });
-        const tail = document.createElement('i');
-        Object.assign(tail.style, {
-          position: 'absolute',
-          left: '50%',
-          bottom: '-11px',
-          width: '24px',
-          height: '13px',
-          background: '#fff',
-          transform: 'translateX(-50%)',
-          clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
-          filter: 'drop-shadow(0 4px 3px rgba(39, 31, 52, .10))',
-          transition: 'background 160ms ease',
-        });
-        pin.appendChild(tail);
-        const setPinHighlighted = (highlighted: boolean) => {
-          const active = this.previewApartmentId === apartment.id;
-          const selected = highlighted || active;
-          pin!.style.background = selected ? '#451a8f' : '#fff';
-          pin!.style.color = selected ? '#fff' : '#171421';
-          pin!.style.borderColor = selected ? '#451a8f' : 'rgba(31, 41, 55, .08)';
-          pin!.style.transform = selected
-            ? 'translate(-50%, calc(-100% - 9px)) scale(1.06)'
-            : 'translate(-50%, calc(-100% - 9px))';
-          pin!.style.boxShadow = selected
-            ? '0 8px 20px rgba(69, 26, 143, .34)'
-            : '0 6px 16px rgba(25, 16, 31, .22)';
-          tail.style.background = selected ? '#451a8f' : '#fff';
-        };
-        const openPreview = (event: Event) => {
-          event.stopPropagation();
-          void this.showPropertyPreview(apartment, position, pin!, tail);
-        };
-        pin.addEventListener('click', openPreview);
-        pin.addEventListener('pointerenter', () => setPinHighlighted(true));
-        pin.addEventListener('pointerleave', () => setPinHighlighted(false));
-        pin.addEventListener('focus', () => setPinHighlighted(true));
-        pin.addEventListener('blur', () => setPinHighlighted(false));
-        pin.addEventListener('keydown', (event) => {
-          if ((event as KeyboardEvent).key === 'Enter' || (event as KeyboardEvent).key === ' ') {
-            event.preventDefault();
-            openPreview(event);
-          }
-        });
-        overlay.getPanes()?.floatPane.appendChild(pin);
-      };
-      overlay.draw = () => {
-        const pixel = overlay.getProjection().fromLatLngToDivPixel(position);
-        if (pin && pixel) {
-          pin.style.left = `${pixel.x}px`;
-          pin.style.top = `${pixel.y}px`;
-        }
-      };
-      overlay.onRemove = () => {
-        pin?.remove();
-        pin = undefined;
-      };
-      this.priceOverlays.push(overlay);
-    }
+    this.priceListings = listings;
+    const index = new Supercluster<{ id: number }, { id: number }>({
+      radius: 64,
+      minZoom: 0,
+      // Above the map's zoom limit: listings at one spot always stay a single building cluster.
+      maxZoom: 22,
+      minPoints: 2,
+      nodeSize: 64,
+    });
+    index.load(
+      listings.map(({ apartment, position }) => ({
+        type: 'Feature' as const,
+        properties: { id: apartment.id },
+        geometry: { type: 'Point' as const, coordinates: [position.lng, position.lat] },
+      })),
+    );
+    this.priceIndex = index;
+    this.lastPriceKey = '';
     this.syncApartmentOverlayVisibility();
+  }
+
+  /** Draws only what the viewport needs: single prices, cluster counts, and "N units" buildings. */
+  private syncPriceClusters(): void {
+    if (!this.map || !this.priceIndex) return;
+    const bounds = this.map.getBounds();
+    const zoom = this.map.getZoom();
+    if (!bounds || zoom === undefined) return;
+    const north = bounds.getNorthEast().lat();
+    const east = bounds.getNorthEast().lng();
+    const south = bounds.getSouthWest().lat();
+    const west = bounds.getSouthWest().lng();
+    const latPad = (north - south) * 0.2;
+    const lngPad = (east - west) * 0.2;
+    const bbox: [number, number, number, number] = [
+      Math.max(-180, west - lngPad),
+      Math.max(-85, south - latPad),
+      Math.min(180, east + lngPad),
+      Math.min(85, north + latPad),
+    ];
+    const clusterZoom = Math.min(22, Math.max(0, Math.floor(zoom)));
+    const key = [
+      bbox.map((value) => value.toFixed(5)).join(','),
+      clusterZoom,
+      this.priceListings.length,
+      this.expandedBuilding,
+    ].join('|');
+    if (key === this.lastPriceKey) return;
+    this.lastPriceKey = key;
+
+    const byId = new Map(this.priceListings.map((item) => [item.apartment.id, item]));
+    const wanted = new Map<string, () => google.maps.OverlayView>();
+    for (const feature of this.priceIndex.getClusters(bbox, clusterZoom)) {
+      const [lng, lat] = feature.geometry.coordinates;
+      const props = feature.properties as { cluster?: boolean; cluster_id?: number; point_count?: number; id?: number };
+      if (props.cluster && props.cluster_id !== undefined) {
+        const clusterId = props.cluster_id;
+        const leaves = this.priceIndex
+          .getLeaves(clusterId, Infinity)
+          .map((leaf) => byId.get((leaf.properties as { id: number }).id))
+          .filter((item): item is { apartment: Apartment; position: google.maps.LatLngLiteral } => !!item);
+        const count = leaves.length;
+        const sameBuilding = leaves.every(
+          (item) => this.distanceMeters(leaves[0].position, item.position) <= 25,
+        );
+        if (sameBuilding) {
+          const buildingKey = 'b:' + Math.min(...leaves.map((item) => item.apartment.id)) + ':' + count;
+          if (this.expandedBuilding === buildingKey) {
+            leaves.forEach((item, i) => {
+              wanted.set('a:' + item.apartment.id, () =>
+                this.createPricePinOverlay(item.apartment, item.position, this.spreadOffset(i, count)),
+              );
+            });
+          } else {
+            wanted.set(buildingKey, () =>
+              this.createGroupBadgeOverlay({ lat, lng }, count, () => {
+                this.expandedBuilding = buildingKey;
+                this.lastPriceKey = '';
+                this.syncPriceClusters();
+              }),
+            );
+          }
+        } else {
+          wanted.set('c:' + clusterId + ':' + count, () =>
+            this.createGroupBadgeOverlay(
+              { lat, lng },
+              count,
+              () => {
+                const target = Math.min(this.priceIndex!.getClusterExpansionZoom(clusterId), 21);
+                this.map!.setCenter({ lat, lng });
+                this.map!.setZoom(Math.max(target, (this.map!.getZoom() || 0) + 1));
+              },
+              false,
+            ),
+          );
+        }
+      } else if (props.id !== undefined) {
+        const item = byId.get(props.id);
+        if (item) {
+          wanted.set('a:' + item.apartment.id, () => this.createPricePinOverlay(item.apartment, item.position));
+        }
+      }
+    }
+
+    for (const [markerKey, overlay] of this.priceMarkers) {
+      if (!wanted.has(markerKey)) {
+        overlay.setMap(null);
+        this.priceMarkers.delete(markerKey);
+      }
+    }
+    for (const [markerKey, create] of wanted) {
+      if (!this.priceMarkers.has(markerKey)) this.priceMarkers.set(markerKey, create());
+    }
+  }
+
+  /** Places the i-th of n pins on a circle around a building so every unit stays reachable. */
+  private spreadOffset(index: number, total: number): { x: number; y: number } {
+    const radius = Math.max(64, (total * 74) / (2 * Math.PI));
+    const angle = (2 * Math.PI * index) / total - Math.PI / 2;
+    return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+  }
+
+  private distanceMeters(a: google.maps.LatLngLiteral, b: google.maps.LatLngLiteral): number {
+    const rad = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * rad;
+    const dLng = (b.lng - a.lng) * rad;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+    return 2 * 6371000 * Math.asin(Math.sqrt(h));
+  }
+
+  /** Purple count disc for a cluster, or a "N units" pill when the listings share one building. */
+  private createGroupBadgeOverlay(
+    position: google.maps.LatLngLiteral,
+    count: number,
+    onClick: () => void,
+    isBuilding = true,
+  ): google.maps.OverlayView {
+    const overlay = new google.maps.OverlayView();
+    let badge: HTMLButtonElement | undefined;
+    overlay.onAdd = () => {
+      badge = document.createElement('button');
+      badge.type = 'button';
+      const size = Math.round(Math.min(64, 44 + Math.log10(Math.max(count, 1)) * 12));
+      badge.setAttribute(
+        'aria-label',
+        isBuilding ? count + ' homes in this building' : count + ' homes, zoom in to see them',
+      );
+      if (isBuilding) {
+        badge.innerHTML =
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="flex:none">' +
+          '<path d="M6 2h12a1 1 0 0 1 1 1v18h-5v-4h-4v4H5V3a1 1 0 0 1 1-1Zm2.5 3.5v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Z"/></svg><span></span>';
+        (badge.querySelector('span') as HTMLElement).textContent = count + (count === 1 ? ' unit' : ' units');
+      } else {
+        badge.textContent = count > 999 ? '999+' : String(count);
+      }
+      Object.assign(badge.style, {
+        position: 'absolute',
+        transform: 'translate(-50%, -50%)',
+        minWidth: isBuilding ? '44px' : size + 'px',
+        height: isBuilding ? '44px' : size + 'px',
+        padding: isBuilding ? '0 16px' : '0',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        border: '2px solid rgba(255,255,255,.95)',
+        borderRadius: isBuilding ? '999px' : '50%',
+        background: '#5b21d1',
+        color: '#fff',
+        boxShadow: '0 8px 22px rgba(69, 26, 143, .38)',
+        fontFamily: 'inherit',
+        fontSize: count > 99 && !isBuilding ? '14px' : '15px',
+        fontWeight: '800',
+        lineHeight: '1',
+        whiteSpace: 'nowrap',
+        cursor: 'pointer',
+        outline: 'none',
+        touchAction: 'manipulation',
+        zIndex: '10',
+      });
+      google.maps.OverlayView.preventMapHitsAndGesturesFrom(badge);
+      badge.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onClick();
+      });
+      overlay.getPanes()?.floatPane.appendChild(badge);
+    };
+    overlay.draw = () => {
+      const pixel = overlay.getProjection().fromLatLngToDivPixel(new google.maps.LatLng(position));
+      if (badge && pixel) {
+        badge.style.left = pixel.x + 'px';
+        badge.style.top = pixel.y + 'px';
+      }
+    };
+    overlay.onRemove = () => {
+      badge?.remove();
+      badge = undefined;
+    };
+    overlay.setMap(this.map!);
+    return overlay;
+  }
+
+  private createPricePinOverlay(
+    apartment: Apartment,
+    position: google.maps.LatLngLiteral,
+    offset: { x: number; y: number } = { x: 0, y: 0 },
+  ): google.maps.OverlayView {
+    const price = `$${this.formatCompactPrice(apartment.price)}`;
+    const overlay = new google.maps.OverlayView();
+    let pin: HTMLDivElement | undefined;
+    overlay.onAdd = () => {
+      pin = document.createElement('div');
+      pin.textContent = price;
+      pin.setAttribute('role', 'button');
+      pin.setAttribute('tabindex', '0');
+      pin.setAttribute('aria-label', `Open ${apartment.title}, ${price}`);
+      Object.assign(pin.style, {
+        position: 'absolute',
+        transform: 'translate(-50%, calc(-100% - 9px))',
+        minWidth: '64px',
+        minHeight: '40px',
+        padding: '0 14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxSizing: 'border-box',
+        borderRadius: '18px',
+        background: '#fff',
+        color: '#111827',
+        border: '1px solid rgba(31, 41, 55, .08)',
+        boxShadow: '0 7px 18px rgba(39, 31, 52, .18)',
+        fontFamily: 'inherit',
+        fontSize: '13px',
+        lineHeight: '1',
+        fontWeight: '850',
+        whiteSpace: 'nowrap',
+        pointerEvents: 'auto',
+        cursor: 'pointer',
+        zIndex: '9',
+        transition: 'transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease',
+      });
+      const tail = document.createElement('i');
+      Object.assign(tail.style, {
+        position: 'absolute',
+        left: '50%',
+        bottom: '-11px',
+        width: '24px',
+        height: '13px',
+        background: '#fff',
+        transform: 'translateX(-50%)',
+        clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
+        filter: 'drop-shadow(0 4px 3px rgba(39, 31, 52, .10))',
+        transition: 'background 160ms ease',
+      });
+      pin.appendChild(tail);
+      const setPinHighlighted = (highlighted: boolean) => {
+        const active = this.previewApartmentId === apartment.id;
+        const selected = highlighted || active;
+        pin!.style.background = selected ? '#451a8f' : '#fff';
+        pin!.style.color = selected ? '#fff' : '#171421';
+        pin!.style.borderColor = selected ? '#451a8f' : 'rgba(31, 41, 55, .08)';
+        pin!.style.transform = selected
+          ? 'translate(-50%, calc(-100% - 9px)) scale(1.06)'
+          : 'translate(-50%, calc(-100% - 9px))';
+        pin!.style.boxShadow = selected
+          ? '0 8px 20px rgba(69, 26, 143, .34)'
+          : '0 6px 16px rgba(25, 16, 31, .22)';
+        tail.style.background = selected ? '#451a8f' : '#fff';
+      };
+      const openPreview = (event: Event) => {
+        event.stopPropagation();
+        void this.showPropertyPreview(apartment, position, pin!, tail);
+      };
+      pin.addEventListener('click', openPreview);
+      pin.addEventListener('pointerenter', () => setPinHighlighted(true));
+      pin.addEventListener('pointerleave', () => setPinHighlighted(false));
+      pin.addEventListener('focus', () => setPinHighlighted(true));
+      pin.addEventListener('blur', () => setPinHighlighted(false));
+      pin.addEventListener('keydown', (event) => {
+        if ((event as KeyboardEvent).key === 'Enter' || (event as KeyboardEvent).key === ' ') {
+          event.preventDefault();
+          openPreview(event);
+        }
+      });
+      overlay.getPanes()?.floatPane.appendChild(pin);
+    };
+    overlay.draw = () => {
+      const pixel = overlay.getProjection().fromLatLngToDivPixel(position);
+      if (pin && pixel) {
+        pin.style.left = `${pixel.x + offset.x}px`;
+        pin.style.top = `${pixel.y + offset.y}px`;
+      }
+    };
+    overlay.onRemove = () => {
+      pin?.remove();
+      pin = undefined;
+    };
+    overlay.setMap(this.map!);
+    return overlay;
   }
 
   private resolveApartmentPosition(apartment: Apartment): google.maps.LatLngLiteral | null {
@@ -1449,13 +1701,25 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (!this.map) return;
     const showPrices = this.compact || !!this.activeStreetPaths.length || (this.map.getZoom() || 0) >= 15;
     this.countOverlays.forEach((overlay) => overlay.setMap(showPrices ? null : this.map!));
-    this.priceOverlays.forEach((overlay) => overlay.setMap(showPrices ? this.map! : null));
+    if (showPrices) {
+      this.syncPriceClusters();
+    } else {
+      this.removePriceMarkers();
+    }
+  }
+
+  private removePriceMarkers(): void {
+    this.priceMarkers.forEach((overlay) => overlay.setMap(null));
+    this.priceMarkers.clear();
+    this.lastPriceKey = '';
   }
 
   private clearApartmentPriceOverlays(): void {
     this.clearPropertyPreview();
-    this.priceOverlays.forEach((overlay) => overlay.setMap(null));
-    this.priceOverlays = [];
+    this.removePriceMarkers();
+    this.priceListings = [];
+    this.priceIndex = undefined;
+    this.expandedBuilding = null;
   }
 
   private pointInsidePolygon(longitude: number, latitude: number, ring: number[][]): boolean {
@@ -1484,6 +1748,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
     this.clearPropertyPreview();
     this.previewApartmentId = apartment.id;
+    this.propertyPreviewOpened.emit(apartment);
     this.activePreviewPin = pin;
     this.activePreviewTail = tail;
     pin.style.background = '#451a8f';
@@ -1493,30 +1758,33 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     pin.style.boxShadow = '0 8px 20px rgba(69, 26, 143, .34)';
     tail.style.background = '#451a8f';
     const listedImages = (apartment.imageUrls || []).filter(Boolean);
+    let applyImages: ((urls: string[]) => void) | undefined;
+    let pendingImages: string[] | undefined;
     if (listedImages.length <= 1) {
-      try {
-        const detailedApartment = await firstValueFrom(
-          this.apartmentService.getApartment(apartment.id),
-        );
-        if (this.previewApartmentId !== apartment.id) return;
-        apartment = detailedApartment;
-      } catch {
-        // Keep the list result available if the full gallery cannot be loaded.
-      }
+      // Open the card at once with what the list already has; the full gallery joins in
+      // when it arrives (and is preloaded), instead of delaying the card for the request.
+      void firstValueFrom(this.apartmentService.getApartment(apartment.id))
+        .then((detailedApartment) => {
+          if (this.previewApartmentId !== apartment.id) return;
+          const urls = (detailedApartment.imageUrls || []).filter(Boolean);
+          if (urls.length <= 1) return;
+          if (applyImages) applyImages(urls);
+          else pendingImages = urls;
+        })
+        .catch(() => undefined);
     }
     const overlay = new google.maps.OverlayView();
     let card: HTMLDivElement | undefined;
     overlay.onAdd = () => {
       card = document.createElement('div');
-      const images = (apartment.imageUrls || []).filter(Boolean);
-      if (!images.length) images.push(apartment.imageUrl || '/property-placeholder.svg');
+      let images = (apartment.imageUrls || []).filter(Boolean);
+      if (!images.length) images = [apartment.imageUrl || '/property-placeholder.svg'];
       let imageIndex = 0;
       card.setAttribute('role', 'dialog');
       card.setAttribute('aria-label', apartment.title || 'Property details');
       card.innerHTML = `
         <button type="button" data-close aria-label="Close property preview">&times;</button>
-        <div data-gallery><img src="${this.escapeAttribute(images[0])}" alt="" />
-        ${images.length > 1 ? '<button type="button" data-previous aria-label="Previous image">&#8249;</button><button type="button" data-next aria-label="Next image">&#8250;</button>' : ''}</div>
+        <div data-gallery><button type="button" data-previous aria-label="Previous image">&#8249;</button><button type="button" data-next aria-label="Next image">&#8250;</button></div>
         <div data-body><b>$${Math.round(apartment.price).toLocaleString('en-US')}</b>
         <small>${apartment.bedrooms || '—'} beds · ${apartment.sizeSquareMeters || '—'} m²</small></div>`;
       Object.assign(card.style, {
@@ -1528,20 +1796,43 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       });
       const gallery = card.querySelector('[data-gallery]') as HTMLDivElement;
       Object.assign(gallery.style, { position: 'relative', width: '158px', height: '112px', overflow: 'hidden' });
-      const img = gallery.querySelector('img') as HTMLImageElement;
-      Object.assign(img.style, { width: '158px', height: '112px', display: 'block', objectFit: 'cover' });
-      img.addEventListener('error', () => {
-        if (img.getAttribute('src') !== '/property-placeholder.svg') {
-          img.src = '/property-placeholder.svg';
-        }
-      });
+      // Every photo is its own stacked <img>, all requested up front. Arrows only switch
+      // opacity, so changing photo never waits on the network.
+      const slides: HTMLImageElement[] = [];
+      const showSlide = (index: number) => slides.forEach((slide, i) => (slide.style.opacity = i === index ? '1' : '0'));
       const changeImage = (event: Event, direction: number) => {
         event.stopPropagation();
         imageIndex = (imageIndex + direction + images.length) % images.length;
-        img.src = images[imageIndex];
+        showSlide(imageIndex);
       };
       const previous = gallery.querySelector('[data-previous]') as HTMLButtonElement | null;
       const next = gallery.querySelector('[data-next]') as HTMLButtonElement | null;
+      const renderImages = (urls: string[]) => {
+        slides.forEach((slide) => slide.remove());
+        slides.length = 0;
+        images = urls;
+        imageIndex = Math.min(imageIndex, urls.length - 1);
+        urls.forEach((url, i) => {
+          const slide = document.createElement('img');
+          slide.alt = '';
+          slide.decoding = 'async';
+          slide.loading = 'eager';
+          slide.setAttribute('fetchpriority', i === 0 ? 'high' : 'low');
+          Object.assign(slide.style, {
+            position: 'absolute', inset: '0', width: '100%', height: '100%', display: 'block',
+            objectFit: 'cover', pointerEvents: 'none', opacity: i === imageIndex ? '1' : '0',
+          });
+          slide.addEventListener('error', () => {
+            if (slide.getAttribute('src') !== '/property-placeholder.svg') slide.src = '/property-placeholder.svg';
+          });
+          slide.src = url;
+          gallery.appendChild(slide);
+          slides.push(slide);
+        });
+        const showArrows = urls.length > 1;
+        if (previous) previous.style.display = showArrows ? 'flex' : 'none';
+        if (next) next.style.display = showArrows ? 'flex' : 'none';
+      };
       if (previous && next) {
         const arrowCss = 'position:absolute;z-index:2;top:50%;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:#fff;color:#171421;font-size:24px;line-height:25px;cursor:pointer;box-shadow:0 2px 7px #0003;transform:translateY(-50%)';
         previous.style.cssText = `${arrowCss};left:6px`;
@@ -1571,6 +1862,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       close.innerHTML = controlIcon('M6 6l12 12M18 6L6 18');
       close.style.top = '8px';
       close.style.right = '8px';
+      renderImages(images);
+      applyImages = renderImages;
+      if (pendingImages) renderImages(pendingImages);
       close.addEventListener('click', (event) => { event.stopPropagation(); this.clearPropertyPreview(); });
       card.addEventListener('click', () => void this.router.navigate(['/apartments', apartment.id]));
       if (this.dockPropertyPreview) {
@@ -1581,7 +1875,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           transform: 'none',
         });
         Object.assign(gallery.style, { width: '100%', height: '140px' });
-        Object.assign(img.style, { width: '100%', height: '140px' });
         Object.assign(body.style, {
           padding: '10px 12px', flexDirection: 'row', alignItems: 'center',
           justifyContent: 'space-between', gap: '8px',
@@ -1668,7 +1961,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     overlay.onAdd = () => {
       marker = document.createElement('div');
       marker.setAttribute('aria-label', `Selected street: ${streetName}`);
-      marker.innerHTML = `<em></em><b><i class="fa-solid fa-house"></i><u></u></b><span></span>`;
+      marker.innerHTML = `<em></em><b><i class="fa-solid fa-location-dot"></i><u></u></b><span></span>`;
       const icon = marker.querySelector('b') as HTMLElement;
       const label = marker.querySelector('span') as HTMLElement;
       const tail = marker.querySelector('u') as HTMLElement;

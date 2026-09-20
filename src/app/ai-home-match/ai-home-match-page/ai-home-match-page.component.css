@@ -1744,3 +1744,17 @@ fieldset {
     background: #fff;
   }
 }
+
+.step-hint {
+  margin: 14px 0 0;
+  color: #6f6a7c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 650;
+}

@@ -3,9 +3,12 @@
     <div class="results-intro">
     <span>Velven recommendations</span>
     <h1>Your AI Home Matches</h1>
-    <p>
-      We found {{ matches.length }} home{{ matches.length === 1 ? '' : 's' }} ranked by how well
-      they fit your lifestyle.
+    <p *ngIf="exactMatches.length">
+      We found {{ exactMatches.length }} home{{ exactMatches.length === 1 ? '' : 's' }} that
+      meet your requirements, ranked by how well they fit your lifestyle.
+    </p>
+    <p *ngIf="!exactMatches.length && matches.length">
+      No home meets all of your requirements exactly.
     </p>
     </div>
   <div class="results-avatar" *ngIf="profile.gender">
@@ -21,10 +24,33 @@
     <button type="button" (click)="edit.emit()">Adjust My Preferences</button
     ><a routerLink="/ExploreProperty">View All Apartments</a>
   </div>
+  <div class="no-exact" *ngIf="matches.length && !exactMatches.length" role="status">
+    <h2>No exact matches found</h2>
+    <p>
+      None of the available homes meets all of your must-have requirements (location,
+      bedrooms and budget).
+      <ng-container *ngIf="confirmMatches.length">
+        The homes below match them but still need a detail confirmed.
+      </ng-container>
+    </p>
+    <div class="no-exact-actions">
+      <button type="button" (click)="edit.emit()">Adjust My Preferences</button>
+      <button
+        type="button"
+        class="ghost"
+        *ngIf="alternativeMatches.length && !showAlternatives"
+        (click)="showAlternatives = true"
+      >
+        Show alternatives ({{ alternativeMatches.length }})
+      </button>
+    </div>
+  </div>
+  <ng-template #card let-result let-matchIndex="index" let-kind="kind">
   <article
-    *ngFor="let result of sorted; let matchIndex = index"
     class="card"
-    [class.best-match]="matchIndex === 0"
+    [class.best-match]="kind === 'exact' && matchIndex === 0"
+    [class.needs-confirmation]="kind === 'confirm'"
+    [class.alternative]="kind === 'alternative'"
   >
     <div class="media-column">
       <div class="media">
@@ -36,8 +62,8 @@
         />
       </div>
       <div class="score">
-        <span>{{ rankLabel(matchIndex) }}</span>
-        <b>{{ rankHeadline(matchIndex) }}</b>
+        <span>{{ cardLabel(kind, matchIndex) }}</span>
+        <b>{{ cardHeadline(kind, matchIndex) }}</b>
       </div>
     </div>
     <div class="body">
@@ -60,6 +86,12 @@
           >{{ result.apartment.sizeSquareMeters }} m²</span
         >
       </div>
+      <ul class="requirement-notes mismatch" *ngIf="result.requirement?.mismatches?.length">
+        <li *ngFor="let note of result.requirement.mismatches"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>{{ note }}</li>
+      </ul>
+      <ul class="requirement-notes confirm" *ngIf="result.requirement?.confirmations?.length">
+        <li *ngFor="let note of result.requirement.confirmations"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ note }}</li>
+      </ul>
       <section class="lifestyle-fit" *ngIf="lifestyleInsights(result) as insights">
         <ng-container *ngIf="insights.length">
           <div class="fit-heading">
@@ -131,6 +163,31 @@
       </section>
     </div>
   </article>
+  </ng-template>
+  <ng-container *ngFor="let result of exactMatches; let i = index">
+    <ng-container *ngTemplateOutlet="card; context: { $implicit: result, index: i, kind: 'exact' }"></ng-container>
+  </ng-container>
+  <h2 class="results-group" *ngIf="confirmMatches.length">
+    Needs confirmation
+    <small>These homes match your requirements, but a detail must be confirmed with the owner.</small>
+  </h2>
+  <ng-container *ngFor="let result of confirmMatches; let i = index">
+    <ng-container *ngTemplateOutlet="card; context: { $implicit: result, index: i, kind: 'confirm' }"></ng-container>
+  </ng-container>
+  <div class="alternatives-toggle" *ngIf="exactMatches.length && alternativeMatches.length && !showAlternatives">
+    <button type="button" (click)="showAlternatives = true">
+      Show alternatives ({{ alternativeMatches.length }})
+    </button>
+  </div>
+  <ng-container *ngIf="showAlternatives && alternativeMatches.length">
+    <h2 class="results-group alternatives">
+      Alternatives
+      <small>These homes do not meet all of your requirements.</small>
+    </h2>
+    <ng-container *ngFor="let result of alternativeMatches; let i = index">
+      <ng-container *ngTemplateOutlet="card; context: { $implicit: result, index: i, kind: 'alternative' }"></ng-container>
+    </ng-container>
+  </ng-container>
   <button class="edit" type="button" *ngIf="matches.length" (click)="edit.emit()">
     Edit my answers
   </button>

@@ -1,5 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { HomeMatchProfile } from '../models/home-match-profile';
+import { answerLabel, answerList } from '../services/answer-labels';
+
+interface AnswerRow {
+  step: number;
+  label: string;
+  value: string;
+}
 
 interface ProfileAttribute {
   label: string;
@@ -22,13 +29,74 @@ export class HomeProfileSummaryComponent {
   @Output() submitProfile = new EventEmitter<void>();
   @Output() edit = new EventEmitter<void>();
   @Output() save = new EventEmitter<void>();
+  /** Emits the question step whose answer the user wants to change. */
+  @Output() changeAnswer = new EventEmitter<number>();
 
   label(value: string | undefined | null): string {
-    return value ? value.replace(/([a-z])([A-Z])/g, '$1 $2') : 'Not specified';
+    return value ? answerLabel(value) : 'Not specified';
   }
 
   list(values: string[]): string {
-    return values.length ? values.map((value) => this.label(value)).join(', ') : 'No preference';
+    return values.length ? answerList(values) : 'No preference';
+  }
+
+  /** Every answer with the question it came from, so each one can be changed on its own. */
+  get answers(): AnswerRow[] {
+    const p = this.profile;
+    const rent = p.propertyGoal !== 'Buy';
+    const rows: Array<AnswerRow | null> = [
+      p.gender ? { step: 0, label: 'Gender', value: this.label(p.gender) } : null,
+      p.propertyGoal ? { step: 1, label: 'Looking for', value: this.label(p.propertyGoal) } : null,
+      {
+        step: 2,
+        label: 'Location',
+        value: p.locationFlexible
+          ? 'Flexible'
+          : p.districts.length
+            ? this.list(p.districts)
+            : p.selectedMapArea
+              ? 'Selected map area'
+              : 'Not specified',
+      },
+      rent ? { step: 3, label: 'Budget', value: this.budget } : null,
+      rent && p.householdType
+        ? {
+            step: 4,
+            label: 'Household',
+            value: `${this.label(p.householdType)} · ${p.adults} adult${p.adults === 1 ? '' : 's'}${
+              p.children ? `, ${p.children} child${p.children === 1 ? '' : 'ren'}` : ''
+            }`,
+          }
+        : null,
+      {
+        step: 6,
+        label: 'Bedrooms',
+        value:
+          p.bedrooms === null || p.bedrooms === undefined
+            ? 'Let AI decide'
+            : p.bedrooms === 0
+              ? 'Studio'
+              : p.bedrooms >= 4
+                ? '4 or more'
+                : `${p.bedrooms} or more`,
+      },
+      rent
+        ? {
+            step: 7,
+            label: 'Move-in',
+            value:
+              p.moveInTiming === 'SpecificDate' && p.moveInDate
+                ? p.moveInDate
+                : this.label(p.moveInTiming),
+          }
+        : { step: 7, label: 'Purchase timing', value: this.label(p.purchaseTiming) },
+      rent ? { step: 7, label: 'Rental period', value: this.label(p.rentalDuration) } : null,
+      { step: 8, label: 'Transport', value: this.list(p.transportation) },
+      { step: 9, label: 'Lifestyle', value: this.list(p.lifestyles) },
+      rent && p.hasPet !== null ? { step: 10, label: 'Pet', value: this.petValue } : null,
+      { step: 11, label: 'Top 5 priorities', value: this.list(p.topPriorities) },
+    ];
+    return rows.filter((row): row is AnswerRow => !!row);
   }
 
   get budget(): string {
@@ -104,17 +172,18 @@ export class HomeProfileSummaryComponent {
   }
 
   private get timingValue(): string {
-    return this.label(
+    const value =
       this.profile.propertyGoal === 'Rent'
-        ? this.profile.rentalDuration
-        : this.profile.purchaseTiming,
-    ) === 'Not specified'
-      ? ''
-      : this.label(
-          this.profile.propertyGoal === 'Rent'
-            ? this.profile.rentalDuration
-            : this.profile.purchaseTiming,
-        );
+        ? [
+            this.profile.moveInTiming === 'SpecificDate' && this.profile.moveInDate
+              ? this.profile.moveInDate
+              : answerLabel(this.profile.moveInTiming),
+            answerLabel(this.profile.rentalDuration),
+          ]
+            .filter(Boolean)
+            .join(' · ')
+        : answerLabel(this.profile.purchaseTiming);
+    return value;
   }
 
   private get petValue(): string {

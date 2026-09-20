@@ -63,7 +63,7 @@
         </div>
       </div>
       <div class="phase-status">
-        <span>Step {{ currentPhase + 1 }} of {{ phaseLabels.length }}</span>
+        <span>{{ phaseLabels[currentPhase] }} · Step {{ stepNumber }} / {{ visibleSteps.length }}</span>
         <div><i [style.width.%]="progress"></i></div>
         <b>{{ progress | number: '1.0-0' }}%</b>
       </div>
@@ -330,6 +330,9 @@
               >{{ option.label }}
             </button>
           </div>
+          <p class="step-hint">
+            We show homes with the selected number of bedrooms or more.
+          </p>
         </div>
         <div *ngSwitchCase="7">
           <ng-container *ngIf="profile.propertyGoal === 'Rent'; else buyTiming"
@@ -388,9 +391,12 @@
               ><label *ngIf="profile.moveInTiming === 'SpecificDate'"
                 >Move-in date<input
                   type="date"
+                  [attr.min]="today"
                   [(ngModel)]="profile.moveInDate"
                   (ngModelChange)="persist()"
-              /></label></fieldset></ng-container
+              /><small class="field-error" role="alert" *ngIf="moveInDateInPast"
+                >Please choose today or a future date.</small
+              ></label></fieldset></ng-container
           ><ng-template #buyTiming
             ><fieldset>
               <legend>When are you planning to buy?</legend>
@@ -536,7 +542,7 @@
           <dt>
             <svg aria-hidden="true"><use href="/ai-match-icons.svg#solo"></use></svg>Gender
           </dt>
-          <dd>{{ profile.gender || 'Not selected yet' }}</dd>
+          <dd>{{ answerLabel(profile.gender) || 'Not selected yet' }}</dd>
         </div>
         <div *ngIf="profile.propertyGoal !== 'Buy'">
           <dt>
@@ -554,7 +560,7 @@
           </dt>
           <dd>
             {{
-              profile.lifestyles.length ? profile.lifestyles.join(', ') : 'Building your profile'
+              profile.lifestyles.length ? answerList(profile.lifestyles) : 'Building your profile'
             }}
           </dd>
         </div>
@@ -564,7 +570,7 @@
           </dt>
           <dd>
             {{
-              profile.transportation.length ? profile.transportation.join(', ') : 'Not selected yet'
+              profile.transportation.length ? answerList(profile.transportation) : 'Not selected yet'
             }}
           </dd>
         </div>
@@ -577,6 +583,23 @@
             {{ profile.budgetMax | number }}
           </dd>
         </div>
+        <div *ngIf="profile.propertyGoal === 'Rent' && (profile.moveInTiming || profile.rentalDuration)">
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#calendar"></use></svg>Move-in
+          </dt>
+          <dd>
+            {{ profile.moveInTiming === 'SpecificDate' && profile.moveInDate ? profile.moveInDate : answerLabel(profile.moveInTiming) }}<ng-container
+              *ngIf="profile.rentalDuration"
+              > · {{ answerLabel(profile.rentalDuration) }}</ng-container
+            >
+          </dd>
+        </div>
+        <div *ngIf="profile.topPriorities.length">
+          <dt>
+            <svg aria-hidden="true"><use href="/ai-match-icons.svg#check"></use></svg>Top priorities
+          </dt>
+          <dd>{{ answerList(profile.topPriorities) }}</dd>
+        </div>
       </dl>
     </aside>
   </main>
@@ -588,6 +611,7 @@
   [saving]="saving"
   [saveMessage]="saveMessage"
   (edit)="edit()"
+  (changeAnswer)="goToStep($event)"
   (save)="save()"
   (submitProfile)="submit()"
 ></app-home-profile-summary>
@@ -606,7 +630,7 @@
   *ngIf="view === 'results'"
   [matches]="matches"
   [profile]="profile"
-  (edit)="edit()"
+  (edit)="showReview()"
 ></app-home-match-results>
 
 <app-draw-area-map

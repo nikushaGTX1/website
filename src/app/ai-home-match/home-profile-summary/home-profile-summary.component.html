@@ -26,6 +26,16 @@
     </div>
   </div>
 
+  <section class="answer-review" aria-label="Your answers">
+    <h2>Review your answers</h2>
+    <ul>
+      <li *ngFor="let row of answers">
+        <span class="answer-text"><small>{{ row.label }}</small><strong>{{ row.value }}</strong></span>
+        <button type="button" (click)="changeAnswer.emit(row.step)">Change</button>
+      </li>
+    </ul>
+  </section>
+
   <p class="save-message" aria-live="polite">{{ saveMessage }}</p>
   <div class="actions">
     <button type="button" class="secondary" (click)="edit.emit()"><i class="fa-solid fa-pen"></i> Edit My Answers</button>

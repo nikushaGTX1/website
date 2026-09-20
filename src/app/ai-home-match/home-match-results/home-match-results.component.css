@@ -543,3 +543,102 @@ h1 {
     margin: 0 auto;
   }
 }
+
+/* Mandatory-requirement statuses */
+.no-exact {
+  margin: 20px 0;
+  padding: 26px 28px;
+  border: 1px solid #ecd9a8;
+  border-radius: 22px;
+  background: #fffaf0;
+  text-align: center;
+}
+.no-exact h2 {
+  margin: 0 0 8px;
+  color: #6b4a12;
+  font-size: 22px;
+}
+.no-exact p {
+  margin: 0 auto;
+  max-width: 560px;
+  color: #6f5a2e;
+  line-height: 1.6;
+}
+.no-exact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.no-exact-actions button,
+.alternatives-toggle button {
+  padding: 12px 18px;
+  color: #fff;
+  border: 0;
+  border-radius: 11px;
+  background: #5845cb;
+  font-weight: 700;
+  cursor: pointer;
+}
+.no-exact-actions button.ghost,
+.alternatives-toggle button {
+  color: #5342b4;
+  border: 1px solid #cfc8f1;
+  background: #fff;
+}
+.alternatives-toggle {
+  margin: 8px 0;
+  text-align: center;
+}
+.results-group {
+  margin: 34px 0 0;
+  font-size: 22px;
+}
+.results-group small {
+  display: block;
+  margin-top: 4px;
+  color: #6f6a7c;
+  font-size: 13px;
+  font-weight: 500;
+}
+.card.needs-confirmation {
+  border-color: #ecd9a8;
+}
+.card.alternative {
+  border-color: #e3dfe8;
+  opacity: 0.92;
+}
+.card.alternative .score span,
+.card.needs-confirmation .score span {
+  background: #f4efe1;
+  color: #6b4a12;
+}
+.requirement-notes {
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  list-style: none;
+}
+.requirement-notes li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.requirement-notes.mismatch li {
+  color: #9b1c1c;
+  background: #fdeeee;
+}
+.requirement-notes.confirm li {
+  color: #7a5310;
+  background: #fff5dd;
+}
+.requirement-notes i {
+  margin-top: 2px;
+}

@@ -1,0 +1,156 @@
+import { HomeMatchProfile } from '../models/home-match-profile';
+import { HomeMatchApartment } from '../models/home-match-result';
+
+/**
+ * Velven Match pipeline:
+ *   mandatory requirements -> filter -> uncertain requirements -> lifestyle ranking.
+ * Lifestyle scores may only reorder homes inside a status group; they never promote a home
+ * that fails a mandatory requirement.
+ */
+export type RequirementStatus = 'exact' | 'confirm' | 'alternative';
+
+export interface RequirementEvaluation {
+  status: RequirementStatus;
+  /** Mandatory requirements the home clearly fails. */
+  mismatches: string[];
+  /** Requirements the listing does not let us verify. */
+  confirmations: string[];
+}
+
+const GEORGIAN_DISTRICTS: Record<string, string> = {
+  'ვაკე': 'vake',
+  'საბურთალო': 'saburtalo',
+  'ვერა': 'vera',
+  'მთაწმინდა': 'mtatsminda',
+  'დიღომი': 'digomi',
+  'დიდი დიღომი': 'didi digomi',
+  'ისანი': 'isani',
+  'ორთაჭალა': 'ortachala',
+  'ჩუღურეთი': 'chugureti',
+  'გლდანი': 'gldani',
+  'ნაძალადევი': 'nadzaladevi',
+  'დიდუბე': 'didube',
+  'სამგორი': 'samgori',
+  'კრწანისი': 'krtsanisi',
+  'ავლაბარი': 'avlabari',
+  'სოლოლაკი': 'sololaki',
+};
+
+function normalizeDistrict(value: string | undefined | null): string {
+  const raw = (value || '').trim().toLowerCase();
+  if (!raw) return '';
+  const georgian = GEORGIAN_DISTRICTS[raw];
+  if (georgian) return georgian;
+  return raw
+    .replace(/dighomi/g, 'digomi')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+/** Profile values such as "DidiDighomi" arrive without spaces; make them comparable. */
+function normalizeProfileDistrict(value: string): string {
+  return normalizeDistrict(value.replace(/([a-z])([A-Z])/g, '$1 $2'));
+}
+
+function insidePolygon(lng: number, lat: number, ring: number[][]): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if (yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi || Number.EPSILON) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function displayDistrict(value: string): string {
+  return value.replace(/([a-z])([A-Z])/g, '$1 $2');
+}
+
+type Check = 'pass' | 'fail' | 'unknown';
+
+function checkLocation(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
+  if (profile.locationFlexible) return 'pass';
+  const wanted = profile.districts
+    .filter((district) => district !== 'SelectOnMap')
+    .map(normalizeProfileDistrict)
+    .filter(Boolean);
+  const polygon = profile.selectedMapArea;
+  if (!wanted.length && !polygon) return 'pass';
+
+  const district = normalizeDistrict(apartment.district);
+  if (district && wanted.includes(district)) return 'pass';
+
+  if (polygon?.coordinates?.[0]?.length) {
+    const lat = Number(apartment.propertyLatitude ?? apartment.latitude);
+    const lng = Number(apartment.propertyLongitude ?? apartment.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      if (insidePolygon(lng, lat, polygon.coordinates[0])) return 'pass';
+    } else if (!district) {
+      return 'unknown';
+    }
+  }
+  if (!district) {
+    // Without a district, the address may still name the wanted area.
+    const address = normalizeDistrict(apartment.address);
+    if (address && wanted.some((item) => address.includes(item))) return 'pass';
+    return polygon ? 'fail' : 'unknown';
+  }
+  return 'fail';
+}
+
+function checkBedrooms(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
+  const wanted = profile.bedrooms;
+  // null = "Let AI decide", undefined = not asked (purchase flow may skip it).
+  if (wanted === null || wanted === undefined || wanted <= 0) return 'pass';
+  if (apartment.bedrooms === null || apartment.bedrooms === undefined) return 'unknown';
+  return Number(apartment.bedrooms) >= wanted ? 'pass' : 'fail';
+}
+
+function petName(profile: HomeMatchProfile): string {
+  if (profile.petType === 'Cat') return 'Cat';
+  if (profile.petType === 'Dog') return 'Dog';
+  return 'Pet';
+}
+
+function petConfirmed(apartment: HomeMatchApartment): boolean {
+  return apartment.isPetFriendly === true || /pet friendly:\s*yes/i.test(apartment.description || '');
+}
+
+export function evaluateMandatoryRequirements(
+  apartment: HomeMatchApartment,
+  profile: HomeMatchProfile,
+): RequirementEvaluation {
+  const mismatches: string[] = [];
+  const confirmations: string[] = [];
+
+  const location = checkLocation(apartment, profile);
+  if (location === 'fail') {
+    const wanted = profile.districts
+      .filter((district) => district !== 'SelectOnMap')
+      .map(displayDistrict)
+      .join(', ');
+    const actual = apartment.district ? displayDistrict(apartment.district) : 'another area';
+    mismatches.push(
+      wanted ? `Location: ${actual}, not ${wanted}` : `Location: ${actual}, outside your selected map area`,
+    );
+  } else if (location === 'unknown') {
+    confirmations.push('Location could not be verified');
+  }
+
+  const bedrooms = checkBedrooms(apartment, profile);
+  if (bedrooms === 'fail') {
+    mismatches.push(`Bedrooms: ${apartment.bedrooms}, you need ${profile.bedrooms}${profile.bedrooms! >= 4 ? '+' : ''}`);
+  } else if (bedrooms === 'unknown') {
+    confirmations.push('Number of bedrooms is not specified in the listing');
+  }
+
+  if (profile.propertyGoal !== 'Buy' && profile.hasPet && !petConfirmed(apartment)) {
+    confirmations.push(`${petName(profile)} permission needs to be confirmed`);
+  }
+
+  const status: RequirementStatus = mismatches.length ? 'alternative' : confirmations.length ? 'confirm' : 'exact';
+  return { status, mismatches, confirmations };
+}
