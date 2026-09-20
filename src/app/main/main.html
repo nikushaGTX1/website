@@ -486,7 +486,7 @@
             [attr.aria-expanded]="advancedFiltersOpen"
             (click)="toggleAdvancedFilters()"
           >
-            <i class="fa-solid fa-sliders"></i> More Filters
+            <i class="fa-solid fa-sliders"></i> {{ advancedFiltersOpen ? 'Fewer Filters' : 'More Filters' }}
           </button>
         </div>
         <button class="ai-home-link" type="button" (click)="openAiHomeMatch()">

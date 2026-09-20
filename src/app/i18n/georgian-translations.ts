@@ -203,6 +203,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['4+ Bedrooms', '4+ საძინებელი'],
   ['Search Homes', 'ძიება'],
   ['More Filters', 'მეტი ფილტრი'],
+  ['Fewer Filters', 'ნაკლები ფილტრი'],
   ['Close more filters', 'დამატებითი ფილტრების დახურვა'],
   ['Let AI find my home', 'AI-მ მომიძებნოს სახლი'],
 

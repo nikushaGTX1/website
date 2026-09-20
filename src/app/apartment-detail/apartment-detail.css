@@ -382,6 +382,9 @@
   position: relative;
   height: 330px;
   overflow: hidden;
+  /* Dragging the map must pan the map only, never scroll the page. */
+  touch-action: none;
+  overscroll-behavior: contain;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: #f3f0ea;
@@ -1616,7 +1619,7 @@
   .vp-gallery {
     width: calc(100% + 28px);
     max-width: none;
-    height: clamp(225px, 72vw, 310px);
+    height: clamp(260px, 82vw, 420px);
     margin: 0 -14px;
     display: block;
     border-radius: 0;
@@ -1984,7 +1987,7 @@
   .vp-gallery {
     width: calc(100% + 28px);
     max-width: none;
-    height: clamp(225px, 72vw, 310px);
+    height: clamp(260px, 82vw, 420px);
     margin: 0 -14px;
     display: block;
     border-radius: 0;
@@ -2231,10 +2234,13 @@
 
 /* Touch devices: no zoom or slide effects while swiping the gallery. */
 @media (hover: none), (max-width: 740px) {
-  .vp-gallery button:hover img,
-  .vp-gallery button:hover .vp-gallery-bg {
+  .vp-gallery button:hover img {
     transform: none;
     filter: none;
+  }
+  .vp-gallery button:hover img.vp-gallery-bg {
+    transform: none;
+    filter: blur(22px) brightness(0.55) saturate(1.1);
   }
   .vp-gallery img {
     transition: none;
@@ -2244,5 +2250,49 @@
   .vp-gallery-main img.gallery-slide-right-a,
   .vp-gallery-main img.gallery-slide-right-b {
     animation: none;
+  }
+}
+
+/* Mobile gallery: one fixed viewport for every property and every photo.
+ * Photos always fill it (cover, centered) and are cropped instead of
+ * changing the height, so content below never moves while swiping. */
+@media (max-width: 740px) {
+  .vp-gallery {
+    position: relative;
+    height: clamp(260px, 82vw, 420px);
+    min-height: clamp(260px, 82vw, 420px);
+    max-height: clamp(260px, 82vw, 420px);
+    overflow: hidden;
+    contain: layout paint;
+  }
+  .vp-gallery-main {
+    position: relative;
+    grid-row: auto;
+    grid-column: auto;
+    width: 100%;
+    height: clamp(260px, 82vw, 420px) !important;
+    min-height: clamp(260px, 82vw, 420px) !important;
+    display: block;
+    overflow: hidden;
+    background: #15101c;
+  }
+  .vp-gallery-main img.vp-gallery-bg {
+    display: none;
+  }
+  .vp-gallery-main img.vp-gallery-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+  }
+  .vp-photo-count {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 3;
   }
 }

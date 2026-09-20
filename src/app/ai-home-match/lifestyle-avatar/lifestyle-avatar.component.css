@@ -36,16 +36,20 @@
   gap: 0;
 }
 
+.character-stage.character-group .character-figure {
+  flex-shrink: 1;
+}
+
 .character-stage.character-group .character-figure + .character-figure {
-  margin-left: -26%;
+  margin-left: -6%;
 }
 
 .character-stage.character-group .adult-figure + .adult-figure {
-  margin-left: -32%;
+  margin-left: -16%;
 }
 
 .character-stage.character-group .adult-figure + .child-figure {
-  margin-left: -30%;
+  margin-left: -14%;
 }
 
 .character-stage.character-group .child-figure + .child-figure {
@@ -84,7 +88,7 @@
   width: 46%;
   min-width: 0;
   max-width: 46%;
-  flex: 0 0 46%;
+  flex: 0 1 46%;
   aspect-ratio: auto;
 }
 
@@ -105,7 +109,7 @@
   width: 28%;
   height: 62%;
   max-width: 28%;
-  flex: 0 0 28%;
+  flex: 0 1 28%;
   align-self: flex-end;
   aspect-ratio: auto;
 }
@@ -131,7 +135,7 @@
   height: 46%;
   width: 24%;
   max-width: 24%;
-  flex: 0 0 24%;
+  flex: 0 1 24%;
   margin: 0;
   aspect-ratio: 0.67;
   z-index: 3;
@@ -141,7 +145,7 @@
   width: 46%;
   height: 100%;
   max-width: 46%;
-  flex: 0 0 46%;
+  flex: 0 1 46%;
   aspect-ratio: auto;
 }
 
@@ -159,15 +163,15 @@
 }
 
 .character-stage.character-group.crowded-group .character-figure + .character-figure {
-  margin-left: -26%;
+  margin-left: -6%;
 }
 
 .character-stage.character-group.crowded-group .adult-figure + .adult-figure {
-  margin-left: -32%;
+  margin-left: -16%;
 }
 
 .character-stage.character-group.crowded-group .adult-figure + .child-figure {
-  margin-left: -30%;
+  margin-left: -14%;
 }
 
 .character-stage.character-group.crowded-group .child-figure + .child-figure {

@@ -717,7 +717,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       .subscribe({
         next: (response) => {
           this.matches = (Array.isArray(response) ? response : response.matches)
-            .filter((match) => this.matchesPropertyGoal(match))
+            .filter((match) => this.matchesPropertyGoal(match) && this.withinBudget(match))
             .map((match) => applyPriorityScoring(match, this.profile))
             .sort((a, b) => (b.rankingScore || 0) - (a.rankingScore || 0));
           this.view = 'results';
@@ -728,6 +728,15 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           this.view = 'error';
         },
       });
+  }
+
+  // Hard cap: never show a home priced above the typed maximum budget.
+  // Prices are stored in USD, so other currencies are left to the backend.
+  private withinBudget(match: HomeMatchResult): boolean {
+    const max = Number(this.profile.budgetMax);
+    const price = Number(match.apartment.price);
+    if (this.profile.currency !== 'USD' || !max || !price) return true;
+    return price <= max;
   }
 
   private matchesPropertyGoal(match: HomeMatchResult): boolean {

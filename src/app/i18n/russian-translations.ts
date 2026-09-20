@@ -192,6 +192,7 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Any', 'Любое'],
   ['Search Homes', 'Искать дома'],
   ['More Filters', 'Больше фильтров'],
+  ['Fewer Filters', 'Меньше фильтров'],
   ['Let AI find my home', 'Пусть AI найдёт мой дом'],
   ['Near Metro', 'Рядом с метро'],
   ['Pet Friendly', 'Можно с животными'],

@@ -3591,24 +3591,33 @@
 
   .quick-filters {
     position: relative;
-    padding-top: 58px;
+    padding-top: 0;
+    gap: 10px;
+    align-items: stretch;
+    margin-top: 12px;
+  }
+
+  .quick-filters > button:not(.quick-filter-close) {
+    height: auto !important;
+    min-height: 52px !important;
+    padding: 12px 10px !important;
+    line-height: 1.45;
+    font-size: 11.5px;
+    overflow: visible;
+  }
+
+  .quick-filters > button:not(.quick-filter-close):last-child:nth-child(even) {
+    grid-column: 1 / -1;
   }
 
   .quick-filters > .quick-filter-close {
-    position: absolute;
-    top: 7px;
-    right: 7px;
-    width: 44px;
-    height: 44px;
-    min-height: 44px;
-    padding: 0;
-    display: grid;
-    place-items: center;
-    border: 0;
-    border-radius: 50%;
+    display: none;
+  }
+
+  .more-filters-toggle[aria-expanded="true"] {
+    border-color: #451a8f;
     background: #f3f0fb;
-    color: #273249;
-    font-size: 19px;
+    color: #451a8f;
   }
 }
 
