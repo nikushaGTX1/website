@@ -64,6 +64,8 @@
   font-weight: 600;
   line-height: 0.95;
   letter-spacing: 0 !important;
+  white-space: nowrap;
+  flex-shrink: 0;
   color: #451a8f;
 }
 
