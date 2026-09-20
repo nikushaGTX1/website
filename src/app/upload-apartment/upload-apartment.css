@@ -1670,3 +1670,54 @@ select:focus {
   .plan-icon { width: 48px; height: 48px; }
   .chip { flex-basis: 100%; }
 }
+
+.upload-success-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(21, 16, 28, 0.55);
+}
+.upload-success-modal {
+  width: min(420px, 100%);
+  padding: 30px 26px 24px;
+  border-radius: 20px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(21, 16, 28, 0.3);
+}
+.upload-success-icon {
+  color: #1f9d6b;
+  font-size: 52px;
+  line-height: 1;
+}
+.upload-success-modal h3,
+.upload-success-modal h4 {
+  margin: 12px 0 6px;
+  color: #171421;
+  font-size: 20px;
+}
+.upload-success-modal h4 {
+  margin-top: 18px;
+  font-size: 16px;
+  color: #451a8f;
+}
+.upload-success-modal p {
+  margin: 0;
+  color: #5f5967;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.upload-success-modal button {
+  margin-top: 22px;
+  min-width: 140px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #451a8f;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}

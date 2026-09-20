@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { ApartmentService } from '../services/apartment.service';
@@ -280,6 +280,8 @@ export class UploadApartment implements OnInit, OnDestroy {
   activeStep = 0;
   draftSaved = false;
   successMessage = '';
+  showSuccessModal = false;
+  successModalPending = false;
   errorMessage = '';
   userMessages: PendingApartment[] = [];
   pendingDebug = '';
@@ -312,6 +314,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     private nearbyTimeService: GoogleNearbyTimeService,
     private translationService: TranslationService,
     private aiPricingService: AiPricingService,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone,
   ) {
     this.dismissedNotificationIds = this.readDismissedNotificationIds();
     this.subscriptions.add(
@@ -1115,10 +1119,17 @@ export class UploadApartment implements OnInit, OnDestroy {
     ].filter(Boolean).join(', ');
     let nearbyTimes: NearbyWalkingTimes = {};
     try {
-      nearbyTimes = await this.nearbyTimeService.getWalkingTimes(calculationAddress);
+      // Google can hang or resolve outside Angular; never let it block publishing.
+      nearbyTimes = await Promise.race([
+        this.nearbyTimeService.getWalkingTimes(calculationAddress),
+        new Promise<NearbyWalkingTimes>((resolve) => setTimeout(() => resolve({}), 8000)),
+      ]);
     } catch (error) {
       console.error('Could not calculate nearby walking times:', error);
     }
+    // Google callbacks resume outside NgZone, which would leave the page stuck
+    // on "loading" until the next click. Re-enter the zone before sending.
+    await new Promise<void>((resolve) => this.zone.run(() => resolve()));
 
     if (!this.authService.isAdmin) {
       this.pendingService.submit(this.toCreateApartment(false, nearbyTimes), this.authService.currentUser).subscribe({
@@ -1126,6 +1137,7 @@ export class UploadApartment implements OnInit, OnDestroy {
           this.pendingDebug = this.pendingService.getStorageDebug();
           this.loading = false;
           this.successMessage = 'Your apartment was sent for admin confirmation. It will be published after approval.';
+          this.openSuccessModal(true);
         },
         error: (error: HttpErrorResponse) => {
           this.loading = false;
@@ -1143,6 +1155,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       next: () => {
         this.loading = false;
         this.successMessage = 'Apartment listing published successfully.';
+        this.openSuccessModal(false);
       },
       error: (error: HttpErrorResponse) => {
         this.loading = false;
@@ -1161,6 +1174,18 @@ export class UploadApartment implements OnInit, OnDestroy {
             : `Could not publish the apartment (HTTP ${error.status || 'network error'}).`);
       },
     });
+  }
+
+  private openSuccessModal(pending: boolean): void {
+    this.zone.run(() => {
+      this.successModalPending = pending;
+      this.showSuccessModal = true;
+      this.cdr.detectChanges();
+    });
+  }
+
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
   }
 
   private toCreateApartment(

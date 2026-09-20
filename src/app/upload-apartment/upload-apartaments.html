@@ -495,3 +495,14 @@
     </form>
   </div>
 </section>
+
+<div class="upload-success-backdrop" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
+  <div class="upload-success-modal" role="dialog" aria-modal="true" aria-labelledby="upload-success-title" (click)="$event.stopPropagation()">
+    <span class="upload-success-icon"><i class="fa-solid fa-circle-check"></i></span>
+    <h3 id="upload-success-title" data-no-translate>{{ successModalPending ? 'განცხადება გაიგზავნა!' : 'განცხადება აიტვირთა!' }}</h3>
+    <p data-no-translate>{{ successModalPending ? 'თქვენი განცხადება გაიგზავნა ადმინისტრატორთან დასადასტურებლად. დამტკიცების შემდეგ ის გამოქვეყნდება.' : 'თქვენი განცხადება წარმატებით გამოქვეყნდა.' }}</p>
+    <h4 data-no-translate>{{ successModalPending ? 'Listing submitted!' : 'Listing uploaded!' }}</h4>
+    <p data-no-translate>{{ successModalPending ? 'Your apartment was sent for admin confirmation. It will be published after approval.' : 'Your apartment listing was published successfully.' }}</p>
+    <button type="button" (click)="closeSuccessModal()" data-no-translate>OK / კარგი</button>
+  </div>
+</div>
