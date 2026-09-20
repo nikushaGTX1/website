@@ -4229,3 +4229,24 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Owner callout: give eyebrow, title, text and button clear vertical rhythm. */
+.testimonial-grid aside > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+.testimonial-grid aside h2 {
+  margin: 0;
+  line-height: 1.3;
+}
+.testimonial-grid aside p {
+  max-width: 260px;
+  margin: 0;
+  line-height: 1.75;
+}
+.testimonial-grid aside a {
+  margin-top: 10px;
+}
