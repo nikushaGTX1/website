@@ -325,6 +325,7 @@ export class ApartmentService {
       ['streetId', 'StreetId'],
       ['propertyLatitude', 'PropertyLatitude'],
       ['propertyLongitude', 'PropertyLongitude'],
+      ['rooms', 'Rooms'],
       ['bedrooms', 'Bedrooms'],
       ['bathrooms', 'Bathrooms'],
       ['sizeSquareMeters', 'SizeSquareMeters'],

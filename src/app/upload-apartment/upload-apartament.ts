@@ -1422,6 +1422,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       latitude: this.form.propertyLatitude ?? undefined,
       longitude: this.form.propertyLongitude ?? undefined,
       buildingNumber: this.form.streetNumber.trim(),
+      rooms: this.form.rooms ?? 0,
       bedrooms: this.form.bedrooms ?? 0,
       bathrooms: this.form.bathrooms ?? 0,
       sizeSquareMeters: this.form.area ?? 0,
