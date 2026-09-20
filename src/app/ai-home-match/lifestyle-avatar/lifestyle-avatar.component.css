@@ -234,3 +234,14 @@
     animation: none !important;
   }
 }
+
+/* Pets stand beside the family, never on top of a child or adult. */
+.character-stage.character-group .character-figure + .pet-figure,
+.character-stage.character-group.crowded-group .character-figure + .pet-figure {
+  margin-left: 3%;
+}
+
+.character-stage.character-group {
+  padding: 0 2%;
+  box-sizing: border-box;
+}

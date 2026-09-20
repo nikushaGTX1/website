@@ -48,6 +48,9 @@ export interface HomeMatchApartment {
   parkingCondition?: string;
   isQuietStreet?: boolean;
   isPetFriendly?: boolean;
+  hasBalcony?: boolean;
+  hasHomeOfficeSpace?: boolean;
+  hasElevator?: boolean;
   gymDistanceMinutes?: number;
   schoolDistanceMinutes?: number;
   kindergartenDistanceMinutes?: number;

@@ -53,6 +53,14 @@ type UploadForm = {
   viewType: string;
   minimumRentalPeriod: string;
   isFurnished: boolean;
+  hasLargeLivingRoom: boolean;
+  hasPlaygroundNearby: boolean;
+  hasCoworkingNearby: boolean;
+  hasSecurity: boolean;
+  isModernBuilding: boolean;
+  hasIsolatedBedrooms: boolean;
+  isAwayFromNightlife: boolean;
+  hasCompanyLease: boolean;
   apartmentStyle: string;
   imageUrl: string;
   imageUrls: string[];
@@ -74,7 +82,15 @@ type BooleanFeature =
   | 'hasHomeOfficeSpace'
   | 'hasLargeKitchen'
   | 'hasView'
-  | 'isFurnished';
+  | 'isFurnished'
+  | 'hasLargeLivingRoom'
+  | 'hasPlaygroundNearby'
+  | 'hasCoworkingNearby'
+  | 'hasSecurity'
+  | 'isModernBuilding'
+  | 'hasIsolatedBedrooms'
+  | 'isAwayFromNightlife'
+  | 'hasCompanyLease';
 
 type ListingPlan = 'basic' | 'exclusive';
 
@@ -181,6 +197,14 @@ export class UploadApartment implements OnInit, OnDestroy {
     { label: 'Large kitchen', field: 'hasLargeKitchen', icon: 'fa-solid fa-utensils' },
     { label: 'Scenic view', field: 'hasView', icon: 'fa-solid fa-panorama' },
     { label: 'Furnished', field: 'isFurnished', icon: 'fa-solid fa-couch' },
+    { label: 'Large living room', field: 'hasLargeLivingRoom', icon: 'fa-solid fa-couch' },
+    { label: 'Playground nearby', field: 'hasPlaygroundNearby', icon: 'fa-solid fa-child-reaching' },
+    { label: 'Cafés / coworking nearby', field: 'hasCoworkingNearby', icon: 'fa-solid fa-mug-hot' },
+    { label: 'Security or concierge', field: 'hasSecurity', icon: 'fa-solid fa-shield-halved' },
+    { label: 'Modern building', field: 'isModernBuilding', icon: 'fa-solid fa-city' },
+    { label: 'Isolated bedrooms', field: 'hasIsolatedBedrooms', icon: 'fa-solid fa-door-closed' },
+    { label: 'Away from nightlife', field: 'isAwayFromNightlife', icon: 'fa-solid fa-moon' },
+    { label: 'Company lease available', field: 'hasCompanyLease', icon: 'fa-solid fa-file-contract' },
   ];
   readonly parkingTypeOptions = [
     { label: 'Garage', value: 'Garage', points: 5 },
@@ -234,6 +258,14 @@ export class UploadApartment implements OnInit, OnDestroy {
     viewType: '',
     minimumRentalPeriod: '',
     isFurnished: false,
+    hasLargeLivingRoom: false,
+    hasPlaygroundNearby: false,
+    hasCoworkingNearby: false,
+    hasSecurity: false,
+    isModernBuilding: false,
+    hasIsolatedBedrooms: false,
+    isAwayFromNightlife: false,
+    hasCompanyLease: false,
     apartmentStyle: 'Modern',
     imageUrl: '',
     imageUrls: [],
@@ -1168,6 +1200,14 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.viewType ? `View type: ${this.form.viewType}` : '',
       this.form.minimumRentalPeriod ? `Minimum rental: ${this.form.minimumRentalPeriod}` : '',
       this.form.isQuietStreet ? 'Quiet street: Yes' : '',
+      this.form.hasLargeLivingRoom ? 'Large living room: Yes' : '',
+      this.form.hasPlaygroundNearby ? 'Playground nearby: Yes' : '',
+      this.form.hasCoworkingNearby ? 'Cafés / coworking nearby: Yes' : '',
+      this.form.hasSecurity ? 'Security or concierge: Yes' : '',
+      this.form.isModernBuilding ? 'Modern building: Yes' : '',
+      this.form.hasIsolatedBedrooms ? 'Isolated bedrooms: Yes' : '',
+      this.form.isAwayFromNightlife ? 'Away from nightlife: Yes' : '',
+      this.form.hasCompanyLease ? 'Company lease available: Yes' : '',
       this.form.cadastralCode ? `Cadastral: ${this.form.cadastralCode}` : '',
       this.form.agentName ? `Contact: ${this.form.agentName}` : '',
       currentUser?.id ? `Owner ID: ${currentUser.id}` : '',
