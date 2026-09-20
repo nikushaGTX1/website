@@ -473,7 +473,8 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     if (!this.gallerySwipeAxis && Math.max(Math.abs(dx), Math.abs(dy)) > 6) {
       this.gallerySwipeAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
     }
-    if (this.gallerySwipeAxis === 'x' && event.cancelable) event.preventDefault();
+    // The page stays frozen for any touch on the gallery: only the photos move.
+    if (event.cancelable) event.preventDefault();
     if (this.gallerySwipeAxis !== 'x' || Math.abs(dx) < 40) return;
     this.gallerySwipeStartX = null;
     this.gallerySwipeCommitted = true;

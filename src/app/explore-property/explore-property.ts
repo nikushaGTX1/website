@@ -264,15 +264,20 @@ export class ExploreProperty implements OnInit, OnDestroy {
     return apartment.id;
   }
 
+  private cardTouchOnPhoto = false;
+
   touchCardStart(event: TouchEvent): void {
     const touch = event.touches[0];
     if (!touch) return;
+    this.cardTouchOnPhoto = !!(event.target as Element | null)?.closest?.('.photo-wrap');
     this.cardSwipeStartX = touch.clientX;
     this.cardSwipeStartY = touch.clientY;
     this.cardSwipePointerId = -1;
   }
 
   touchCardMove(event: TouchEvent, apartment: Apartment): void {
+    // A touch on the photo only swipes photos; the page must not scroll under it.
+    if (this.cardTouchOnPhoto && event.cancelable) event.preventDefault();
     const touch = event.touches[0];
     if (!touch || this.cardSwipeStartX == null || this.cardSwipePointerId !== -1) return;
     const dx = touch.clientX - this.cardSwipeStartX;

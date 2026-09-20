@@ -1568,3 +1568,14 @@ svg {
 .photo-wrap img.slide-right-b { animation-name: card-slide-from-left-b; }
 @keyframes card-slide-from-right-b { from { transform: translateX(32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
 @keyframes card-slide-from-left-b { from { transform: translateX(-32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
+
+/* Touch devices: swiping a card photo never scrolls the page and never animates. */
+@media (hover: none), (max-width: 740px) {
+  .photo-wrap {
+    touch-action: none;
+  }
+  .photo-wrap img {
+    animation: none !important;
+    transition: none !important;
+  }
+}

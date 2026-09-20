@@ -2296,3 +2296,18 @@
     z-index: 3;
   }
 }
+
+/* Mobile gallery: no slide animation, and the page is frozen while touching the photo. */
+@media (hover: none), (max-width: 740px) {
+  .vp-gallery-main {
+    touch-action: none;
+    overscroll-behavior: contain;
+  }
+  .vp-gallery-main img.gallery-slide-left-a,
+  .vp-gallery-main img.gallery-slide-left-b,
+  .vp-gallery-main img.gallery-slide-right-a,
+  .vp-gallery-main img.gallery-slide-right-b {
+    animation: none !important;
+    transition: none !important;
+  }
+}
