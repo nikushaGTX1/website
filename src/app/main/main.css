@@ -1333,7 +1333,7 @@
 }
 .property-image {
   position: relative;
-  height: 240px;
+  aspect-ratio: 8 / 5;
   overflow: hidden;
   cursor: grab;
   /* The cards become a horizontal carousel on small screens. Allow a swipe
@@ -2115,9 +2115,6 @@
   .section-heading {
     align-items: flex-start;
   }
-  .property-image {
-    height: 240px;
-  }
   .benefit-grid article {
     border-right: 0;
     border-bottom: 1px solid #e4e9f0;
@@ -2203,9 +2200,6 @@
 }
 .property-grid {
   gap: 26px;
-}
-.property-image {
-  height: 240px;
 }
 .property-info {
   padding: 20px;
@@ -2305,9 +2299,6 @@
   }
   .content-section {
     width: min(1500px, 94vw);
-  }
-  .property-image {
-    height: 240px;
   }
 }
 
@@ -2474,7 +2465,7 @@
   }
 
   .property-image {
-    height: clamp(220px, 64vw, 270px);
+    aspect-ratio: 8 / 5;
   }
 
   .property-info {

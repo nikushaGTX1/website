@@ -59,6 +59,7 @@
 .vp-gallery {
   height: auto;
   aspect-ratio: 2.5 / 1;
+  max-height: clamp(300px, 52vh, 560px);
   display: grid;
   grid-template: repeat(2, 1fr) / 2fr 1fr 1fr;
   gap: 8px;
@@ -1156,7 +1157,8 @@
     gap: 28px;
   }
   .vp-gallery {
-    height: 368px;
+    height: clamp(260px, 45vh, 368px);
+    max-height: clamp(260px, 45vh, 368px);
   }
   .vp-facts {
     grid-template-columns: repeat(2, 1fr);
@@ -1962,7 +1964,8 @@
     gap: 28px;
   }
   .vp-gallery {
-    height: 368px;
+    height: clamp(260px, 45vh, 368px);
+    max-height: clamp(260px, 45vh, 368px);
   }
   .vp-facts {
     grid-template-columns: repeat(2, 1fr);
