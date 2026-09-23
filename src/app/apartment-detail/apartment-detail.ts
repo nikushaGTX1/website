@@ -1351,7 +1351,20 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       .filter((value): value is string => !!value)
       .map((value) => value.toLowerCase());
 
-    if (!ownerIds.length && !ownerEmails.length) {
+    // Listings uploaded without a stored agent/uploader ID or email (common for older or
+    // bulk-imported listings) still name the agent as text. Fall back to matching that name
+    // against a real agent account, so the avatar shows their photo and links to their
+    // profile instead of falling back to plain initials with no link.
+    const ownerNames = [
+      apartment.agentName,
+      apartment.uploadedByName,
+      apartment.ownerName,
+      this.getListingMetadata('Contact'),
+    ]
+      .map((value) => (value || '').trim().toLowerCase())
+      .filter((value): value is string => !!value);
+
+    if (!ownerIds.length && !ownerEmails.length && !ownerNames.length) {
       this.selectedAgent = null;
       return;
     }
@@ -1369,7 +1382,14 @@ export class ApartmentDetail implements OnInit, OnDestroy {
               ownerIds.some((ownerId) => agentIds.includes(ownerId.toLowerCase())) ||
               (!!agentEmail && ownerEmails.includes(agentEmail))
             );
-          }) || null;
+          }) ||
+          agents.find((agent) => {
+            const agentNames = [agent.fullName, agent.name, agent.userName]
+              .map((value) => (value || '').trim().toLowerCase())
+              .filter(Boolean);
+            return agentNames.some((agentName) => ownerNames.includes(agentName));
+          }) ||
+          null;
         this.agentImageIndex = 0;
         this.cdr.detectChanges();
       },

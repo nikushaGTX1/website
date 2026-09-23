@@ -151,6 +151,16 @@ export class AgentDetailProfile implements OnInit {
     );
   }
 
+  /** Same deal-type signal the listing card and detail page use: a "Deal: ..." tag in the
+   * description, falling back to the title/description text. The badge was previously
+   * hardcoded to "For Rent" regardless of the listing. */
+  isForSale(apartment: Apartment): boolean {
+    const dealTag = /deal:\s*([^|\n]+)/i.exec(apartment.description || '')?.[1]?.trim();
+    if (dealTag) return /sale|buy|იყიდება|продаж/i.test(dealTag);
+    const text = `${apartment.title || ''} ${apartment.description || ''}`;
+    return /for\s+sale|იყიდება|продаж/i.test(text);
+  }
+
   private belongsToAgent(apartment: Apartment, agent: Agent, routeAgentId: string): boolean {
     const agentIds = [routeAgentId, agent.id, agent.userId]
       .filter((value): value is string => !!value)

@@ -103,7 +103,7 @@
             <a class="listing-image-link" [routerLink]="['/apartments', apartment.id]"
               ><img [src]="getListingImage(apartment)" [alt]="apartment.title" /><span
                 class="listing-badge"
-                >For Rent</span
+                >{{ isForSale(apartment) ? 'For Sale' : 'For Rent' }}</span
               ><span class="listing-arrow"
                 ><i class="fa-solid fa-arrow-up-right-from-square"></i></span
             ></a>

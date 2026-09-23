@@ -13,7 +13,7 @@
   min-height: 100vh;
 }
 .vp-content {
-  width: min(1320px, calc(100% - 64px));
+  width: min(1320px, calc(100% - 54px));
   margin: auto;
   padding-bottom: 90px;
 }
@@ -59,12 +59,15 @@
 .vp-gallery {
   height: auto;
   aspect-ratio: 2.5 / 1;
-  max-height: clamp(300px, 52vh, 560px);
+  /* Keep the gallery aligned to the full content width on desktop. A viewport-height
+     cap also constrained its width through the aspect ratio on 1920×1080 screens. */
+  max-height: none;
   display: grid;
-  grid-template: repeat(2, 1fr) / 2fr 1fr 1fr;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 8px;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: 22px;
   background: #eee;
 }
 .vp-gallery > button {
@@ -647,7 +650,10 @@
   height: 100%;
   object-fit: cover;
 }
-.vp-agent > div:nth-of-type(1) {
+/* Named class instead of nth-of-type: the avatar before it is an <a> when the agent has a
+   profile link and a <div> otherwise, which used to shift this element's position and, in
+   the no-profile case, leave the name and "Your Velven agent" as unstacked inline text. */
+.vp-agent-details {
   min-width: 0;
   display: flex;
   flex: 1;
@@ -659,10 +665,8 @@
   font-size: 8px;
 }
 .vp-agent strong {
-  overflow: hidden;
+  overflow-wrap: break-word;
   font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .vp-agent > a:last-child {
   width: 36px;
@@ -1618,25 +1622,9 @@
     padding: 0;
     font-size: 0;
   }
-  .vp-gallery {
-    width: calc(100% + 28px);
-    max-width: none;
-    height: clamp(260px, 82vw, 420px);
-    margin: 0 -14px;
-    display: block;
-    border-radius: 0;
-  }
-  .vp-gallery > button:not(.vp-gallery-main) {
-    display: none;
-  }
-  .vp-gallery-main {
-    width: 100%;
-    height: 100%;
-  }
-  .vp-columns {
-    display: block;
-    margin-top: 20px;
-  }
+  /* .vp-gallery / .vp-gallery-main / .vp-columns shape for this breakpoint live in the
+     @media (max-width: 740px) block below (it also reorders the price card above the
+     other sections) — kept in one place so the two never drift out of sync again. */
   .vp-intro h1 {
     font-size: 30px;
   }
@@ -1667,13 +1655,6 @@
   }
   .viewing-grid {
     grid-template-columns: 1fr;
-  }
-  .vp-side-rail {
-    position: static;
-    margin-top: 28px;
-  }
-  .vp-side-rail .vp-inquiry {
-    margin-top: 0;
   }
   .mortgage-calculator {
     padding: 22px 16px;
@@ -1909,11 +1890,9 @@
   font-size: 10px;
 }
 .vp-agent-details strong {
-  overflow: hidden;
+  overflow-wrap: break-word;
   font-size: 13px;
   line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .vp-agent-details span {
   font-size: 10px;
@@ -1988,12 +1967,13 @@
     font-size: 0;
   }
   .vp-gallery {
-    width: calc(100% + 28px);
-    max-width: none;
+    /* Same card width as the price card below it, instead of the old full-bleed edge-to-edge photo. */
+    width: 100%;
+    max-width: 420px;
     height: clamp(260px, 82vw, 420px);
-    margin: 0 -14px;
+    margin: 0 auto;
     display: block;
-    border-radius: 0;
+    border-radius: 20px;
   }
   .vp-gallery > button:not(.vp-gallery-main) {
     display: none;
@@ -2017,6 +1997,11 @@
   }
   .vp-columns .vp-inquiry {
     order: 2;
+    /* Below the two-column layout the price card is a full flex item; keep it at its
+       designed card width and centered instead of stretching edge to edge. */
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
   }
   .vp-columns .vp-main > :not(.vp-intro),
   .vp-columns .vp-side-rail > :not(.vp-inquiry) {
@@ -2413,6 +2398,7 @@
   font-size: 19px;
   font-weight: 700;
   line-height: 1.3;
+  overflow-wrap: break-word;
 }
 .vp-inquiry .vp-agent span {
   font-size: 15px;
