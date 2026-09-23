@@ -57,10 +57,12 @@
   color: var(--purple);
 }
 .vp-gallery {
-  height: auto;
-  aspect-ratio: 2.5 / 1;
-  /* Keep the gallery aligned to the full content width on desktop. A viewport-height
-     cap also constrained its width through the aspect ratio on 1920×1080 screens. */
+  width: 100%;
+  /* Airbnb-style desktop sizing: preserve the full content width, but make the
+     gallery shallower on short laptop viewports so listing details remain visible. */
+  height: min(528px, calc((100vw - 54px) / 2.5), calc(100vh - 260px));
+  min-height: 360px;
+  aspect-ratio: auto;
   max-height: none;
   display: grid;
   grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
