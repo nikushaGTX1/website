@@ -2075,8 +2075,6 @@
     font-size: 30px;
   }
   .vp-facts {
-    max-width: 420px;
-    margin-inline: auto;
     gap: 8px;
   }
   .vp-facts > div {
@@ -2118,8 +2116,6 @@
   }
   .vp-amenities {
     width: 100%;
-    max-width: 420px;
-    margin-inline: auto;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
@@ -2139,10 +2135,16 @@
   .vp-amenities > div > span {
     width: 34px;
     height: 34px;
+    font-size: 15px;
   }
   .vp-amenities p {
     width: 100%;
     min-width: 0;
+    /* Long single-word translations (e.g. Georgian "კონდიციონერი") must still fit a
+       narrow card without wrapping mid-word onto a third line. */
+    font-size: 11px;
+    line-height: 1.25;
+    hyphens: auto;
     overflow-wrap: anywhere;
   }
   .vp-nearby {
