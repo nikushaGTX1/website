@@ -1,5 +1,7 @@
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchApartment } from '../models/home-match-result';
+import { scorePriority } from './priority-scoring';
+import { answerLabel } from './answer-labels';
 
 /**
  * Velven Match pipeline:
@@ -119,6 +121,73 @@ function petConfirmed(apartment: HomeMatchApartment): boolean {
   return apartment.isPetFriendly === true || /pet friendly:\s*yes/i.test(apartment.description || '');
 }
 
+/** Roughly how many months the user intends to stay, for comparing against a listing's minimum lease. */
+const REQUESTED_STAY_MONTHS: Record<string, number> = {
+  ThreeToFiveMonths: 3,
+  SixMonths: 6,
+  TwelveMonths: 12,
+  MoreThanTwelveMonths: 12,
+};
+
+/** The listing's own minimum lease term, parsed from "Minimum 6 months" / "Minimum 12 months". */
+function listingMinimumMonths(apartment: HomeMatchApartment): number | null {
+  const match = /(\d+)\s*month/i.exec(apartment.minimumRentalPeriod || '');
+  return match ? Number(match[1]) : null;
+}
+
+function checkRentalDuration(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
+  if (profile.propertyGoal !== 'Rent') return 'pass';
+  const minimum = listingMinimumMonths(apartment);
+  if (minimum === null) return 'pass'; // listing has no stated minimum lease
+  const requested = profile.rentalDuration ? REQUESTED_STAY_MONTHS[profile.rentalDuration] : undefined;
+  if (requested === undefined) return 'unknown'; // "I do not know yet" or not answered
+  return requested >= minimum ? 'pass' : 'fail';
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function addDaysIso(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+/** The date the user wants to move in by, or null when they have no fixed timing (Flexible/unanswered). */
+function requestedMoveInDate(profile: HomeMatchProfile): string | null {
+  switch (profile.moveInTiming) {
+    case 'Immediately':
+      return todayIso();
+    case 'WithinOneWeek':
+      return addDaysIso(7);
+    case 'WithinOneMonth':
+      return addDaysIso(30);
+    case 'SpecificDate':
+      return profile.moveInDate?.trim() || null;
+    default:
+      return null; // 'Flexible' or not answered: no availability constraint
+  }
+}
+
+function checkAvailability(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
+  if (profile.propertyGoal !== 'Rent') return 'pass';
+  const availableFrom = apartment.availableFrom?.trim();
+  if (!availableFrom) return 'pass'; // no stated availability date: assumed available now
+  const requested = requestedMoveInDate(profile);
+  if (!requested) return 'unknown';
+  // Both are ISO-ish date strings (yyyy-mm-dd...), so lexical comparison is also chronological.
+  return availableFrom.slice(0, 10) <= requested ? 'pass' : 'fail';
+}
+
+function checkOccupancy(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
+  if (profile.propertyGoal !== 'Rent') return 'pass';
+  if (apartment.maxOccupants === undefined || apartment.maxOccupants === null) return 'pass';
+  const occupants = (profile.adults || 0) + (profile.children || 0);
+  if (!occupants) return 'pass';
+  return occupants <= apartment.maxOccupants ? 'pass' : 'fail';
+}
+
 export function evaluateMandatoryRequirements(
   apartment: HomeMatchApartment,
   profile: HomeMatchProfile,
@@ -149,6 +218,53 @@ export function evaluateMandatoryRequirements(
 
   if (profile.propertyGoal !== 'Buy' && profile.hasPet && !petConfirmed(apartment)) {
     confirmations.push(`${petName(profile)} permission needs to be confirmed`);
+  }
+
+  const rentalDuration = checkRentalDuration(apartment, profile);
+  if (rentalDuration === 'fail') {
+    mismatches.push(
+      `Lease: this listing requires a minimum ${listingMinimumMonths(apartment)}-month stay`,
+    );
+  } else if (rentalDuration === 'unknown') {
+    confirmations.push('This listing has a minimum lease term; confirm it matches your plans');
+  }
+
+  const availability = checkAvailability(apartment, profile);
+  if (availability === 'fail') {
+    mismatches.push(
+      `Availability: not free until ${apartment.availableFrom!.slice(0, 10)}, after your move-in date`,
+    );
+  } else if (availability === 'unknown') {
+    confirmations.push('Confirm this listing is available by your move-in date');
+  }
+
+  const occupancy = checkOccupancy(apartment, profile);
+  if (occupancy === 'fail') {
+    const occupants = (profile.adults || 0) + (profile.children || 0);
+    mismatches.push(`Occupants: allows up to ${apartment.maxOccupants}, you have ${occupants}`);
+  }
+
+  // Priorities the user pinned as "Must have": a listing scoring 0 on any of them (e.g. no
+  // walking-distance data, or too far to earn any points) is excluded outright, not just ranked lower.
+  for (const priority of profile.mandatoryPriorities || []) {
+    if (!profile.topPriorities.includes(priority)) continue;
+    const score = scorePriority(priority, apartment, profile);
+    if (score <= 0) {
+      mismatches.push(`${answerLabel(priority)}: does not meet your must-have requirement`);
+    }
+  }
+
+  // Rentals may pass the mandatory budget filter up to $200 over the typed maximum; flag it
+  // here so a home using that allowance is never silently shown as an exact/Top match.
+  if (
+    profile.propertyGoal === 'Rent' &&
+    profile.currency === 'USD' &&
+    profile.budgetMax > 0 &&
+    apartment.price > profile.budgetMax
+  ) {
+    confirmations.push(
+      `$${Math.round(apartment.price - profile.budgetMax)} over your budget (within the allowed $200 flexibility)`,
+    );
   }
 
   const status: RequirementStatus = mismatches.length ? 'alternative' : confirmations.length ? 'confirm' : 'exact';

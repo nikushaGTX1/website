@@ -233,6 +233,10 @@ export class ApartmentService {
     const storedViewType = apartment.viewType?.trim() || metaValue('View type') || undefined;
     const storedMinRental =
       apartment.minimumRentalPeriod?.trim() || metaValue('Minimum rental') || undefined;
+    const storedAvailableFrom = apartment.availableFrom || metaValue('Available from') || undefined;
+    const storedMaxOccupantsRaw = metaValue('Max occupants');
+    const storedMaxOccupants =
+      apartment.maxOccupants ?? (storedMaxOccupantsRaw ? Number(storedMaxOccupantsRaw) : undefined);
     const storedParkingPointsRaw = metaValue('Parking score');
     const storedParkingPoints =
       apartment.parkingPoints ?? (storedParkingPointsRaw ? Number(storedParkingPointsRaw) : undefined);
@@ -268,6 +272,8 @@ export class ApartmentService {
       buildingNumber: storedBuilding || apartment.buildingNumber,
       viewType: storedViewType,
       minimumRentalPeriod: storedMinRental,
+      availableFrom: storedAvailableFrom,
+      maxOccupants: Number.isFinite(Number(storedMaxOccupants)) ? Number(storedMaxOccupants) : apartment.maxOccupants,
       parkingPoints: Number.isFinite(Number(storedParkingPoints)) ? Number(storedParkingPoints) : apartment.parkingPoints,
       imageUrl,
       imageUrls: galleryUrls.length ? galleryUrls : legacyUrls,
@@ -318,6 +324,7 @@ export class ApartmentService {
       ['parkingCondition', 'ParkingCondition'],
       ['viewType', 'ViewType'],
       ['minimumRentalPeriod', 'MinimumRentalPeriod'],
+      ['availableFrom', 'AvailableFrom'],
     ];
     const numberFields: Array<[keyof CreateApartment, string]> = [
       ['latitude', 'Latitude'],
@@ -332,6 +339,7 @@ export class ApartmentService {
       ['floor', 'Floor'],
       ['totalFloors', 'TotalFloors'],
       ['parkingPoints', 'ParkingPoints'],
+      ['maxOccupants', 'MaxOccupants'],
       ['metroDistanceMinutes', 'MetroDistanceMinutes'],
       ['gymDistanceMinutes', 'GymDistanceMinutes'],
       ['parkDistanceMinutes', 'ParkDistanceMinutes'],

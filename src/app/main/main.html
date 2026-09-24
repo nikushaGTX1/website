@@ -38,192 +38,6 @@
           </button>
 
           <div
-            class="location-modal-backdrop"
-            *ngIf="locationOpen"
-            (click)="cancelLocationPicker()"
-          >
-            <div
-              class="location-picker-dialog"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Choose your location"
-              (click)="$event.stopPropagation()"
-            >
-              <header class="location-modal-header">
-                <div>
-                  <h2>Choose your location</h2>
-                  <div class="location-steps">
-                    <span class="active"><b>1</b> Areas</span><i></i>
-                    <span [class.active]="selectedModalStreets.length > 0"
-                      ><b>2</b> Streets <small>(optional)</small></span
-                    >
-                  </div>
-                </div>
-                <button
-                  class="location-modal-close"
-                  type="button"
-                  aria-label="Close location picker"
-                  (click)="cancelLocationPicker()"
-                >
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              </header>
-
-              <div class="location-modal-body">
-                <section
-                  class="area-picker-column"
-                  [class.dragging]="sheetDragging"
-                  [style.--sheet-h]="sheetHeight !== null ? sheetHeight + 'px' : null"
-                >
-                  <div
-                    class="sheet-handle"
-                    role="separator"
-                    aria-label="Drag to resize the list"
-                    (pointerdown)="sheetPointerDown($event)"
-                    (pointermove)="sheetPointerMove($event)"
-                    (pointerup)="sheetPointerUp($event)"
-                    (pointercancel)="sheetPointerUp($event)"
-                  >
-                    <span></span>
-                  </div>
-                  <div class="sheet-scroll">
-                  <h3>Popular areas</h3>
-                  <div class="featured-area-grid">
-                    <button
-                      type="button"
-                      *ngFor="let area of featuredLocationAreas"
-                      [class.selected]="isAreaSelected(area.name)"
-                      (click)="chooseAreaForModal(area.name)"
-                    >
-                      <i [class]="area.icon" aria-hidden="true"></i>
-                      <span
-                        ><b data-no-translate>{{ translationService.translate(area.name, translationService.language$ | async) }}</b
-                        ><small>{{ area.description }}</small></span
-                      >
-                      <i
-                        class="fa-solid fa-circle-check area-check"
-                        *ngIf="isAreaSelected(area.name)"
-                      ></i>
-                    </button>
-                  </div>
-                  <h3>All areas</h3>
-                  <p class="area-subtitle">Choose one or more areas</p>
-                  <div class="all-area-grid">
-                    <button
-                      type="button"
-                      data-no-translate
-                      *ngFor="let area of visibleTbilisiAreas"
-                      [class.selected]="isAreaSelected(area)"
-                      (click)="chooseAreaForModal(area)"
-                    >
-                      <span>{{ translationService.translate(area, translationService.language$ | async) }}</span>
-                      <em class="area-radio" aria-hidden="true"></em>
-                    </button>
-                    <ng-container *ngIf="moreAreasOpen">
-                      <button
-                        type="button"
-                        data-no-translate
-                        *ngFor="let area of additionalTbilisiAreas"
-                        [class.selected]="isAreaSelected(area)"
-                        (click)="chooseAreaForModal(area)"
-                      >
-                        <span>{{ translationService.translate(area, translationService.language$ | async) }}</span>
-                        <em class="area-radio" aria-hidden="true"></em>
-                      </button>
-                    </ng-container>
-                    <button
-                      type="button"
-                      class="more-areas-trigger"
-                      *ngIf="additionalTbilisiAreas.length"
-                      [class.selected]="moreAreasOpen"
-                      [attr.aria-expanded]="moreAreasOpen"
-                      (click)="moreAreasOpen = !moreAreasOpen"
-                    >
-                      {{ moreAreasOpen ? 'View less' : 'View more' }}
-                      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </button>
-                    <span class="areas-loading" *ngIf="locationLoading">Loading locations...</span>
-                  </div>
-                  </div>
-                </section>
-
-                <aside class="location-map-preview">
-                  <app-draw-area-map
-                    class="inline-google-draw"
-                    [visible]="true"
-                    [compact]="true"
-                    [dockPropertyPreview]="true"
-                    [apartments]="apartmentsForSelectedMode"
-                    [selectedAreaInput]="selectedLocationArea"
-                    [selectedAreasInput]="selectedLocationAreas"
-                    [selectedStreetsInput]="selectedModalStreetDetails"
-                    (polygonChange)="onInlinePolygon($event)"
-                    (drawnStreetsChange)="onDrawnStreets($event)"
-                    (detectedAreaChange)="onDetectedDrawnArea($event)"
-                    (streetSelected)="toggleModalStreet($event)"
-                    (propertyPreviewOpened)="collapseAreaSheet()"
-                  >
-                  </app-draw-area-map>
-                  <div
-                    class="area-map-card"
-                    *ngIf="selectedLocationAreas.length || selectedLocationArea || drawnDetectedArea"
-                  >
-                    <i class="fa-solid fa-city area-card-icon" aria-hidden="true"></i>
-                    <span
-                      ><b>{{ selectedLocationAreas.length ? selectedLocationAreas.join(', ') : (selectedLocationArea || drawnDetectedArea) }}</b
-                      ><small>{{
-                        selectedModalStreets.length
-                          ? 'Street: ' + selectedModalStreets.join(', ')
-                          : selectedAreaDescription
-                      }}</small></span
-                    >
-                    <button
-                      type="button"
-                      class="area-card-close"
-                      aria-label="Clear area"
-                      (click)="clearModalLocation()"
-                    >
-                      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                    </button>
-                  </div>
-                </aside>
-              </div>
-
-              <footer class="location-modal-footer">
-                <div class="selected-location" *ngIf="selectedLocationAreas.length > 0">
-                  <b>Selected:</b>
-                  <span *ngFor="let area of selectedLocationAreas"
-                    >{{ area }}
-                    <button
-                      type="button"
-                      [attr.aria-label]="'Remove ' + area"
-                      (click)="removeModalArea(area)"
-                    >
-                      ×
-                    </button></span
-                  >
-                  <button type="button" class="clear-location" (click)="clearModalLocation()">
-                    Clear all
-                  </button>
-                </div>
-                <div>
-                  <button type="button" class="cancel-location" (click)="cancelLocationPicker()">
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    class="apply-location"
-                    [disabled]="!selectedLocationAreas.length && !inlineDrawnPolygon"
-                    (click)="applyModalLocation()"
-                  >
-                    Apply changes
-                  </button>
-                </div>
-              </footer>
-            </div>
-          </div>
-
-          <div
             class="location-mega-panel"
             role="dialog"
             aria-label="Choose a location"
@@ -854,6 +668,194 @@
     </div>
   </section>
 </main>
+
+<div
+  class="location-modal-backdrop"
+  *ngIf="locationOpen"
+  (click)="cancelLocationPicker()"
+>
+  <div
+    class="location-picker-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Choose your location"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="location-modal-header">
+      <div>
+        <h2>Choose your location</h2>
+        <div class="location-steps">
+          <span class="active"><b>1</b> Areas</span><i></i>
+          <span [class.active]="selectedModalStreets.length > 0"
+            ><b>2</b> Streets <small>(optional)</small></span
+          >
+        </div>
+      </div>
+      <button
+        class="location-modal-close"
+        type="button"
+        aria-label="Close location picker"
+        (click)="cancelLocationPicker()"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </header>
+
+    <div class="location-modal-body">
+      <section
+        class="area-picker-column"
+        [class.dragging]="sheetDragging"
+        [style.--sheet-h]="sheetHeight !== null ? sheetHeight + 'px' : null"
+      >
+        <div
+          class="sheet-handle"
+          role="separator"
+          aria-label="Drag to resize the list"
+          (pointerdown)="sheetPointerDown($event)"
+          (pointermove)="sheetPointerMove($event)"
+          (pointerup)="sheetPointerUp($event)"
+          (pointercancel)="sheetPointerUp($event)"
+        >
+          <span></span>
+        </div>
+        <div class="sheet-scroll">
+        <h3>Popular areas</h3>
+        <div class="featured-area-grid">
+          <button
+            type="button"
+            *ngFor="let area of featuredLocationAreas"
+            [class.selected]="isAreaSelected(area.name)"
+            (click)="chooseAreaForModal(area.name)"
+          >
+            <i [class]="area.icon" aria-hidden="true"></i>
+            <span
+              ><b data-no-translate>{{ translationService.translate(area.name, translationService.language$ | async) }}</b
+              ><small>{{ area.description }}</small></span
+            >
+            <i
+              class="fa-solid fa-circle-check area-check"
+              *ngIf="isAreaSelected(area.name)"
+            ></i>
+          </button>
+        </div>
+        <h3>All areas</h3>
+        <p class="area-subtitle">Choose one or more areas</p>
+        <div class="all-area-grid">
+          <button
+            type="button"
+            data-no-translate
+            *ngFor="let area of visibleTbilisiAreas"
+            [class.selected]="isAreaSelected(area)"
+            (click)="chooseAreaForModal(area)"
+          >
+            <span>{{ translationService.translate(area, translationService.language$ | async) }}</span>
+            <em class="area-radio" aria-hidden="true"></em>
+          </button>
+          <ng-container *ngIf="moreAreasOpen">
+            <button
+              type="button"
+              data-no-translate
+              *ngFor="let area of additionalTbilisiAreas"
+              [class.selected]="isAreaSelected(area)"
+              (click)="chooseAreaForModal(area)"
+            >
+              <span>{{ translationService.translate(area, translationService.language$ | async) }}</span>
+              <em class="area-radio" aria-hidden="true"></em>
+            </button>
+          </ng-container>
+          <button
+            type="button"
+            class="more-areas-trigger"
+            *ngIf="additionalTbilisiAreas.length"
+            [class.selected]="moreAreasOpen"
+            [attr.aria-expanded]="moreAreasOpen"
+            (click)="moreAreasOpen = !moreAreasOpen"
+          >
+            {{ moreAreasOpen ? 'View less' : 'View more' }}
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+          </button>
+          <span class="areas-loading" *ngIf="locationLoading">Loading locations...</span>
+        </div>
+        </div>
+      </section>
+
+      <aside class="location-map-preview">
+        <app-draw-area-map
+          class="inline-google-draw"
+          [visible]="true"
+          [compact]="true"
+          [dockPropertyPreview]="true"
+          [apartments]="apartmentsForSelectedMode"
+          [selectedAreaInput]="selectedLocationArea"
+          [selectedAreasInput]="selectedLocationAreas"
+          [selectedStreetsInput]="selectedModalStreetDetails"
+          (polygonChange)="onInlinePolygon($event)"
+          (drawnStreetsChange)="onDrawnStreets($event)"
+          (detectedAreaChange)="onDetectedDrawnArea($event)"
+          (streetSelected)="toggleModalStreet($event)"
+          (propertyPreviewOpened)="collapseAreaSheet()"
+        >
+        </app-draw-area-map>
+        <div
+          class="area-map-card"
+          *ngIf="selectedLocationAreas.length || selectedLocationArea || drawnDetectedArea"
+        >
+          <i class="fa-solid fa-city area-card-icon" aria-hidden="true"></i>
+          <span
+            ><b>{{ selectedLocationAreas.length ? selectedLocationAreas.join(', ') : (selectedLocationArea || drawnDetectedArea) }}</b
+            ><small>{{
+              selectedModalStreets.length
+                ? 'Street: ' + selectedModalStreets.join(', ')
+                : selectedAreaDescription
+            }}</small></span
+          >
+          <button
+            type="button"
+            class="area-card-close"
+            aria-label="Clear area"
+            (click)="clearModalLocation()"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="location-modal-footer">
+      <div class="selected-location" *ngIf="selectedLocationAreas.length > 0">
+        <b>Selected:</b>
+        <span *ngFor="let area of selectedLocationAreas"
+          >{{ area }}
+          <button
+            type="button"
+            [attr.aria-label]="'Remove ' + area"
+            (click)="removeModalArea(area)"
+          >
+            ×
+          </button></span
+        >
+        <button type="button" class="clear-location" (click)="clearModalLocation()">
+          Clear all
+        </button>
+      </div>
+      <div>
+        <button type="button" class="cancel-location" (click)="cancelLocationPicker()">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="apply-location"
+          [disabled]="!selectedLocationAreas.length && !inlineDrawnPolygon"
+          (click)="applyModalLocation()"
+        >
+          Apply changes
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+
 
 <app-draw-area-map
   *ngIf="drawAreaInitialized"

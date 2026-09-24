@@ -179,74 +179,194 @@ svg {
     600 18px/1.2 Georgia,
     serif;
 }
-.location-popover label {
+.location-popover {
+  width: 420px;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(35, 20, 60, .16), 0 2px 8px rgba(35, 20, 60, .04);
+}
+.location-popover-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.location-popover-heading .location-popover-title {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.location-popover-close {
+  flex: 0 0 32px;
+  height: 32px;
   display: grid;
-  gap: 7px;
-  color: var(--muted);
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f2fa;
+  color: #70657f;
+  cursor: pointer;
+}
+.location-popover-close:hover {
+  background: #ece5f7;
+  color: var(--purple);
+}
+.location-popover button:focus-visible {
+  outline: 3px solid #bfa4eb;
+  outline-offset: 2px;
+}
+.location-popover-title {
+  display: block;
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 750;
+}
+.location-popover-subtitle {
+  margin: 18px 0 10px;
+  color: #7b7281;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.location-popover-search {
+  position: relative;
+  display: block;
+}
+.location-popover-search > i:first-child {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  color: #9a92a5;
+  font-size: 13px;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 .location-popover input,
 .budget-fields input {
   width: 100%;
-  height: 46px;
-  padding: 0 13px;
+  height: 48px;
+  padding: 0 40px;
   color: var(--ink);
   border: 1px solid #ded9e5;
-  border-radius: 10px;
+  border-radius: 12px;
+  font-size: 13px;
   outline: 0;
 }
 .location-popover input:focus,
 .budget-fields input:focus {
   border-color: #a98bdc;
-  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.08);
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.1);
+}
+.location-popover-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f1eef6;
+  color: #6b6476;
+  font-size: 11px;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+.location-popover-clear:hover { background: #e6e0f2; color: var(--purple); }
+/* Keep icon buttons square even when global button rules add a minimum height. */
+.location-popover .location-popover-close,
+.location-popover .location-popover-clear {
+  width: var(--close-size, 32px);
+  min-width: var(--close-size, 32px);
+  max-width: var(--close-size, 32px);
+  height: var(--close-size, 32px);
+  min-height: var(--close-size, 32px);
+  max-height: var(--close-size, 32px);
+  padding: 0;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  line-height: 1;
+}
+.location-popover .location-popover-clear {
+  --close-size: 28px;
 }
 .location-suggestions {
-  max-height: 260px;
-  margin-top: 8px;
+  max-height: 280px;
+  margin-top: 12px;
   overflow-y: auto;
   border: 1px solid #ebe6f0;
-  border-radius: 11px;
+  border-radius: 14px;
   background: #fff;
   box-shadow: 0 10px 25px rgba(38, 24, 51, 0.09);
 }
 .location-suggestions section + section { border-top: 1px solid #eee9f2; }
 .location-suggestions section > small {
   display: block;
-  padding: 9px 12px 5px;
+  padding: 11px 14px 6px;
   color: #8a8190;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: .1em;
+  letter-spacing: .08em;
   text-transform: uppercase;
 }
 .location-suggestions section > button {
   width: 100%;
-  padding: 9px 12px;
+  padding: 11px 14px;
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
   border: 0;
   background: transparent;
   color: #2f2735;
   cursor: pointer;
   text-align: left;
+  transition: background-color .12s ease;
 }
 .location-suggestions section > button:hover { background: #f7f3fb; }
-.location-suggestions section > button > i { width: 18px; color: #6633a0; text-align: center; }
+.location-suggestions section > button:hover .location-suggestion-arrow { opacity: 1; transform: translateX(0); }
+.location-suggestions section > button > i:first-child {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #f3edfc;
+  color: #6633a0;
+  font-size: 13px;
+}
 .location-suggestions section > button span,
 .location-suggestions section > button b,
 .location-suggestions section > button small { display: block; }
 .location-suggestions section > button span { min-width: 0; }
-.location-suggestions section > button b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.location-suggestions section > button small { margin-top: 2px; color: #8a8190; font-size: 9px; }
-.suggestion-status { margin: 0; padding: 12px; color: #7b7281; font-size: 10px; }
+.location-suggestions section > button b { overflow: hidden; font-size: 13px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.location-suggestions section > button small { margin-top: 2px; color: #8a8190; font-size: 11px; }
+.location-suggestion-arrow {
+  flex: none;
+  margin-left: auto;
+  color: #b7aecb;
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity .12s ease, transform .12s ease;
+  transform: translateX(-4px);
+}
+.suggestion-status { display: flex; align-items: center; gap: 8px; margin: 0; padding: 16px 14px; color: #7b7281; font-size: 12px; }
+.suggestion-empty { justify-content: center; }
 .quick-locations,
 .budget-presets {
-  margin: 14px 0;
+  margin: 4px 0 14px;
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 8px;
+}
+.quick-locations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 .quick-locations button,
 .budget-presets button,
@@ -260,6 +380,42 @@ svg {
   font-weight: 650;
   cursor: pointer;
 }
+.quick-locations button {
+  min-width: 0;
+  width: 100%;
+  min-height: 78px;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  transition: border-color .12s ease, background-color .12s ease, transform .12s ease;
+}
+.quick-locations button > i:first-child {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #f3edfc;
+  color: var(--purple);
+  font-size: 13px;
+}
+.quick-locations button span { min-width: 0; display: block; }
+.quick-locations button b { display: block; color: #30263f; font-size: 13px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.quick-locations button small { display: block; margin-top: 4px; color: #7e748c; font-size: 11px; font-weight: 400; line-height: 1.4; letter-spacing: 0; text-transform: none; white-space: normal; overflow-wrap: anywhere; }
+.quick-locations button.quick-location-all {
+  grid-column: 1 / -1;
+  min-height: 56px;
+  background: #faf8fe;
+  border-color: #e6ddf4;
+  color: var(--purple);
+  font-size: 13px;
+  font-weight: 700;
+}
+.quick-locations button.quick-location-all > i:first-child { background: var(--purple); color: #fff; }
 .quick-locations button:hover,
 .budget-presets button:hover,
 .compact-popover > button:hover,
@@ -269,6 +425,7 @@ svg {
   border-color: #b69ae9;
   background: #f7f3ff;
 }
+.quick-locations button:hover { transform: translateY(-1px); }
 .compact-popover {
   width: 230px;
 }
@@ -322,6 +479,20 @@ svg {
   font-weight: 750;
   cursor: pointer;
 }
+.location-popover .popover-apply {
+  width: 100%;
+  height: 48px;
+  margin-top: 4px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: background-color .12s ease, transform .12s ease;
+}
+.location-popover .popover-apply:hover { background: #3a1576; }
+.location-popover .popover-apply:active { transform: scale(0.98); }
 
 .chip-bar {
   position: sticky;

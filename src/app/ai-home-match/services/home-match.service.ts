@@ -33,6 +33,8 @@ export class HomeMatchService {
       childrenAgeGroups: [],
       transportation: [],
       lifestyles: [],
+      topPriorities: [],
+      mandatoryPriorities: [],
     };
   }
 }

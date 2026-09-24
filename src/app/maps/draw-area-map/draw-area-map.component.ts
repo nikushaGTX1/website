@@ -373,6 +373,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           district: location.district,
         })),
       )
+      .filter((street) => this.locationService.isLikelyStreet(street))
       .filter(
         (street) =>
           this.normalizeStreetQuery(street.label).includes(query) ||

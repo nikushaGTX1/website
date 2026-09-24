@@ -30,8 +30,8 @@ export function walkingDistanceScore(minutes?: number): number {
   if (minutes <= 5) return 5;
   if (minutes <= 10) return 4;
   if (minutes <= 15) return 3;
-  if (minutes <= 25) return 2;
-  if (minutes <= 40) return 1;
+  if (minutes <= 20) return 2;
+  if (minutes <= 30) return 1;
   return 0;
 }
 
@@ -90,7 +90,7 @@ function yes(value: boolean | undefined | null): number {
   return value ? 5 : 0;
 }
 
-function scorePriority(priority: string, apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
+export function scorePriority(priority: string, apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
   const walk = (...fields: Array<keyof HomeMatchApartment>): number =>
     walkingDistanceScore(minutesOf(apartment, ...fields));
   switch (priority) {
@@ -169,8 +169,28 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
   const lifestyles = new Set(profile.lifestyles);
   if (lifestyles.has('RemoteWorker') && (apartment.hasHomeOfficeSpace || hasTag(apartment, 'Home office'))) points += 6;
   if (lifestyles.has('QuietLifestyle') && (apartment.isQuietStreet || hasTag(apartment, 'Quiet street'))) points += 6;
-  if (lifestyles.has('Athlete') && (apartment.gymDistanceMinutes ?? 99) <= 10) points += 5;
+  // Active/Sporty: proximity to gyms and parks.
+  if (lifestyles.has('Athlete')) {
+    if ((apartment.gymDistanceMinutes ?? 99) <= 10) points += 5;
+    if ((apartment.parkDistanceMinutes ?? 99) <= 10) points += 3;
+  }
   if (lifestyles.has('Student') && (apartment.universityDistanceMinutes ?? 99) <= 15) points += 5;
+  // Business/professional: commute to work and transportation access.
+  if (
+    lifestyles.has('BusinessProfessional') &&
+    ((apartment.metroDistanceMinutes ?? 99) <= 10 || parkingScore(apartment) >= 3)
+  ) {
+    points += 5;
+  }
+  // Social lifestyle: proximity to cafés and restaurants.
+  if (lifestyles.has('SocialLifestyle') && (apartment.cafeDistanceMinutes ?? 99) <= 10) points += 5;
+  // Frequently hosts guests: enough living/dining space for company.
+  if (
+    lifestyles.has('HostsGuests') &&
+    ((apartment.bedrooms ?? 0) >= 2 || (apartment.sizeSquareMeters ?? 0) >= 80)
+  ) {
+    points += 5;
+  }
   if (profile.children > 0) {
     const school = apartment.schoolDistanceMinutes;
     const kindergarten = apartment.kindergartenDistanceMinutes;

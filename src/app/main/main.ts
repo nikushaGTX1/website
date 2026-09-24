@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { TranslationService } from '../services/translation.service';
+import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 
 @Component({
   selector: 'app-main',
@@ -32,6 +33,8 @@ export class Main implements OnInit, OnDestroy {
   set locationOpen(value: boolean) {
     this._locationOpen = value;
     document.body.classList.toggle('location-picker-open', value);
+    if (value) lockPageScroll();
+    else unlockPageScroll();
     if (value) this.sheetHeight = null; // reopen at the default height
   }
 
@@ -175,6 +178,7 @@ export class Main implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     document.body.classList.remove('location-picker-open');
+    if (this._locationOpen) unlockPageScroll();
   }
 
   ngOnInit(): void {

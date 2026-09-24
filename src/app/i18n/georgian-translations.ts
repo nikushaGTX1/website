@@ -1145,7 +1145,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Address', 'მისამართი'],
   ['Female', 'ქალი'],
   ['Male', 'კაცი'],
-  ['Gender', 'სქესი'],
+  ['Personage', 'პერსონაჟი'],
   ['English', 'ინგლისური'],
   ['Georgian', 'ქართული'],
   ['Russian', 'რუსული'],
@@ -1519,6 +1519,13 @@ GEORGIAN_TRANSLATIONS.set("Alternatives", "ალტერნატივებ�
 GEORGIAN_TRANSLATIONS.set("Alternative", "ალტერნატივა");
 GEORGIAN_TRANSLATIONS.set("Needs confirmation", "საჭიროებს დადასტურებას");
 GEORGIAN_TRANSLATIONS.set("Possible match. Please confirm the details below.", "შესაძლო შესატყვისი. გთხოვთ, დაადასტუროთ ქვემოთ მითითებული დეტალები.");
+GEORGIAN_TRANSLATIONS.set("Which of these are must-haves?", "რომელია აუცილებელი პირობა?");
+GEORGIAN_TRANSLATIONS.set("A must-have home has to satisfy it — we'll never suggest one that doesn't.", "აუცილებელი პირობის შემთხვევაში, ბინა ამას უნდა აკმაყოფილებდეს — ასეთი პირობის გარეშე ბინას არასდროს შემოგთავაზებთ.");
+GEORGIAN_TRANSLATIONS.set("Must have", "აუცილებელია");
+GEORGIAN_TRANSLATIONS.set("Mark as must-have", "მონიშნეთ, როგორც აუცილებელი");
+GEORGIAN_TRANSLATIONS.set("does not meet your must-have requirement", "არ აკმაყოფილებს თქვენს აუცილებელ მოთხოვნას");
+GEORGIAN_TRANSLATIONS.set("This listing has a minimum lease term; confirm it matches your plans", "ამ ბინას აქვს მინიმალური ქირავნობის ვადა — დაადასტურეთ, რომ ეს თქვენს გეგმებს ემთხვევა");
+GEORGIAN_TRANSLATIONS.set("Confirm this listing is available by your move-in date", "დაადასტურეთ, რომ ეს ბინა თქვენს შესვლის თარიღისთვის თავისუფალია");
 GEORGIAN_TRANSLATIONS.set("Does not meet all of your requirements", "არ აკმაყოფილებს თქვენს ყველა მოთხოვნას");
 GEORGIAN_TRANSLATIONS.set("These homes match your requirements, but a detail must be confirmed with the owner.", "ეს ბინები შეესაბამება თქვენს მოთხოვნებს, თუმცა ერთი დეტალი მფლობელთან უნდა დადასტურდეს.");
 GEORGIAN_TRANSLATIONS.set("These homes do not meet all of your requirements.", "ეს ბინები არ აკმაყოფილებს თქვენს ყველა მოთხოვნას.");
@@ -1712,8 +1719,31 @@ const GEORGIAN_RULES: GeorgianRule[] = [
     translate: (match) => `მდებარეობა: ${match[1]}, არჩეული არეალის გარეთ`,
   },
   {
+    pattern: /^Availability: not free until (.+), after your move-in date$/i,
+    translate: (match) => `ხელმისაწვდომობა: თავისუფალია მხოლოდ ${match[1]}-დან, თქვენი შესვლის თარიღის შემდეგ`,
+  },
+  {
+    pattern: /^Occupants: allows up to (\d+), you have (\d+)$/i,
+    translate: (match) => `მობინადრეები: დასაშვებია მაქსიმუმ ${match[1]}, თქვენ ხართ ${match[2]}`,
+  },
+  {
     pattern: /^Bedrooms: (\d+), you need (\d+\+?)$/i,
     translate: (match) => `საძინებლები: ${match[1]}, გჭირდებათ ${match[2]}`,
+  },
+  {
+    pattern: /^Lease: this listing requires a minimum (\d+)-month stay$/i,
+    translate: (match) => `ქირავდება: ამ ბინას მინიმუმ ${match[1]}-თვიანი ვადა სჭირდება`,
+  },
+  {
+    pattern: /^(.+): does not meet your must-have requirement$/i,
+    translate: (match) => {
+      const label = georgianTranslation(match[1]) || match[1];
+      return `${label}: არ აკმაყოფილებს თქვენს აუცილებელ მოთხოვნას`;
+    },
+  },
+  {
+    pattern: /^\$(\d+) over your budget \(within the allowed \$200 flexibility\)$/i,
+    translate: (match) => `\$${match[1]}-ით აღემატება თქვენს ბიუჯეტს (დასაშვები 200$ მოქნილობის ფარგლებში)`,
   },
   {
     pattern: /^(Cat|Dog|Pet) permission needs to be confirmed$/i,
