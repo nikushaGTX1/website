@@ -53,6 +53,8 @@ type UploadForm = {
   hasView: boolean;
   viewType: string;
   minimumRentalPeriod: string;
+  availableFrom: string;
+  maxOccupants: number | null;
   isFurnished: boolean;
   hasLargeLivingRoom: boolean;
   hasPlaygroundNearby: boolean;
@@ -258,6 +260,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     hasView: false,
     viewType: '',
     minimumRentalPeriod: '',
+    availableFrom: '',
+    maxOccupants: null,
     isFurnished: false,
     hasLargeLivingRoom: false,
     hasPlaygroundNearby: false,
@@ -443,6 +447,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.parkingTypeOptions.find((o) => o.label === parkingLabel)?.value || '';
     f.viewType = source.viewType || tag('View type');
     f.minimumRentalPeriod = source.minimumRentalPeriod || tag('Minimum rental');
+    f.availableFrom = source.availableFrom || '';
+    f.maxOccupants = source.maxOccupants ?? null;
     f.apartmentStyle = source.apartmentStyle || f.apartmentStyle;
     f.cadastralCode = tag('Cadastral');
     const district = source.district || tag('District');
@@ -1384,6 +1390,8 @@ export class UploadApartment implements OnInit, OnDestroy {
         : '',
       this.form.viewType ? `View type: ${this.form.viewType}` : '',
       this.form.minimumRentalPeriod ? `Minimum rental: ${this.form.minimumRentalPeriod}` : '',
+      this.form.availableFrom ? `Available from: ${this.form.availableFrom}` : '',
+      this.form.maxOccupants ? `Max occupants: ${this.form.maxOccupants}` : '',
       this.form.isQuietStreet ? 'Quiet street: Yes' : '',
       this.form.hasLargeLivingRoom ? 'Large living room: Yes' : '',
       this.form.hasPlaygroundNearby ? 'Playground nearby: Yes' : '',
@@ -1443,6 +1451,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       hasView: this.form.hasView,
       viewType: this.form.viewType || undefined,
       minimumRentalPeriod: this.form.minimumRentalPeriod || undefined,
+      availableFrom: this.form.availableFrom || undefined,
+      maxOccupants: this.form.maxOccupants ?? undefined,
       isFurnished: this.form.isFurnished,
       apartmentStyle: this.form.apartmentStyle,
       metroDistanceMinutes: nearbyTimes.metroDistanceMinutes,

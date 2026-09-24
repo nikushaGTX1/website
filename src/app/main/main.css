@@ -524,15 +524,13 @@
   border-radius: 0px 0px 16px 16px;
   background: rgba(255, 255, 255, 0.97);
   box-shadow: 0 18px 55px rgba(28, 59, 112, 0.16);
-  backdrop-filter: blur(10px);
+  /* No backdrop-filter here: it creates a new containing block for `position: fixed`
+     descendants, which pinned the location-picker dialog to this search bar's box
+     instead of the real viewport, making it render low with a big gap above it. */
 }
 
 .hero.location-dialog-open {
   z-index: 10000;
-}
-
-.property-search.location-dialog-open {
-  backdrop-filter: none;
 }
 
 .search-footer-left {
@@ -838,7 +836,11 @@
   inset: 0;
   padding: 10px;
   display: grid;
-  place-items: center;
+  /* Sit closer to the top instead of true center: dead-center pushes the footer
+     (Cancel/Apply) off the bottom of shorter windows. */
+  align-items: start;
+  justify-items: center;
+  padding-top: 12px;
   background: rgba(15, 23, 42, .42);
 }
 .location-picker-dialog {
@@ -4359,5 +4361,36 @@
   }
   .location-map-preview > .inline-google-draw {
     z-index: 0 !important;
+  }
+}
+
+/* Keep desktop location controls and map inside the viewport. */
+@media (min-width: 901px) {
+  .location-modal-backdrop {
+    z-index: 10000;
+    padding: 96px 12px 12px;
+  }
+  .location-picker-dialog {
+    display: flex;
+    flex-direction: column;
+    height: min(698px, calc(100dvh - 108px));
+    max-height: calc(100dvh - 108px);
+  }
+  .location-modal-header,
+  .location-modal-footer {
+    flex-shrink: 0;
+  }
+  .location-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .area-picker-column {
+    min-height: 0;
+    max-height: none;
+  }
+  .inline-google-draw {
+    --compact-map-min-height: 0px;
+    min-height: 0;
   }
 }

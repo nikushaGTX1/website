@@ -556,6 +556,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   get areaSuggestions(): LocationSuggestion[] {
     const query = this.location.trim().toLowerCase();
     const language = this.locationService.languageForQuery(this.location);
+    const seenAreas = new Set<string>();
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter(
@@ -570,14 +571,26 @@ export class ExploreProperty implements OnInit, OnDestroy {
         (left, right) =>
           this.locationAreaRank(left.district) - this.locationAreaRank(right.district),
       )
-      .slice(0, 8)
       .map((entry) => ({
         id: entry.id,
         label: this.locationService.districtName(entry, language),
         value: entry.district,
-        type: 'Area',
+        type: 'Area' as const,
         city: this.locationService.cityName(entry, language),
-      }));
+      }))
+      // The catalog can carry more than one API record for the same neighborhood
+      // (e.g. two "Vake" districts with different ids). Keep only the first.
+      .filter((suggestion) => {
+        const key = suggestion.label.trim().toLowerCase();
+        if (seenAreas.has(key)) return false;
+        seenAreas.add(key);
+        return true;
+      })
+      .slice(0, 8);
+  }
+
+  private isActualStreet(street: { label: string; value: string }): boolean {
+    return this.locationService.isLikelyStreet(street);
   }
 
   get streetSuggestions(): LocationSuggestion[] {
@@ -585,6 +598,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const language = this.locationService.languageForQuery(this.location);
     if (!this.selectedLocationArea && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
+    const seenStreets = new Set<string>();
 
     for (const entry of this.locationEntries.filter(
       (item) =>
@@ -592,11 +606,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
         (!this.selectedLocationArea || item.district === this.selectedLocationArea),
     )) {
       for (const street of this.locationService.streetNames(entry, language)) {
+        if (!this.isActualStreet(street)) continue;
+        const dedupeKey = street.label.trim().toLowerCase();
+        if (seenStreets.has(dedupeKey)) continue;
         if (
           this.selectedLocationArea ||
           street.value.toLowerCase().includes(query) ||
           street.label.toLowerCase().includes(query)
         ) {
+          seenStreets.add(dedupeKey);
           suggestions.push({
             id: street.id,
             label: street.label,
@@ -670,6 +688,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
             district: selectedArea,
           })),
         )
+        .filter((street) => this.isActualStreet(street))
         .filter(
           (street) =>
             !query ||

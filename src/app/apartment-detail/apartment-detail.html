@@ -3,7 +3,9 @@
     <p class="status-message" *ngIf="errorMessage">{{ errorMessage }}</p>
     <ng-container *ngIf="apartment; else state">
       <div class="vp-toolbar">
-        <a routerLink="/ExploreProperty"
+        <a
+          routerLink="/ExploreProperty"
+          [queryParams]="isForSale ? { mode: 'buy' } : null"
           ><i class="fa-solid fa-chevron-left"></i> Back to results</a
         >
         <div>

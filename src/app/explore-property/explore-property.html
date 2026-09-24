@@ -2,24 +2,45 @@
   <section class="search-row" aria-label="Property search">
     <div class="search-box">
       <div class="search-field location-field">
-        <button type="button" (click)="$event.stopPropagation(); toggleSearchMenu('location')">
+        <button type="button" aria-haspopup="dialog" [attr.aria-expanded]="locationOpen" (click)="$event.stopPropagation(); toggleSearchMenu('location')">
           <small>Location</small><strong>{{ location || 'Tbilisi' }}</strong>
         </button>
         <div
           class="search-popover location-popover"
+          role="dialog"
+          aria-label="Choose your location"
           *ngIf="locationOpen"
           (click)="$event.stopPropagation()"
         >
-          <label
-            ><span>Where do you want to live?</span
-            ><input
+          <div class="location-popover-heading">
+            <span class="location-popover-title">Where do you want to live?</span>
+            <button class="location-popover-close" type="button" aria-label="Close location picker" (click)="locationOpen = false">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
+          <label class="location-popover-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input
               [(ngModel)]="location"
               (input)="onLocationInput()"
-              placeholder="Area, street or landmark"
+              placeholder="Search area, street or landmark"
+              aria-label="Search area, street or landmark"
               autocomplete="off"
-          /></label>
+            />
+            <button
+              type="button"
+              class="location-popover-clear"
+              *ngIf="location.trim().length"
+              (click)="location = ''; onLocationInput()"
+              aria-label="Clear search"
+            >
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </label>
           <div class="location-suggestions" *ngIf="location.trim().length">
-            <p class="suggestion-status" *ngIf="locationLoading">Loading locations…</p>
+            <p class="suggestion-status" *ngIf="locationLoading">
+              <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Loading locations…
+            </p>
             <ng-container *ngIf="!locationLoading">
               <section *ngIf="areaSuggestions.length">
                 <small>Districts</small>
@@ -30,6 +51,7 @@
                 >
                   <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                   <span><b>{{ suggestion.label }}</b><small>{{ suggestion.city }}</small></span>
+                  <i class="fa-solid fa-chevron-right location-suggestion-arrow" aria-hidden="true"></i>
                 </button>
               </section>
               <section *ngIf="streetSuggestions.length">
@@ -41,25 +63,32 @@
                 >
                   <i class="fa-solid fa-road" aria-hidden="true"></i>
                   <span><b>{{ suggestion.label }}</b><small>{{ suggestion.district }}</small></span>
+                  <i class="fa-solid fa-chevron-right location-suggestion-arrow" aria-hidden="true"></i>
                 </button>
               </section>
-              <p class="suggestion-status" *ngIf="!hasLocationSuggestions">
-                No matching districts or streets.
+              <p class="suggestion-status suggestion-empty" *ngIf="!hasLocationSuggestions">
+                <i class="fa-regular fa-compass" aria-hidden="true"></i> No matching districts or streets.
               </p>
             </ng-container>
           </div>
-          <div class="quick-locations">
-            <button type="button" (click)="selectQuickLocation('')">All Tbilisi</button>
+          <span class="location-popover-title location-popover-subtitle" *ngIf="!location.trim().length"
+            >Popular in Tbilisi</span
+          >
+          <div class="quick-locations" *ngIf="!location.trim().length">
+            <button type="button" class="quick-location-all" (click)="selectQuickLocation('')">
+              <i class="fa-solid fa-city" aria-hidden="true"></i><span>All Tbilisi</span>
+            </button>
             <button
               type="button"
               *ngFor="let area of featuredLocationAreas"
               (click)="selectQuickLocation(area.name)"
             >
-              {{ area.name }}
+              <i [class]="area.icon" aria-hidden="true"></i>
+              <span><b>{{ area.name }}</b><small>{{ area.description }}</small></span>
             </button>
           </div>
           <button class="popover-apply" type="button" (click)="applyQuickLocation()">
-            Apply location
+            Apply location <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
           </button>
         </div>
       </div>

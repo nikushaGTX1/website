@@ -49,6 +49,8 @@ export interface Apartment {
   viewType?: string;
   parkingPoints?: number;
   minimumRentalPeriod?: string;
+  availableFrom?: string;
+  maxOccupants?: number;
   isFurnished?: boolean;
   apartmentStyle?: string;
   condition?: string;
@@ -131,6 +133,8 @@ export interface CreateApartment {
   viewType?: string;
   parkingPoints?: number;
   minimumRentalPeriod?: string;
+  availableFrom?: string;
+  maxOccupants?: number;
   isFurnished?: boolean;
   apartmentStyle?: string;
   condition?: string;

@@ -1758,3 +1758,62 @@ fieldset {
   font-size: 13px;
   font-weight: 650;
 }
+
+.must-have-list {
+  margin-top: 22px;
+  padding: 18px 20px;
+  border: 1px solid #ece8f4;
+  border-radius: 16px;
+  background: #faf9fd;
+}
+.must-have-list h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+.must-have-list > p {
+  margin: 0 0 14px;
+  color: #6f6a7c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.must-have-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.must-have-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #ece8f4;
+  border-radius: 11px;
+  background: #fff;
+  font-size: 13px;
+}
+.must-have-list li b {
+  margin-right: 6px;
+  color: #451a8f;
+}
+.must-have-toggle {
+  flex: none;
+  padding: 7px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6f6a7c;
+  border: 1px solid #ddd7e5;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.must-have-toggle.active {
+  color: #fff;
+  border-color: #451a8f;
+  background: #451a8f;
+}

@@ -176,6 +176,21 @@ export class LocationService {
       : location.region;
   }
 
+  /**
+   * The street catalog comes straight from OpenStreetMap and, alongside real streets,
+   * includes parks, squares and gardens with no field marking them as such. Used to keep
+   * those out of street search results and autocomplete.
+   */
+  private static readonly nonStreetPattern =
+    /\b(park|square|garden)\b|პარკი|სკვერი|ბაღი|მოედანი|парк|сквер|сад|площад/i;
+
+  isLikelyStreet(street: { label: string; value: string }): boolean {
+    return (
+      !LocationService.nonStreetPattern.test(street.label) &&
+      !LocationService.nonStreetPattern.test(street.value)
+    );
+  }
+
   streetNames(location: ApiLocation, language: AppLanguage): Array<{
     id: number;
     label: string;

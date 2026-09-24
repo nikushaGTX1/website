@@ -186,6 +186,24 @@
         </div>
 
         <div class="field-group">
+          <label class="field-label">Available from</label>
+          <input type="date" class="field-input" [(ngModel)]="form.availableFrom" name="availableFrom" />
+        </div>
+
+        <div class="field-group" *ngIf="isRentalDeal">
+          <label class="field-label">Maximum occupants</label>
+          <input
+            type="number"
+            class="field-input"
+            min="1"
+            max="50"
+            [(ngModel)]="form.maxOccupants"
+            name="maxOccupants"
+            placeholder="e.g. 4"
+          />
+        </div>
+
+        <div class="field-group">
           <label class="field-label">Status <span class="req">*</span></label>
           <div class="chip-grid">
             <button
