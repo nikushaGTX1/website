@@ -1283,7 +1283,7 @@ svg {
     overflow-x: clip;
   }
   .property-explorer {
-    min-height: 100dvh;
+    min-height: 100svh;
   }
   .search-row {
     top: 64px;
@@ -1740,10 +1740,10 @@ svg {
 @keyframes card-slide-from-right-b { from { transform: translateX(32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
 @keyframes card-slide-from-left-b { from { transform: translateX(-32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
 
-/* Touch devices: swiping a card photo never scrolls the page and never animates. */
+/* Let vertical gestures scroll the page; horizontal gestures change photos. */
 @media (hover: none), (max-width: 740px) {
   .photo-wrap {
-    touch-action: none;
+    touch-action: pan-y pinch-zoom;
   }
   .photo-wrap img {
     animation: none !important;

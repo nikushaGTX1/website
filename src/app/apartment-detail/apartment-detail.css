@@ -2377,10 +2377,10 @@
   }
 }
 
-/* Mobile gallery: no slide animation, and the page is frozen while touching the photo. */
+/* Keep vertical page scrolling available over the mobile gallery. */
 @media (hover: none), (max-width: 740px) {
-  .vp-gallery-main {
-    touch-action: none;
+  .vp-gallery .vp-gallery-main {
+    touch-action: pan-y pinch-zoom;
     overscroll-behavior: contain;
   }
   .vp-gallery-main img.gallery-slide-left-a,

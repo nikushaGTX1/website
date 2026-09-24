@@ -255,7 +255,7 @@ app-root {
   }
 
   body {
-    min-height: 100dvh;
+    min-height: 100svh;
   }
 
   button,

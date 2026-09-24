@@ -265,26 +265,29 @@ export class ExploreProperty implements OnInit, OnDestroy {
     return apartment.id;
   }
 
-  private cardTouchOnPhoto = false;
+  private cardSwipeAxis: 'x' | 'y' | null = null;
 
   touchCardStart(event: TouchEvent): void {
     const touch = event.touches[0];
     if (!touch) return;
-    this.cardTouchOnPhoto = !!(event.target as Element | null)?.closest?.('.photo-wrap');
-    if (this.cardTouchOnPhoto) lockPageScroll();
+    this.cardSwipeAxis = null;
     this.cardSwipeStartX = touch.clientX;
     this.cardSwipeStartY = touch.clientY;
     this.cardSwipePointerId = -1;
   }
 
   touchCardMove(event: TouchEvent, apartment: Apartment): void {
-    // A touch on the photo only swipes photos; the page must not scroll under it.
-    if (this.cardTouchOnPhoto && event.cancelable) event.preventDefault();
+    if (this.cardSwipeAxis === 'x' && event.cancelable) event.preventDefault();
     const touch = event.touches[0];
     if (!touch || this.cardSwipeStartX == null || this.cardSwipePointerId !== -1) return;
     const dx = touch.clientX - this.cardSwipeStartX;
     const dy = touch.clientY - this.cardSwipeStartY;
-    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (!this.cardSwipeAxis && Math.max(Math.abs(dx), Math.abs(dy)) > 6) {
+      this.cardSwipeAxis = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+    }
+    if (this.cardSwipeAxis !== 'x') return;
+    if (event.cancelable) event.preventDefault();
+    if (Math.abs(dx) < 40) return;
     this.cardSwipeStartX = null;
     this.cardSwipePointerId = null;
     const count = this.cardImages(apartment).length;
@@ -318,15 +321,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
   endCardSwipe(): void {
     this.cardSwipeStartX = null;
     this.cardSwipePointerId = null;
-    this.cardTouchOnPhoto = false;
-    unlockPageScroll();
+    this.cardSwipeAxis = null;
   }
 
   cancelCardSwipe(): void {
     this.cardSwipeStartX = null;
     this.cardSwipePointerId = null;
-    this.cardTouchOnPhoto = false;
-    unlockPageScroll();
+    this.cardSwipeAxis = null;
   }
 
   openCard(event: MouseEvent, apartment: Apartment): void {

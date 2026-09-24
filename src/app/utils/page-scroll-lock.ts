@@ -1,7 +1,5 @@
 /**
- * Freezes the page while a finger is on a swipeable photo. iOS Safari can ignore
- * touchmove.preventDefault() once it has started scrolling, so the body is also
- * pinned in place (position: fixed) and restored to the same scroll offset afterwards.
+ * Pins the page behind a modal and restores its scroll offset without animation.
  */
 let lockedScrollY: number | null = null;
 
@@ -26,5 +24,5 @@ export function unlockPageScroll(): void {
   body.style.left = '';
   body.style.right = '';
   body.style.width = '';
-  window.scrollTo(0, y);
+  window.scrollTo({ top: y, left: 0, behavior: 'instant' });
 }
