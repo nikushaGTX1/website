@@ -194,6 +194,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  width: 100%;
   margin-top: 28px;
 }
 .vp-facts > div {
@@ -1996,6 +1997,8 @@
   /* Mobile order: title/address, then price card (with agent check inside). */
   .vp-columns .vp-intro {
     order: 1;
+    width: 100%;
+    min-width: 0;
   }
   .vp-columns .vp-inquiry {
     order: 2;
@@ -2004,6 +2007,65 @@
     width: 100%;
     max-width: 420px;
     margin-inline: auto;
+    /* The card was sized for a 370px desktop sidebar; shrink it for phones instead of
+       keeping the desktop price/button/avatar sizes on a much narrower card. */
+    padding: 16px 16px 14px;
+  }
+  .vp-inquiry .vp-deal {
+    font-size: 11px;
+  }
+  .vp-inquiry .vp-price strong,
+  .vp-inquiry .vp-price app-currency-price {
+    font-size: 24px;
+  }
+  .vp-inquiry .vp-price app-currency-price {
+    --currency-approx-size: 12px;
+  }
+  .vp-inquiry .vp-proof {
+    margin: 10px 0 10px;
+    gap: 8px;
+  }
+  .vp-inquiry .vp-proof-icon {
+    font-size: 16px;
+  }
+  .vp-inquiry .vp-proof h3 {
+    font-size: 12px;
+  }
+  .vp-inquiry .vp-primary,
+  .vp-inquiry .vp-secondary {
+    min-height: 42px;
+    padding: 8px 12px;
+    font-size: 13px;
+    gap: 7px;
+    border-radius: 11px;
+  }
+  .vp-inquiry .vp-secondary {
+    margin-top: 8px;
+  }
+  .vp-inquiry .vp-no-charge {
+    margin: 10px 0 12px;
+    font-size: 11px;
+  }
+  .vp-inquiry .vp-agent {
+    padding-top: 12px;
+    gap: 10px;
+  }
+  .vp-inquiry .vp-agent > .vp-agent-avatar,
+  .vp-inquiry .vp-agent-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+  }
+  .vp-inquiry .vp-agent strong {
+    font-size: 13px;
+  }
+  .vp-inquiry .vp-agent span {
+    font-size: 11px;
+  }
+  .vp-inquiry .vp-agent > a:last-child {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
   }
   .vp-columns .vp-main > :not(.vp-intro),
   .vp-columns .vp-side-rail > :not(.vp-inquiry) {
@@ -2013,17 +2075,33 @@
     font-size: 30px;
   }
   .vp-facts {
+    max-width: 420px;
+    margin-inline: auto;
     gap: 8px;
   }
   .vp-facts > div {
-    min-height: 82px;
-    padding: 12px;
+    min-height: 0;
+    padding: 10px 8px;
+    gap: 4px;
+    display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
     text-align: center;
   }
+  .vp-facts > div > i {
+    font-size: 15px;
+  }
   .vp-facts span {
     align-items: center;
+    gap: 1px;
+  }
+  .vp-facts strong {
+    font-size: 13px;
+  }
+  .vp-facts span small,
+  .vp-facts span {
+    font-size: 9px;
   }
   .vp-proof > b {
     display: none;
@@ -2034,7 +2112,14 @@
     width: 100%;
     margin: 28px auto 0;
   }
+  .vp-amenities-section {
+    width: 100%;
+    min-width: 0;
+  }
   .vp-amenities {
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
@@ -2042,7 +2127,9 @@
     min-height: 92px;
     min-width: 0;
     padding: 10px 6px;
+    display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
     gap: 6px;
     text-align: center;
@@ -2054,6 +2141,7 @@
     height: 34px;
   }
   .vp-amenities p {
+    width: 100%;
     min-width: 0;
     overflow-wrap: anywhere;
   }
@@ -2065,7 +2153,9 @@
     min-width: 0;
     min-height: 88px;
     padding: 10px 6px;
+    display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
     gap: 6px;
     text-align: center;
@@ -2812,4 +2902,45 @@
 .vd-country-list .vd-code {
   color: #6e6878;
   font-weight: 600;
+}
+
+/* Scale listing typography smoothly from phones through laptop and desktop widths. */
+.vp-intro h1 {
+  font-size: clamp(22px, calc(17px + 1.1vw), 36px);
+  line-height: 1.3;
+}
+.vp-section h2 {
+  font-size: clamp(20px, calc(17px + .5vw), 26px);
+  line-height: 1.35;
+}
+.vp-address,
+.vp-section > p {
+  font-size: clamp(14px, calc(12px + .2vw), 15px);
+}
+.vp-facts strong {
+  font-size: clamp(13px, calc(11px + .3vw), 16px);
+}
+.vp-facts span {
+  font-size: clamp(11px, calc(10px + .15vw), 12px);
+}
+.vp-inquiry .vp-price strong,
+.vp-inquiry .vp-price app-currency-price {
+  font-size: clamp(28px, calc(23px + .9vw), 38px);
+}
+.vp-inquiry .vp-price app-currency-price {
+  --currency-approx-size: clamp(13px, calc(11px + .3vw), 16px);
+}
+.vp-inquiry .vp-deal,
+.vp-inquiry .vp-proof h3,
+.vp-inquiry .vp-primary,
+.vp-inquiry .vp-secondary {
+  font-size: clamp(13px, calc(11px + .25vw), 15px);
+  line-height: 1.45;
+}
+.vp-inquiry .vp-no-charge,
+.vp-inquiry .vp-agent span {
+  font-size: clamp(12px, calc(10px + .25vw), 14px);
+}
+.vp-inquiry .vp-agent strong {
+  font-size: clamp(15px, calc(13px + .25vw), 17px);
 }

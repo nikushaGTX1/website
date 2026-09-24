@@ -832,7 +832,9 @@
 .location-results section > button small { color: #8a94a6; }
 .location-modal-backdrop {
   position: fixed;
-  z-index: 1000;
+  /* Must stay above .hero.location-dialog-open (z-index: 10000), or the hero's
+     opaque photo/search-form box paints over this dialog instead of behind it. */
+  z-index: 20000;
   inset: 0;
   padding: 10px;
   display: grid;
@@ -3818,7 +3820,8 @@
 @media (max-width: 650px) {
   .location-modal-backdrop {
     position: fixed !important;
-    z-index: 9999 !important;
+    /* Must stay above .hero.location-dialog-open (z-index: 10000). */
+    z-index: 20000 !important;
     inset: 0 !important;
     display: block !important;
     width: 100% !important;

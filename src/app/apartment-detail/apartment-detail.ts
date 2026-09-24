@@ -1,4 +1,3 @@
-import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectorRef,
@@ -475,7 +474,6 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     this.gallerySwipeStartY = touch.clientY;
     this.gallerySwipeAxis = null;
     this.gallerySwipeCommitted = false;
-    lockPageScroll();
   }
 
   // Committed on move so a cancelled touch can't swallow the swipe.
@@ -515,7 +513,6 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   touchGalleryEnd(): void {
     this.gallerySwipeStartX = null;
-    unlockPageScroll();
     // A finished swipe must not count as a tap on the next click.
     window.clearTimeout(this.gallerySlideResetTimer);
     this.gallerySlideResetTimer = window.setTimeout(() => (this.suppressGalleryTap = false), 400);

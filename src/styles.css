@@ -318,6 +318,10 @@ html[lang='ka'] body
     max-width: 100%;
     overflow-x: clip !important;
     overscroll-behavior-x: none;
+    /* Stops the browser's native pull-to-refresh gesture. Without this, a vertical swipe
+       that starts on a touch-handled element (like the apartment photo gallery) can still
+       trigger it even though that element's own touchmove handler calls preventDefault. */
+    overscroll-behavior-y: contain;
   }
 
   app-root,
