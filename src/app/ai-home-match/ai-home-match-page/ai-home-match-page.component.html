@@ -507,27 +507,6 @@
               </span>
             </button>
           </div>
-          <div class="must-have-list" *ngIf="profile.topPriorities.length">
-            <h3>Which of these are must-haves?</h3>
-            <p>A must-have home has to satisfy it — we'll never suggest one that doesn't.</p>
-            <ul>
-              <li *ngFor="let value of profile.topPriorities; let i = index">
-                <span
-                  ><b>#{{ i + 1 }}</b> {{ answerLabel(value) }}</span
-                >
-                <button
-                  type="button"
-                  class="must-have-toggle"
-                  [class.active]="isMandatoryPriority(value)"
-                  [attr.aria-pressed]="isMandatoryPriority(value)"
-                  (click)="toggleMandatoryPriority(value, $event)"
-                >
-                  <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
-                  {{ isMandatoryPriority(value) ? 'Must have' : 'Mark as must-have' }}
-                </button>
-              </li>
-            </ul>
-          </div>
         </div>
       </ng-container>
       <div class="actions">

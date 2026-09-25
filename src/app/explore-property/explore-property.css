@@ -252,7 +252,8 @@ svg {
   color: var(--ink);
   border: 1px solid #ded9e5;
   border-radius: 12px;
-  font-size: 13px;
+  /* iOS Safari auto-zooms the page on focus for any input under 16px. */
+  font-size: 16px;
   outline: 0;
 }
 .location-popover input:focus,

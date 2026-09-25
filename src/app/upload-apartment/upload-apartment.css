@@ -1736,3 +1736,169 @@ select:focus {
   font-size: 13px;
   font-weight: 700;
 }
+
+/* "Available from" date picker: a compact popover calendar matching the styled
+   viewing-request calendar used on the apartment detail page, instead of the
+   browser's default <input type="date"> chrome. */
+.avail-field {
+  position: relative;
+}
+.avail-trigger {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #dcdcdc;
+  border-radius: 9px;
+  background: #fff;
+  color: #142038;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.avail-trigger > i:first-child {
+  flex: none;
+  color: #6a35a2;
+}
+.avail-trigger span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.avail-trigger span.placeholder {
+  color: #8f8f8f;
+}
+.avail-chevron {
+  flex: none;
+  color: #8f8f8f;
+  font-size: 11px;
+  transition: transform .15s ease;
+}
+.avail-trigger.open {
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, .12);
+}
+.avail-trigger.open .avail-chevron {
+  transform: rotate(180deg);
+}
+.avail-calendar {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(320px, 100%);
+  padding: 18px;
+  border: 1px solid #e3dcf1;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 55px rgba(28, 17, 36, .18);
+}
+.avail-calendar-head {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.avail-calendar-head strong {
+  color: #171421;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: capitalize;
+}
+.avail-calendar-head button {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f2fb;
+  color: #2a2233;
+  font-size: 12px;
+  cursor: pointer;
+}
+.avail-calendar-head button:hover {
+  background: #ece4fb;
+}
+.avail-calendar-head button:disabled {
+  opacity: .3;
+  cursor: default;
+  background: #f5f2fb;
+}
+.avail-weekdays,
+.avail-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+}
+.avail-weekdays {
+  margin-bottom: 4px;
+  color: #7d7689;
+  font-size: 11px;
+  font-weight: 600;
+}
+.avail-weekdays span {
+  padding: 4px 0;
+}
+.avail-days {
+  row-gap: 2px;
+}
+.avail-day {
+  height: 34px;
+  min-height: 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #171421;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.avail-day:hover:not(:disabled):not(.selected) {
+  background: #f5f2fb;
+}
+.avail-day:disabled {
+  color: #cfc9d9;
+  cursor: default;
+}
+.avail-day.blank {
+  visibility: hidden;
+}
+.avail-day.today:not(.selected) {
+  border: 1.5px solid #451a8f;
+  color: #451a8f;
+}
+.avail-day.selected {
+  background: #451a8f;
+  color: #fff;
+  font-weight: 700;
+}
+.avail-calendar-footer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #ece8f4;
+}
+.avail-clear {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #e3dcf1;
+  border-radius: 9px;
+  background: #fff;
+  color: #451a8f;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.avail-clear:hover {
+  background: #f5f2fb;
+}

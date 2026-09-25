@@ -6,6 +6,7 @@ interface AnswerRow {
   step: number;
   label: string;
   value: string;
+  icon: string;
 }
 
 interface ProfileAttribute {
@@ -45,8 +46,8 @@ export class HomeProfileSummaryComponent {
     const p = this.profile;
     const rent = p.propertyGoal !== 'Buy';
     const rows: Array<AnswerRow | null> = [
-      p.gender ? { step: 0, label: 'Gender', value: this.label(p.gender) } : null,
-      p.propertyGoal ? { step: 1, label: 'Looking for', value: this.label(p.propertyGoal) } : null,
+      p.gender ? { step: 0, label: 'Gender', value: this.label(p.gender), icon: 'fa-venus-mars' } : null,
+      p.propertyGoal ? { step: 1, label: 'Looking for', value: this.label(p.propertyGoal), icon: 'fa-house' } : null,
       {
         step: 2,
         label: 'Location',
@@ -57,8 +58,9 @@ export class HomeProfileSummaryComponent {
             : p.selectedMapArea
               ? 'Selected map area'
               : 'Not specified',
+        icon: 'fa-location-dot',
       },
-      rent ? { step: 3, label: 'Budget', value: this.budget } : null,
+      rent ? { step: 3, label: 'Budget', value: this.budget, icon: 'fa-wallet' } : null,
       rent && p.householdType
         ? {
             step: 4,
@@ -66,6 +68,7 @@ export class HomeProfileSummaryComponent {
             value: `${this.label(p.householdType)} · ${p.adults} adult${p.adults === 1 ? '' : 's'}${
               p.children ? `, ${p.children} child${p.children === 1 ? '' : 'ren'}` : ''
             }`,
+            icon: 'fa-people-roof',
           }
         : null,
       {
@@ -79,6 +82,7 @@ export class HomeProfileSummaryComponent {
               : p.bedrooms >= 4
                 ? '4 or more'
                 : `${p.bedrooms} or more`,
+        icon: 'fa-bed',
       },
       rent
         ? {
@@ -88,13 +92,14 @@ export class HomeProfileSummaryComponent {
               p.moveInTiming === 'SpecificDate' && p.moveInDate
                 ? p.moveInDate
                 : this.label(p.moveInTiming),
+            icon: 'fa-calendar-days',
           }
-        : { step: 7, label: 'Purchase timing', value: this.label(p.purchaseTiming) },
-      rent ? { step: 7, label: 'Rental period', value: this.label(p.rentalDuration) } : null,
-      { step: 8, label: 'Transport', value: this.list(p.transportation) },
-      { step: 9, label: 'Lifestyle', value: this.list(p.lifestyles) },
-      rent && p.hasPet !== null ? { step: 10, label: 'Pet', value: this.petValue } : null,
-      { step: 11, label: 'Top 5 priorities', value: this.list(p.topPriorities) },
+        : { step: 7, label: 'Purchase timing', value: this.label(p.purchaseTiming), icon: 'fa-calendar-days' },
+      rent ? { step: 7, label: 'Rental period', value: this.label(p.rentalDuration), icon: 'fa-hourglass-half' } : null,
+      { step: 8, label: 'Transport', value: this.list(p.transportation), icon: 'fa-route' },
+      { step: 9, label: 'Lifestyle', value: this.list(p.lifestyles), icon: 'fa-heart' },
+      rent && p.hasPet !== null ? { step: 10, label: 'Pet', value: this.petValue, icon: 'fa-paw' } : null,
+      { step: 11, label: 'Top 5 priorities', value: this.list(p.topPriorities), icon: 'fa-list-ol' },
     ];
     return rows.filter((row): row is AnswerRow => !!row);
   }

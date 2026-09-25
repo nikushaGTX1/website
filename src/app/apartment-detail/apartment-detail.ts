@@ -904,7 +904,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const parsed = this.parseViewingValue();
 
     const days = [];
-    for (let i = 0; i < 42; i++) {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cellCount = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+    for (let i = 0; i < cellCount; i++) {
       const cell = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
       const cellDay = new Date(cell.getFullYear(), cell.getMonth(), cell.getDate());
       days.push({

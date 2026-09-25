@@ -454,6 +454,16 @@ body.photo-viewer-active {
   overflow: hidden;
 }
 
+/* Let the viewing overlay cover the navigation outside the route stacking context. */
+body:has(.viewing-backdrop) {
+  overflow: hidden;
+}
+
+body:has(.viewing-backdrop) .route-content {
+  isolation: auto;
+  animation: none;
+}
+
 body.photo-viewer-active .route-content {
   isolation: auto !important;
 }

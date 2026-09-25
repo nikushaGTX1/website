@@ -33,8 +33,6 @@ export interface HomeMatchProfile {
   petOtherType?: string;
   petCount?: number;
   topPriorities: string[];
-  /** Subset of topPriorities the user marked "Must have": a listing scoring 0 on one is excluded. */
-  mandatoryPriorities: string[];
 }
 
 export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
@@ -58,5 +56,4 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   petOtherType: '',
   petCount: 1,
   topPriorities: [],
-  mandatoryPriorities: [],
 };

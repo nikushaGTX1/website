@@ -1,6 +1,5 @@
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchApartment } from '../models/home-match-result';
-import { scorePriority } from './priority-scoring';
 import { answerLabel } from './answer-labels';
 
 /**
@@ -242,16 +241,6 @@ export function evaluateMandatoryRequirements(
   if (occupancy === 'fail') {
     const occupants = (profile.adults || 0) + (profile.children || 0);
     mismatches.push(`Occupants: allows up to ${apartment.maxOccupants}, you have ${occupants}`);
-  }
-
-  // Priorities the user pinned as "Must have": a listing scoring 0 on any of them (e.g. no
-  // walking-distance data, or too far to earn any points) is excluded outright, not just ranked lower.
-  for (const priority of profile.mandatoryPriorities || []) {
-    if (!profile.topPriorities.includes(priority)) continue;
-    const score = scorePriority(priority, apartment, profile);
-    if (score <= 0) {
-      mismatches.push(`${answerLabel(priority)}: does not meet your must-have requirement`);
-    }
   }
 
   // Rentals may pass the mandatory budget filter up to $200 over the typed maximum; flag it

@@ -1463,8 +1463,9 @@
 }
 .property-meta {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-start;
-  gap: 16px;
+  gap: 8px 16px;
   padding: 0 0 17px;
   color: #697487;
   font-size: 14px;
@@ -4271,8 +4272,12 @@
     bottom: auto !important;
   }
   .location-modal-body {
+    /* Flex column instead of an absolute-positioned overlay: the map and the sheet are
+       guaranteed to sum to exactly this container's height, so they can never leave a
+       gap (or overlap) between them regardless of the sheet's current drag height. */
     position: relative;
-    display: block !important;
+    display: flex !important;
+    flex-direction: column;
     min-height: 0;
     overflow: hidden !important;
     touch-action: none;
@@ -4281,10 +4286,15 @@
     padding: 0;
   }
   .location-map-preview {
-    position: absolute !important;
-    inset: 0;
+    position: relative !important;
+    inset: auto;
     display: block !important;
-    height: 100% !important;
+    /* Fills whatever the sheet below it doesn't use. A price pin that fell underneath
+       the sheet's opaque, higher z-index box used to be unclickable (and invisible),
+       which is why tapping it never collapsed the sheet. */
+    flex: 1 1 auto;
+    width: 100%;
+    height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
     order: 0;
@@ -4301,11 +4311,12 @@
     bottom: auto !important;
   }
   .area-picker-column {
-    position: absolute !important;
+    position: relative !important;
     z-index: 5;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    /* Comes before .location-map-preview in the DOM, but the map must render first
+       (on top) with the sheet below it, not the source order. */
+    order: 1;
+    flex: 0 0 var(--sheet-h, 46%);
     height: var(--sheet-h, 46%) !important;
     max-height: none !important;
     padding: 0 !important;
@@ -4316,10 +4327,13 @@
     border-radius: 22px 22px 0 0;
     background: #fff;
     box-shadow: 0 -10px 30px rgba(20, 32, 58, 0.2);
-    transition: height 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: flex-basis 0.25s cubic-bezier(0.22, 1, 0.36, 1), height 0.25s cubic-bezier(0.22, 1, 0.36, 1);
     touch-action: none;
   }
   .area-picker-column.dragging {
+    transition: none;
+  }
+  .location-modal-body:has(.area-picker-column.dragging) .location-map-preview {
     transition: none;
   }
   .sheet-handle {

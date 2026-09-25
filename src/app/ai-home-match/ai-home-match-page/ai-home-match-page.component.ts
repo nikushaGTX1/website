@@ -189,7 +189,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
             : undefined),
       petCount: Math.max(1, service.profile.petCount || 1),
       topPriorities: service.profile.topPriorities || [],
-      mandatoryPriorities: service.profile.mandatoryPriorities || [],
     };
     this.budgetForm.setValue({
       min: this.profile.budgetMin,
@@ -595,22 +594,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       : priorities.length < 5
         ? [...priorities, value]
         : priorities;
-    // A priority that is no longer ranked cannot stay marked "Must have".
-    if (!this.profile.topPriorities.includes(value)) {
-      this.profile.mandatoryPriorities = this.profile.mandatoryPriorities.filter(
-        (priority) => priority !== value,
-      );
-    }
-    this.persist();
-  }
-  isMandatoryPriority(value: string): boolean {
-    return this.profile.mandatoryPriorities.includes(value);
-  }
-  toggleMandatoryPriority(value: string, event?: Event): void {
-    event?.stopPropagation();
-    this.profile.mandatoryPriorities = this.isMandatoryPriority(value)
-      ? this.profile.mandatoryPriorities.filter((priority) => priority !== value)
-      : [...this.profile.mandatoryPriorities, value];
     this.persist();
   }
   selected(
@@ -680,9 +663,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.profile.topPriorities = this.profile.topPriorities.filter((value) =>
         suggestions.has(value),
       );
-      this.profile.mandatoryPriorities = this.profile.mandatoryPriorities.filter((value) =>
-        this.profile.topPriorities.includes(value),
-      );
     }
     this.persist();
     if (this.step < this.questions.length - 1) {
@@ -714,8 +694,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['adults', 'children', 'childrenAgeGroups'], ['bedrooms'],
       ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
       ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized'],
-      ['lifestyles'], ['hasPet', 'petType', 'petOtherType', 'petCount'],
-      ['topPriorities', 'mandatoryPriorities'],
+      ['lifestyles'], ['hasPet', 'petType', 'petOtherType', 'petCount'], ['topPriorities'],
     ];
     for (const key of fields[step]) {
       const value = EMPTY_HOME_MATCH_PROFILE[key];

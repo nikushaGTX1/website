@@ -185,9 +185,44 @@
           </div>
         </div>
 
-        <div class="field-group">
+        <div class="field-group avail-field" (click)="$event.stopPropagation()">
           <label class="field-label">Available from</label>
-          <input type="date" class="field-input" [(ngModel)]="form.availableFrom" name="availableFrom" />
+          <button type="button" class="avail-trigger" [class.open]="availCalendarOpen" (click)="toggleAvailCalendar()">
+            <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+            <span [class.placeholder]="!form.availableFrom">{{ availDateLabel || 'Available now' }}</span>
+            <i class="fa-solid fa-chevron-down avail-chevron" aria-hidden="true"></i>
+          </button>
+          <div class="avail-calendar" *ngIf="availCalendarOpen">
+            <div class="avail-calendar-head">
+              <button type="button" aria-label="Previous month" [disabled]="!canGoToPrevAvailMonth()" (click)="shiftAvailMonth(-1)">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+              <strong>{{ availCalendarLabel }}</strong>
+              <button type="button" aria-label="Next month" (click)="shiftAvailMonth(1)">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="avail-weekdays">
+              <span *ngFor="let day of availWeekdayLabels">{{ day }}</span>
+            </div>
+            <div class="avail-days">
+              <button
+                type="button"
+                *ngFor="let day of availCalendarDays"
+                class="avail-day"
+                [class.blank]="!day.inMonth"
+                [class.selected]="day.selected"
+                [class.today]="day.isToday"
+                [disabled]="day.disabled"
+                (click)="selectAvailDay(day)"
+              >
+                {{ day.date }}
+              </button>
+            </div>
+            <div class="avail-calendar-footer">
+              <button type="button" class="avail-clear" (click)="clearAvailDate()">Available now</button>
+            </div>
+          </div>
         </div>
 
         <div class="field-group" *ngIf="isRentalDeal">
@@ -313,24 +348,6 @@
               <button type="button" [class.active]="form.currency === '$'" (click)="setCurrency('$')">$</button>
             </div>
           </div>
-        </div>
-
-
-        <div class="ai-box">
-          <span class="ai-icon">AI</span>
-          <div>
-            <strong>Price calculation with the help of AI</strong>
-            <p>The calculated price is approximate and may not be accurate</p>
-            <p class="ai-price-error" *ngIf="aiPriceError">{{ aiPriceError }}</p>
-            <p class="ai-price-result" *ngIf="aiSuggestedPrice != null">
-              Suggested price: <strong>${{ aiSuggestedPrice | number }}</strong>
-              <button type="button" class="ai-price-apply" (click)="applyAiSuggestedPrice()">Use this price</button>
-            </p>
-          </div>
-          <button class="ai-btn" type="button" [disabled]="aiPriceLoading" (click)="calculateAiPrice()">
-            <i *ngIf="aiPriceLoading" class="fa-solid fa-spinner fa-spin"></i>
-            {{ aiPriceLoading ? 'Calculating…' : 'AI Price Calculation' }}
-          </button>
         </div>
       </section>
 

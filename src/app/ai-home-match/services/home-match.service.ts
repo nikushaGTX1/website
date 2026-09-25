@@ -34,7 +34,6 @@ export class HomeMatchService {
       transportation: [],
       lifestyles: [],
       topPriorities: [],
-      mandatoryPriorities: [],
     };
   }
 }

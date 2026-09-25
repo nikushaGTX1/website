@@ -30,7 +30,11 @@
     <h2>Review your answers</h2>
     <ul>
       <li *ngFor="let row of answers">
-        <span class="answer-text"><small>{{ row.label }}</small><strong>{{ row.value }}</strong></span>
+        <div class="answer-head">
+          <span class="answer-icon"><i class="fa-solid" [ngClass]="row.icon" aria-hidden="true"></i></span>
+          <small>{{ row.label }}</small>
+        </div>
+        <strong class="answer-value">{{ row.value }}</strong>
         <button type="button" (click)="changeAnswer.emit(row.step)">Change</button>
       </li>
     </ul>

@@ -823,8 +823,10 @@
   position: fixed;
   z-index: 1600;
   inset: 0;
-  padding: 24px;
+  padding: 12px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
   background: #120c1caf;
   backdrop-filter: blur(5px);
@@ -1477,7 +1479,8 @@
   padding: 0 10px;
 }
 .vp-side-rail .mortgage-fields input {
-  font-size: 14px;
+  /* iOS Safari auto-zooms the page on focus for any input under 16px. */
+  font-size: 16px;
 }
 .vp-side-rail .mortgage-fields b {
   flex: 0 0 auto;
@@ -1566,7 +1569,8 @@
 }
 .vp-main > .mortgage-calculator .mortgage-fields input,
 .vp-main > .mortgage-calculator .mortgage-fields select {
-  font-size: 14px;
+  /* iOS Safari auto-zooms the page on focus for any input/select under 16px. */
+  font-size: 16px;
 }
 .vp-main > .mortgage-calculator .mortgage-summary {
   display: grid;
@@ -2516,22 +2520,34 @@
 
 /* Viewing request dialog */
 .viewing-dialog.vd {
-  width: min(480px, calc(100vw - 24px));
-  max-width: none;
-  max-height: calc(100dvh - 24px);
+  /* !important: a global .route-content [role="dialog"] rule (styles.css) targets every
+     dialog on the site at narrow widths and was winning over this component's own sizing,
+     leaving the calendar dialog full-bleed with no rounding/shadow/backdrop margin. */
+  width: min(480px, 100%) !important;
+  max-width: 100% !important;
+  max-height: calc(100dvh - 24px) !important;
   padding: 26px 30px 26px;
   overflow-y: auto;
-  border-radius: 28px;
+  overscroll-behavior: contain;
+  border-radius: 28px !important;
   background: #fff;
   box-shadow: 0 30px 80px rgba(21, 16, 28, 0.35);
 }
 .viewing-dialog.vd > .vd-head {
-  margin-bottom: 18px;
-  padding: 0;
+  /* Sticky, not static: the dialog scrolls internally once its content (calendar + time
+     + contact fields) is taller than the screen, and the close button must stay reachable
+     the whole time instead of scrolling out of view with the rest of the header. */
+  position: sticky;
+  top: -26px;
+  z-index: 2;
+  margin: -26px -30px 18px;
+  max-width: none;
+  padding: 20px 30px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border: 0;
+  background: #fff;
 }
 .vd-logo {
   color: #451a8f;
@@ -2540,6 +2556,8 @@
   letter-spacing: 0.22em;
 }
 .viewing-dialog.vd > .vd-head > .vd-close {
+  flex: 0 0 36px;
+  margin-left: auto;
   width: 36px;
   height: 36px;
   display: grid;
@@ -2569,7 +2587,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 34px;
+  gap: clamp(8px, 4vw, 34px);
 }
 .vd-cal-head strong {
   min-width: 170px;
@@ -2767,7 +2785,12 @@
 @media (max-width: 520px) {
   .viewing-dialog.vd {
     padding: 20px 16px 22px;
-    border-radius: 22px;
+    border-radius: 22px !important;
+  }
+  .viewing-dialog.vd > .vd-head {
+    top: -20px;
+    margin: -20px -16px 18px;
+    padding: 14px 16px 10px;
   }
   .vd-form h2 {
     font-size: 25px;
@@ -2781,15 +2804,27 @@
   }
 }
 .viewing-dialog.vd > .vd-head {
-  background: none;
+  background: #fff;
   border-bottom: 0;
 }
 .viewing-dialog.vd > .vd-head > .vd-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   max-width: none;
   overflow: visible;
   color: #451a8f;
   font-size: 15px;
   white-space: nowrap;
+}
+.vd-logo img {
+  width: 32px;
+  height: 40px;
+  object-fit: contain;
+}
+.viewing-dialog.vd > .vd-head > .vd-logo > span {
+  color: inherit;
+  font-size: inherit;
 }
 .viewing-dialog.vd .vd-form {
   padding: 0;
@@ -2870,7 +2905,8 @@
   border: 0;
   outline: 0;
   font: inherit;
-  font-size: 15px;
+  /* iOS Safari auto-zooms the page on focus for any input under 16px. */
+  font-size: 16px;
 }
 .vd-country-list {
   max-height: 230px;

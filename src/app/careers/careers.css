@@ -115,7 +115,8 @@ select {
   background: #fafafc;
   color: #344054;
   font: inherit;
-  font-size: 15px;
+  /* iOS Safari auto-zooms the page on focus for any input/select under 16px. */
+  font-size: 16px;
   outline: none;
   transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }

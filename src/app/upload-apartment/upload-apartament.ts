@@ -206,7 +206,6 @@ export class UploadApartment implements OnInit, OnDestroy {
     { label: 'Security or concierge', field: 'hasSecurity', icon: 'fa-solid fa-shield-halved' },
     { label: 'Modern building', field: 'isModernBuilding', icon: 'fa-solid fa-city' },
     { label: 'Isolated bedrooms', field: 'hasIsolatedBedrooms', icon: 'fa-solid fa-door-closed' },
-    { label: 'Away from nightlife', field: 'isAwayFromNightlife', icon: 'fa-solid fa-moon' },
     { label: 'Company lease available', field: 'hasCompanyLease', icon: 'fa-solid fa-file-contract' },
   ];
   readonly parkingTypeOptions = [
@@ -509,6 +508,120 @@ export class UploadApartment implements OnInit, OnDestroy {
   @HostListener('document:click')
   closeLocationPicker(): void {
     this.locationPicker = null;
+    this.availCalendarOpen = false;
+  }
+
+  // "Available from" calendar -------------------------------------------------
+  availCalendarOpen = false;
+  private availCalendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+  private get availLocale(): string {
+    const language = this.translationService.language$.value;
+    return language === 'ka' ? 'ka-GE' : language === 'ru' ? 'ru-RU' : 'en-US';
+  }
+
+  private parseAvailValue(): { y: number; m: number; d: number } | null {
+    const [y, m, d] = (this.form.availableFrom || '').split('-').map(Number);
+    return y && m && d ? { y, m: m - 1, d } : null;
+  }
+
+  toggleAvailCalendar(): void {
+    this.availCalendarOpen = !this.availCalendarOpen;
+    if (this.availCalendarOpen) {
+      const parsed = this.parseAvailValue();
+      const base = parsed ? new Date(parsed.y, parsed.m, parsed.d) : new Date();
+      this.availCalendarMonth = new Date(base.getFullYear(), base.getMonth(), 1);
+    }
+  }
+
+  shiftAvailMonth(offset: number): void {
+    this.availCalendarMonth = new Date(
+      this.availCalendarMonth.getFullYear(),
+      this.availCalendarMonth.getMonth() + offset,
+      1,
+    );
+  }
+
+  canGoToPrevAvailMonth(): boolean {
+    const now = new Date();
+    return (
+      this.availCalendarMonth.getFullYear() > now.getFullYear() ||
+      (this.availCalendarMonth.getFullYear() === now.getFullYear() &&
+        this.availCalendarMonth.getMonth() > now.getMonth())
+    );
+  }
+
+  get availCalendarLabel(): string {
+    return this.availCalendarMonth.toLocaleDateString(this.availLocale, {
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  get availDateLabel(): string {
+    const parsed = this.parseAvailValue();
+    if (!parsed) return '';
+    return new Date(parsed.y, parsed.m, parsed.d).toLocaleDateString(this.availLocale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  /** Monday-first weekday initials in the current language. */
+  get availWeekdayLabels(): string[] {
+    return Array.from({ length: 7 }, (_, i) =>
+      new Date(2024, 0, 1 + i).toLocaleDateString(this.availLocale, { weekday: 'short' }),
+    );
+  }
+
+  get availCalendarDays(): {
+    date: number;
+    inMonth: boolean;
+    selected: boolean;
+    isToday: boolean;
+    disabled: boolean;
+    fullYear: number;
+    fullMonth: number;
+  }[] {
+    const year = this.availCalendarMonth.getFullYear();
+    const month = this.availCalendarMonth.getMonth();
+    const firstOfMonth = new Date(year, month, 1);
+    const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday-first grid
+    const gridStart = new Date(year, month, 1 - startOffset);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const parsed = this.parseAvailValue();
+
+    const days = [];
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cellCount = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+    for (let i = 0; i < cellCount; i++) {
+      const cell = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+      const cellDay = new Date(cell.getFullYear(), cell.getMonth(), cell.getDate());
+      days.push({
+        date: cell.getDate(),
+        inMonth: cell.getMonth() === month,
+        selected: !!parsed && parsed.y === cell.getFullYear() && parsed.m === cell.getMonth() && parsed.d === cell.getDate(),
+        isToday: cellDay.getTime() === today.getTime(),
+        disabled: cellDay.getTime() < today.getTime(),
+        fullYear: cell.getFullYear(),
+        fullMonth: cell.getMonth(),
+      });
+    }
+    return days;
+  }
+
+  selectAvailDay(day: { date: number; fullYear: number; fullMonth: number; disabled: boolean }): void {
+    if (day.disabled) return;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    this.form.availableFrom = `${day.fullYear}-${pad(day.fullMonth + 1)}-${pad(day.date)}`;
+    this.availCalendarOpen = false;
+  }
+
+  clearAvailDate(): void {
+    this.form.availableFrom = '';
+    this.availCalendarOpen = false;
   }
 
   get uploadAreaSuggestions(): LocationSuggestion[] {
@@ -650,9 +763,11 @@ export class UploadApartment implements OnInit, OnDestroy {
   openStep(index: number): void {
     this.activeStep = index;
     requestAnimationFrame(() => {
+      // 'nearest' only scrolls when the header isn't already visible, instead of
+      // re-centering the whole (now taller) section and yanking the page around.
       document.getElementById(`listing-step-${index}`)?.scrollIntoView({
         behavior: 'smooth',
-        block: 'center',
+        block: 'nearest',
       });
     });
   }

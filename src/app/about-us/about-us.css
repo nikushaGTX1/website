@@ -433,7 +433,8 @@
   padding: 10px 14px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  font-size: 14px;
+  /* iOS Safari auto-zooms the page on focus for any input under 16px. */
+  font-size: 16px;
   outline: none;
 }
 
