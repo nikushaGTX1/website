@@ -6,10 +6,9 @@ import { Apartment } from '../models/apartment';
 import { BlogPost, CreateBlogPost } from '../models/blog-post';
 import { User } from '../models/user';
 import { AdminService } from '../services/admin.service';
-import { ApartmentService } from '../services/apartment.service';
+import { ApartmentService, PendingApartmentEntry } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { BlogService } from '../services/blog.service';
-import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
 import { CrmVacancyPosition } from '../models/crm';
 import { CrmService } from '../services/crm.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
@@ -25,7 +24,7 @@ export class AdminPanel implements OnInit, OnDestroy {
   agents: Agent[] = [];
   apartments: Apartment[] = [];
   blogPosts: BlogPost[] = [];
-  pendingApartments: PendingApartment[] = [];
+  pendingApartments: PendingApartmentEntry[] = [];
   vacancyPositions: CrmVacancyPosition[] = [];
   newVacancyPosition = '';
   userIds: string[] = [];
@@ -65,21 +64,11 @@ export class AdminPanel implements OnInit, OnDestroy {
     private apartmentService: ApartmentService,
     private authService: AuthService,
     private blogService: BlogService,
-    private pendingService: PendingApartmentService,
     private crmService: CrmService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.subscriptions.add(
-      this.pendingService.pendingApartments$.subscribe((items) => {
-        this.pendingApartments = items;
-        this.pendingDebug = this.pendingService.getStorageDebug();
-        this.updateReviewedCount();
-        this.cdr.detectChanges();
-      })
-    );
-
     this.loadDashboard();
     this.loadBlogPosts();
   }
@@ -114,7 +103,7 @@ export class AdminPanel implements OnInit, OnDestroy {
     return this.pendingApartments.filter((item) => item.status === 'pending').length;
   }
 
-  get filteredPendingApartments(): PendingApartment[] {
+  get filteredPendingApartments(): PendingApartmentEntry[] {
     const query = this.normalizedSearch;
 
     return this.pendingApartments
@@ -131,7 +120,7 @@ export class AdminPanel implements OnInit, OnDestroy {
           query
         )
       )
-      .sort((a, b) => this.statusRank(a.status) - this.statusRank(b.status));
+      .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
   }
 
   get filteredUsers(): User[] {
@@ -189,8 +178,7 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.successMessage = '';
     this.cdr.detectChanges();
 
-    this.pendingService.refresh();
-    this.pendingDebug = this.pendingService.getStorageDebug();
+    this.loadPendingApartments();
 
     if (!this.canOperateDashboard) {
       this.users = [];
@@ -306,7 +294,28 @@ export class AdminPanel implements OnInit, OnDestroy {
     });
   }
 
-  approve(item: PendingApartment): void {
+  loadPendingApartments(): void {
+    if (!this.canOperateDashboard) {
+      this.pendingApartments = [];
+      return;
+    }
+
+    this.apartmentService.getPendingApartments().subscribe({
+      next: (items) => {
+        this.pendingApartments = items;
+        this.pendingDebug = `${items.length} pending / ${items.length} total approval request(s).`;
+        this.updateReviewedCount();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.pendingApartments = [];
+        this.pendingDebug = '';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  approve(item: PendingApartmentEntry): void {
     if (this.actionId) return;
 
     if (!this.canOperateDashboard) {
@@ -316,21 +325,13 @@ export class AdminPanel implements OnInit, OnDestroy {
       return;
     }
 
-    this.actionId = item.id;
+    this.actionId = String(item.id);
     this.successMessage = '';
     this.errorMessage = '';
     this.cdr.detectChanges();
 
-    this.apartmentService.createApartment({
-      ...item.apartment,
-      uploadedByUserId: item.submittedByUserId,
-    }).subscribe({
-      next: (result) => {
-        this.pendingService.markApproved(
-          item.id,
-          this.currentUser,
-          result.apartment?.id,
-        );
+    this.apartmentService.approveApartment(item.id).subscribe({
+      next: () => {
         this.successMessage = 'Apartment confirmed and published.';
         this.actionId = '';
         this.loadDashboard();
@@ -344,18 +345,32 @@ export class AdminPanel implements OnInit, OnDestroy {
     });
   }
 
-  decline(item: PendingApartment): void {
-    this.pendingService.markDeclined(item.id, this.currentUser, 'Your post was declined.');
-    this.successMessage = 'Apartment request declined.';
-    this.errorMessage = '';
-    this.cdr.detectChanges();
-  }
+  decline(item: PendingApartmentEntry): void {
+    if (this.actionId) return;
 
-  moveToPending(item: PendingApartment): void {
-    this.pendingService.markPending(item.id);
-    this.successMessage = 'Apartment request moved back to pending.';
-    this.errorMessage = '';
+    if (!this.canOperateDashboard) {
+      this.errorMessage = 'Only managers and admins can decline apartment posts.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.actionId = String(item.id);
     this.cdr.detectChanges();
+
+    this.apartmentService.deleteApartment(item.id).subscribe({
+      next: () => {
+        this.successMessage = 'Apartment request declined.';
+        this.errorMessage = '';
+        this.actionId = '';
+        this.loadPendingApartments();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.errorMessage = 'Could not decline this apartment.';
+        this.actionId = '';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   clearSearch(): void {
@@ -880,7 +895,7 @@ export class AdminPanel implements OnInit, OnDestroy {
     return apartment.id;
   }
 
-  identifyPending(_: number, item: PendingApartment): string {
+  identifyPending(_: number, item: PendingApartmentEntry): number {
     return item.id;
   }
 
@@ -907,18 +922,5 @@ export class AdminPanel implements OnInit, OnDestroy {
 
   private updateReviewedCount(): void {
     this.reviewedCount = this.pendingApartments.length - this.waitingCount;
-  }
-
-  private statusRank(status: PendingApartment['status']): number {
-    switch (status) {
-      case 'pending':
-        return 0;
-      case 'declined':
-        return 1;
-      case 'approved':
-        return 2;
-      default:
-        return 3;
-    }
   }
 }

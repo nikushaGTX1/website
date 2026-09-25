@@ -71,36 +71,31 @@
       class="review-row"
       *ngFor="let item of filteredPendingApartments; trackBy: identifyPending"
     >
-      <img *ngIf="item.apartment.imageUrls?.[0] || item.apartment.imageUrl" [src]="item.apartment.imageUrls?.[0] || item.apartment.imageUrl" alt="" />
+      <img *ngIf="item.apartment.imageUrl" [src]="item.apartment.imageUrl" alt="" />
       <div class="review-body">
         <div class="row-head">
           <div>
             <h3>{{ item.apartment.title }}</h3>
             <p>{{ item.apartment.address || 'No address' }}</p>
           </div>
-          <span class="status" [class.approved]="item.status === 'approved'" [class.declined]="item.status === 'declined'">
+          <span class="status">
             {{ item.status }}
           </span>
         </div>
         <p class="description">{{ item.apartment.description }}</p>
         <div class="meta">
           <span><app-currency-price [usdPrice]="item.apartment.price"></app-currency-price></span>
-          <span>{{ item.apartment.imageUrls?.length || (item.apartment.imageUrl ? 1 : 0) }} photos</span>
+          <span>{{ item.apartment.images?.length || (item.apartment.imageUrl ? 1 : 0) }} photos</span>
           <span>{{ item.submittedByName }}</span>
           <span>{{ item.submittedByEmail || 'No email' }}</span>
         </div>
       </div>
       <div class="row-actions" *ngIf="item.status === 'pending'">
-        <button type="button" class="approve" (click)="approve(item)" [disabled]="actionId === item.id || !canOperateDashboard">
+        <button type="button" class="approve" (click)="approve(item)" [disabled]="actionId === '' + item.id || !canOperateDashboard">
           Confirm
         </button>
         <button type="button" class="decline" (click)="decline(item)" [disabled]="!!actionId">
           Decline
-        </button>
-      </div>
-      <div class="row-actions" *ngIf="item.status !== 'pending'">
-        <button type="button" class="approve" (click)="moveToPending(item)">
-          Move to pending
         </button>
       </div>
     </article>

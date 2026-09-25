@@ -11,6 +11,16 @@ interface ApartmentMutationResponse {
   apartment?: Apartment;
 }
 
+export interface PendingApartmentEntry {
+  id: number;
+  apartment: Apartment;
+  status: 'pending';
+  submittedAt: string;
+  submittedByUserId?: string;
+  submittedByName: string;
+  submittedByEmail: string;
+}
+
 export interface GeoJsonPolygon {
   type: 'Polygon';
   coordinates: number[][][];
@@ -153,6 +163,16 @@ export class ApartmentService {
   createApartment(data: CreateApartment): Observable<ApartmentMutationResponse> {
     return this.http
       .post<ApartmentMutationResponse>(this.apiUrl, this.toApartmentFormData(data))
+      .pipe(tap(() => this.clearApartmentCache()));
+  }
+
+  getPendingApartments(): Observable<PendingApartmentEntry[]> {
+    return this.http.get<PendingApartmentEntry[]>(`${this.apiUrl}/pending`);
+  }
+
+  approveApartment(id: number): Observable<ApartmentMutationResponse> {
+    return this.http
+      .post<ApartmentMutationResponse>(`${this.apiUrl}/${id}/approve`, {})
       .pipe(tap(() => this.clearApartmentCache()));
   }
 

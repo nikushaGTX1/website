@@ -1407,31 +1407,16 @@ export class UploadApartment implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.authService.isAdmin) {
-      this.pendingService.submit(this.toCreateApartment(false, nearbyTimes), this.authService.currentUser).subscribe({
-        next: () => {
-          this.pendingDebug = this.pendingService.getStorageDebug();
-          this.loading = false;
-          this.successMessage = 'Your apartment was sent for admin confirmation. It will be published after approval.';
-          this.openSuccessModal(true);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.loading = false;
-          this.pendingDebug = this.pendingService.getStorageDebug();
-          this.errorMessage =
-            error.status === 401
-              ? 'Your session expired. Please sign in again before submitting.'
-              : 'Could not submit this apartment for approval. Please try again.';
-        },
-      });
-      return;
-    }
+    const isAdmin = this.authService.isAdmin;
 
-    this.apartmentService.createApartment(this.toCreateApartment(true, nearbyTimes)).subscribe({
-      next: () => {
+    this.apartmentService.createApartment(this.toCreateApartment(isAdmin, nearbyTimes)).subscribe({
+      next: (result) => {
         this.loading = false;
-        this.successMessage = 'Apartment listing published successfully.';
-        this.openSuccessModal(false);
+        const published = isAdmin || this.authService.isCrmManager || result.apartment?.isApproved !== false;
+        this.successMessage = published
+          ? 'Apartment listing published successfully.'
+          : 'Your apartment was sent for admin confirmation. It will be published after approval.';
+        this.openSuccessModal(!published);
       },
       error: (error: HttpErrorResponse) => {
         this.loading = false;
