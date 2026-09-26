@@ -124,6 +124,20 @@ export class UploadApartment implements OnInit, OnDestroy {
   readonly maxImages = 15;
   readonly listingPlans: ListingPlanOption[] = [
     {
+      id: 'basic',
+      title: 'Basic List',
+      icon: 'fa-solid fa-house',
+      description: 'A simple listing with agent support and essential closing help.',
+      cta: 'Choose Basic',
+      benefits: [
+        'Property listing',
+        'Agent service',
+        'AI Property Match',
+        'Client check & appointment confirmation',
+        'Contract & legal service',
+      ],
+    },
+    {
       id: 'exclusive',
       title: 'Velven Exclusive',
       icon: 'fa-regular fa-gem',
@@ -140,27 +154,13 @@ export class UploadApartment implements OnInit, OnDestroy {
         'One-time re-rental service',
       ],
     },
-    {
-      id: 'basic',
-      title: 'Basic List',
-      icon: 'fa-solid fa-house',
-      description: 'A simple listing with agent support and essential closing help.',
-      cta: 'Choose Basic',
-      benefits: [
-        'Property listing',
-        'Agent service',
-        'AI Property Match',
-        'Client check & appointment confirmation',
-        'Contract & legal service',
-      ],
-    },
   ];
 
   readonly steps = [
     'Property Status',
     'Location',
-    'Price',
     'Features',
+    'Price',
     'Description / Photos',
     'Contact Information',
   ];
@@ -212,8 +212,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     { label: 'Garage', value: 'Garage', points: 5 },
     { label: 'Private courtyard parking', value: 'PrivateCourtyard', points: 4 },
     { label: 'Courtyard with a barrier/gate', value: 'CourtyardWithBarrier', points: 3 },
-    { label: 'Street parking', value: 'StreetParking', points: 2 },
-    { label: 'Courtyard without a barrier/gate', value: 'CourtyardWithoutBarrier', points: 1 },
+    { label: 'Courtyard without a barrier/gate', value: 'CourtyardWithoutBarrier', points: 2 },
+    { label: 'Street parking', value: 'StreetParking', points: 1 },
     { label: 'Parking is difficult', value: 'DifficultParking', points: 0 },
   ];
 
@@ -424,6 +424,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.condition = tag('Condition') || source.condition || f.condition;
     this.selectedListingPlan = /Basic/i.test(tag('Listing plan')) ? 'basic' : 'exclusive';
     f.area = num(source.sizeSquareMeters) ?? num(tag('Area').replace(/[^0-9.]/g, ''));
+    this.recalculateSqPrice();
     f.rooms = num(source.rooms) ?? num(tag('Rooms'));
     f.bedrooms = source.bedrooms ?? num(tag('Bedrooms'));
     f.bathrooms = source.bathrooms ?? num(tag('Bathrooms'));
@@ -627,6 +628,10 @@ export class UploadApartment implements OnInit, OnDestroy {
   get uploadAreaSuggestions(): LocationSuggestion[] {
     const query = this.form.location.trim().toLowerCase();
     const language = this.translationService.language$.value;
+    const seen = new Set<string>();
+    const normalize = (value: string): string =>
+      value.trim().toLocaleLowerCase().replace(/[^a-z0-9\u10a0-\u10ff\u0400-\u04ff]+/g, '');
+
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
       .filter((entry) =>
@@ -634,6 +639,12 @@ export class UploadApartment implements OnInit, OnDestroy {
         entry.district.toLowerCase().includes(query) ||
         this.locationService.districtName(entry, language).toLowerCase().includes(query),
       )
+      .filter((entry) => {
+        const key = normalize(entry.district) || normalize(this.locationService.districtName(entry, language));
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
       .slice(0, 10)
       .map((entry) => ({
         id: entry.id,
@@ -650,6 +661,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (!this.selectedDistrictValue && query.length < 2) return [];
     const suggestions: LocationSuggestion[] = [];
     const seen = new Set<string>();
+    const normalize = (value: string): string =>
+      value.trim().toLocaleLowerCase().replace(/(?:street|st\.?|ქუჩა|ქ\.?|улица|ул\.?)$/i, '').replace(/[^a-z0-9\u10a0-\u10ff\u0400-\u04ff]+/g, '');
 
     const selectedArea = this.locationEntries.find((item) =>
       item.city === 'Tbilisi' && item.district === this.selectedDistrictValue,
@@ -662,7 +675,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       (item): item is ApiLocation => !!item,
     )) {
       for (const street of this.locationService.streetNames(entry, language)) {
-        const key = street.value.trim().toLowerCase();
+        const key = normalize(street.value) || normalize(street.label);
         if (
           !seen.has(key) &&
           (!query ||
@@ -917,6 +930,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   applyAiSuggestedPrice(): void {
     if (this.aiSuggestedPrice == null) return;
     this.form.totalPrice = Math.round(this.aiSuggestedPrice);
+    this.recalculateSqPrice();
     this.aiSuggestedPrice = null;
     this.clearDuplicateDismissal();
     this.checkDuplicates();
@@ -928,6 +942,14 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.totalFloors != null &&
       this.form.floor > this.form.totalFloors
     );
+  }
+
+  recalculateSqPrice(): void {
+    const totalPrice = Number(this.form.totalPrice);
+    const area = Number(this.form.area);
+    this.form.sqPrice = totalPrice > 0 && area > 0
+      ? Math.round((totalPrice / area) * 100) / 100
+      : null;
   }
 
   get duplicateOwnerName(): string {
@@ -1093,12 +1115,12 @@ export class UploadApartment implements OnInit, OnDestroy {
           this.form.streetNumber.trim()
         );
       case 2:
-        return !!this.form.totalPrice;
-      case 3:
         return !!(
           (this.form.area || this.form.rooms || this.form.bedrooms) &&
           (!this.form.hasParking || this.form.parkingCondition)
         );
+      case 3:
+        return !!this.form.totalPrice;
       case 4:
         return !!(this.form.title.trim() && this.form.description.trim() && this.uploadedImageCount);
       case 5:
@@ -1271,6 +1293,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.form.sqPrice = number('ფასი / მ²');
     this.form.currency = text('ვალუტა').toUpperCase() === 'GEL' ? 'GEL' : '$';
     this.form.area = number('ფართობი (მ²)') ?? number('კვადრატულობა');
+    this.recalculateSqPrice();
     this.form.rooms = number('ოთახები');
     this.form.bedrooms = number('საძინებელი');
     this.form.floor = number('სართული');

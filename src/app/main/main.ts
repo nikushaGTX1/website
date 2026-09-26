@@ -130,6 +130,10 @@ export class Main implements OnInit, OnDestroy {
   appliedBudgetMin: number | null = null;
   appliedBudgetMax: number | null = null;
   selectedBudgetRange = '';
+  readonly budgetHistogram = [
+    5, 7, 6, 8, 9, 10, 12, 14, 18, 24, 31, 38, 45, 52, 48, 55, 58, 62, 57, 54,
+    51, 56, 53, 61, 66, 100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
+  ];
   readonly budgetRanges = [
     { label: 'Up to $800', min: 0, max: 800 },
     { label: '$800 – $1,500', min: 800, max: 1500 },
@@ -230,6 +234,18 @@ export class Main implements OnInit, OnDestroy {
       return `${min.toLocaleString()} – ${max.toLocaleString()} ${this.budgetCurrency}`;
     if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
     return `Up to ${max!.toLocaleString()} ${this.budgetCurrency}`;
+  }
+
+  get budgetMinPercent(): number {
+    return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
+  }
+
+  get budgetMaxPercent(): number {
+    return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
+  }
+
+  private normalizedSliderValue(value: number | null): number {
+    return Math.min(100, Math.max(0, Number(value || 0) / 50));
   }
 
   get bedroomSummary(): string {

@@ -95,31 +95,53 @@
       <span class="divider hide-small"></span>
       <div class="search-field hide-small">
         <button type="button" (click)="$event.stopPropagation(); toggleSearchMenu('propertyType')">
-          <small>Property Type</small><strong>{{ homeType ? homeType : (homeTypeTouched ? 'Any home' : 'Property Type') }}</strong>
+          <small>Property Type</small>
+          <strong [class.field-placeholder]="!homeTypeTouched">
+            {{ homeTypeTouched ? (homeType || 'Any home') : 'Select' }}
+            <i *ngIf="!homeTypeTouched" class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </strong>
         </button>
         <div
-          class="search-popover compact-popover"
+          class="search-popover property-type-popover"
           *ngIf="propertyTypeOpen"
           (click)="$event.stopPropagation()"
         >
-          <h3>Property type</h3>
-          <button type="button" [class.selected]="homeTypeTouched && !homeType" (click)="selectHeaderPropertyType('')">
-            Any home
-          </button>
-          <button
-            type="button"
-            *ngFor="let type of ['Apartment', 'House', 'Country house', 'Commercial place']"
-            [class.selected]="homeType === type"
-            (click)="selectHeaderPropertyType(type)"
-          >
-            {{ type }}
-          </button>
+          <div class="property-type-heading">
+            <span>Property type</span>
+            <button type="button" aria-label="Close property type" (click)="propertyTypeOpen = false">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="property-type-content">
+            <h3>Home type</h3>
+            <div class="property-type-grid">
+              <button type="button" [class.selected]="homeTypeTouched && !homeType" (click)="selectHeaderPropertyType('')">
+                <i class="fa-solid fa-city" aria-hidden="true"></i><span>Any home</span>
+              </button>
+              <button type="button" [class.selected]="homeType === 'House'" (click)="selectHeaderPropertyType('House')">
+                <i class="fa-solid fa-house" aria-hidden="true"></i><span>House</span>
+              </button>
+              <button type="button" [class.selected]="homeType === 'Apartment'" (click)="selectHeaderPropertyType('Apartment')">
+                <i class="fa-solid fa-building" aria-hidden="true"></i><span>Apartment</span>
+              </button>
+              <button type="button" [class.selected]="homeType === 'Country house'" (click)="selectHeaderPropertyType('Country house')">
+                <i class="fa-solid fa-house-chimney-window" aria-hidden="true"></i><span>Country house</span>
+              </button>
+              <button class="property-type-wide" type="button" [class.selected]="homeType === 'Commercial place'" (click)="selectHeaderPropertyType('Commercial place')">
+                <i class="fa-solid fa-store" aria-hidden="true"></i><span>Commercial place</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <span class="divider hide-small"></span>
       <div class="search-field hide-small">
         <button type="button" (click)="$event.stopPropagation(); toggleSearchMenu('budget')">
-          <small>Price</small><strong>{{ budgetSummary === 'Any budget' ? 'Price' : budgetSummary }}</strong>
+          <small>Price</small>
+          <strong [class.field-placeholder]="budgetMin == null && budgetMax == null">
+            {{ budgetMin != null || budgetMax != null ? budgetSelectionSummary : 'Any price' }}
+            <i *ngIf="budgetMin == null && budgetMax == null" class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </strong>
         </button>
         <div
           class="search-popover budget-popover"
@@ -142,9 +164,6 @@
             <input type="range" min="0" max="5000" step="50" aria-label="Maximum price" [ngModel]="budgetMax ?? 5000" (ngModelChange)="budgetMax = $event; selectedBudgetRange = ''" />
           </div>
           <div class="budget-range-labels"><span>$0</span><span>$5,000+</span></div>
-          <div class="budget-presets budget-presets-compact">
-            <button type="button" *ngFor="let range of budgetRanges" [class.selected]="selectedBudgetRange === range.label" (click)="selectBudgetRange(range)">{{ range.label }}</button>
-          </div>
           <div class="budget-fields">
             <label
               ><span>Min price</span><input type="number" min="0" step="50" [(ngModel)]="budgetMin"
@@ -162,7 +181,11 @@
       <span class="divider hide-small"></span>
       <div class="search-field hide-small">
         <button type="button" (click)="$event.stopPropagation(); toggleSearchMenu('bedroom')">
-          <small>Bedrooms</small><strong>{{ headerBedrooms ? bedroomSummary : (headerBedroomsTouched ? 'Any' : 'Bedrooms') }}</strong>
+          <small>Bedrooms</small>
+          <strong [class.field-placeholder]="!headerBedroomsTouched">
+            {{ headerBedroomsTouched ? (headerBedrooms ? bedroomSummary : 'Any') : 'Select' }}
+            <i *ngIf="!headerBedroomsTouched" class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </strong>
         </button>
         <div
           class="search-popover compact-popover bedroom-search-popover"
@@ -345,7 +368,7 @@
           ><span></span
         ></label>
       </div>
-      <div class="cards-grid">
+      <div class="cards-grid" [class.single-result]="!loading && paginatedApartments.length === 1">
         <ng-container *ngIf="loading"
           ><article *ngFor="let card of propertiesPlaceholder" class="property-card skeleton-card">
             <div class="photo-wrap skeleton-image"></div>

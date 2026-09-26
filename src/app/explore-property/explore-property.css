@@ -77,17 +77,23 @@ svg {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 4px;
   border: 0;
   background: transparent;
   cursor: pointer;
 }
 .search-field small {
+  display: block;
+  max-width: 170px;
+  overflow: hidden;
   color: var(--muted);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   font-size: 10px;
   font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .search-field strong {
   max-width: 160px;
@@ -97,6 +103,18 @@ svg {
   font-weight: 650;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+.search-field strong.field-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #8a8492;
+  font-weight: 550;
+}
+.search-field strong.field-placeholder i {
+  flex: none;
+  color: #aaa3b2;
+  font-size: 9px;
 }
 .search-box .divider {
   width: 1px;
@@ -444,6 +462,89 @@ svg {
   width: 100%;
   margin-top: 5px;
   text-align: left;
+}
+.property-type-popover {
+  left: -20px;
+  width: 430px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 18px;
+}
+.property-type-heading {
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #5f5969;
+  background: #f0eef3;
+  font-size: 15px;
+  font-weight: 750;
+}
+.property-type-heading button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: #514a5a;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+.property-type-heading button:hover {
+  color: var(--purple);
+  background: #f8f5fd;
+}
+.property-type-content {
+  padding: 22px;
+}
+.property-type-content h3 {
+  margin: 0 0 16px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 750;
+}
+.property-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.property-type-grid button {
+  min-height: 100px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink);
+  border: 1px solid #aaa4b1;
+  border-radius: 15px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+.property-type-grid button i {
+  font-size: 25px;
+}
+.property-type-grid button:hover {
+  border-color: #6940b4;
+  background: #faf8ff;
+}
+.property-type-grid button.selected {
+  color: #351078;
+  border: 2px solid #5420a4;
+  background: #eee7fb;
+  box-shadow: 0 0 0 2px rgba(84, 32, 164, 0.1);
+}
+.property-type-grid .property-type-wide {
+  grid-column: 1 / -1;
+  min-height: 82px;
 }
 .budget-popover {
   left: -160px;
@@ -1572,6 +1673,43 @@ svg {
   .search-popover::before {
     display: none;
   }
+  .property-type-popover {
+    top: 92px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100dvh - 112px);
+    border-radius: 18px;
+  }
+  .property-type-heading {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    padding: 14px 16px;
+  }
+  .property-type-content {
+    padding: 16px;
+  }
+  .property-type-content h3 {
+    margin-bottom: 12px;
+    font-size: 17px;
+  }
+  .property-type-grid {
+    gap: 8px;
+  }
+  .property-type-grid button {
+    min-height: 86px;
+    padding: 12px 8px;
+    gap: 8px;
+    border-radius: 13px;
+    font-size: 13px;
+  }
+  .property-type-grid button i {
+    font-size: 22px;
+  }
+  .property-type-grid .property-type-wide {
+    min-height: 72px;
+  }
   .bedroom-popover {
     position: fixed;
     top: 128px;
@@ -1639,6 +1777,10 @@ svg {
   .cards-grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 30px 20px;
+  }
+  .cards-grid.single-result {
+    grid-template-columns: minmax(280px, 400px);
+    justify-content: start;
   }
   .photo-wrap {
     aspect-ratio: 16 / 11;

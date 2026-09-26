@@ -337,26 +337,11 @@
       </section>
 
       <section class="form-section" id="listing-step-2" [class.collapsed]="activeStep !== 2">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(2)" (keydown.enter)="openStep(2)"><span>03</span><div><h2>Pricing</h2><p>Set a clear price and preferred currency.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
-        <div class="field-group">
-          <label class="field-label">Price <span class="req">*</span></label>
-          <div class="price-table">
-            <input type="number" name="totalPrice" placeholder="Total price" [(ngModel)]="form.totalPrice" (ngModelChange)="clearDuplicateDismissal(); checkDuplicates()" />
-            <input type="number" name="sqPrice" placeholder="Sq. price" [(ngModel)]="form.sqPrice" />
-            <div class="currency-toggle" aria-label="Currency">
-              <button type="button" [class.active]="form.currency === 'GEL'" (click)="setCurrency('GEL')">₾</button>
-              <button type="button" [class.active]="form.currency === '$'" (click)="setCurrency('$')">$</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="form-section" id="listing-step-3" [class.collapsed]="activeStep !== 3">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(3)" (keydown.enter)="openStep(3)"><span>04</span><div><h2>Features &amp; amenities</h2><p>Detailed listings receive more relevant enquiries.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(2)" (keydown.enter)="openStep(2)"><span>03</span><div><h2>Features &amp; amenities</h2><p>Detailed listings receive more relevant enquiries.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
         <div class="feature-block">
           <div class="feature-block-title"><div><span>Property specifications</span><small>The essentials buyers compare first</small></div><i class="fa-solid fa-ruler-combined"></i></div>
           <div class="metric-grid">
-            <label class="metric-field"><span><i class="fa-solid fa-vector-square"></i> Living area</span><div><input type="number" name="area" min="1" max="5000" step="0.1" placeholder="0" [(ngModel)]="form.area" (ngModelChange)="clampNumericField('area', { min: 1, max: 5000, integer: false }); clearDuplicateDismissal(); checkDuplicates()" /><b>m²</b></div></label>
+            <label class="metric-field"><span><i class="fa-solid fa-vector-square"></i> Living area</span><div><input type="number" name="area" min="1" max="5000" step="0.1" placeholder="0" [(ngModel)]="form.area" (ngModelChange)="clampNumericField('area', { min: 1, max: 5000, integer: false }); recalculateSqPrice(); clearDuplicateDismissal(); checkDuplicates()" /><b>m²</b></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-door-open"></i> Rooms</span><div><input type="number" name="rooms" min="1" max="50" step="1" placeholder="0" [(ngModel)]="form.rooms" (ngModelChange)="clampNumericField('rooms', { min: 1, max: 50, integer: true }); clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-bed"></i> Bedrooms</span><div><input type="number" name="bedrooms" min="0" max="50" step="1" placeholder="0" [(ngModel)]="form.bedrooms" (ngModelChange)="clampNumericField('bedrooms', { min: 0, max: 50, integer: true }); clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-bath"></i> Bathrooms</span><div><input type="number" name="bathrooms" min="0" max="50" step="1" placeholder="0" [(ngModel)]="form.bathrooms" (ngModelChange)="clampNumericField('bathrooms', { min: 0, max: 50, integer: true })" /></div></label>
@@ -389,7 +374,7 @@
             <select name="parkingCondition" [ngModel]="form.parkingCondition" (ngModelChange)="selectParkingType($event)" required>
               <option value="" disabled>Select parking type</option>
               <option *ngFor="let option of parkingTypeOptions" [value]="option.value">
-                {{ option.label }} — {{ option.points }} points
+                {{ option.label }} — {{ option.points }} {{ option.points === 1 ? 'point' : 'points' }}
               </option>
             </select>
             <small *ngIf="form.parkingCondition">Parking score: {{ parkingPointsFor(form.parkingCondition) }} / 5</small>
@@ -411,6 +396,22 @@
           </label>
         </div>
         <p class="smart-location-note"><i class="fa-solid fa-location-crosshairs"></i><span><strong>Neighbourhood insights included</strong> Walking times to transit, parks, schools and daily essentials are calculated automatically from the address.</span></p>
+      </section>
+
+      <section class="form-section" id="listing-step-3" [class.collapsed]="activeStep !== 3">
+        <header class="section-header" role="button" tabindex="0" (click)="openStep(3)" (keydown.enter)="openStep(3)"><span>04</span><div><h2>Pricing</h2><p>Set a clear price and preferred currency.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+        <div class="field-group">
+          <label class="field-label">Price <span class="req">*</span></label>
+          <div class="price-table">
+            <input type="number" name="totalPrice" placeholder="Total price" [(ngModel)]="form.totalPrice" (ngModelChange)="recalculateSqPrice(); clearDuplicateDismissal(); checkDuplicates()" />
+            <input type="number" name="sqPrice" placeholder="Sq. price" [ngModel]="form.sqPrice" readonly aria-label="Automatically calculated price per square metre" />
+            <div class="currency-toggle" aria-label="Currency">
+              <button type="button" [class.active]="form.currency === 'GEL'" (click)="setCurrency('GEL')">₾</button>
+              <button type="button" [class.active]="form.currency === '$'" (click)="setCurrency('$')">$</button>
+            </div>
+          </div>
+          <small class="calculated-price-note"><i class="fa-solid fa-calculator" aria-hidden="true"></i> Calculated automatically: total price ÷ living area</small>
+        </div>
       </section>
 
       <section class="form-section" id="listing-step-4" [class.collapsed]="activeStep !== 4">

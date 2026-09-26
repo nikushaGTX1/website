@@ -342,6 +342,14 @@ export class ExploreProperty implements OnInit, OnDestroy {
     return `Up to ${this.appliedBudgetMax!.toLocaleString()} ${code}`;
   }
 
+  get budgetSelectionSummary(): string {
+    const min = this.budgetMin;
+    const max = this.budgetMax;
+    if (min != null && max != null) return `${min.toLocaleString()} - ${max.toLocaleString()} ${this.budgetCurrency}`;
+    if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
+    return `Up to ${max!.toLocaleString()} ${this.budgetCurrency}`;
+  }
+
   get headerBedroomSummary(): string {
     if (!this.headerRooms) return 'Rooms';
     const rooms = `${this.headerRooms} ${this.headerRooms === '1' ? 'Room' : 'Rooms'}`;

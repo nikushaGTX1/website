@@ -222,7 +222,21 @@
               <i class="fa-solid fa-xmark"></i>
             </button>
             <h3>Choose your price range</h3>
-            <h4>Custom range</h4>
+            <p class="budget-caption">Choose the monthly price that works for you</p>
+            <div class="budget-chart" aria-hidden="true">
+              <span
+                *ngFor="let height of budgetHistogram; let i = index"
+                [class.in-range]="i / (budgetHistogram.length - 1) * 100 >= budgetMinPercent && i / (budgetHistogram.length - 1) * 100 <= budgetMaxPercent"
+                [style.height.%]="height"
+              ></span>
+            </div>
+            <div class="budget-range-control">
+              <div class="budget-range-track"></div>
+              <div class="budget-range-fill" [style.left.%]="budgetMinPercent" [style.right.%]="100 - budgetMaxPercent"></div>
+              <input type="range" min="0" max="5000" step="50" aria-label="Minimum price" [ngModel]="budgetMin ?? 0" (ngModelChange)="budgetMin = $event; selectedBudgetRange = ''" />
+              <input type="range" min="0" max="5000" step="50" aria-label="Maximum price" [ngModel]="budgetMax ?? 5000" (ngModelChange)="budgetMax = $event; selectedBudgetRange = ''" />
+            </div>
+            <div class="budget-range-labels"><span>$0</span><span>$5,000+</span></div>
             <div class="main-budget-fields">
               <label
                 ><span>Min price</span
@@ -247,17 +261,6 @@
                   step="50"
                   (ngModelChange)="selectedBudgetRange = ''"
               /></label>
-            </div>
-            <div class="budget-divider"></div>
-            <div class="budget-presets">
-              <button
-                type="button"
-                *ngFor="let range of budgetRanges"
-                [class.active]="selectedBudgetRange === range.label"
-                (click)="selectBudgetRange(range)"
-              >
-                {{ range.label }}
-              </button>
             </div>
             <div class="main-budget-actions">
               <button class="main-budget-reset" type="button" (click)="resetBudget()">
