@@ -190,7 +190,7 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
 }
 
 @media (max-width: 560px) {
-  .profile-stage { grid-template-columns: 1fr; padding-top: 375px; }
+  .profile-stage { grid-template-columns: 1fr 1fr; padding-top: 375px; }
 }
 
 .answer-review {
@@ -284,4 +284,9 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
 }
 .answer-review button:hover {
   text-decoration-color: currentColor;
+}
+@media (max-width: 640px) {
+  .answer-review { padding: 16px; }
+  .answer-review ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .answer-review li { padding: 10px; }
 }

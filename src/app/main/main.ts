@@ -154,12 +154,13 @@ export class Main implements OnInit, OnDestroy {
     'Digomi',
   ];
   readonly featuredLocationAreas = [
-    { name: 'Vake', description: 'Premium central area', icon: 'fa-regular fa-building' },
-    { name: 'Saburtalo', description: 'Central & convenient', icon: 'fa-solid fa-city' },
-    { name: 'Vera', description: 'Historic central', icon: 'fa-solid fa-house-chimney' },
-    { name: 'Mtatsminda', description: 'Old city & views', icon: 'fa-solid fa-landmark' },
+    { name: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-tree.svg' },
+    { name: 'Saburtalo', description: 'Central & convenient', icon: '/icons/areas/saburtalo-buildings.svg' },
+    { name: 'Vera', description: 'Historic central', icon: '/icons/areas/vera-heritage-house.svg' },
+    { name: 'Mtatsminda', description: 'Old city & views', icon: '/icons/areas/mtatsminda-columns.svg' },
   ];
   searchBedrooms = '';
+  bedroomTouched = false;
   public advancedFiltersOpen = false;
   drawAreaOpen = false;
   drawAreaInitialized = false;
@@ -232,8 +233,18 @@ export class Main implements OnInit, OnDestroy {
   }
 
   get bedroomSummary(): string {
-    if (!this.searchBedrooms) return 'Bedrooms';
-    return this.searchBedrooms === '1' ? '1 Bedroom' : `${this.searchBedrooms} Bedrooms`;
+    if (!this.bedroomTouched || !this.searchBedrooms) return 'Bedrooms';
+    const values = this.searchBedroomValues;
+    if (values.length === 1) return values[0] === '1' ? '1 Bedroom' : `${values[0]} Bedrooms`;
+    return `${values.join(', ')} Bedrooms`;
+  }
+
+  get searchBedroomValues(): string[] {
+    return this.searchBedrooms.split(',').filter(Boolean);
+  }
+
+  isBedroomSelected(value: string): boolean {
+    return this.searchBedroomValues.includes(value);
   }
 
   @HostListener('document:click')
@@ -293,8 +304,19 @@ export class Main implements OnInit, OnDestroy {
   }
 
   selectBedrooms(value: string): void {
-    this.searchBedrooms = value;
-    this.bedroomOpen = false;
+    this.bedroomTouched = true;
+    if (!value) {
+      this.searchBedrooms = '';
+      this.bedroomOpen = false;
+      return;
+    }
+
+    const selected = new Set(this.searchBedroomValues);
+    selected.has(value) ? selected.delete(value) : selected.add(value);
+    this.searchBedrooms = this.bedroomOptions
+      .map((option) => option.value)
+      .filter((optionValue) => optionValue && selected.has(optionValue))
+      .join(',');
   }
 
   selectPropertyType(value: string): void {

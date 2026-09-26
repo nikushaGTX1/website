@@ -134,6 +134,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private activePriceAreas: string[] = [];
   private zoomListener?: google.maps.MapsEventListener;
   private mapResizeObserver?: ResizeObserver;
+  private cameraAnimationFrame?: number;
   private selectionRevision = 0;
   private readonly districtBoundaryStates = new Map<string | number, DistrictBoundaryState>();
   private streetRevision = 0;
@@ -198,6 +199,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   ngOnDestroy(): void {
+    this.cancelCameraAnimation();
     document.body.classList.remove('draw-map-open');
     this.mapResizeObserver?.disconnect();
     this.draw?.stop();
@@ -277,6 +279,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   clearArea(): void {
+    this.cancelCameraAnimation();
     this.drawnAreaRevision++;
     this.draw?.clear();
     this.hasPolygon = false;
@@ -494,6 +497,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   async chooseAreas(areas: string[]): Promise<void> {
     if (!this.draw || !this.map) return;
+    this.cancelCameraAnimation();
     const requestedAreas = areas.filter(
       (area, index, list) =>
         area.trim() &&
@@ -568,13 +572,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       // customer-facing street browsing step.
       this.streetStep = false;
       this.hasPolygon = true;
-      const bounds = new google.maps.LatLngBounds();
-      drawableAreas.forEach(({ polygons }) =>
-        polygons.forEach((rings) =>
-          rings.forEach((ring) => ring.forEach(([lng, lat]) => bounds.extend({ lat, lng }))),
-        ),
-      );
-      this.map.fitBounds(bounds, 48);
+      // Frame the whole selection: adding Vake to Saburtalo must keep both
+      // districts in view instead of zooming into only the last clicked one.
+      this.focusDistricts(drawableAreas.flatMap(({ polygons }) => polygons));
       // The compact home-page map uses a clean listing-map presentation.
       // Keep the district geometry for searching, but do not paint its polygon.
       if (!this.compact) this.renderSelectedBoundaryOverlay(drawableAreas);
@@ -588,7 +588,90 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
+  private focusDistricts(polygons: number[][][][]): void {
+    if (!this.map) return;
+    const bounds = new google.maps.LatLngBounds();
+    polygons.forEach((rings) =>
+      rings[0]?.forEach(([lng, lat]) => {
+        if (Number.isFinite(lat) && Number.isFinite(lng)) bounds.extend({ lat, lng });
+      }),
+    );
+    if (bounds.isEmpty()) return;
+
+    // Compute a precise target, then ease both position and zoom toward it.
+    const northEast = bounds.getNorthEast();
+    const southWest = bounds.getSouthWest();
+    const mercatorY = (latitude: number) => {
+      const sine = Math.sin((latitude * Math.PI) / 180);
+      return 0.5 - Math.log((1 + sine) / (1 - sine)) / (4 * Math.PI);
+    };
+    const northY = mercatorY(northEast.lat());
+    const southY = mercatorY(southWest.lat());
+    const mapElement = this.map.getDiv();
+    const width = Math.max(1, mapElement.clientWidth - 96);
+    // Leave room for the search controls and selected-area card over the map.
+    const verticalPadding = this.compact ? 192 : 96;
+    const height = Math.max(1, mapElement.clientHeight - verticalPadding);
+    const longitudeSpan = (northEast.lng() - southWest.lng()) / 360;
+    const latitudeSpan = southY - northY;
+    const zoom = Math.min(
+      Math.log2(width / (256 * Math.max(longitudeSpan, 1e-9))),
+      Math.log2(height / (256 * Math.max(latitudeSpan, 1e-9))),
+    );
+    this.animateDistrictCamera({
+      center: {
+        lat: (Math.atan(Math.sinh(Math.PI * (1 - northY - southY))) * 180) / Math.PI,
+        lng: (northEast.lng() + southWest.lng()) / 2,
+      },
+      zoom: Math.max(11, Math.min(16, Math.floor(zoom))),
+    });
+  }
+
+  private cancelCameraAnimation(): void {
+    if (this.cameraAnimationFrame !== undefined) {
+      cancelAnimationFrame(this.cameraAnimationFrame);
+      this.cameraAnimationFrame = undefined;
+    }
+  }
+
+  private animateDistrictCamera(target: {
+    center: google.maps.LatLngLiteral;
+    zoom: number;
+  }): void {
+    this.cancelCameraAnimation();
+    const map = this.map;
+    if (!map) return;
+    const origin = map.getCenter()?.toJSON();
+    const originZoom = map.getZoom();
+    if (!origin || originZoom === undefined || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      map.moveCamera({ ...target, heading: 0, tilt: 0 });
+      return;
+    }
+    const started = performance.now();
+    const animate = (now: number) => {
+      const progress = Math.min(1, (now - started) / 700);
+      const eased = progress * progress * (3 - 2 * progress);
+      map.moveCamera({
+        center: {
+          lat: origin.lat + (target.center.lat - origin.lat) * eased,
+          lng: origin.lng + (target.center.lng - origin.lng) * eased,
+        },
+        zoom: originZoom + (target.zoom - originZoom) * eased,
+        heading: 0,
+        tilt: 0,
+      });
+      if (progress < 1) {
+        this.cameraAnimationFrame = requestAnimationFrame(animate);
+      } else {
+        this.cameraAnimationFrame = undefined;
+        this.syncApartmentOverlayVisibility();
+      }
+    };
+    this.cameraAnimationFrame = requestAnimationFrame(animate);
+  }
+
   startDrawing(): void {
+    this.cancelCameraAnimation();
     if (this.drawingEnabled) {
       this.setDrawingEnabled(false);
       if (!this.hasPolygon && this.selectedAreasInput.length) {
@@ -733,6 +816,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private async drawSelectedStreets(fitToStreets = true): Promise<void> {
     if (!this.map) return;
+    if (fitToStreets && this.selectedStreetsInput.length) this.cancelCameraAnimation();
     const revision = ++this.streetRevision;
     this.clearStreetLines();
     if (!this.selectedStreetsInput.length) {
@@ -965,6 +1049,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.map = new Map(mapElement.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
         zoom: 12,
+        isFractionalZoomEnabled: true,
         ...(mapId ? { mapId } : {}),
         minZoom: 11,
         maxZoom: 20,
@@ -986,10 +1071,14 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       // scrolling the page or panel behind the map.
       mapElement.nativeElement.addEventListener('wheel', (event: WheelEvent) => event.preventDefault(), { passive: false });
       this.zoomListener = this.map.addListener('zoom_changed', () =>
-        this.syncApartmentOverlayVisibility(),
+        this.cameraAnimationFrame === undefined && this.syncApartmentOverlayVisibility(),
       );
+      this.map.addListener('dragstart', () => this.cancelCameraAnimation());
+      mapElement.nativeElement.addEventListener('wheel', () => this.cancelCameraAnimation(), { passive: true });
       // Panning changes which clusters/prices are in view; 'idle' fires once the move settles.
-      this.priceIdleListener = this.map.addListener('idle', () => this.syncApartmentOverlayVisibility());
+      this.priceIdleListener = this.map.addListener('idle', () => {
+        if (this.cameraAnimationFrame === undefined) this.syncApartmentOverlayVisibility();
+      });
       // Tapping empty map folds an opened building back into its "N units" pill.
       this.priceClickListener = this.map.addListener('click', () => {
         if (!this.expandedBuilding) return;
@@ -1139,6 +1228,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         const center = this.map.getCenter();
         const zoom = this.map.getZoom();
         google.maps.event.trigger(this.map, 'resize');
+        if (this.cameraAnimationFrame !== undefined) return;
         if (center) this.map.setCenter(center);
         if (zoom !== undefined) this.map.setZoom(zoom);
       });

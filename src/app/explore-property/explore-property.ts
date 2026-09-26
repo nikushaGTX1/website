@@ -46,7 +46,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   bedroomOpen = false;
   bedroomStep: 'rooms' | 'bedrooms' = 'rooms';
   propertyTypeOpen = false;
-  budgetCurrency: 'GEL' | 'USD' = 'GEL';
+  readonly budgetCurrency = 'USD';
   budgetMin: number | null = null;
   budgetMax: number | null = null;
   appliedBudgetMin: number | null = null;
@@ -57,6 +57,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
     { label: '$800 – $1,500', min: 800, max: 1500 },
     { label: '$1,500 – $3,000', min: 1500, max: 3000 },
     { label: '$3,000 – $5,000', min: 3000, max: 5000 },
+  ];
+  readonly budgetHistogram = [
+    5, 7, 6, 8, 9, 10, 12, 14, 18, 24, 31, 38, 45, 52, 48, 55, 58, 62, 57, 54,
+    51, 56, 53, 61, 66, 100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
   ];
   readonly headerBedroomOptions = [
     { label: '1 Bedroom', value: '1', icon: 'fa-solid fa-bed' },
@@ -71,6 +75,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     icon: 'fa-solid fa-door-open',
   }));
   homeType = '';
+  homeTypeTouched = false;
   location = '';
   locationOpen = false;
   locationLoading = false;
@@ -91,10 +96,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
   drawnDetectedArea = '';
   drawnStreetsLoading = false;
   readonly featuredLocationAreas = [
-    { name: 'Vake', description: 'Premium central area', icon: 'fa-regular fa-building' },
-    { name: 'Saburtalo', description: 'Central & convenient', icon: 'fa-solid fa-city' },
-    { name: 'Vera', description: 'Historic central', icon: 'fa-solid fa-house-chimney' },
-    { name: 'Mtatsminda', description: 'Old city & views', icon: 'fa-solid fa-landmark' },
+    { name: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-tree.svg' },
+    { name: 'Saburtalo', description: 'Central & convenient', icon: '/icons/areas/saburtalo-buildings.svg' },
+    { name: 'Vera', description: 'Historic central', icon: '/icons/areas/vera-heritage-house.svg' },
+    { name: 'Mtatsminda', description: 'Old city & views', icon: '/icons/areas/mtatsminda-columns.svg' },
   ];
   readonly allLocationAreas = [
     'Didube',
@@ -112,6 +117,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   ];
   locationDisplayLanguage: AppLanguage = 'ka';
   headerBedrooms = '';
+  headerBedroomsTouched = false;
   headerRooms = '';
   featureFilter = '';
   drawnAreaActive = false;
@@ -367,17 +373,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   get budgetMinPercent(): number {
-    return Math.min(
-      this.normalizedSliderValue(this.budgetMin),
-      this.normalizedSliderValue(this.budgetMax),
-    );
+    return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
   }
 
   get budgetMaxPercent(): number {
-    return Math.max(
-      this.normalizedSliderValue(this.budgetMin),
-      this.normalizedSliderValue(this.budgetMax),
-    );
+    return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
   }
 
   @HostListener('document:click')
@@ -429,13 +429,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   selectBudgetRange(range: { label: string; min: number; max: number }): void {
     this.selectedBudgetRange = range.label;
-    this.budgetCurrency = 'USD';
     this.budgetMin = range.min;
     this.budgetMax = range.max;
-  }
-
-  setBudgetCurrency(currency: 'GEL' | 'USD'): void {
-    this.budgetCurrency = currency;
   }
 
   applyBudget(): void {
@@ -466,6 +461,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   selectHeaderBedrooms(value: string): void {
+    this.headerBedroomsTouched = true;
     if (!value) {
       this.headerBedrooms = '';
       this.onSearch();
@@ -484,6 +480,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   clearHeaderBedrooms(): void {
     this.headerRooms = '';
     this.headerBedrooms = '';
+    this.headerBedroomsTouched = false;
     this.bedroomStep = 'rooms';
     this.bedroomOpen = false;
     this.onSearch();
@@ -491,6 +488,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   selectHeaderPropertyType(value: string): void {
     this.homeType = value;
+    this.homeTypeTouched = true;
     this.propertyTypeOpen = false;
     this.onSearch();
   }
@@ -1176,7 +1174,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedLocationValue = location;
     this.selectedStreetId = null;
     this.homeType = '';
+    this.homeTypeTouched = false;
     this.headerBedrooms = '';
+    this.headerBedroomsTouched = false;
     this.headerRooms = '';
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
@@ -1279,7 +1279,6 @@ export class ExploreProperty implements OnInit, OnDestroy {
       this.selectedType = polygon.searchMode === 'buy' ? 'For Sale' : 'For Rent';
     if (polygon.propertyType) this.homeType = polygon.propertyType;
     if (polygon.budget) {
-      this.budgetCurrency = 'USD';
       this.appliedBudgetMax = polygon.budget;
     }
     if (polygon.bedrooms) this.headerBedrooms = polygon.bedrooms;
@@ -1415,10 +1414,12 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.appliedBudgetMin = null;
     this.appliedBudgetMax = null;
     this.homeType = '';
+    this.homeTypeTouched = false;
     this.location = '';
     this.selectedLocationValue = '';
     this.selectedLocationArea = '';
     this.headerBedrooms = '';
+    this.headerBedroomsTouched = false;
     this.headerRooms = '';
     this.bedroomStep = 'rooms';
 
@@ -1858,11 +1859,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   private matchesCustomBudget(priceInUsd: number): boolean {
-    const exchangeRate = 2.7;
-    const comparablePrice = this.budgetCurrency === 'GEL' ? priceInUsd * exchangeRate : priceInUsd;
     return (
-      (this.appliedBudgetMin == null || comparablePrice >= this.appliedBudgetMin) &&
-      (this.appliedBudgetMax == null || comparablePrice <= this.appliedBudgetMax)
+      (this.appliedBudgetMin == null || priceInUsd >= this.appliedBudgetMin) &&
+      (this.appliedBudgetMax == null || priceInUsd <= this.appliedBudgetMax)
     );
   }
 
