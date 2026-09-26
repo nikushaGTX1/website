@@ -2200,6 +2200,12 @@
 .section-heading h2 {
   font-size: 36px;
 }
+.featured .section-heading .eyebrow {
+  font-size: 14px;
+}
+.featured .section-heading h2 {
+  font-size: 39px;
+}
 .section-heading a {
   font-size: 15px;
 }
@@ -2451,6 +2457,14 @@
     line-height: 1.15;
   }
 
+  .featured .section-heading .eyebrow {
+    font-size: 12px;
+  }
+
+  .featured .section-heading h2 {
+    font-size: 26px;
+  }
+
   .section-heading a {
     margin-left: auto;
     font-size: 13px;
@@ -2591,6 +2605,10 @@
 
   .section-heading h2 {
     font-size: 27px;
+  }
+
+  .featured .section-heading h2 {
+    font-size: 29px;
   }
 
   .property-info h3 {
@@ -4065,6 +4083,10 @@
 
   :host-context(html:lang(ka)) .section-heading h2 {
     font-size: 20px;
+  }
+
+  :host-context(html:lang(ka)) .featured .section-heading h2 {
+    font-size: 22px;
   }
 
   .location-panel-trigger > b {

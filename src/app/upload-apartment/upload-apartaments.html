@@ -90,7 +90,7 @@
         <div class="preview-facts">
           <span><i class="fa-solid fa-ruler-combined"></i> {{ form.area || '—' }} m²</span>
           <span><i class="fa-solid fa-bed"></i> {{ form.bedrooms || '—' }} beds</span>
-          <span><i class="fa-solid fa-bath"></i> {{ form.bathrooms || '—' }} baths</span>
+          <span><i class="fa-solid fa-layer-group"></i> {{ form.floor ?? "\u2014" }} <span>Floor</span></span>
         </div>
         <small class="preview-location"><i class="fa-solid fa-location-dot"></i> {{ previewLocation }}, Tbilisi</small>
         <div class="preview-meta"><span><small>Deal type</small>{{ form.dealType }}</span><span><small>Property type</small>{{ form.realEstateType }}</span><span><small>Condition</small>{{ form.condition }}</span></div>
@@ -450,14 +450,15 @@
               [class.is-cover]="index === 0" [class.is-dragging]="draggedImageIndex === index"
               [class.is-drop-target]="imageDropIndex === index && draggedImageIndex !== index" draggable="true"
               (dragstart)="startImageDrag(index, $event)" (dragover)="hoverImageDrop(index, $event)" (drop)="dropImageAt(index, $event)">
-              <img [src]="image" [alt]="'Uploaded apartment photo ' + (index + 1)" />
+              <div class="image-thumbnail">
+              <img draggable="false" [src]="image" [alt]="'Uploaded apartment photo ' + (index + 1)" />
               <div class="image-position">{{ index + 1 }}</div>
-              <div class="image-drag-overlay"><i class="fa-solid fa-grip-vertical"></i><strong>Drag to reorder</strong></div>
               <span class="cover-badge" *ngIf="index === 0"><i class="fa-solid fa-star"></i> Cover</span>
               <button type="button" (click)="removeImage(index)" aria-label="Remove image">×</button>
-              <div class="image-actions" *ngIf="index !== 0">
-                <button type="button" (click)="makeCoverImage(index)" aria-label="Make cover photo"><i class="fa-solid fa-star"></i><span>Make cover</span></button>
-                <button type="button" (click)="moveImage(index, index - 1)" aria-label="Move photo left"><i class="fa-solid fa-arrow-left"></i></button>
+              </div>
+              <div class="image-actions">
+                <button type="button" *ngIf="index !== 0" class="make-cover" (click)="makeCoverImage(index)" aria-label="Make cover photo"><i class="fa-solid fa-star"></i><span>Make cover</span></button>
+                <button type="button" *ngIf="index > 0" (click)="moveImage(index, index - 1)" aria-label="Move photo left"><i class="fa-solid fa-arrow-left"></i></button>
                 <button type="button" *ngIf="index < uploadedImageCount - 1" (click)="moveImage(index, index + 1)" aria-label="Move photo right"><i class="fa-solid fa-arrow-right"></i></button>
               </div>
             </article>

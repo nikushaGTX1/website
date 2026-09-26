@@ -420,7 +420,7 @@
           </p>
           <div class="property-meta">
             <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
-            <span *ngIf="apartment.bathrooms"><i class="fa-solid fa-bath"></i>{{ apartment.bathrooms }} Baths</span>
+            <span *ngIf="apartment.floor != null"><i class="fa-solid fa-layer-group"></i>{{ apartment.floor }} <span>Floor</span></span>
             <span
               ><span class="measurement-svg" aria-hidden="true"></span
               >{{ apartment.sizeSquareMeters || '—' }} m²</span
