@@ -850,11 +850,6 @@ svg {
   object-fit: cover;
   transition: transform 0.45s ease;
 }
-@media (hover: hover) and (pointer: fine) {
-  .property-card:hover .photo-wrap img {
-    transform: scale(1.035);
-  }
-}
 .property-tag {
   position: absolute;
   z-index: 3;
@@ -1727,29 +1722,31 @@ svg {
   box-shadow: none;
 }
 
-/* Photo swipe transition (touch only; class set from explore-property.ts) */
-@keyframes card-slide-from-right { from { transform: translateX(32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
-@keyframes card-slide-from-left { from { transform: translateX(-32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
-.photo-wrap img.slide-left-a,
-.photo-wrap img.slide-left-b { animation: card-slide-from-right 0.28s ease-out; }
-.photo-wrap img.slide-right-a,
-.photo-wrap img.slide-right-b { animation: card-slide-from-left 0.28s ease-out; }
-.photo-wrap img.slide-left-a { animation-name: card-slide-from-right; }
-.photo-wrap img.slide-left-b { animation-name: card-slide-from-right-b; }
-.photo-wrap img.slide-right-a { animation-name: card-slide-from-left; }
-.photo-wrap img.slide-right-b { animation-name: card-slide-from-left-b; }
-@keyframes card-slide-from-right-b { from { transform: translateX(32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
-@keyframes card-slide-from-left-b { from { transform: translateX(-32%); opacity: 0.35; } to { transform: none; opacity: 1; } }
-
-/* Let vertical gestures scroll the page; horizontal gestures change photos. */
-@media (hover: none), (max-width: 740px) {
-  .photo-wrap {
-    touch-action: pan-y pinch-zoom;
-  }
-  .photo-wrap img {
-    animation: none !important;
-    transition: none !important;
-  }
+/* Photos slide as one strip, with the same motion for arrows and dragging. */
+.photo-wrap { z-index: 3; cursor: pointer; touch-action: pan-y pinch-zoom; user-select: none; }
+.card-photo-track { position: absolute; inset: 0; display: flex; width: 100%; height: 100%; transition: transform 320ms cubic-bezier(.22,.68,0,1); }
+.card-photo-track.dragging { transition: none; cursor: grabbing; }
+.photo-wrap .card-photo-track img { flex: 0 0 100%; width: 100%; min-width: 0; height: 100%; transform: none; transition: none; pointer-events: none; }
+.card-photo-arrow { position: absolute; top: 50%; z-index: 4; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid #00000014; border-radius: 50%; color: #242124; background: #fffffff2; box-shadow: 0 2px 6px #00000026; cursor: pointer; transform: translateY(-50%); transition: opacity 150ms ease, scale 150ms ease; }
+.card-photo-arrow.previous { left: 12px; }
+.card-photo-arrow.next { right: 12px; }
+.card-photo-arrow:hover { background: #fff; scale: 1.06; }
+.card-photo-arrow:focus-visible { outline: 2px solid #451a8f; outline-offset: 3px; }
+.card-photo-arrow i { font-size: 11px; }
+.card-photo-dots { position: absolute; bottom: 13px; left: 50%; z-index: 3; display: flex; align-items: center; gap: 5px; transform: translateX(-50%); pointer-events: none; }
+.card-photo-dots span { width: 6px; height: 6px; border-radius: 50%; background: #ffffff88; box-shadow: 0 1px 3px #00000040; transition: scale 180ms ease, background 180ms ease; }
+.card-photo-dots span.active { background: #fff; scale: 1.15; }
+.card-photo-dots span.small { scale: .7; }
+.photo-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (hover: hover) and (pointer: fine) {
+  .card-photo-arrow { opacity: 0; pointer-events: none; }
+  .photo-wrap:hover .card-photo-arrow, .property-card:focus-within .card-photo-arrow { opacity: 1; pointer-events: auto; }
+}
+@media (pointer: coarse) {
+  .card-photo-arrow { width: 44px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-photo-track, .card-photo-dots span, .card-photo-arrow { transition: none; }
 }
 
 /* Homes sharing one building: a compact panel docked to the bottom of the map. */

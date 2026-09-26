@@ -149,10 +149,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
   pageSize = 6;
 
   private readonly cardImageIndexes = new Map<number, number>();
-  private cardSwipeStartX: number | null = null;
-  private cardSwipePointerId: number | null = null;
-  private suppressCardClick = false;
-  private mouseDragged = false;
+  private cardGesture: { id: number; pointer: number; x: number; y: number; width: number; started: number; index: number; count: number; axis: 'x' | 'y' | null } | null = null;
+  cardDraggingId: number | null = null;
+  cardDragOffset = 0;
+  private suppressCardClickUntil = 0;
 
   private readonly cardGalleries = new Map<number, string[]>();
   private readonly cardGalleryRequests = new Set<number>();
@@ -177,8 +177,6 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   private readonly preloaded = new Set<string>();
-  private readonly cardSlide = new Map<number, string>();
-  private cardSlideToggle = false;
 
   private readonly preloadQueue: string[] = [];
   private preloadActive = 0;
@@ -219,20 +217,24 @@ export class ExploreProperty implements OnInit, OnDestroy {
     image.src = url;
   }
 
-  cardSlideClass(apartment: Apartment): string {
-    return this.cardSlide.get(apartment.id) || '';
+  cardTrackTransform(apartment: Apartment): string {
+    const offset = this.cardDraggingId === apartment.id ? this.cardDragOffset : 0;
+    return `translate3d(calc(${-100 * this.cardImageIndex(apartment)}% + ${offset}px), 0, 0)`;
   }
 
-  private slideCard(apartment: Apartment, direction: 1 | -1): void {
-    const images = this.cardImages(apartment);
-    const count = images.length;
-    const next = (this.cardImageIndex(apartment) + direction + count) % count;
+  cardDots(apartment: Apartment): number[] {
+    const count = this.cardImages(apartment).length;
+    const start = Math.max(0, Math.min(this.cardImageIndex(apartment) - 2, count - 5));
+    return Array.from({ length: Math.min(5, count) }, (_, index) => start + index);
+  }
+
+  changeCardPhoto(event: Event, apartment: Apartment, direction: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.loadCardGallery(apartment);
+    const next = Math.max(0, Math.min(this.cardImages(apartment).length - 1, this.cardImageIndex(apartment) + direction));
     this.cardImageIndexes.set(apartment.id, next);
-    // Alternate two class names so the CSS animation restarts every swipe.
-    this.cardSlideToggle = !this.cardSlideToggle;
-    const side = direction === 1 ? 'left' : 'right';
-    this.cardSlide.set(apartment.id, `slide-${side}-${this.cardSlideToggle ? 'a' : 'b'}`);
-    this.preloadImage(images[(next + direction + count) % count]);
+    this.preloadImage(this.cardImages(apartment)[next + direction]);
   }
 
   private prefetchCardGalleries(): void {
@@ -259,85 +261,64 @@ export class ExploreProperty implements OnInit, OnDestroy {
     return this.cardImages(apartment)[this.cardImageIndex(apartment)] || '/property-placeholder.svg';
   }
 
-  private cardSwipeStartY = 0;
-
   trackApartmentById(_index: number, apartment: Apartment): number {
     return apartment.id;
   }
 
-  private cardSwipeAxis: 'x' | 'y' | null = null;
-
-  touchCardStart(event: TouchEvent): void {
-    const touch = event.touches[0];
-    if (!touch) return;
-    this.cardSwipeAxis = null;
-    this.cardSwipeStartX = touch.clientX;
-    this.cardSwipeStartY = touch.clientY;
-    this.cardSwipePointerId = -1;
+  startCardSwipe(event: PointerEvent, apartment: Apartment): void {
+    if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
+    this.suppressCardClickUntil = 0;
+    this.loadCardGallery(apartment);
+    this.cardGesture = { id: apartment.id, pointer: event.pointerId, x: event.clientX, y: event.clientY,
+      width: (event.currentTarget as HTMLElement).clientWidth, started: performance.now(),
+      index: this.cardImageIndex(apartment), count: this.cardImages(apartment).length, axis: null };
   }
 
-  touchCardMove(event: TouchEvent, apartment: Apartment): void {
-    if (this.cardSwipeAxis === 'x' && event.cancelable) event.preventDefault();
-    const touch = event.touches[0];
-    if (!touch || this.cardSwipeStartX == null || this.cardSwipePointerId !== -1) return;
-    const dx = touch.clientX - this.cardSwipeStartX;
-    const dy = touch.clientY - this.cardSwipeStartY;
-    if (!this.cardSwipeAxis && Math.max(Math.abs(dx), Math.abs(dy)) > 6) {
-      this.cardSwipeAxis = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+  moveCardSwipe(event: PointerEvent): void {
+    const gesture = this.cardGesture;
+    if (!gesture || gesture.pointer !== event.pointerId) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    if (!gesture.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 7) {
+      gesture.axis = Math.abs(dx) > Math.abs(dy) * 1.15 ? 'x' : 'y';
+      if (gesture.axis === 'x') (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
     }
-    if (this.cardSwipeAxis !== 'x') return;
-    if (event.cancelable) event.preventDefault();
-    if (Math.abs(dx) < 40) return;
-    this.cardSwipeStartX = null;
-    this.cardSwipePointerId = null;
-    const count = this.cardImages(apartment).length;
-    if (count < 2) return;
-    this.suppressCardClick = true;
-    this.slideCard(apartment, dx < 0 ? 1 : -1);
-    this.cdr.detectChanges();
+    if (gesture.axis !== 'x') return;
+    event.preventDefault();
+    this.cardDraggingId = gesture.id;
+    const left = gesture.index < gesture.count - 1 ? -gesture.width : 0;
+    const right = gesture.index > 0 ? gesture.width : 0;
+    this.cardDragOffset = Math.max(left, Math.min(right, dx));
+    this.suppressCardClickUntil = Date.now() + 600;
   }
 
-  mouseCardStart(event: MouseEvent): void {
-    if (event.button !== 0) return;
-    this.cardSwipeStartX = event.clientX;
-    this.cardSwipeStartY = event.clientY;
-    this.cardSwipePointerId = -2;
-    this.mouseDragged = false;
-  }
-
-  mouseCardMove(event: MouseEvent, apartment: Apartment): void {
-    if (this.cardSwipeStartX == null || this.cardSwipePointerId !== -2) return;
-    const dx = event.clientX - this.cardSwipeStartX;
-    const dy = event.clientY - this.cardSwipeStartY;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this.mouseDragged = true;
-    if (Math.abs(dx) < 14 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
-    this.cardSwipeStartX = null;
-    this.cardSwipePointerId = null;
-    if (this.cardImages(apartment).length < 2) return;
-    this.suppressCardClick = true;
-    this.slideCard(apartment, dx < 0 ? 1 : -1);
-  }
-
-  endCardSwipe(): void {
-    this.cardSwipeStartX = null;
-    this.cardSwipePointerId = null;
-    this.cardSwipeAxis = null;
-  }
-
-  cancelCardSwipe(): void {
-    this.cardSwipeStartX = null;
-    this.cardSwipePointerId = null;
-    this.cardSwipeAxis = null;
+  finishCardSwipe(event: PointerEvent, apartment: Apartment, cancelled = false): void {
+    const gesture = this.cardGesture;
+    if (!gesture || gesture.pointer !== event.pointerId) return;
+    if (gesture.axis === 'x') {
+      const dx = this.cardDragOffset;
+      const elapsed = Math.max(1, performance.now() - gesture.started);
+      if (!cancelled && (Math.abs(dx) > gesture.width * 0.2 || (Math.abs(dx) > 25 && Math.abs(dx) / elapsed > 0.45))) {
+        const next = this.cardImageIndex(apartment) + (dx < 0 ? 1 : -1);
+        this.cardImageIndexes.set(apartment.id, Math.max(0, Math.min(this.cardImages(apartment).length - 1, next)));
+      }
+      this.suppressCardClickUntil = Date.now() + 600;
+    }
+    this.cardGesture = null;
+    this.cardDraggingId = null;
+    this.cardDragOffset = 0;
+    const target = event.currentTarget as HTMLElement;
+    if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
   }
 
   openCard(event: MouseEvent, apartment: Apartment): void {
-    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
-    event.preventDefault();
-    if (this.suppressCardClick || this.mouseDragged) {
-      this.suppressCardClick = false;
-      this.mouseDragged = false;
+    if (Date.now() < this.suppressCardClickUntil) {
+      event.preventDefault();
+      event.stopPropagation();
       return;
     }
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+    event.preventDefault();
     void this.router.navigate(['/apartments', apartment.id]);
   }
 

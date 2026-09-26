@@ -368,25 +368,31 @@
             [attr.aria-label]="apartment.title | listingTitle"
             draggable="false"
             (dragstart)="$event.preventDefault()"
-            (touchstart)="touchCardStart($event)"
-            (touchmove)="touchCardMove($event, apartment)"
-            (touchend)="endCardSwipe()"
-            (touchcancel)="cancelCardSwipe()"
-            (mousedown)="mouseCardStart($event)"
-            (mousemove)="mouseCardMove($event, apartment)"
-            (mouseup)="endCardSwipe()"
-            (mouseleave)="cancelCardSwipe()"
             (click)="openCard($event, apartment)"
           ></a>
-          <div class="photo-wrap" data-protected-image>
-            <img
-              [src]="cardImage(apartment)"
-              [ngClass]="cardSlideClass(apartment)"
-              [alt]="(apartment.title | listingTitle) || 'Property in Tbilisi'"
-              loading="lazy"
-              decoding="async"
-              (error)="onApartmentImageError($event)"
-            />
+          <div class="photo-wrap" data-protected-image
+            (pointerdown)="startCardSwipe($event, apartment)"
+            (pointermove)="moveCardSwipe($event)"
+            (pointerup)="finishCardSwipe($event, apartment)"
+            (pointercancel)="finishCardSwipe($event, apartment, true)"
+            (lostpointercapture)="finishCardSwipe($event, apartment, true)"
+            (click)="openCard($event, apartment)"
+            (dragstart)="$event.preventDefault()">
+            <div class="card-photo-track" [class.dragging]="cardDraggingId === apartment.id"
+              [style.transform]="cardTrackTransform(apartment)">
+              <img *ngFor="let image of (cardImages(apartment).length ? cardImages(apartment) : ['/property-placeholder.svg']); let photoIndex = index"
+                [src]="image" [alt]="photoIndex === cardImageIndex(apartment) ? ((apartment.title | listingTitle) || 'Property in Tbilisi') : ''"
+                [attr.aria-hidden]="photoIndex !== cardImageIndex(apartment) ? true : null"
+                loading="lazy" decoding="async" draggable="false" (error)="onApartmentImageError($event)" />
+            </div>
+            <button class="card-photo-arrow previous" type="button" aria-label="Previous photo"
+              *ngIf="cardImageIndex(apartment) > 0" (click)="changeCardPhoto($event, apartment, -1)">
+              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <button class="card-photo-arrow next" type="button" aria-label="Next photo"
+              *ngIf="cardImageIndex(apartment) < cardImages(apartment).length - 1" (click)="changeCardPhoto($event, apartment, 1)">
+              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
             <button
               class="heart"
               type="button"
@@ -408,7 +414,11 @@
                 ></path>
               </svg>
             </button>
-<span class="photo-count">{{ cardImageIndex(apartment) + 1 }} / {{ cardImages(apartment).length || 1 }}</span>
+            <div class="card-photo-dots" *ngIf="cardImages(apartment).length > 1" aria-hidden="true">
+              <span *ngFor="let dot of cardDots(apartment)" [class.active]="dot === cardImageIndex(apartment)"
+                [class.small]="dot < cardImageIndex(apartment) - 1 || dot > cardImageIndex(apartment) + 1"></span>
+            </div>
+            <span class="photo-status" aria-live="polite">Photo {{ cardImageIndex(apartment) + 1 }} of {{ cardImages(apartment).length || 1 }}</span>
           </div>
           <div class="card-body">
             <div class="title-row">
