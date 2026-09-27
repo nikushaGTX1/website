@@ -2190,3 +2190,29 @@ svg {
 @media (prefers-reduced-motion: reduce) {
   .area-sheet, .area-sheet-backdrop, .map-area-action, .map-group-panel { animation-duration: 0.01ms !important; }
 }
+
+/* Center the price-slider thumbs exactly on the chart baseline in every browser:
+   the track fills the 28px control, so a 26px thumb with 1px offset sits dead center. */
+.budget-range-control input[type='range']::-webkit-slider-runnable-track {
+  height: 28px !important;
+  background: transparent !important;
+}
+.budget-range-control input[type='range']::-webkit-slider-thumb {
+  margin-top: 1px !important;
+}
+.budget-range-control input[type='range']::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+/* iOS Safari still needs the prefixed property, otherwise it draws its native track and offsets the thumb. */
+.budget-range-control input[type='range'],
+.budget-range-control input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+.budget-range-control input[type='range'] {
+  height: 28px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
