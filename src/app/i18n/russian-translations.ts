@@ -396,6 +396,7 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Your Lifestyle Profile', 'Ваш профиль образа жизни'],
   ['Who will live', 'Кто будет жить'],
   ['Gender', 'Пол'],
+  ['Why Velven?', 'Почему Velven?'],
   ['Pets', 'Питомцы'],
   ['Transport', 'Транспорт'],
   ['Not selected yet', 'Пока не выбрано'],

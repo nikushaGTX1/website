@@ -27,11 +27,12 @@ const DISTANCE_FIELDS: Record<string, keyof HomeMatchApartment> = {
 
 export function walkingDistanceScore(minutes?: number): number {
   if (minutes === undefined || minutes < 0) return 0;
+  // 18-minute walk is the edge of 'nearby': 1 point there, 0 beyond, more the closer it is.
   if (minutes <= 5) return 5;
-  if (minutes <= 10) return 4;
-  if (minutes <= 15) return 3;
-  if (minutes <= 20) return 2;
-  if (minutes <= 30) return 1;
+  if (minutes <= 8) return 4;
+  if (minutes <= 12) return 3;
+  if (minutes <= 15) return 2;
+  if (minutes <= 18) return 1;
   return 0;
 }
 
@@ -64,7 +65,9 @@ export function parkingScore(apartment: HomeMatchApartment): number {
 const CITY_CENTER = { lat: 41.6938, lng: 44.8015 };
 
 function hasTag(apartment: HomeMatchApartment, tag: string): boolean {
-  return new RegExp(`${tag}:\s*yes`, 'i').test(apartment.description || '');
+  // Escape the label and keep \s as a regex class: in a template string "\s" collapses to "s".
+  const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`${escaped}:\\s*yes`, 'i').test(apartment.description || '');
 }
 
 function minutesOf(apartment: HomeMatchApartment, ...fields: Array<keyof HomeMatchApartment>): number | undefined {
@@ -90,6 +93,13 @@ function yes(value: boolean | undefined | null): number {
   return value ? 5 : 0;
 }
 
+/** Measured walking time wins; an owner's 'nearby' tick only counts (as 18 min) when nothing was measured. */
+function nearby(apartment: HomeMatchApartment, tags: string[], ...fields: Array<keyof HomeMatchApartment>): number {
+  const minutes = minutesOf(apartment, ...fields);
+  if (minutes !== undefined) return walkingDistanceScore(minutes);
+  return tags.some((tag) => hasTag(apartment, tag)) ? walkingDistanceScore(18) : 0;
+}
+
 export function scorePriority(priority: string, apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
   const walk = (...fields: Array<keyof HomeMatchApartment>): number =>
     walkingDistanceScore(minutesOf(apartment, ...fields));
@@ -107,14 +117,18 @@ export function scorePriority(priority: string, apartment: HomeMatchApartment, p
     case 'ClinicNearby':
       return walk('pharmacyDistanceMinutes');
     case 'EverydayServicesNearby':
-      return walk('groceryDistanceMinutes', 'pharmacyDistanceMinutes');
+      return nearby(apartment, ['Everyday services nearby'], 'groceryDistanceMinutes', 'pharmacyDistanceMinutes');
     case 'CafesNearby':
     case 'CafesAndRestaurantsNearby':
     case 'MeetingPlacesNearby':
-      return Math.max(yes(hasTag(apartment, 'Cafés / coworking nearby')), walk('cafeDistanceMinutes'));
+      return nearby(apartment, ['Cafe nearby', 'Cafés / coworking nearby'], 'cafeDistanceMinutes');
     case 'CafesOrCoworkingNearby':
     case 'StudySpacesNearby':
-      return Math.max(yes(hasTag(apartment, 'Cafés / coworking nearby')), walk('cafeDistanceMinutes'));
+      // Coworking has no measured distance; the owner's tick counts as a strong match.
+      return Math.max(
+        yes(hasTag(apartment, 'Coworking nearby')),
+        nearby(apartment, ['Cafe nearby', 'Cafés / coworking nearby'], 'cafeDistanceMinutes'),
+      );
     case 'Workspace':
       return yes(apartment.hasHomeOfficeSpace || hasTag(apartment, 'Home office'));
     case 'BalconyOrTerrace':

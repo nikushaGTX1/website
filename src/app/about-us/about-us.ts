@@ -10,6 +10,10 @@ import { ApartmentService } from '../services/apartment.service';
   styleUrl: './about-us.css',
 })
 export class AboutUs {
+  scrollToWhyVelven(): void {
+    document.getElementById('why-velven')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   email = '';
   totalPropertyValue: number | null = null;
 

@@ -59,6 +59,8 @@ type UploadForm = {
   hasLargeLivingRoom: boolean;
   hasPlaygroundNearby: boolean;
   hasCoworkingNearby: boolean;
+  hasCafeNearby: boolean;
+  hasEverydayServicesNearby: boolean;
   hasSecurity: boolean;
   isModernBuilding: boolean;
   hasIsolatedBedrooms: boolean;
@@ -89,6 +91,8 @@ type BooleanFeature =
   | 'hasLargeLivingRoom'
   | 'hasPlaygroundNearby'
   | 'hasCoworkingNearby'
+  | 'hasCafeNearby'
+  | 'hasEverydayServicesNearby'
   | 'hasSecurity'
   | 'isModernBuilding'
   | 'hasIsolatedBedrooms'
@@ -200,9 +204,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     { label: 'Large kitchen', field: 'hasLargeKitchen', icon: 'fa-solid fa-utensils' },
     { label: 'Scenic view', field: 'hasView', icon: 'fa-solid fa-panorama' },
     { label: 'Furnished', field: 'isFurnished', icon: 'fa-solid fa-couch' },
-    { label: 'Large living room', field: 'hasLargeLivingRoom', icon: 'fa-solid fa-couch' },
-    { label: 'Playground nearby', field: 'hasPlaygroundNearby', icon: 'fa-solid fa-child-reaching' },
-    { label: 'Cafés / coworking nearby', field: 'hasCoworkingNearby', icon: 'fa-solid fa-mug-hot' },
+    { label: 'Coworking nearby', field: 'hasCoworkingNearby', icon: 'fa-solid fa-laptop' },
     { label: 'Security or concierge', field: 'hasSecurity', icon: 'fa-solid fa-shield-halved' },
     { label: 'Modern building', field: 'isModernBuilding', icon: 'fa-solid fa-city' },
     { label: 'Isolated bedrooms', field: 'hasIsolatedBedrooms', icon: 'fa-solid fa-door-closed' },
@@ -265,6 +267,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     hasLargeLivingRoom: false,
     hasPlaygroundNearby: false,
     hasCoworkingNearby: false,
+    hasCafeNearby: false,
+    hasEverydayServicesNearby: false,
     hasSecurity: false,
     isModernBuilding: false,
     hasIsolatedBedrooms: false,
@@ -436,7 +440,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     ];
     for (const flag of flags) f[flag] = !!(source as Record<string, unknown>)[flag];
     const tagged: BooleanFeature[] = [
-      'hasLargeLivingRoom', 'hasPlaygroundNearby', 'hasCoworkingNearby', 'hasSecurity',
+      'hasLargeLivingRoom', 'hasPlaygroundNearby', 'hasCoworkingNearby', 'hasCafeNearby', 'hasEverydayServicesNearby', 'hasSecurity',
       'isModernBuilding', 'hasIsolatedBedrooms', 'isAwayFromNightlife', 'hasCompanyLease',
     ];
     for (const option of this.featureOptions) {
@@ -1398,6 +1402,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Could not calculate nearby walking times:', error);
     }
+    this.applyNearbyFeatureFlags(nearbyTimes);
     // Google callbacks resume outside NgZone, which would leave the page stuck
     // on "loading" until the next click. Re-enter the zone before sending.
     await new Promise<void>((resolve) => this.zone.run(() => resolve()));
@@ -1474,6 +1479,15 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (this.successModalEdited) void this.router.navigate(['/my-listings']);
   }
 
+  /** Nearby-place features come only from Google walking times (within 18 minutes), never manual ticks. */
+  private applyNearbyFeatureFlags(times: NearbyWalkingTimes): void {
+    const within = (minutes?: number) => minutes != null && Number.isFinite(minutes) && minutes <= 18;
+    this.form.hasCafeNearby = within(times.cafeDistanceMinutes);
+    this.form.hasEverydayServicesNearby =
+      within(times.groceryDistanceMinutes) || within(times.pharmacyDistanceMinutes);
+    this.form.hasPlaygroundNearby = within(times.parkDistanceMinutes);
+  }
+
   private toCreateApartment(
     includeImageFile: boolean,
     nearbyTimes: NearbyWalkingTimes = {},
@@ -1516,9 +1530,10 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.availableFrom ? `Available from: ${this.form.availableFrom}` : '',
       this.form.maxOccupants ? `Max occupants: ${this.form.maxOccupants}` : '',
       this.form.isQuietStreet ? 'Quiet street: Yes' : '',
-      this.form.hasLargeLivingRoom ? 'Large living room: Yes' : '',
       this.form.hasPlaygroundNearby ? 'Playground nearby: Yes' : '',
-      this.form.hasCoworkingNearby ? 'Cafés / coworking nearby: Yes' : '',
+      this.form.hasCafeNearby ? 'Cafe nearby: Yes' : '',
+      this.form.hasEverydayServicesNearby ? 'Everyday services nearby: Yes' : '',
+      this.form.hasCoworkingNearby ? 'Coworking nearby: Yes' : '',
       this.form.hasSecurity ? 'Security or concierge: Yes' : '',
       this.form.isModernBuilding ? 'Modern building: Yes' : '',
       this.form.hasIsolatedBedrooms ? 'Isolated bedrooms: Yes' : '',
@@ -1582,6 +1597,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       gymDistanceMinutes: nearbyTimes.gymDistanceMinutes,
       groceryDistanceMinutes: nearbyTimes.groceryDistanceMinutes,
       cafeDistanceMinutes: nearbyTimes.cafeDistanceMinutes,
+      pharmacyDistanceMinutes: nearbyTimes.pharmacyDistanceMinutes,
       parkDistanceMinutes: nearbyTimes.parkDistanceMinutes,
       schoolDistanceMinutes: nearbyTimes.schoolDistanceMinutes,
       kindergartenDistanceMinutes: nearbyTimes.kindergartenDistanceMinutes,

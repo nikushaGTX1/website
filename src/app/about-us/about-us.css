@@ -573,3 +573,7 @@
     width: 100%;
   }
 }
+
+#why-velven {
+  scroll-margin-top: 96px;
+}
