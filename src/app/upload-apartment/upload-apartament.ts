@@ -795,20 +795,43 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   openStep(index: number): void {
     this.activeStep = index;
-    requestAnimationFrame(() => {
-      // Keep the opened section's header just under the top menu. scrollIntoView
-      // 'nearest' aligned the BOTTOM of tall sections on mobile, jumping to the end.
+    this.keepStepHeaderInView(index);
+  }
+
+  /**
+   * Keeps the opened section's header just under the top menu. On phones the page
+   * height keeps changing for a moment after a step opens (previous step collapses,
+   * the location map and photos load), which pushed the view to the bottom, so the
+   * position is re-checked briefly and the check stops as soon as the user touches
+   * or scrolls the page themselves.
+   */
+  private keepStepHeaderInView(index: number): void {
+    const menuOffset = 88;
+    const isPhone = window.innerWidth <= 820;
+    let userMoved = false;
+    const stop = () => (userMoved = true);
+    const events: Array<keyof WindowEventMap> = ['touchstart', 'wheel', 'keydown'];
+    // Registered after the tap that opened the step, so that tap itself doesn't count.
+    setTimeout(() => events.forEach((type) => window.addEventListener(type, stop, { passive: true, once: true })));
+
+    const align = (smooth: boolean) => {
+      if (userMoved) return;
       const section = document.getElementById(`listing-step-${index}`);
       if (!section) return;
-      const menuOffset = 88;
       const top = section.getBoundingClientRect().top;
-      const headerVisible = top >= menuOffset - 4 && top <= window.innerHeight * 0.6;
-      if (headerVisible) return;
-      // Phones: jump instantly. A smooth scroll there fights touch momentum and the
-      // browser's own scroll correction after the previous section collapses.
-      const behavior: ScrollBehavior = window.innerWidth <= 820 ? 'auto' : 'smooth';
-      window.scrollTo({ top: window.scrollY + top - menuOffset, behavior });
-    });
+      if (top >= menuOffset - 4 && top <= window.innerHeight * 0.6) return;
+      window.scrollTo({
+        top: window.scrollY + top - menuOffset,
+        // 'instant', not 'auto': the global html { scroll-behavior: smooth } turns 'auto'
+        // into a slow glide that phones interrupt while the page is still resizing.
+        behavior: smooth && !isPhone ? 'smooth' : 'instant',
+      });
+    };
+
+    requestAnimationFrame(() => align(true));
+    // Re-check while the map/images settle; on phones only, where the jump happened.
+    if (isPhone) [150, 400, 800, 1400].forEach((delay) => setTimeout(() => align(false), delay));
+    setTimeout(() => events.forEach((type) => window.removeEventListener(type, stop)), 1600);
   }
 
   get completionPercentage(): number {
