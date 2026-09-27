@@ -443,27 +443,35 @@ html:lang(ru) :is(button, a, label, span, strong, small) {
   min-width: 0;
 }
 
-html:lang(ka) :is(button, [role='button']),
-html:lang(ru) :is(button, [role='button']) {
+/* Localized text buttons need a generous touch target, but compact navigation
+   controls must keep the square dimensions defined by their components. */
+html:lang(ka) :is(button, [role='button']):not(
+  .card-photo-arrow,
+  .map-preview-arrow,
+  .viewer-nav,
+  .plan-swipe-arrow,
+  .nav-arrow,
+  .pagination button,
+  .blog-pagination button,
+  .velven-calendar-head button,
+  .avail-calendar-head button
+),
+html:lang(ru) :is(button, [role='button']):not(
+  .card-photo-arrow,
+  .map-preview-arrow,
+  .viewer-nav,
+  .plan-swipe-arrow,
+  .nav-arrow,
+  .pagination button,
+  .blog-pagination button,
+  .velven-calendar-head button,
+  .avail-calendar-head button
+) {
   height: auto;
   min-height: 44px;
   white-space: normal;
   line-height: 1.3;
   text-wrap: balance;
-}
-
-/* Keep compact photo controls square; the localized 44px touch target above
-   otherwise stretches circular arrows into a vertical oval. */
-html:lang(ka) button.card-photo-arrow,
-html:lang(ru) button.card-photo-arrow {
-  width: 36px;
-  min-width: 36px;
-  max-width: 36px;
-  height: 36px;
-  min-height: 36px;
-  max-height: 36px;
-  white-space: nowrap;
-  line-height: 1;
 }
 
 html:lang(ka) :is(input, select, textarea),
