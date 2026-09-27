@@ -6,6 +6,7 @@
   EventEmitter,
   HostBinding,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   Output,
@@ -140,6 +141,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private zoomListener?: google.maps.MapsEventListener;
   private mapResizeObserver?: ResizeObserver;
   private cameraAnimationFrame?: number;
+  private zoomSyncFrame?: number;
+  private resizeSettleTimer?: ReturnType<typeof setTimeout>;
+  private lastZoomSyncLevel?: number;
   private selectionRevision = 0;
   private readonly districtBoundaryStates = new Map<string | number, DistrictBoundaryState>();
   private streetRevision = 0;
@@ -149,6 +153,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private readonly boundaryCache = DrawAreaMapComponent.sharedBoundaryCache;
   constructor(
     private cdr: ChangeDetectorRef,
+    private zone: NgZone,
     private locationService: LocationService,
     private router: Router,
     private apartmentService: ApartmentService,
@@ -207,6 +212,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private evChargers?: EvChargerLayer;
 
   ngOnDestroy(): void {
+    if (this.zoomSyncFrame !== undefined) cancelAnimationFrame(this.zoomSyncFrame);
+    clearTimeout(this.resizeSettleTimer);
     this.evChargers?.destroy();
     this.cancelCameraAnimation();
     document.body.classList.remove('draw-map-open');
@@ -714,10 +721,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         this.cameraAnimationFrame = requestAnimationFrame(animate);
       } else {
         this.cameraAnimationFrame = undefined;
-        this.syncApartmentOverlayVisibility();
+        this.zone.run(() => this.syncApartmentOverlayVisibility());
       }
     };
-    this.cameraAnimationFrame = requestAnimationFrame(animate);
+    this.cameraAnimationFrame = this.zone.runOutsideAngular(() => requestAnimationFrame(animate));
   }
 
   startDrawing(): void {
@@ -1096,7 +1103,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         TerraDrawRenderMode,
       } = terraDraw;
       const { TerraDrawGoogleMapsAdapter } = googleAdapter;
-      this.map = new Map(mapElement.nativeElement, {
+      // Outside Angular: map frames/gestures must not run page-wide change detection.
+      this.map = this.zone.runOutsideAngular(() => new Map(mapElement.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
         zoom: 12,
         isFractionalZoomEnabled: true,
@@ -1116,28 +1124,37 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         streetViewControl: false,
         fullscreenControl: false,
         clickableIcons: false,
-      });
+      }));
       this.evChargers?.destroy();
       this.evChargers = new EvChargerLayer(this.map);
       // The wheel zooms the map only: once Google Maps has handled it, stop it from also
       // scrolling the page or panel behind the map.
       mapElement.nativeElement.addEventListener('wheel', (event: WheelEvent) => event.preventDefault(), { passive: false });
-      this.zoomListener = this.map.addListener('zoom_changed', () =>
-        this.cameraAnimationFrame === undefined && this.syncApartmentOverlayVisibility(),
-      );
+      // Pinch zoom is fractional and fires every frame. Only react when the whole
+      // zoom level changes (at most once per frame); 'idle' does the full sync after.
+      this.zoomListener = this.map.addListener('zoom_changed', () => {
+        if (this.cameraAnimationFrame !== undefined || this.zoomSyncFrame !== undefined) return;
+        this.zoomSyncFrame = requestAnimationFrame(() => {
+          this.zoomSyncFrame = undefined;
+          const level = Math.floor(this.map?.getZoom() ?? 0);
+          if (level === this.lastZoomSyncLevel) return;
+          this.lastZoomSyncLevel = level;
+          this.syncApartmentOverlayVisibility();
+        });
+      });
       this.map.addListener('dragstart', () => this.cancelCameraAnimation());
       mapElement.nativeElement.addEventListener('wheel', () => this.cancelCameraAnimation(), { passive: true });
       // Panning changes which clusters/prices are in view; 'idle' fires once the move settles.
       this.priceIdleListener = this.map.addListener('idle', () => {
-        if (this.cameraAnimationFrame === undefined) this.syncApartmentOverlayVisibility();
+        if (this.cameraAnimationFrame === undefined) this.zone.run(() => this.syncApartmentOverlayVisibility());
       });
       // Tapping empty map folds an opened building back into its "N units" pill.
-      this.priceClickListener = this.map.addListener('click', () => {
+      this.priceClickListener = this.map.addListener('click', () => this.zone.run(() => {
         if (!this.expandedBuilding) return;
         this.expandedBuilding = null;
         this.lastPriceKey = '';
         this.syncPriceClusters();
-      });
+      }));
 
       // The Google adapter binds to controls created inside `.gm-style`.
       // Those elements do not exist immediately after `new Map()`, so wait
@@ -1147,8 +1164,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       });
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-      this.draw = new TerraDraw({
-        adapter: new TerraDrawGoogleMapsAdapter({ lib: google.maps, map: this.map }),
+      this.draw = this.zone.runOutsideAngular(() => new TerraDraw({
+        adapter: new TerraDrawGoogleMapsAdapter({ lib: google.maps, map: this.map! }),
         modes: [
           new TerraDrawPolygonMode({
             styles: {
@@ -1216,10 +1233,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           }),
           new TerraDrawRenderMode({ modeName: 'render', styles: {} }),
         ],
-      });
-      this.draw.start();
+      }));
+      this.zone.runOutsideAngular(() => this.draw!.start());
       this.setDrawingEnabled(false);
-      this.draw.on('finish', () => {
+      this.draw.on('finish', () => this.zone.run(() => {
         const polygons =
           this.draw?.getSnapshot().filter((feature) => feature.geometry?.type === 'Polygon') || [];
         if (polygons.length > 1)
@@ -1247,8 +1264,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           this.setDrawingEnabled(false);
         }
         this.cdr.detectChanges();
-      });
-      this.draw.on('change', () => {
+      }));
+      this.draw.on('change', () => this.zone.run(() => {
         this.hasPolygon = !!this.currentPolygon();
         if (!this.hasPolygon) this.selectedArea = '';
         const polygon = this.currentPolygon();
@@ -1262,7 +1279,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           this.clearPropertyPreview();
         }
         this.cdr.detectChanges();
-      });
+      }));
       this.loading = false;
       this.errorMessage = '';
       this.cdr.detectChanges();
@@ -1270,19 +1287,31 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       // after init, sometimes more than once and not on a fixed schedule.
       // Watch the container itself instead of guessing a delay, so the map
       // never gets stuck at whatever size it happened to init at.
+      // On phones the bottom sheet animates the map's height every frame while it
+      // is dragged. Re-centering on each of those frames made the map thrash and
+      // could freeze the device, so wait until the size has settled.
       let lastSize = '';
+      let settledCenter: google.maps.LatLng | undefined;
+      let settledZoom: number | undefined;
       this.mapResizeObserver = new ResizeObserver((entries) => {
         const entry = entries[0];
         if (!entry || !this.map) return;
         const size = `${entry.contentRect.width}x${entry.contentRect.height}`;
         if (size === lastSize) return;
         lastSize = size;
-        const center = this.map.getCenter();
-        const zoom = this.map.getZoom();
-        google.maps.event.trigger(this.map, 'resize');
-        if (this.cameraAnimationFrame !== undefined) return;
-        if (center) this.map.setCenter(center);
-        if (zoom !== undefined) this.map.setZoom(zoom);
+        if (this.resizeSettleTimer === undefined) {
+          settledCenter = this.map.getCenter() ?? undefined;
+          settledZoom = this.map.getZoom();
+        }
+        clearTimeout(this.resizeSettleTimer);
+        this.resizeSettleTimer = setTimeout(() => {
+          this.resizeSettleTimer = undefined;
+          if (!this.map) return;
+          google.maps.event.trigger(this.map, 'resize');
+          if (this.cameraAnimationFrame !== undefined) return;
+          if (settledCenter) this.map.setCenter(settledCenter);
+          if (settledZoom !== undefined) this.map.setZoom(settledZoom);
+        }, 160);
       });
       this.mapResizeObserver.observe(mapElement.nativeElement);
       if (this.selectedAreasInput.length) {
@@ -1677,7 +1706,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       google.maps.OverlayView.preventMapHitsAndGesturesFrom(badge);
       badge.addEventListener('click', (event) => {
         event.stopPropagation();
-        onClick();
+        this.zone.run(() => onClick());
       });
       overlay.getPanes()?.floatPane.appendChild(badge);
     };
@@ -1765,7 +1794,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       };
       const openPreview = (event: Event) => {
         event.stopPropagation();
-        void this.showPropertyPreview(apartment, position, pin!, tail);
+        this.zone.run(() => void this.showPropertyPreview(apartment, position, pin!, tail));
       };
       pin.addEventListener('click', openPreview);
       pin.addEventListener('pointerenter', () => setPinHighlighted(true));
@@ -2080,9 +2109,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     next.addEventListener('click', (event) => step(event, 1));
     close.addEventListener('click', (event) => {
       event.stopPropagation();
-      this.clearPropertyPreview();
+      this.zone.run(() => this.clearPropertyPreview());
     });
-    card.addEventListener('click', () => void this.router.navigate(['/apartments', apartment.id]));
+    card.addEventListener('click', () => this.zone.run(() => void this.router.navigate(['/apartments', apartment.id])));
 
     renderImages((apartment.imageUrls || []).filter(Boolean).length
       ? (apartment.imageUrls || []).filter(Boolean)
@@ -2367,7 +2396,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       });
       button.addEventListener('click', (event) => {
         event.stopPropagation();
-        this.clearArea();
+        this.zone.run(() => this.clearArea());
       });
       overlay.getPanes()?.floatPane.appendChild(button);
     };

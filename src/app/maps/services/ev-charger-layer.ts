@@ -26,7 +26,7 @@ interface PlaceLayerConfig {
 }
 
 const MIN_ZOOM = 12;
-const MAX_MARKERS = 250;
+const MAX_MARKERS = 120;
 const SEARCH_DEBOUNCE_MS = 600;
 
 const PARK_CONFIG: PlaceLayerConfig = {
