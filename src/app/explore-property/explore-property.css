@@ -2262,3 +2262,98 @@ svg {
 .property-card .facts > span {
   gap: 6px !important;
 }
+
+/* ---------- More filters button + dialog ---------- */
+.more-filters-chip { position: relative; }
+.more-filters-chip .mf-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #451a8f; color: #fff; font-size: 11px; font-weight: 800; }
+
+.mf-backdrop { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 20px; background: rgba(18, 12, 34, 0.42); font-family: Inter, "Noto Sans Georgian", system-ui, -apple-system, "Segoe UI", sans-serif; animation: mfFade 0.18s ease-out; }
+.mf-dialog { width: min(940px, 100%); max-height: min(92vh, 900px); display: flex; flex-direction: column; overflow: hidden; border-radius: 22px; background: #fff; box-shadow: 0 30px 80px rgba(20, 10, 45, 0.28); animation: mfRise 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
+.mf-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 28px 34px 8px; }
+.mf-head h2 { margin: 0; color: #171421; font-size: 28px; font-weight: 800; }
+.mf-head p { margin: 6px 0 0; color: #7a7489; font-size: 15px; }
+.mf-close { width: 40px; height: 40px; min-height: 40px; display: grid; place-items: center; flex: none; border: 0; border-radius: 50%; background: transparent; color: #29222f; font-size: 20px; cursor: pointer; }
+.mf-close:hover { background: #f3f0f8; }
+
+.mf-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0 36px; padding: 8px 34px 12px; overflow-y: auto; overscroll-behavior: contain; }
+.mf-col + .mf-col { padding-left: 36px; border-left: 1px solid #efedf3; }
+.mf-group { padding: 18px 0; border-bottom: 1px solid #efedf3; }
+.mf-col .mf-group:last-child { border-bottom: 0; }
+.mf-group h3 { margin: 0 0 14px; color: #1d1726; font-size: 16px; font-weight: 800; }
+.mf-title-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.mf-title-row span, .mf-sub { color: #8a8595; font-size: 13px; }
+.mf-sub { margin: -6px 0 10px; }
+.mf-ev-icon { color: #12925f; margin-right: 4px; }
+
+.mf-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+.mf-pills button { box-sizing: border-box;  display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px; border: 1px solid #e3dfea; border-radius: 12px; background: #fff; color: #29222f; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s; }
+.mf-pills button i { color: #5b5468; font-size: 15px; }
+.mf-pills button:hover { border-color: #c9bde6; }
+.mf-pills button.selected { border-color: #a58ce0; background: #f1ecff; color: #451a8f; }
+.mf-pills button.selected i { color: #451a8f; }
+
+.mf-segment { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 4px; padding: 4px; border: 1px solid #e3dfea; border-radius: 14px; background: #f7f5fb; }
+.mf-dialog .mf-segment button { min-width: 0; min-height: 40px; padding: 0 4px; white-space: nowrap; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #4a4356; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.mf-dialog .mf-segment button:hover { background: #fff; }
+.mf-dialog .mf-segment button.selected { border-color: #b9a6ea; background: #fff; color: #451a8f; box-shadow: 0 1px 3px rgba(69, 26, 143, 0.12); }
+.mf-dialog .mf-segment.ev button.selected { border-color: #8fd6b3; color: #0f8f61; box-shadow: 0 1px 3px rgba(15, 143, 97, 0.14); }
+
+.mf-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.mf-checks label { display: flex; align-items: center; gap: 10px; color: #29222f; font-size: 14px; cursor: pointer; }
+.mf-checks input { width: 19px; height: 19px; flex: none; margin: 0; accent-color: #451a8f; cursor: pointer; }
+.mf-checks label i { width: 18px; color: #5b5468; text-align: center; }
+
+.mf-switch { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: #29222f; font-size: 14px; cursor: pointer; }
+.mf-switch input { position: absolute; opacity: 0; pointer-events: none; }
+.mf-switch span { position: relative; width: 42px; height: 24px; flex: none; border-radius: 999px; background: #e3dfea; transition: background 0.15s; }
+.mf-switch span::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); transition: transform 0.15s; }
+.mf-switch input:checked + span { background: #451a8f; }
+.mf-switch input:checked + span::after { transform: translateX(18px); }
+.mf-switch input:focus-visible + span { outline: 3px solid #c9bde6; outline-offset: 2px; }
+.mf-date { display: grid; gap: 8px; margin-top: 18px; color: #29222f; font-size: 14px; }
+.mf-date input { min-height: 46px; padding: 0 14px; border: 1px solid #e3dfea; border-radius: 12px; color: #29222f; font: inherit; }
+
+.mf-condition { margin: 4px 34px 0; border: 1px solid #e3dfea; border-radius: 14px; }
+.mf-condition-toggle { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 0 18px; border: 0; background: transparent; color: #1d1726; font: inherit; text-align: left; cursor: pointer; }
+.mf-condition-toggle strong { font-size: 15px; }
+.mf-condition-toggle span { color: #8a8595; font-size: 13px; }
+.mf-chevron { margin-left: auto; color: #8a8595; transition: transform 0.18s; }
+.mf-chevron.open { transform: rotate(180deg); }
+.mf-condition .mf-pills { padding: 0 18px 18px; }
+
+.mf-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 12px; padding: 16px 22px 16px 34px; border-top: 1px solid #efedf3; }
+.mf-clear { border: 0; background: transparent; color: #1d1726; font: inherit; font-size: 15px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.mf-dialog .mf-apply { white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 30px; border: 0; border-radius: 12px; background: #451a8f; color: #fff; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(69, 26, 143, 0.28); }
+.mf-apply:hover { background: #3a1578; }
+
+@keyframes mfFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mfRise { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 760px) {
+  .mf-backdrop { padding: 0; place-items: end stretch; }
+  .mf-dialog { width: 100%; max-height: 92dvh; border-radius: 20px 20px 0 0; animation-name: mfSheet; }
+  .mf-head { padding: 20px 18px 4px; }
+  .mf-head h2 { font-size: 22px; }
+  .mf-body { grid-template-columns: 1fr; padding: 4px 18px 8px; }
+  .mf-col + .mf-col { padding-left: 0; border-left: 0; }
+  .mf-col .mf-group:last-child { border-bottom: 1px solid #efedf3; }
+  .mf-col + .mf-col .mf-group:last-child { border-bottom: 0; }
+  .mf-checks { grid-template-columns: 1fr; }
+  .mf-condition { margin: 4px 18px 0; }
+  .mf-foot { padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .mf-dialog .mf-apply { flex: 1; min-width: 0; justify-content: center; padding: 0 14px; font-size: 14px; }
+  .mf-foot { gap: 12px; }
+  .mf-dialog .mf-segment button { font-size: 13px; }
+  .mf-clear { flex: none; font-size: 13px; }
+  .mf-dialog .mf-apply i { display: none; }
+  .mf-dialog .mf-apply { font-size: 13px; overflow: hidden; text-overflow: ellipsis; }
+}
+@keyframes mfSheet { from { transform: translateY(100%); } to { transform: none; } }
+
+.mf-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.mf-icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; color: #5b5468; }
+.mf-pills button.selected .mf-icon { color: #451a8f; }
+.mf-title-row h3 { display: inline-flex; align-items: center; gap: 6px; }
+.mf-ev-icon { color: #12925f; margin-right: 0; }
+.mf-condition-toggle .mf-icon { color: #29222f; }
+.mf-body { overscroll-behavior: contain; }

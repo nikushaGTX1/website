@@ -347,6 +347,16 @@
           </button>
         </div>
       </div>
+      <button
+        class="chip compact-filter-chip more-filters-chip"
+        type="button"
+        [class.selected]="moreFiltersCount > 0"
+        (click)="openMoreFilters($event)"
+      >
+        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+        More filters
+        <span class="mf-count" *ngIf="moreFiltersCount">{{ moreFiltersCount }}</span>
+      </button>
     </div>
   </section>
 
@@ -655,6 +665,170 @@
       <footer class="area-sheet-footer">
         <button type="button" class="area-sheet-cancel" (click)="cancelAreaSheet()">Cancel</button>
         <button type="button" class="area-sheet-apply" (click)="applyAreaSheet()">Apply changes</button>
+      </footer>
+    </section>
+  </div>
+
+  <div #mfBackdrop class="mf-backdrop" *ngIf="moreFiltersOpen" (click)="closeMoreFilters()">
+    <section class="mf-dialog" role="dialog" aria-modal="true" aria-labelledby="mf-title" (click)="$event.stopPropagation()">
+      <svg class="mf-sprite" aria-hidden="true" focusable="false">
+        <symbol id="mfi-balcony" viewBox="0 0 24 24"><path d="M5 12V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v7M3 12h18M4 12v8M20 12v8M3 20h18M8 12v8M12 12v8M16 12v8"/></symbol>
+        <symbol id="mfi-terrace" viewBox="0 0 24 24"><path d="M3 10a9 7 0 0 1 18 0zM12 3v7M12 10v11M8 21h8M5 17h14"/></symbol>
+        <symbol id="mfi-separateKitchen" viewBox="0 0 24 24"><path d="M6 3v7a2 2 0 0 0 4 0V3M8 3v18M17 21V3c-2 1.5-3 4-3 7v4h3"/></symbol>
+        <symbol id="mfi-storage" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5 12 12l9-4.5M12 12v9M7.5 5.2l9 4.6"/></symbol>
+        <symbol id="mfi-walkInCloset" viewBox="0 0 24 24"><path d="M10 6.5a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2V10l8.4 5.6a1 1 0 0 1-.6 1.9H4.2a1 1 0 0 1-.6-1.9L12 10"/></symbol>
+        <symbol id="mfi-furnished" viewBox="0 0 24 24"><path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3M3 12a2 2 0 0 1 4 0v2h10v-2a2 2 0 0 1 4 0v6H3zM5 18v2M19 18v2"/></symbol>
+        <symbol id="mfi-partFurnished" viewBox="0 0 24 24"><path d="M7 11V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v6M5 11h14v4H5zM7 15v5M17 15v5"/></symbol>
+        <symbol id="mfi-unfurnished" viewBox="0 0 24 24"><path d="M3 8.5 12 4l9 4.5v7L12 20l-9-4.5zM3 8.5 12 13l9-4.5M12 13v7"/></symbol>
+        <symbol id="mfi-airConditioning" viewBox="0 0 24 24"><path d="M12 2v20M3.3 7l17.4 10M20.7 7 3.3 17M9.5 3.5 12 6l2.5-2.5M9.5 20.5 12 18l2.5 2.5M4 10.5l3.4-.9-.9-3.4M20 13.5l-3.4.9.9 3.4M4 13.5l3.4.9-.9 3.4M20 10.5l-3.4-.9.9-3.4"/></symbol>
+        <symbol id="mfi-washingMachine" viewBox="0 0 24 24"><path d="M5 2.5h14a1 1 0 0 1 1 1v17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-17a1 1 0 0 1 1-1zM4 7h16M7.5 4.8h.01M10.5 4.8h.01M16.5 14a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0zM9.5 14.5c1-.8 2-.8 3 0s2 .8 3 0"/></symbol>
+        <symbol id="mfi-dishwasher" viewBox="0 0 24 24"><path d="M5 2.5h14a1 1 0 0 1 1 1v17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-17a1 1 0 0 1 1-1zM4 7h16M8 4.8h3M8 11h8v7H8zM10.5 11v7M13.5 11v7"/></symbol>
+        <symbol id="mfi-tumbleDryer" viewBox="0 0 24 24"><path d="M5 2.5h14a1 1 0 0 1 1 1v17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-17a1 1 0 0 1 1-1zM4 7h16M7.5 4.8h.01M16.5 14a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0zM10 12.5c1.5 0 1.5 3 3 3M11 11.5c1.5.5 2.5 1.5 2.5 3"/></symbol>
+        <symbol id="mfi-centralHeating" viewBox="0 0 24 24"><path d="M5 6v13M9 6v13M13 6v13M17 6v13M5 6a2 2 0 0 1 4 0M13 6a2 2 0 0 1 4 0M3 9h18M3 16h18M21 16v3"/></symbol>
+        <symbol id="mfi-underfloorHeating" viewBox="0 0 24 24"><path d="M3 20h18M3 16h18M7 12c-1.2-1.3 1.2-2.7 0-4s1.2-2.7 0-4M12 12c-1.2-1.3 1.2-2.7 0-4s1.2-2.7 0-4M17 12c-1.2-1.3 1.2-2.7 0-4s1.2-2.7 0-4"/></symbol>
+        <symbol id="mfi-otherHeating" viewBox="0 0 24 24"><path d="M12 21c-3.9 0-7-2.9-7-6.6 0-3.9 3.4-5.6 4-9.4 2.9 1.6 4.2 4.1 4 6.4 1-.4 1.9-1.3 2.4-2.4 1.7 1.5 3.6 3.6 3.6 5.4 0 3.7-3.1 6.6-7 6.6zM12 21c-1.7 0-3-1.2-3-2.8 0-1.8 2-2.7 2.4-4.2 1.6.9 3.6 2.4 3.6 4.2 0 1.6-1.3 2.8-3 2.8z"/></symbol>
+        <symbol id="mfi-newBuilding" viewBox="0 0 24 24"><path d="M4 21h16M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M9.5 7h1M13.5 7h1M9.5 11h1M13.5 11h1M9.5 15h1M13.5 15h1M10.5 21v-3h3v3"/></symbol>
+        <symbol id="mfi-olderBuilding" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7M5.5 9.2V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.2M10 21v-6h4v6"/></symbol>
+        <symbol id="mfi-elevator" viewBox="0 0 24 24"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM12 3v18M6.8 10.5 8.5 8l1.7 2.5M13.8 13.5l1.7 2.5 1.7-2.5M8.5 8v8M15.5 8v8"/></symbol>
+        <symbol id="mfi-controlledEntry" viewBox="0 0 24 24"><path d="M6 10.5h12a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8.5a1 1 0 0 1 1-1zM8 10.5V7a4 4 0 0 1 8 0v3.5M12 14.5v2.5"/></symbol>
+        <symbol id="mfi-security" viewBox="0 0 24 24"><path d="M12 3 5 5.8v5.7c0 4.5 3 8 7 9.5 4-1.5 7-5 7-9.5V5.8zM9 12l2 2 4-4"/></symbol>
+        <symbol id="mfi-stepFree" viewBox="0 0 24 24"><path d="M11.5 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM10 8v5h5.5l2 5.5H20M10 10.5h5M14.7 17.2A5 5 0 1 1 7.5 11.8"/></symbol>
+        <symbol id="mfi-ev" viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M14 9.5h1.5a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V8.5L18 6M9.5 6.5 7.5 10.5h3l-2 4"/></symbol>
+      </svg>
+      <header class="mf-head">
+        <div>
+          <h2 id="mf-title">Detailed filters</h2>
+          <p>The details that make a home yours.</p>
+        </div>
+        <button type="button" class="mf-close" aria-label="Close filters" (click)="closeMoreFilters()">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="mf-body">
+        <div class="mf-col">
+          <section class="mf-group">
+            <h3>Layout &amp; outdoor space</h3>
+            <div class="mf-pills">
+              <button type="button" *ngFor="let item of moreFilterLayout" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+                <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
+              </button>
+            </div>
+          </section>
+
+          <section class="mf-group">
+            <h3>Bathrooms</h3>
+            <div class="mf-segment">
+              <button type="button" *ngFor="let count of moreFilterBathrooms" [class.selected]="moreFiltersDraft.bathrooms === count" (click)="moreFiltersDraft.bathrooms = count">
+                {{ count === 0 ? 'Any' : count === 3 ? '3+' : count }}
+              </button>
+            </div>
+          </section>
+
+          <section class="mf-group">
+            <h3>Furnishing</h3>
+            <div class="mf-pills">
+              <button type="button" *ngFor="let item of moreFilterFurnishing" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+                <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
+              </button>
+            </div>
+          </section>
+
+          <section class="mf-group">
+            <h3>Appliances</h3>
+            <div class="mf-pills">
+              <button type="button" *ngFor="let item of moreFilterAppliances" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+                <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
+              </button>
+            </div>
+          </section>
+
+          <section class="mf-group">
+            <h3>Heating</h3>
+            <div class="mf-pills">
+              <button type="button" *ngFor="let item of moreFilterHeating" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+                <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <div class="mf-col">
+          <section class="mf-group">
+            <h3>Building</h3>
+            <div class="mf-pills">
+              <button type="button" *ngFor="let item of moreFilterBuilding" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+                <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
+              </button>
+            </div>
+          </section>
+
+          <section class="mf-group">
+            <h3>Building amenities</h3>
+            <div class="mf-pills">
+              <button type="button" *ngFor="let item of moreFilterBuildingAmenities" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+                <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
+              </button>
+            </div>
+          </section>
+
+          <section class="mf-group">
+            <div class="mf-title-row"><h3>Metro proximity</h3><span>Walking distance</span></div>
+            <div class="mf-segment">
+              <button type="button" *ngFor="let minutes of moreFilterMinutes" [class.selected]="moreFiltersDraft.metroMinutes === minutes" (click)="moreFiltersDraft.metroMinutes = minutes">
+                {{ minutes === 0 ? 'Any' : minutes + ' min' }}
+              </button>
+            </div>
+          </section>
+
+          <section class="mf-group">
+            <div class="mf-title-row"><h3><svg class="mf-icon mf-ev-icon" aria-hidden="true"><use href="#mfi-ev"></use></svg> Near EV charging station</h3><span>Walking distance</span></div>
+            <div class="mf-segment ev">
+              <button type="button" *ngFor="let minutes of moreFilterMinutes" [class.selected]="moreFiltersDraft.evChargerMinutes === minutes" (click)="moreFiltersDraft.evChargerMinutes = minutes">
+                {{ minutes === 0 ? 'Any' : minutes + ' min' }}
+              </button>
+            </div>
+          </section>
+
+          <section class="mf-group" *ngIf="selectedType !== 'For Sale'">
+            <h3>Rental terms</h3>
+            <p class="mf-sub">Lease length</p>
+            <div class="mf-segment">
+              <button type="button" *ngFor="let months of moreFilterLease" [class.selected]="moreFiltersDraft.leaseMonths === months" (click)="moreFiltersDraft.leaseMonths = moreFiltersDraft.leaseMonths === months ? 0 : months">
+                {{ months === 12 ? '12+ months' : months + ' months' }}
+              </button>
+            </div>
+            <label class="mf-switch">
+              <input type="checkbox" [(ngModel)]="moreFiltersDraft.noDeposit" />
+              <span aria-hidden="true"></span>No security deposit
+            </label>
+            <label class="mf-date">
+              <span>Move-in date</span>
+              <input type="date" [(ngModel)]="moreFiltersDraft.moveInDate" />
+            </label>
+          </section>
+        </div>
+      </div>
+
+      <section class="mf-condition" *ngIf="selectedType === 'For Sale'">
+        <button type="button" class="mf-condition-toggle" [attr.aria-expanded]="conditionSectionOpen" (click)="conditionSectionOpen = !conditionSectionOpen">
+          <svg class="mf-icon" aria-hidden="true"><use href="#mfi-olderBuilding"></use></svg>
+          <strong>Property condition &amp; construction</strong>
+          <span>For properties for sale</span>
+          <i class="fa-solid fa-chevron-down mf-chevron" [class.open]="conditionSectionOpen" aria-hidden="true"></i>
+        </button>
+        <div class="mf-pills" *ngIf="conditionSectionOpen">
+          <button type="button" *ngFor="let condition of conditionOptions" [class.selected]="moreFiltersDraft.conditions.includes(condition)" (click)="toggleMoreCondition(condition)">
+            {{ condition }}
+          </button>
+        </div>
+      </section>
+
+      <footer class="mf-foot">
+        <button type="button" class="mf-clear" (click)="clearMoreFilters()">Clear all</button>
+        <button type="button" class="mf-apply" (click)="applyMoreFilters()">
+          Show homes <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
       </footer>
     </section>
   </div>

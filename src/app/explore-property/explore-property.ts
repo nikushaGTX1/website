@@ -960,6 +960,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
+    if (this.moreFiltersOpen) {
+      this.closeMoreFilters();
+      return;
+    }
     if (this.areaSheetOpen && !this.areaSheetClosing) this.cancelAreaSheet();
   }
 
@@ -1205,6 +1209,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
       Math.abs(event.deltaX) > Math.abs(event.deltaY)
     ) return;
 
+    // The detailed-filters dialog is modal: its wheel stays with it.
+    if (this.moreFiltersOpen) return;
     const results = this.resultsPane?.nativeElement;
     const target = event.target instanceof Element ? event.target : null;
     if (!results || !target || results.contains(target)) return;
@@ -1254,6 +1260,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.conditionOpen = false;
     this.selectedMinArea = 0;
     this.selectedMinFloor = 0;
+    this.moreFilters = this.emptyMoreFilters();
     this.featureFilter = '';
     this.drawnAreaActive = false;
     this.mapPreviewApartment = null;
@@ -1407,6 +1414,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
       const matchesFeature = this.matchesQuickFeature(apartment);
       const matchesArea = !this.selectedMinArea || Number(apartment.sizeSquareMeters) >= this.selectedMinArea;
       const matchesFloor = !this.selectedMinFloor || Number(apartment.floor) >= this.selectedMinFloor;
+      const matchesMore = this.matchesMoreFilters(apartment);
 
       return (
         matchesQuery &&
@@ -1425,7 +1433,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
         matchesCondition &&
         matchesFeature &&
         matchesArea &&
-        matchesFloor
+        matchesFloor &&
+        matchesMore
       );
     });
 
@@ -1887,6 +1896,215 @@ export class ExploreProperty implements OnInit, OnDestroy {
       'country house': ['country house', 'cottage', 'villa'],
     };
     return (aliases[selectedType] || [selectedType]).some((value) => text.includes(value));
+  }
+
+  // ---------- Detailed ("More filters") dialog ----------
+
+  readonly moreFilterLayout = [
+    { key: 'balcony', label: 'Balcony', icon: 'fa-solid fa-border-all' },
+    { key: 'terrace', label: 'Terrace', icon: 'fa-solid fa-umbrella-beach' },
+    { key: 'separateKitchen', label: 'Separate kitchen', icon: 'fa-solid fa-utensils' },
+    { key: 'storage', label: 'Storage', icon: 'fa-solid fa-box' },
+    { key: 'walkInCloset', label: 'Walk-in closet', icon: 'fa-solid fa-shirt' },
+  ];
+  readonly moreFilterFurnishing = [
+    { key: 'furnished', label: 'Furnished', icon: 'fa-solid fa-couch' },
+    { key: 'partFurnished', label: 'Part furnished', icon: 'fa-solid fa-chair' },
+    { key: 'unfurnished', label: 'Unfurnished', icon: 'fa-solid fa-box-open' },
+  ];
+  readonly moreFilterAppliances = [
+    { key: 'airConditioning', label: 'Air conditioning', icon: 'fa-regular fa-snowflake' },
+    { key: 'washingMachine', label: 'Washing machine', icon: 'fa-solid fa-soap' },
+    { key: 'dishwasher', label: 'Dishwasher', icon: 'fa-solid fa-sink' },
+    { key: 'tumbleDryer', label: 'Tumble dryer', icon: 'fa-solid fa-wind' },
+  ];
+  readonly moreFilterHeating = [
+    { key: 'centralHeating', label: 'Central heating', icon: 'fa-solid fa-temperature-half' },
+    { key: 'underfloorHeating', label: 'Underfloor heating', icon: 'fa-solid fa-fire-flame-simple' },
+    { key: 'otherHeating', label: 'Other', icon: 'fa-solid fa-ellipsis' },
+  ];
+  readonly moreFilterBuilding = [
+    { key: 'newBuilding', label: 'New building', icon: 'fa-regular fa-building' },
+    { key: 'olderBuilding', label: 'Older building', icon: 'fa-solid fa-house' },
+  ];
+  readonly moreFilterBuildingAmenities = [
+    { key: 'elevator', label: 'Elevator', icon: 'fa-solid fa-elevator' },
+    { key: 'controlledEntry', label: 'Controlled entry', icon: 'fa-solid fa-lock' },
+    { key: 'security', label: 'Security / concierge', icon: 'fa-solid fa-shield-halved' },
+    { key: 'stepFree', label: 'Step-free access', icon: 'fa-solid fa-wheelchair' },
+  ];
+  readonly moreFilterBathrooms = [0, 1, 2, 3];
+  readonly moreFilterMinutes = [0, 5, 10, 15];
+  readonly moreFilterLease = [3, 6, 12];
+
+  moreFiltersOpen = false;
+  /** Route content is its own stacking context under the navbar, so the open dialog lives on <body>. */
+  @ViewChild('mfBackdrop') set moreFiltersBackdrop(ref: ElementRef<HTMLElement> | undefined) {
+    if (!ref || ref.nativeElement.parentElement === document.body) return;
+    const element = ref.nativeElement;
+    document.body.appendChild(element);
+    // Non-passive, so preventDefault really stops the page/results list behind from scrolling.
+    const block = (event: Event) => this.blockBackgroundScroll(event);
+    element.addEventListener('wheel', block, { passive: false });
+    element.addEventListener('touchmove', block, { passive: false });
+  }
+  conditionSectionOpen = false;
+  /** Applied detailed filters. */
+  moreFilters = this.emptyMoreFilters();
+  /** What the dialog is editing; applied on "Show homes". */
+  moreFiltersDraft = this.emptyMoreFilters();
+
+  private emptyMoreFilters() {
+    return {
+      features: [] as string[],
+      bathrooms: 0,
+      metroMinutes: 0,
+      evChargerMinutes: 0,
+      leaseMonths: 0,
+      noDeposit: false,
+      moveInDate: '',
+      conditions: [] as string[],
+    };
+  }
+
+  get moreFiltersCount(): number {
+    const f = this.moreFilters;
+    return (
+      f.features.length +
+      f.conditions.length +
+      (f.bathrooms ? 1 : 0) +
+      (f.metroMinutes ? 1 : 0) +
+      (f.evChargerMinutes ? 1 : 0) +
+      (f.leaseMonths ? 1 : 0) +
+      (f.noDeposit ? 1 : 0) +
+      (f.moveInDate ? 1 : 0)
+    );
+  }
+
+  openMoreFilters(event?: Event): void {
+    event?.stopPropagation();
+    this.moreFiltersDraft = {
+      ...this.moreFilters,
+      features: [...this.moreFilters.features],
+      conditions: [...this.moreFilters.conditions],
+    };
+    this.conditionSectionOpen = this.moreFilters.conditions.length > 0;
+    this.moreFiltersOpen = true;
+    lockPageScroll();
+    document.documentElement.style.overflow = 'hidden';
+  }
+
+  closeMoreFilters(): void {
+    if (!this.moreFiltersOpen) return;
+    this.moreFiltersOpen = false;
+    document.documentElement.style.overflow = '';
+    unlockPageScroll();
+  }
+
+  /** Wheel/touch outside the dialog's scrolling body must not move the page behind it. */
+  blockBackgroundScroll(event: Event): void {
+    const target = event.target as HTMLElement | null;
+    const scroller = target?.closest<HTMLElement>('.mf-body');
+    if (!scroller) {
+      event.preventDefault();
+      return;
+    }
+    // At the top/bottom edge of the dialog list, stop the wheel from chaining to the page.
+    if (event instanceof WheelEvent) {
+      const atTop = scroller.scrollTop <= 0 && event.deltaY < 0;
+      const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1 && event.deltaY > 0;
+      if (atTop || atBottom) event.preventDefault();
+    }
+  }
+
+  toggleMoreFeature(key: string): void {
+    const list = this.moreFiltersDraft.features;
+    this.moreFiltersDraft.features = list.includes(key) ? list.filter((item) => item !== key) : [...list, key];
+  }
+
+  toggleMoreCondition(condition: string): void {
+    const list = this.moreFiltersDraft.conditions;
+    this.moreFiltersDraft.conditions = list.includes(condition)
+      ? list.filter((item) => item !== condition)
+      : [...list, condition];
+  }
+
+  clearMoreFilters(): void {
+    this.moreFiltersDraft = this.emptyMoreFilters();
+  }
+
+  applyMoreFilters(): void {
+    this.moreFilters = this.moreFiltersDraft;
+    this.closeMoreFilters();
+    this.onSearch();
+  }
+
+  /** Words a listing's title/description/tags may use for features without a stored field. */
+  private static readonly featureText: Record<string, RegExp> = {
+    terrace: /terrace|ტერას/i,
+    separateKitchen: /separate kitchen|isolated kitchen|იზოლირებული სამზარეულო/i,
+    storage: /storage|storeroom|pantry|სათავს/i,
+    walkInCloset: /walk-?in (closet|wardrobe)|dressing room|გარდერობ/i,
+    partFurnished: /part(ly|ially)?[ -]furnished|semi[ -]furnished|ნაწილობრივ/i,
+    washingMachine: /washing machine|washer|სარეცხი მანქანა/i,
+    tumbleDryer: /tumble dryer|dryer|საშრობ/i,
+    centralHeating: /central heating|ცენტრალური გათბობ/i,
+    underfloorHeating: /underfloor|floor heating|იატაკის გათბობ/i,
+    otherHeating: /heating|gas heater|radiator|გათბობ/i,
+    newBuilding: /new building|new build|newly built|ახალი (აშენებული|კორპუს)/i,
+    controlledEntry: /controlled entry|intercom|access control|დომოფონ/i,
+    security: /security|concierge|guard|დაცვ|კონსიერჟ/i,
+    stepFree: /step-?free|wheelchair|accessible|ramp|პანდუს/i,
+    noDeposit: /no (security )?deposit|without deposit|დეპოზიტის გარეშე/i,
+  };
+
+  private matchesMoreFilters(apartment: Apartment): boolean {
+    const f = this.moreFilters;
+    const text = `${apartment.title || ''} ${apartment.description || ''} ${apartment.apartmentStyle || ''}`;
+    const said = (key: string) => ExploreProperty.featureText[key]?.test(text) ?? false;
+
+    for (const key of f.features) {
+      const ok = (() => {
+        switch (key) {
+          case 'balcony': return !!apartment.hasBalcony || /balcon|აივან/i.test(text);
+          case 'furnished': return apartment.isFurnished === true;
+          case 'unfurnished': return apartment.isFurnished === false && !said('partFurnished');
+          case 'airConditioning': return !!apartment.hasAirConditioning;
+          case 'dishwasher': return !!apartment.hasDishwasher;
+          case 'elevator': return !!apartment.hasElevator;
+          case 'olderBuilding': return !said('newBuilding');
+          default: return said(key);
+        }
+      })();
+      if (!ok) return false;
+    }
+
+    if (f.bathrooms) {
+      const baths = Number(apartment.bathrooms || 0);
+      if (f.bathrooms >= 3 ? baths < 3 : baths !== f.bathrooms) return false;
+    }
+    if (f.metroMinutes) {
+      const minutes = apartment.metroDistanceMinutes;
+      if (minutes == null || minutes > f.metroMinutes) return false;
+    }
+    if (f.evChargerMinutes) {
+      const minutes = apartment.evChargerDistanceMinutes;
+      if (minutes == null || minutes > f.evChargerMinutes) return false;
+    }
+    if (this.selectedType !== 'For Sale') {
+      if (f.leaseMonths) {
+        const months = Number(/(\d+)/.exec(apartment.minimumRentalPeriod || '')?.[1] || 0);
+        // Minimum lease must fit within what the renter wants.
+        if (months && months > f.leaseMonths) return false;
+      }
+      if (f.noDeposit && !said('noDeposit')) return false;
+      if (f.moveInDate && apartment.availableFrom && apartment.availableFrom.slice(0, 10) > f.moveInDate) return false;
+    }
+    if (f.conditions.length && this.selectedType === 'For Sale') {
+      const value = (apartment.condition || '').trim().toLowerCase();
+      if (!f.conditions.some((condition) => value.includes(condition.toLowerCase()))) return false;
+    }
+    return true;
   }
 
   private matchesAmenitiesFilter(apartment: Apartment): boolean {

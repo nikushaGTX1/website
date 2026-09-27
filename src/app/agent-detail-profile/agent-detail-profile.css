@@ -838,3 +838,129 @@
   font-weight: 600;
   line-height: 1.2;
 }
+
+/* ---------- Mobile hero: full photo, no crop ---------- */
+@media (max-width: 800px) {
+  .profile-hero {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid #ebe8f4;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(37, 23, 102, 0.08);
+  }
+  /* Every agent gets the same frame. Headshots are anchored near the top, so a
+     different photo shape only trims shoulders/background, never the face. */
+  .portrait-wrap {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #f5f3fb;
+  }
+  .portrait-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 18%;
+  }
+  .portrait-verified {
+    right: 16px;
+    bottom: 16px;
+    width: 38px;
+    height: 38px;
+    border-width: 3px;
+    box-shadow: 0 6px 16px rgba(69, 26, 143, 0.3);
+  }
+  .profile-main {
+    padding: 22px 20px 22px;
+  }
+  .verified-pill {
+    margin: 0 auto;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .profile-main h1 {
+    margin: 12px 0 6px;
+    font-size: clamp(28px, 8vw, 34px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .role {
+    color: #5b5f7a;
+    font-size: 15px;
+  }
+  .intro {
+    margin: 16px auto 0;
+    color: #4a5070;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .agent-details {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 18px 0 0;
+  }
+  .agent-details span {
+    max-width: 100%;
+    gap: 7px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #f5f3fb;
+    color: #3f4664;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+  .agent-details i {
+    width: auto;
+    font-size: 14px;
+  }
+  .contact-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    flex-direction: initial;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .contact-actions button {
+    width: 100%;
+    min-height: 50px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .trust-strip {
+    grid-template-columns: 1fr 1fr;
+    margin-top: 18px;
+    padding: 6px;
+  }
+  .trust-strip > div {
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 14px 12px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+  .trust-strip > div:nth-child(odd) {
+    border-right: 1px solid #eceaf5;
+  }
+  .trust-strip > div:nth-child(-n + 2) {
+    border-bottom: 1px solid #eceaf5;
+  }
+  .trust-strip i {
+    font-size: 20px;
+  }
+  .trust-strip b {
+    font-size: 17px;
+  }
+  .trust-strip span {
+    font-size: 11px;
+  }
+}
+@media (max-width: 390px) {
+  .profile-main { padding: 20px 16px; }
+}

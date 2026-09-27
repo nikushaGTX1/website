@@ -292,11 +292,21 @@ function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number)
  * Nearby parks on a Google map with an on-map show/hide toggle.
  * Call `destroy()` when the map's component is destroyed.
  */
+/**
+ * Park pins are switched off for now. The layer stays in the code base: set this to
+ * true to bring the pins and their show/hide button back on every map.
+ */
+export const SHOW_PARK_PINS = false;
+
 export class ParkLayer {
   private readonly layers: PlaceMarkerLayer[];
   private readonly infoWindow = new google.maps.InfoWindow();
 
   constructor(map: google.maps.Map) {
+    if (!SHOW_PARK_PINS) {
+      this.layers = [];
+      return;
+    }
     const toggles = document.createElement('div');
     Object.assign(toggles.style, { display: 'flex', flexWrap: 'wrap', gap: '6px', margin: '10px' });
     map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(toggles);
