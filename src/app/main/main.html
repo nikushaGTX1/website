@@ -204,7 +204,7 @@
             aria-haspopup="dialog"
             (click)="toggleSearchMenu('budget')"
           >
-            <span><i class="fa-solid fa-wallet"></i> {{ budgetSummary }}</span
+            <span><i class="fa-solid fa-wallet"></i> {{ budgetMin != null || budgetMax != null ? budgetSelectionSummary : budgetSummary }}</span
             ><b aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></b>
           </button>
           <div
@@ -221,20 +221,21 @@
             >
               <i class="fa-solid fa-xmark"></i>
             </button>
-            <h3>Choose your price range</h3>
+            <h3>Price range</h3>
             <p class="budget-caption">Choose the monthly price that works for you</p>
             <div class="budget-chart" aria-hidden="true">
               <span
                 *ngFor="let height of budgetHistogram; let i = index"
                 [class.in-range]="i / (budgetHistogram.length - 1) * 100 >= budgetMinPercent && i / (budgetHistogram.length - 1) * 100 <= budgetMaxPercent"
-                [style.height.%]="height"
+                [style.height]="height + '%'"
+                [style.background-color]="i / (budgetHistogram.length - 1) * 100 >= budgetMinPercent && i / (budgetHistogram.length - 1) * 100 <= budgetMaxPercent ? '#451a8f' : '#d9d1e7'"
               ></span>
             </div>
             <div class="budget-range-control">
               <div class="budget-range-track"></div>
               <div class="budget-range-fill" [style.left.%]="budgetMinPercent" [style.right.%]="100 - budgetMaxPercent"></div>
-              <input type="range" min="0" max="5000" step="50" aria-label="Minimum price" [ngModel]="budgetMin ?? 0" (ngModelChange)="budgetMin = $event; selectedBudgetRange = ''" />
-              <input type="range" min="0" max="5000" step="50" aria-label="Maximum price" [ngModel]="budgetMax ?? 5000" (ngModelChange)="budgetMax = $event; selectedBudgetRange = ''" />
+              <input type="range" name="budgetMinSlider" min="0" max="5000" step="50" aria-label="Minimum price" [ngModel]="budgetMin ?? 0" (ngModelChange)="setBudgetMin($event)" />
+              <input type="range" name="budgetMaxSlider" min="0" max="5000" step="50" aria-label="Maximum price" [ngModel]="budgetMax ?? 5000" (ngModelChange)="setBudgetMax($event)" />
             </div>
             <div class="budget-range-labels"><span>$0</span><span>$5,000+</span></div>
             <div class="main-budget-fields">
@@ -243,11 +244,11 @@
                 ><input
                   type="number"
                   name="budgetMin"
-                  [(ngModel)]="budgetMin"
+                  [ngModel]="budgetMin"
                   min="0"
                   max="5000"
                   step="50"
-                  (ngModelChange)="selectedBudgetRange = ''"
+                  (ngModelChange)="setBudgetMin($event)"
               /></label>
               <b aria-hidden="true">–</b>
               <label
@@ -255,18 +256,18 @@
                 ><input
                   type="number"
                   name="budgetMax"
-                  [(ngModel)]="budgetMax"
+                  [ngModel]="budgetMax"
                   min="0"
                   max="5000"
                   step="50"
-                  (ngModelChange)="selectedBudgetRange = ''"
+                  (ngModelChange)="setBudgetMax($event)"
               /></label>
             </div>
             <div class="main-budget-actions">
               <button class="main-budget-reset" type="button" (click)="resetBudget()">
                 <i class="fa-solid fa-rotate-left"></i> Reset
               </button>
-              <button class="main-budget-apply" type="button" (click)="applyBudget()">Apply</button>
+              <button class="main-budget-apply" type="button" (click)="applyBudget()">Show properties</button>
             </div>
           </div>
         </label>
@@ -674,7 +675,9 @@
       <section
         class="area-picker-column"
         [class.dragging]="sheetDragging"
+        [class.collapsed]="areaSheetCollapsed"
         [style.--sheet-h]="sheetHeight !== null ? sheetHeight + 'px' : null"
+        (click)="expandCollapsedAreaSheet($event)"
       >
         <div
           class="sheet-handle"

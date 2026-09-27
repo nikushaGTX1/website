@@ -535,7 +535,17 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       )
     ).filter((item) => item.polygons.length);
     if (revision !== this.selectionRevision) return;
+    // Many neighbourhoods have no stored boundary yet; geocode those so the
+    // camera still lands on the selected place instead of staying put.
+    const missingAreas = requestedAreas.filter(
+      (area) => !drawableAreas.some((item) => item.area === area),
+    );
+    const geocodedBounds = (
+      await Promise.all(missingAreas.map((area) => this.geocodeAreaBounds(area)))
+    ).filter((bounds): bounds is google.maps.LatLngBounds => !!bounds);
+    if (revision !== this.selectionRevision) return;
     if (!drawableAreas.length) {
+      if (geocodedBounds.length) this.focusDistricts([], geocodedBounds);
       this.selectedArea = '';
       // Preserve the user's independent selections even while geometry is
       // awaiting approval; a later valid selection must not clear them.
@@ -545,6 +555,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       // availability is tracked independently below.
       this.errorMessage = '';
       this.polygonChange.emit(null);
+      if (this.selectedStreetsInput.length) await this.drawSelectedStreets(true);
       this.cdr.detectChanges();
       return;
     }
@@ -574,7 +585,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.hasPolygon = true;
       // Frame the whole selection: adding Vake to Saburtalo must keep both
       // districts in view instead of zooming into only the last clicked one.
-      this.focusDistricts(drawableAreas.flatMap(({ polygons }) => polygons));
+      this.focusDistricts(drawableAreas.flatMap(({ polygons }) => polygons), geocodedBounds);
       // The compact home-page map uses a clean listing-map presentation.
       // Keep the district geometry for searching, but do not paint its polygon.
       if (!this.compact) this.renderSelectedBoundaryOverlay(drawableAreas);
@@ -588,7 +599,36 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
-  private focusDistricts(polygons: number[][][][]): void {
+  private async geocodeAreaBounds(area: string): Promise<google.maps.LatLngBounds | null> {
+    try {
+      const { Geocoder } = (await importLibrary('geocoding')) as google.maps.GeocodingLibrary;
+      const response = await new Geocoder().geocode({
+        address: `${area}, Tbilisi, Georgia`,
+        componentRestrictions: { country: 'GE' },
+        region: 'GE',
+        bounds: { south: 41.6, west: 44.6, north: 41.9, east: 45.05 },
+      });
+      const match = response.results[0];
+      if (!match) return null;
+      const position = match.geometry.location;
+      if (position.lat() < 41.55 || position.lat() > 41.95 || position.lng() < 44.55 || position.lng() > 45.15) {
+        return null;
+      }
+      const viewport = match.geometry.viewport;
+      // A city-wide match means the neighbourhood itself was not found.
+      if (viewport && viewport.getNorthEast().lat() - viewport.getSouthWest().lat() > 0.15) return null;
+      if (viewport) return viewport;
+      const padding = 0.008;
+      return new google.maps.LatLngBounds(
+        { lat: position.lat() - padding, lng: position.lng() - padding },
+        { lat: position.lat() + padding, lng: position.lng() + padding },
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  private focusDistricts(polygons: number[][][][], extraBounds: google.maps.LatLngBounds[] = []): void {
     if (!this.map) return;
     const bounds = new google.maps.LatLngBounds();
     polygons.forEach((rings) =>
@@ -596,6 +636,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         if (Number.isFinite(lat) && Number.isFinite(lng)) bounds.extend({ lat, lng });
       }),
     );
+    extraBounds.forEach((extra) => bounds.union(extra));
     if (bounds.isEmpty()) return;
 
     // Compute a precise target, then ease both position and zoom toward it.
@@ -1973,6 +2014,19 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         (body.querySelector('small') as HTMLElement).style.fontSize = '11px';
         (body.querySelector('b') as HTMLElement).style.fontSize = '17px';
         this.map?.getDiv().parentElement?.appendChild(card);
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          card.animate(
+            [
+              { opacity: 0, transform: 'translateY(18px) scale(.97)' },
+              { opacity: 1, transform: 'translateY(0) scale(1)' },
+            ],
+            {
+              duration: 420,
+              easing: 'cubic-bezier(.16, 1, .3, 1)',
+              fill: 'both',
+            },
+          );
+        }
       } else {
         overlay.getPanes()?.floatPane.appendChild(card);
       }

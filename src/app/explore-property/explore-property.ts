@@ -275,19 +275,20 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
     this.suppressCardClickUntil = 0;
     this.loadCardGallery(apartment);
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
     this.cardGesture = { id: apartment.id, pointer: event.pointerId, x: event.clientX, y: event.clientY,
       width: (event.currentTarget as HTMLElement).clientWidth, started: performance.now(),
       index: this.cardImageIndex(apartment), count: this.cardImages(apartment).length, axis: null };
   }
 
-  moveCardSwipe(event: PointerEvent): void {
+  moveCardSwipe(event: PointerEvent, apartment: Apartment): void {
     const gesture = this.cardGesture;
     if (!gesture || gesture.pointer !== event.pointerId) return;
+    gesture.count = this.cardImages(apartment).length;
     const dx = event.clientX - gesture.x;
     const dy = event.clientY - gesture.y;
     if (!gesture.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 7) {
       gesture.axis = Math.abs(dx) > Math.abs(dy) * 1.15 ? 'x' : 'y';
-      if (gesture.axis === 'x') (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
     }
     if (gesture.axis !== 'x') return;
     event.preventDefault();
@@ -386,6 +387,18 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   get budgetMaxPercent(): number {
     return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
+  }
+
+  setBudgetMin(value: number | null): void {
+    const maximum = Number(this.budgetMax ?? 5000);
+    this.budgetMin = value == null ? null : Math.min(maximum, Math.max(0, Number(value)));
+    this.selectedBudgetRange = '';
+  }
+
+  setBudgetMax(value: number | null): void {
+    const minimum = Number(this.budgetMin ?? 0);
+    this.budgetMax = value == null ? null : Math.max(minimum, Math.min(5000, Number(value)));
+    this.selectedBudgetRange = '';
   }
 
   @HostListener('document:click')

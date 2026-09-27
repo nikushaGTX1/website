@@ -970,9 +970,6 @@ svg {
   cursor: default;
   transition: 0.2s ease;
 }
-.property-card.active {
-  transform: translateY(-2px);
-}
 @media (hover: hover) and (pointer: fine) {
   .property-card:hover {
     transform: translateY(-2px);
@@ -1927,7 +1924,7 @@ svg {
 }
 
 /* Photos slide as one strip, with the same motion for arrows and dragging. */
-.photo-wrap { z-index: 3; cursor: pointer; touch-action: pan-y pinch-zoom; user-select: none; }
+.photo-wrap { z-index: 3; cursor: pointer; touch-action: pan-y; user-select: none; }
 .card-photo-track { position: absolute; inset: 0; display: flex; width: 100%; height: 100%; transition: transform 320ms cubic-bezier(.22,.68,0,1); }
 .card-photo-track.dragging { transition: none; cursor: grabbing; }
 .photo-wrap .card-photo-track img { flex: 0 0 100%; width: 100%; min-width: 0; height: 100%; transform: none; transition: none; pointer-events: none; }
@@ -1946,8 +1943,8 @@ svg {
   .card-photo-arrow { opacity: 0; pointer-events: none; }
   .photo-wrap:hover .card-photo-arrow, .property-card:focus-within .card-photo-arrow { opacity: 1; pointer-events: auto; }
 }
-@media (pointer: coarse) {
-  .card-photo-arrow { width: 44px; height: 44px; min-height: 44px; }
+@media (pointer: coarse), (max-width: 780px) {
+  .card-photo-arrow { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .card-photo-track, .card-photo-dots span, .card-photo-arrow { transition: none; }

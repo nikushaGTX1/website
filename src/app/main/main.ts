@@ -56,8 +56,33 @@ export class Main implements OnInit, OnDestroy {
   /** Pressing a price on the map slides the areas sheet down to its handle so the listing card is visible. */
   collapseAreaSheet(): void {
     if (window.innerWidth > 650) return;
-    this.sheetHeight = 92;
+    const sheet = document.querySelector<HTMLElement>(
+      '.location-picker-dialog .area-picker-column',
+    );
+    const scroll = sheet?.querySelector<HTMLElement>('.sheet-scroll');
+    scroll?.scrollTo({ top: 0, behavior: 'auto' });
+
+    // Freeze the rendered (percentage-based) height first so the following
+    // pixel target always animates, including on the first marker press.
+    this.sheetHeight = sheet?.getBoundingClientRect().height || this.sheetHeight;
     this.cdr.detectChanges();
+    requestAnimationFrame(() => {
+      this.sheetHeight = 92;
+      this.cdr.detectChanges();
+    });
+  }
+
+  get areaSheetCollapsed(): boolean {
+    return this.sheetHeight !== null && this.sheetHeight <= 100;
+  }
+
+  /** A tap on the collapsed preview opens the sheet before its controls become interactive. */
+  expandCollapsedAreaSheet(event: MouseEvent): void {
+    if (window.innerWidth > 650 || !this.areaSheetCollapsed) return;
+    const sheet = event.currentTarget as HTMLElement;
+    const handle = sheet.querySelector<HTMLElement>('.sheet-handle');
+    if (!handle) return;
+    this.sheetHeight = this.sheetBounds(handle).half;
   }
 
   sheetPointerDown(event: PointerEvent): void {
@@ -124,7 +149,7 @@ export class Main implements OnInit, OnDestroy {
   budgetOpen = false;
   bedroomOpen = false;
   propertyTypeOpen = false;
-  budgetCurrency: 'GEL' | 'USD' = 'GEL';
+  budgetCurrency: 'GEL' | 'USD' = 'USD';
   budgetMin: number | null = null;
   budgetMax: number | null = null;
   appliedBudgetMin: number | null = null;
@@ -236,12 +261,34 @@ export class Main implements OnInit, OnDestroy {
     return `Up to ${max!.toLocaleString()} ${this.budgetCurrency}`;
   }
 
+  get budgetSelectionSummary(): string {
+    const min = this.budgetMin;
+    const max = this.budgetMax;
+    if (min != null && max != null)
+      return `${min.toLocaleString()} - ${max.toLocaleString()} ${this.budgetCurrency}`;
+    if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
+    if (max != null) return `Up to ${max.toLocaleString()} ${this.budgetCurrency}`;
+    return 'Any budget';
+  }
+
   get budgetMinPercent(): number {
     return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
   }
 
   get budgetMaxPercent(): number {
     return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
+  }
+
+  setBudgetMin(value: number | null): void {
+    const maximum = Number(this.budgetMax ?? 5000);
+    this.budgetMin = value == null ? null : Math.min(maximum, Math.max(0, Number(value)));
+    this.selectedBudgetRange = '';
+  }
+
+  setBudgetMax(value: number | null): void {
+    const minimum = Number(this.budgetMin ?? 0);
+    this.budgetMax = value == null ? null : Math.max(minimum, Math.min(5000, Number(value)));
+    this.selectedBudgetRange = '';
   }
 
   private normalizedSliderValue(value: number | null): number {

@@ -160,16 +160,16 @@
           <div class="budget-range-control">
             <div class="budget-range-track"></div>
             <div class="budget-range-fill" [style.left.%]="budgetMinPercent" [style.right.%]="100 - budgetMaxPercent"></div>
-            <input type="range" min="0" max="5000" step="50" aria-label="Minimum price" [ngModel]="budgetMin ?? 0" (ngModelChange)="budgetMin = $event; selectedBudgetRange = ''" />
-            <input type="range" min="0" max="5000" step="50" aria-label="Maximum price" [ngModel]="budgetMax ?? 5000" (ngModelChange)="budgetMax = $event; selectedBudgetRange = ''" />
+            <input type="range" min="0" max="5000" step="50" aria-label="Minimum price" [ngModel]="budgetMin ?? 0" (ngModelChange)="setBudgetMin($event)" />
+            <input type="range" min="0" max="5000" step="50" aria-label="Maximum price" [ngModel]="budgetMax ?? 5000" (ngModelChange)="setBudgetMax($event)" />
           </div>
           <div class="budget-range-labels"><span>$0</span><span>$5,000+</span></div>
           <div class="budget-fields">
             <label
-              ><span>Min price</span><input type="number" min="0" step="50" [(ngModel)]="budgetMin"
+              ><span>Min price</span><input type="number" min="0" step="50" [ngModel]="budgetMin" (ngModelChange)="setBudgetMin($event)"
             /></label>
             <label
-              ><span>Max price</span><input type="number" min="0" step="50" [(ngModel)]="budgetMax"
+              ><span>Max price</span><input type="number" min="0" step="50" [ngModel]="budgetMax" (ngModelChange)="setBudgetMax($event)"
             /></label>
           </div>
           <div class="popover-actions">
@@ -402,7 +402,7 @@
           ></a>
           <div class="photo-wrap" data-protected-image
             (pointerdown)="startCardSwipe($event, apartment)"
-            (pointermove)="moveCardSwipe($event)"
+            (pointermove)="moveCardSwipe($event, apartment)"
             (pointerup)="finishCardSwipe($event, apartment)"
             (pointercancel)="finishCardSwipe($event, apartment, true)"
             (lostpointercapture)="finishCardSwipe($event, apartment, true)"
