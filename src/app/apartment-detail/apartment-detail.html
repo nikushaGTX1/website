@@ -73,7 +73,7 @@
           <section class="vp-intro">
             <div class="vp-eyebrow">
               <span><i class="fa-regular fa-circle-check"></i> VELVEN VERIFIED</span
-              ><span>{{ listingType }}</span>
+              ><span [class.deal-rent]="!isForSale">{{ listingType }}</span>
             </div>
             <h1 [class.georgian-copy]="hasGeorgianText(title)">{{ title }}</h1>
             <p class="vp-address" [class.georgian-copy]="hasGeorgianText(address)">

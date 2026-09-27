@@ -1574,7 +1574,7 @@ select:focus {
 .preview-heading small { display: inline-flex; align-items: center; gap: 5px; color: #7040b2; }
 .preview-photo { position: relative; height: 216px; border-radius: 10px; background: linear-gradient(145deg, #eee9f4, #e3e4eb); }
 .preview-photo .exclusive-preview-badge { position: absolute; top: 10px; left: 10px; margin: 0; background: rgba(65, 23, 126, .92); backdrop-filter: blur(8px); }
-.photo-counter { position: absolute; left: 10px; bottom: 10px; padding: 5px 8px; border-radius: 6px; background: rgba(17, 15, 20, .72); color: #fff; font-size: 10px; font-weight: 700; }
+.photo-counter { position: absolute; left: 10px; bottom: 10px; padding: 5px 8px; border-radius: 6px; background: rgba(69, 26, 143, .9); color: #fff; font-size: 10px; font-weight: 700; }
 .preview-card > strong { margin: 14px 2px 4px; color: #1e1727; font-size: 15px; font-weight: 800; }
 .preview-card > b { margin: 0 2px; color: #38145f; font-size: 18px; }
 .preview-card > b small { display: inline; color: #8c8495; font-size: 10px; font-weight: 500; }

@@ -613,8 +613,6 @@ export class Main implements OnInit, OnDestroy {
     this.inlineDrawnPolygon = null;
     this.drawnDetectedArea = '';
     this.streetSearch = '';
-    // Reveal the map so the user sees it zoom to the district they picked.
-    this.collapseAreaSheetFromMap();
   }
 
   public isAreaSelected(area: string): boolean {

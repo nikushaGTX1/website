@@ -828,3 +828,9 @@
     overflow-y: auto;
   }
 }
+
+.listing-badge.rent {
+  color: #0f7a4f;
+  border-color: #b7e4cc;
+  background: #ecfaf2;
+}

@@ -20,6 +20,8 @@ import { PersistentDataCache } from '../../utils/persistent-data-cache';
 import { firstValueFrom } from 'rxjs';
 import { Apartment } from '../../models/apartment';
 import { Router } from '@angular/router';
+import { AppLanguage, TranslationService } from '../../services/translation.service';
+import { localizeListingTitle } from '../../utils/listing-title';
 import Supercluster from 'supercluster';
 
 type DistrictBoundaryState = {
@@ -53,6 +55,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   @Input() compact = false;
   @Input() mapOnly = false;
   @Input() dockPropertyPreview = false;
+  /** Sale listings show the plain price instead of "/ month". */
+  @Input() saleMode = false;
   @Input() selectedAreaInput = '';
   @Input() selectedAreasInput: string[] = [];
   @Input() selectedStreetsInput: Array<{ streetId: number; street: string; district: string }> = [];
@@ -147,6 +151,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     private locationService: LocationService,
     private router: Router,
     private apartmentService: ApartmentService,
+    private translationService: TranslationService,
   ) {}
 
   ngAfterViewInit(): void {
@@ -1908,138 +1913,196 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const overlay = new google.maps.OverlayView();
     let card: HTMLDivElement | undefined;
     overlay.onAdd = () => {
-      card = document.createElement('div');
-      let images = (apartment.imageUrls || []).filter(Boolean);
-      if (!images.length) images = [apartment.imageUrl || '/property-placeholder.svg'];
-      let imageIndex = 0;
-      card.setAttribute('role', 'dialog');
-      card.setAttribute('aria-label', apartment.title || 'Property details');
-      card.innerHTML = `
-        <button type="button" data-close aria-label="Close property preview">&times;</button>
-        <div data-gallery><button type="button" data-previous aria-label="Previous image">&#8249;</button><button type="button" data-next aria-label="Next image">&#8250;</button></div>
-        <div data-body><b>$${Math.round(apartment.price).toLocaleString('en-US')}</b>
-        <small>${apartment.bedrooms || '—'} beds · ${apartment.sizeSquareMeters || '—'} m²</small></div>`;
-      Object.assign(card.style, {
-        position: 'absolute', width: '246px', height: '112px', overflow: 'hidden', borderRadius: '14px',
-        display: 'grid', gridTemplateColumns: '158px 1fr',
-        background: '#fff', color: '#171421', boxShadow: '0 16px 38px rgba(28,17,36,.28)',
-        transform: 'translate(-50%, calc(-100% - 42px))', fontFamily: 'Inter,system-ui,sans-serif',
-        cursor: 'pointer', zIndex: '30'
-      });
-      const gallery = card.querySelector('[data-gallery]') as HTMLDivElement;
-      Object.assign(gallery.style, { position: 'relative', width: '158px', height: '112px', overflow: 'hidden' });
-      // Every photo is its own stacked <img>, all requested up front. Arrows only switch
-      // opacity, so changing photo never waits on the network.
-      const slides: HTMLImageElement[] = [];
-      const showSlide = (index: number) => slides.forEach((slide, i) => (slide.style.opacity = i === index ? '1' : '0'));
-      const changeImage = (event: Event, direction: number) => {
-        event.stopPropagation();
-        imageIndex = (imageIndex + direction + images.length) % images.length;
-        showSlide(imageIndex);
-      };
-      const previous = gallery.querySelector('[data-previous]') as HTMLButtonElement | null;
-      const next = gallery.querySelector('[data-next]') as HTMLButtonElement | null;
-      const renderImages = (urls: string[]) => {
-        slides.forEach((slide) => slide.remove());
-        slides.length = 0;
-        images = urls;
-        imageIndex = Math.min(imageIndex, urls.length - 1);
-        urls.forEach((url, i) => {
-          const slide = document.createElement('img');
-          slide.alt = '';
-          slide.decoding = 'async';
-          slide.loading = 'eager';
-          slide.setAttribute('fetchpriority', i === 0 ? 'high' : 'low');
-          Object.assign(slide.style, {
-            position: 'absolute', inset: '0', width: '100%', height: '100%', display: 'block',
-            objectFit: 'cover', pointerEvents: 'none', opacity: i === imageIndex ? '1' : '0',
-          });
-          slide.addEventListener('error', () => {
-            if (slide.getAttribute('src') !== '/property-placeholder.svg') slide.src = '/property-placeholder.svg';
-          });
-          slide.src = url;
-          gallery.appendChild(slide);
-          slides.push(slide);
-        });
-        const showArrows = urls.length > 1;
-        if (previous) previous.style.display = showArrows ? 'flex' : 'none';
-        if (next) next.style.display = showArrows ? 'flex' : 'none';
-      };
-      if (previous && next) {
-        const arrowCss = 'position:absolute;z-index:2;top:50%;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:#fff;color:#171421;font-size:24px;line-height:25px;cursor:pointer;box-shadow:0 2px 7px #0003;transform:translateY(-50%)';
-        previous.style.cssText = `${arrowCss};left:6px`;
-        next.style.cssText = `${arrowCss};right:6px`;
-        previous.addEventListener('click', (event) => changeImage(event, -1));
-        next.addEventListener('click', (event) => changeImage(event, 1));
+      const host = this.map?.getDiv().parentElement;
+      if (!host) return;
+      const preview = this.buildPropertyPreviewCard(apartment);
+      const previewCard = preview.card;
+      card = previewCard;
+      applyImages = preview.renderImages;
+      if (pendingImages) preview.renderImages(pendingImages);
+      if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+      // Docked to the bottom of the map (Airbnb style), independent of the pin position.
+      host.appendChild(previewCard);
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        previewCard.animate(
+          [
+            { opacity: 0, transform: 'translate(-50%, 24px)' },
+            { opacity: 1, transform: 'translate(-50%, 0)' },
+          ],
+          { duration: 380, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'both' },
+        );
       }
-      const body = card.querySelector('[data-body]') as HTMLDivElement;
-      Object.assign(body.style, { padding: '17px 7px 8px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px' });
-      (body.querySelector('small') as HTMLElement).style.cssText = 'font-size:9px;font-weight:650;color:#6e6878;white-space:nowrap';
-      (body.querySelector('b') as HTMLElement).style.cssText = 'font-size:15px;color:#451a8f;white-space:nowrap';
-      const close = card.querySelector('[data-close]') as HTMLButtonElement;
-      close.style.cssText = 'position:absolute;z-index:2;top:5px;right:5px;width:24px;height:24px;padding:0;border:0;border-radius:50%;background:#f5f2f8;color:#4b4452;font-size:17px;line-height:22px;cursor:pointer';
-      const controlIcon = (path: string) =>
-        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex:none;pointer-events:none"><path d="${path}"/></svg>`;
-      for (const control of [previous, next, close]) {
-        if (!control) continue;
-        Object.assign(control.style, {
-          width: '32px', height: '32px', minWidth: '32px', minHeight: '32px',
-          maxWidth: '32px', maxHeight: '32px', padding: '0', margin: '0',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxSizing: 'border-box', lineHeight: '1', appearance: 'none',
-        });
-      }
-      if (previous) previous.innerHTML = controlIcon('M15 18l-6-6 6-6');
-      if (next) next.innerHTML = controlIcon('M9 6l6 6-6 6');
-      close.innerHTML = controlIcon('M6 6l12 12M18 6L6 18');
-      close.style.top = '8px';
-      close.style.right = '8px';
-      renderImages(images);
-      applyImages = renderImages;
-      if (pendingImages) renderImages(pendingImages);
-      close.addEventListener('click', (event) => { event.stopPropagation(); this.clearPropertyPreview(); });
-      card.addEventListener('click', () => void this.router.navigate(['/apartments', apartment.id]));
-      if (this.dockPropertyPreview) {
-        // Keep the preview above the area summary, independent of marker position.
-        Object.assign(card.style, {
-          left: '16px', bottom: '108px', width: 'min(288px, calc(100% - 32px))',
-          height: '190px', gridTemplateColumns: '1fr', gridTemplateRows: '140px 50px',
-          transform: 'none',
-        });
-        Object.assign(gallery.style, { width: '100%', height: '140px' });
-        Object.assign(body.style, {
-          padding: '10px 12px', flexDirection: 'row', alignItems: 'center',
-          justifyContent: 'space-between', gap: '8px',
-        });
-        (body.querySelector('small') as HTMLElement).style.fontSize = '11px';
-        (body.querySelector('b') as HTMLElement).style.fontSize = '17px';
-        this.map?.getDiv().parentElement?.appendChild(card);
-        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          card.animate(
-            [
-              { opacity: 0, transform: 'translateY(18px) scale(.97)' },
-              { opacity: 1, transform: 'translateY(0) scale(1)' },
-            ],
-            {
-              duration: 420,
-              easing: 'cubic-bezier(.16, 1, .3, 1)',
-              fill: 'both',
-            },
-          );
-        }
-      } else {
-        overlay.getPanes()?.floatPane.appendChild(card);
-      }
-      google.maps.OverlayView.preventMapHitsAndGesturesFrom(card);
+      google.maps.OverlayView.preventMapHitsAndGesturesFrom(previewCard);
     };
-    overlay.draw = () => {
-      if (this.dockPropertyPreview) return;
-      const pixel = overlay.getProjection().fromLatLngToDivPixel(position);
-      if (card && pixel) { card.style.left = `${pixel.x}px`; card.style.top = `${pixel.y}px`; }
-    };
+    overlay.draw = () => undefined;
     overlay.onRemove = () => { card?.remove(); card = undefined; };
     overlay.setMap(this.map);
     this.propertyPreviewOverlay = overlay;
+  }
+
+  /** Listing card shown over the map; mirrors the explore-page map card. */
+  private buildPropertyPreviewCard(apartment: Apartment): {
+    card: HTMLDivElement;
+    renderImages: (urls: string[]) => void;
+  } {
+    const language = this.translationService.language$.value;
+    const escapeHtml = (value: string) =>
+      value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
+    const icon = (path: string, size = 14) =>
+      `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block;flex:none;pointer-events:none"><path d="${path}"/></svg>`;
+    const districts = this.locations.map((location) => ({
+      en: location.district,
+      ka: this.locationService.districtName(location, 'ka'),
+    }));
+    const title = localizeListingTitle(apartment.title, language, districts) || apartment.title || '';
+    const facts = [
+      apartment.bedrooms
+        ? `<span style="display:flex;align-items:center;gap:5px">${icon('M3 18v-8M21 18v-5a2 2 0 0 0-2-2H7a4 4 0 0 0-4 4v3M3 16h18M7 11V7h5a2 2 0 0 1 2 2v2')}<span>${apartment.bedrooms}</span> <span>${apartment.bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}</span></span>`
+        : '',
+      apartment.floor != null
+        ? `<span style="display:flex;align-items:center;gap:5px">${icon('M3 20h5v-4h4v-4h4V8h5')}<span>${apartment.floor}</span> <span>Floor</span></span>`
+        : '',
+      apartment.sizeSquareMeters
+        ? `<span style="display:flex;align-items:center;gap:5px">${icon('M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5')}<span>${apartment.sizeSquareMeters} m²</span></span>`
+        : '',
+    ].join('');
+    const price = `$${Math.round(apartment.price).toLocaleString('en-US')}`;
+
+    const card = document.createElement('div');
+    card.className = 'velven-map-preview';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-label', title || 'Property details');
+    card.innerHTML = `
+      <div data-gallery>
+        <button type="button" data-close aria-label="Close property preview">${icon('M6 6l12 12M18 6L6 18', 16)}</button>
+        <button type="button" data-previous aria-label="Previous image">${icon('m15 18-6-6 6-6', 16)}</button>
+        <button type="button" data-next aria-label="Next image">${icon('m9 18 6-6-6-6', 16)}</button>
+        <div data-dots></div>
+      </div>
+      <div data-body>
+        <b data-title>${escapeHtml(title)}</b>
+        <p data-location>${icon('M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z', 13)}<span>${escapeHtml(this.previewLocation(apartment, language))}</span></p>
+        ${facts ? `<div data-facts>${facts}</div>` : ''}
+        <div data-price><strong>${price}</strong>${this.saleMode ? '' : ' <span>/ month</span>'}</div>
+      </div>`;
+    Object.assign(card.style, {
+      position: 'absolute', left: '50%', bottom: '14px', zIndex: '40',
+      width: 'min(360px, calc(100% - 24px))', overflow: 'hidden', borderRadius: '18px',
+      background: '#fff', color: '#17131c', boxShadow: '0 18px 44px rgba(28,17,36,.3)',
+      transform: 'translateX(-50%)', fontFamily: 'Inter,system-ui,sans-serif', cursor: 'pointer',
+    });
+
+    const gallery = card.querySelector('[data-gallery]') as HTMLDivElement;
+    gallery.style.cssText = 'position:relative;height:190px;overflow:hidden;background:#eee9f4';
+    const roundButton =
+      'position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;width:32px;height:32px;min-width:32px;min-height:32px;max-width:32px;max-height:32px;margin:0;padding:0;box-sizing:border-box;border:0;border-radius:50%;background:rgba(255,255,255,.95);color:#1d1823;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer;appearance:none';
+    const close = gallery.querySelector('[data-close]') as HTMLButtonElement;
+    const previous = gallery.querySelector('[data-previous]') as HTMLButtonElement;
+    const next = gallery.querySelector('[data-next]') as HTMLButtonElement;
+    const dots = gallery.querySelector('[data-dots]') as HTMLDivElement;
+    close.style.cssText = `${roundButton};top:10px;right:10px`;
+    previous.style.cssText = `${roundButton};top:50%;left:10px;transform:translateY(-50%)`;
+    next.style.cssText = `${roundButton};top:50%;right:10px;transform:translateY(-50%)`;
+    dots.style.cssText =
+      'position:absolute;z-index:3;left:50%;bottom:10px;display:flex;gap:5px;transform:translateX(-50%);pointer-events:none';
+
+    const body = card.querySelector('[data-body]') as HTMLDivElement;
+    body.style.cssText = 'padding:12px 14px 14px';
+    (body.querySelector('[data-title]') as HTMLElement).style.cssText =
+      'display:block;overflow:hidden;font-size:15px;font-weight:750;line-height:1.35;white-space:nowrap;text-overflow:ellipsis';
+    const location = body.querySelector('[data-location]') as HTMLElement;
+    location.style.cssText =
+      'margin:5px 0 0;display:flex;align-items:center;gap:5px;min-width:0;color:#68646b;font-size:12px;line-height:1.35';
+    (location.querySelector('span') as HTMLElement).style.cssText =
+      'min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis';
+    const factsRow = body.querySelector('[data-facts]') as HTMLElement | null;
+    if (factsRow) {
+      factsRow.style.cssText =
+        'margin-top:9px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;color:#5f5964;font-size:12px;font-weight:600';
+    }
+    const priceRow = body.querySelector('[data-price]') as HTMLElement;
+    priceRow.style.cssText =
+      'margin-top:11px;padding-top:10px;border-top:1px solid #eeeaf0;font-size:12px;color:#6e6878';
+    (priceRow.querySelector('strong') as HTMLElement).style.cssText =
+      'color:#17131c;font-size:16px;font-weight:800';
+
+    // Every photo is its own stacked <img>; arrows only switch opacity so changing photo never waits.
+    let images: string[] = [];
+    let imageIndex = 0;
+    const slides: HTMLImageElement[] = [];
+    const paint = () => {
+      slides.forEach((slide, i) => (slide.style.opacity = i === imageIndex ? '1' : '0'));
+      previous.style.display = imageIndex > 0 ? 'flex' : 'none';
+      next.style.display = imageIndex < images.length - 1 ? 'flex' : 'none';
+      dots.innerHTML = images.length > 1
+        ? images
+            .slice(0, 5)
+            .map((_, i) =>
+              `<span style="width:6px;height:6px;border-radius:50%;background:${i === Math.min(imageIndex, 4) ? '#fff' : 'rgba(255,255,255,.55)'};box-shadow:0 1px 3px rgba(0,0,0,.3)"></span>`,
+            )
+            .join('')
+        : '';
+    };
+    const renderImages = (urls: string[]) => {
+      slides.forEach((slide) => slide.remove());
+      slides.length = 0;
+      images = urls.length ? urls : ['/property-placeholder.svg'];
+      imageIndex = Math.min(imageIndex, images.length - 1);
+      images.forEach((url, i) => {
+        const slide = document.createElement('img');
+        slide.alt = '';
+        slide.decoding = 'async';
+        slide.loading = 'eager';
+        slide.setAttribute('fetchpriority', i === 0 ? 'high' : 'low');
+        slide.style.cssText =
+          'position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;pointer-events:none;transition:opacity .2s ease';
+        slide.addEventListener('error', () => {
+          if (slide.getAttribute('src') !== '/property-placeholder.svg') slide.src = '/property-placeholder.svg';
+        });
+        slide.src = url;
+        gallery.insertBefore(slide, close);
+        slides.push(slide);
+      });
+      paint();
+    };
+    const step = (event: Event, direction: number) => {
+      event.stopPropagation();
+      imageIndex = Math.max(0, Math.min(images.length - 1, imageIndex + direction));
+      paint();
+    };
+    previous.addEventListener('click', (event) => step(event, -1));
+    next.addEventListener('click', (event) => step(event, 1));
+    close.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.clearPropertyPreview();
+    });
+    card.addEventListener('click', () => void this.router.navigate(['/apartments', apartment.id]));
+
+    renderImages((apartment.imageUrls || []).filter(Boolean).length
+      ? (apartment.imageUrls || []).filter(Boolean)
+      : [apartment.imageUrl || '/property-placeholder.svg']);
+    return { card, renderImages };
+  }
+
+  private previewLocation(apartment: Apartment, language: AppLanguage): string {
+    const storedStreet = apartment.street?.trim() || apartment.address?.split(',')[0]?.trim();
+    const storedDistrict = apartment.district?.trim();
+    const area = this.locations.find(
+      (entry) => entry.district.toLowerCase() === storedDistrict?.toLowerCase(),
+    );
+    const district = area ? this.locationService.districtName(area, language) : storedDistrict;
+    const street =
+      area && storedStreet
+        ? this.locationService
+            .streetNames(area, language)
+            .find(
+              (item) =>
+                item.value.toLowerCase() === storedStreet.toLowerCase() ||
+                item.label.toLowerCase() === storedStreet.toLowerCase(),
+            )?.label || storedStreet
+        : storedStreet;
+    if (street && district) return `${street} — ${district}`;
+    return street || district || 'Tbilisi';
   }
 
   private clearPropertyPreview(): void {

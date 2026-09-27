@@ -81,7 +81,7 @@
             <span *ngIf="apartment.bedrooms"><i class="fa-solid fa-bed"></i> {{ apartment.bedrooms }}</span>
             <span *ngIf="apartment.bathrooms"><i class="fa-solid fa-bath"></i> {{ apartment.bathrooms }}</span>
             <span *ngIf="apartment.sizeSquareMeters"><i class="fa-solid fa-expand"></i> {{ apartment.sizeSquareMeters }} m²</span>
-            <span *ngIf="apartment.floor"><i class="fa-solid fa-layer-group"></i> {{ apartment.floor }}/{{ apartment.totalFloors }}</span>
+            <span *ngIf="apartment.floor"><i class="fa-solid fa-stairs"></i> {{ apartment.floor }}/{{ apartment.totalFloors }}</span>
           </div>
           <div class="actions">
             <a class="btn primary" routerLink="/upload-apartment" [queryParams]="{ edit: apartment.id }"><i class="fa-solid fa-pen"></i> Edit</a>

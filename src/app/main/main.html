@@ -10,6 +10,11 @@
       [class.location-dialog-open]="locationOpen"
       (submit)="searchHomes(); $event.preventDefault()"
     >
+      <div
+        class="picker-sheet-backdrop"
+        *ngIf="propertyTypeOpen || budgetOpen || bedroomOpen"
+        (click)="$event.stopPropagation(); propertyTypeOpen = false; budgetOpen = false; bedroomOpen = false"
+      ></div>
       <div class="search-tabs" role="tablist" aria-label="Property type">
         <button type="button" [class.active]="searchMode === 'rent'" (click)="selectSearchMode('rent')">
           <span class="home-icon home-svg" aria-hidden="true"></span><span>Rent</span>
@@ -390,7 +395,7 @@
           </p>
           <div class="property-meta">
             <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
-            <span *ngIf="apartment.floor != null"><i class="fa-solid fa-layer-group"></i>{{ apartment.floor }} <span>Floor</span></span>
+            <span *ngIf="apartment.floor != null"><i class="fa-solid fa-stairs"></i>{{ apartment.floor }} <span>Floor</span></span>
             <span
               ><span class="measurement-svg" aria-hidden="true"></span
               >{{ apartment.sizeSquareMeters || '—' }} m²</span
@@ -757,6 +762,7 @@
           [visible]="true"
           [compact]="true"
           [dockPropertyPreview]="true"
+          [saleMode]="searchMode === 'buy'"
           [apartments]="apartmentsForSelectedMode"
           [selectedAreaInput]="selectedLocationArea"
           [selectedAreasInput]="selectedLocationAreas"
@@ -775,11 +781,7 @@
           <i class="fa-solid fa-city area-card-icon" aria-hidden="true"></i>
           <span
             ><b>{{ selectedLocationAreas.length ? selectedLocationAreas.join(', ') : (selectedLocationArea || drawnDetectedArea) }}</b
-            ><small>{{
-              selectedModalStreets.length
-                ? 'Street: ' + selectedModalStreets.join(', ')
-                : selectedAreaDescription
-            }}</small></span
+            ><small *ngIf="selectedModalStreets.length">{{ 'Street: ' + selectedModalStreets.join(', ') }}</small></span
           >
           <button
             type="button"
@@ -833,6 +835,7 @@
   *ngIf="drawAreaInitialized"
   [visible]="drawAreaOpen"
   [apartments]="apartmentsForSelectedMode"
+  [saleMode]="searchMode === 'buy'"
   (close)="closeDrawArea()"
   (apply)="applyDrawnArea($event)"
 >

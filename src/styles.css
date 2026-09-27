@@ -512,3 +512,9 @@ body.draw-map-open app-navigation {
     overflow-wrap: anywhere;
   }
 }
+
+/* The docked map listing card replaces the selected-area pill while it is open. */
+.location-map-preview:has(.velven-map-preview) .area-map-card {
+  opacity: 0;
+  pointer-events: none;
+}
