@@ -6,7 +6,7 @@ import { Apartment } from '../models/apartment';
 import { BlogPost, CreateBlogPost } from '../models/blog-post';
 import { User } from '../models/user';
 import { AdminService } from '../services/admin.service';
-import { ApartmentService, PendingApartmentEntry } from '../services/apartment.service';
+import { ApartmentService, ApartmentUploader, PendingApartmentEntry } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { BlogService } from '../services/blog.service';
 import { CrmVacancyPosition } from '../models/crm';
@@ -25,6 +25,8 @@ export class AdminPanel implements OnInit, OnDestroy {
   apartments: Apartment[] = [];
   blogPosts: BlogPost[] = [];
   pendingApartments: PendingApartmentEntry[] = [];
+  apartmentUploaders: Record<number, ApartmentUploader> = {};
+  expandedPendingId: number | null = null;
   vacancyPositions: CrmVacancyPosition[] = [];
   newVacancyPosition = '';
   userIds: string[] = [];
@@ -145,12 +147,23 @@ export class AdminPanel implements OnInit, OnDestroy {
   get filteredApartments(): Apartment[] {
     const query = this.normalizedSearch;
 
-    return this.apartments.filter((apartment) =>
-      this.matchesQuery(
-        [apartment.title, apartment.description, apartment.address, String(apartment.price)],
+    return this.apartments.filter((apartment) => {
+      const uploader = this.apartmentUploaders[apartment.id];
+      return this.matchesQuery(
+        [
+          apartment.title,
+          apartment.description,
+          apartment.address,
+          apartment.district,
+          String(apartment.price),
+          String(apartment.id),
+          uploader?.name,
+          uploader?.email,
+          uploader?.phone,
+        ],
         query
-      )
-    );
+      );
+    });
   }
 
   get filteredBlogPosts(): BlogPost[] {
@@ -200,6 +213,7 @@ export class AdminPanel implements OnInit, OnDestroy {
         : of([] as string[]),
       agents: this.adminService.getAgents().pipe(catchError(() => of([] as Agent[]))),
       apartments: this.apartmentService.getApartments().pipe(catchError(() => of([] as Apartment[]))),
+      uploaders: this.apartmentService.getApartmentUploaders().pipe(catchError(() => of([] as ApartmentUploader[]))),
       vacancyPositions: this.isAdmin
         ? this.crmService.getVacancyPositions(true).pipe(catchError(() => of([] as CrmVacancyPosition[])))
         : of([] as CrmVacancyPosition[]),
@@ -219,6 +233,10 @@ export class AdminPanel implements OnInit, OnDestroy {
           return ratings;
         }, {});
         this.apartments = data.apartments;
+        this.apartmentUploaders = data.uploaders.reduce<Record<number, ApartmentUploader>>((map, row) => {
+          map[row.apartmentId] = row;
+          return map;
+        }, {});
         this.vacancyPositions = data.vacancyPositions;
 
         this.loading = false;
@@ -901,6 +919,123 @@ export class AdminPanel implements OnInit, OnDestroy {
 
   identifyBlogPost(_: number, post: BlogPost): string {
     return String(post.id);
+  }
+
+  get searchPlaceholder(): string {
+    const labels: Record<string, string> = {
+      pending: 'Search pending',
+      users: 'Search users',
+      agents: 'Search agents',
+      apartments: 'Search apartments',
+      blog: 'Search blogs',
+      streets: 'Search streets',
+      vacancies: 'Search vacancies',
+    };
+    return labels[this.activeTab] ?? 'Search';
+  }
+
+  refreshEvChargers(): void {
+    if (this.actionId || !this.canOperateDashboard) return;
+    this.actionId = 'ev-chargers';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.cdr.detectChanges();
+    this.apartmentService.refreshEvChargerDistances().subscribe({
+      next: (response) => {
+        this.successMessage = response.message;
+        this.actionId = '';
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.errorMessage = 'Could not refresh EV charger times.';
+        this.actionId = '';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  togglePendingDetails(item: PendingApartmentEntry): void {
+    this.expandedPendingId = this.expandedPendingId === item.id ? null : item.id;
+  }
+
+  uploaderOf(apartment: Apartment): ApartmentUploader | undefined {
+    return this.apartmentUploaders[apartment.id];
+  }
+
+  personPicture(value?: string | null): string {
+    return value ? toMediaUrl(value) : '';
+  }
+
+  initials(name?: string | null): string {
+    const parts = (name || '?').trim().split(/\s+/).filter(Boolean);
+    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || '?';
+  }
+
+  hideBrokenImage(event: Event): void {
+    (event.target as HTMLImageElement).style.display = 'none';
+  }
+
+  photoCount(apartment: Apartment): number {
+    return apartment.images?.length || apartment.imageUrls?.length || (apartment.imageUrl ? 1 : 0);
+  }
+
+  locationLine(apartment: Apartment): string {
+    const parts = [apartment.street, apartment.buildingNumber, apartment.district, apartment.city]
+      .map((part) => String(part ?? '').trim())
+      .filter(Boolean);
+    return parts.length ? parts.join(', ') : apartment.address || 'No address';
+  }
+
+  apartmentFacts(apartment: Apartment): Array<{ icon: string; label: string }> {
+    const facts: Array<{ icon: string; label: string }> = [];
+    if (apartment.sizeSquareMeters) facts.push({ icon: 'fa-ruler-combined', label: `${apartment.sizeSquareMeters} m²` });
+    if (apartment.bedrooms) facts.push({ icon: 'fa-bed', label: `${apartment.bedrooms} bd` });
+    if (apartment.bathrooms) facts.push({ icon: 'fa-bath', label: `${apartment.bathrooms} ba` });
+    if (apartment.floor) {
+      facts.push({
+        icon: 'fa-building',
+        label: apartment.totalFloors ? `Floor ${apartment.floor}/${apartment.totalFloors}` : `Floor ${apartment.floor}`,
+      });
+    }
+    return facts;
+  }
+
+  apartmentAmenities(apartment: Apartment): string[] {
+    const flags: Array<[boolean | undefined, string]> = [
+      [apartment.hasElevator, 'Elevator'],
+      [apartment.hasParking, 'Parking'],
+      [apartment.hasBalcony, 'Balcony'],
+      [apartment.hasAirConditioning, 'Air conditioning'],
+      [apartment.isFurnished, 'Furnished'],
+      [apartment.isPetFriendly, 'Pet friendly'],
+      [apartment.hasDishwasher, 'Dishwasher'],
+      [apartment.hasView, 'View'],
+    ];
+    return flags.filter(([value]) => value).map(([, label]) => label);
+  }
+
+  dealLabel(apartment: Apartment): 'Sale' | 'Rent' {
+    const deal = /(?:^|[|\r\n])\s*(?:Deal|Listing type):\s*([^|\r\n]+)/i.exec(apartment.description || '')?.[1];
+    if (deal) return /sale|buy|იყიდება|продаж/i.test(deal) ? 'Sale' : 'Rent';
+    return /for\s+sale|buy|იყიდება|продаж/i.test(apartment.title || '') ? 'Sale' : 'Rent';
+  }
+
+  isVerifiedListing(apartment: Apartment): boolean {
+    return /(?:^|[|\r\n])\s*Verified listing:\s*Yes\b/i.test(apartment.description || '');
+  }
+
+  relativeTime(value?: string | null): string {
+    if (!value) return '';
+    const time = new Date(value).getTime();
+    if (!Number.isFinite(time)) return '';
+    const minutes = Math.max(0, Math.round((Date.now() - time) / 60000));
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} h ago`;
+    const days = Math.round(hours / 24);
+    if (days < 30) return `${days} d ago`;
+    return new Date(value).toLocaleDateString();
   }
 
   private matchesQuery(values: Array<string | number | undefined | null>, query: string): boolean {

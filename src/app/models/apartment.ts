@@ -63,6 +63,7 @@ export interface Apartment {
   schoolDistanceMinutes?: number;
   kindergartenDistanceMinutes?: number;
   universityDistanceMinutes?: number;
+  evChargerDistanceMinutes?: number;
   imageUrl?: string;
   imageUrls?: string[];
   images?: ApartmentImage[];
@@ -149,6 +150,7 @@ export interface CreateApartment {
   schoolDistanceMinutes?: number;
   kindergartenDistanceMinutes?: number;
   universityDistanceMinutes?: number;
+  evChargerDistanceMinutes?: number;
   imageUrl?: string;
   imageUrls?: string[];
   imageFile?: File;

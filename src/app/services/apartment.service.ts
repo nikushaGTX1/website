@@ -19,6 +19,20 @@ export interface PendingApartmentEntry {
   submittedByUserId?: string;
   submittedByName: string;
   submittedByEmail: string;
+  submittedByPhone?: string | null;
+  submittedByPicture?: string | null;
+  submittedByIsAgent?: boolean;
+}
+
+export interface ApartmentUploader {
+  apartmentId: number;
+  userId?: string | null;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  picture?: string | null;
+  isAgent?: boolean;
+  imageCount?: number;
 }
 
 export interface GeoJsonPolygon {
@@ -168,6 +182,16 @@ export class ApartmentService {
 
   getPendingApartments(): Observable<PendingApartmentEntry[]> {
     return this.http.get<PendingApartmentEntry[]>(`${this.apiUrl}/pending`);
+  }
+
+  getApartmentUploaders(): Observable<ApartmentUploader[]> {
+    return this.http.get<ApartmentUploader[]>(`${this.apiUrl}/uploaders`);
+  }
+
+  refreshEvChargerDistances(): Observable<{ message: string; updated: number; checkedCount: number }> {
+    return this.http
+      .post<{ message: string; updated: number; checkedCount: number }>(`${this.apiUrl}/refresh-ev-chargers`, {})
+      .pipe(tap(() => this.clearApartmentCache()));
   }
 
   approveApartment(id: number): Observable<ApartmentMutationResponse> {
@@ -369,6 +393,7 @@ export class ApartmentService {
       ['groceryDistanceMinutes', 'GroceryDistanceMinutes'],
       ['pharmacyDistanceMinutes', 'PharmacyDistanceMinutes'],
       ['cafeDistanceMinutes', 'CafeDistanceMinutes'],
+      ['evChargerDistanceMinutes', 'EvChargerDistanceMinutes'],
     ];
     const booleanFields: Array<[keyof CreateApartment, string]> = [
       ['hasElevator', 'HasElevator'],

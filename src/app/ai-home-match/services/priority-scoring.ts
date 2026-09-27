@@ -168,6 +168,15 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
   let points = 0;
   if (profile.hasPet) points += apartment.isPetFriendly || hasTag(apartment, 'Pet friendly') ? 8 : -12;
   if (profile.transportation.includes('Car')) points += parkingScore(apartment) >= 3 ? 6 : parkingScore(apartment) === 0 ? -6 : 0;
+  // Electric car owners: an EV charger within a 10-minute walk earns 3 points.
+  if (
+    profile.transportation.includes('Car') &&
+    profile.carFuelType === 'Electric' &&
+    typeof apartment.evChargerDistanceMinutes === 'number' &&
+    apartment.evChargerDistanceMinutes <= 10
+  ) {
+    points += 3;
+  }
   if (profile.transportation.includes('Metro') || profile.transportation.includes('Walking')) {
     const metro = apartment.metroDistanceMinutes;
     if (typeof metro === 'number') points += metro <= 10 ? 5 : metro > 20 ? -5 : 0;

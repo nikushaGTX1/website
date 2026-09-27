@@ -98,6 +98,9 @@ export class HomeProfileSummaryComponent {
         : { step: 7, label: 'Purchase timing', value: this.label(p.purchaseTiming), icon: 'fa-calendar-days' },
       rent ? { step: 7, label: 'Rental period', value: this.label(p.rentalDuration), icon: 'fa-hourglass-half' } : null,
       { step: 8, label: 'Transport', value: this.list(p.transportation), icon: 'fa-route' },
+      p.transportation.includes('Car') && p.carFuelType
+        ? { step: 8, label: 'Car', value: this.label(p.carFuelType), icon: p.carFuelType === 'Electric' ? 'fa-charging-station' : 'fa-gas-pump' }
+        : null,
       { step: 9, label: 'Lifestyle', value: this.list(p.lifestyles), icon: 'fa-heart' },
       rent && p.hasPet !== null ? { step: 10, label: 'Pet', value: this.petValue, icon: 'fa-paw' } : null,
       { step: 11, label: 'Top 5 priorities', value: this.list(p.topPriorities), icon: 'fa-list-ol' },

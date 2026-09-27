@@ -449,6 +449,35 @@
               >{{ option.label }}
             </button>
           </div>
+          <div class="car-fuel" *ngIf="profile.transportation.includes('Car')">
+            <p class="car-fuel-title">What does your car run on?</p>
+            <div class="car-fuel-options">
+              <button
+                type="button"
+                class="fuel-card electric"
+                [class.selected]="profile.carFuelType === 'Electric'"
+                [attr.aria-pressed]="profile.carFuelType === 'Electric'"
+                (click)="chooseCarFuel('Electric')"
+              >
+                <span class="fuel-icon"><i class="fa-solid fa-charging-station"></i></span>
+                <strong>Electric</strong>
+                <small>We look for EV chargers nearby</small>
+                <i class="fa-solid fa-circle-check fuel-check"></i>
+              </button>
+              <button
+                type="button"
+                class="fuel-card fuel"
+                [class.selected]="profile.carFuelType === 'Fuel'"
+                [attr.aria-pressed]="profile.carFuelType === 'Fuel'"
+                (click)="chooseCarFuel('Fuel')"
+              >
+                <span class="fuel-icon"><i class="fa-solid fa-gas-pump"></i></span>
+                <strong>Petrol / diesel</strong>
+                <small>Parking matters most</small>
+                <i class="fa-solid fa-circle-check fuel-check"></i>
+              </button>
+            </div>
+          </div>
           <p class="notice" *ngIf="profile.parkingAutomaticallyPrioritized">
             Parking has been automatically prioritized.
           </p>

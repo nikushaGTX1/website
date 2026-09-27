@@ -3040,3 +3040,11 @@
     transform: scale(0.7);
   }
 }
+
+/* Vake Park uses its own fountain illustration instead of a generic icon. */
+.vp-nearby .nearby-place-image {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  object-fit: contain;
+}

@@ -831,6 +831,10 @@
 
 .listing-badge.rent {
   color: #0f7a4f;
-  border-color: #b7e4cc;
+  border: 1px solid #b7e4cc;
+  border-radius: 999px;
   background: #ecfaf2;
+  padding: 6px 11px;
+  font-weight: 600;
+  line-height: 1.2;
 }

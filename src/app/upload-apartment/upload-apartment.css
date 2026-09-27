@@ -924,6 +924,22 @@ select:focus {
   flex: 0 0 auto;
 }
 
+.location-options { display: grid; gap: 10px; margin-top: 22px; }
+.location-option { position: relative; display: flex; align-items: center; gap: 14px; padding: 17px 18px; border: 1px solid #e8e2ed; border-radius: 15px; background: #fff; cursor: pointer; transition: border-color .18s, background .18s; }
+.location-option:hover { border-color: #bea4d8; background: #fcfaff; }
+.location-option.is-enabled { border-color: #cdb7e5; background: #faf6ff; }
+.location-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.location-option:focus-within { outline: 3px solid #dbc7f0; outline-offset: 2px; }
+.location-option-icon { display: grid; place-items: center; flex: 0 0 38px; height: 38px; border-radius: 11px; background: #f3eef8; color: #70429c; font-size: 16px; }
+.location-option-copy { flex: 1; min-width: 0; }
+.location-option-copy strong { display: block; color: #352641; font-size: 13px; font-weight: 700; line-height: 1.5; }
+.location-option-copy small { display: block; margin-top: 4px; color: #82768d; font-size: 11px; line-height: 1.6; }
+.location-option-switch { position: relative; flex: 0 0 42px; height: 24px; border-radius: 999px; background: #ddd7e3; transition: background .18s; }
+.location-option-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px #24142d26; transition: transform .18s; }
+.location-option input:checked ~ .location-option-switch { background: #6531a5; }
+.location-option input:checked ~ .location-option-switch::after { transform: translateX(18px); }
+@media (max-width: 480px) { .location-option { padding: 14px 12px; gap: 10px; } .location-option-icon { flex-basis: 32px; height: 32px; } }
+
 .checkbox-row,
 .toggle-row {
   display: inline-flex;
@@ -1128,6 +1144,38 @@ select:focus {
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 13px;
+}
+
+.listing-copy-editor { margin-bottom: 28px; padding: clamp(18px, 3vw, 30px); border: 1px solid #e5ddef; border-radius: 22px; background: linear-gradient(145deg, #fcfaff, #fff 55%); box-shadow: 0 8px 30px #34145a06; }
+.listing-copy-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.listing-copy-head .field-label { margin: 0; }
+.listing-copy-head small { display: block; margin-top: 4px; color: #7d7485; font-size: 12px; }
+.copy-generate { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 9px 14px; border: 1px solid #dac9ec; border-radius: 10px; background: #f6f0fc; color: #5b2594; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+.copy-generate:hover { border-color: #8051ae; background: #eee3f8; }
+.copy-language-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+.copy-language-tabs button { min-height: 34px; padding: 6px 12px; border: 1px solid transparent; border-radius: 9px; background: #f4f3f5; color: #67606e; font: inherit; font-size: 12px; cursor: pointer; }
+.copy-language-tabs button.active { border-color: #9fe0bf; background: #effbf5; color: #087a4a; font-weight: 750; }
+.copy-field { display: block; margin-top: 12px; }
+.copy-field > span { display: block; margin-bottom: 7px; color: #31263a; font-size: 12px; font-weight: 750; }
+.copy-field input, .copy-field textarea { width: 100%; box-sizing: border-box; border: 1px solid #ddd7e1; border-radius: 10px; background: #fff; color: #24192c; font: inherit; line-height: 1.6; outline: none; }
+.copy-field input { min-height: 45px; padding: 10px 13px; }
+.copy-field textarea { min-height: 210px; padding: 18px 20px 40px; resize: vertical; line-height: 1.9; }
+.copy-field input:focus, .copy-field textarea:focus { border-color: #7140a6; box-shadow: 0 0 0 3px rgba(113,64,166,.1); }
+.copy-description { position: relative; }
+.copy-counter { position: absolute; right: 13px; bottom: 11px; color: #8a818f; font-size: 11px; }
+.copy-help { display: flex; align-items: flex-start; gap: 8px; margin: 12px 0 0; color: #746b7c; font-size: 11px; line-height: 1.5; }
+.copy-help i { margin-top: 2px; color: #7240a6; }
+.copy-current-language { display: inline-flex; align-items: center; gap: 8px; margin: 3px 0 10px; padding: 7px 12px; border: 1px solid #d7c7eb; border-radius: 999px; background: #f4eefb; color: #65369a; font-size: 12px; font-weight: 700; }
+.upload-validation { margin-bottom: 22px; padding: 20px; border: 1px solid #f3c8c0; border-radius: 16px; background: #fff8f6; color: #9e3529; }
+.upload-validation strong { display: block; margin-bottom: 10px; }
+.upload-validation button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 0; border: 0; border-bottom: 1px solid #f7e2dc; background: transparent; color: inherit; text-align: left; font: inherit; font-size: 13px; cursor: pointer; }
+.upload-validation button i:last-child { margin-left: auto; }
+.metric-validation { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; color: #b13b30; font-size: 12px; line-height: 1.6; }
+
+@media (max-width: 640px) {
+  .listing-copy-editor { padding: 15px; }
+  .listing-copy-head { display: grid; }
+  .copy-generate { width: 100%; }
 }
 
 .photo-upload-head .field-label {
@@ -1639,21 +1687,30 @@ select:focus {
   background: rgba(21, 16, 28, 0.55);
 }
 .upload-success-modal {
-  width: min(420px, 100%);
-  padding: 30px 26px 24px;
-  border-radius: 20px;
-  background: #fff;
+  width: min(460px, 100%);
+  box-sizing: border-box;
+  padding: 38px 30px 28px;
+  border: 1px solid #ffffffcc;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at top, #effbf5, #fff 55%);
   text-align: center;
   box-shadow: 0 24px 60px rgba(21, 16, 28, 0.3);
 }
 .upload-success-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: #e2f6ec;
+  box-shadow: 0 0 0 9px #f4fbf7;
   color: #1f9d6b;
   font-size: 52px;
   line-height: 1;
 }
 .upload-success-modal h3,
 .upload-success-modal h4 {
-  margin: 12px 0 6px;
+  margin: 26px 0 12px;
   color: #171421;
   font-size: 20px;
 }
@@ -1669,12 +1726,17 @@ select:focus {
   line-height: 1.6;
 }
 .upload-success-modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
   margin-top: 22px;
   min-width: 140px;
-  height: 44px;
+  height: 50px;
   border: 0;
   border-radius: 12px;
-  background: #451a8f;
+  background: linear-gradient(120deg, #6535b2, #451a8f);
   color: #fff;
   font-weight: 700;
   cursor: pointer;

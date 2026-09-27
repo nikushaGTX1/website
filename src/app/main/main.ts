@@ -214,7 +214,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     'Digomi',
   ];
   readonly featuredLocationAreas = [
-    { name: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-fountain.png' },
+    { name: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-tree.svg' },
     { name: 'Saburtalo', description: 'Central & convenient', icon: '/icons/areas/saburtalo-buildings.svg' },
     { name: 'Vera', description: 'Historic central', icon: '/icons/areas/vera-heritage-house.svg' },
     { name: 'Mtatsminda', description: 'Old city & views', icon: '/icons/areas/mtatsminda-columns.svg' },

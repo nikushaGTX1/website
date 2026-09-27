@@ -143,7 +143,8 @@
             <h2>Everything within reach</h2>
             <div class="vp-nearby" *ngIf="storedNearbyPlaces.length">
               <div *ngFor="let place of storedNearbyPlaces">
-                <i class="fa-solid {{ place.icon }}"></i>
+                <img *ngIf="place.image; else faIcon" class="nearby-place-image" [src]="place.image" alt="" aria-hidden="true" />
+                <ng-template #faIcon><i class="fa-solid {{ place.icon }}"></i></ng-template>
                 <p>
                   <strong>{{ place.label }}</strong
                   ><small>{{ place.minutes }} min walk</small>
@@ -311,7 +312,7 @@
       </section></ng-template
     >
   </div>
-  <div class="viewing-backdrop" *ngIf="viewingDialogOpen" (click)="closeViewingDialog()">
+  <div class="viewing-backdrop" *ngIf="viewingDialogOpen">
     <section
       #viewingDialog
       class="viewing-dialog vd"
@@ -319,7 +320,6 @@
       aria-modal="true"
       aria-labelledby="vd-title"
       tabindex="-1"
-      (click)="$event.stopPropagation()"
     >
       <header class="vd-head">
         <div class="vd-logo" data-no-translate>

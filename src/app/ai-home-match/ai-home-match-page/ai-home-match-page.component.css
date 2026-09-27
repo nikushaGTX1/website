@@ -1759,3 +1759,22 @@ fieldset {
   font-size: 13px;
   font-weight: 650;
 }
+
+/* Car fuel follow-up (shown when Car is selected) */
+.car-fuel { margin: 18px 0 12px; padding: 18px; border: 1px solid #e5e2ee; border-radius: 16px; background: linear-gradient(135deg, #faf8ff, #f3fbf7); animation: carFuelIn 0.28s ease-out; }
+.car-fuel-title { margin: 0 0 12px; color: #2d2540; font-weight: 800; }
+.car-fuel-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fuel-card { position: relative; display: grid; justify-items: center; gap: 6px; padding: 20px 14px 16px; border: 2px solid #e5e2e9; border-radius: 16px; background: #fff; text-align: center; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
+.fuel-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(40, 30, 80, 0.08); }
+.fuel-card strong { color: #241c35; font-size: 15px; }
+.fuel-card small { color: #7a7389; font-size: 12px; font-weight: 600; }
+.fuel-icon { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 16px; font-size: 24px; }
+.fuel-card.electric .fuel-icon { background: linear-gradient(135deg, #d9f7e8, #b6efd3); color: #0f8f61; }
+.fuel-card.fuel .fuel-icon { background: linear-gradient(135deg, #fff1d6, #ffe0a8); color: #b86e00; }
+.fuel-check { position: absolute; top: 10px; right: 10px; color: #5b48ca; font-size: 18px; opacity: 0; transform: scale(0.6); transition: opacity 0.15s ease, transform 0.15s ease; }
+.fuel-card.selected { border-color: #5b48ca; background: #f7f5ff; }
+.fuel-card.electric.selected { border-color: #12925f; background: #f1fbf6; }
+.fuel-card.electric.selected .fuel-check { color: #12925f; }
+.fuel-card.selected .fuel-check { opacity: 1; transform: scale(1); }
+@keyframes carFuelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (max-width: 420px) { .car-fuel { padding: 14px; } .car-fuel-options { gap: 8px; } .fuel-card { padding: 16px 8px 12px; } .fuel-icon { width: 48px; height: 48px; font-size: 20px; } }

@@ -1068,14 +1068,14 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     });
   }
 
-  get storedNearbyPlaces(): Array<{ label: string; icon: string; minutes: number }> {
+  get storedNearbyPlaces(): Array<{ label: string; icon: string; minutes: number; image?: string }> {
     const apartment = this.apartment;
     if (!apartment) return [];
     // Vake has no metro station of its own; show the neighborhood's park instead.
     const isVake = (apartment.district || '').trim().toLowerCase() === 'vake';
     const places = [
       isVake
-        ? { label: 'Vake Park', icon: 'fa-tree', minutes: 10 }
+        ? { label: 'Vake Park', icon: 'fa-tree', minutes: 10, image: '/icons/areas/vake-fountain.png' }
         : { label: 'Nearest metro', icon: 'fa-train-subway', minutes: apartment.metroDistanceMinutes },
       {
         label: 'Nearest school',

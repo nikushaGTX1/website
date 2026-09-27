@@ -52,50 +52,106 @@
     <input
       type="search"
       [(ngModel)]="adminSearch"
-      [placeholder]="'Search ' + activeTab"
+      [placeholder]="searchPlaceholder"
     />
     <button type="button" (click)="clearSearch()" [disabled]="!adminSearch">Clear</button>
   </div>
 
   <section class="admin-section" *ngIf="activeTab === 'pending'">
     <div class="section-title">
-      <h2>Apartment review queue</h2>
-      <span>{{ waitingCount }} waiting / {{ pendingApartments.length }} total</span>
+      <div>
+        <h2>Apartment review queue</h2>
+        <p class="section-sub">Check the listing and who uploaded it, then confirm to publish.</p>
+      </div>
+      <span class="count-pill">{{ waitingCount }} waiting</span>
     </div>
 
-    <div class="empty-state" *ngIf="filteredPendingApartments.length === 0">
-      No apartment requests found.
+    <div class="empty-state review-empty" *ngIf="filteredPendingApartments.length === 0">
+      <i class="fa-solid fa-circle-check"></i>
+      <strong>No apartment requests found.</strong>
+      <span>New uploads from agents appear here before they go live.</span>
     </div>
 
-    <article
-      class="review-row"
-      *ngFor="let item of filteredPendingApartments; trackBy: identifyPending"
-    >
-      <img *ngIf="item.apartment.imageUrl" [src]="item.apartment.imageUrl" alt="" />
-      <div class="review-body">
-        <div class="row-head">
-          <div>
+    <article class="review-card" *ngFor="let item of filteredPendingApartments; trackBy: identifyPending">
+      <div class="review-media">
+        <img *ngIf="item.apartment.imageUrl; else noPhoto" [src]="item.apartment.imageUrl" alt="" />
+        <ng-template #noPhoto><div class="media-empty"><i class="fa-regular fa-image"></i></div></ng-template>
+        <span class="media-badge deal" [class.rent]="dealLabel(item.apartment) === 'Rent'">{{ dealLabel(item.apartment) === 'Rent' ? 'For rent' : 'For sale' }}</span>
+        <span class="media-badge photos"><i class="fa-solid fa-camera"></i> {{ photoCount(item.apartment) }}</span>
+      </div>
+
+      <div class="review-main">
+        <div class="review-top">
+          <div class="review-heading">
+            <div class="review-tags">
+              <span class="status-pill"><i class="fa-regular fa-clock"></i> Awaiting review</span>
+              <span class="verified-pill" *ngIf="isVerifiedListing(item.apartment)"><i class="fa-solid fa-circle-check"></i> Verified</span>
+              <span class="muted-tag">#{{ item.id }}</span>
+            </div>
             <h3>{{ item.apartment.title }}</h3>
-            <p>{{ item.apartment.address || 'No address' }}</p>
+            <p class="review-location"><i class="fa-solid fa-location-dot"></i> {{ locationLine(item.apartment) }}</p>
           </div>
-          <span class="status">
-            {{ item.status }}
-          </span>
+          <div class="review-price">
+            <strong><app-currency-price [usdPrice]="item.apartment.price"></app-currency-price></strong>
+            <span>Submitted {{ relativeTime(item.submittedAt) }}</span>
+          </div>
         </div>
-        <p class="description">{{ item.apartment.description }}</p>
-        <div class="meta">
-          <span><app-currency-price [usdPrice]="item.apartment.price"></app-currency-price></span>
-          <span>{{ item.apartment.images?.length || (item.apartment.imageUrl ? 1 : 0) }} photos</span>
-          <span>{{ item.submittedByName }}</span>
-          <span>{{ item.submittedByEmail || 'No email' }}</span>
+
+        <div class="fact-chips" *ngIf="apartmentFacts(item.apartment).length">
+          <span *ngFor="let fact of apartmentFacts(item.apartment)"><i class="fa-solid {{ fact.icon }}"></i> {{ fact.label }}</span>
+        </div>
+
+        <div class="amenity-chips" *ngIf="apartmentAmenities(item.apartment).length">
+          <span *ngFor="let amenity of apartmentAmenities(item.apartment)">{{ amenity }}</span>
+        </div>
+
+        <p class="description" [class.expanded]="expandedPendingId === item.id">{{ item.apartment.description }}</p>
+
+        <div class="thumb-strip" *ngIf="expandedPendingId === item.id && (item.apartment.images?.length || 0) > 1">
+          <img *ngFor="let image of item.apartment.images?.slice(0, 8)" [src]="image.url" alt="" loading="lazy" (error)="hideBrokenImage($event)" />
+        </div>
+
+        <div class="owner-grid" *ngIf="expandedPendingId === item.id && (item.apartment.ownerName || item.apartment.ownerPhoneNumber || item.apartment.agentName || item.apartment.agentPhoneNumber)">
+          <div *ngIf="item.apartment.ownerName || item.apartment.ownerPhoneNumber">
+            <small>Owner</small>
+            <strong>{{ item.apartment.ownerName || '—' }}</strong>
+            <span *ngIf="item.apartment.ownerPhoneNumber">{{ item.apartment.ownerPhoneNumber }}</span>
+          </div>
+          <div *ngIf="item.apartment.agentName || item.apartment.agentPhoneNumber">
+            <small>Listed agent</small>
+            <strong>{{ item.apartment.agentName || '—' }}</strong>
+            <span *ngIf="item.apartment.agentPhoneNumber">{{ item.apartment.agentPhoneNumber }}</span>
+          </div>
+        </div>
+
+        <div class="uploader-card">
+          <span class="avatar">
+            {{ initials(item.submittedByName) }}
+            <img *ngIf="personPicture(item.submittedByPicture)" [src]="personPicture(item.submittedByPicture)" alt="" (error)="hideBrokenImage($event)" />
+          </span>
+          <div class="uploader-text">
+            <small>Uploaded by</small>
+            <strong>{{ item.submittedByName }} <em class="role-tag">{{ item.submittedByIsAgent ? 'Agent' : 'Uploader' }}</em></strong>
+            <span>
+              <i class="fa-regular fa-envelope"></i> {{ item.submittedByEmail || 'No email' }}
+              <ng-container *ngIf="item.submittedByPhone"> · <i class="fa-solid fa-phone"></i> {{ item.submittedByPhone }}</ng-container>
+            </span>
+          </div>
+          <a *ngIf="item.submittedByUserId && item.submittedByIsAgent" class="ghost-link" [routerLink]="['/agent-profile', item.submittedByUserId]" target="_blank">Profile</a>
         </div>
       </div>
-      <div class="row-actions" *ngIf="item.status === 'pending'">
+
+      <div class="review-actions" *ngIf="item.status === 'pending'">
         <button type="button" class="approve" (click)="approve(item)" [disabled]="actionId === '' + item.id || !canOperateDashboard">
-          Confirm
+          <i class="fa-solid fa-check"></i> {{ actionId === '' + item.id ? 'Publishing…' : 'Confirm & publish' }}
+        </button>
+        <a class="preview" [routerLink]="['/apartments', item.id]" target="_blank"><i class="fa-regular fa-eye"></i> Preview</a>
+        <button type="button" class="details" (click)="togglePendingDetails(item)">
+          <i class="fa-solid" [class.fa-chevron-down]="expandedPendingId !== item.id" [class.fa-chevron-up]="expandedPendingId === item.id"></i>
+          {{ expandedPendingId === item.id ? 'Less' : 'More details' }}
         </button>
         <button type="button" class="decline" (click)="decline(item)" [disabled]="!!actionId">
-          Decline
+          <i class="fa-solid fa-xmark"></i> Decline
         </button>
       </div>
     </article>
@@ -252,20 +308,64 @@
 
   <section class="admin-section" *ngIf="activeTab === 'apartments' && canOperateDashboard">
     <div class="section-title">
-      <h2>Published apartments</h2>
-      <span>{{ filteredApartments.length }} live</span>
+      <div>
+        <h2>Published apartments</h2>
+        <p class="section-sub">Every live listing with who uploaded it.</p>
+      </div>
+      <div class="section-tools">
+        <button type="button" class="ev-refresh" (click)="refreshEvChargers()" [disabled]="!!actionId">
+          <i class="fa-solid fa-charging-station"></i> {{ actionId === 'ev-chargers' ? 'Refreshing…' : 'Refresh EV chargers' }}
+        </button>
+        <span class="count-pill live">{{ filteredApartments.length }} live</span>
+      </div>
     </div>
     <div class="empty-state" *ngIf="filteredApartments.length === 0">No apartments found.</div>
-    <div class="data-row apartment-row" *ngFor="let apartment of filteredApartments; trackBy: identifyApartment">
-      <div>
-        <strong>{{ apartment.title }}</strong>
-        <span>{{ apartment.address || apartment.createdAt }}</span>
+    <article class="listing-card" *ngFor="let apartment of filteredApartments; trackBy: identifyApartment">
+      <a class="listing-thumb" [routerLink]="['/apartments', apartment.id]" target="_blank">
+        <img *ngIf="apartment.imageUrl; else noThumb" [src]="apartment.imageUrl" alt="" loading="lazy" />
+        <ng-template #noThumb><span class="media-empty"><i class="fa-regular fa-image"></i></span></ng-template>
+        <span class="media-badge deal" [class.rent]="dealLabel(apartment) === 'Rent'">{{ dealLabel(apartment) === 'Rent' ? 'For rent' : 'For sale' }}</span>
+      </a>
+
+      <div class="listing-main">
+        <div class="review-tags">
+          <span class="muted-tag">#{{ apartment.id }}</span>
+          <span class="verified-pill" *ngIf="isVerifiedListing(apartment)"><i class="fa-solid fa-circle-check"></i> Verified</span>
+          <span class="muted-tag"><i class="fa-regular fa-calendar"></i> {{ relativeTime(apartment.createdAt) }}</span>
+        </div>
+        <a class="listing-title" [routerLink]="['/apartments', apartment.id]" target="_blank">{{ apartment.title }}</a>
+        <p class="review-location"><i class="fa-solid fa-location-dot"></i> {{ locationLine(apartment) }}</p>
+        <div class="fact-chips compact">
+          <span *ngFor="let fact of apartmentFacts(apartment)"><i class="fa-solid {{ fact.icon }}"></i> {{ fact.label }}</span>
+          <span><i class="fa-solid fa-camera"></i> {{ uploaderOf(apartment)?.imageCount ?? photoCount(apartment) }}</span>
+        </div>
       </div>
-      <b><app-currency-price [usdPrice]="apartment.price"></app-currency-price></b>
-      <button type="button" class="danger" (click)="deleteApartment(apartment)" [disabled]="actionId === ('' + apartment.id)">
-        Delete
-      </button>
-    </div>
+
+      <div class="listing-uploader">
+        <ng-container *ngIf="uploaderOf(apartment)?.name; else noUploader">
+          <span class="avatar small">
+            {{ initials(uploaderOf(apartment)?.name) }}
+            <img *ngIf="personPicture(uploaderOf(apartment)?.picture)" [src]="personPicture(uploaderOf(apartment)?.picture)" alt="" (error)="hideBrokenImage($event)" />
+          </span>
+          <div class="uploader-text">
+            <small>Uploaded by · <em class="role-tag">{{ uploaderOf(apartment)?.isAgent ? 'Agent' : 'Uploader' }}</em></small>
+            <strong>{{ uploaderOf(apartment)?.name }}</strong>
+            <span>{{ uploaderOf(apartment)?.phone || uploaderOf(apartment)?.email || '' }}</span>
+          </div>
+        </ng-container>
+        <ng-template #noUploader>
+          <span class="avatar small unknown"><i class="fa-solid fa-user"></i></span>
+          <div class="uploader-text"><small>Uploaded by</small><strong>Unknown</strong></div>
+        </ng-template>
+      </div>
+
+      <div class="listing-side">
+        <strong class="listing-price"><app-currency-price [usdPrice]="apartment.price"></app-currency-price></strong>
+        <button type="button" class="danger" (click)="deleteApartment(apartment)" [disabled]="actionId === ('' + apartment.id)">
+          <i class="fa-regular fa-trash-can"></i> Delete
+        </button>
+      </div>
+    </article>
   </section>
 
   <section class="admin-section" *ngIf="activeTab === 'blog' && canManageBlog">

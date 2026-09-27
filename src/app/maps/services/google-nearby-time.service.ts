@@ -11,6 +11,7 @@ export interface NearbyWalkingTimes {
   parkDistanceMinutes?: number;
   universityDistanceMinutes?: number;
   pharmacyDistanceMinutes?: number;
+  evChargerDistanceMinutes?: number;
 }
 
 export interface NearestSchoolResult {
@@ -217,6 +218,7 @@ export class GoogleNearbyTimeService {
       { type: 'park', key: 'parkDistanceMinutes' },
       { type: 'university', key: 'universityDistanceMinutes' },
       { type: 'pharmacy', key: 'pharmacyDistanceMinutes' },
+      { type: 'electric_vehicle_charging_station', key: 'evChargerDistanceMinutes' },
     ];
 
     const [nearestSchool, entries] = await Promise.all([

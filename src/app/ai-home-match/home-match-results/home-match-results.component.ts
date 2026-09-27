@@ -235,6 +235,19 @@ export class HomeMatchResultsComponent implements OnChanges {
       );
     }
 
+    if (
+      drives &&
+      this.profile.carFuelType === 'Electric' &&
+      apartment.evChargerDistanceMinutes != null &&
+      apartment.evChargerDistanceMinutes <= 10
+    ) {
+      add(
+        `Electric charger in ${apartment.evChargerDistanceMinutes} min`,
+        'Because you have an electric car',
+        'fa-charging-station',
+      );
+    }
+
     if (apartment.kindergartenDistanceMinutes != null && (childAges.has('Age0To3') || childAges.has('Age4To6'))) {
       add(
         `Kindergarten ${apartment.kindergartenDistanceMinutes} min away`,

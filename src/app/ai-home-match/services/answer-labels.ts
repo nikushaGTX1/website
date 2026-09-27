@@ -31,6 +31,8 @@ const ANSWER_LABELS: Record<string, string> = {
   Metro: 'Metro',
   Walking: 'Walking',
   MultipleMethods: 'Multiple methods',
+  Electric: 'Electric car',
+  Fuel: 'Petrol / diesel car',
   // Rental duration
   ThreeToFiveMonths: '3–5 months',
   SixMonths: '6 months',

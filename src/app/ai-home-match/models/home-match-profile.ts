@@ -27,6 +27,8 @@ export interface HomeMatchProfile {
   transportation: string[];
   metroDistanceMinutes?: number | null;
   parkingAutomaticallyPrioritized: boolean;
+  /** Asked when Car is selected. */
+  carFuelType?: 'Electric' | 'Fuel' | '';
   lifestyles: string[];
   hasPet: boolean | null;
   petType?: 'None' | 'Dog' | 'Cat' | 'Other';

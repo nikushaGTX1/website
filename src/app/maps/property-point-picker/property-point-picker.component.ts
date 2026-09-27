@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { EvChargerLayer } from '../services/ev-charger-layer';
 
 @Component({
   selector: 'app-property-point-picker',
@@ -27,7 +28,10 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
 
   ngAfterViewInit(): void { void this.initialize(); }
 
+  private evChargers?: EvChargerLayer;
+
   ngOnDestroy(): void {
+    this.evChargers?.destroy();
     this.mapResizeObserver?.disconnect();
   }
 
@@ -76,6 +80,8 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
         fullscreenControl: false,
         clickableIcons: false,
       });
+      this.evChargers?.destroy();
+      this.evChargers = new EvChargerLayer(this.map);
       this.map.addListener('click', (event: google.maps.MapMouseEvent) => {
         const point = event.latLng;
         if (point) {

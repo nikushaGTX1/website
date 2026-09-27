@@ -109,7 +109,11 @@
       </div>
     </aside>
 
-    <form class="upload-main" (ngSubmit)="publish()">
+    <form class="upload-main" (ngSubmit)="publish()" novalidate>
+      <div class="upload-validation" role="alert" *ngIf="validationAttempted && validationIssues.length" data-no-translate>
+        <strong>{{ uploadLocationText('Please complete these fields', 'გთხოვთ, შეავსოთ შემდეგი ველები', 'Пожалуйста, заполните эти поля') }}</strong>
+        <button type="button" *ngFor="let issue of validationIssues" (click)="openStep(issue.step)"><i class="fa-solid fa-circle-exclamation"></i>{{ issue.message }}<i class="fa-solid fa-arrow-right"></i></button>
+      </div>
       <section class="folder-import-card">
         <div class="folder-import-copy">
           <span><i class="fa-solid fa-folder-open"></i></span>
@@ -340,17 +344,21 @@
           [(longitude)]="form.propertyLongitude">
         </app-property-point-picker>
 
-        <label class="checkbox-row" *ngIf="canMarkVerified">
+        <div class="location-options" data-no-translate>
+        <label class="location-option" [class.is-enabled]="form.isVerified" *ngIf="canMarkVerified">
           <input type="checkbox" name="isVerified" [(ngModel)]="form.isVerified" />
-          <span>Verified listing (checked in person by a Velven agent)</span>
-          <span class="info-icon" title="Only tick this if an agent verified the property. It shows the Verified badge on the listing.">i</span>
+          <span class="location-option-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+          <span class="location-option-copy"><strong>{{ uploadLocationText('Verified property', 'გადამოწმებული ქონება', 'Проверенный объект') }}</strong><small>{{ uploadLocationText('A Velven agent has checked this property in person.', 'Velven-ის აგენტმა ქონება ადგილზე შეამოწმა.', 'Агент Velven лично проверил объект.') }}</small></span>
+          <span class="location-option-switch" aria-hidden="true"></span>
         </label>
 
-        <label class="checkbox-row">
+        <label class="location-option" [class.is-enabled]="form.hideAddress">
           <input type="checkbox" name="hideAddress" [(ngModel)]="form.hideAddress" />
-          <span>Hide the exact street address from the public listing</span>
-          <span class="info-icon" title="Only the general location will be visible">i</span>
+          <span class="location-option-icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+          <span class="location-option-copy"><strong>{{ uploadLocationText('Hide building number', 'შენობის ნომრის დამალვა', 'Скрыть номер дома') }}</strong><small>{{ uploadLocationText('The public address will show the street and district only.', 'საჯარო მისამართში მხოლოდ ქუჩა და უბანი გამოჩნდება.', 'В публичном адресе останутся только улица и район.') }}</small></span>
+          <span class="location-option-switch" aria-hidden="true"></span>
         </label>
+        </div>
       </section>
 
       <section class="form-section" id="listing-step-2" [class.collapsed]="activeStep !== 2">
@@ -365,7 +373,12 @@
             <label class="metric-field"><span><i class="fa-solid fa-stairs"></i> Property floor</span><div><input type="number" name="floor" min="0" max="200" step="1" placeholder="0" [(ngModel)]="form.floor" (ngModelChange)="clampNumericField('floor', { min: 0, max: 200, integer: true }); clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-regular fa-building"></i> Building floors</span><div><input type="number" name="totalFloors" min="1" max="200" step="1" placeholder="0" [(ngModel)]="form.totalFloors" (ngModelChange)="clampNumericField('totalFloors', { min: 1, max: 200, integer: true })" /></div></label>
           </div>
-          <p class="form-error" *ngIf="floorExceedsTotalFloors">Property floor cannot be higher than the building's total floors.</p>
+          <p class="form-error" *ngIf="floorExceedsTotalFloors" data-no-translate>{{ uploadLocationText('The property floor cannot exceed the building floors.', 'ბინის სართული არ უნდა აღემატებოდეს შენობის სართულების რაოდენობას.', 'Этаж объекта не может превышать этажность здания.') }}</p>
+          <ng-container *ngIf="validationAttempted">
+            <ng-container *ngFor="let issue of validationIssues">
+              <p class="metric-validation" role="alert" *ngIf="issue.step === 2" data-no-translate><i class="fa-solid fa-circle-exclamation"></i> {{ issue.message }}</p>
+            </ng-container>
+          </ng-container>
         </div>
 
         <div class="feature-block amenities-block">
@@ -433,12 +446,27 @@
 
       <section class="form-section" id="listing-step-4" [class.collapsed]="activeStep !== 4">
         <header class="section-header" role="button" tabindex="0" (click)="openStep(4)" (keydown.enter)="openStep(4)"><span>05</span><div><h2>Photos &amp; presentation</h2><p>Add a compelling title, description, and high-quality photos.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
-        <div class="field-group">
-          <label class="field-label">Description / Photos</label>
-          <input type="text" name="title" placeholder="Listing title" [(ngModel)]="form.title" />
-        </div>
-        <div class="field-group">
-          <textarea name="description" rows="5" placeholder="Describe the apartment" [(ngModel)]="form.description"></textarea>
+        <div class="listing-copy-editor" data-no-translate>
+          <div class="listing-copy-head">
+            <div>
+              <label class="field-label">{{ uploadLocationText('Present your property', 'წარადგინეთ თქვენი უძრავი ქონება', 'Представьте ваш объект') }} <span class="req">*</span></label>
+              <small>{{ uploadLocationText('A clear title and description help your listing stand out.', 'მკაფიო სათაური და აღწერა თქვენს განცხადებას გამორჩეულს გახდის.', 'Понятный заголовок и описание помогут выделить объявление.') }}</small>
+            </div>
+            <button type="button" class="copy-generate" (click)="generateListingCopy()">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> {{ uploadLocationText('Generate text', 'ტექსტის გენერაცია', 'Создать текст') }}
+            </button>
+          </div>
+          <div class="copy-current-language"><i class="fa-solid fa-language"></i> {{ uploadLocationText('English', 'ქართული', 'Русский') }}</div>
+          <label class="copy-field">
+            <span>{{ uploadLocationText('Title', 'სათაური', 'Заголовок') }}</span>
+            <input type="text" [name]="'title-' + copyLanguage" [placeholder]="uploadLocationText('Listing title', 'განცხადების სათაური', 'Заголовок объявления')" [ngModel]="activeListingCopy.title" (ngModelChange)="updateListingTitle($event)" maxlength="180" />
+          </label>
+          <label class="copy-field copy-description">
+            <span>{{ uploadLocationText('Description', 'აღწერა', 'Описание') }}</span>
+            <textarea [name]="'description-' + copyLanguage" rows="6" [placeholder]="uploadLocationText('Describe the property', 'აღწერეთ უძრავი ქონება', 'Опишите объект')" [ngModel]="activeListingCopy.description" (ngModelChange)="updateListingDescription($event)" maxlength="3000"></textarea>
+            <small class="copy-counter">{{ activeListingCopy.description.length }}/3000</small>
+          </label>
+          <p class="copy-help"><i class="fa-regular fa-pen-to-square"></i> {{ uploadLocationText('Review the generated text and add your own details.', 'გადახედეთ გენერირებულ ტექსტს და დაამატეთ სასურველი დეტალები.', 'Проверьте созданный текст и добавьте свои детали.') }}</p>
         </div>
         <div class="field-group">
           <div class="photo-upload-head">
@@ -510,8 +538,7 @@
         </div>
       </section>
 
-      <p *ngIf="errorMessage" class="form-error">{{ errorMessage }}</p>
-      <p *ngIf="successMessage" class="form-success">{{ successMessage }}</p>
+      <p *ngIf="errorMessage" class="form-error" role="alert" data-no-translate>{{ localizedUploadError }}</p>
       <p *ngIf="pendingDebug" class="form-debug">{{ pendingDebug }}</p>
 
       <div class="review-message" role="alert" *ngIf="duplicateChecking">
@@ -543,7 +570,7 @@
       <div class="form-actions">
         <button class="btn-back" type="button" (click)="saveDraft()"><i class="fa-regular fa-bookmark"></i> {{ draftSaved ? 'Draft saved' : 'Save draft' }}</button>
         <span class="autosave-note"><i class="fa-regular fa-circle-check"></i> Your progress stays on this device</span>
-        <button class="btn-publish" type="submit" [disabled]="loading || floorExceedsTotalFloors">
+        <button class="btn-publish" type="submit" [disabled]="loading">
           <i [class]="loading ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-paper-plane'"></i>
           {{ loading ? 'Submitting...' : 'Review & publish' }}
         </button>
@@ -555,10 +582,8 @@
 <div class="upload-success-backdrop" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
   <div class="upload-success-modal" role="dialog" aria-modal="true" aria-labelledby="upload-success-title" (click)="$event.stopPropagation()">
     <span class="upload-success-icon"><i class="fa-solid fa-circle-check"></i></span>
-    <h3 id="upload-success-title" data-no-translate>{{ successModalEdited ? 'განცხადება განახლდა!' : successModalPending ? 'განცხადება გაიგზავნა!' : 'განცხადება აიტვირთა!' }}</h3>
-    <p data-no-translate>{{ successModalEdited ? 'ცვლილებები წარმატებით შეინახა.' : successModalPending ? 'თქვენი განცხადება გაიგზავნა ადმინისტრატორთან დასადასტურებლად. დამტკიცების შემდეგ ის გამოქვეყნდება.' : 'თქვენი განცხადება წარმატებით გამოქვეყნდა.' }}</p>
-    <h4 data-no-translate>{{ successModalEdited ? 'Listing updated!' : successModalPending ? 'Listing submitted!' : 'Listing uploaded!' }}</h4>
-    <p data-no-translate>{{ successModalEdited ? 'Your changes were saved successfully.' : successModalPending ? 'Your apartment was sent for admin confirmation. It will be published after approval.' : 'Your apartment listing was published successfully.' }}</p>
-    <button type="button" (click)="closeSuccessModal()" data-no-translate>OK / კარგი</button>
+    <h3 id="upload-success-title" data-no-translate>{{ successTitle }}</h3>
+    <p data-no-translate>{{ successDescription }}</p>
+    <button type="button" (click)="closeSuccessModal()" data-no-translate>{{ uploadLocationText('Done', 'მზადაა', 'Готово') }} <i class="fa-solid fa-arrow-right"></i></button>
   </div>
 </div>

@@ -15,6 +15,9 @@ import {
 import { TranslationService } from '../services/translation.service';
 import { AiPricingService } from '../services/ai-pricing.service';
 
+type ListingCopyLanguage = 'ka' | 'en' | 'ru';
+type ListingCopy = { title: string; description: string };
+
 type UploadForm = {
   realEstateType: string;
   dealType: string;
@@ -328,6 +331,104 @@ export class UploadApartment implements OnInit, OnDestroy {
   selectedImages: File[] = [];
   draggedImageIndex: number | null = null;
   imageDropIndex: number | null = null;
+
+  get copyLanguage(): ListingCopyLanguage { return this.translationService.language$.value; }
+  listingCopy: Record<ListingCopyLanguage, ListingCopy> = {
+    ka: { title: '', description: '' },
+    en: { title: '', description: '' },
+    ru: { title: '', description: '' },
+  };
+  private listingCopyTouched = false;
+
+  get activeListingCopy(): ListingCopy {
+    return this.listingCopy[this.copyLanguage];
+  }
+
+  setCopyLanguage(language: ListingCopyLanguage): void {
+    this.translationService.setLanguage(language);
+  }
+
+  updateListingTitle(value: string): void {
+    this.listingCopy[this.copyLanguage].title = value;
+    this.listingCopyTouched = true;
+    if (this.copyLanguage === 'ka') this.form.title = value;
+  }
+
+  updateListingDescription(value: string): void {
+    this.listingCopy[this.copyLanguage].description = value;
+    this.listingCopyTouched = true;
+    if (this.copyLanguage === 'ka') this.form.description = value;
+  }
+
+  generateListingCopy(force = true): void {
+    if (!force && this.listingCopyTouched) return;
+
+    const type = {
+      Apartment: ['ბინა', 'Apartment', 'Квартира'],
+      'Private house': ['კერძო სახლი', 'Private house', 'Частный дом'],
+      'Country house': ['აგარაკი', 'Country house', 'Загородный дом'],
+      Plot: ['მიწის ნაკვეთი', 'Land plot', 'Земельный участок'],
+      'Commercial area': ['კომერციული ფართი', 'Commercial property', 'Коммерческая недвижимость'],
+      Hotel: ['სასტუმრო', 'Hotel', 'Отель'],
+    }[this.form.realEstateType] || ['უძრავი ქონება', 'Property', 'Недвижимость'];
+    const deal = {
+      'For Sale': ['იყიდება', 'for sale', 'на продажу'],
+      'For Rent': ['ქირავდება', 'for rent', 'в аренду'],
+      Lease: ['გრძელვადიანი იჯარა', 'for lease', 'в долгосрочную аренду'],
+      'Daily rent': ['ქირავდება დღიურად', 'for daily rent', 'в посуточную аренду'],
+    }[this.form.dealType] || ['იყიდება', 'for sale', 'на продажу'];
+    const districtEntry = this.locationEntries.find((entry) => entry.district === this.selectedDistrictValue);
+    const places = {
+      ka: districtEntry ? this.locationService.districtName(districtEntry, 'ka') : this.form.location,
+      en: districtEntry ? this.locationService.districtName(districtEntry, 'en') : this.form.location,
+      ru: districtEntry ? this.locationService.districtName(districtEntry, 'ru') : this.form.location,
+    };
+    const price = this.form.totalPrice
+      ? `${this.form.currency === 'GEL' ? '₾' : '$'}${new Intl.NumberFormat('en-US').format(this.form.totalPrice)}`
+      : '';
+    const monthly = this.form.dealType === 'For Rent' || this.form.dealType === 'Lease';
+    const roomKa = this.form.rooms ? `${this.form.rooms}-ოთახიანი ` : '';
+    const roomEn = this.form.rooms ? `${this.form.rooms}-room ` : '';
+    const roomRu = this.form.rooms ? `${this.form.rooms}-комнатная ` : '';
+    const placeKa = places.ka ? `${places.ka}, თბილისში` : 'თბილისში';
+    const placeEn = places.en ? `${places.en}, Tbilisi` : 'Tbilisi';
+    const placeRu = places.ru ? `${places.ru}, Тбилиси` : 'Тбилиси';
+    const priceKa = price ? ` — ${price}${monthly ? '/თვე' : ''}` : '';
+    const priceEn = price ? ` — ${price}${monthly ? '/month' : ''}` : '';
+    const priceRu = price ? ` — ${price}${monthly ? '/месяц' : ''}` : '';
+    const detailsKa = [this.form.area ? `${this.form.area} მ²` : '', this.form.bedrooms ? `${this.form.bedrooms} საძინებელი` : '', this.form.floor != null ? `${this.form.floor} სართული` : ''].filter(Boolean).join(', ');
+    const detailsEn = [this.form.area ? `${this.form.area} m²` : '', this.form.bedrooms ? `${this.form.bedrooms} bedroom${this.form.bedrooms === 1 ? '' : 's'}` : '', this.form.floor != null ? `floor ${this.form.floor}` : ''].filter(Boolean).join(', ');
+    const detailsRu = [this.form.area ? `${this.form.area} м²` : '', this.form.bedrooms ? `${this.form.bedrooms} спал.` : '', this.form.floor != null ? `${this.form.floor} этаж` : ''].filter(Boolean).join(', ');
+    const conditions: Record<string, [string, string]> = {
+      'Newly Renovated': ['ახალი რემონტით', 'Свежий ремонт'],
+      'Old renovated': ['ძველი რემონტით', 'Старый ремонт'],
+      'Current renovation': ['მიმდინარე რემონტი', 'Ремонт в процессе'],
+      Repairing: ['სარემონტო', 'Требует ремонта'],
+      'White frame': ['თეთრი კარკასი', 'Белый каркас'],
+      'Black frame': ['შავი კარკასი', 'Чёрный каркас'],
+      'Green frame': ['მწვანე კარკასი', 'Зелёный каркас'],
+      'White Plus': ['თეთრი კარკასი პლუსი', 'Белый каркас плюс'],
+    };
+    const condition = conditions[this.form.condition] || ['', ''];
+
+    this.listingCopy = {
+      ka: {
+        title: `${deal[0]} ${roomKa}${type[0]} ${placeKa}${priceKa}`,
+        description: `${deal[0]} ${type[0]} ${placeKa}.${detailsKa ? ` ძირითადი მახასიათებლები: ${detailsKa}.` : ''}${condition[0] ? ` მდგომარეობა: ${condition[0]}.` : ''} დაინტერესების შემთხვევაში დაგვიკავშირდით დამატებითი ინფორმაციისა და ნახვის დასაგეგმად.`,
+      },
+      en: {
+        title: `${roomEn}${type[1]} ${deal[1]} in ${placeEn}${priceEn}`,
+        description: `${type[1]} ${deal[1]} in ${placeEn}.${detailsEn ? ` Key details: ${detailsEn}.` : ''} Condition: ${this.form.condition}. Contact us for more information or to arrange a viewing.`,
+      },
+      ru: {
+        title: `${roomRu}${type[2]} ${deal[2]} в ${placeRu}${priceRu}`,
+        description: `${type[2]} ${deal[2]} в ${placeRu}.${detailsRu ? ` Основные параметры: ${detailsRu}.` : ''}${condition[1] ? ` Состояние: ${condition[1]}.` : ''} Свяжитесь с нами для получения дополнительной информации и организации просмотра.`,
+      },
+    };
+    this.form.title = this.listingCopy.ka.title;
+    this.form.description = this.listingCopy.ka.description;
+    this.listingCopyTouched = false;
+  }
   locationEntries: ApiLocation[] = [];
   locationLoading = false;
   locationError = false;
@@ -803,6 +904,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   openStep(index: number): void {
     this.activeStep = index;
+    if (index === 4) this.generateListingCopy(false);
     this.keepStepHeaderInView(index);
   }
 
@@ -1386,8 +1488,16 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   async publish(): Promise<void> {
+    if (this.loading) return;
     this.successMessage = '';
     this.errorMessage = '';
+    this.validationAttempted = true;
+    const issues = this.validationIssues;
+    if (issues.length) {
+      this.openStep(issues[0].step);
+      setTimeout(() => document.querySelector<HTMLElement>(`[name="${issues[0].field}"]`)?.focus());
+      return;
+    }
 
     if (!this.form.totalPrice || !this.form.contactName.trim() || !this.form.contactPhone.trim() || !this.form.agentName.trim() || !this.form.agentPhone.trim()) {
       this.errorMessage = 'Please fill in the price and all owner and agent contact fields before publishing.';
@@ -1532,6 +1642,44 @@ export class UploadApartment implements OnInit, OnDestroy {
     });
   }
 
+  validationAttempted = false;
+
+  get validationIssues(): { field: string; step: number; message: string }[] {
+    const issues: { field: string; step: number; message: string }[] = [];
+    const add = (field: string, step: number, en: string, ka: string, ru: string) => issues.push({ field, step, message: this.uploadLocationText(en, ka, ru) });
+    const positive = (value: number | null) => value != null && Number.isFinite(value) && value > 0;
+    if (!this.selectedDistrictValue) add('location', 1, 'Select a district from the suggestions.', 'აირჩიეთ უბანი შეთავაზებული სიიდან.', 'Выберите район из списка.');
+    if (!this.selectedStreetId) add('street', 1, 'Select a street from the suggestions.', 'აირჩიეთ ქუჩა შეთავაზებული სიიდან.', 'Выберите улицу из списка.');
+    if (!Number.isFinite(this.form.propertyLatitude) || !Number.isFinite(this.form.propertyLongitude)) add('location', 1, 'Mark the property location on the map.', 'მონიშნეთ უძრავი ქონების მდებარეობა რუკაზე.', 'Отметьте расположение объекта на карте.');
+    if (!positive(this.form.area) || Number(this.form.area) < 0.01) add('area', 2, 'Enter the living area (at least 0.01 m²).', 'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).', 'Укажите площадь (не менее 0,01 м²).');
+    if (!positive(this.form.rooms) || !Number.isInteger(this.form.rooms)) add('rooms', 2, 'Enter the room count (at least 1).', 'მიუთითეთ ოთახების რაოდენობა (მინიმუმ 1).', 'Укажите количество комнат (не менее 1).');
+    if (!positive(this.form.totalFloors) || !Number.isInteger(this.form.totalFloors)) add('totalFloors', 2, 'Enter the total number of building floors (at least 1).', 'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).', 'Укажите количество этажей в здании (не менее 1).');
+    if (this.form.floor == null || !Number.isInteger(this.form.floor) || this.form.floor < 0) add('floor', 2, 'Enter the property floor (0 for ground floor).', 'მიუთითეთ ბინის სართული (მიწის დონე — 0).', 'Укажите этаж объекта (0 — уровень земли).');
+    if (this.floorExceedsTotalFloors) add('floor', 2, 'The property floor cannot exceed the building floors.', 'ბინის სართული არ უნდა აღემატებოდეს შენობის სართულების რაოდენობას.', 'Этаж объекта не может превышать этажность здания.');
+    if (!positive(this.form.totalPrice)) add('totalPrice', 3, 'Enter a price greater than zero.', 'მიუთითეთ ნულზე მეტი ფასი.', 'Укажите цену больше нуля.');
+    if (!this.form.contactName.trim()) add('contactName', 5, 'Enter the owner’s name.', 'მიუთითეთ მესაკუთრის სახელი.', 'Укажите имя собственника.');
+    if (!this.form.contactPhone.trim()) add('contactPhone', 5, 'Enter the owner’s phone number.', 'მიუთითეთ მესაკუთრის ტელეფონის ნომერი.', 'Укажите телефон собственника.');
+    if (!this.form.agentName.trim()) add('agentName', 5, 'Enter the agent’s name.', 'მიუთითეთ აგენტის სახელი.', 'Укажите имя агента.');
+    if (!this.form.agentPhone.trim()) add('agentPhone', 5, 'Enter the agent’s phone number.', 'მიუთითეთ აგენტის ტელეფონის ნომერი.', 'Укажите телефон агента.');
+    return issues;
+  }
+
+  get localizedUploadError(): string {
+    if (/TotalFloors/i.test(this.errorMessage)) return this.uploadLocationText('Enter a valid building floor count (at least 1).', 'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).', 'Укажите корректную этажность здания (не менее 1).');
+    if (/SizeSquareMeters/i.test(this.errorMessage)) return this.uploadLocationText('Enter the living area (at least 0.01 m²).', 'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).', 'Укажите площадь (не менее 0,01 м²).');
+    if (/session|401/i.test(this.errorMessage)) return this.uploadLocationText('Your session expired. Please sign in again.', 'სესია დასრულდა. გთხოვთ, ხელახლა შეხვიდეთ.', 'Сессия истекла. Войдите снова.');
+    if (/Duplicate/i.test(this.errorMessage)) return this.uploadLocationText('This property already has a listing. Check the duplicate below.', 'ამ უძრავ ქონებაზე განცხადება უკვე არსებობს. შეამოწმეთ დუბლიკატი ქვემოთ.', 'Объявление об этом объекте уже существует. Проверьте дубликат ниже.');
+    return this.uploadLocationText('Could not save the listing. Check the fields and try again.', 'განცხადების შენახვა ვერ მოხერხდა. შეამოწმეთ ველები და სცადეთ ხელახლა.', 'Не удалось сохранить объявление. Проверьте поля и повторите попытку.');
+  }
+
+  get successTitle(): string {
+    return this.successModalEdited ? this.uploadLocationText('Listing updated!', 'განცხადება განახლდა!', 'Объявление обновлено!') : this.successModalPending ? this.uploadLocationText('Listing submitted!', 'განცხადება გაიგზავნა!', 'Объявление отправлено!') : this.uploadLocationText('Listing published!', 'განცხადება გამოქვეყნდა!', 'Объявление опубликовано!');
+  }
+
+  get successDescription(): string {
+    return this.successModalEdited ? this.uploadLocationText('Your changes have been saved.', 'თქვენი ცვლილებები წარმატებით შეინახა.', 'Ваши изменения сохранены.') : this.successModalPending ? this.uploadLocationText('Your listing is awaiting approval. It will appear after review.', 'თქვენი განცხადება ელოდება დამტკიცებას. განხილვის შემდეგ ის გამოქვეყნდება.', 'Объявление ожидает проверки и будет опубликовано после одобрения.') : this.uploadLocationText('Your property is now ready to be discovered.', 'თქვენი უძრავი ქონება უკვე ხელმისაწვდომია დაინტერესებული მომხმარებლებისთვის.', 'Ваш объект уже доступен заинтересованным клиентам.');
+  }
+
   closeSuccessModal(): void {
     this.showSuccessModal = false;
     if (this.successModalEdited) void this.router.navigate(['/my-listings']);
@@ -1661,6 +1809,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       schoolDistanceMinutes: nearbyTimes.schoolDistanceMinutes,
       kindergartenDistanceMinutes: nearbyTimes.kindergartenDistanceMinutes,
       universityDistanceMinutes: nearbyTimes.universityDistanceMinutes,
+      evChargerDistanceMinutes: nearbyTimes.evChargerDistanceMinutes,
       imageUrl: this.form.imageUrls[0] || undefined,
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };

@@ -61,6 +61,7 @@ export interface HomeMatchApartment {
   metroDistanceMinutes?: number;
   parkDistanceMinutes?: number;
   universityDistanceMinutes?: number;
+  evChargerDistanceMinutes?: number;
   pharmacyDistanceMinutes?: number;
   /** e.g. "Minimum 6 months" / "Minimum 12 months"; unset means no minimum lease term. */
   minimumRentalPeriod?: string;

@@ -1225,6 +1225,40 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['CRM overview', 'CRM მიმოხილვა'],
   ['System dashboard', 'სისტემის პანელი'],
   ['Search leads', 'ლიდების ძიება'],
+  ['EV chargers', 'ელ. დამტენები'],
+  ['EV charger', 'ელ. დამტენი'],
+  ['What does your car run on?', 'რაზე მუშაობს თქვენი მანქანა?'],
+  ['Electric', 'ელექტრო'],
+  ['Petrol / diesel', 'ბენზინი / დიზელი'],
+  ['We look for EV chargers nearby', 'მოვძებნით ახლოს მდებარე ელ. დამტენებს'],
+  ['Parking matters most', 'მთავარია პარკინგი'],
+  ['Electric car', 'ელექტრო მანქანა'],
+  ['Petrol / diesel car', 'ბენზინის / დიზელის მანქანა'],
+  ['Because you have an electric car', 'რადგან ელექტრო მანქანა გაქვთ'],
+  ['Awaiting review', 'განხილვის მოლოდინში'],
+  ['Confirm & publish', 'დადასტურება და გამოქვეყნება'],
+  ['Publishing…', 'ქვეყნდება…'],
+  ['Uploaded by', 'ატვირთა'],
+  ['Uploaded by ·', 'ატვირთა ·'],
+  ['More details', 'მეტი დეტალი'],
+  ['Preview', 'ნახვა'],
+  ['Less', 'ნაკლები'],
+  ['Owner', 'მესაკუთრე'],
+  ['Listed agent', 'მითითებული აგენტი'],
+  ['Profile', 'პროფილი'],
+  ['Uploader', 'ამტვირთავი'],
+  ['Agent', 'აგენტი'],
+  ['Unknown', 'უცნობი'],
+  ['No email', 'ელფოსტა არ არის'],
+  ['No address', 'მისამართი არ არის'],
+  ['just now', 'ახლახან'],
+  ['Search pending', 'მოლოდინში მყოფი ბინების ძიება'],
+  ['Search apartments', 'ბინების ძიება'],
+  ['Check the listing and who uploaded it, then confirm to publish.', 'გადაამოწმეთ განცხადება და ამტვირთავი, შემდეგ დაადასტურეთ გამოსაქვეყნებლად.'],
+  ['New uploads from agents appear here before they go live.', 'აგენტების ახალი განცხადებები აქ ჩანს გამოქვეყნებამდე.'],
+  ['Every live listing with who uploaded it.', 'ყველა აქტიური განცხადება და მისი ამტვირთავი.'],
+  ['Show or hide EV chargers', 'ელ. დამტენების ჩვენება ან დამალვა'],
+  ['Refresh EV chargers', 'ელ. დამტენების განახლება'],
   ['All agents', 'ყველა აგენტი'],
   ['All pipeline stages', 'ყველა გაყიდვის ეტაპი'],
   ['Lead filters', 'ლიდების ფილტრები'],
@@ -1569,6 +1603,38 @@ const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
 
 const GEORGIAN_RULES: GeorgianRule[] = [
   {
+    pattern: /^Electric charger in (\d+) min$/i,
+    translate: (match) => `ელ. დამტენი ${match[1]} წუთში`,
+  },
+  {
+    pattern: /^Submitted (.+)$/i,
+    translate: (match) => `გამოგზავნილია ${match[1]}`,
+  },
+  {
+    pattern: /^(\d+) min ago$/i,
+    translate: (match) => `${match[1]} წუთის წინ`,
+  },
+  {
+    pattern: /^(\d+) h ago$/i,
+    translate: (match) => `${match[1]} საათის წინ`,
+  },
+  {
+    pattern: /^(\d+) d ago$/i,
+    translate: (match) => `${match[1]} დღის წინ`,
+  },
+  {
+    pattern: /^(\d+) waiting$/i,
+    translate: (match) => `${match[1]} მოლოდინში`,
+  },
+  {
+    pattern: /^(\d+) live$/i,
+    translate: (match) => `${match[1]} აქტიური`,
+  },
+  {
+    pattern: /^Floor (\d+)(?:\/(\d+))?$/i,
+    translate: (match) => (match[2] ? `სართული ${match[1]}/${match[2]}` : `სართული ${match[1]}`),
+  },
+  {
     pattern: /^Gym (\d+) min away$/i,
     translate: (match) => `სპორტდარბაზი ${match[1]} წუთის სავალზეა`,
   },
@@ -1714,14 +1780,19 @@ const GEORGIAN_RULES: GeorgianRule[] = [
     translate: (match) => `${match[1]} — ქუჩის ძიება…`,
   },
   {
-    pattern: /^Search (Users|Apartments|Blogs)$/i,
+    pattern: /^Search (users|apartments|blogs?|agents|pending|streets|vacancies)$/i,
     translate: (match) => {
       const subjects: Record<string, string> = {
-        Users: 'მომხმარებლების',
-        Apartments: 'ბინების',
-        Blogs: 'ბლოგების',
+        users: 'მომხმარებლების',
+        apartments: 'ბინების',
+        blog: 'ბლოგების',
+        blogs: 'ბლოგების',
+        agents: 'აგენტების',
+        pending: 'მოლოდინში მყოფი ბინების',
+        streets: 'ქუჩების',
+        vacancies: 'ვაკანსიების',
       };
-      return `${subjects[match[1]]} ძიება`;
+      return `${subjects[match[1].toLowerCase()] ?? ''} ძიება`.trim();
     },
   },
   {

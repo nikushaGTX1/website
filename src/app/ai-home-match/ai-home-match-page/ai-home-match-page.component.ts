@@ -492,6 +492,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   opts(labels: string[], values?: string[]): HomeMatchOption[] {
     return labels.map((label, index) => ({ label, value: values?.[index] || label }));
   }
+  chooseCarFuel(value: 'Electric' | 'Fuel'): void {
+    this.profile.carFuelType = value;
+    this.persist();
+  }
   choose(
     key:
       | 'propertyGoal'
@@ -545,6 +549,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           ? [...values, value]
           : values;
       this.profile.parkingAutomaticallyPrioritized = this.profile.transportation.includes('Car');
+      if (!this.profile.transportation.includes('Car')) this.profile.carFuelType = '';
       this.persist();
       return;
     }
@@ -642,7 +647,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
                 (!!this.profile.moveInDate && !isPastDate(this.profile.moveInDate)))
           : !!this.profile.purchaseTiming;
       case 8:
-        return !!this.profile.transportation.length;
+        return (
+          !!this.profile.transportation.length &&
+          (!this.profile.transportation.includes('Car') || !!this.profile.carFuelType)
+        );
       case 9:
         return this.profile.lifestyles.length > 0 && this.profile.lifestyles.length <= 3;
       case 10:
@@ -705,7 +713,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['householdType', 'adults', 'children', 'childrenAgeGroups'],
       ['adults', 'children', 'childrenAgeGroups'], ['bedrooms'],
       ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
-      ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized'],
+      ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized', 'carFuelType'],
       ['lifestyles'], ['hasPet', 'petType', 'petOtherType', 'petCount'], ['topPriorities'],
     ];
     for (const key of fields[step]) {
