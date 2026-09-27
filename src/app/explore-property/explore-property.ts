@@ -96,7 +96,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   drawnDetectedArea = '';
   drawnStreetsLoading = false;
   readonly featuredLocationAreas = [
-    { name: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-tree.svg' },
+    { name: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-fountain.png' },
     { name: 'Saburtalo', description: 'Central & convenient', icon: '/icons/areas/saburtalo-buildings.svg' },
     { name: 'Vera', description: 'Historic central', icon: '/icons/areas/vera-heritage-house.svg' },
     { name: 'Mtatsminda', description: 'Old city & views', icon: '/icons/areas/mtatsminda-columns.svg' },

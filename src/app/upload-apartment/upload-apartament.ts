@@ -125,6 +125,22 @@ type FolderListingData = Record<string, unknown>;
   styleUrl: './upload-apartment.css',
 })
 export class UploadApartment implements OnInit, OnDestroy {
+  /** Mobile plan carousel position, for the swipe dots and arrows. */
+  planIndex = 0;
+
+  onPlanScroll(scroller: HTMLElement): void {
+    const card = scroller.firstElementChild as HTMLElement | null;
+    const step = card ? card.offsetWidth + parseFloat(getComputedStyle(scroller).columnGap || '0') : scroller.clientWidth;
+    this.planIndex = Math.max(0, Math.min(this.listingPlans.length - 1, Math.round(scroller.scrollLeft / Math.max(1, step))));
+  }
+
+  scrollPlans(direction: number): void {
+    const scroller = document.querySelector<HTMLElement>('.plan-choice');
+    const card = scroller?.children[this.planIndex + direction] as HTMLElement | undefined;
+    if (!scroller || !card) return;
+    scroller.scrollTo({ left: card.offsetLeft - scroller.offsetLeft, behavior: 'smooth' });
+  }
+
   readonly maxImages = 15;
   readonly listingPlans: ListingPlanOption[] = [
     {
@@ -780,12 +796,18 @@ export class UploadApartment implements OnInit, OnDestroy {
   openStep(index: number): void {
     this.activeStep = index;
     requestAnimationFrame(() => {
-      // 'nearest' only scrolls when the header isn't already visible, instead of
-      // re-centering the whole (now taller) section and yanking the page around.
-      document.getElementById(`listing-step-${index}`)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-      });
+      // Keep the opened section's header just under the top menu. scrollIntoView
+      // 'nearest' aligned the BOTTOM of tall sections on mobile, jumping to the end.
+      const section = document.getElementById(`listing-step-${index}`);
+      if (!section) return;
+      const menuOffset = 88;
+      const top = section.getBoundingClientRect().top;
+      const headerVisible = top >= menuOffset - 4 && top <= window.innerHeight * 0.6;
+      if (headerVisible) return;
+      // Phones: jump instantly. A smooth scroll there fights touch momentum and the
+      // browser's own scroll correction after the previous section collapses.
+      const behavior: ScrollBehavior = window.innerWidth <= 820 ? 'auto' : 'smooth';
+      window.scrollTo({ top: window.scrollY + top - menuOffset, behavior });
     });
   }
 

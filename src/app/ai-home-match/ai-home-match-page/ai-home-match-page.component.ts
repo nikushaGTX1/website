@@ -671,6 +671,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       );
     }
     this.persist();
+    if (this.returnToReviewAfterStep) {
+      // Changing a single answer from the profile page goes straight back to it.
+      this.returnToReviewAfterStep = false;
+      this.showReview();
+      return;
+    }
     if (this.step < this.questions.length - 1) {
       this.step = this.visibleSteps[this.stepNumber];
     } else this.view = 'review';
@@ -723,8 +729,18 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.view = 'review';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  /** Walks through every step again with all saved answers pre-selected; ends on the profile page. */
+  editProfile(): void {
+    this.returnToReviewAfterStep = false;
+    this.step = this.visibleSteps[0] ?? 0;
+    this.view = 'questions';
+    this.quizStarted = true;
+    this.scrollToStepTop();
+  }
+  private returnToReviewAfterStep = false;
   goToStep(step: number): void {
     if (!this.visibleSteps.includes(step)) return;
+    this.returnToReviewAfterStep = true;
     this.step = step;
     this.view = 'questions';
     this.quizStarted = true;

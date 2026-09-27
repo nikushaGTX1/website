@@ -8,7 +8,7 @@
     <div class="intro-trust"><i class="fa-solid fa-lock"></i><span><strong>Secure submission</strong><small>Your listing is reviewed before publishing</small></span></div>
   </header>
 
-  <section class="plan-choice" *ngIf="!selectedListingPlan" aria-label="Choose listing plan">
+  <section class="plan-choice" #planScroller *ngIf="!selectedListingPlan" aria-label="Choose listing plan" (scroll)="onPlanScroll(planScroller)">
     <article
       *ngFor="let plan of listingPlans"
       class="plan-card"
@@ -38,6 +38,17 @@
       </button>
     </article>
   </section>
+  <div class="plan-swipe-nav" *ngIf="!selectedListingPlan && listingPlans.length > 1">
+    <button type="button" class="plan-swipe-arrow" aria-label="Previous plan" [disabled]="planIndex === 0" (click)="scrollPlans(-1)">
+      <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+    </button>
+    <div class="plan-swipe-dots" aria-hidden="true">
+      <span *ngFor="let plan of listingPlans; let i = index" [class.active]="i === planIndex"></span>
+    </div>
+    <button type="button" class="plan-swipe-arrow" aria-label="Next plan" [disabled]="planIndex === listingPlans.length - 1" (click)="scrollPlans(1)">
+      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    </button>
+  </div>
 
   <p class="plan-trust" *ngIf="!selectedListingPlan">
     <i class="fa-regular fa-shield-check"></i>

@@ -4883,3 +4883,18 @@
     contain: none !important;
   }
 }
+
+/* Mobile featured carousel: each card fills the full width; a 14px gap keeps
+   neighbouring cards apart while swiping, and snapping settles on one card. */
+@media (max-width: 650px) {
+  .property-grid {
+    gap: 14px !important;
+    scroll-snap-type: x mandatory;
+  }
+  .property-grid > * {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+}

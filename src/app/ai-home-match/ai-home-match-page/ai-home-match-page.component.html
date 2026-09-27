@@ -522,7 +522,7 @@
       </div>
       <div class="profile-card-head">
         <h3>Your Lifestyle Profile</h3>
-        <button type="button" (click)="step = 1">✎ Edit Profile</button>
+        <button type="button" (click)="editProfile()">✎ Edit Profile</button>
       </div>
       <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
       <dl>
@@ -610,7 +610,7 @@
   [profile]="profile"
   [saving]="saving"
   [saveMessage]="saveMessage"
-  (edit)="edit()"
+  (edit)="editProfile()"
   (changeAnswer)="goToStep($event)"
   (save)="save()"
   (submitProfile)="submit()"

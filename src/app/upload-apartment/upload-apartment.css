@@ -1895,3 +1895,80 @@ select:focus {
   .image-actions .make-cover { flex: 1 1 110px; }
   .preview-card { padding: 16px; }
 }
+
+/* Mobile single column: stretch every block to the full width. The desktop grid's
+   align-items:start made each card shrink to its content width. */
+@media (max-width: 820px) {
+  .upload-layout {
+    align-items: stretch;
+    width: 100%;
+  }
+  .upload-layout > *,
+  .chosen-plan-card,
+  .progress-card,
+  .upload-main {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+  .preview-card {
+    max-width: none;
+    align-self: stretch;
+  }
+}
+
+/* Mobile plan carousel: arrows + dots so it is obvious there are more plans to swipe to. */
+.plan-swipe-nav {
+  display: none;
+}
+@media (max-width: 960px) {
+  .plan-swipe-nav {
+    margin: 12px 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .plan-swipe-arrow {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e3dcef;
+    border-radius: 50%;
+    background: #fff;
+    color: #451a8f;
+    box-shadow: 0 4px 12px rgba(41, 25, 82, 0.1);
+    cursor: pointer;
+    transition: opacity 0.18s ease;
+  }
+  .plan-swipe-arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .plan-swipe-dots {
+    display: flex;
+    gap: 7px;
+  }
+  .plan-swipe-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #d8d0e6;
+    transition: width 0.2s ease, background 0.2s ease;
+  }
+  .plan-swipe-dots span.active {
+    width: 22px;
+    background: #451a8f;
+  }
+}
+
+/* Collapsing one step and opening another changes page height a lot; stop the
+   browser's scroll anchoring from dragging the view to the bottom (live preview). */
+.upload-page,
+.upload-layout,
+.upload-main {
+  overflow-anchor: none;
+}
