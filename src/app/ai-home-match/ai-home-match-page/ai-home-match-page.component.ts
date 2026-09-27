@@ -235,9 +235,15 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
 
   selectChildAge(value: string): void {
-    // This question captures the household's relevant child age bracket.
-    // Choosing another bracket replaces the previous choice; the user advances manually.
-    this.profile.childrenAgeGroups = [value];
+    // Up to one age group per child. With one child a new choice replaces the old;
+    // with more, a tap toggles, and once the limit is reached the oldest choice gives way.
+    const max = Math.max(1, this.profile.children);
+    const current = this.profile.childrenAgeGroups;
+    if (current.includes(value)) {
+      this.profile.childrenAgeGroups = current.filter((item) => item !== value);
+    } else {
+      this.profile.childrenAgeGroups = [...current, value].slice(-max);
+    }
     this.persist();
   }
   get householdLabel(): string {

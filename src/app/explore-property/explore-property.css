@@ -2216,3 +2216,21 @@ svg {
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* Mobile: sticky bars with backdrop blur repaint on every scroll frame (and iOS
+   toolbar resizing), which made the search/filter header shake. Solid layers are stable. */
+@media (max-width: 780px) {
+  .search-row,
+  .chip-bar {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transform: translateZ(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  .search-row {
+    height: 73px;
+  }
+}

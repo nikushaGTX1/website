@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, DoCheck, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -18,7 +18,21 @@ import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
   templateUrl: './main.html',
   styleUrl: './main.css',
 })
-export class Main implements OnInit, OnDestroy {
+export class Main implements OnInit, OnDestroy, DoCheck {
+  private pickerScrollLocked = false;
+
+  /** Mobile picker sheets (type / price / bedrooms) freeze the page behind them. */
+  ngDoCheck(): void {
+    const open =
+      (this.propertyTypeOpen || this.budgetOpen || this.bedroomOpen) &&
+      typeof window !== 'undefined' &&
+      window.innerWidth <= 650;
+    if (open === this.pickerScrollLocked) return;
+    this.pickerScrollLocked = open;
+    if (open) lockPageScroll();
+    else if (!this.locationOpen) unlockPageScroll();
+  }
+
   apartments: Apartment[] = [];
   apartmentsForSelectedMode: Apartment[] = [];
   agents: Agent[] = [];
@@ -224,6 +238,7 @@ export class Main implements OnInit, OnDestroy {
   ) {}
 
   ngOnDestroy(): void {
+    if (this.pickerScrollLocked) unlockPageScroll();
     document.body.classList.remove('location-picker-open');
     if (this._locationOpen) unlockPageScroll();
   }

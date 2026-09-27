@@ -1857,10 +1857,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
         const minutes = Number(apartment.parkDistanceMinutes);
         const withinDistance =
           apartment.parkDistanceMinutes != null && Number.isFinite(minutes) && minutes >= 0 && minutes <= 15;
-        // Also match on the listing text so a park mentioned in the
-        // description/title isn't excluded just because the distance
-        // field wasn't filled in (or was filled in slightly too high).
-        return withinDistance || text.includes('park');
+        // Measured distance decides. Text is only a fallback for listings without one,
+        // and must be a real park mention: plain 'park' also matched every 'parking'.
+        if (apartment.parkDistanceMinutes != null && Number.isFinite(minutes)) return withinDistance;
+        return /\bparks?\b|პარკ(?!ინგ)/i.test(text);
       }
       if (normalized === 'new building') {
         const buildingText = `${apartment.apartmentStyle || ''} ${text}`;
