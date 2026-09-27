@@ -73,6 +73,12 @@ export class Main implements OnInit, OnDestroy {
   }
 
   /** Anything shorter than a peek counts as collapsed: taps open it instead of hitting the cards. */
+  /** Tapping the map slides the areas sheet down so the map gets the screen. */
+  collapseAreaSheetFromMap(): void {
+    if (window.innerWidth > 650 || this.areaSheetCollapsed || this.sheetDragging) return;
+    this.collapseAreaSheet();
+  }
+
   get areaSheetCollapsed(): boolean {
     return this.sheetHeight !== null && this.sheetHeight <= 180;
   }
@@ -607,6 +613,8 @@ export class Main implements OnInit, OnDestroy {
     this.inlineDrawnPolygon = null;
     this.drawnDetectedArea = '';
     this.streetSearch = '';
+    // Reveal the map so the user sees it zoom to the district they picked.
+    this.collapseAreaSheetFromMap();
   }
 
   public isAreaSelected(area: string): boolean {
