@@ -1441,7 +1441,12 @@ export class UploadApartment implements OnInit, OnDestroy {
     try {
       // Google can hang or resolve outside Angular; never let it block publishing.
       nearbyTimes = await Promise.race([
-        this.nearbyTimeService.getWalkingTimes(calculationAddress),
+        this.nearbyTimeService.getWalkingTimes(
+          calculationAddress,
+          this.form.propertyLatitude != null && this.form.propertyLongitude != null
+            ? { lat: Number(this.form.propertyLatitude), lng: Number(this.form.propertyLongitude) }
+            : null,
+        ),
         new Promise<NearbyWalkingTimes>((resolve) => setTimeout(() => resolve({}), 8000)),
       ]);
     } catch (error) {

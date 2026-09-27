@@ -26,14 +26,20 @@ export class GoogleNearbyTimeService {
   private configured = false;
   private readonly cache = new Map<string, Promise<NearbyWalkingTimes>>();
 
-  getWalkingTimes(address: string): Promise<NearbyWalkingTimes> {
-    const key = address.trim().toLowerCase();
+  /**
+   * Walking times from the listing. The exact map pin is used when given; the text
+   * address is only a fallback, because geocoding a side street (e.g. "Chavchavadze
+   * 1st Dead End") can snap to the main avenue and measure from the wrong place.
+   */
+  getWalkingTimes(address: string, point?: google.maps.LatLngLiteral | null): Promise<NearbyWalkingTimes> {
+    const pin = point && Number.isFinite(point.lat) && Number.isFinite(point.lng) ? point : null;
+    const key = pin ? `${pin.lat.toFixed(6)},${pin.lng.toFixed(6)}` : address.trim().toLowerCase();
     if (!key) return Promise.resolve({});
 
     const cached = this.cache.get(key);
     if (cached) return cached;
 
-    const request = this.loadWalkingTimes(address);
+    const request = this.loadWalkingTimes(address, pin);
     this.cache.set(key, request);
     return request;
   }
@@ -179,7 +185,10 @@ export class GoogleNearbyTimeService {
     };
   }
 
-  private async loadWalkingTimes(address: string): Promise<NearbyWalkingTimes> {
+  private async loadWalkingTimes(
+    address: string,
+    pin: google.maps.LatLngLiteral | null,
+  ): Promise<NearbyWalkingTimes> {
     this.configure();
 
     const [{ Geocoder }, { Place, SearchNearbyRankPreference }, routes] = await Promise.all([
@@ -188,8 +197,15 @@ export class GoogleNearbyTimeService {
       importLibrary('routes') as Promise<google.maps.RoutesLibrary>,
     ]);
 
-    const geocoding = await new Geocoder().geocode({ address: `${address}, Georgia` });
-    const origin = geocoding.results[0]?.geometry.location;
+    let origin = pin ? new google.maps.LatLng(pin.lat, pin.lng) : undefined;
+    if (!origin) {
+      const geocoding = await new Geocoder().geocode({
+        address: `${address}, Georgia`,
+        region: 'GE',
+        bounds: { south: 41.6, west: 44.6, north: 41.9, east: 45.05 },
+      });
+      origin = geocoding.results[0]?.geometry.location;
+    }
     if (!origin) return {};
 
     const categories: Array<{ type: string; key: NearbyTimeKey }> = [
