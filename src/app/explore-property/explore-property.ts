@@ -228,13 +228,35 @@ export class ExploreProperty implements OnInit, OnDestroy {
     return `translate3d(calc(${-100 * this.cardImageIndex(apartment)}% + ${offset}px), 0, 0)`;
   }
 
-  /** Dots keep their slot while the 5-dot window slides, so only their state animates. */
   readonly trackByPosition = (position: number): number => position;
+
+  cardAllDots(apartment: Apartment): number[] {
+    return Array.from({ length: this.cardImages(apartment).length }, (_, index) => index);
+  }
 
   cardDots(apartment: Apartment): number[] {
     const count = this.cardImages(apartment).length;
     const start = Math.max(0, Math.min(this.cardImageIndex(apartment) - 2, count - 5));
     return Array.from({ length: Math.min(5, count) }, (_, index) => start + index);
+  }
+
+  cardDotTrackTransform(apartment: Apartment): string {
+    const count = this.cardImages(apartment).length;
+    if (count <= 5) {
+      const width = count * 6 + Math.max(0, count - 1) * 5;
+      return `translate3d(${(50 - width) / 2}px, 0, 0)`;
+    }
+    const start = Math.max(0, Math.min(this.cardImageIndex(apartment) - 2, count - 5));
+    return `translate3d(${-start * 11}px, 0, 0)`;
+  }
+
+  cardDotIsSmall(apartment: Apartment, dot: number): boolean {
+    const dots = this.cardDots(apartment);
+    const count = this.cardImages(apartment).length;
+    return (
+      (dot === dots[0] && dots[0] > 0) ||
+      (dot === dots[dots.length - 1] && dot < count - 1)
+    );
   }
 
   changeCardPhoto(event: Event, apartment: Apartment, direction: number): void {

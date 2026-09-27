@@ -447,8 +447,10 @@
               </svg>
             </button>
             <div class="card-photo-dots" *ngIf="cardImages(apartment).length > 1" aria-hidden="true">
-              <span *ngFor="let dot of cardDots(apartment); trackBy: trackByPosition" [class.active]="dot === cardImageIndex(apartment)"
-                [class.small]="dot < cardImageIndex(apartment) - 1 || dot > cardImageIndex(apartment) + 1"></span>
+              <div class="card-photo-dot-track" [style.transform]="cardDotTrackTransform(apartment)">
+                <span *ngFor="let dot of cardAllDots(apartment); trackBy: trackByPosition" [class.active]="dot === cardImageIndex(apartment)"
+                  [class.small]="cardDotIsSmall(apartment, dot)"></span>
+              </div>
             </div>
             <span class="photo-status" aria-live="polite">Photo {{ cardImageIndex(apartment) + 1 }} of {{ cardImages(apartment).length || 1 }}</span>
           </div>

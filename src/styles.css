@@ -452,6 +452,20 @@ html:lang(ru) :is(button, [role='button']) {
   text-wrap: balance;
 }
 
+/* Keep compact photo controls square; the localized 44px touch target above
+   otherwise stretches circular arrows into a vertical oval. */
+html:lang(ka) button.card-photo-arrow,
+html:lang(ru) button.card-photo-arrow {
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
 html:lang(ka) :is(input, select, textarea),
 html:lang(ru) :is(input, select, textarea) {
   min-width: 0;
