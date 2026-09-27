@@ -2234,3 +2234,24 @@ svg {
     height: 73px;
   }
 }
+
+/* Mobile list: a clear divider between listings so each card's "Nearby" row
+   doesn't read as the start of the next listing. */
+@media (max-width: 780px) {
+  .cards-grid > .property-card + .property-card {
+    padding-top: 26px;
+    border-top: 1px solid #e6e1ec;
+  }
+  .cards-grid > .property-card {
+    padding-bottom: 6px;
+  }
+}
+
+/* Listing facts (beds / floor / m²): more room between items and their icons. */
+.property-card .facts {
+  gap: 6px 16px !important;
+  flex-wrap: wrap;
+}
+.property-card .facts > span {
+  gap: 6px !important;
+}

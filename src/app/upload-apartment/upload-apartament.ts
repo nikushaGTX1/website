@@ -27,6 +27,7 @@ type UploadForm = {
   propertyLongitude: number | null;
   cadastralCode: string;
   hideAddress: boolean;
+  isVerified: boolean;
   totalPrice: number | null;
   sqPrice: number | null;
   currency: '$' | 'GEL';
@@ -125,6 +126,11 @@ type FolderListingData = Record<string, unknown>;
   styleUrl: './upload-apartment.css',
 })
 export class UploadApartment implements OnInit, OnDestroy {
+  /** Only staff may mark a listing verified; the API strips the tag for everyone else too. */
+  get canMarkVerified(): boolean {
+    return this.authService.isAgent || this.authService.isAdmin || this.authService.isCrmManager;
+  }
+
   /** Mobile plan carousel position, for the swipe dots and arrows. */
   planIndex = 0;
 
@@ -251,6 +257,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     propertyLongitude: null,
     cadastralCode: '',
     hideAddress: false,
+    isVerified: false,
     totalPrice: null,
     sqPrice: null,
     currency: '$',
@@ -462,6 +469,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     for (const option of this.featureOptions) {
       if (tagged.includes(option.field)) f[option.field] = meta.includes(option.label + ': Yes');
     }
+    f.isVerified = meta.includes('Verified listing: Yes');
     const parkingLabel = tag('Parking type');
     f.parkingCondition = source.parkingCondition ||
       this.parkingTypeOptions.find((o) => o.label === parkingLabel)?.value || '';
@@ -866,7 +874,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.form.currency = currency;
   }
 
-  toggle(field: 'hideAddress' | 'exchangePossible' | BooleanFeature): void {
+  toggle(field: 'hideAddress' | 'isVerified' | 'exchangePossible' | BooleanFeature): void {
     this.form[field] = !this.form[field];
     if (field === 'hasParking' && !this.form.hasParking) this.form.parkingCondition = '';
   }
@@ -1589,6 +1597,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.hasIsolatedBedrooms ? 'Isolated bedrooms: Yes' : '',
       this.form.isAwayFromNightlife ? 'Away from nightlife: Yes' : '',
       this.form.hasCompanyLease ? 'Company lease available: Yes' : '',
+      this.form.isVerified && this.canMarkVerified ? 'Verified listing: Yes' : '',
       this.form.cadastralCode ? `Cadastral: ${this.form.cadastralCode}` : '',
       this.form.agentName ? `Contact: ${this.form.agentName}` : '',
       ownerId ? `Owner ID: ${ownerId}` : '',

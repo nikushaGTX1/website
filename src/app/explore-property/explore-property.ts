@@ -327,9 +327,31 @@ export class ExploreProperty implements OnInit, OnDestroy {
       event.stopPropagation();
       return;
     }
-    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+    // Ctrl/Cmd/Shift+click on the photo (which sits above the real link) opens a new tab.
+    if (event.ctrlKey || event.metaKey || event.shiftKey) {
+      if (!(event.target as HTMLElement).closest('a')) {
+        event.preventDefault();
+        this.openCardInNewTab(apartment);
+      }
+      return;
+    }
+    if (event.button !== 0) return;
     event.preventDefault();
     void this.router.navigate(['/apartments', apartment.id]);
+  }
+
+  /** Middle-click anywhere on a card opens the listing in a new tab, like a normal link. */
+  openCardAux(event: MouseEvent, apartment: Apartment): void {
+    if (event.button !== 1) return;
+    // A real <a> under the pointer already opens the new tab natively.
+    if ((event.target as HTMLElement).closest('a[href]')) return;
+    if ((event.target as HTMLElement).closest('button')) return;
+    event.preventDefault();
+    this.openCardInNewTab(apartment);
+  }
+
+  private openCardInNewTab(apartment: Apartment): void {
+    window.open(`/apartments/${apartment.id}`, '_blank', 'noopener');
   }
 
   get totalPages(): number {

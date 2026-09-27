@@ -75,7 +75,7 @@
         <div class="vp-main">
           <section class="vp-intro">
             <div class="vp-eyebrow">
-              <span><i class="fa-regular fa-circle-check"></i> VELVEN VERIFIED</span
+              <span *ngIf="isVerifiedListing"><i class="fa-regular fa-circle-check"></i> VELVEN VERIFIED</span
               ><span [class.deal-rent]="!isForSale">{{ listingType }}</span>
             </div>
             <h1 [class.georgian-copy]="hasGeorgianText(title)">{{ title }}</h1>

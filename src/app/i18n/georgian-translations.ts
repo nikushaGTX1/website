@@ -687,6 +687,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['What age groups are the children in?', 'რა ასაკის არიან ბავშვები?'],
   ['Looking for', 'რას ეძებთ'],
   ['Gender', 'სქესი'],
+  ['Verified listing (checked in person by a Velven agent)', 'გადამოწმებული განცხადება (ადგილზე შეამოწმა Velven-ის აგენტმა)'],
   ['Rent an apartment', 'ბინის ქირაობა'],
   ['Buy an apartment', 'ბინის ყიდვა'],
   ['When would you like to move in?', 'როდის გსურთ გადასვლა?'],

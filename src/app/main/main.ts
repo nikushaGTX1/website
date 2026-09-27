@@ -959,6 +959,11 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     return apartment.title?.trim() || `Apartment #${apartment.id}`;
   }
 
+  /** Verified badge only when the uploading agent explicitly ticked "Verified listing". */
+  isVerifiedListing(apartment: Apartment): boolean {
+    return /(?:^|[|\r\n])\s*Verified listing:\s*Yes\b/i.test(apartment.description || '');
+  }
+
   isExclusiveListing(apartment: Apartment): boolean {
     return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(apartment.description || '');
   }

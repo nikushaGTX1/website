@@ -391,6 +391,8 @@
           (mouseleave)="hoveredApartmentId = null"
           (focusin)="hoveredApartmentId = apartment.id; selectApartment(apartment)"
           (focusout)="hoveredApartmentId = null"
+          (auxclick)="openCardAux($event, apartment)"
+          (mousedown)="$event.button === 1 && $event.preventDefault()"
         >
           <a
             class="card-link"

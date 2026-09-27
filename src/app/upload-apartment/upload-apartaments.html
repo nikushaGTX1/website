@@ -340,6 +340,12 @@
           [(longitude)]="form.propertyLongitude">
         </app-property-point-picker>
 
+        <label class="checkbox-row" *ngIf="canMarkVerified">
+          <input type="checkbox" name="isVerified" [(ngModel)]="form.isVerified" />
+          <span>Verified listing (checked in person by a Velven agent)</span>
+          <span class="info-icon" title="Only tick this if an agent verified the property. It shows the Verified badge on the listing.">i</span>
+        </label>
+
         <label class="checkbox-row">
           <input type="checkbox" name="hideAddress" [(ngModel)]="form.hideAddress" />
           <span>Hide the exact street address from the public listing</span>

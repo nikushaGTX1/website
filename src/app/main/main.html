@@ -353,7 +353,7 @@
         [routerLink]="['/apartments', apartment.id]"
       >
         <div class="property-image" data-protected-image>
-          <span class="property-badge verified" *ngIf="isExclusiveListing(apartment)"
+          <span class="property-badge verified" *ngIf="isVerifiedListing(apartment)"
             ><i class="fa-solid fa-circle-check"></i> Verified</span
           >
           <img

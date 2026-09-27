@@ -4898,3 +4898,8 @@
     scroll-snap-stop: always;
   }
 }
+
+/* Breathing room between the nearby cards and the button. */
+.property-card .view-details {
+  margin-top: 14px !important;
+}

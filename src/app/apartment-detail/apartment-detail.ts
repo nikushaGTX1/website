@@ -358,7 +358,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   get rooms(): number {
     if (this.apartment?.rooms) return this.apartment.rooms;
     // Older listings only carry the room count as a "Rooms: N" tag in the description.
-    const tagged = /(?:^||)s*Rooms:s*(d+)/i.exec(this.apartment?.description || '');
+    const tagged = /(?:^|[|\r\n])\s*Rooms:\s*(\d+)/i.exec(this.apartment?.description || '');
     return tagged ? Number(tagged[1]) : 0;
   }
 
@@ -642,7 +642,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   scheduleViewing(): void {
     this.previouslyFocusedElement =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const user = this.authService.currentUser;
+    // Staff (agents, managers, admins) book viewings for clients, so their own
+    // name/contact must not be pre-filled; only customers get their details filled in.
+    const isStaff = this.authService.isAgent || this.authService.isAdmin || this.authService.isCrmManager;
+    const user = isStaff ? null : this.authService.currentUser;
     this.inquiryForm = {
       ...this.emptyInquiryForm(),
       name: user?.fullName || user?.userName || '',
@@ -1272,6 +1275,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   private yesNo(value?: boolean): string {
     return value ? 'Yes' : 'No';
+  }
+
+  /** "VELVEN VERIFIED" only when the uploading agent explicitly ticked "Verified listing". */
+  get isVerifiedListing(): boolean {
+    return /(?:^|[|\r\n])\s*Verified listing:\s*Yes\b/i.test(this.apartment?.description || '');
   }
 
   get isForSale(): boolean {
