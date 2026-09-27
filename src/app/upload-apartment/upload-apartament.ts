@@ -1454,7 +1454,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         const apiMessage =
           typeof error.error === 'string'
             ? error.error
-            : error.error?.message || validationMessage || error.error?.title;
+            : [error.error?.message, error.error?.detail].filter(Boolean).join(' — ') || validationMessage || error.error?.title;
 
         this.errorMessage =
           apiMessage ||
