@@ -18,6 +18,8 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
   private marker?: google.maps.Marker;
   private geocoder?: google.maps.Geocoder;
   private geocodeRevision = 0;
+  /** Only the first address shown (an existing listing opening) may keep its saved pin. */
+  private initialAddressShown = false;
   private mapResizeObserver?: ResizeObserver;
   loading = true;
   errorMessage = '';
@@ -121,12 +123,18 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
       return;
     }
     try {
-      const result = await this.geocoder.geocode({ address });
+      const result = await this.geocoder.geocode({
+        address,
+        region: 'GE',
+        bounds: { south: 41.6, west: 44.6, north: 41.9, east: 45.05 },
+      });
       if (revision !== this.geocodeRevision) return;
       const match = result.results[0];
       if (!match) return;
       const point = match.geometry.location;
-      if (this.hasPoint) {
+      const keepSavedPoint = this.hasPoint && !this.initialAddressShown;
+      this.initialAddressShown = true;
+      if (keepSavedPoint) {
         // A saved exact point (e.g. when editing a listing) must not be replaced by a geocoded guess.
         this.pointConfirmed = true;
         this.setPoint(this.latitude!, this.longitude!, false);
