@@ -3007,3 +3007,36 @@
   color: #0f7a4f;
   box-shadow: inset 0 0 0 1px #b7e4cc;
 }
+
+/* Mobile swipe dots under the main photo, same look as the listing cards. */
+.vp-photo-dots {
+  display: none;
+}
+@media (max-width: 740px) {
+  .vp-photo-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .vp-photo-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: transform 0.18s ease, background 0.18s ease;
+  }
+  .vp-photo-dots span.active {
+    background: #fff;
+    transform: scale(1.15);
+  }
+  .vp-photo-dots span.small {
+    transform: scale(0.7);
+  }
+}

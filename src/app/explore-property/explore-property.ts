@@ -228,6 +228,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
     return `translate3d(calc(${-100 * this.cardImageIndex(apartment)}% + ${offset}px), 0, 0)`;
   }
 
+  /** Dots keep their slot while the 5-dot window slides, so only their state animates. */
+  readonly trackByPosition = (position: number): number => position;
+
   cardDots(apartment: Apartment): number[] {
     const count = this.cardImages(apartment).length;
     const start = Math.max(0, Math.min(this.cardImageIndex(apartment) - 2, count - 5));

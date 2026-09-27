@@ -4870,3 +4870,16 @@
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* iOS Safari clips fixed-position children of an overflow:hidden, rounded parent once the
+   page scrolls, which hid the picker sheet and left only its dim inside the search card. */
+@media (max-width: 650px) {
+  .property-search:has(.property-type-menu, .main-budget-popover, .bedroom-popover),
+  .hero:has(.property-type-menu, .main-budget-popover, .bedroom-popover),
+  .search-fields:has(.property-type-menu, .main-budget-popover, .bedroom-popover) {
+    overflow: visible !important;
+    transform: none !important;
+    filter: none !important;
+    contain: none !important;
+  }
+}

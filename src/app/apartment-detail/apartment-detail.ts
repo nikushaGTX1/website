@@ -333,6 +333,24 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return this.galleryImages.slice(5);
   }
 
+  /** Up to 5 swipe dots around the active photo; edge dots shrink when more photos follow. */
+  readonly trackByDotSlot = (position: number): number => position;
+
+  get galleryDots(): Array<{ index: number; active: boolean; small: boolean }> {
+    const total = this.galleryImages.length;
+    if (total <= 1) return [];
+    const visible = Math.min(5, total);
+    const start = Math.min(Math.max(0, this.activePhotoIndex - 2), total - visible);
+    return Array.from({ length: visible }, (_, offset) => {
+      const index = start + offset;
+      return {
+        index,
+        active: index === this.activePhotoIndex,
+        small: (offset === 0 && start > 0) || (offset === visible - 1 && index < total - 1),
+      };
+    });
+  }
+
   get activePhoto(): string {
     return this.galleryImages[this.activePhotoIndex] || '/property-placeholder.svg';
   }
