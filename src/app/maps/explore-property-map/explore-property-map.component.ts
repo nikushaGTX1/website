@@ -13,6 +13,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { ParkLayer } from '../services/park-layer';
 import Supercluster from 'supercluster';
 import { Apartment } from '../../models/apartment';
 
@@ -129,7 +130,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (changes['selectedApartmentId']) this.updateSelectedMarker();
   }
 
+  private parks?: ParkLayer;
+
   ngOnDestroy(): void {
+    this.parks?.destroy();
     this.renderRevision += 1;
     this.pointsRevision += 1;
     if (this.syncTimer) window.clearTimeout(this.syncTimer);
@@ -195,6 +199,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         },
       });
 
+      this.parks?.destroy();
+      this.parks = new ParkLayer(this.map);
       this.clickListener = this.map.addListener('click', () => {
         this.zone.run(() => this.mapClicked.emit());
       });

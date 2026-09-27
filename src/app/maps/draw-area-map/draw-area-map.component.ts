@@ -14,6 +14,7 @@
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { ParkLayer } from '../services/park-layer';
 import { ApartmentService, GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
@@ -208,7 +209,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
+  private parks?: ParkLayer;
+
   ngOnDestroy(): void {
+    this.parks?.destroy();
     if (this.zoomSyncFrame !== undefined) cancelAnimationFrame(this.zoomSyncFrame);
     clearTimeout(this.resizeSettleTimer);
     this.cancelCameraAnimation();
@@ -1121,6 +1125,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         fullscreenControl: false,
         clickableIcons: false,
       }));
+      this.parks?.destroy();
+      this.parks = new ParkLayer(this.map);
       // The wheel zooms the map only: once Google Maps has handled it, stop it from also
       // scrolling the page or panel behind the map.
       mapElement.nativeElement.addEventListener('wheel', (event: WheelEvent) => event.preventDefault(), { passive: false });
