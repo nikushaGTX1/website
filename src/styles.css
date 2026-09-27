@@ -279,6 +279,24 @@ app-root {
   input[type='submit'] {
     min-height: 44px;
   }
+
+  /* Round icon buttons set their own equal width/height; the 44px floor
+     above would stretch them into ovals. */
+  button:is(
+    [class*='arrow'],
+    [class*='-nav'],
+    [class*='close'],
+    [class*='heart'],
+    [class*='favorite'],
+    [class*='carousel'],
+    [aria-label*='Previous'],
+    [aria-label*='Next'],
+    [aria-label*='Close']
+  ),
+  .vd-cal-head button,
+  .avail-calendar-head button {
+    min-height: 0;
+  }
 }
 
 /* Site typography: one visual voice with script-appropriate glyph coverage. */

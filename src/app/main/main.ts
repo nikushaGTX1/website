@@ -72,12 +72,19 @@ export class Main implements OnInit, OnDestroy {
     });
   }
 
+  /** Anything shorter than a peek counts as collapsed: taps open it instead of hitting the cards. */
   get areaSheetCollapsed(): boolean {
-    return this.sheetHeight !== null && this.sheetHeight <= 100;
+    return this.sheetHeight !== null && this.sheetHeight <= 180;
   }
 
-  /** A tap on the collapsed preview opens the sheet before its controls become interactive. */
+  private suppressNextSheetClick = false;
+
+  /** A tap anywhere on the collapsed preview pops the sheet open. */
   expandCollapsedAreaSheet(event: MouseEvent): void {
+    if (this.suppressNextSheetClick) {
+      this.suppressNextSheetClick = false;
+      return;
+    }
     if (window.innerWidth > 650 || !this.areaSheetCollapsed) return;
     const sheet = event.currentTarget as HTMLElement;
     const handle = sheet.querySelector<HTMLElement>('.sheet-handle');
@@ -115,6 +122,10 @@ export class Main implements OnInit, OnDestroy {
     const { min, half, max } = this.sheetBounds(handle);
     const current = this.sheetHeight ?? this.sheetDragStartHeight;
     const points = [min, half, max];
+    // The click that follows this pointerup bubbles to the sheet; the handle
+    // already decided the new height, so the sheet must not re-expand it.
+    this.suppressNextSheetClick = true;
+    setTimeout(() => (this.suppressNextSheetClick = false), 350);
     if (!this.sheetDragMoved) {
       // A tap toggles between the small and the half height.
       this.sheetHeight = current > half - 20 ? min : half;

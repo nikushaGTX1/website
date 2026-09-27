@@ -9,15 +9,29 @@
     <div class="ambient-ring ring-one"></div>
     <div class="ambient-ring ring-two"></div>
 
-    <article
+    <button
+      type="button"
       class="profile-attribute orbit-attribute"
       *ngFor="let attribute of profileAttributes"
       [style.left.%]="attribute.left"
       [style.top.%]="attribute.top"
+      (click)="changeAnswer.emit(attribute.step)"
     >
-      <span class="attribute-icon"><i class="fa-solid" [ngClass]="attribute.icon"></i></span>
-      <p><small>{{ attribute.label }}</small><strong>{{ attribute.value }}</strong></p>
-    </article>
+      <span class="attribute-icon"><i class="fa-solid" [ngClass]="attribute.icon" aria-hidden="true"></i></span>
+      <span class="attribute-text"><small>{{ attribute.label }}</small><strong>{{ attribute.value }}</strong></span>
+      <span class="attribute-edit" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
+    </button>
+
+    <button
+      type="button"
+      class="profile-attribute orbit-attribute mobile-extra"
+      *ngFor="let attribute of mobileExtraAttributes"
+      (click)="changeAnswer.emit(attribute.step)"
+    >
+      <span class="attribute-icon"><i class="fa-solid" [ngClass]="attribute.icon" aria-hidden="true"></i></span>
+      <span class="attribute-text"><small>{{ attribute.label }}</small><strong>{{ attribute.value }}</strong></span>
+      <span class="attribute-edit" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
+    </button>
 
     <div class="avatar-focus">
       <div class="avatar-glow"></div>

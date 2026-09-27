@@ -10,6 +10,7 @@ interface AnswerRow {
 }
 
 interface ProfileAttribute {
+  step: number;
   label: string;
   value: string;
   icon: string;
@@ -111,10 +112,11 @@ export class HomeProfileSummaryComponent {
   get profileAttributes(): ProfileAttribute[] {
     const attributes = [
       this.profile.propertyGoal
-        ? { label: 'Looking for', value: this.label(this.profile.propertyGoal), icon: 'fa-house' }
+        ? { step: 1, label: 'Looking for', value: this.label(this.profile.propertyGoal), icon: 'fa-house' }
         : null,
       this.profile.locationFlexible || this.profile.districts.length || this.profile.selectedMapArea
         ? {
+            step: 2,
             label: 'Location',
             value: this.profile.locationFlexible
               ? 'Flexible'
@@ -125,10 +127,11 @@ export class HomeProfileSummaryComponent {
           }
         : null,
       this.profile.propertyGoal !== 'Buy'
-        ? { label: 'Budget', value: this.budget, icon: 'fa-wallet' }
+        ? { step: 3, label: 'Budget', value: this.budget, icon: 'fa-wallet' }
         : null,
       this.profile.householdType
         ? {
+            step: 4,
             label: 'Household',
             value: `${this.profile.adults} adult${this.profile.adults === 1 ? '' : 's'}${
               this.profile.children
@@ -140,6 +143,7 @@ export class HomeProfileSummaryComponent {
         : null,
       this.profile.bedrooms !== undefined
         ? {
+            step: 6,
             label: 'Bedrooms',
             value: this.profile.bedrooms === null
               ? 'Let AI decide'
@@ -150,19 +154,19 @@ export class HomeProfileSummaryComponent {
           }
         : null,
       this.timingValue
-        ? { label: 'Timing', value: this.timingValue, icon: 'fa-calendar' }
+        ? { step: 7, label: 'Timing', value: this.timingValue, icon: 'fa-calendar' }
         : null,
       this.profile.lifestyles.length
-        ? { label: 'Lifestyle', value: this.list(this.profile.lifestyles), icon: 'fa-heart' }
+        ? { step: 9, label: 'Lifestyle', value: this.list(this.profile.lifestyles), icon: 'fa-heart' }
         : null,
       this.profile.transportation.length
-        ? { label: 'Transport', value: this.list(this.profile.transportation), icon: 'fa-route' }
+        ? { step: 8, label: 'Transport', value: this.list(this.profile.transportation), icon: 'fa-route' }
         : null,
       this.profile.parkingAutomaticallyPrioritized
-        ? { label: 'Parking', value: 'Automatically prioritized', icon: 'fa-square-parking' }
+        ? { step: 8, label: 'Parking', value: 'Automatically prioritized', icon: 'fa-square-parking' }
         : null,
       this.profile.propertyGoal !== 'Buy' && this.profile.hasPet !== null
-        ? { label: 'Pet', value: this.petValue, icon: 'fa-paw' }
+        ? { step: 10, label: 'Pet', value: this.petValue, icon: 'fa-paw' }
         : null,
     ].filter((attribute): attribute is Omit<ProfileAttribute, 'left' | 'top'> => !!attribute);
 
@@ -174,6 +178,16 @@ export class HomeProfileSummaryComponent {
         top: 50 + Math.sin(angle) * 40,
       };
     });
+  }
+
+  /** Answers not shown on the desktop orbit; mobile lists them so every answer stays editable. */
+  get mobileExtraAttributes(): Array<Omit<ProfileAttribute, 'left' | 'top'>> {
+    return [
+      this.profile.gender
+        ? { step: 0, label: 'Gender', value: this.label(this.profile.gender), icon: 'fa-venus-mars' }
+        : null,
+      { step: 11, label: 'Top 5 priorities', value: this.list(this.profile.topPriorities), icon: 'fa-list-ol' },
+    ].filter((attribute): attribute is Omit<ProfileAttribute, 'left' | 'top'> => !!attribute);
   }
 
   private get timingValue(): string {
