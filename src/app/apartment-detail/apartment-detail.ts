@@ -1118,7 +1118,6 @@ export class ApartmentDetail implements OnInit, OnDestroy {
           this.selectedAgent.email ||
           'Agent'
         : this.apartment?.uploadedByName ||
-          this.apartment?.ownerName ||
           this.getListingMetadata('Contact') ||
           this.getListingMetadata('Owner Email') ||
           'Listing agent')
@@ -1382,7 +1381,6 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const ownerNames = [
       apartment.agentName,
       apartment.uploadedByName,
-      apartment.ownerName,
       this.getListingMetadata('Contact'),
     ]
       .map((value) => (value || '').trim().toLowerCase())

@@ -172,6 +172,8 @@ export class AgentDetailProfile implements OnInit {
       .filter((value): value is string => !!value)
       .map((value) => value.trim().toLowerCase());
     const apartmentIds = [
+      apartment.uploadedByUserId,
+      apartment.uploaderUserId,
       apartment.agentId,
       apartment.agentUserId,
       apartment.userId,
@@ -192,15 +194,20 @@ export class AgentDetailProfile implements OnInit {
     ]
       .filter((value): value is string => !!value)
       .map((value) => value.toLowerCase());
-    const apartmentNames = [apartment.agentName, apartment.uploadedByName, apartment.ownerName]
+    // ownerName is the property owner (landlord), never the agent, so it is not matched.
+    const apartmentNames = [apartment.agentName, apartment.uploadedByName]
       .filter((value): value is string => !!value)
       .map((value) => value.trim().toLowerCase());
 
-    return (
-      apartmentIds.some((value) => agentIds.includes(value)) ||
-      apartmentEmails.some((value) => agentEmails.includes(value)) ||
-      apartmentNames.some((value) => agentNames.includes(value))
-    );
+    // A listing with a known uploader belongs to that account only; names are a
+    // fallback for old imports that have no uploader ID or email.
+    if (apartmentIds.length || apartmentEmails.length) {
+      return (
+        apartmentIds.some((value) => agentIds.includes(value)) ||
+        apartmentEmails.some((value) => agentEmails.includes(value))
+      );
+    }
+    return apartmentNames.some((value) => agentNames.includes(value));
   }
 
   private belongsToAgentCrm(lead: CrmLead, agent: Agent, routeAgentId: string): boolean {

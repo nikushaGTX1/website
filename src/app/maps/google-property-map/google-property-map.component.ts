@@ -13,7 +13,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
-import { EvChargerLayer } from '../services/ev-charger-layer';
 
 type PlaceCategory = 'school' | 'preschool' | 'supermarket' | 'hospital' | 'transit_station' | 'gym' | 'park';
 type CategoryFilter = PlaceCategory | 'all';
@@ -106,10 +105,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       void this.initialize();
     }
   }
-  private evChargers?: EvChargerLayer;
-
   ngOnDestroy(): void {
-    this.evChargers?.destroy();
     this.mapResizeObserver?.disconnect();
     this.clearPlaceMarkers();
     this.apartmentMarker?.setMap(null);
@@ -244,8 +240,6 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         clickableIcons: true,
         gestureHandling: this.compact ? 'greedy' : 'cooperative',
       });
-      this.evChargers?.destroy();
-      this.evChargers = new EvChargerLayer(this.map);
       this.apartmentMarker = new google.maps.Marker({
         map: this.map,
         position: location,

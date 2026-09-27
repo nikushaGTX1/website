@@ -14,7 +14,6 @@
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
-import { EvChargerLayer } from '../services/ev-charger-layer';
 import { ApartmentService, GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
@@ -209,12 +208,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
-  private evChargers?: EvChargerLayer;
-
   ngOnDestroy(): void {
     if (this.zoomSyncFrame !== undefined) cancelAnimationFrame(this.zoomSyncFrame);
     clearTimeout(this.resizeSettleTimer);
-    this.evChargers?.destroy();
     this.cancelCameraAnimation();
     document.body.classList.remove('draw-map-open');
     this.mapResizeObserver?.disconnect();
@@ -1125,8 +1121,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         fullscreenControl: false,
         clickableIcons: false,
       }));
-      this.evChargers?.destroy();
-      this.evChargers = new EvChargerLayer(this.map);
       // The wheel zooms the map only: once Google Maps has handled it, stop it from also
       // scrolling the page or panel behind the map.
       mapElement.nativeElement.addEventListener('wheel', (event: WheelEvent) => event.preventDefault(), { passive: false });

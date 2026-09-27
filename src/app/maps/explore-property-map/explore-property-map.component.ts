@@ -13,7 +13,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
-import { EvChargerLayer } from '../services/ev-charger-layer';
 import Supercluster from 'supercluster';
 import { Apartment } from '../../models/apartment';
 
@@ -130,10 +129,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (changes['selectedApartmentId']) this.updateSelectedMarker();
   }
 
-  private evChargers?: EvChargerLayer;
-
   ngOnDestroy(): void {
-    this.evChargers?.destroy();
     this.renderRevision += 1;
     this.pointsRevision += 1;
     if (this.syncTimer) window.clearTimeout(this.syncTimer);
@@ -198,9 +194,6 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
           strictBounds: false,
         },
       });
-
-      this.evChargers?.destroy();
-      this.evChargers = new EvChargerLayer(this.map);
 
       this.clickListener = this.map.addListener('click', () => {
         this.zone.run(() => this.mapClicked.emit());
