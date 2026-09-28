@@ -75,12 +75,11 @@ import { CrmLink } from './crm/crm-link/crm-link';
     CurrencyPrice,
     SavedListings,
     AgentDetailProfile,
-    PropertyPointPickerComponent,
     StreetValidationMapComponent,
     CrmQuestioner,
     CrmLink,
   ],
-  imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
+  imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule, PropertyPointPickerComponent],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor, apiPerformanceInterceptor])),

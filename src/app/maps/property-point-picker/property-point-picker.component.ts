@@ -1,10 +1,12 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { ParkLayer } from '../services/park-layer';
 
 @Component({
   selector: 'app-property-point-picker',
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './property-point-picker.component.html',
   styleUrl: './property-point-picker.component.css',
 })
