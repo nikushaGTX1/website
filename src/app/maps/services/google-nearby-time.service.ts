@@ -22,6 +22,14 @@ export interface NearestSchoolResult {
 
 type NearbyTimeKey = keyof NearbyWalkingTimes;
 
+function straightLineMeters(a: google.maps.LatLng, b: google.maps.LatLng): number {
+  const rad = (value: number) => (value * Math.PI) / 180;
+  const dLat = rad(b.lat() - a.lat());
+  const dLng = rad(b.lng() - a.lng());
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat())) * Math.cos(rad(b.lat())) * Math.sin(dLng / 2) ** 2;
+  return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
 @Injectable({ providedIn: 'root' })
 export class GoogleNearbyTimeService {
   private configured = false;
@@ -242,8 +250,20 @@ export class GoogleNearbyTimeService {
               destination,
               travelMode: routes.TravelMode.WALKING,
             });
-            const seconds = directions.routes[0]?.legs[0]?.duration?.value;
-            return [key, seconds ? Math.max(1, Math.round(seconds / 60)) : undefined] as const;
+            const leg = directions.routes[0]?.legs[0];
+            const seconds = leg?.duration?.value;
+            const routeMinutes = seconds ? Math.max(1, Math.round(seconds / 60)) : undefined;
+            // A pin beside a highway or closed block can make Google route a 60 m walk
+            // as 1 km. If the route is far longer than the straight line, estimate from it.
+            const straight = google.maps.geometry?.spherical
+              ? google.maps.geometry.spherical.computeDistanceBetween(origin, destination)
+              : straightLineMeters(origin, destination);
+            const straightMinutes = Math.max(1, Math.ceil((straight * 1.3) / 80));
+            const routeMeters = leg?.distance?.value ?? 0;
+            if (routeMeters > Math.max(400, straight * 2.5)) {
+              return [key, Math.min(routeMinutes ?? straightMinutes, straightMinutes)] as const;
+            }
+            return [key, routeMinutes] as const;
           } catch {
             return [key, undefined] as const;
           }

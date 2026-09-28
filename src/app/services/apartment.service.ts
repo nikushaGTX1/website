@@ -196,7 +196,7 @@ export class ApartmentService {
 
   refreshGymDistances(skip = 0): Observable<{ message: string; updated: number; checkedCount: number; nextSkip: number | null }> {
     return this.http
-      .post<{ message: string; updated: number; checkedCount: number; nextSkip: number | null }>(`${this.apiUrl}/refresh-gym-distances?skip=${skip}`, {})
+      .post<{ message: string; updated: number; checkedCount: number; nextSkip: number | null }>(`${this.apiUrl}/refresh-nearby-distances?skip=${skip}`, {})
       .pipe(tap(() => this.clearApartmentCache()));
   }
 

@@ -948,12 +948,12 @@ export class AdminPanel implements OnInit, OnDestroy {
           this.refreshGymDistances(response.nextSkip, total);
           return;
         }
-        this.successMessage = `Gym walking times improved for ${total} listing(s).`;
+        this.successMessage = `Nearby walking times improved for ${total} listing(s).`;
         this.actionId = '';
         this.cdr.detectChanges();
       },
       error: () => {
-        this.errorMessage = 'Could not refresh gym times.';
+        this.errorMessage = 'Could not refresh nearby times.';
         this.actionId = '';
         this.cdr.detectChanges();
       },
