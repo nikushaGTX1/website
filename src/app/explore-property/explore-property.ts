@@ -16,6 +16,7 @@ import { AuthService } from '../services/auth.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { AppLanguage, TranslationService } from '../services/translation.service';
+import { parkingCostLabel } from '../utils/parking-cost';
 import { PropertyMapPreviewAnchor } from '../maps/explore-property-map/explore-property-map.component';
 
 @Component({
@@ -1937,6 +1938,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   readonly moreFilterMinutes = [0, 5, 10, 15];
   readonly moreFilterLease = [3, 6, 12];
 
+  readonly parkingCostLabel = parkingCostLabel;
   moreFiltersOpen = false;
   /** Route content is its own stacking context under the navbar, so the open dialog lives on <body>. */
   @ViewChild('mfBackdrop') set moreFiltersBackdrop(ref: ElementRef<HTMLElement> | undefined) {

@@ -2034,3 +2034,13 @@ select:focus {
 .upload-main {
   overflow-anchor: none;
 }
+
+/* Parking cost (Free / Paid with price / Paid, price unknown) */
+.parking-cost { display: grid; gap: 10px; margin-top: 14px; }
+.parking-cost-title { color: #29222f; font-size: 13px; font-weight: 800; }
+.parking-cost-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.parking-cost-options button { min-height: 40px; padding: 0 14px; border: 1px solid #e3dfea; border-radius: 10px; background: #fff; color: #29222f; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.parking-cost-options button.selected { border-color: #a58ce0; background: #f1ecff; color: #451a8f; }
+.parking-price-input { display: grid; gap: 6px; max-width: 260px; color: #4a4356; font-size: 13px; font-weight: 600; }
+.parking-price-input input { min-height: 42px; padding: 0 12px; border: 1px solid #e3dfea; border-radius: 10px; font: inherit; }
+.parking-cost-hint { color: #8a8595; font-size: 12px; }

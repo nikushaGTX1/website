@@ -133,7 +133,7 @@
               <div *ngFor="let feature of keyFeatures">
                 <span><i class="fa-solid {{ feature.icon }}"></i></span>
                 <p>
-                  {{ feature.label }}<small>{{ feature.value }}</small>
+                  {{ feature.label }}<small [class.vp-amenity-highlight]="feature.highlight">{{ feature.value }}</small>
                 </p>
               </div>
             </div>

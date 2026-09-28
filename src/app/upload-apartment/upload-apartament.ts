@@ -13,6 +13,7 @@ import {
   NearbyWalkingTimes,
 } from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
+import { parseParkingCost } from '../utils/parking-cost';
 import { AiPricingService } from '../services/ai-pricing.service';
 
 type ListingCopyLanguage = 'ka' | 'en' | 'ru';
@@ -46,6 +47,9 @@ type UploadForm = {
   hasElevator: boolean;
   hasParking: boolean;
   parkingCondition: string;
+  /** '' = not specified, 'Free', 'Paid' (price known), 'PaidUnknown' (paid, price not known). */
+  parkingCost: '' | 'Free' | 'Paid' | 'PaidUnknown';
+  parkingPrice: number | null;
   isQuietStreet: boolean;
   hasBalcony: boolean;
   hasBathtub: boolean;
@@ -276,6 +280,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     hasElevator: false,
     hasParking: false,
     parkingCondition: '',
+    parkingCost: '',
+    parkingPrice: null,
     isQuietStreet: false,
     hasBalcony: false,
     hasBathtub: false,
@@ -574,6 +580,9 @@ export class UploadApartment implements OnInit, OnDestroy {
     const parkingLabel = tag('Parking type');
     f.parkingCondition = source.parkingCondition ||
       this.parkingTypeOptions.find((o) => o.label === parkingLabel)?.value || '';
+    const parkingCost = parseParkingCost(source.description || '');
+    f.parkingCost = parkingCost.cost === 'Free' ? 'Free' : parkingCost.cost === 'Paid' ? (parkingCost.price != null ? 'Paid' : 'PaidUnknown') : '';
+    f.parkingPrice = parkingCost.price;
     f.viewType = source.viewType || tag('View type');
     f.minimumRentalPeriod = source.minimumRentalPeriod || tag('Minimum rental');
     f.availableFrom = source.availableFrom || '';
@@ -916,32 +925,36 @@ export class UploadApartment implements OnInit, OnDestroy {
    * or scrolls the page themselves.
    */
   private keepStepHeaderInView(index: number): void {
-    const menuOffset = 88;
-    const isPhone = window.innerWidth <= 820;
     let userMoved = false;
     const stop = () => (userMoved = true);
     const events: Array<keyof WindowEventMap> = ['touchstart', 'wheel', 'keydown'];
-    // Registered after the tap that opened the step, so that tap itself doesn't count.
+    // Registered after the click that opened the step, so that click itself doesn't count.
     setTimeout(() => events.forEach((type) => window.addEventListener(type, stop, { passive: true, once: true })));
 
-    const align = (smooth: boolean) => {
+    // Measure the sticky site header instead of guessing: its height differs per screen size.
+    const menuOffset = () => {
+      const header = document.querySelector('app-navigation');
+      const bottom = header ? header.getBoundingClientRect().bottom : 0;
+      return Math.max(0, bottom) + 12;
+    };
+
+    const align = () => {
       if (userMoved) return;
       const section = document.getElementById(`listing-step-${index}`);
       if (!section) return;
+      const offset = menuOffset();
       const top = section.getBoundingClientRect().top;
-      if (top >= menuOffset - 4 && top <= window.innerHeight * 0.6) return;
-      window.scrollTo({
-        top: window.scrollY + top - menuOffset,
-        // 'instant', not 'auto': the global html { scroll-behavior: smooth } turns 'auto'
-        // into a slow glide that phones interrupt while the page is still resizing.
-        behavior: smooth && !isPhone ? 'smooth' : 'instant',
-      });
+      if (Math.abs(top - offset) < 2) return;
+      // 'instant', not 'auto': the global html { scroll-behavior: smooth } turns 'auto'
+      // into a glide that gets cut off while the previous step is still collapsing.
+      window.scrollTo({ top: window.scrollY + top - offset, behavior: 'instant' });
     };
 
-    requestAnimationFrame(() => align(true));
-    // Re-check while the map/images settle; on phones only, where the jump happened.
-    if (isPhone) [150, 400, 800, 1400].forEach((delay) => setTimeout(() => align(false), delay));
-    setTimeout(() => events.forEach((type) => window.removeEventListener(type, stop)), 1600);
+    // The previous step collapses and the map/photos load after the click, which moves the
+    // opened header. Re-align until the layout settles, on every screen size.
+    requestAnimationFrame(align);
+    [80, 200, 400, 700, 1100, 1500].forEach((delay) => setTimeout(align, delay));
+    setTimeout(() => events.forEach((type) => window.removeEventListener(type, stop)), 1700);
   }
 
   get completionPercentage(): number {
@@ -1730,6 +1743,12 @@ export class UploadApartment implements OnInit, OnDestroy {
         : '',
       this.form.parkingCondition
         ? `Parking score: ${this.parkingPointsFor(this.form.parkingCondition)}`
+        : '',
+      this.form.hasParking && this.form.parkingCost
+        ? `Parking cost: ${this.form.parkingCost === 'Free' ? 'Free' : 'Paid'}`
+        : '',
+      this.form.hasParking && this.form.parkingCost === 'Paid' && Number(this.form.parkingPrice) > 0
+        ? `Parking price: ${Number(this.form.parkingPrice)} ${this.form.currency === 'GEL' ? 'GEL' : 'USD'}`
         : '',
       this.form.viewType ? `View type: ${this.form.viewType}` : '',
       this.form.minimumRentalPeriod ? `Minimum rental: ${this.form.minimumRentalPeriod}` : '',

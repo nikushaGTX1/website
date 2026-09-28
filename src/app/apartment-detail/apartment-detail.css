@@ -3048,3 +3048,5 @@
   flex: none;
   object-fit: contain;
 }
+
+.vp-amenities small.vp-amenity-highlight { color: #451a8f; font-weight: 700; }

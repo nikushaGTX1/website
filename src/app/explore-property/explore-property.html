@@ -535,7 +535,7 @@
                 <span>
                   <i class="fa-solid fa-car" aria-hidden="true"></i>
                   <b>Parking</b>
-                  <small>{{ apartment.hasParking ? 'Available' : 'Unavailable' }}</small>
+                  <small>{{ apartment.hasParking ? parkingCostLabel(apartment) || 'Available' : 'Unavailable' }}</small>
                 </span>
               </div>
             </div>

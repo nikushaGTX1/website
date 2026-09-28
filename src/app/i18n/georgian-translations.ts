@@ -1225,6 +1225,12 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['CRM overview', 'CRM მიმოხილვა'],
   ['System dashboard', 'სისტემის პანელი'],
   ['Search leads', 'ლიდების ძიება'],
+  ['Parking cost', 'პარკინგის ღირებულება'],
+  ['Building parking', 'კორპუსის პარკინგი'],
+  ['Free', 'უფასო'],
+  ['Paid', 'ფასიანია'],
+  ['Paid — price known', 'ფასიანი — ფასი ცნობილია'],
+  ['Paid — price unknown', 'ფასიანი — ფასი უცნობია'],
   ['More filters', 'მეტი ფილტრი'],
   ['Detailed filters', 'დეტალური ფილტრები'],
   ['The details that make a home yours.', 'დეტალები, რომლებიც სახლს თქვენსად აქცევს.'],
@@ -1636,6 +1642,14 @@ const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
 );
 
 const GEORGIAN_RULES: GeorgianRule[] = [
+  {
+    pattern: /^Extra ([$₾][\d,.]+)$/,
+    translate: (match) => `ემატება ${match[1]}`,
+  },
+  {
+    pattern: /^Monthly parking price \((.+)\)$/i,
+    translate: (match) => `პარკინგის თვიური ფასი (${match[1]})`,
+  },
   {
     pattern: /^(\d+) min$/i,
     translate: (match) => `${match[1]} წთ`,

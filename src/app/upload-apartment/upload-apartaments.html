@@ -409,6 +409,19 @@
             </select>
             <small *ngIf="form.parkingCondition">Parking score: {{ parkingPointsFor(form.parkingCondition) }} / 5</small>
           </label>
+          <div class="parking-cost" *ngIf="form.hasParking">
+            <span class="parking-cost-title">Parking cost</span>
+            <div class="parking-cost-options" role="radiogroup" aria-label="Parking cost">
+              <button type="button" role="radio" [attr.aria-checked]="form.parkingCost === 'Free'" [class.selected]="form.parkingCost === 'Free'" (click)="form.parkingCost = 'Free'; form.parkingPrice = null">Free</button>
+              <button type="button" role="radio" [attr.aria-checked]="form.parkingCost === 'Paid'" [class.selected]="form.parkingCost === 'Paid'" (click)="form.parkingCost = 'Paid'">Paid — price known</button>
+              <button type="button" role="radio" [attr.aria-checked]="form.parkingCost === 'PaidUnknown'" [class.selected]="form.parkingCost === 'PaidUnknown'" (click)="form.parkingCost = 'PaidUnknown'; form.parkingPrice = null">Paid — price unknown</button>
+            </div>
+            <label class="parking-price-input" *ngIf="form.parkingCost === 'Paid'">
+              <span>Monthly parking price ({{ form.currency === 'GEL' ? '₾' : '$' }})</span>
+              <input type="number" name="parkingPrice" min="1" step="1" inputmode="numeric" placeholder="e.g. 100" [(ngModel)]="form.parkingPrice" />
+            </label>
+            <small class="parking-cost-hint">Shown on the listing as {{ form.parkingCost === 'Free' ? '“Free”' : form.parkingCost === 'PaidUnknown' ? '“Paid”' : form.parkingCost === 'Paid' ? '“+' + (form.currency === 'GEL' ? '₾' : '$') + (form.parkingPrice || '…') + '”' : 'nothing extra' }}.</small>
+          </div>
         </div>
 
         <div class="lifestyle-panel">

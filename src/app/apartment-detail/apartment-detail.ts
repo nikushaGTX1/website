@@ -35,6 +35,7 @@ interface PhoneCountryOption {
 }
 import { NearbyPlace } from '../maps/google-property-map/google-property-map.component';
 import { AppLanguage, TranslationService } from '../services/translation.service';
+import { parkingCostLabel } from '../utils/parking-cost';
 import { SeoService } from '../services/seo.service';
 
 interface Review {
@@ -429,11 +430,16 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return this.getListingMetadata('Listing plan').toLowerCase() === 'velven exclusive';
   }
 
-  get keyFeatures(): Array<{ icon: string; label: string; value: string }> {
+  get keyFeatures(): Array<{ icon: string; label: string; value: string; highlight?: boolean }> {
     const apartment = this.apartment;
     if (!apartment) return [];
     return [
-      { icon: 'fa-car', label: 'Private parking', value: this.yesNo(apartment.hasParking) },
+      {
+        icon: 'fa-car',
+        label: 'Private parking',
+        value: apartment.hasParking ? parkingCostLabel(apartment) || this.yesNo(true) : this.yesNo(apartment.hasParking),
+        highlight: apartment.hasParking && !!parkingCostLabel(apartment),
+      },
       { icon: 'fa-building', label: 'Balcony', value: this.yesNo(apartment.hasBalcony) },
       { icon: 'fa-couch', label: 'Furnished', value: this.yesNo(apartment.isFurnished) },
       {
