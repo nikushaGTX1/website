@@ -229,7 +229,8 @@ export class GoogleNearbyTimeService {
             const response = await Place.searchNearby({
               fields: ['location'],
               locationRestriction: { center: origin, radius: 5000 },
-              includedPrimaryTypes: [type],
+              // Gyms are often listed as fitness centers on Google; search both.
+              includedPrimaryTypes: type === 'gym' ? ['gym', 'fitness_center'] : [type],
               maxResultCount: 1,
               rankPreference: SearchNearbyRankPreference.DISTANCE,
             });

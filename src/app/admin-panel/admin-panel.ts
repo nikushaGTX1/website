@@ -934,6 +934,32 @@ export class AdminPanel implements OnInit, OnDestroy {
     return labels[this.activeTab] ?? 'Search';
   }
 
+  /** Re-measures gym walking times page by page until every listing is checked. */
+  refreshGymDistances(skip = 0, improved = 0): void {
+    if (!this.canOperateDashboard || (skip === 0 && this.actionId)) return;
+    this.actionId = 'gym-distances';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.cdr.detectChanges();
+    this.apartmentService.refreshGymDistances(skip).subscribe({
+      next: (response) => {
+        const total = improved + response.updated;
+        if (response.nextSkip != null) {
+          this.refreshGymDistances(response.nextSkip, total);
+          return;
+        }
+        this.successMessage = `Gym walking times improved for ${total} listing(s).`;
+        this.actionId = '';
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.errorMessage = 'Could not refresh gym times.';
+        this.actionId = '';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   refreshEvChargers(): void {
     if (this.actionId || !this.canOperateDashboard) return;
     this.actionId = 'ev-chargers';

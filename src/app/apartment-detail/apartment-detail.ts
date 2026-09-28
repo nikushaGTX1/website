@@ -564,6 +564,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     this.photoViewerOpen = false;
     document.body.classList.remove('photo-viewer-active');
     document.body.style.overflow = '';
+    // On the desktop photo grid the large tile is always the cover photo; browsing
+    // in the viewer must not swap it. Phones keep their swipe position.
+    if (window.matchMedia('(min-width: 741px)').matches) this.activePhotoIndex = 0;
   }
 
   ngOnDestroy(): void {

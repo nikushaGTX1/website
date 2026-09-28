@@ -194,6 +194,12 @@ export class ApartmentService {
       .pipe(tap(() => this.clearApartmentCache()));
   }
 
+  refreshGymDistances(skip = 0): Observable<{ message: string; updated: number; checkedCount: number; nextSkip: number | null }> {
+    return this.http
+      .post<{ message: string; updated: number; checkedCount: number; nextSkip: number | null }>(`${this.apiUrl}/refresh-gym-distances?skip=${skip}`, {})
+      .pipe(tap(() => this.clearApartmentCache()));
+  }
+
   approveApartment(id: number): Observable<ApartmentMutationResponse> {
     return this.http
       .post<ApartmentMutationResponse>(`${this.apiUrl}/${id}/approve`, {})

@@ -313,6 +313,9 @@
         <p class="section-sub">Every live listing with who uploaded it.</p>
       </div>
       <div class="section-tools">
+        <button type="button" class="ev-refresh" (click)="refreshGymDistances()" [disabled]="!!actionId">
+          <i class="fa-solid fa-dumbbell"></i> {{ actionId === 'gym-distances' ? 'Refreshing…' : 'Refresh gym times' }}
+        </button>
         <button type="button" class="ev-refresh" (click)="refreshEvChargers()" [disabled]="!!actionId">
           <i class="fa-solid fa-charging-station"></i> {{ actionId === 'ev-chargers' ? 'Refreshing…' : 'Refresh EV chargers' }}
         </button>
