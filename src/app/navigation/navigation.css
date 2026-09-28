@@ -569,9 +569,7 @@
   }
 }
 
-/* Authoritative phone navigation. Threshold matches explore-property.css's
- * own mobile breakpoint (780px), which hardcodes this header's sticky height
- * to offset its sticky search/filter bars — keep both in sync. */
+/* Phone navigation shares Explore's 780px breakpoint. */
 @media (max-width: 780px) {
   :host {
     position: sticky;
@@ -732,6 +730,28 @@
     width: 100%;
     margin-top: 8px;
     box-shadow: none;
+  }
+
+  /* Keep Explore's navigation out of the document's sticky calculations.
+   * Real mobile browsers scroll asynchronously while their toolbars resize. */
+  :host(.explore-navigation) {
+    position: fixed;
+    inset: 0 0 auto;
+    height: var(--explore-mobile-navigation-height);
+  }
+
+  :host(.explore-navigation) .site-header {
+    height: 100%;
+    min-height: 0;
+  }
+
+  :host(.explore-navigation) .navigation {
+    height: 100%;
+    min-height: 0;
+  }
+
+  :host(.explore-navigation) .navigation-content {
+    max-height: calc(100dvh - var(--explore-mobile-navigation-height));
   }
 }
 

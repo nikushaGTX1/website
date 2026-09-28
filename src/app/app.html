@@ -8,11 +8,13 @@
 
 <app-navigation
   *ngIf="showNavigation"
+  [class.explore-navigation]="isExploreProperty"
 ></app-navigation>
 
 <div
   id="main-content"
   class="route-content"
+  [class.explore-route]="isExploreProperty"
   tabindex="-1"
 >
   <router-outlet></router-outlet>

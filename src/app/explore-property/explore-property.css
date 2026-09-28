@@ -2354,17 +2354,23 @@ svg {
 .mf-condition-toggle .mf-icon { color: #29222f; }
 .mf-body { overscroll-behavior: contain; }
 
-/* One sticky layer for search + filter chips. Two separately sticky bars moved
-   independently while scrolling (iOS toolbar resize), which made them shake. */
+/* On phones, reserve space for fixed controls so momentum scrolling and
+   browser toolbar resizing cannot move separate sticky layers independently. */
 .explore-sticky-head {
   display: contents;
 }
 @media (max-width: 780px) {
+  .property-explorer {
+    --mobile-search-height: 73px;
+    --mobile-chips-height: 55px;
+    padding-top: calc(var(--mobile-search-height) + var(--mobile-chips-height));
+  }
+
   .explore-sticky-head {
-    position: sticky;
-    /* Must exactly match navigation.css's rendered phone header height:
-       44px control + 10px vertical padding on each side. */
-    top: 64px;
+    position: fixed;
+    top: var(--explore-mobile-navigation-height);
+    right: 0;
+    left: 0;
     z-index: 45;
     display: block;
     background: #fff;
@@ -2375,5 +2381,17 @@ svg {
     top: auto;
     transform: none;
     will-change: auto;
+  }
+
+  .explore-sticky-head > .search-row {
+    height: var(--mobile-search-height);
+    min-height: var(--mobile-search-height);
+  }
+
+  .explore-sticky-head > .chip-bar {
+    height: var(--mobile-chips-height);
+    background: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }

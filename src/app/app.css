@@ -45,6 +45,14 @@
   .route-content { animation: none; }
 }
 
+@media (max-width: 780px) {
+  .route-content.explore-route {
+    /* Reserve the fixed navigation's space without scroll/resize handlers. */
+    padding-top: var(--explore-mobile-navigation-height);
+    animation: none;
+  }
+}
+
 /* The route container only receives programmatic focus (skip link); never draw a ring around the whole page. */
 .route-content:focus,
 .route-content:focus-visible {

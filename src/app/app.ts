@@ -60,6 +60,10 @@ export class App implements AfterViewInit {
     }
   }
 
+  get isExploreProperty(): boolean {
+    return this.router.url.split(/[?#]/, 1)[0].toLowerCase() === '/exploreproperty';
+  }
+
   get showNavigation(): boolean {
     const path = this.router.url.split(/[?#]/, 1)[0];
     const knownSingleSegmentPages = new Set([
