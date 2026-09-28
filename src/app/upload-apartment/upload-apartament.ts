@@ -15,7 +15,7 @@ import {
 import { TranslationService } from '../services/translation.service';
 import { parseParkingCost } from '../utils/parking-cost';
 import { AiPricingService } from '../services/ai-pricing.service';
-import { OwnerListingService } from '../services/owner-listing.service';
+import { OwnerListingService, OwnerSubmission, OwnerSubmissionStatus } from '../services/owner-listing.service';
 
 type ListingCopyLanguage = 'ka' | 'en' | 'ru';
 type ListingCopy = { title: string; description: string };
@@ -340,6 +340,32 @@ export class UploadApartment implements OnInit, OnDestroy {
   editPendingId: string | null = null;
   editLoading = false;
   private ownerSubmissionId: number | null = null;
+  /** Owner-submitted property being verified; the form below holds the owner's answers for the agent to correct. */
+  ownerSubmission: OwnerSubmission | null = null;
+  ownerStatusSaving = false;
+  readonly ownerStatuses: Array<{ value: OwnerSubmissionStatus; label: string; icon: string }> = [
+    { value: 'new', label: 'New', icon: 'fa-solid fa-star' },
+    { value: 'contacted', label: 'Called', icon: 'fa-solid fa-phone' },
+    { value: 'visited', label: 'Visited', icon: 'fa-solid fa-house-circle-check' },
+  ];
+
+  setOwnerStatus(status: OwnerSubmissionStatus): void {
+    const submission = this.ownerSubmission;
+    if (!submission || this.ownerStatusSaving) return;
+    if (status === 'rejected' && !confirm('Reject this owner submission?')) return;
+    this.ownerStatusSaving = true;
+    this.ownerListingService.updateSubmission(submission.id, { status, verification: submission.verification, agentNotes: submission.agentNotes || '' }).subscribe({
+      next: (updated) => {
+        this.ownerSubmission = updated;
+        this.ownerStatusSaving = false;
+        if (status === 'rejected') this.router.navigate(['/crm/owner-submissions']);
+      },
+      error: () => {
+        this.ownerStatusSaving = false;
+        this.errorMessage = 'Could not update the owner submission.';
+      },
+    });
+  }
   private editOriginalMeta = '';
   successModalPending = false;
   errorMessage = '';
@@ -522,6 +548,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.editLoading = true;
       this.ownerListingService.getSubmission(ownerId).subscribe({
         next: async submission => {
+          this.ownerSubmission = submission;
           const agentName = this.form.agentName;
           const agentPhone = this.form.agentPhone;
           const knownKeys = Object.keys(this.form).filter(key => !['agentName', 'agentPhone', 'imageUrl', 'imageUrls'].includes(key));
@@ -831,7 +858,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       .filter((entry) =>
         !query ||
         entry.district.toLowerCase().includes(query) ||
-        this.locationService.districtName(entry, language).toLowerCase().includes(query),
+        this.locationService.districtName(entry, 'ka').toLowerCase().includes(query),
       )
       .filter((entry) => {
         const key = normalize(entry.district) || normalize(this.locationService.districtName(entry, language));
@@ -849,50 +876,28 @@ export class UploadApartment implements OnInit, OnDestroy {
       }));
   }
 
+  private streetSuggestionCache = { key: '', value: [] as LocationSuggestion[] };
+
   get uploadStreetSuggestions(): LocationSuggestion[] {
-    const query = this.form.street.trim().toLowerCase();
+    const query = this.form.street.trim();
     const language = this.translationService.language$.value;
     if (!this.selectedDistrictValue && query.length < 2) return [];
-    const suggestions: LocationSuggestion[] = [];
-    const seen = new Set<string>();
-    const normalize = (value: string): string =>
-      value.trim().toLocaleLowerCase().replace(/(?:street|st\.?|ქუჩა|ქ\.?|улица|ул\.?)$/i, '').replace(/[^a-z0-9\u10a0-\u10ff\u0400-\u04ff]+/g, '');
-
-    const selectedArea = this.locationEntries.find((item) =>
-      item.city === 'Tbilisi' && item.district === this.selectedDistrictValue,
-    );
-    const citywideCatalog = this.locationEntries.find((item) =>
-      item.city === 'Tbilisi' && item.district === 'All Tbilisi',
-    );
-
-    for (const entry of [selectedArea, citywideCatalog].filter(
-      (item): item is ApiLocation => !!item,
-    )) {
-      for (const street of this.locationService.streetNames(entry, language)) {
-        const key = normalize(street.value) || normalize(street.label);
-        if (
-          !seen.has(key) &&
-          (!query ||
-            street.value.toLowerCase().includes(query) ||
-            street.label.toLowerCase().includes(query))
-        ) {
-          seen.add(key);
-          suggestions.push({
-            id: street.id,
-            label: street.label,
-            value: street.value,
-            type: 'Street',
-            district: selectedArea
-              ? this.locationService.districtName(selectedArea, language)
-              : this.form.location,
-            districtValue: this.selectedDistrictValue,
-            region: selectedArea?.region,
-          });
-          if (suggestions.length === 10) return suggestions;
-        }
-      }
+    const key = `${this.selectedDistrictValue}|${query}|${language}|${this.locationEntries.length}`;
+    if (this.streetSuggestionCache.key !== key) {
+      const value = this.locationService
+        .searchStreets(this.locationEntries, this.selectedDistrictValue, query, language, 10)
+        .map((street) => ({
+          id: street.id,
+          label: street.label,
+          value: street.value,
+          type: 'Street' as const,
+          district: street.district || this.form.location,
+          districtValue: street.districtValue,
+          region: street.region,
+        }));
+      this.streetSuggestionCache = { key, value };
     }
-    return suggestions;
+    return this.streetSuggestionCache.value;
   }
 
   openLocationPicker(type: 'area' | 'street'): void {
@@ -1517,8 +1522,21 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (street) this.form.street = street.label;
   }
 
+  private publishInFlight = false;
+
   async publish(): Promise<void> {
-    if (this.loading) return;
+    // Guard is set before the first await: `loading` only flips after the duplicate
+    // lookup, so a quick double click used to create the listing twice.
+    if (this.loading || this.publishInFlight) return;
+    this.publishInFlight = true;
+    try {
+      await this.publishOnce();
+    } finally {
+      this.publishInFlight = false;
+    }
+  }
+
+  private async publishOnce(): Promise<void> {
     this.successMessage = '';
     this.errorMessage = '';
     this.validationAttempted = true;

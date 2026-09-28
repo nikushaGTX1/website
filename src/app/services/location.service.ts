@@ -229,6 +229,84 @@ export class LocationService {
     }));
   }
 
+  private static readonly latin: Record<string, string> = {
+    'ა': 'a', 'ბ': 'b', 'გ': 'g', 'დ': 'd', 'ე': 'e', 'ვ': 'v', 'ზ': 'z', 'თ': 't', 'ი': 'i', 'კ': 'k', 'ლ': 'l',
+    'მ': 'm', 'ნ': 'n', 'ო': 'o', 'პ': 'p', 'ჟ': 'zh', 'რ': 'r', 'ს': 's', 'ტ': 't', 'უ': 'u', 'ფ': 'p', 'ქ': 'k',
+    'ღ': 'gh', 'ყ': 'q', 'შ': 'sh', 'ჩ': 'ch', 'ც': 'ts', 'ძ': 'dz', 'წ': 'ts', 'ჭ': 'ch', 'ხ': 'kh', 'ჯ': 'j', 'ჰ': 'h',
+  };
+
+  /** Official Georgian → Latin romanization, e.g. "ფერმწერთა" → "permtserta". */
+  transliterate(value: string): string {
+    return [...value].map((char) => LocationService.latin[char] ?? char).join('');
+  }
+
+  /** Lowercase, letters/digits only, with sounds people spell differently folded together (f/p, q/k, j/zh…). */
+  private searchKey(value: string): string {
+    return this.transliterate(value.toLocaleLowerCase())
+      .replace(/[^a-z0-9Ѐ-ӿ]+/g, '')
+      .replace(/ph|f/g, 'p').replace(/q/g, 'k').replace(/zh/g, 'j').replace(/gh/g, 'g').replace(/kh|x/g, 'k')
+      .replace(/tz|c(?!h)/g, 'ts').replace(/w/g, 'v').replace(/y/g, 'i');
+  }
+
+  /** English label for streets that only have a Georgian name in the catalog. */
+  private latinStreetLabel(value: string): string {
+    return this.transliterate(value)
+      .replace(/\s*ქ\.?$|\s*k\.$/i, ' St.')
+      .replace(/(^|[\s(-])([a-z])/g, (_, lead: string, letter: string) => lead + letter.toUpperCase());
+  }
+
+  /**
+   * Street autocomplete shared by the listing forms. A district can appear several times
+   * (OSM and official catalog), so every entry with that name is searched first; then the
+   * rest of Tbilisi, so a street filed under a neighbouring district is still found.
+   * Matches English, Georgian, aliases and Latin transliteration in either direction.
+   */
+  searchStreets(
+    locations: ApiLocation[],
+    districtValue: string,
+    rawQuery: string,
+    language: AppLanguage,
+    limit = 12,
+  ): Array<{ id: number; label: string; value: string; district: string; districtValue: string; region: string; inDistrict: boolean }> {
+    const query = this.searchKey(rawQuery.trim().replace(/\s*(street|st\.?|ქუჩა|ქ\.?|улица|ул\.?)$/i, ''));
+    const tbilisi = locations.filter((entry) => entry.city === 'Tbilisi');
+    const own = tbilisi.filter((entry) => entry.district === districtValue || entry.district === 'All Tbilisi');
+    const ordered = [...own, ...(query.length >= 2 ? tbilisi.filter((entry) => !own.includes(entry)) : [])];
+    const seen = new Set<string>();
+    const results: Array<{ id: number; label: string; value: string; district: string; districtValue: string; region: string; inDistrict: boolean }> = [];
+
+    for (const entry of ordered) {
+      const inDistrict = own.includes(entry);
+      const english = this.streetNames(entry, 'en');
+      const georgian = this.streetNames(entry, 'ka');
+      for (let index = 0; index < english.length && results.length < limit; index++) {
+        const street = english[index];
+        const ka = georgian[index]?.label || street.value;
+        const names = [street.value, ka, ...street.aliases];
+        const name = this.searchKey(ka) || this.searchKey(street.value);
+        // Same name in another district is a different street; duplicate catalog entries of one district are not.
+        const dedupe = `${name}|${entry.district}`;
+        if (!name || seen.has(dedupe)) continue;
+        if (query && !names.some((name) => this.searchKey(name).includes(query))) continue;
+        if (!this.isLikelyStreet({ label: ka, value: street.value })) continue;
+        seen.add(dedupe);
+        const hasLatin = /[A-Za-z]/.test(street.value);
+        results.push({
+          id: street.id,
+          label: language === 'ka' ? ka : hasLatin ? street.value : this.latinStreetLabel(ka),
+          value: street.value,
+          district: entry.district === 'All Tbilisi' ? '' : this.districtName(entry, language),
+          districtValue: entry.district === 'All Tbilisi' ? districtValue : entry.district,
+          region: entry.region,
+          inDistrict,
+        });
+      }
+      if (results.length >= limit) break;
+    }
+    // Streets in the chosen district come first, then the rest of the city.
+    return results.sort((a, b) => Number(b.inDistrict) - Number(a.inDistrict));
+  }
+
   private indexApiStreetTranslations(locations: ApiLocation[]): void {
     this.georgianStreetNames.clear();
     this.streetTranslations.length = 0;

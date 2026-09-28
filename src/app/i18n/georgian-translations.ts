@@ -1745,6 +1745,11 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Could not load owner submissions.', 'განაცხადების ჩატვირთვა ვერ მოხერხდა.'],
   ['Could not load this submission.', 'განაცხადის ჩატვირთვა ვერ მოხერხდა.'],
   ['Could not save the submission.', 'შენახვა ვერ მოხერხდა.'],
+  ['Verification', 'გადამოწმება'],
+  ['Call', 'დარეკვა'],
+  ['Reject', 'უარყოფა'],
+  ["The form below is filled with the owner's answers. Check each field and fix anything that is wrong, then publish.", 'ქვემოთ ფორმა შევსებულია მესაკუთრის პასუხებით. გადაამოწმეთ ყველა ველი, შეასწორეთ არასწორი და გამოაქვეყნეთ.'],
+  ['Could not update the owner submission.', 'განაცხადის განახლება ვერ მოხერხდა.'],
 ]);
 
 // Velven Match: requirement statuses, review page and validation messages.

@@ -691,6 +691,11 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['No View', 'Без вида'],
   ['Minimum 6 months', 'Минимум 6 месяцев'],
   ['Minimum 12 months', 'Минимум 12 месяцев'],
+  ['Verification', 'Проверка'],
+  ['Call', 'Позвонить'],
+  ['Reject', 'Отклонить'],
+  ["The form below is filled with the owner's answers. Check each field and fix anything that is wrong, then publish.", 'Форма ниже заполнена ответами владельца. Проверьте каждое поле, исправьте неверное и опубликуйте.'],
+  ['Could not update the owner submission.', 'Не удалось обновить заявку.'],
 ]);
 
 const RUSSIAN_RULES: RussianRule[] = [

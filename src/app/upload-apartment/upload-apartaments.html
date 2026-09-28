@@ -55,6 +55,29 @@
     All properties are verified. We protect your privacy and your time.
   </p>
 
+  <section class="verify-banner" *ngIf="ownerSubmission as owner">
+    <div class="verify-top">
+      <a class="verify-back" routerLink="/crm/owner-submissions"><i class="fa-solid fa-arrow-left"></i> <span>Owner submissions</span></a>
+      <span class="verify-tag"><i class="fa-solid fa-clipboard-check"></i> <span>Verification</span></span>
+    </div>
+    <div class="verify-body">
+      <span class="verify-avatar">{{ owner.ownerName.charAt(0) }}</span>
+      <div class="verify-owner">
+        <small>Owner</small>
+        <strong data-no-translate>{{ owner.ownerName }}</strong>
+        <span data-no-translate>{{ owner.ownerPhone }}<ng-container *ngIf="owner.ownerEmail"> · {{ owner.ownerEmail }}</ng-container></span>
+      </div>
+      <a class="verify-call" [href]="'tel:' + owner.ownerPhone"><i class="fa-solid fa-phone"></i> <span>Call</span></a>
+    </div>
+    <p class="verify-hint"><i class="fa-solid fa-circle-info"></i> <span>The form below is filled with the owner's answers. Check each field and fix anything that is wrong, then publish.</span></p>
+    <div class="verify-actions">
+      <button type="button" *ngFor="let s of ownerStatuses" [class.active]="owner.status === s.value" [disabled]="ownerStatusSaving" (click)="setOwnerStatus(s.value)">
+        <i [class]="s.icon"></i> <span>{{ s.label }}</span>
+      </button>
+      <button type="button" class="reject" [disabled]="ownerStatusSaving" (click)="setOwnerStatus('rejected')"><i class="fa-solid fa-ban"></i> <span>Reject</span></button>
+    </div>
+  </section>
+
   <div class="edit-mode-banner" *ngIf="isEditMode"><i class="fa-solid fa-pen-to-square"></i><span>{{ editLoading ? 'Loading your listing…' : 'You are editing your listing. Change anything and press save.' }}</span></div>
 
   <div class="upload-layout" *ngIf="selectedListingPlan">

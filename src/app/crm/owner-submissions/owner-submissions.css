@@ -45,8 +45,12 @@ button:disabled { cursor: default; opacity: .6; }
 .state p { margin: 0; }
 
 /* Layout */
-.layout { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 20px; align-items: start; }
-.list { display: grid; gap: 10px; }
+.layout { display: block; }
+.list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 12px; }
+.none { grid-column: 1 / -1; }
+.row { cursor: pointer; }
+.row::after { content: "\f054"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #c3b5dc; font-size: 12px; }
+.row { position: relative; padding-right: 34px; }
 .none { padding: 24px; text-align: center; color: var(--muted); }
 
 .row {

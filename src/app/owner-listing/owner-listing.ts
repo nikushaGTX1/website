@@ -79,29 +79,22 @@ export class OwnerListing implements OnInit, OnDestroy {
     const seen = new Set<string>();
     return this.locationEntries
       .filter(entry => entry.city === 'Tbilisi' && entry.district !== 'All Tbilisi')
-      .filter(entry => !query || entry.district.toLowerCase().includes(query) || this.locationService.districtName(entry, this.language).toLowerCase().includes(query))
+      .filter(entry => !query || [entry.district, this.locationService.districtName(entry, 'ka')].some(name => name.toLowerCase().includes(query)))
       .filter(entry => { const key = this.normalize(entry.district); if (seen.has(key)) return false; seen.add(key); return true; })
       .slice(0, 12)
       .map(entry => ({ id: entry.id, label: this.locationService.districtName(entry, this.language), value: entry.district, type: 'Area' }));
   }
 
+  private streetCache = { key: '', value: [] as LocationSuggestion[] };
   get streetSuggestions(): LocationSuggestion[] {
     if (!this.selectedDistrict) return [];
-    const query = this.data['street'].trim().toLowerCase();
-    const area = this.locationEntries.find(item => item.city === 'Tbilisi' && item.district === this.selectedDistrict);
-    const citywide = this.locationEntries.find(item => item.city === 'Tbilisi' && item.district === 'All Tbilisi');
-    const seen = new Set<string>();
-    const result: LocationSuggestion[] = [];
-    for (const entry of [area, citywide].filter((item): item is ApiLocation => !!item)) {
-      for (const street of this.locationService.streetNames(entry, this.language)) {
-        const key = this.normalize(street.value) || this.normalize(street.label);
-        if (seen.has(key) || (query && !street.value.toLowerCase().includes(query) && !street.label.toLowerCase().includes(query))) continue;
-        seen.add(key);
-        result.push({ id: street.id, label: street.label, value: street.value, type: 'Street' });
-        if (result.length === 12) return result;
-      }
+    const key = `${this.selectedDistrict}|${this.data['street']}|${this.language}|${this.locationEntries.length}`;
+    if (this.streetCache.key !== key) {
+      const value = this.locationService.searchStreets(this.locationEntries, this.selectedDistrict, this.data['street'] || '', this.language)
+        .map(s => ({ id: s.id, label: s.label, value: s.value, type: 'Street' as const, district: s.district || this.data['location'], districtValue: s.districtValue }));
+      this.streetCache = { key, value };
     }
-    return result;
+    return this.streetCache.value;
   }
 
   get mapAddress(): string {
@@ -129,6 +122,10 @@ export class OwnerListing implements OnInit, OnDestroy {
     this.data['street'] = suggestion.label;
     this.selectedStreetValue = suggestion.value || suggestion.label;
     this.selectedStreetId = suggestion.id || null;
+    if (suggestion.districtValue && suggestion.districtValue !== this.selectedDistrict) {
+      this.selectedDistrict = suggestion.districtValue;
+      this.data['location'] = suggestion.district || suggestion.districtValue;
+    }
     this.picker = null;
   }
 

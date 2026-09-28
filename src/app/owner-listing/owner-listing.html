@@ -99,7 +99,7 @@
               <i class="fa-solid fa-circle-check ok-mark" *ngIf="selectedStreetValue"></i>
             </div>
             <div class="dropdown" *ngIf="picker === 'street' && selectedDistrict">
-              <button type="button" *ngFor="let s of streetSuggestions" (pointerdown)="selectStreet(s, $event)"><i class="fa-solid fa-road"></i><span>{{ s.label }}<small>{{ data['location'] }}</small></span></button>
+              <button type="button" *ngFor="let s of streetSuggestions" (pointerdown)="selectStreet(s, $event)"><i class="fa-solid fa-road"></i><span>{{ s.label }}<small>{{ s.district }}</small></span></button>
               <div class="dd-status" *ngIf="!streetSuggestions.length">No matching street found.</div>
             </div>
           </div>
