@@ -12,6 +12,7 @@ import { BlogService } from '../services/blog.service';
 import { CrmVacancyPosition } from '../models/crm';
 import { CrmService } from '../services/crm.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
+import { GoogleNearbyTimeService, NearbyWalkingTimes } from '../maps/services/google-nearby-time.service';
 
 @Component({
   selector: 'app-admin-panel',
@@ -67,7 +68,8 @@ export class AdminPanel implements OnInit, OnDestroy {
     private authService: AuthService,
     private blogService: BlogService,
     private crmService: CrmService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private nearbyTimes: GoogleNearbyTimeService,
   ) {}
 
   ngOnInit(): void {
@@ -934,30 +936,65 @@ export class AdminPanel implements OnInit, OnDestroy {
     return labels[this.activeTab] ?? 'Search';
   }
 
-  /** Re-measures gym walking times page by page until every listing is checked. */
-  refreshGymDistances(skip = 0, improved = 0): void {
-    if (!this.canOperateDashboard || (skip === 0 && this.actionId)) return;
+  nearbyRefreshProgress = '';
+
+  /**
+   * Re-measures every listing's nearby walking times in this browser (the site's
+   * Google key) and saves only times that got shorter. The server's own Google
+   * key cannot call Places/Routes, so this runs client-side.
+   */
+  async refreshGymDistances(): Promise<void> {
+    if (!this.canOperateDashboard || this.actionId) return;
     this.actionId = 'gym-distances';
     this.errorMessage = '';
     this.successMessage = '';
-    this.cdr.detectChanges();
-    this.apartmentService.refreshGymDistances(skip).subscribe({
-      next: (response) => {
-        const total = improved + response.updated;
-        if (response.nextSkip != null) {
-          this.refreshGymDistances(response.nextSkip, total);
-          return;
+    const keys: Array<keyof NearbyWalkingTimes> = [
+      'metroDistanceMinutes',
+      'gymDistanceMinutes',
+      'parkDistanceMinutes',
+      'schoolDistanceMinutes',
+      'kindergartenDistanceMinutes',
+      'universityDistanceMinutes',
+      'groceryDistanceMinutes',
+      'pharmacyDistanceMinutes',
+      'cafeDistanceMinutes',
+      'evChargerDistanceMinutes',
+    ];
+    const listings = [...this.apartments, ...this.pendingApartments.map((item) => item.apartment)];
+    let improved = 0;
+    let failed = 0;
+    try {
+      for (const [index, apartment] of listings.entries()) {
+        this.nearbyRefreshProgress = `${index + 1} / ${listings.length}`;
+        this.cdr.detectChanges();
+        const lat = apartment.propertyLatitude ?? apartment.latitude;
+        const lng = apartment.propertyLongitude ?? apartment.longitude;
+        const pin = lat != null && lng != null ? { lat: Number(lat), lng: Number(lng) } : null;
+        if (!pin && !apartment.address) continue;
+        try {
+          const times = await this.nearbyTimes.getWalkingTimes(apartment.address || '', pin);
+          const changes: Partial<Record<keyof NearbyWalkingTimes, number>> = {};
+          for (const key of keys) {
+            const next = times[key];
+            const current = apartment[key as keyof Apartment] as number | undefined | null;
+            if (next != null && (current == null || next < current)) changes[key] = next;
+          }
+          if (!Object.keys(changes).length) continue;
+          await firstValueFrom(this.apartmentService.updateApartment(apartment.id, changes));
+          Object.assign(apartment, changes);
+          improved++;
+        } catch (error) {
+          console.error('Nearby refresh failed for apartment', apartment.id, error);
+          failed++;
         }
-        this.successMessage = `Nearby walking times improved for ${total} listing(s).`;
-        this.actionId = '';
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.errorMessage = 'Could not refresh nearby times.';
-        this.actionId = '';
-        this.cdr.detectChanges();
-      },
-    });
+      }
+      this.successMessage = `Nearby walking times improved for ${improved} listing(s).` +
+        (failed ? ` ${failed} could not be saved.` : '');
+    } finally {
+      this.actionId = '';
+      this.nearbyRefreshProgress = '';
+      this.cdr.detectChanges();
+    }
   }
 
   refreshEvChargers(): void {

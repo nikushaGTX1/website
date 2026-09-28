@@ -314,7 +314,7 @@
       </div>
       <div class="section-tools">
         <button type="button" class="ev-refresh" (click)="refreshGymDistances()" [disabled]="!!actionId">
-          <i class="fa-solid fa-person-walking"></i> {{ actionId === 'gym-distances' ? 'Refreshing…' : 'Refresh nearby times' }}
+          <i class="fa-solid fa-person-walking"></i> {{ actionId === 'gym-distances' ? 'Refreshing… ' + nearbyRefreshProgress : 'Refresh nearby times' }}
         </button>
         <button type="button" class="ev-refresh" (click)="refreshEvChargers()" [disabled]="!!actionId">
           <i class="fa-solid fa-charging-station"></i> {{ actionId === 'ev-chargers' ? 'Refreshing…' : 'Refresh EV chargers' }}
