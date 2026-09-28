@@ -80,6 +80,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   @Output() detectedAreaChange = new EventEmitter<string>();
   /** A listing price was pressed: the host can make room (e.g. collapse its bottom sheet). */
   @Output() propertyPreviewOpened = new EventEmitter<Apartment>();
+  /** A cluster or building badge was tapped; hosts use it to get panels out of the map's way. */
+  @Output() clusterOpened = new EventEmitter<void>();
   @Output() streetSelected = new EventEmitter<{
     id: number;
     label: string;
@@ -1599,6 +1601,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
           } else {
             wanted.set(buildingKey, () =>
               this.createGroupBadgeOverlay({ lat, lng }, count, () => {
+                this.clusterOpened.emit();
                 this.expandedBuilding = buildingKey;
                 this.lastPriceKey = '';
                 this.syncPriceClusters();
@@ -1611,6 +1614,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
               { lat, lng },
               count,
               () => {
+                this.clusterOpened.emit();
                 const target = Math.min(this.priceIndex!.getClusterExpansionZoom(clusterId), 21);
                 this.map!.setCenter({ lat, lng });
                 this.map!.setZoom(Math.max(target, (this.map!.getZoom() || 0) + 1));
