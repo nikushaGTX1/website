@@ -338,6 +338,10 @@ export class ApartmentService {
       formData.append('UploadedByUserId', data.uploadedByUserId || '');
     }
 
+    if (data.ownerSubmissionId) {
+      formData.append('OwnerSubmissionId', String(data.ownerSubmissionId));
+    }
+
     if (data.title !== undefined) {
       formData.append('Title', data.title);
     }

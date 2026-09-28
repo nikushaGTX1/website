@@ -1653,7 +1653,9 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     const isAdmin = this.authService.isAdmin;
 
-    this.apartmentService.createApartment(this.toCreateApartment(isAdmin, nearbyTimes)).subscribe({
+    const payload = this.toCreateApartment(isAdmin, nearbyTimes);
+    if (this.ownerSubmissionId) payload.ownerSubmissionId = this.ownerSubmissionId;
+    this.apartmentService.createApartment(payload).subscribe({
       next: (result) => {
         this.loading = false;
         const published = isAdmin || this.authService.isCrmManager || result.apartment?.isApproved !== false;
@@ -1661,12 +1663,7 @@ export class UploadApartment implements OnInit, OnDestroy {
           ? 'Apartment listing published successfully.'
           : 'Your apartment was sent for admin confirmation. It will be published after approval.';
         this.openSuccessModal(!published);
-        if (this.ownerSubmissionId && result.apartment?.id) {
-          this.ownerListingService.updateSubmission(this.ownerSubmissionId, {
-            status: 'published',
-            publishedApartmentId: result.apartment.id,
-          }).subscribe();
-        }
+        // The API marks the owner submission published and links the apartment itself.
       },
       error: (error: HttpErrorResponse) => {
         this.loading = false;

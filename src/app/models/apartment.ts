@@ -97,6 +97,8 @@ export interface Apartment {
 
 export interface CreateApartment {
   uploadedByUserId?: string;
+  /** Owner-link submission this listing was verified from; the API publishes it directly. */
+  ownerSubmissionId?: number;
   title: string;
   description: string;
   price: number;
