@@ -128,10 +128,10 @@ export class SeoService {
     this.setMeta('property', 'og:title', title);
     this.setMeta('property', 'og:description', description);
     this.setMeta('property', 'og:url', canonicalUrl);
-    this.setMeta('property', 'og:image', `${this.origin}/banner.jpg`);
+    this.setMeta('property', 'og:image', `${this.origin}/og-image.jpg`);
     this.setMeta('name', 'twitter:title', title);
     this.setMeta('name', 'twitter:description', description);
-    this.setMeta('name', 'twitter:image', `${this.origin}/banner.jpg`);
+    this.setMeta('name', 'twitter:image', `${this.origin}/og-image.jpg`);
     this.setCanonical(canonicalUrl);
   }
 

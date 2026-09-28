@@ -58,7 +58,8 @@ const browserDirectory = path.join(
 const defaultSeo = {
   title: 'Verified Apartments for Rent in Tbilisi | Velven',
   description: 'Find verified apartments for rent in Tbilisi with accurate prices, trusted listings, local agents and personalized AI home matching.',
-  image: `${canonicalOrigin}/banner.jpg`,
+  image: `${canonicalOrigin}/og-image.jpg`,
+  imageAlt: 'Velven — verified homes in Tbilisi',
   type: 'website',
 };
 const routeSeo = new Map([
@@ -1120,7 +1121,7 @@ app.get('/seo/apartment-image/:id', async (request, response) => {
     }
     const apiResponse = await fetchPublicApi(`/api/Apartments/${request.params.id}`, false);
     if (apiResponse.status < 200 || apiResponse.status >= 300) {
-      response.sendFile(path.join(browserDirectory, 'banner.jpg'));
+      response.sendFile(path.join(browserDirectory, 'og-image.jpg'));
       return;
     }
     const apartment = JSON.parse(apiResponse.body.toString('utf8'));
@@ -1128,7 +1129,7 @@ app.get('/seo/apartment-image/:id', async (request, response) => {
       || apartment.images?.[0]?.url
       || apartment.imageUrl;
     if (!source) {
-      response.sendFile(path.join(browserDirectory, 'banner.jpg'));
+      response.sendFile(path.join(browserDirectory, 'og-image.jpg'));
       return;
     }
     const image = await fetchApartmentImage(source);
@@ -1138,7 +1139,7 @@ app.get('/seo/apartment-image/:id', async (request, response) => {
     response.send(image.body);
   } catch (error) {
     console.error('SEO apartment image error:', error);
-    response.sendFile(path.join(browserDirectory, 'banner.jpg'));
+    response.sendFile(path.join(browserDirectory, 'og-image.jpg'));
   }
 });
 
