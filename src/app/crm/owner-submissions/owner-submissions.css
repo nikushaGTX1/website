@@ -6,7 +6,7 @@
 * { box-sizing: border-box; }
 button { font: inherit; cursor: pointer; }
 button:disabled { cursor: default; opacity: .6; }
-.page { max-width: 1320px; margin: auto; padding: 28px 28px 60px; }
+.page { overflow-x: clip; max-width: 1320px; margin: auto; padding: 28px 28px 60px; }
 
 /* Round icon buttons: always a perfect circle */
 .round, .icon-btn {
@@ -26,7 +26,9 @@ button:disabled { cursor: default; opacity: .6; }
 /* Toolbar */
 .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
 .tabs { display: flex; gap: 6px; padding: 5px; border-radius: 14px; background: #fff; border: 1px solid var(--line); overflow-x: auto; }
-.tabs button { display: inline-flex; gap: 7px; align-items: center; padding: 8px 13px; border: 0; border-radius: 10px; background: none; color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.tabs { max-width: 100%; min-width: 0; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { flex: none; display: inline-flex; gap: 7px; align-items: center; padding: 8px 13px; border: 0; border-radius: 10px; background: none; color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .tabs button b { min-width: 20px; padding: 1px 6px; border-radius: 99px; background: #f1edf7; font-size: 11px; }
 .tabs button.active { background: var(--brand); color: #fff; }
 .tabs button.active b { background: #ffffff2e; }
@@ -153,7 +155,10 @@ button:disabled { cursor: default; opacity: .6; }
 
 @media (max-width: 960px) {
   .page { padding: 16px 14px 40px; }
-  .layout { grid-template-columns: 1fr; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .toolbar { flex-direction: column; }
+  .tabs { width: 100%; }
+  .detail, .list, .row { min-width: 0; max-width: 100%; }
   .layout.has-detail .list { display: none; }
   .detail { position: static; max-height: none; padding: 18px; }
   .detail.placeholder { display: none; }
@@ -164,6 +169,14 @@ button:disabled { cursor: default; opacity: .6; }
   .gallery { grid-template-columns: 1fr 1fr; grid-template-rows: 180px 100px 100px; }
   .gallery button.main { grid-column: span 2; grid-row: auto; }
   .owner-card { flex-wrap: wrap; }
+  .top { align-items: flex-start; }
+  .detail { padding: 14px; border-radius: 18px; }
+  .footer { margin: 22px -14px -14px; padding: 12px 14px; }
+  .check { grid-template-columns: 18px minmax(0, 1fr) 34px 34px; gap: 8px; padding: 8px 8px 8px 10px; }
+  .check .round { width: 34px; height: 34px; font-size: 13px; }
+  .check span { font-size: 13px; }
+  .facts { grid-template-columns: 1fr 1fr; }
+  .stepper button { flex: 1 1 calc(50% - 6px); justify-content: center; }
   .call { width: 100%; justify-content: center; }
   .footer .btn { flex: 1; justify-content: center; }
 }
