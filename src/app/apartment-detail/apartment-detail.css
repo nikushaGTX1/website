@@ -3050,3 +3050,7 @@
 }
 
 .vp-amenities small.vp-amenity-highlight { color: #451a8f; font-weight: 700; }
+
+.vp-last-confirmed { display: inline-flex; align-items: center; gap: 7px; margin: 10px 0 0; padding: 6px 12px; border-radius: 999px; background: #e8f8ef; color: #0f7a4f; font-size: 13px; }
+.vp-last-confirmed i { font-size: 13px; }
+.vp-last-confirmed b { font-weight: 700; }

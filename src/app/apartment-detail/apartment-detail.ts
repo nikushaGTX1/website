@@ -1290,6 +1290,16 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return /(?:^|[|\r\n])\s*Verified listing:\s*Yes\b/i.test(this.apartment?.description || '');
   }
 
+  /** "Sep 20, 2026" (or Georgian month names) — when staff last confirmed the listing. */
+  get lastConfirmedLabel(): string {
+    const value = this.apartment?.lastConfirmedAt || (this.apartment?.isApproved !== false ? this.apartment?.createdAt : null);
+    if (!value) return '';
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return '';
+    const locale = document.documentElement.lang === 'ka' ? 'ka-GE' : document.documentElement.lang === 'ru' ? 'ru-RU' : 'en-US';
+    return date.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
   get isForSale(): boolean {
     const deal =
       this.getListingMetadata('Deal') || this.getListingMetadata('Listing type');

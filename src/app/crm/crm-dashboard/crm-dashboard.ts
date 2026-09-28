@@ -25,6 +25,7 @@ import {
 import { AgentService } from '../../services/agent.service';
 import { AuthService } from '../../services/auth.service';
 import { CrmService } from '../../services/crm.service';
+import { OwnerDealType, OwnerListingService } from '../../services/owner-listing.service';
 
 type StatusFilter = 'all' | CrmLeadStatus;
 type ManualRentalPeriod = '' | '6' | '12' | '12+';
@@ -86,6 +87,8 @@ export class CrmDashboard implements OnInit {
 
   generatingQuestionnaireLink = false;
   linkCopied = false;
+  ownerLinkMenuOpen = false;
+  generatingOwnerLink = false;
 
   searchQuery = '';
   statusFilter: StatusFilter = 'all';
@@ -137,6 +140,7 @@ export class CrmDashboard implements OnInit {
 
   constructor(
     private crmService: CrmService,
+    private ownerListingService: OwnerListingService,
     private agentService: AgentService,
     readonly authService: AuthService,
     private cdr: ChangeDetectorRef,
@@ -1094,6 +1098,32 @@ export class CrmDashboard implements OnInit {
       error: (error: HttpErrorResponse) => {
         this.generatingQuestionnaireLink = false;
         this.errorMessage = this.apiError(error, 'Could not generate questionnaire link.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  generateOwnerLink(dealType: OwnerDealType): void {
+    if (this.generatingOwnerLink) return;
+    this.generatingOwnerLink = true;
+    this.ownerLinkMenuOpen = false;
+    this.errorMessage = '';
+    this.ownerListingService.createLink(dealType).subscribe({
+      next: async response => {
+        this.generatingOwnerLink = false;
+        const fullUrl = new URL(response.path, window.location.origin).toString();
+        try {
+          await navigator.clipboard.writeText(fullUrl);
+          this.successMessage = 'Owner link copied to clipboard.';
+        } catch {
+          window.prompt('Copy owner link:', fullUrl);
+          this.successMessage = 'Owner link created.';
+        }
+        this.cdr.markForCheck();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.generatingOwnerLink = false;
+        this.errorMessage = this.apiError(error, 'Could not generate owner link.');
         this.cdr.markForCheck();
       },
     });

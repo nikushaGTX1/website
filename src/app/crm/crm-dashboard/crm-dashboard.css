@@ -1745,6 +1745,10 @@ button:disabled {
 :host { background: linear-gradient(180deg, #f7f5fc 0%, #f4f5f8 360px); }
 
 /* Header buttons: Generate Link matched the others (it had browser-default styling). */
+.owner-link-control { position: relative; }
+.owner-link-menu { position: absolute; z-index: 20; top: calc(100% + 7px); left: 0; min-width: 130px; padding: 6px; border: 1px solid #ded4ea; border-radius: 10px; background: #fff; box-shadow: 0 12px 30px rgba(38, 18, 64, .16); }
+.owner-link-menu button { display: block; width: 100%; padding: 9px 12px; border: 0; border-radius: 7px; background: transparent; text-align: left; cursor: pointer; }
+.owner-link-menu button:hover { background: #f2edf8; color: #451a8f; }
 .generate-link-button {
   min-height: 44px;
   padding: 0 17px;

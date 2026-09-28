@@ -69,6 +69,7 @@ export interface Apartment {
   images?: ApartmentImage[];
   createdAt: string;
   isApproved?: boolean;
+  lastConfirmedAt?: string | null;
   userId?: string;
   ownerId?: string;
   createdById?: string;

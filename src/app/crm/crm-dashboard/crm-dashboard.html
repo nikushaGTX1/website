@@ -75,6 +75,22 @@
           }}
         </button>
 
+        <div class="owner-link-control" *ngIf="canGenerateQuestionnaireLink">
+          <button type="button" class="generate-link-button" (click)="ownerLinkMenuOpen=!ownerLinkMenuOpen" [disabled]="generatingOwnerLink">
+            <i class="fa-solid fa-house-circle-check" aria-hidden="true"></i>
+            {{ generatingOwnerLink ? 'Generating…' : 'Owner link' }}
+          </button>
+          <div class="owner-link-menu" *ngIf="ownerLinkMenuOpen">
+            <button type="button" (click)="generateOwnerLink('Rent')">Rent</button>
+            <button type="button" (click)="generateOwnerLink('Sale')">Sale</button>
+          </div>
+        </div>
+
+        <a class="admin-shortcut" routerLink="/crm/owner-submissions">
+          <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+          Owner submissions
+        </a>
+
         <!-- REFRESH -->
 
         <button type="button" class="refresh-button" (click)="loadDashboard()" [disabled]="loading">

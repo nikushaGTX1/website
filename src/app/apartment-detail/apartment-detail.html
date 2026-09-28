@@ -82,6 +82,10 @@
             <p class="vp-address" [class.georgian-copy]="hasGeorgianText(address)">
               <i class="fa-solid fa-location-dot"></i>{{ address }}
             </p>
+            <p class="vp-last-confirmed" *ngIf="lastConfirmedLabel as confirmed">
+              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+              <span>Last confirmed:</span> <b data-no-translate>{{ confirmed }}</b>
+            </p>
             <div class="vp-facts">
               <div>
                 <i class="fa-solid fa-door-open"></i

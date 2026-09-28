@@ -190,6 +190,13 @@ const routes: Routes = [
   },
 
   {
+    path: 'crm/owner-submissions',
+    loadComponent: () => import('./crm/owner-submissions/owner-submissions').then(module => module.OwnerSubmissions),
+    title: 'Owner Submissions | Velven',
+    canActivate: [authGuard, crmGuard]
+  },
+
+  {
     path: 'my-profile',
     component: MyProfile,
     title: 'My Profile | Velven',
@@ -260,6 +267,12 @@ const routes: Routes = [
     path: 'questions/:agentToken',
     component: CrmQuestioner,
     title: 'Apartment Questionnaire | Velven'
+  },
+
+  {
+    path: 'owner/:token',
+    loadComponent: () => import('./owner-listing/owner-listing').then(module => module.OwnerListing),
+    title: 'List Your Property | Velven'
   },
 
   {

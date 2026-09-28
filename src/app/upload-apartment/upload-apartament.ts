@@ -15,6 +15,7 @@ import {
 import { TranslationService } from '../services/translation.service';
 import { parseParkingCost } from '../utils/parking-cost';
 import { AiPricingService } from '../services/ai-pricing.service';
+import { OwnerListingService } from '../services/owner-listing.service';
 
 type ListingCopyLanguage = 'ka' | 'en' | 'ru';
 type ListingCopy = { title: string; description: string };
@@ -325,6 +326,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   editId: number | null = null;
   editPendingId: string | null = null;
   editLoading = false;
+  private ownerSubmissionId: number | null = null;
   private editOriginalMeta = '';
   successModalPending = false;
   errorMessage = '';
@@ -457,6 +459,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     private nearbyTimeService: GoogleNearbyTimeService,
     private translationService: TranslationService,
     private aiPricingService: AiPricingService,
+    private ownerListingService: OwnerListingService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private route: ActivatedRoute,
@@ -484,6 +487,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       next: (locations) => {
         this.locationEntries = locations;
         this.locationLoading = false;
+        if (this.ownerSubmissionId) this.resolveImportedLocation();
       },
       error: () => {
         this.locationLoading = false;
@@ -499,6 +503,45 @@ export class UploadApartment implements OnInit, OnDestroy {
   /** Editing reuses this exact form: /upload-apartment?edit=ID or ?pending=ID. */
   private startEditFromRoute(): void {
     const params = this.route.snapshot.queryParamMap;
+    const ownerId = Number(params.get('owner'));
+    if (Number.isFinite(ownerId) && ownerId > 0) {
+      this.ownerSubmissionId = ownerId;
+      this.editLoading = true;
+      this.ownerListingService.getSubmission(ownerId).subscribe({
+        next: async submission => {
+          const agentName = this.form.agentName;
+          const agentPhone = this.form.agentPhone;
+          const knownKeys = Object.keys(this.form).filter(key => !['agentName', 'agentPhone', 'imageUrl', 'imageUrls'].includes(key));
+          for (const key of knownKeys) if (Object.prototype.hasOwnProperty.call(submission.data || {}, key)) (this.form as any)[key] = submission.data[key];
+          const booleanFlags = new Set<BooleanFeature>(this.featureOptions.map(option => option.field));
+          for (const [key, value] of Object.entries(submission.verification || {})) {
+            if (typeof value === 'boolean' && booleanFlags.has(key as BooleanFeature)) (this.form as any)[key] = value;
+          }
+          this.form.agentName = agentName;
+          this.form.agentPhone = agentPhone;
+          this.resolveImportedLocation();
+          const prepared = await Promise.all((submission.photos || []).map(async (url, index) => {
+            try {
+              const response = await fetch(url);
+              const blob = await response.blob();
+              return await this.prepareImage(new File([blob], `owner-photo-${index + 1}.jpg`, { type: blob.type || 'image/jpeg' }));
+            } catch { return null; }
+          }));
+          const images = prepared.filter((item): item is PreparedImage => item !== null);
+          this.form.imageUrls = images.map(item => item.previewUrl);
+          this.form.imageUrl = this.form.imageUrls[0] || '';
+          this.selectedImages = images.map(item => item.file);
+          this.editLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.editLoading = false;
+          this.ownerSubmissionId = null;
+          this.errorMessage = 'Could not load the owner submission.';
+        },
+      });
+      return;
+    }
     const pendingId = params.get('pending');
     const editId = Number(params.get('edit'));
     if (pendingId) {
@@ -1587,6 +1630,12 @@ export class UploadApartment implements OnInit, OnDestroy {
           ? 'Apartment listing published successfully.'
           : 'Your apartment was sent for admin confirmation. It will be published after approval.';
         this.openSuccessModal(!published);
+        if (this.ownerSubmissionId && result.apartment?.id) {
+          this.ownerListingService.updateSubmission(this.ownerSubmissionId, {
+            status: 'published',
+            publishedApartmentId: result.apartment.id,
+          }).subscribe();
+        }
       },
       error: (error: HttpErrorResponse) => {
         this.loading = false;
