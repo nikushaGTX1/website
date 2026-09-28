@@ -16,9 +16,9 @@ export class SeoService {
   private readonly origin = 'https://velven.ge';
   private readonly pages: Record<string, SeoPage> = {
     '/main': {
-      title: 'Verified Apartments for Rent in Tbilisi | Velven',
+      title: 'Velven | Apartments for Rent & Sale in Tbilisi',
       description:
-        'Find verified apartments for rent in Tbilisi with accurate prices, trusted listings, local agents and personalized AI home matching.',
+        'Find your next home in Tbilisi. Explore verified apartments for rent and sale, connect with local agents and get personalized AI home matches.',
     },
     '/ExploreProperty': {
       title: 'Apartments for Rent and Sale in Tbilisi | Velven',
@@ -128,10 +128,10 @@ export class SeoService {
     this.setMeta('property', 'og:title', title);
     this.setMeta('property', 'og:description', description);
     this.setMeta('property', 'og:url', canonicalUrl);
-    this.setMeta('property', 'og:image', `${this.origin}/og-image.jpg`);
+    this.setMeta('property', 'og:image', `${this.origin}/velven-share-square-v1.jpg`);
     this.setMeta('name', 'twitter:title', title);
     this.setMeta('name', 'twitter:description', description);
-    this.setMeta('name', 'twitter:image', `${this.origin}/og-image.jpg`);
+    this.setMeta('name', 'twitter:image', `${this.origin}/velven-share-square-v1.jpg`);
     this.setCanonical(canonicalUrl);
   }
 
@@ -154,7 +154,7 @@ export class SeoService {
             title: 'Find Your Home with Velven',
             description:
               'Answer a few quick questions to get your personalized property shortlist.',
-            image: `${this.origin}/velven-questionnaire-thumbnail-v3.png`,
+            image: `${this.origin}/velven-share-square-v1.jpg`,
           }
         : this.pages[path]) ||
       (isApartment
@@ -180,18 +180,16 @@ export class SeoService {
     this.setMeta('property', 'og:title', page.title);
     this.setMeta('property', 'og:description', page.description);
     this.setMeta('property', 'og:url', canonicalUrl);
-    if (page.image) {
-      this.setMeta('property', 'og:image', page.image);
-      this.setMeta('property', 'og:image:secure_url', page.image);
-      this.setMeta('property', 'og:image:alt', 'Velven logo');
-      if (isQuestionnaire) {
-        this.setMeta('property', 'og:image:width', '1254');
-        this.setMeta('property', 'og:image:height', '1254');
-        this.setMeta('property', 'og:image:type', 'image/png');
-      }
-      this.setMeta('name', 'twitter:image', page.image);
-      this.setMeta('name', 'twitter:image:alt', 'Velven logo');
-    }
+    const image = page.image || `${this.origin}/velven-share-square-v1.jpg`;
+    this.setMeta('property', 'og:type', 'website');
+    this.setMeta('property', 'og:image', image);
+    this.setMeta('property', 'og:image:secure_url', image);
+    this.setMeta('property', 'og:image:alt', 'Velven - Find your home in Tbilisi');
+    this.setMeta('property', 'og:image:width', '1254');
+    this.setMeta('property', 'og:image:height', '1254');
+    this.setMeta('property', 'og:image:type', 'image/jpeg');
+    this.setMeta('name', 'twitter:image', image);
+    this.setMeta('name', 'twitter:image:alt', 'Velven - Find your home in Tbilisi');
     this.setMeta('name', 'twitter:title', page.title);
     this.setMeta('name', 'twitter:description', page.description);
     this.setCanonical(canonicalUrl);

@@ -56,14 +56,14 @@ const browserDirectory = path.join(
   'browser',
 );
 const defaultSeo = {
-  title: 'Verified Apartments for Rent in Tbilisi | Velven',
-  description: 'Find verified apartments for rent in Tbilisi with accurate prices, trusted listings, local agents and personalized AI home matching.',
-  // ?v= busts the week-long Cloudflare/chat-app cache whenever the artwork changes.
-  image: `${canonicalOrigin}/og-image.jpg?v=2`,
+  title: 'Velven | Apartments for Rent & Sale in Tbilisi',
+  description: 'Find your next home in Tbilisi. Explore verified apartments for rent and sale, connect with local agents and get personalized AI home matches.',
+  // Use a versioned filename so crawlers can fetch updated preview artwork.
+  image: `${canonicalOrigin}/velven-share-square-v1.jpg`,
   imageAlt: 'Velven — verified homes in Tbilisi',
-  // WhatsApp only shows the large card (like Airbnb's) when it trusts the image is wide.
-  imageWidth: '1200',
-  imageHeight: '630',
+  // Square artwork matches the intended brand card; each sharing app controls its layout.
+  imageWidth: '1254',
+  imageHeight: '1254',
   imageType: 'image/jpeg',
   type: 'website',
 };
@@ -114,11 +114,11 @@ function crmQuestionnaireSeo(pathname) {
   return {
     title: 'Find Your Home with Velven',
     description: 'Answer a few quick questions to get your personalized property shortlist.',
-    image: `${canonicalOrigin}/velven-questionnaire-thumbnail-v3.png`,
+    image: `${canonicalOrigin}/velven-share-square-v1.jpg`,
     imageAlt: 'Velven logo',
     imageWidth: '1254',
     imageHeight: '1254',
-    imageType: 'image/png',
+    imageType: 'image/jpeg',
     type: 'website',
   };
 }
@@ -996,7 +996,7 @@ function injectSeo(document, seo) {
     '@type': 'RealEstateAgent',
     name: 'Velven',
     url: `${canonicalOrigin}/main`,
-    logo: `${canonicalOrigin}/velven-logo.svg`,
+    logo: `${canonicalOrigin}/logosh2-mark-v2.png`,
     image: defaultSeo.image,
     telephone: '+995 568 444 220',
     priceRange: '$$',
@@ -1014,8 +1014,8 @@ function injectSeo(document, seo) {
   document = replaceMeta(document, 'property', 'og:image', image);
   document = replaceMeta(document, 'property', 'og:image:secure_url', image);
   document = replaceMeta(document, 'property', 'og:image:alt', seo.imageAlt || 'Velven');
-  if (seo.imageWidth) document = replaceMeta(document, 'property', 'og:image:width', seo.imageWidth);
-  if (seo.imageHeight) document = replaceMeta(document, 'property', 'og:image:height', seo.imageHeight);
+  if (seo.imageWidth || image === defaultSeo.image) document = replaceMeta(document, 'property', 'og:image:width', seo.imageWidth || defaultSeo.imageWidth);
+  if (seo.imageHeight || image === defaultSeo.image) document = replaceMeta(document, 'property', 'og:image:height', seo.imageHeight || defaultSeo.imageHeight);
   if (seo.imageType) document = replaceMeta(document, 'property', 'og:image:type', seo.imageType);
   document = replaceMeta(document, 'name', 'twitter:title', title);
   document = replaceMeta(document, 'name', 'twitter:description', description);

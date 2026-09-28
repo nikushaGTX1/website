@@ -46,7 +46,7 @@ const routes: Routes = [
   {
     path: 'main',
     component: Main,
-    title: 'Verified Apartments for Rent in Tbilisi | Velven'
+    title: 'Velven | Apartments for Rent & Sale in Tbilisi'
   },
 
   {
