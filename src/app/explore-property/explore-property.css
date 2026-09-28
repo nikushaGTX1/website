@@ -2357,3 +2357,26 @@ svg {
 .mf-ev-icon { color: #12925f; margin-right: 0; }
 .mf-condition-toggle .mf-icon { color: #29222f; }
 .mf-body { overscroll-behavior: contain; }
+
+/* One sticky layer for search + filter chips. Two separately sticky bars moved
+   independently while scrolling (iOS toolbar resize), which made them shake. */
+.explore-sticky-head {
+  display: contents;
+}
+@media (max-width: 780px) {
+  .explore-sticky-head {
+    position: sticky;
+    top: 68px; /* phone navigation height */
+    z-index: 45;
+    display: block;
+    background: #fff;
+    transform: translateZ(0);
+  }
+  .explore-sticky-head > .search-row,
+  .explore-sticky-head > .chip-bar {
+    position: relative;
+    top: auto;
+    transform: none;
+    will-change: auto;
+  }
+}
