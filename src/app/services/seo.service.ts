@@ -128,10 +128,10 @@ export class SeoService {
     this.setMeta('property', 'og:title', title);
     this.setMeta('property', 'og:description', description);
     this.setMeta('property', 'og:url', canonicalUrl);
-    this.setMeta('property', 'og:image', `${this.origin}/velven-share-square-v1.jpg`);
+    this.setMeta('property', 'og:image', `${this.origin}/velven-share-square-v2.jpg`);
     this.setMeta('name', 'twitter:title', title);
     this.setMeta('name', 'twitter:description', description);
-    this.setMeta('name', 'twitter:image', `${this.origin}/velven-share-square-v1.jpg`);
+    this.setMeta('name', 'twitter:image', `${this.origin}/velven-share-square-v2.jpg`);
     this.setCanonical(canonicalUrl);
   }
 
@@ -154,7 +154,7 @@ export class SeoService {
             title: 'Find Your Home with Velven',
             description:
               'Answer a few quick questions to get your personalized property shortlist.',
-            image: `${this.origin}/velven-share-square-v1.jpg`,
+            image: `${this.origin}/velven-share-square-v2.jpg`,
           }
         : this.pages[path]) ||
       (isApartment
@@ -180,7 +180,7 @@ export class SeoService {
     this.setMeta('property', 'og:title', page.title);
     this.setMeta('property', 'og:description', page.description);
     this.setMeta('property', 'og:url', canonicalUrl);
-    const image = page.image || `${this.origin}/velven-share-square-v1.jpg`;
+    const image = page.image || `${this.origin}/velven-share-square-v2.jpg`;
     this.setMeta('property', 'og:type', 'website');
     this.setMeta('property', 'og:image', image);
     this.setMeta('property', 'og:image:secure_url', image);

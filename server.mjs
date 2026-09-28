@@ -59,7 +59,7 @@ const defaultSeo = {
   title: 'Velven | Apartments for Rent & Sale in Tbilisi',
   description: 'Find your next home in Tbilisi. Explore verified apartments for rent and sale, connect with local agents and get personalized AI home matches.',
   // Use a versioned filename so crawlers can fetch updated preview artwork.
-  image: `${canonicalOrigin}/velven-share-square-v1.jpg`,
+  image: `${canonicalOrigin}/velven-share-square-v2.jpg`,
   imageAlt: 'Velven — verified homes in Tbilisi',
   // Square artwork matches the intended brand card; each sharing app controls its layout.
   imageWidth: '1254',
@@ -114,7 +114,7 @@ function crmQuestionnaireSeo(pathname) {
   return {
     title: 'Find Your Home with Velven',
     description: 'Answer a few quick questions to get your personalized property shortlist.',
-    image: `${canonicalOrigin}/velven-share-square-v1.jpg`,
+    image: `${canonicalOrigin}/velven-share-square-v2.jpg`,
     imageAlt: 'Velven logo',
     imageWidth: '1254',
     imageHeight: '1254',
@@ -1221,6 +1221,10 @@ app.get('/', (_request, response) => {
 
 app.use(express.static(browserDirectory, {
   setHeaders(response, filePath) {
+    // Public preview artwork may be fetched directly by browser-based sharing clients.
+    if (/^velven-share-square-v\d+\.jpg$/i.test(path.basename(filePath))) {
+      response.setHeader('Access-Control-Allow-Origin', '*');
+    }
     if (/\.[A-Z0-9]{8}\.(?:js|css)$/i.test(filePath)) {
       response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     } else if (/\.(?:png|jpe?g|webp|svg|ico|woff2?)$/i.test(filePath)) {

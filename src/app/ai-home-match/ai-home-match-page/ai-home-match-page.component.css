@@ -1778,3 +1778,77 @@ fieldset {
 .fuel-card.selected .fuel-check { opacity: 1; transform: scale(1); }
 @keyframes carFuelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (max-width: 420px) { .car-fuel { padding: 14px; } .car-fuel-options { gap: 8px; } .fuel-card { padding: 16px 8px 12px; } .fuel-icon { width: 48px; height: 48px; font-size: 20px; } }
+
+/* Budget step: price chart + dual slider, matching the Explore price filter. */
+.budget-picker,
+.budget-fields {
+  grid-column: 1 / -1;
+}
+.budget-picker {
+  padding: 20px 20px 4px;
+  border: 1px solid #e3deeb;
+  border-radius: 16px;
+  background: #fff;
+}
+.budget-picker .budget-title { margin: 0; color: #201c34; font-size: 20px; }
+.budget-picker .budget-caption { margin: 6px 0 18px; color: #6b6478; font-size: 12px; }
+.budget-picker .budget-chart {
+  height: 92px;
+  padding: 0 12px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  border-bottom: 2px solid #ded7e8;
+}
+.budget-picker .budget-chart span { min-width: 2px; flex: 1; border-radius: 3px 3px 0 0; background: #d9d1e7; transition: background 0.15s ease; }
+.budget-picker .budget-chart span.in-range { background: #451a8f; }
+.budget-picker .budget-range-control { position: relative; height: 28px; margin: -15px 1px 0; }
+.budget-picker .budget-range-track,
+.budget-picker .budget-range-fill { position: absolute; top: 13px; right: 12px; left: 12px; height: 4px; border-radius: 4px; background: #d9d1e7; }
+.budget-picker .budget-range-fill { right: auto; background: #451a8f; }
+.budget .budget-picker input[type='range'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 28px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+.budget .budget-picker input[type='range']::-webkit-slider-runnable-track { height: 28px; background: transparent; }
+.budget .budget-picker input[type='range']::-moz-range-track { height: 28px; background: transparent; }
+.budget .budget-picker input[type='range']::-webkit-slider-thumb {
+  width: 26px;
+  height: 26px;
+  margin-top: 1px;
+  -webkit-appearance: none;
+  appearance: none;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #451a8f;
+  box-shadow: 0 3px 12px #451a8f4d;
+  pointer-events: auto;
+  cursor: grab;
+}
+.budget .budget-picker input[type='range']::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #451a8f;
+  box-shadow: 0 3px 12px #451a8f4d;
+  pointer-events: auto;
+  cursor: grab;
+}
+.budget-picker .budget-range-labels { margin: 1px 0 16px; display: flex; justify-content: space-between; color: #51485e; font-size: 12px; font-weight: 750; }
+.budget-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}

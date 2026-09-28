@@ -212,8 +212,26 @@
           </div>
         </div>
         <form class="budget" *ngSwitchCase="3" [formGroup]="budgetForm">
-          <label>Minimum amount<input type="number" min="0" formControlName="min" /></label
-          ><label>Maximum amount<input type="number" min="0" formControlName="max" /></label
+          <div class="budget-picker">
+            <h3 class="budget-title">Price range</h3>
+            <p class="budget-caption">Choose the monthly price that works for you</p>
+            <div class="budget-chart" aria-hidden="true">
+              <span *ngFor="let height of budgetHistogram; let i = index" [class.in-range]="barInBudget(i)" [style.height.%]="height"></span>
+            </div>
+            <div class="budget-range-control">
+              <div class="budget-range-track"></div>
+              <div class="budget-range-fill" [style.left.%]="budgetMinPercent" [style.right.%]="100 - budgetMaxPercent"></div>
+              <input type="range" min="0" [max]="budgetSliderMax" [step]="budgetSliderStep" aria-label="Minimum price"
+                [value]="budgetForm.controls.min.value" (input)="setBudgetMin($any($event.target).value)" />
+              <input type="range" min="0" [max]="budgetSliderMax" [step]="budgetSliderStep" aria-label="Maximum price"
+                [value]="budgetForm.controls.max.value" (input)="setBudgetMax($any($event.target).value)" />
+            </div>
+            <div class="budget-range-labels"><span>{{ budgetSymbol }}0</span><span>{{ budgetSymbol }}{{ budgetSliderMax | number }}+</span></div>
+          </div>
+          <div class="budget-fields">
+            <label>Min price<input type="number" min="0" formControlName="min" /></label
+            ><label>Max price<input type="number" min="0" formControlName="max" /></label>
+          </div
           ><label
             >Currency<select formControlName="currency">
               <option>USD</option>

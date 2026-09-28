@@ -163,6 +163,36 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     }),
     currency: new FormControl<'USD' | 'GEL' | 'EUR'>('USD', { nonNullable: true }),
   });
+
+  // Same price-distribution chart and dual slider as the Explore price filter.
+  readonly budgetHistogram = [
+    5, 7, 6, 8, 9, 10, 12, 14, 18, 24, 31, 38, 45, 52, 48, 55, 58, 62, 57, 54,
+    51, 56, 53, 61, 66, 100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
+  ];
+  get budgetSliderMax(): number { return this.budgetForm.controls.currency.value === 'GEL' ? 13500 : 5000; }
+  get budgetSliderStep(): number { return this.budgetForm.controls.currency.value === 'GEL' ? 100 : 50; }
+  get budgetSymbol(): string {
+    const currency = this.budgetForm.controls.currency.value;
+    return currency === 'GEL' ? '₾' : currency === 'EUR' ? '€' : '$';
+  }
+  private budgetPercent(value: number): number {
+    return Math.min(100, Math.max(0, (Number(value) || 0) / this.budgetSliderMax * 100));
+  }
+  get budgetMinPercent(): number { return this.budgetPercent(this.budgetForm.controls.min.value); }
+  get budgetMaxPercent(): number { return this.budgetPercent(this.budgetForm.controls.max.value); }
+  barInBudget(index: number): boolean {
+    const position = index / (this.budgetHistogram.length - 1) * 100;
+    return position >= this.budgetMinPercent && position <= this.budgetMaxPercent;
+  }
+  setBudgetMin(value: number | string): void {
+    const max = Number(this.budgetForm.controls.max.value);
+    this.budgetForm.controls.min.setValue(Math.min(max, Math.max(0, Number(value) || 0)));
+  }
+  setBudgetMax(value: number | string): void {
+    const min = Number(this.budgetForm.controls.min.value);
+    this.budgetForm.controls.max.setValue(Math.max(min, Math.min(this.budgetSliderMax, Number(value) || 0)));
+  }
+
   constructor(
     private service: HomeMatchService,
     private cdr: ChangeDetectorRef,

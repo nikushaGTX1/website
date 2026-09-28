@@ -49,7 +49,7 @@
 }
 
 .character-stage.character-group .adult-figure + .child-figure {
-  margin-left: -24%;
+  margin-left: -14%;
 }
 
 .character-stage.character-group .child-figure + .child-figure {
@@ -171,7 +171,7 @@
 }
 
 .character-stage.character-group.crowded-group .adult-figure + .child-figure {
-  margin-left: -24%;
+  margin-left: -14%;
 }
 
 .character-stage.character-group.crowded-group .child-figure + .child-figure {
