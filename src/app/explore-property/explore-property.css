@@ -2362,7 +2362,9 @@ svg {
 @media (max-width: 780px) {
   .explore-sticky-head {
     position: sticky;
-    top: 68px; /* phone navigation height */
+    /* Must exactly match navigation.css's rendered phone header height:
+       44px control + 10px vertical padding on each side. */
+    top: 64px;
     z-index: 45;
     display: block;
     background: #fff;

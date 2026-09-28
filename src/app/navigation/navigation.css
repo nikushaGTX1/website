@@ -576,6 +576,12 @@
   :host {
     position: sticky;
     top: 0;
+    /* A transformed sticky element is prone to sub-pixel jitter in mobile
+     * Safari/Chromium while the browser chrome is resizing. The desktop
+     * entrance animation is decorative, so keep the phone header on a stable
+     * compositing layer instead. */
+    animation: none;
+    transform: none;
   }
 
   .site-header {
