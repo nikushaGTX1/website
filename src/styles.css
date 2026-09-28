@@ -325,8 +325,10 @@ html[lang='ka'] body
 /* Site-wide mobile containment. Component carousels and data rows may scroll
  * internally, but routed pages must never widen the browser viewport. */
 @media (max-width: 768px) {
+  /* visibility, not display: removing the header shifted the whole page 68px up
+     behind the opening location sheet, which looked like a shake. */
   body.location-picker-open app-navigation {
-    display: none;
+    visibility: hidden;
   }
 
   html,

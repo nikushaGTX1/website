@@ -2232,10 +2232,6 @@ svg {
     background: #fff;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    transform: translateZ(0);
-    will-change: transform;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
   }
   .search-row {
     height: 73px;
@@ -2370,7 +2366,6 @@ svg {
     z-index: 45;
     display: block;
     background: #fff;
-    transform: translateZ(0);
   }
   .explore-sticky-head > .search-row,
   .explore-sticky-head > .chip-bar {
