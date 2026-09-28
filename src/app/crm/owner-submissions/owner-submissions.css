@@ -109,7 +109,8 @@ button:disabled { cursor: default; opacity: .6; }
 .chips span { display: inline-flex; gap: 7px; align-items: center; padding: 7px 12px; border-radius: 99px; background: var(--soft); color: var(--brand); font-size: 13px; font-weight: 600; }
 
 .check-head { display: flex; justify-content: space-between; align-items: baseline; }
-.check-head span { font-size: 13px; font-weight: 700; color: var(--ok); }
+.check-head em { font-style: normal; }
+.check-head span {font-size: 13px; font-weight: 700; color: var(--ok); }
 .meter { height: 6px; border-radius: 99px; background: #eee9f5; overflow: hidden; margin-bottom: 10px; }
 .meter div { height: 100%; background: linear-gradient(90deg, #22b07a, var(--ok)); transition: width .3s; }
 .checks { display: grid; gap: 6px; }

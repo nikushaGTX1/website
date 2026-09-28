@@ -81,7 +81,7 @@
 
       <div class="check-head">
         <h3>On-site verification</h3>
-        <span>{{ verifiedCount(item) }}/{{ checklist(item).length }} confirmed</span>
+        <span><b>{{ verifiedCount(item) }}/{{ checklist(item).length }}</b> <em>confirmed</em></span>
       </div>
       <div class="meter"><div [style.width.%]="checklist(item).length ? verifiedCount(item) / checklist(item).length * 100 : 0"></div></div>
       <div class="checks">

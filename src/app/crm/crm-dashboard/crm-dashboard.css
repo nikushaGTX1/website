@@ -1749,6 +1749,11 @@ button:disabled {
 .owner-link-menu { position: absolute; z-index: 20; top: calc(100% + 7px); left: 0; min-width: 130px; padding: 6px; border: 1px solid #ded4ea; border-radius: 10px; background: #fff; box-shadow: 0 12px 30px rgba(38, 18, 64, .16); }
 .owner-link-menu button { display: block; width: 100%; padding: 9px 12px; border: 0; border-radius: 7px; background: transparent; text-align: left; cursor: pointer; }
 .owner-link-menu button:hover { background: #f2edf8; color: #451a8f; }
+@media (max-width: 760px) {
+  .owner-link-control { display: flex; min-width: 0; }
+  .owner-link-control > .generate-link-button { flex: 1; width: 100%; justify-content: center; }
+  .owner-link-menu { right: 0; }
+}
 .generate-link-button {
   min-height: 44px;
   padding: 0 17px;

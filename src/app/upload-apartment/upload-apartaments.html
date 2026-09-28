@@ -165,7 +165,7 @@
               [class.selected]="form.realEstateType === option"
               (click)="select('realEstateType', option)"
             >
-              {{ option }}
+              <i [class]="chipIcon(option)" aria-hidden="true"></i><span>{{ option }}</span>
             </button>
           </div>
         </div>
@@ -180,7 +180,7 @@
               [class.selected]="form.dealType === option"
               (click)="select('dealType', option)"
             >
-              {{ option }}
+              <i [class]="chipIcon(option)" aria-hidden="true"></i><span>{{ option }}</span>
             </button>
           </div>
         </div>
@@ -195,7 +195,7 @@
               [class.selected]="form.minimumRentalPeriod === option"
               (click)="selectRentalPeriod(option)"
             >
-              {{ option }}
+              <i [class]="chipIcon(option)" aria-hidden="true"></i><span>{{ option }}</span>
             </button>
           </div>
         </div>
@@ -263,7 +263,7 @@
               [class.selected]="form.buildingStatus === option"
               (click)="select('buildingStatus', option)"
             >
-              {{ option }}
+              <i [class]="chipIcon(option)" aria-hidden="true"></i><span>{{ option }}</span>
             </button>
           </div>
         </div>
@@ -278,7 +278,7 @@
               [class.selected]="form.condition === option"
               (click)="select('condition', option)"
             >
-              {{ option }}
+              <i [class]="chipIcon(option)" aria-hidden="true"></i><span>{{ option }}</span>
             </button>
           </div>
         </div>
@@ -293,7 +293,7 @@
               [class.selected]="form.viewType === option"
               (click)="selectViewType(option)"
             >
-              {{ option }}
+              <i [class]="chipIcon(option)" aria-hidden="true"></i><span>{{ option }}</span>
             </button>
           </div>
         </div>

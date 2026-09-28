@@ -253,6 +253,19 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   readonly minimumRentalPeriodOptions = ['Minimum 6 months', 'Minimum 12 months'];
 
+  private readonly chipIcons: Record<string, string> = {
+    'Apartment': 'fa-solid fa-building', 'Private house': 'fa-solid fa-house', 'Country house': 'fa-solid fa-house-chimney',
+    'Plot': 'fa-solid fa-mountain-sun', 'Commercial area': 'fa-solid fa-store', 'Hotel': 'fa-solid fa-hotel',
+    'For Sale': 'fa-solid fa-tag', 'For Rent': 'fa-solid fa-key', 'Lease': 'fa-solid fa-file-signature', 'Daily rent': 'fa-solid fa-calendar-day',
+    'Minimum 6 months': 'fa-regular fa-calendar', 'Minimum 12 months': 'fa-regular fa-calendar-check',
+    'Old building': 'fa-solid fa-landmark', 'New building': 'fa-solid fa-city', 'Under construction': 'fa-solid fa-helmet-safety',
+    'City View': 'fa-solid fa-city', 'Nature View': 'fa-solid fa-tree', 'No View': 'fa-regular fa-eye-slash',
+  };
+
+  chipIcon(option: string): string {
+    return this.chipIcons[option] || 'fa-solid fa-paint-roller';
+  }
+
   form: UploadForm = {
     realEstateType: 'Apartment',
     dealType: 'For Sale',

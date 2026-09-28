@@ -9,7 +9,7 @@
   <section class="success-card" *ngIf="submitted">
     <div class="state-icon ok"><i class="fa-solid fa-check"></i></div>
     <h1>Thank you!</h1>
-    <p>Your property details reached {{ info?.agentName || 'our agent' }}. They will call you soon to arrange a visit.</p>
+    <p><span>Your agent will call you soon to arrange a visit.</span></p>
   </section>
 
   <form *ngIf="info && !submitted" (ngSubmit)="submit()" novalidate>
@@ -52,7 +52,7 @@
       </div>
       <div class="grid">
         <label class="field" [class.invalid]="showError('area')">
-          <span>Area *</span>
+          <span>Area<i class="req">*</i></span>
           <div class="input-icon"><i class="fa-solid fa-ruler-combined"></i><input type="number" min="0" name="area" inputmode="decimal" placeholder="85" [(ngModel)]="data['area']"><em>m²</em></div>
           <small class="err" *ngIf="showError('area')">{{ showError('area') }}</small>
         </label>
@@ -76,7 +76,7 @@
       <div class="card-head"><span class="num">2</span><div><h2>Location</h2><p>Pick district and street from the list</p></div></div>
       <div class="grid location-grid">
         <label class="field" [class.invalid]="showError('location')" [class.valid]="selectedDistrict">
-          <span>District *</span>
+          <span>District<i class="req">*</i></span>
           <div class="picker" (click)="$event.stopPropagation()">
             <div class="input-icon"><i class="fa-solid fa-map-location-dot"></i>
               <input name="location" autocomplete="off" placeholder="e.g. Vake" [(ngModel)]="data['location']" (focus)="picker = 'area'" (input)="onAreaInput()">
@@ -92,7 +92,7 @@
           <small class="err" *ngIf="showError('location')">{{ showError('location') }}</small>
         </label>
         <label class="field" [class.invalid]="showError('street')" [class.valid]="selectedStreetValue">
-          <span>Street *</span>
+          <span>Street<i class="req">*</i></span>
           <div class="picker" (click)="$event.stopPropagation()">
             <div class="input-icon"><i class="fa-solid fa-road"></i>
               <input name="street" autocomplete="off" [disabled]="!selectedDistrict" [placeholder]="selectedDistrict ? 'Start typing a street' : 'Choose a district first'" [(ngModel)]="data['street']" (focus)="picker = 'street'" (input)="onStreetInput()">
@@ -106,7 +106,7 @@
           <small class="err" *ngIf="showError('street')">{{ showError('street') }}</small>
         </label>
         <label class="field" [class.invalid]="showError('streetNumber')">
-          <span>Building number *</span>
+          <span>Building number<i class="req">*</i></span>
           <div class="input-icon"><i class="fa-solid fa-hashtag"></i><input name="streetNumber" autocomplete="off" placeholder="12a" [(ngModel)]="data['streetNumber']" (ngModelChange)="clearPoint()"></div>
           <small class="err" *ngIf="showError('streetNumber')">{{ showError('streetNumber') }}</small>
         </label>
@@ -120,7 +120,7 @@
       <div class="card-head"><span class="num">3</span><div><h2>Price</h2><p>{{ info.dealType === 'Rent' ? 'Monthly rent you expect' : 'Asking price' }}</p></div></div>
       <div class="price-row">
         <label class="field grow" [class.invalid]="showError('totalPrice')">
-          <span>{{ info.dealType === 'Rent' ? 'Monthly rent *' : 'Sale price *' }}</span>
+          <span>{{ info.dealType === 'Rent' ? 'Monthly rent' : 'Sale price' }}<i class="req">*</i></span>
           <div class="input-icon big"><i class="fa-solid fa-money-bill-wave"></i><input type="number" min="0" name="totalPrice" inputmode="decimal" placeholder="0" [(ngModel)]="data['totalPrice']"><em>{{ data['currency'] === 'GEL' ? '₾' : '$' }}</em></div>
           <small class="err" *ngIf="showError('totalPrice')">{{ showError('totalPrice') }}</small>
         </label>
@@ -132,7 +132,7 @@
           </div>
         </div>
       </div>
-      <p class="hint" *ngIf="data['totalPrice'] > 0 && data['area'] > 0"><i class="fa-solid fa-calculator"></i>≈ {{ data['totalPrice'] / data['area'] | number:'1.0-0' }} {{ data['currency'] === 'GEL' ? '₾' : '$' }} per m²</p>
+      <p class="hint" *ngIf="data['totalPrice'] > 0 && data['area'] > 0"><i class="fa-solid fa-calculator"></i><span>≈ {{ data['totalPrice'] / data['area'] | number:'1.0-0' }} {{ data['currency'] === 'GEL' ? '₾' : '$' }}</span><span>per m²</span></p>
     </section>
 
     <section class="card">
@@ -158,7 +158,7 @@
         (dragover)="$event.preventDefault(); dragOver = true" (dragleave)="dragOver = false" (drop)="dropPhotos($event)">
         <i class="fa-solid fa-cloud-arrow-up"></i>
         <b>{{ photos.length >= maxPhotos ? 'Photo limit reached' : 'Drop photos or tap to upload' }}</b>
-        <small>{{ photos.length }}/{{ maxPhotos }} photos · JPG, PNG, HEIC</small>
+        <small><span>{{ photos.length }}/{{ maxPhotos }}</span> · <span>Photos</span> · JPG, PNG, HEIC</small>
         <input type="file" accept="image/*" multiple [disabled]="photos.length >= maxPhotos" (change)="choosePhotos($event)">
       </label>
       <div class="photos" *ngIf="previews.length">
@@ -174,12 +174,12 @@
       <div class="card-head"><span class="num">6</span><div><h2>Your contact details</h2><p>Only your agent sees these</p></div></div>
       <div class="grid">
         <label class="field" [class.invalid]="showError('ownerName')">
-          <span>Full name *</span>
+          <span>Full name<i class="req">*</i></span>
           <div class="input-icon"><i class="fa-solid fa-user"></i><input name="ownerName" autocomplete="name" [(ngModel)]="ownerName"></div>
           <small class="err" *ngIf="showError('ownerName')">{{ showError('ownerName') }}</small>
         </label>
         <label class="field" [class.invalid]="showError('ownerPhone')">
-          <span>Phone *</span>
+          <span>Phone<i class="req">*</i></span>
           <div class="input-icon"><i class="fa-solid fa-phone"></i><input type="tel" name="ownerPhone" autocomplete="tel" inputmode="tel" placeholder="5XX XX XX XX" [(ngModel)]="ownerPhone"></div>
           <small class="err" *ngIf="showError('ownerPhone')">{{ showError('ownerPhone') }}</small>
         </label>
