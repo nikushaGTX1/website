@@ -371,7 +371,7 @@
       <!-- PIPELINE BOARD -->
 
       <div class="pipeline-scroll" *ngIf="!loading && filteredLeads.length > 0">
-        <div class="pipeline-board" [class.filtered]="statusFilter !== 'all'">
+        <div class="pipeline-board" [class.filtered]="statusFilter !== 'all'" [style.--crm-columns]="visibleStatuses.length">
           <section
             class="pipeline-column"
             *ngFor="let status of visibleStatuses; trackBy: identifyStatus"

@@ -1740,3 +1740,147 @@ button:disabled {
     animation: none;
   }
 }
+
+/* ================= CRM redesign layer ================= */
+:host { background: linear-gradient(180deg, #f7f5fc 0%, #f4f5f8 360px); }
+
+/* Header buttons: Generate Link matched the others (it had browser-default styling). */
+.generate-link-button {
+  min-height: 44px;
+  padding: 0 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #d8dce4;
+  border-radius: 9px;
+  color: #475467;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.generate-link-button:hover:not(:disabled),
+.refresh-button:hover:not(:disabled),
+.admin-shortcut:hover { border-color: #c9bbea; color: #451a8f; }
+.generate-link-button i, .refresh-button i, .admin-shortcut i { color: #6d4bc3; }
+
+/* Pipeline: fixed-width columns that scroll sideways, so names and actions are never cut off. */
+.pipeline-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  padding-bottom: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: #cfc6e6 transparent;
+}
+.pipeline-board:not(.filtered) {
+  grid-template-columns: repeat(var(--crm-columns, 6), minmax(215px, 1fr));
+  min-width: calc(var(--crm-columns, 6) * 215px + (var(--crm-columns, 6) - 1) * 12px);
+  gap: 12px;
+}
+.pipeline-column {
+  scroll-snap-align: start;
+  padding: 0 12px 12px;
+  border: 1px solid #e6e2ef;
+  border-radius: 16px;
+  background: #f7f6fa;
+  overflow: hidden;
+}
+.pipeline-column > header {
+  position: relative;
+  margin: 0 -12px 12px;
+  padding: 16px 16px 12px;
+  background: #fff;
+  border-bottom: 1px solid #eeebf4;
+}
+.pipeline-column > header::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--stage-color, #7657f6);
+}
+.pipeline-column > header h3 { font-size: 15px; }
+.pipeline-column > header > strong {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--stage-color, #7657f6) 12%, #fff);
+  color: var(--stage-color, #451a8f);
+  font-size: 12px;
+  font-weight: 800;
+}
+.status-new { --stage-color: #7657f6; }
+.status-contacted { --stage-color: #2f7de1; }
+.status-qualified { --stage-color: #168b65; }
+.status-viewing { --stage-color: #bd811b; }
+.status-negotiation { --stage-color: #ce5d2a; }
+.status-won { --stage-color: #0e9460; }
+.status-lost { --stage-color: #8a93a3; }
+
+/* Lead cards */
+.lead-card {
+  padding: 14px;
+  gap: 12px;
+  border: 1px solid #e8e4f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(22, 18, 31, 0.04);
+}
+.lead-card:hover,
+.lead-card:focus-visible {
+  border-color: #c9bbea;
+  box-shadow: 0 12px 26px rgba(69, 26, 143, 0.1);
+}
+.lead-card-top { grid-template-columns: 40px minmax(0, 1fr) auto; align-items: start; }
+.lead-avatar { width: 40px; height: 40px; font-size: 12px; }
+/* Name gets the full line; the "From listing" badge drops under it instead of squeezing it to "K…". */
+.lead-name-line { flex-wrap: wrap; row-gap: 4px; }
+.lead-name-line > strong {
+  flex: 1 1 100%;
+  font-size: 14px;
+  line-height: 1.3;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.lead-identity > small { margin-top: 2px; color: #8a8595; font-size: 12px; text-transform: capitalize; }
+.lead-contact span, .lead-context span { font-size: 13px; color: #3f3a4c; }
+.lead-contact i, .lead-context i { width: 16px; color: #8d78cf; text-align: center; }
+
+.lead-card footer {
+  align-items: center;
+  padding-top: 12px;
+  font-size: 12px;
+}
+.lead-card footer span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #5e576d;
+}
+.lead-card footer span:last-child {
+  max-width: none;
+  flex: none;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f1ecff;
+  white-space: nowrap;
+}
+
+/* Vacancies: when there is nothing to review, keep it to one compact row. */
+.vacancy-empty { padding: 14px 20px; }
+
+/* Filters */
+.filter-panel { border-radius: 16px; box-shadow: 0 1px 2px rgba(22, 18, 31, 0.04); }
+.filter-panel select,
+.filter-panel input { border-radius: 10px; }
+/* The whole card opens the lead (and shows a › arrow), so the footer keeps only the agent. */
+.lead-card footer span:last-child { display: none; }
+.lead-card footer span:first-child { white-space: normal; }

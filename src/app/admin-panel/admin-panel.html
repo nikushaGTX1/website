@@ -1,60 +1,80 @@
 <section class="admin-page">
   <header class="admin-header">
-    <div>
-      <p class="eyebrow">Admin panel</p>
-      <h1>Property approvals and system control</h1>
+    <div class="admin-heading">
+      <p class="eyebrow"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Admin panel</p>
+      <h1>Control center</h1>
+      <p class="admin-sub">Review new listings, manage the team and keep the catalogue in shape.</p>
     </div>
     <div class="header-actions">
-      <a class="mrc-btn" routerLink="/crm">CRM</a>
-      <a class="mrc-btn" href="https://gtxlivewebscraper-production.up.railway.app/" target="_blank">Open Live </a>
-      <button type="button" class="refresh-btn" (click)="loadDashboard()" [disabled]="loading">
-        {{ loading ? 'Loading...' : 'Refresh' }}
+      <a class="hdr-btn ghost" routerLink="/crm"><i class="fa-solid fa-address-book" aria-hidden="true"></i> CRM</a>
+      <a class="hdr-btn ghost" href="https://gtxlivewebscraper-production.up.railway.app/" target="_blank" rel="noopener">
+        <i class="fa-solid fa-satellite-dish" aria-hidden="true"></i> Open Live
+      </a>
+      <button type="button" class="hdr-btn primary" (click)="loadDashboard()" [disabled]="loading">
+        <i class="fa-solid fa-rotate-right" [class.fa-spin]="loading" aria-hidden="true"></i>
+        {{ loading ? 'Loading…' : 'Refresh' }}
       </button>
     </div>
   </header>
 
-  <div class="stats-grid">
-    <button type="button" class="stat" [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'">
-      <span>Pending</span>
-      <strong>{{ waitingCount }}</strong>
+  <div class="kpi-grid">
+    <button type="button" class="kpi kpi-pending" [class.has-work]="waitingCount > 0" (click)="activeTab = 'pending'">
+      <span class="kpi-icon"><i class="fa-regular fa-clock" aria-hidden="true"></i></span>
+      <span class="kpi-text"><small>Awaiting review</small><strong>{{ waitingCount }}</strong></span>
+      <span class="kpi-hint">{{ waitingCount ? 'Needs your attention' : 'All caught up' }}</span>
     </button>
-    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">
-      <span>Users</span>
-      <strong>{{ users.length || userIds.length }}</strong>
+    <button type="button" class="kpi" *ngIf="canOperateDashboard" (click)="activeTab = 'apartments'">
+      <span class="kpi-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+      <span class="kpi-text"><small>Live listings</small><strong>{{ apartments.length }}</strong></span>
+      <span class="kpi-hint">Published on the site</span>
     </button>
-    <button type="button" class="stat" *ngIf="canOperateDashboard" [class.active]="activeTab === 'agents'" (click)="activeTab = 'agents'">
-      <span>Agents</span>
-      <strong>{{ agents.length }}</strong>
+    <button type="button" class="kpi" *ngIf="canOperateDashboard" (click)="activeTab = 'agents'">
+      <span class="kpi-icon"><i class="fa-solid fa-user-tie" aria-hidden="true"></i></span>
+      <span class="kpi-text"><small>Agents</small><strong>{{ agents.length }}</strong></span>
+      <span class="kpi-hint">Verified team members</span>
     </button>
-    <button type="button" class="stat" *ngIf="canOperateDashboard" [class.active]="activeTab === 'apartments'" (click)="activeTab = 'apartments'">
-      <span>Apartments</span>
-      <strong>{{ apartments.length }}</strong>
-    </button>
-    <button type="button" class="stat" *ngIf="canManageBlog" [class.active]="activeTab === 'blog'" (click)="activeTab = 'blog'">
-      <span>Blog</span>
-      <strong>{{ blogPosts.length }}</strong>
-    </button>
-    <button type="button" class="stat" *ngIf="canOperateDashboard" [class.active]="activeTab === 'streets'" (click)="activeTab = 'streets'">
-      <span>Street geometry</span><strong>✓</strong>
-    </button>
-    <button type="button" class="stat" *ngIf="isAdmin" [class.active]="activeTab === 'vacancies'" (click)="activeTab = 'vacancies'">
-      <span>Job positions</span><strong>{{ vacancyPositions.length }}</strong>
+    <button type="button" class="kpi" *ngIf="isAdmin" (click)="activeTab = 'users'">
+      <span class="kpi-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+      <span class="kpi-text"><small>Users</small><strong>{{ users.length || userIds.length }}</strong></span>
+      <span class="kpi-hint">Registered accounts</span>
     </button>
   </div>
 
-  <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
-  <p *ngIf="successMessage" class="message success">{{ successMessage }}</p>
-  <p *ngIf="isManager && !isAdmin" class="message info">Manager access includes operational tools. User accounts, passwords, role assignment, and agent removal remain admin-only.</p>
-  <p *ngIf="!canOperateDashboard" class="message info">Agent access: you can review pending posts and manage blog content only.</p>
-  <p *ngIf="pendingDebug" class="message info">{{ pendingDebug }}</p>
+  <nav class="admin-tabs" aria-label="Admin sections">
+    <button type="button" [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'">
+      <i class="fa-regular fa-clock" aria-hidden="true"></i> Pending <em *ngIf="waitingCount" class="tab-count warn">{{ waitingCount }}</em>
+    </button>
+    <button type="button" *ngIf="canOperateDashboard" [class.active]="activeTab === 'apartments'" (click)="activeTab = 'apartments'">
+      <i class="fa-solid fa-building" aria-hidden="true"></i> Apartments <em class="tab-count">{{ apartments.length }}</em>
+    </button>
+    <button type="button" *ngIf="canOperateDashboard" [class.active]="activeTab === 'agents'" (click)="activeTab = 'agents'">
+      <i class="fa-solid fa-user-tie" aria-hidden="true"></i> Agents <em class="tab-count">{{ agents.length }}</em>
+    </button>
+    <button type="button" *ngIf="isAdmin" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">
+      <i class="fa-solid fa-users" aria-hidden="true"></i> Users <em class="tab-count">{{ users.length || userIds.length }}</em>
+    </button>
+    <button type="button" *ngIf="canManageBlog" [class.active]="activeTab === 'blog'" (click)="activeTab = 'blog'">
+      <i class="fa-solid fa-newspaper" aria-hidden="true"></i> Blog <em class="tab-count">{{ blogPosts.length }}</em>
+    </button>
+    <button type="button" *ngIf="canOperateDashboard" [class.active]="activeTab === 'streets'" (click)="activeTab = 'streets'">
+      <i class="fa-solid fa-road" aria-hidden="true"></i> Street geometry
+    </button>
+    <button type="button" *ngIf="isAdmin" [class.active]="activeTab === 'vacancies'" (click)="activeTab = 'vacancies'">
+      <i class="fa-solid fa-briefcase" aria-hidden="true"></i> Job positions <em class="tab-count">{{ vacancyPositions.length }}</em>
+    </button>
+  </nav>
+
+  <div class="admin-alerts" aria-live="polite">
+    <p *ngIf="errorMessage" class="message error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>{{ errorMessage }}</span><button type="button" aria-label="Dismiss" (click)="errorMessage = ''"><i class="fa-solid fa-xmark"></i></button></p>
+    <p *ngIf="successMessage" class="message success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>{{ successMessage }}</span><button type="button" aria-label="Dismiss" (click)="successMessage = ''"><i class="fa-solid fa-xmark"></i></button></p>
+    <p *ngIf="isManager && !isAdmin" class="message info"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Manager access includes operational tools. User accounts, passwords, role assignment, and agent removal remain admin-only.</span></p>
+    <p *ngIf="!canOperateDashboard" class="message info"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Agent access: you can review pending posts and manage blog content only.</span></p>
+  </div>
 
   <div class="admin-search">
-    <input
-      type="search"
-      [(ngModel)]="adminSearch"
-      [placeholder]="searchPlaceholder"
-    />
-    <button type="button" (click)="clearSearch()" [disabled]="!adminSearch">Clear</button>
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="search" [(ngModel)]="adminSearch" [placeholder]="searchPlaceholder" />
+    <button type="button" (click)="clearSearch()" *ngIf="adminSearch">Clear</button>
   </div>
 
   <section class="admin-section" *ngIf="activeTab === 'pending'">

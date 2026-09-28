@@ -324,3 +324,30 @@
   }
 
 }
+
+/* ===== Lead detail touch-up ===== */
+.lead-page { background: linear-gradient(180deg, #f7f5fc 0%, #f5f4f8 340px); }
+.lead-hero, .stage-panel, .panel { border-color: #ebe7f2; border-radius: 18px; box-shadow: 0 1px 2px rgba(22, 18, 31, 0.04), 0 12px 30px rgba(40, 24, 90, 0.05); }
+
+/* Stage tracker: one slot per stage, full width, with a progress line. */
+@media (min-width: 981px) {
+  .stage-track { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
+  .stage-track button::after { left: 100%; width: 10px; height: 2px; background: #e4dfee; }
+  .stage-track button.past::after { background: #9fd8bb; }
+}
+.stage-track button { min-height: 68px; border-radius: 12px; background: #fff; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+.stage-track button b { font-size: 12px; }
+.stage-track button span { width: 26px; height: 26px; font-size: 11px; }
+.stage-track button.past span::before { content: '✓'; }
+.stage-track button.past span { font-size: 0; }
+.stage-track button.past span::before { font-size: 12px; }
+
+/* Profile grid: white cells with hairlines, so a half-filled row no longer shows a grey block. */
+.profile-grid { gap: 0; background: #fff; border-color: #ece8f2; }
+.profile-grid > div { box-shadow: inset -1px 0 #ece8f2, inset 0 -1px #ece8f2; }
+.profile-grid .lifestyle-detail { background: #fff; }
+.profile-grid span { color: #8a8398; letter-spacing: 0.06em; }
+.profile-grid strong { font-size: 14px; }
+
+/* Assignment button: readable when disabled. */
+.assignment-button:disabled { background: #d9d1ef; color: #6b5aa6; opacity: 1; }

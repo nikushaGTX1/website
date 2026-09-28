@@ -2044,3 +2044,6 @@ select:focus {
 .parking-price-input { display: grid; gap: 6px; max-width: 260px; color: #4a4356; font-size: 13px; font-weight: 600; }
 .parking-price-input input { min-height: 42px; padding: 0 12px; border: 1px solid #e3dfea; border-radius: 10px; font: inherit; }
 .parking-cost-hint { color: #8a8595; font-size: 12px; }
+
+/* Steps are always open; keep a jumped-to section clear of the sticky site menu. */
+.form-section { scroll-margin-top: 84px; }

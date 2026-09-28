@@ -153,8 +153,8 @@
         </button>
       </div>
 
-      <section class="form-section" id="listing-step-0" [class.collapsed]="activeStep !== 0">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(0)" (keydown.enter)="openStep(0)"><span>01</span><div><h2>Property details</h2><p>Choose the options that best describe the property.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+      <section class="form-section" id="listing-step-0">
+        <header class="section-header"><span>01</span><div><h2>Property details</h2><p>Choose the options that best describe the property.</p></div></header>
         <div class="field-group">
           <label class="field-label">Real estate type <span class="req">*</span></label>
           <div class="chip-grid">
@@ -299,8 +299,8 @@
         </div>
       </section>
 
-      <section class="form-section" id="listing-step-1" [class.collapsed]="activeStep !== 1">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(1)" (keydown.enter)="openStep(1)"><span>02</span><div><h2>Property location</h2><p>Add an accurate address to help clients find the listing.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+      <section class="form-section" id="listing-step-1">
+        <header class="section-header"><span>02</span><div><h2>Property location</h2><p>Add an accurate address to help clients find the listing.</p></div></header>
         <div class="field-group">
           <label class="field-label">Location <span class="req">*</span></label>
           <div class="input-row location-row">
@@ -361,8 +361,8 @@
         </div>
       </section>
 
-      <section class="form-section" id="listing-step-2" [class.collapsed]="activeStep !== 2">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(2)" (keydown.enter)="openStep(2)"><span>03</span><div><h2>Features &amp; amenities</h2><p>Detailed listings receive more relevant enquiries.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+      <section class="form-section" id="listing-step-2">
+        <header class="section-header"><span>03</span><div><h2>Features &amp; amenities</h2><p>Detailed listings receive more relevant enquiries.</p></div></header>
         <div class="feature-block">
           <div class="feature-block-title"><div><span>Property specifications</span><small>The essentials buyers compare first</small></div><i class="fa-solid fa-ruler-combined"></i></div>
           <div class="metric-grid">
@@ -425,7 +425,7 @@
         </div>
 
         <div class="lifestyle-panel">
-          <span class="lifestyle-icon"><i class="fa-solid fa-sparkles"></i></span>
+          <span class="lifestyle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M10 2.5c.4 3.9 2.6 6.1 6.5 6.5-3.9.4-6.1 2.6-6.5 6.5-.4-3.9-2.6-6.1-6.5-6.5 3.9-.4 6.1-2.6 6.5-6.5Z"/><path d="M18 13c.2 2.1 1.4 3.3 3.5 3.5-2.1.2-3.3 1.4-3.5 3.5-.2-2.1-1.4-3.3-3.5-3.5 2.1-.2 3.3-1.4 3.5-3.5Z" opacity=".7"/><circle cx="5" cy="18.5" r="1.3" opacity=".55"/></svg></span>
           <div class="lifestyle-copy"><strong>Help us understand the atmosphere</strong><small>This improves how your home appears in lifestyle-based search.</small></div>
           <label class="style-select">
               <span>Interior style</span>
@@ -441,8 +441,8 @@
         <p class="smart-location-note"><i class="fa-solid fa-location-crosshairs"></i><span><strong>Neighbourhood insights included</strong> Walking times to transit, parks, schools and daily essentials are calculated automatically from the address.</span></p>
       </section>
 
-      <section class="form-section" id="listing-step-3" [class.collapsed]="activeStep !== 3">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(3)" (keydown.enter)="openStep(3)"><span>04</span><div><h2>Pricing</h2><p>Set a clear price and preferred currency.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+      <section class="form-section" id="listing-step-3">
+        <header class="section-header"><span>04</span><div><h2>Pricing</h2><p>Set a clear price and preferred currency.</p></div></header>
         <div class="field-group">
           <label class="field-label">Price <span class="req">*</span></label>
           <div class="price-table">
@@ -457,8 +457,8 @@
         </div>
       </section>
 
-      <section class="form-section" id="listing-step-4" [class.collapsed]="activeStep !== 4">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(4)" (keydown.enter)="openStep(4)"><span>05</span><div><h2>Photos &amp; presentation</h2><p>Add a compelling title, description, and high-quality photos.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+      <section class="form-section" id="listing-step-4" (focusin)="generateListingCopy(false)" (pointerenter)="generateListingCopy(false)">
+        <header class="section-header"><span>05</span><div><h2>Photos &amp; presentation</h2><p>Add a compelling title, description, and high-quality photos.</p></div></header>
         <div class="listing-copy-editor" data-no-translate>
           <div class="listing-copy-head">
             <div>
@@ -525,8 +525,8 @@
         </div>
       </section>
 
-      <section class="form-section" id="listing-step-5" [class.collapsed]="activeStep !== 5">
-        <header class="section-header" role="button" tabindex="0" (click)="openStep(5)" (keydown.enter)="openStep(5)"><span>06</span><div><h2>Listing contacts</h2><p>Agent details are public. Owner details are restricted to agents and managers.</p></div><i class="section-chevron fa-solid fa-chevron-down"></i></header>
+      <section class="form-section" id="listing-step-5">
+        <header class="section-header"><span>06</span><div><h2>Listing contacts</h2><p>Agent details are public. Owner details are restricted to agents and managers.</p></div></header>
         <div class="field-group">
           <label class="field-label"><i class="fa-solid fa-lock"></i> Owner information <span class="req">*</span> <small>Private — visible only to agents and higher roles</small></label>
           <div class="input-row contact-fields">

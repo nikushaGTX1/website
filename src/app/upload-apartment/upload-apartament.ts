@@ -911,50 +911,11 @@ export class UploadApartment implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /** All steps are always open; the step list just jumps to the section. */
   openStep(index: number): void {
     this.activeStep = index;
     if (index === 4) this.generateListingCopy(false);
-    this.keepStepHeaderInView(index);
-  }
-
-  /**
-   * Keeps the opened section's header just under the top menu. On phones the page
-   * height keeps changing for a moment after a step opens (previous step collapses,
-   * the location map and photos load), which pushed the view to the bottom, so the
-   * position is re-checked briefly and the check stops as soon as the user touches
-   * or scrolls the page themselves.
-   */
-  private keepStepHeaderInView(index: number): void {
-    let userMoved = false;
-    const stop = () => (userMoved = true);
-    const events: Array<keyof WindowEventMap> = ['touchstart', 'wheel', 'keydown'];
-    // Registered after the click that opened the step, so that click itself doesn't count.
-    setTimeout(() => events.forEach((type) => window.addEventListener(type, stop, { passive: true, once: true })));
-
-    // Measure the sticky site header instead of guessing: its height differs per screen size.
-    const menuOffset = () => {
-      const header = document.querySelector('app-navigation');
-      const bottom = header ? header.getBoundingClientRect().bottom : 0;
-      return Math.max(0, bottom) + 12;
-    };
-
-    const align = () => {
-      if (userMoved) return;
-      const section = document.getElementById(`listing-step-${index}`);
-      if (!section) return;
-      const offset = menuOffset();
-      const top = section.getBoundingClientRect().top;
-      if (Math.abs(top - offset) < 2) return;
-      // 'instant', not 'auto': the global html { scroll-behavior: smooth } turns 'auto'
-      // into a glide that gets cut off while the previous step is still collapsing.
-      window.scrollTo({ top: window.scrollY + top - offset, behavior: 'instant' });
-    };
-
-    // The previous step collapses and the map/photos load after the click, which moves the
-    // opened header. Re-align until the layout settles, on every screen size.
-    requestAnimationFrame(align);
-    [80, 200, 400, 700, 1100, 1500].forEach((delay) => setTimeout(align, delay));
-    setTimeout(() => events.forEach((type) => window.removeEventListener(type, stop)), 1700);
+    document.getElementById(`listing-step-${index}`)?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
 
   get completionPercentage(): number {
