@@ -61,9 +61,12 @@ const defaultSeo = {
   // ?v= busts the week-long Cloudflare/chat-app cache whenever the artwork changes.
   image: `${canonicalOrigin}/og-image.jpg?v=2`,
   imageAlt: 'Velven — verified homes in Tbilisi',
+  // WhatsApp only shows the large card (like Airbnb's) when it trusts the image is wide.
+  imageWidth: '1200',
+  imageHeight: '630',
+  imageType: 'image/jpeg',
   type: 'website',
 };
-const squareShareImage = `${canonicalOrigin}/og-square.jpg?v=1`;
 const routeSeo = new Map([
   ['/main', defaultSeo],
   ['/ExploreProperty', {
@@ -1263,15 +1266,8 @@ app.use(async (request, response) => {
     const shareVersion = questionnaireMetadata && typeof request.query.v === 'string'
       ? request.query.v.replace(/[^a-z0-9_-]/gi, '').slice(0, 32)
       : '';
-    // WhatsApp shows a small square thumbnail cropped from the middle of the wide card,
-    // which cuts the logo and headline. Give its crawler a square image instead.
-    const isWhatsApp = /WhatsApp/i.test(request.get('user-agent') || '');
-    const usesDefaultImage = !pageMetadata.image || pageMetadata.image === defaultSeo.image;
     const document = injectSeo(template, {
       ...pageMetadata,
-      ...(isWhatsApp && usesDefaultImage
-        ? { image: squareShareImage, imageWidth: '600', imageHeight: '600', imageType: 'image/jpeg' }
-        : {}),
       canonicalUrl: pageMetadata.canonicalUrl || `${canonicalOrigin}${canonicalPath}`,
       openGraphUrl: shareVersion
         ? `${canonicalOrigin}${pathname}?v=${encodeURIComponent(shareVersion)}`
