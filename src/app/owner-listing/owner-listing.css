@@ -164,7 +164,14 @@ textarea { resize: vertical; min-height: 110px; }
 .photos figure { position: relative; margin: 0; aspect-ratio: 1; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px #25163c1a; animation: pop .2s ease-out; }
 .photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .photos .cover { position: absolute; left: 6px; bottom: 6px; padding: 3px 8px; border-radius: 999px; background: #000000a0; color: #fff; font-size: 11px; font-weight: 700; }
-.photos button { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; border: 0; border-radius: 50%; background: #ffffffe6; color: var(--bad); cursor: pointer; box-shadow: 0 2px 6px #0003; }
+.photos button {
+  position: absolute; right: 8px; top: 8px; width: 30px; height: 30px; min-width: 0; min-height: 0; padding: 0; margin: 0;
+  display: grid; place-items: center; aspect-ratio: 1; border: 0; border-radius: 50%; line-height: 1; font-size: 13px;
+  background: #1c1230b3; color: #fff; backdrop-filter: blur(6px); cursor: pointer; opacity: 0; transition: opacity .15s, background .15s, transform .15s;
+}
+.photos figure:hover button, .photos button:focus-visible { opacity: 1; }
+.photos button:hover { background: var(--bad); transform: scale(1.08); }
+@media (hover: none) { .photos button { opacity: 1; } }
 
 /* Submit */
 .submit-bar { display: grid; gap: 10px; justify-items: center; margin-top: 6px; }

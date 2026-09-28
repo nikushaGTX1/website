@@ -1,3 +1,126 @@
-<main class="page"><header><div><a routerLink="/crm">← Lead pipeline</a><p>VELVEN CRM</p><h1>Owner submissions</h1><span>Review property details and verify them during the visit.</span></div><button (click)="load()">Refresh</button></header><p class="error" *ngIf="error">{{error}}</p><div class="loading" *ngIf="loading">Loading owner submissions…</div><div class="empty" *ngIf="!loading && !submissions.length">No owner submissions yet.</div>
-<section class="layout" *ngIf="submissions.length"><div class="list"><article *ngFor="let item of submissions" (click)="select(item)" [class.selected]="selected?.id===item.id"><div><h2>{{item.ownerName}}</h2><a [href]="'tel:'+item.ownerPhone" (click)="$event.stopPropagation()">{{item.ownerPhone}}</a></div><span class="pill" [attr.data-status]="item.status">{{item.status}}</span><dl><div><dt>Deal</dt><dd>{{item.dealType}}</dd></div><div><dt>Price</dt><dd>{{item.data['totalPrice'] || '—'}} {{item.data['currency']}}</dd></div><div><dt>District</dt><dd>{{item.data['location'] || '—'}}</dd></div><div><dt>Photos</dt><dd>{{item.photos.length}}</dd></div></dl><time>{{item.createdAt | date:'medium'}}</time></article></div>
-<aside *ngIf="selected as item"><div class="detail-head"><div><h2>{{item.ownerName}}</h2><a [href]="'tel:'+item.ownerPhone">{{item.ownerPhone}}</a><a *ngIf="item.ownerEmail" [href]="'mailto:'+item.ownerEmail">{{item.ownerEmail}}</a></div><button class="close" (click)="selected=undefined">×</button></div><div class="gallery" *ngIf="item.photos.length"><a *ngFor="let photo of item.photos" [href]="photo" target="_blank"><img [src]="photo" alt="Property photo"></a></div><h3>Property answers</h3><dl class="answers"><div *ngFor="let fact of facts(item)"><dt>{{fact[0]}}</dt><dd>{{display(fact[1])}}</dd></div></dl><h3>Verification checklist</h3><div class="checks"><div *ngFor="let key of verificationKeys(item)"><span>{{verificationLabel(key)}}: {{display(item.data[key])}}</span><button [class.yes]="item.verification[key]===true" (click)="verify(key,true)">✓</button><button [class.no]="item.verification[key]===false" (click)="verify(key,false)">×</button></div></div><label class="notes">Agent notes<textarea rows="4" [(ngModel)]="item.agentNotes"></textarea></label><div class="actions"><button (click)="save('contacted')">Called</button><button (click)="save('visited')">Visited</button><button class="reject" (click)="save('rejected')">Reject</button><button class="save" (click)="save()" [disabled]="saving">{{saving?'Saving…':'Save'}}</button><button class="create" (click)="createListing()">Create listing</button></div></aside></section></main>
+<main class="page">
+  <header class="top">
+    <div>
+      <a class="back" routerLink="/my-listings"><i class="fa-solid fa-arrow-left"></i> My listings</a>
+      <h1>Owner submissions</h1>
+      <p>Properties owners sent through your links. Call, visit, verify, then publish.</p>
+    </div>
+    <button type="button" class="icon-btn" (click)="load()" [disabled]="loading" aria-label="Refresh"><i class="fa-solid fa-rotate-right" [class.fa-spin]="loading"></i></button>
+  </header>
+
+  <div class="toolbar">
+    <div class="tabs">
+      <button type="button" [class.active]="filter === 'all'" (click)="filter = 'all'">All <b>{{ count('all') }}</b></button>
+      <button type="button" *ngFor="let s of statuses" [class.active]="filter === s.value" [attr.data-status]="s.value" (click)="filter = s.value">{{ s.label }} <b>{{ count(s.value) }}</b></button>
+    </div>
+    <label class="search"><i class="fa-solid fa-magnifying-glass"></i><input [(ngModel)]="search" placeholder="Search name, phone, district"></label>
+  </div>
+
+  <p class="banner error" *ngIf="error"><i class="fa-solid fa-circle-exclamation"></i>{{ error }}</p>
+
+  <div class="state" *ngIf="loading && !submissions.length"><span class="spinner"></span>Loading submissions…</div>
+  <div class="state empty" *ngIf="!loading && !submissions.length">
+    <i class="fa-regular fa-folder-open"></i><h2>No submissions yet</h2><p>Send an owner link from the CRM. Their answers appear here.</p>
+  </div>
+
+  <section class="layout" *ngIf="submissions.length" [class.has-detail]="selected">
+    <div class="list">
+      <p class="none" *ngIf="!visible.length">Nothing matches this filter.</p>
+      <button type="button" class="row" *ngFor="let item of visible" (click)="select(item)" [class.selected]="selected?.id === item.id">
+        <div class="thumb">
+          <img *ngIf="item.photos.length; else noPhoto" [src]="item.photos[0]" alt="" loading="lazy">
+          <ng-template #noPhoto><i class="fa-regular fa-image"></i></ng-template>
+          <span class="count" *ngIf="item.photos.length > 1"><i class="fa-solid fa-camera"></i>{{ item.photos.length }}</span>
+        </div>
+        <div class="row-body">
+          <div class="row-top">
+            <span class="status" [attr.data-status]="item.status">{{ statusLabel(item.status) }}</span>
+            <span class="deal">{{ item.dealType === 'Rent' ? 'Rent' : 'Sale' }}</span>
+          </div>
+          <strong class="row-price">{{ price(item) }}</strong>
+          <span class="row-address"><i class="fa-solid fa-location-dot"></i>{{ address(item) }}</span>
+          <span class="row-owner"><i class="fa-solid fa-user"></i>{{ item.ownerName }} · {{ item.createdAt | date:'MMM d, HH:mm' }}</span>
+        </div>
+      </button>
+    </div>
+
+    <aside class="detail" *ngIf="selected as item; else pickOne">
+      <div class="detail-head">
+        <div>
+          <span class="status" [attr.data-status]="item.status">{{ statusLabel(item.status) }}</span>
+          <h2>{{ price(item) }}</h2>
+          <p class="addr"><i class="fa-solid fa-location-dot"></i>{{ address(item) }}
+            <a *ngIf="mapUrl(item) as url" [href]="url" target="_blank" rel="noopener">Open map <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </p>
+        </div>
+        <button type="button" class="round close" (click)="selected = undefined" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="gallery" *ngIf="item.photos.length" [class.single]="item.photos.length === 1">
+        <button type="button" *ngFor="let photo of item.photos.slice(0, 5); let i = index" (click)="openPhoto(i)" [class.main]="i === 0">
+          <img [src]="photo" alt="Property photo {{ i + 1 }}">
+          <span class="more" *ngIf="i === 4 && item.photos.length > 5">+{{ item.photos.length - 5 }}</span>
+        </button>
+      </div>
+
+      <div class="owner-card">
+        <span class="avatar">{{ item.ownerName.charAt(0) }}</span>
+        <div><small>Owner</small><b>{{ item.ownerName }}</b><span *ngIf="item.ownerEmail">{{ item.ownerEmail }}</span></div>
+        <a class="call" [href]="'tel:' + item.ownerPhone"><i class="fa-solid fa-phone"></i>{{ item.ownerPhone }}</a>
+      </div>
+
+      <h3>Property</h3>
+      <div class="facts">
+        <div *ngFor="let f of facts(item)"><i [class]="f.icon"></i><small>{{ f.label }}</small><b>{{ f.value }}</b></div>
+      </div>
+
+      <ng-container *ngIf="features(item).length">
+        <h3>Features</h3>
+        <div class="chips"><span *ngFor="let k of features(item)"><i [class]="featureMeta[k].icon"></i>{{ featureMeta[k].label }}</span></div>
+      </ng-container>
+
+      <div class="check-head">
+        <h3>On-site verification</h3>
+        <span>{{ verifiedCount(item) }}/{{ checklist(item).length }} confirmed</span>
+      </div>
+      <div class="meter"><div [style.width.%]="checklist(item).length ? verifiedCount(item) / checklist(item).length * 100 : 0"></div></div>
+      <div class="checks">
+        <div class="check" *ngFor="let row of checklist(item)" [class.ok]="item.verification[row.key] === true" [class.bad]="item.verification[row.key] === false">
+          <i [class]="row.icon"></i>
+          <span><small>{{ row.label }}</small>{{ row.value }}</span>
+          <button type="button" class="round yes" (click)="verify(row.key, true)" [attr.aria-pressed]="item.verification[row.key] === true" aria-label="Correct"><i class="fa-solid fa-check"></i></button>
+          <button type="button" class="round no" (click)="verify(row.key, false)" [attr.aria-pressed]="item.verification[row.key] === false" aria-label="Wrong"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <h3>Notes</h3>
+      <textarea class="notes" rows="3" [(ngModel)]="item.agentNotes" (ngModelChange)="saved = false" placeholder="What you learned on the call or visit…"></textarea>
+
+      <h3>Status</h3>
+      <div class="stepper">
+        <button type="button" *ngFor="let s of statuses" [class.active]="item.status === s.value" [attr.data-status]="s.value" (click)="save(s.value)" [disabled]="saving">
+          <i [class]="s.icon"></i>{{ s.label }}
+        </button>
+      </div>
+
+      <div class="footer">
+        <span class="saved" *ngIf="saved"><i class="fa-solid fa-circle-check"></i>Saved</span>
+        <button type="button" class="btn ghost" (click)="save()" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+        <button type="button" class="btn primary" (click)="createListing()"><i class="fa-solid fa-wand-magic-sparkles"></i>Create listing</button>
+      </div>
+    </aside>
+    <ng-template #pickOne>
+      <aside class="detail placeholder"><i class="fa-regular fa-hand-pointer"></i><p>Select a submission to review it.</p></aside>
+    </ng-template>
+  </section>
+
+  <div class="lightbox" *ngIf="lightbox !== null && selected" (click)="lightbox = null">
+    <img [src]="selected.photos[lightbox]" alt="" (click)="$event.stopPropagation()">
+    <button type="button" class="round lb-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    <ng-container *ngIf="selected.photos.length > 1">
+      <button type="button" class="round lb-nav prev" (click)="$event.stopPropagation(); movePhoto(-1)" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
+      <button type="button" class="round lb-nav next" (click)="$event.stopPropagation(); movePhoto(1)" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+    </ng-container>
+    <span class="lb-count">{{ lightbox + 1 }} / {{ selected.photos.length }}</span>
+  </div>
+</main>

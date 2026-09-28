@@ -9,7 +9,10 @@
         <span><b>{{ pendingListings.length }}</b> Approval requests</span>
       </div>
     </div>
-    <a class="add-listing" routerLink="/upload-apartment"><i class="fa-solid fa-plus"></i> Add listing</a>
+    <div class="hero-actions">
+      <a class="owner-shortcut" *ngIf="isStaff" routerLink="/crm/owner-submissions"><i class="fa-solid fa-clipboard-check"></i> Owner submissions</a>
+      <a class="add-listing" routerLink="/upload-apartment"><i class="fa-solid fa-plus"></i> Add listing</a>
+    </div>
   </header>
 
   <p class="notice success" *ngIf="successMessage"><i class="fa-solid fa-circle-check"></i> {{ successMessage }}</p>

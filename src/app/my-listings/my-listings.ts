@@ -47,6 +47,10 @@ export class MyListings implements OnInit, OnDestroy {
 
   }
 
+  get isStaff(): boolean {
+    return this.authService.isAgent || this.authService.isAdmin || this.authService.isCrmManager;
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }

@@ -77,6 +77,32 @@
   box-shadow: 0 10px 22px rgba(69, 26, 143, 0.22);
 }
 
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.owner-shortcut {
+  flex: none;
+  height: 46px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d9ccf1;
+  border-radius: 13px;
+  background: #fff;
+  color: var(--purple);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.owner-shortcut:hover {
+  border-color: var(--purple);
+  background: #f7f3ff;
+}
+
 .notice {
   margin: 0 0 18px;
   padding: 12px 16px;
@@ -317,7 +343,12 @@
   .listings-hero h1 {
     font-size: 26px;
   }
-  .add-listing {
+  .hero-actions {
+    width: 100%;
+  }
+  .add-listing,
+  .owner-shortcut {
+    flex: 1;
     width: 100%;
     justify-content: center;
   }
