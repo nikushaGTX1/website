@@ -279,6 +279,11 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     return [...new Set(images)].length ? [...new Set(images)] : ['/property-placeholder.svg'];
   }
 
+  /** Blurred backdrop for the card photo, so portrait photos show whole instead of being cropped. */
+  cardPhotoBackground(apartment: Apartment): string {
+    return `url("${this.getApartmentCardImage(apartment).replace(/"/g, '%22')}")`;
+  }
+
   getApartmentCardImage(apartment: Apartment): string {
     return this.getApartmentGallery(apartment)[0];
   }
@@ -361,7 +366,28 @@ export class Main implements OnInit, OnDestroy, DoCheck {
       if (menu === 'propertyType') this.propertyTypeOpen = true;
       if (menu === 'budget') this.budgetOpen = true;
       if (menu === 'bedroom') this.bedroomOpen = true;
+      if (menu !== 'location') this.revealSearchPopover();
     }
+  }
+
+  /**
+   * Wider screens (small laptops, tablets) open the pickers as dropdowns below the search bar,
+   * which can land past the bottom of the window. Scroll just enough to show the whole menu.
+   * Phones (<= 650px) use a fixed bottom sheet and need nothing.
+   */
+  private revealSearchPopover(): void {
+    if (typeof window === 'undefined' || window.innerWidth <= 650) return;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const popover = document.querySelector<HTMLElement>('.property-type-menu, .main-budget-popover, .bedroom-popover');
+      if (!popover) return;
+      const rect = popover.getBoundingClientRect();
+      const margin = 16;
+      const overflow = rect.bottom + margin - window.innerHeight;
+      if (overflow <= 0) return;
+      // Never scroll the popover's own top (and the field above it) off the screen.
+      const room = Math.max(0, rect.top - 90);
+      window.scrollBy({ top: Math.min(overflow, room), behavior: 'smooth' });
+    }));
   }
 
   private searchMenuOpen(menu: 'location' | 'propertyType' | 'budget' | 'bedroom'): boolean {

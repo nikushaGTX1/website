@@ -47,45 +47,55 @@
   </div>
   <ng-template #card let-result let-matchIndex="index" let-kind="kind">
   <article
-    class="card"
+    class="card match-card"
     [class.best-match]="kind === 'exact' && matchIndex === 0"
     [class.needs-confirmation]="kind === 'confirm'"
     [class.alternative]="kind === 'alternative'"
   >
-    <div class="media-column">
-      <div class="media">
-        <img
-          [src]="image(result)"
-          [class.placeholder-image]="image(result) === '/property-placeholder.svg'"
-          [alt]="result.apartment.title"
-          (error)="onImageError($event, result)"
-        />
-      </div>
-      <div class="score">
-        <span>{{ cardLabel(kind, matchIndex) }}</span>
-        <b>{{ cardHeadline(kind, matchIndex) }}</b>
-      </div>
-    </div>
-    <div class="body">
-      <span class="category">Personalized for your lifestyle</span>
-      <div class="heading">
-        <div>
-          <h2>{{ result.apartment.title | listingTitle }}</h2>
-          <p>{{ result.apartment.district || result.apartment.address }}</p>
+    <div class="mc-gallery">
+      <div class="mc-track" #track (scroll)="onGalleryScroll(result, track)">
+        <div class="slide" *ngFor="let sources of gallery(result); let i = index">
+          <img [src]="sources[0]" [class.placeholder-image]="sources[0] === '/property-placeholder.svg'" [alt]="(result.apartment.title | listingTitle) + ' photo ' + (i + 1)" [attr.loading]="i ? 'lazy' : null" (error)="onSlideError($event, result, sources)" />
         </div>
-        <strong
-          ><app-currency-price [usdPrice]="result.apartment.price" [suffix]="profile.propertyGoal === 'Buy' ? '' : '/mo'"></app-currency-price
-        ></strong>
       </div>
-      <div class="facts">
-        <span *ngIf="result.apartment.bedrooms != null"
-          >{{ result.apartment.bedrooms }} bedrooms</span
-        ><span *ngIf="result.apartment.bathrooms">{{ result.apartment.bathrooms }} bathrooms</span
-        ><span *ngIf="result.apartment.sizeSquareMeters"
-          ><span class="measurement-svg" aria-hidden="true"></span
-          >{{ result.apartment.sizeSquareMeters }} m²</span
-        >
+      <span class="mc-rank" [attr.data-kind]="kind">
+        <i class="fa-solid" [ngClass]="kind === 'exact' ? (matchIndex === 0 ? 'fa-crown' : 'fa-medal') : kind === 'confirm' ? 'fa-circle-question' : 'fa-shuffle'" aria-hidden="true"></i>
+        <span>{{ cardLabel(kind, matchIndex) }}</span>
+      </span>
+      <ng-container *ngIf="gallery(result).length > 1">
+        <button type="button" class="mc-nav prev" (click)="moveGallery(result, track, -1)" aria-label="Previous photo"><i class="fa-solid fa-chevron-left"></i></button>
+        <button type="button" class="mc-nav next" (click)="moveGallery(result, track, 1)" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>
+        <span class="mc-count"><i class="fa-solid fa-camera" aria-hidden="true"></i> {{ (galleryIndex.get(result.apartment.id) ?? 0) + 1 }} / {{ gallery(result).length }}</span>
+        <div class="mc-dots" aria-hidden="true">
+          <i *ngFor="let src of gallery(result).slice(0, 8); let i = index" [class.on]="(galleryIndex.get(result.apartment.id) ?? 0) === i"></i>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="mc-verdict" [attr.data-kind]="kind">
+      <i class="fa-solid" [ngClass]="kind === 'exact' ? 'fa-circle-check' : kind === 'confirm' ? 'fa-circle-info' : 'fa-triangle-exclamation'" aria-hidden="true"></i>
+      <span>{{ cardHeadline(kind, matchIndex) }}</span>
+    </div>
+
+    <div class="body mc-body">
+      <div class="mc-head">
+        <div class="mc-title">
+          <span class="mc-eyebrow"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> <span>Personalized for your lifestyle</span></span>
+          <h2>{{ result.apartment.title | listingTitle }}</h2>
+          <p><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ result.apartment.district || result.apartment.address }}</p>
+        </div>
+        <div class="mc-price">
+          <app-currency-price [usdPrice]="result.apartment.price" [suffix]="profile.propertyGoal === 'Buy' ? '' : '/mo'"></app-currency-price>
+        </div>
       </div>
+
+      <div class="mc-facts">
+        <span *ngIf="result.apartment.bedrooms != null"><i class="fa-solid fa-bed" aria-hidden="true"></i><b>{{ result.apartment.bedrooms }}</b> <small>bedrooms</small></span>
+        <span *ngIf="result.apartment.bathrooms"><i class="fa-solid fa-bath" aria-hidden="true"></i><b>{{ result.apartment.bathrooms }}</b> <small>bathrooms</small></span>
+        <span *ngIf="result.apartment.sizeSquareMeters"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i><b>{{ result.apartment.sizeSquareMeters }}</b> <small>m²</small></span>
+        <span *ngIf="result.apartment.floor != null"><i class="fa-solid fa-stairs" aria-hidden="true"></i><b>{{ result.apartment.floor }}{{ result.apartment.totalFloors ? '/' + result.apartment.totalFloors : '' }}</b> <small>floor</small></span>
+      </div>
+
       <ul class="requirement-notes mismatch" *ngIf="result.requirement?.mismatches?.length">
         <li *ngFor="let note of result.requirement.mismatches"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>{{ note }}</li>
       </ul>
@@ -106,39 +116,17 @@
           </div>
         </ng-container>
       </section>
-      <section class="nearby-times" aria-live="polite">
-        <h3>Nearby walking times</h3>
-        <p *ngIf="!hasNearbyTimes(result) && enrichingApartmentIds.has(result.apartment.id)">
-          Loading apartment details…
-        </p>
-        <p *ngIf="!hasNearbyTimes(result) && !enrichingApartmentIds.has(result.apartment.id)">Walking times are not available for this apartment.</p>
-        <div *ngIf="hasNearbyTimes(result)" class="nearby-time-grid">
-          <span *ngIf="isFamilyProfile() && result.apartment.schoolDistanceMinutes != null"
-            ><b>Nearest school</b>{{ result.apartment.schoolDistanceMinutes }} min walk</span
-          >
-          <span *ngIf="isFamilyProfile() && result.apartment.kindergartenDistanceMinutes != null"
-            ><b>Nearest kindergarten</b>{{ result.apartment.kindergartenDistanceMinutes }} min
-            walk</span
-          >
-          <span *ngIf="result.apartment.groceryDistanceMinutes != null"
-            ><b>Nearest grocery</b>{{ result.apartment.groceryDistanceMinutes }} min walk</span
-          >
-          <span *ngIf="result.apartment.gymDistanceMinutes != null"
-            ><b>Nearest gym</b>{{ result.apartment.gymDistanceMinutes }} min walk</span
-          >
-          <span *ngIf="result.apartment.metroDistanceMinutes != null"
-            ><b>Nearest metro</b>{{ result.apartment.metroDistanceMinutes }} min walk</span
-          >
-          <span *ngIf="result.apartment.cafeDistanceMinutes != null"
-            ><b>Nearest café</b>{{ result.apartment.cafeDistanceMinutes }} min walk</span
-          >
+      <!-- Walking times already appear in the insights above; this block covers the home itself. -->
+      <section class="mc-details" *ngIf="homeDetails(result).length">
+        <h3><i class="fa-solid fa-house-circle-check" aria-hidden="true"></i> <span>Home details</span></h3>
+        <div class="mc-detail-grid">
+          <div *ngFor="let detail of homeDetails(result)">
+            <i class="fa-solid" [ngClass]="detail.icon" aria-hidden="true"></i>
+            <p><small>{{ detail.label }}</small><b>{{ detail.value }}</b></p>
+          </div>
         </div>
-        <small *ngIf="hasNearbyTimes(result)"
-          >Walking times are provided in the apartment listing.</small
-        >
       </section>
-      <p class="warning" *ngFor="let warning of result.warnings">⚠ {{ warning }}</p>
-      <a class="view" [routerLink]="['/apartments', result.apartment.id]">View apartment</a>
+      <a class="view mc-cta" [routerLink]="['/apartments', result.apartment.id]"><span>View apartment</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
       <section class="location-map" aria-label="Apartment location">
         <div class="map-caption">
           <div>

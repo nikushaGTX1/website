@@ -933,9 +933,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     if (this.profile.transportation.includes('Car')) add('Parking', 'Parking');
     if (this.profile.transportation.includes('Metro')) add('Proximity to metro', 'MetroNearby');
     if (this.profile.transportation.includes('Walking')) {
-      add('Walking access to everyday services', 'EverydayServicesNearby');
-      add('Proximity to supermarket', 'SupermarketNearby');
-      add('Proximity to pharmacy', 'PharmacyNearby');
+      add('Everyday services (supermarket, pharmacy)', 'EverydayServicesNearby');
       add('Proximity to cafés', 'CafesNearby');
       add('Proximity to park', 'ParkNearby');
     }
@@ -948,7 +946,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     if (lifestyle.has('RemoteWorker')) {
       add('Workspace', 'Workspace');
       add('Proximity to cafés or coworking spaces', 'CafesOrCoworkingNearby');
-      add('Proximity to everyday services', 'EverydayServicesNearby');
+      add('Everyday services (supermarket, pharmacy)', 'EverydayServicesNearby');
     }
     if (lifestyle.has('BusinessProfessional')) {
       add('Proximity to office', 'OfficeNearby', true);
@@ -985,11 +983,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     }
 
     // Always offer enough meaningful choices to complete a five-item ranking.
-    add('Proximity to supermarket', 'SupermarketNearby');
+    add('Everyday services (supermarket, pharmacy)', 'EverydayServicesNearby');
     add('Proximity to metro', 'MetroNearby');
     add('GYM', 'GymNearby');
     add('Proximity to park', 'ParkNearby');
-    add('Proximity to pharmacy', 'PharmacyNearby');
+    add('Quiet street', 'QuietStreet');
 
     return [...suggestions.values()];
   }

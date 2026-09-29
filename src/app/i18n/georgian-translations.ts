@@ -1616,6 +1616,13 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['3–5 years', '3–5 წელი'],
   ['5+ years', '5+ წელი'],
   ['Parking included', 'პარკინგი ადგილზეა'],
+  ['Paid parking', 'პარკინგი ფასიანია'],
+  ['Everyday services (supermarket, pharmacy)', 'ყოველდღიური სერვისები (სუპერმარკეტი, აფთიაქი)'],
+  ['Home details', 'ბინის დეტალები'],
+  ['Move-in', 'შესახლება'],
+  ['Minimum stay', 'მინიმალური ვადა'],
+  ['Furniture', 'ავეჯი'],
+  ['Parking is available for a fee', 'პარკინგი ხელმისაწვდომია დამატებით საფასურად'],
   ['Because you travel by car', 'რადგან ავტომობილით გადაადგილდებით'],
   ['Because you have an active lifestyle', 'რადგან აქტიური ცხოვრების წესი გაქვთ'],
   ['Because you enjoy an active lifestyle', 'რადგან აქტიური ცხოვრება მოგწონთ'],
@@ -2060,6 +2067,18 @@ const GEORGIAN_RULES: GeorgianRule[] = [
   {
     pattern: /^Step (\d+) \/ (\d+)$/i,
     translate: (match) => `ნაბიჯი ${match[1]} / ${match[2]}`,
+  },
+  {
+    pattern: /^Everyday services ([\d.]+) min on average$/i,
+    translate: (match) => `ყოველდღიური სერვისები საშუალოდ ${match[1]} წუთში`,
+  },
+  {
+    pattern: /^Supermarket (\d+) min$/i,
+    translate: (match) => `სუპერმარკეტი ${match[1]} წთ`,
+  },
+  {
+    pattern: /^Pharmacy (\d+) min$/i,
+    translate: (match) => `აფთიაქი ${match[1]} წთ`,
   },
 ];
 

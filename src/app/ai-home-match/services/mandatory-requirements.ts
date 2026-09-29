@@ -110,16 +110,6 @@ function checkBedrooms(apartment: HomeMatchApartment, profile: HomeMatchProfile)
   return Number(apartment.bedrooms) >= wanted ? 'pass' : 'fail';
 }
 
-function petName(profile: HomeMatchProfile): string {
-  if (profile.petType === 'Cat') return 'Cat';
-  if (profile.petType === 'Dog') return 'Dog';
-  return 'Pet';
-}
-
-function petConfirmed(apartment: HomeMatchApartment): boolean {
-  return apartment.isPetFriendly === true || /pet friendly:\s*yes/i.test(apartment.description || '');
-}
-
 /** Roughly how many months the user intends to stay, for comparing against a listing's minimum lease. */
 const REQUESTED_STAY_MONTHS: Record<string, number> = {
   ThreeToFiveMonths: 3,
@@ -179,14 +169,6 @@ function checkAvailability(apartment: HomeMatchApartment, profile: HomeMatchProf
   return availableFrom.slice(0, 10) <= requested ? 'pass' : 'fail';
 }
 
-function checkOccupancy(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
-  if (profile.propertyGoal !== 'Rent') return 'pass';
-  if (apartment.maxOccupants === undefined || apartment.maxOccupants === null) return 'pass';
-  const occupants = (profile.adults || 0) + (profile.children || 0);
-  if (!occupants) return 'pass';
-  return occupants <= apartment.maxOccupants ? 'pass' : 'fail';
-}
-
 export function evaluateMandatoryRequirements(
   apartment: HomeMatchApartment,
   profile: HomeMatchProfile,
@@ -215,10 +197,6 @@ export function evaluateMandatoryRequirements(
     confirmations.push('Number of bedrooms is not specified in the listing');
   }
 
-  if (profile.propertyGoal !== 'Buy' && profile.hasPet && !petConfirmed(apartment)) {
-    confirmations.push(`${petName(profile)} permission needs to be confirmed`);
-  }
-
   const rentalDuration = checkRentalDuration(apartment, profile);
   if (rentalDuration === 'fail') {
     mismatches.push(
@@ -235,12 +213,6 @@ export function evaluateMandatoryRequirements(
     );
   } else if (availability === 'unknown') {
     confirmations.push('Confirm this listing is available by your move-in date');
-  }
-
-  const occupancy = checkOccupancy(apartment, profile);
-  if (occupancy === 'fail') {
-    const occupants = (profile.adults || 0) + (profile.children || 0);
-    mismatches.push(`Occupants: allows up to ${apartment.maxOccupants}, you have ${occupants}`);
   }
 
   // Rentals may pass the mandatory budget filter up to $200 over the typed maximum; flag it

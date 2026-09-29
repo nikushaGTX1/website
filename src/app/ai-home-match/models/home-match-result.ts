@@ -46,6 +46,9 @@ export interface HomeMatchApartment {
   bedrooms?: number;
   bathrooms?: number;
   sizeSquareMeters?: number;
+  floor?: number;
+  totalFloors?: number;
+  isFurnished?: boolean;
   hasParking?: boolean;
   parkingCondition?: string;
   isQuietStreet?: boolean;

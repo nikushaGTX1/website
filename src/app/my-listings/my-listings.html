@@ -78,7 +78,7 @@
           </div>
           <div class="actions">
             <a class="btn primary" routerLink="/upload-apartment" [queryParams]="{ edit: apartment.id }"><i class="fa-solid fa-pen"></i> Edit</a>
-            <button type="button" class="btn danger" (click)="deleteListing(apartment)"><i class="fa-regular fa-trash-can"></i> Delete</button>
+            <button type="button" class="btn danger" *ngIf="canDelete" (click)="deleteListing(apartment)"><i class="fa-regular fa-trash-can"></i> Delete</button>
           </div>
         </div>
       </article>
@@ -121,7 +121,7 @@
           <div class="actions">
             <a class="btn primary" routerLink="/upload-apartment" [queryParams]="{ edit: apartment.id }"><i class="fa-solid fa-pen"></i> Edit</a>
             <a class="btn ghost" [routerLink]="['/apartments', apartment.id]"><i class="fa-regular fa-eye"></i> View listing</a>
-            <button type="button" class="btn danger" (click)="deleteListing(apartment)"><i class="fa-regular fa-trash-can"></i> Delete</button>
+            <button type="button" class="btn danger" *ngIf="canDelete" (click)="deleteListing(apartment)"><i class="fa-regular fa-trash-can"></i> Delete</button>
           </div>
         </div>
       </article>

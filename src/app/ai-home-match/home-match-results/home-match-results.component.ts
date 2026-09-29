@@ -3,9 +3,10 @@ import { finalize, timeout } from 'rxjs';
 import { HomeMatchResult } from '../models/home-match-result';
 import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
-import { applyPriorityScoring } from '../services/priority-scoring';
+import { applyPriorityScoring, everydayServicesMinutes } from '../services/priority-scoring';
 import { evaluateMandatoryRequirements } from '../services/mandatory-requirements';
 import { ApartmentService } from '../../services/apartment.service';
+import { parseParkingCost } from '../../utils/parking-cost';
 
 interface LifestyleInsight {
   title: string;
@@ -56,6 +57,63 @@ export class HomeMatchResultsComponent implements OnChanges {
   get alternativeMatches(): HomeMatchResult[] {
     return this.byStatus('alternative');
   }
+  /** One URL per photo, cover first. Cached per apartment so the gallery DOM stays stable. */
+  private readonly galleryCache = new Map<HomeMatchResult['apartment'], string[][]>();
+  readonly galleryIndex = new Map<number, number>();
+
+  /** Each slide carries fallback sources (signed url, then storage path) tried in order on error. */
+  gallery(result: HomeMatchResult): string[][] {
+    const apartment = result.apartment;
+    const cached = this.galleryCache.get(apartment);
+    if (cached) return cached;
+    const ordered = [...(apartment.images || [])].sort(
+      (a, b) => Number(b.isCover) - Number(a.isCover) || (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+    );
+    const clean = (sources: Array<string | undefined>) =>
+      [...new Set(sources.map((source) => toMediaUrl(source)).filter((source): source is string => !!source))];
+    const seen = new Set<string>();
+    const slides = [
+      ...ordered.map((item) => clean([item.url, item.storagePath])),
+      ...(apartment.imageUrls || []).map((url) => clean([url])),
+      clean([apartment.imageUrl]),
+    ].filter((sources) => sources.length && !sources.some((source) => seen.has(source)) && (sources.forEach((s) => seen.add(s)), true));
+    if (!slides.length) {
+      // The match list can arrive without photos; load the full listing once, then rebuild.
+      queueMicrotask(() => this.enrichApartment(result));
+      return [['/property-placeholder.svg']];
+    }
+    this.galleryCache.set(apartment, slides);
+    return slides;
+  }
+
+  onSlideError(event: Event, result: HomeMatchResult, sources: string[]): void {
+    const image = event.target as HTMLImageElement;
+    const next = sources[sources.indexOf(image.getAttribute('src') || '') + 1];
+    if (next) {
+      image.src = next;
+      return;
+    }
+    image.closest('.slide')?.classList.add('broken');
+    const track = image.closest('.mc-track');
+    if (track && !track.querySelector('.slide:not(.broken)')) {
+      // Every photo failed: refresh the listing (fresh signed urls) and rebuild the gallery.
+      this.galleryCache.delete(result.apartment);
+      this.enrichApartment(result);
+    }
+  }
+
+  onGalleryScroll(result: HomeMatchResult, track: HTMLElement): void {
+    const index = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+    if (this.galleryIndex.get(result.apartment.id) !== index) this.galleryIndex.set(result.apartment.id, index);
+  }
+
+  moveGallery(result: HomeMatchResult, track: HTMLElement, step: number): void {
+    const count = this.gallery(result).length;
+    const current = this.galleryIndex.get(result.apartment.id) ?? 0;
+    const next = (current + step + count) % count;
+    track.scrollTo({ left: next * track.clientWidth, behavior: 'smooth' });
+  }
+
   image(result: HomeMatchResult): string {
     return this.imageCandidates(result)[0] || '/property-placeholder.svg';
   }
@@ -107,6 +165,8 @@ export class HomeMatchResultsComponent implements OnChanges {
     ).subscribe({
       next: (apartment) => {
         Object.assign(result.apartment, apartment);
+        this.galleryCache.delete(result.apartment);
+        this.homeDetailsCache.delete(result.apartment);
         this.enrichingApartmentIds.delete(apartmentId);
         if (image) {
           const source = this.imageCandidates(result)[0];
@@ -183,6 +243,42 @@ export class HomeMatchResultsComponent implements OnChanges {
         ? `${latitude},${longitude}`
         : this.mapAddress(result);
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }
+
+  /** Cached per apartment: a fresh array each change-detection pass would rebuild the DOM (and re-run translation). */
+  private readonly homeDetailsCache = new Map<HomeMatchResult['apartment'], Array<{ label: string; value: string; icon: string }>>();
+
+  homeDetails(result: HomeMatchResult): Array<{ label: string; value: string; icon: string }> {
+    const apartment = result.apartment;
+    const cached = this.homeDetailsCache.get(apartment);
+    if (cached) return cached;
+    const details: Array<{ label: string; value: string; icon: string }> = [];
+    if (apartment.sizeSquareMeters) details.push({ label: 'Area', value: `${apartment.sizeSquareMeters} m²`, icon: 'fa-ruler-combined' });
+    if (apartment.floor != null) {
+      details.push({ label: 'Floor', value: apartment.totalFloors ? `${apartment.floor} / ${apartment.totalFloors}` : `${apartment.floor}`, icon: 'fa-stairs' });
+    }
+    if (apartment.bathrooms) details.push({ label: 'Bathrooms', value: `${apartment.bathrooms}`, icon: 'fa-bath' });
+    if (this.profile?.propertyGoal !== 'Buy') {
+      const available = apartment.availableFrom?.slice(0, 10);
+      details.push({
+        label: 'Move-in',
+        value: available && available > new Date().toISOString().slice(0, 10) ? available : 'Available now',
+        icon: 'fa-calendar-check',
+      });
+      const minimum = /(\d+)\s*month/i.exec(apartment.minimumRentalPeriod || '')?.[1];
+      if (minimum) details.push({ label: 'Minimum stay', value: `${minimum} months`, icon: 'fa-hourglass-half' });
+    }
+    const parking = parseParkingCost(apartment.description || '');
+    if (parking.cost === 'Paid') {
+      // Kept as separate strings so the page translator can match "Paid parking" / "Paid".
+      const price = parking.price != null ? `+${parking.currency === 'GEL' ? '₾' : '$'}${parking.price.toLocaleString('en-US')}` : 'Paid';
+      details.push({ label: 'Paid parking', value: price, icon: 'fa-square-parking' });
+    } else if (apartment.hasParking) {
+      details.push({ label: 'Parking', value: parking.cost === 'Free' ? 'Free' : 'Available', icon: 'fa-square-parking' });
+    }
+    if (apartment.isFurnished != null) details.push({ label: 'Furniture', value: apartment.isFurnished ? 'Furnished' : 'Unfurnished', icon: 'fa-couch' });
+    this.homeDetailsCache.set(apartment, details);
+    return details;
   }
 
   hasNearbyTimes(result: HomeMatchResult): boolean {
@@ -271,13 +367,34 @@ export class HomeMatchResultsComponent implements OnChanges {
         'fa-dumbbell',
       );
     }
+    const everyday = everydayServicesMinutes(apartment);
+    if (
+      everyday !== undefined &&
+      this.profile.topPriorities.some((p) => ['EverydayServicesNearby', 'SupermarketNearby', 'PharmacyNearby'].includes(p))
+    ) {
+      const round = (value: number) => Math.round(value * 10) / 10;
+      const parts = [
+        apartment.groceryDistanceMinutes != null ? `Supermarket ${apartment.groceryDistanceMinutes} min` : '',
+        apartment.pharmacyDistanceMinutes != null ? `Pharmacy ${apartment.pharmacyDistanceMinutes} min` : '',
+      ].filter(Boolean);
+      add(`Everyday services ${round(everyday)} min on average`, parts.join(' · '), 'fa-basket-shopping');
+    }
     const parkingCondition = apartment.parkingCondition?.trim().toLowerCase();
     if (
       drives &&
       (apartment.hasParking === true ||
         (!!parkingCondition && !['no', 'none', 'not available', 'false'].includes(parkingCondition)))
     ) {
-      add('Parking included', 'Because you travel by car', 'fa-square-parking');
+      // Paid parking must never read as "included".
+      const parking = parseParkingCost(apartment.description || '');
+      if (parking.cost === 'Paid') {
+        const price = parking.price != null
+          ? `${parking.currency === 'GEL' ? '₾' : '$'}${parking.price.toLocaleString('en-US')}`
+          : '';
+        add('Paid parking', price ? `+${price}` :'Parking is available for a fee', 'fa-square-parking');
+      } else {
+        add('Parking included', 'Because you travel by car', 'fa-square-parking');
+      }
     }
     if (
       lifestyles.has('HostsGuests') &&

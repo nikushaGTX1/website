@@ -691,11 +691,21 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['No View', 'Без вида'],
   ['Minimum 6 months', 'Минимум 6 месяцев'],
   ['Minimum 12 months', 'Минимум 12 месяцев'],
+  ['Paid parking', 'Парковка платная'],
+  ['Home details', 'Детали квартиры'],
+  ['Move-in', 'Заселение'],
+  ['Minimum stay', 'Минимальный срок'],
+  ['Furniture', 'Мебель'],
+  ['Unfurnished', 'Без мебели'],
+  ['Free', 'Бесплатно'],
+  ['Paid', 'Платно'],
+  ['Parking is available for a fee', 'Парковка доступна за дополнительную плату'],
   ['Verification', 'Проверка'],
   ['Call', 'Позвонить'],
   ['Reject', 'Отклонить'],
   ["The form below is filled with the owner's answers. Check each field and fix anything that is wrong, then publish.", 'Форма ниже заполнена ответами владельца. Проверьте каждое поле, исправьте неверное и опубликуйте.'],
   ['Could not update the owner submission.', 'Не удалось обновить заявку.'],
+  ['Everyday services (supermarket, pharmacy)', 'Повседневные услуги (супермаркет, аптека)'],
 ]);
 
 const RUSSIAN_RULES: RussianRule[] = [
@@ -771,6 +781,18 @@ const RUSSIAN_RULES: RussianRule[] = [
   {
     pattern: /^([\d,.\s]+) verified homes in this map area$/i,
     translate: (match) => `${match[1].trim()} проверенных объектов в этой области карты`,
+  },
+  {
+    pattern: /^Everyday services ([\d.]+) min on average$/i,
+    translate: (match) => `Повседневные услуги в среднем ${match[1]} мин`,
+  },
+  {
+    pattern: /^Supermarket (\d+) min$/i,
+    translate: (match) => `Супермаркет ${match[1]} мин`,
+  },
+  {
+    pattern: /^Pharmacy (\d+) min$/i,
+    translate: (match) => `Аптека ${match[1]} мин`,
   },
 ];
 

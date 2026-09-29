@@ -1349,10 +1349,25 @@
 .property-image:active {
   cursor: grabbing;
 }
+/* Show the whole photo (portrait photos were cropped to a sliver); a blurred copy fills the sides. */
+.property-image {
+  background: #ece8f2;
+}
+.property-image::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  z-index: 0;
+  background: var(--card-photo) center / cover no-repeat;
+  filter: blur(22px) brightness(0.85);
+  pointer-events: none;
+}
 .property-image img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   pointer-events: none;
 }
 .property-badge {

@@ -48,6 +48,11 @@ export class MyListings implements OnInit, OnDestroy {
 
   }
 
+  /** The API only lets admins and managers delete apartments; others would just get an error. */
+  get canDelete(): boolean {
+    return this.authService.isAdmin || this.authService.isCrmManager;
+  }
+
   get isStaff(): boolean {
     return this.authService.isAgent || this.authService.isAdmin || this.authService.isCrmManager;
   }

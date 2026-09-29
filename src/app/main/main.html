@@ -352,7 +352,7 @@
         *ngFor="let apartment of topApartments; let index = index"
         [routerLink]="['/apartments', apartment.id]"
       >
-        <div class="property-image" data-protected-image>
+        <div class="property-image" data-protected-image [style.--card-photo]="cardPhotoBackground(apartment)">
           <span class="property-badge verified" *ngIf="isVerifiedListing(apartment)"
             ><i class="fa-solid fa-circle-check"></i> Verified</span
           >

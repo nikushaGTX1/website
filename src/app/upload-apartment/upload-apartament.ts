@@ -1700,6 +1700,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.successModalPending = pending;
       this.showSuccessModal = true;
       this.cdr.detectChanges();
+      // Show the confirmation briefly, then continue to My listings on its own.
+      setTimeout(() => this.zone.run(() => this.closeSuccessModal()), 2500);
     });
   }
 
@@ -1759,8 +1761,10 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   closeSuccessModal(): void {
+    if (!this.showSuccessModal) return;
     this.showSuccessModal = false;
-    if (this.successModalEdited) void this.router.navigate(['/my-listings']);
+    // Every successful upload or edit ends on My listings, where the new listing appears.
+    void this.router.navigate(['/my-listings']);
   }
 
   /** Nearby-place features come only from Google walking times (within 18 minutes), never manual ticks. */

@@ -9,8 +9,9 @@ const PRIORITY_LABELS: Record<string, string> = {
   GymNearby: 'Proximity to gym',
   ParkNearby: 'Proximity to park',
   UniversityNearby: 'Proximity to university',
-  SupermarketNearby: 'Proximity to supermarket',
-  PharmacyNearby: 'Proximity to pharmacy',
+  SupermarketNearby: 'Everyday services (supermarket, pharmacy)',
+  PharmacyNearby: 'Everyday services (supermarket, pharmacy)',
+  EverydayServicesNearby: 'Everyday services (supermarket, pharmacy)',
   Parking: 'Parking',
   QuietStreet: 'Quiet street',
 };
@@ -77,6 +78,13 @@ function minutesOf(apartment: HomeMatchApartment, ...fields: Array<keyof HomeMat
   return values.length ? Math.min(...values) : undefined;
 }
 
+/** Arithmetic mean of the supermarket and pharmacy walks; uses whichever exists if only one is measured. */
+export function everydayServicesMinutes(apartment: HomeMatchApartment): number | undefined {
+  const values = [apartment.groceryDistanceMinutes, apartment.pharmacyDistanceMinutes]
+    .filter((value): value is number => typeof value === 'number' && value >= 0);
+  return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : undefined;
+}
+
 function walkingMinutesTo(apartment: HomeMatchApartment, lat?: number | null, lng?: number | null): number | undefined {
   const aLat = apartment.propertyLatitude ?? apartment.latitude;
   const aLng = apartment.propertyLongitude ?? apartment.longitude;
@@ -117,7 +125,14 @@ export function scorePriority(priority: string, apartment: HomeMatchApartment, p
     case 'ClinicNearby':
       return walk('pharmacyDistanceMinutes');
     case 'EverydayServicesNearby':
-      return nearby(apartment, ['Everyday services nearby'], 'groceryDistanceMinutes', 'pharmacyDistanceMinutes');
+    case 'SupermarketNearby':
+    case 'PharmacyNearby': {
+      // Everyday services = supermarket + pharmacy, scored on the average walk
+      // (e.g. shop 10 min, pharmacy 15 min -> 12.5 min). Saved older profiles map here too.
+      const minutes = everydayServicesMinutes(apartment);
+      if (minutes !== undefined) return walkingDistanceScore(minutes);
+      return hasTag(apartment, 'Everyday services nearby') ? walkingDistanceScore(18) : 0;
+    }
     case 'CafesNearby':
     case 'CafesAndRestaurantsNearby':
     case 'MeetingPlacesNearby':
