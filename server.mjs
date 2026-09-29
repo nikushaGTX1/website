@@ -11,6 +11,7 @@ import {
 } from 'node:zlib';
 
 const app = express();
+app.disable('x-powered-by');
 const port = Number(process.env.PORT) || 3000;
 const apiOrigin = 'https://websiteapi-production-c970.up.railway.app';
 const canonicalHost = 'velven.ge';
@@ -1365,12 +1366,14 @@ app.use(async (request, response) => {
       structuredData: pageMetadata.structuredData
         || pageGraph(canonicalPath, pageMetadata.title, pageMetadata.description),
       fallbackHtml: pageMetadata.fallbackHtml
-        || staticFallback(
-          notFound ? 'Page not found' : pageMetadata.title,
-          notFound
-            ? 'This page is no longer available. Browse current verified properties and agents on Velven.'
-            : pageMetadata.description,
-        ),
+        || (canonicalPath === '/main' && !notFound
+          ? undefined
+          : staticFallback(
+            notFound ? 'Page not found' : pageMetadata.title,
+            notFound
+              ? 'This page is no longer available. Browse current verified properties and agents on Velven.'
+              : pageMetadata.description,
+          )),
       canonicalUrl: pageMetadata.canonicalUrl || `${canonicalOrigin}${canonicalPath}`,
       openGraphUrl: shareVersion
         ? `${canonicalOrigin}${pathname}?v=${encodeURIComponent(shareVersion)}`
