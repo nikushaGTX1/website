@@ -220,7 +220,63 @@ textarea { resize: vertical; min-height: 110px; }
   .grid, .grid.two { grid-template-columns: 1fr 1fr; }
   .location-grid { grid-template-columns: 1fr; }
   .price-row { grid-template-columns: 1fr; }
-  .type-grid span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .segmented button { flex: 1; }
   .feature-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* Georgian labels are much longer than English: wrap between words (never mid-word),
+   stack counter icons above the label, and keep inputs aligned when a label wraps. */
+@media (max-width: 720px) {
+  .type-grid span {
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    hyphens: none;
+    line-height: 1.2;
+    text-align: center;
+  }
+  .type-grid button { min-height: 74px; align-content: center; }
+  .counter { padding: 10px 6px; }
+  .counter-label {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+    line-height: 1.15;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    min-height: 2.6em;
+    justify-content: flex-end;
+  }
+  .counter-label i { font-size: 15px; }
+  .grid { align-items: end; }
+  .field > span { line-height: 1.25; word-break: keep-all; }
+}
+:host-context(html[lang='ka']) .counter-label { font-size: 11px; }
+:host-context(html[lang='ka']) .type-grid button { font-size: 10.5px; }
+
+/* Round buttons stay perfect circles: the global mobile rule gives every button
+   min-height: 44px, which stretched these into ovals. Size scales with the screen. */
+.stepper {
+  display: grid;
+  grid-template-columns: auto minmax(18px, 1fr) auto;
+  align-items: center;
+  gap: 4px;
+}
+.stepper button,
+.photos button {
+  --size: clamp(28px, 8.5vw, 34px);
+  width: var(--size) !important;
+  height: var(--size) !important;
+  min-width: var(--size) !important;
+  min-height: var(--size) !important;
+  max-width: var(--size) !important;
+  max-height: var(--size) !important;
+  padding: 0 !important;
+  aspect-ratio: 1 / 1;
+  border-radius: 50% !important;
+  display: grid;
+  place-items: center;
+  flex: none;
+  line-height: 1;
+}
+.stepper output { text-align: center; }
