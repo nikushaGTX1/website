@@ -51,8 +51,9 @@ export class AgentDetailProfile implements OnInit {
           const publicList$ = this.apartmentService
             .getApartments()
             .pipe(map((list) => ({ list, fromAgentEndpoint: false })));
-          const apartments$ = agent.userId
-            ? this.apartmentService.getAgentApartments(agent.userId).pipe(
+          const accountId = agent.userId || agent.id;
+          const apartments$ = accountId
+            ? this.apartmentService.getAgentApartments(accountId).pipe(
                 map((list) => ({ list, fromAgentEndpoint: true })),
                 catchError(() => publicList$),
               )
