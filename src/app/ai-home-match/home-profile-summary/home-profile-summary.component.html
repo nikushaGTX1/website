@@ -22,17 +22,6 @@
       <span class="attribute-edit" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
     </button>
 
-    <button
-      type="button"
-      class="profile-attribute orbit-attribute mobile-extra"
-      *ngFor="let attribute of mobileExtraAttributes"
-      (click)="changeAnswer.emit(attribute.step)"
-    >
-      <span class="attribute-icon"><i class="fa-solid" [ngClass]="attribute.icon" aria-hidden="true"></i></span>
-      <span class="attribute-text"><small>{{ attribute.label }}</small><strong>{{ attribute.value }}</strong></span>
-      <span class="attribute-edit" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
-    </button>
-
     <div class="avatar-focus">
       <div class="avatar-glow"></div>
       <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>
@@ -40,19 +29,20 @@
     </div>
   </div>
 
-  <section class="answer-review" aria-label="Your answers">
-    <h2>Review your answers</h2>
-    <ul>
-      <li *ngFor="let row of answers">
-        <div class="answer-head">
-          <span class="answer-icon"><i class="fa-solid" [ngClass]="row.icon" aria-hidden="true"></i></span>
-          <small>{{ row.label }}</small>
-        </div>
-        <strong class="answer-value">{{ row.value }}</strong>
-        <button type="button" (click)="changeAnswer.emit(row.step)">Change</button>
-      </li>
-    </ul>
-  </section>
+  <!-- Answers that do not fit the orbit; shown on every screen so each answer stays one tap from editing. -->
+  <div class="extra-answers">
+    <button
+      type="button"
+      class="profile-attribute extra-attribute"
+      *ngFor="let attribute of mobileExtraAttributes"
+      (click)="changeAnswer.emit(attribute.step)"
+    >
+      <span class="attribute-icon"><i class="fa-solid" [ngClass]="attribute.icon" aria-hidden="true"></i></span>
+      <span class="attribute-text"><small>{{ attribute.label }}</small><strong>{{ attribute.value }}</strong></span>
+      <span class="attribute-edit" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
+    </button>
+  </div>
+
 
   <p class="save-message" aria-live="polite">{{ saveMessage }}</p>
   <div class="actions">

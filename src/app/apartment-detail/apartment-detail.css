@@ -3051,6 +3051,13 @@
 
 .vp-amenities small.vp-amenity-highlight { color: #451a8f; font-weight: 700; }
 
-.vp-last-confirmed { display: inline-flex; align-items: center; gap: 7px; margin: 10px 0 0; padding: 6px 12px; border-radius: 999px; background: #e8f8ef; color: #0f7a4f; font-size: 13px; }
-.vp-last-confirmed i { font-size: 13px; }
-.vp-last-confirmed b { font-weight: 700; }
+/* Silver "last confirmed" pill: brushed-metal gradient with a soft sheen. */
+.vp-last-confirmed {
+  display: inline-flex; align-items: center; gap: 7px; margin: 10px 0 0; padding: 6px 13px;
+  border: 1px solid #d5d9e0; border-radius: 999px;
+  background: linear-gradient(135deg, #fdfdfe 0%, #eceef2 45%, #dfe2e8 55%, #f5f6f8 100%);
+  color: #4b5260; font-size: 13px;
+  box-shadow: inset 0 1px 0 #ffffff, 0 1px 3px rgba(40, 46, 60, 0.08);
+}
+.vp-last-confirmed i { font-size: 13px; color: #7d8594; }
+.vp-last-confirmed b { font-weight: 700; color: #2f3440; }

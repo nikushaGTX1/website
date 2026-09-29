@@ -102,27 +102,24 @@
       <ul class="requirement-notes confirm" *ngIf="result.requirement?.confirmations?.length">
         <li *ngFor="let note of result.requirement.confirmations"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>{{ note }}</li>
       </ul>
-      <section class="lifestyle-fit" *ngIf="lifestyleInsights(result) as insights">
-        <ng-container *ngIf="insights.length">
-          <div class="fit-heading">
-            <span><i class="fa-solid fa-wand-magic-sparkles"></i></span>
-            <div><small>AI lifestyle match</small><h3>Why this home fits you</h3></div>
-          </div>
-          <div class="fit-grid">
-            <article *ngFor="let insight of insights">
-              <i class="fa-solid" [ngClass]="insight.icon"></i>
-              <p><b>{{ insight.title }}</b><span>{{ insight.reason }}</span></p>
-            </article>
-          </div>
-        </ng-container>
+      <section class="lifestyle-fit" *ngIf="answerMatches(result).length">
+        <div class="fit-heading">
+          <span><i class="fa-solid fa-circle-check"></i></span>
+          <div><small>Matches your answers</small><h3>Why this home fits you</h3></div>
+        </div>
+        <div class="fit-grid">
+          <article *ngFor="let match of answerMatches(result)">
+            <i class="fa-solid" [ngClass]="match.icon"></i>
+            <p><b>{{ match.title }}</b><span>{{ match.reason }}</span></p>
+          </article>
+        </div>
       </section>
-      <!-- Walking times already appear in the insights above; this block covers the home itself. -->
-      <section class="mc-details" *ngIf="homeDetails(result).length">
-        <h3><i class="fa-solid fa-house-circle-check" aria-hidden="true"></i> <span>Home details</span></h3>
+      <section class="mc-details" *ngIf="walkingTimes(result).length">
+        <h3><i class="fa-solid fa-person-walking" aria-hidden="true"></i> <span>Walking times</span></h3>
         <div class="mc-detail-grid">
-          <div *ngFor="let detail of homeDetails(result)">
-            <i class="fa-solid" [ngClass]="detail.icon" aria-hidden="true"></i>
-            <p><small>{{ detail.label }}</small><b>{{ detail.value }}</b></p>
+          <div *ngFor="let place of walkingTimes(result)">
+            <i class="fa-solid" [ngClass]="place.icon" aria-hidden="true"></i>
+            <p><small>{{ place.label }}</small><b>{{ place.minutes }} min</b></p>
           </div>
         </div>
       </section>

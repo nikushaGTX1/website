@@ -359,3 +359,41 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
   }
   .attribute-edit { opacity: 1; }
 }
+
+/* Editing: the pencil is always visible and a comfortable target; chips stop floating
+   while pointed at, so they no longer drift away from the cursor. */
+.attribute-edit {
+  opacity: 1 !important;
+  top: 50% !important;
+  right: 10px !important;
+  width: 32px !important;
+  height: 32px !important;
+  transform: translateY(-50%);
+  font-size: 12px !important;
+  background: #451a8f !important;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(69, 26, 143, .25);
+  transition: transform .15s ease, background .15s ease;
+}
+.profile-attribute { padding-right: 52px !important; }
+.profile-attribute:hover .attribute-edit { transform: translateY(-50%) scale(1.1); background: #6a2fd0 !important; }
+.profile-attribute:hover,
+.profile-attribute:focus-visible { animation-play-state: paused !important; z-index: 6; }
+
+.extra-answers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 12px;
+  max-width: 900px;
+  margin: 10px auto 0;
+}
+.extra-answers .profile-attribute {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  animation: none !important;
+}
+@media (max-width: 900px) {
+  .profile-stage .orbit-attribute .attribute-edit { top: 12px !important; transform: none; }
+  .profile-stage .orbit-attribute:hover .attribute-edit { transform: scale(1.1); }
+}

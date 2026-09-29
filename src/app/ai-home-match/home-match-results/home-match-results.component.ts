@@ -3,7 +3,8 @@ import { finalize, timeout } from 'rxjs';
 import { HomeMatchResult } from '../models/home-match-result';
 import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
-import { applyPriorityScoring, everydayServicesMinutes } from '../services/priority-scoring';
+import { applyPriorityScoring, everydayServicesMinutes, parkingScore, scorePriority } from '../services/priority-scoring';
+import { answerLabel } from '../services/answer-labels';
 import { evaluateMandatoryRequirements } from '../services/mandatory-requirements';
 import { ApartmentService } from '../../services/apartment.service';
 import { parseParkingCost } from '../../utils/parking-cost';
@@ -167,6 +168,8 @@ export class HomeMatchResultsComponent implements OnChanges {
         Object.assign(result.apartment, apartment);
         this.galleryCache.delete(result.apartment);
         this.homeDetailsCache.delete(result.apartment);
+        this.answerMatchCache.delete(result.apartment);
+        this.walkingCache.delete(result.apartment);
         this.enrichingApartmentIds.delete(apartmentId);
         if (image) {
           const source = this.imageCandidates(result)[0];
@@ -243,6 +246,83 @@ export class HomeMatchResultsComponent implements OnChanges {
         ? `${latitude},${longitude}`
         : this.mapAddress(result);
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }
+
+  private readonly answerMatchCache = new Map<HomeMatchResult['apartment'], LifestyleInsight[]>();
+  private readonly walkingCache = new Map<HomeMatchResult['apartment'], Array<{ label: string; minutes: number; icon: string }>>();
+
+  /**
+   * "Why this home fits you": each questionnaire answer this home satisfies, with the
+   * listing's value next to it. Failed answers are already listed as mismatches above.
+   */
+  answerMatches(result: HomeMatchResult): LifestyleInsight[] {
+    const apartment = result.apartment;
+    const cached = this.answerMatchCache.get(apartment);
+    if (cached) return cached;
+    const p = this.profile;
+    const rent = p.propertyGoal !== 'Buy';
+    const mismatch = (prefix: string) => (result.requirement?.mismatches || []).some((note) => note.startsWith(prefix));
+    const items: LifestyleInsight[] = [];
+    const add = (title: string, reason: string, icon: string) => items.push({ title, reason, icon });
+
+    const districts = p.districts.filter((d) => d !== 'SelectOnMap');
+    if ((districts.length || p.selectedMapArea) && !p.locationFlexible && !mismatch('Location')) {
+      add('Location matches', apartment.district || apartment.address || '', 'fa-location-dot');
+    }
+    if (p.budgetMax > 0 && apartment.price <= p.budgetMax) {
+      add('Within your budget', `$${Math.round(apartment.price).toLocaleString('en-US')} ≤ $${p.budgetMax.toLocaleString('en-US')}`, 'fa-wallet');
+    }
+    if (p.bedrooms != null && p.bedrooms > 0 && apartment.bedrooms != null && apartment.bedrooms >= p.bedrooms) {
+      add('Enough bedrooms', `${apartment.bedrooms} ≥ ${p.bedrooms}`, 'fa-bed');
+    }
+    if (rent && p.moveInTiming && !mismatch('Availability')) {
+      add('Ready for your move-in', answerLabel(p.moveInTiming), 'fa-calendar-check');
+    }
+    if (rent && p.rentalDuration && !mismatch('Lease')) {
+      add('Fits your rental period', answerLabel(p.rentalDuration), 'fa-hourglass-half');
+    }
+    if (rent && p.hasPet && apartment.isPetFriendly) add('Pet-friendly home', answerLabel(p.petType) || 'Pet', 'fa-paw');
+    if (p.transportation.includes('Car') && (apartment.hasParking || parkingScore(apartment) > 0)) {
+      add('Parking for your car', parseParkingCost(apartment.description || '').cost === 'Paid' ? 'Paid parking' : 'Parking available', 'fa-square-parking');
+    }
+    // Top 5 priorities the home scores on (any points on the 0–5 scale).
+    for (const priority of p.topPriorities.slice(0, 5)) {
+      const score = scorePriority(priority, apartment, p);
+      if (score <= 0) continue;
+      add(answerLabel(priority), score >= 4 ? 'Strong match' : score >= 2 ? 'Good match' : 'Partial match', 'fa-star');
+    }
+    this.answerMatchCache.set(apartment, items);
+    return items;
+  }
+
+  /** Walking minutes to every nearby place the listing has, closest first. */
+  walkingTimes(result: HomeMatchResult): Array<{ label: string; minutes: number; icon: string }> {
+    const apartment = result.apartment;
+    const cached = this.walkingCache.get(apartment);
+    if (cached) return cached;
+    const places: Array<[string, number | undefined, string]> = [
+      ['Supermarket', apartment.groceryDistanceMinutes, 'fa-basket-shopping'],
+      ['Pharmacy', apartment.pharmacyDistanceMinutes, 'fa-prescription-bottle-medical'],
+      ['Gym', apartment.gymDistanceMinutes, 'fa-dumbbell'],
+      ['Metro', apartment.metroDistanceMinutes, 'fa-train-subway'],
+      ['Park', apartment.parkDistanceMinutes, 'fa-tree'],
+      ['Café', apartment.cafeDistanceMinutes, 'fa-mug-hot'],
+      ['School', apartment.schoolDistanceMinutes, 'fa-school'],
+      ['Kindergarten', apartment.kindergartenDistanceMinutes, 'fa-children'],
+      ['University', apartment.universityDistanceMinutes, 'fa-graduation-cap'],
+      ['EV charger', apartment.evChargerDistanceMinutes, 'fa-charging-station'],
+    ];
+    const value = places
+      .filter((place): place is [string, number, string] => typeof place[1] === 'number' && place[1] >= 0)
+      .map(([label, minutes, icon]) => ({ label, minutes: Math.round(minutes), icon }))
+      .sort((a, b) => a.minutes - b.minutes);
+    if (!value.length) {
+      // Match results can arrive without walking data; load the full listing once, then rebuild.
+      queueMicrotask(() => this.enrichApartment(result));
+      return value;
+    }
+    this.walkingCache.set(apartment, value);
+    return value;
   }
 
   /** Cached per apartment: a fresh array each change-detection pass would rebuild the DOM (and re-run translation). */

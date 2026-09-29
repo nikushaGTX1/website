@@ -280,3 +280,26 @@ textarea { resize: vertical; min-height: 110px; }
   line-height: 1;
 }
 .stepper output { text-align: center; }
+
+/* Stepper polish: smaller, lighter circles that fit the narrow Georgian cards, and no
+   "stuck" purple fill after a tap (touch screens keep :hover until the next tap). */
+.stepper { gap: 2px; width: 100%; }
+.stepper button {
+  --size: clamp(28px, 7.6vw, 32px);
+  border: 1.5px solid #e2d8f2 !important;
+  background: #fff !important;
+  color: var(--brand) !important;
+  font-size: 11px !important;
+  box-shadow: 0 1px 2px rgba(69, 26, 143, 0.08);
+  transition: background .15s, color .15s, border-color .15s, transform .1s;
+}
+.stepper button:disabled { opacity: .35; box-shadow: none; }
+.stepper output { font-size: 16px; font-weight: 800; color: var(--ink); }
+.stepper button:hover:not(:disabled) { background: #fff !important; color: var(--brand) !important; border-color: #e2d8f2 !important; }
+@media (hover: hover) {
+  .stepper button:hover:not(:disabled) { background: var(--brand) !important; color: #fff !important; border-color: var(--brand) !important; }
+}
+.stepper button:active:not(:disabled) { transform: scale(.92); background: var(--brand-soft) !important; }
+@media (max-width: 720px) {
+  .counter { padding: 12px 8px 10px; gap: 10px; }
+}
