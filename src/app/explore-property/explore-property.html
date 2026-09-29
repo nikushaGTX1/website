@@ -437,6 +437,9 @@
               *ngIf="cardImageIndex(apartment) < cardImages(apartment).length - 1" (click)="changeCardPhoto($event, apartment, 1)">
               <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
             </button>
+            <span class="verified-badge" *ngIf="isVerifiedListing(apartment)"
+              ><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span
+            >
             <button
               class="heart"
               type="button"
@@ -603,6 +606,9 @@
             decoding="async"
             (error)="onApartmentImageError($event)"
           />
+          <span class="verified-badge" *ngIf="isVerifiedListing(apartment)"
+            ><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span
+          >
           <button class="map-preview-heart" type="button" [class.saved]="favoriteService.isFavorite(apartment.id)" aria-label="Save property" (click)="toggleFavorite($event, apartment)">
             <svg viewBox="0 0 24 24" [attr.fill]="favoriteService.isFavorite(apartment.id) ? 'currentColor' : 'none'" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"></path></svg>
           </button>

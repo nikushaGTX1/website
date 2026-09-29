@@ -1267,6 +1267,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.mapPreviewApartment = null;
   }
 
+  /** Same rule as the main page and listing page: staff tag the description "Verified listing: Yes". */
+  isVerifiedListing(apartment: Apartment): boolean {
+    return /(?:^|[|\r\n])\s*Verified listing:\s*Yes\b/i.test(apartment.description || '');
+  }
+
   toggleFavorite(event: Event, apartment: Apartment): void {
     event.stopPropagation();
     if (!this.authService.isLoggedIn) {
