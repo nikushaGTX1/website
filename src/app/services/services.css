@@ -365,9 +365,22 @@
   .services-hero {
     min-height: 520px;
     padding: 50px 24px;
+    /* The (longer) Georgian copy reaches well into the photo, so keep the white solid
+       behind all of the text and only let the photo show at the very bottom. */
     background:
-      linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.97) 42%, rgba(255, 255, 255, 0.88) 58%, rgba(255, 255, 255, 0.35) 76%, rgba(255, 255, 255, 0.05) 92%),
-      url("/services-hero.png") 65% center / cover no-repeat;
+      linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.98) 55%, rgba(255, 255, 255, 0.93) 70%, rgba(255, 255, 255, 0.55) 84%, rgba(255, 255, 255, 0.1) 96%),
+      url("/services-hero.png") 65% bottom / cover no-repeat;
+  }
+
+  .hero-copy p {
+    text-shadow: 0 0 12px #fff, 0 0 3px #fff;
+  }
+
+  /* Georgian headline: fit the longest word ("გამოცდილებისთვის") inside the screen. */
+  :host-context(html:lang(ka)) .hero-copy h1 {
+    font-size: clamp(26px, 7.4vw, 40px) !important;
+    letter-spacing: -0.5px;
+    overflow-wrap: break-word;
   }
 
   .hero-copy {

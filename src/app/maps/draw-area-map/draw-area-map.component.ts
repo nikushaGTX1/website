@@ -131,6 +131,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
   private priceClickListener?: google.maps.MapsEventListener;
   private propertyPreviewOverlay?: google.maps.OverlayView;
   private previewApartmentId: number | null = null;
+  private previewOpenedAt = 0;
   private activePreviewPin?: HTMLDivElement;
   private activePreviewTail?: HTMLElement;
   private streetFocusOverlay?: google.maps.OverlayView;
@@ -1146,12 +1147,28 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       });
       this.map.addListener('dragstart', () => this.cancelCameraAnimation());
       mapElement.nativeElement.addEventListener('wheel', () => this.cancelCameraAnimation(), { passive: true });
+      // Desktop: Google's map "click" can be swallowed by the drawing layer, so also close the
+      // property card on a plain DOM click on empty map (pins stop propagation; drags are ignored).
+      let pressX = 0;
+      let pressY = 0;
+      mapElement.nativeElement.addEventListener('pointerdown', (event: PointerEvent) => {
+        pressX = event.clientX;
+        pressY = event.clientY;
+      });
+      mapElement.nativeElement.addEventListener('click', (event: MouseEvent) => {
+        if (!this.propertyPreviewOverlay || Date.now() - this.previewOpenedAt < 350) return;
+        if ((event.target as HTMLElement | null)?.closest('.velven-map-preview')) return;
+        if (Math.hypot(event.clientX - pressX, event.clientY - pressY) > 6) return;
+        this.zone.run(() => this.clearPropertyPreview());
+      });
       // Panning changes which clusters/prices are in view; 'idle' fires once the move settles.
       this.priceIdleListener = this.map.addListener('idle', () => {
         if (this.cameraAnimationFrame === undefined) this.zone.run(() => this.syncApartmentOverlayVisibility());
       });
       // Tapping empty map folds an opened building back into its "N units" pill.
       this.priceClickListener = this.map.addListener('click', () => this.zone.run(() => {
+        // Tapping empty map also dismisses the open property card (pin taps can bubble here too).
+        if (this.propertyPreviewOverlay && Date.now() - this.previewOpenedAt > 350) this.clearPropertyPreview();
         if (!this.expandedBuilding) return;
         this.expandedBuilding = null;
         this.lastPriceKey = '';
@@ -1798,6 +1815,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       };
       const openPreview = (event: Event) => {
         event.stopPropagation();
+        this.previewOpenedAt = Date.now();
         this.zone.run(() => void this.showPropertyPreview(apartment, position, pin!, tail));
       };
       pin.addEventListener('click', openPreview);

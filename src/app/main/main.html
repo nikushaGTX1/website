@@ -16,10 +16,10 @@
         (click)="$event.stopPropagation(); propertyTypeOpen = false; budgetOpen = false; bedroomOpen = false"
       ></div>
       <div class="search-tabs" role="tablist" aria-label="Property type">
-        <button type="button" [class.active]="searchMode === 'rent'" (click)="selectSearchMode('rent')">
+        <button type="button" role="tab" [attr.aria-selected]="searchMode === 'rent'" [class.active]="searchMode === 'rent'" (click)="selectSearchMode('rent')">
           <span class="home-icon home-svg" aria-hidden="true"></span><span>Rent</span>
         </button>
-        <button type="button" [class.active]="searchMode === 'buy'" (click)="selectSearchMode('buy')">
+        <button type="button" role="tab" [attr.aria-selected]="searchMode === 'buy'" [class.active]="searchMode === 'buy'" (click)="selectSearchMode('buy')">
           <span class="home-icon home-svg" aria-hidden="true"></span><span>Buy</span>
         </button>
       </div>
@@ -359,6 +359,8 @@
           <img
             [src]="getApartmentCardImage(apartment)"
             [alt]="getApartmentTitle(apartment) | listingTitle"
+            width="640"
+            height="400"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'"
             [attr.fetchpriority]="index === 0 ? 'high' : 'auto'"
             decoding="async"

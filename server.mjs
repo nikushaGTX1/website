@@ -102,7 +102,7 @@ const routeSeo = new Map([
     description: 'Explore professional property search, listing and real estate support services for renters, buyers and owners in Tbilisi.',
   }],
 ]);
-const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/;
+const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|owner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/;
 let sitemapCache;
 
 function crmQuestionnaireSeo(pathname) {
@@ -127,8 +127,16 @@ app.use((request, response, next) => {
   const forwardedHost = request.get('x-forwarded-host')?.split(',')[0].trim();
   const requestHost = (forwardedHost || request.get('host') || '').split(':')[0].toLowerCase();
 
-  if (requestHost === `www.${canonicalHost}` || legacyHosts.has(requestHost)) {
+  const forwardedProtocol = request.get('x-forwarded-proto')?.split(',')[0].trim().toLowerCase();
+  if ((requestHost === canonicalHost && forwardedProtocol === 'http')
+    || requestHost === `www.${canonicalHost}` || legacyHosts.has(requestHost)) {
     response.redirect(301, `https://${canonicalHost}${request.originalUrl}`);
+    return;
+  }
+
+  if (request.method === 'GET' && request.path.length > 1 && request.path.endsWith('/')) {
+    const query = request.originalUrl.slice(request.path.length);
+    response.redirect(301, `${request.path.replace(/\/+$/, '')}${query}`);
     return;
   }
 
@@ -1008,6 +1016,8 @@ function injectSeo(document, seo) {
   document = replaceMeta(document, 'name', 'description', description);
   document = replaceMeta(document, 'name', 'robots', robots);
   document = replaceMeta(document, 'property', 'og:type', seo.type || 'website');
+  document = replaceMeta(document, 'property', 'og:site_name', 'Velven');
+  document = replaceMeta(document, 'property', 'og:locale', 'en_US');
   document = replaceMeta(document, 'property', 'og:title', title);
   document = replaceMeta(document, 'property', 'og:description', description);
   document = replaceMeta(document, 'property', 'og:url', openGraphUrl);
@@ -1025,10 +1035,69 @@ function injectSeo(document, seo) {
     /<link\s+rel=["']canonical["'][^>]*>/i,
     `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
   );
-  return document.replace(
+  document = document.replace(
     /<script\s+type=["']application\/ld\+json["']>[\s\S]*?<\/script>/i,
     `<script type="application/ld+json">${structuredData}</script>`,
   );
+  if (seo.fallbackHtml) {
+    document = document.replace(
+      /<app-root>[\s\S]*?<\/app-root>/i,
+      `<app-root>${seo.fallbackHtml}</app-root>`,
+    );
+  }
+  return document;
+}
+
+function organizationSchema() {
+  return {
+    '@type': 'RealEstateAgent',
+    '@id': `${canonicalOrigin}/#organization`,
+    name: 'Velven',
+    url: `${canonicalOrigin}/main`,
+    logo: `${canonicalOrigin}/logosh2-mark-v2.png`,
+    image: defaultSeo.image,
+    telephone: '+995 568 444 220',
+    priceRange: '$$',
+    address: { '@type': 'PostalAddress', addressLocality: 'Tbilisi', addressCountry: 'GE' },
+    areaServed: { '@type': 'City', name: 'Tbilisi' },
+  };
+}
+
+function websiteSchema() {
+  return {
+    '@type': 'WebSite',
+    '@id': `${canonicalOrigin}/#website`,
+    url: `${canonicalOrigin}/main`,
+    name: 'Velven',
+    publisher: { '@id': `${canonicalOrigin}/#organization` },
+    inLanguage: 'en',
+  };
+}
+
+function pageGraph(pathname, title, description, extra = []) {
+  const url = `${canonicalOrigin}${pathname}`;
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      organizationSchema(),
+      websiteSchema(),
+      {
+        '@type': 'WebPage',
+        '@id': `${url}#webpage`,
+        url,
+        name: title,
+        description,
+        isPartOf: { '@id': `${canonicalOrigin}/#website` },
+        about: { '@id': `${canonicalOrigin}/#organization` },
+        inLanguage: 'en',
+      },
+      ...extra,
+    ],
+  };
+}
+
+function staticFallback(title, description) {
+  return `<main id="main-content"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p><nav aria-label="Related pages"><a href="/ExploreProperty">Browse properties</a> <a href="/agent-profile">Meet our agents</a> <a href="/about">About Velven</a></nav></main>`;
 }
 
 async function apartmentSeo(pathname) {
@@ -1059,9 +1128,10 @@ async function apartmentSeo(pathname) {
     canonicalUrl,
     image,
     type: 'product',
-    structuredData: {
-      '@context': 'https://schema.org',
+    fallbackHtml: `<main id="main-content"><nav aria-label="Breadcrumb"><a href="/main">Home</a> / <a href="/ExploreProperty">Properties</a> / ${escapeHtml(title)}</nav><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p>${image === defaultSeo.image ? '' : `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" width="1200" height="630" />`}<p><a href="/ExploreProperty">Browse more verified properties</a></p></main>`,
+    structuredData: pageGraph(pathname, `${title} | Velven`, description, [{
       '@type': 'Apartment',
+      '@id': `${canonicalUrl}#property`,
       name: title,
       description,
       image: image === defaultSeo.image ? undefined : [image],
@@ -1085,7 +1155,14 @@ async function apartmentSeo(pathname) {
         availability: 'https://schema.org/InStock',
         url: canonicalUrl,
       },
-    },
+    }, {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${canonicalOrigin}/main` },
+        { '@type': 'ListItem', position: 2, name: 'Properties', item: `${canonicalOrigin}/ExploreProperty` },
+        { '@type': 'ListItem', position: 3, name: title, item: canonicalUrl },
+      ],
+    }]),
   };
 }
 
@@ -1107,14 +1184,23 @@ async function agentSeo(pathname) {
     canonicalUrl,
     image: defaultSeo.image,
     type: 'profile',
-    structuredData: {
-      '@context': 'https://schema.org',
+    fallbackHtml: `<main id="main-content"><nav aria-label="Breadcrumb"><a href="/main">Home</a> / <a href="/agent-profile">Agents</a> / ${escapeHtml(name)}</nav><h1>${escapeHtml(name)}</h1><p>${escapeHtml(description)}</p><p><a href="/ExploreProperty">Browse verified properties</a></p></main>`,
+    structuredData: pageGraph(pathname, `${name} — Real Estate Agent in Tbilisi | Velven`, description, [{
       '@type': 'RealEstateAgent',
+      '@id': `${canonicalUrl}#agent`,
       name,
       description,
       url: canonicalUrl,
       areaServed: { '@type': 'City', name: 'Tbilisi' },
-    },
+      parentOrganization: { '@id': `${canonicalOrigin}/#organization` },
+    }, {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${canonicalOrigin}/main` },
+        { '@type': 'ListItem', position: 2, name: 'Agents', item: `${canonicalOrigin}/agent-profile` },
+        { '@type': 'ListItem', position: 3, name, item: canonicalUrl },
+      ],
+    }]),
   };
 }
 
@@ -1258,12 +1344,16 @@ app.use(async (request, response) => {
     const questionnaireMetadata = crmQuestionnaireSeo(pathname);
     const missingResource = apartmentMetadata === null || agentMetadata === null;
     const dynamicMetadata = apartmentMetadata || agentMetadata || questionnaireMetadata;
-    const pageMetadata = dynamicMetadata || routeSeo.get(pathname) || defaultSeo;
-    const robots = missingResource || privateRoutePattern.test(pathname)
-      || ['/property', '/apartment-detail'].includes(pathname)
+    const staticMetadata = routeSeo.get(pathname);
+    const knownPrivateRoute = privateRoutePattern.test(pathname)
+      || ['/property', '/apartment-detail'].includes(pathname);
+    const unknownResource = !missingResource && !dynamicMetadata && !staticMetadata && !knownPrivateRoute;
+    const notFound = missingResource || unknownResource;
+    const pageMetadata = dynamicMetadata || staticMetadata || defaultSeo;
+    const robots = notFound || knownPrivateRoute || questionnaireMetadata
       ? 'noindex, nofollow'
       : undefined;
-    const canonicalPath = missingResource ? pathname : (routeSeo.has(pathname) || dynamicMetadata
+    const canonicalPath = (notFound || knownPrivateRoute) ? pathname : (routeSeo.has(pathname) || dynamicMetadata
       ? pathname
       : '/main');
     const template = await readFile(path.join(browserDirectory, 'index.html'), 'utf8');
@@ -1272,17 +1362,26 @@ app.use(async (request, response) => {
       : '';
     const document = injectSeo(template, {
       ...pageMetadata,
+      structuredData: pageMetadata.structuredData
+        || pageGraph(canonicalPath, pageMetadata.title, pageMetadata.description),
+      fallbackHtml: pageMetadata.fallbackHtml
+        || staticFallback(
+          notFound ? 'Page not found' : pageMetadata.title,
+          notFound
+            ? 'This page is no longer available. Browse current verified properties and agents on Velven.'
+            : pageMetadata.description,
+        ),
       canonicalUrl: pageMetadata.canonicalUrl || `${canonicalOrigin}${canonicalPath}`,
       openGraphUrl: shareVersion
         ? `${canonicalOrigin}${pathname}?v=${encodeURIComponent(shareVersion)}`
         : undefined,
       robots,
-      title: missingResource ? 'Page Not Found | Velven' : pageMetadata.title,
-      description: missingResource
+      title: notFound ? 'Page Not Found | Velven' : pageMetadata.title,
+      description: notFound
         ? 'This page is no longer available. Browse current verified properties and agents on Velven.'
         : pageMetadata.description,
     });
-    response.status(missingResource ? 404 : 200);
+    response.status(notFound ? 404 : 200);
     response.setHeader('Cache-Control', 'no-cache');
     response.type('html').send(document);
   } catch (error) {

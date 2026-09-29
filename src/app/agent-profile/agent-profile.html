@@ -91,6 +91,8 @@
             [src]="agent.avatarUrl || '/agent1.jpg'"
             [alt]="agent.name"
             class="avatar"
+            width="320"
+            height="320"
             loading="lazy"
             decoding="async"
             (error)="fixAgentImage($event)"

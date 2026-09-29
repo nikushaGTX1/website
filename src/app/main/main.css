@@ -1460,7 +1460,7 @@
 .property-info .property-address {
   min-height: 0;
   margin: 9px 0 17px;
-  color: #6e788a;
+  color: #596475;
   font-size: 14px;
   line-height: 1.45;
   white-space: nowrap;
@@ -1536,7 +1536,7 @@
   font-size: 11px;
 }
 .nearby-grid small {
-  color: #758095;
+  color: #606b80;
   font-size: 10px;
 }
 
@@ -1981,7 +1981,7 @@
   font-size: 10px;
 }
 .testimonial-grid article span {
-  color: #b48420;
+  color: #84600f;
 }
 .testimonial-grid aside {
   display: flex;

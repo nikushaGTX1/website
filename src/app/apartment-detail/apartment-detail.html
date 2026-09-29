@@ -31,6 +31,8 @@
             class="vp-gallery-photo"
             [src]="activePhoto"
             [alt]="title"
+            width="1200"
+            height="800"
             [ngClass]="gallerySlideDirection ? 'gallery-slide-' + gallerySlideDirection + '-' + gallerySlideKey : ''"
             loading="eager"
             fetchpriority="high"
@@ -47,9 +49,10 @@
           <img
             [src]="image"
             [alt]="title + ' photo ' + (i + 2)"
-            loading="eager"
+            width="600"
+            height="400"
+            loading="lazy"
             decoding="async"
-            fetchpriority="high"
             draggable="false"
             (contextmenu)="preventImageAction($event)"
             (dragstart)="preventImageAction($event)"
@@ -64,7 +67,7 @@
           *ngFor="let slot of [1, 2, 3, 4] | slice: galleryImages.length - 1"
           (click)="openPhotoViewer()"
         >
-          <img [src]="activePhoto" alt="" loading="eager" decoding="async" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
+          <img [src]="activePhoto" alt="" width="600" height="400" loading="lazy" decoding="async" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
         </button>
         <span class="vp-photo-count" data-no-translate *ngIf="galleryImages.length > 1">{{ activePhotoIndex + 1 }} / {{ galleryImages.length }}</span>
         <div class="vp-photo-dots" aria-hidden="true" *ngIf="galleryDots.length">

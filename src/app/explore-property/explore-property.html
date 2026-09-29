@@ -425,6 +425,7 @@
               [style.transform]="cardTrackTransform(apartment)">
               <img *ngFor="let image of (cardImages(apartment).length ? cardImages(apartment) : ['/property-placeholder.svg']); let photoIndex = index"
                 [src]="image" [alt]="photoIndex === cardImageIndex(apartment) ? ((apartment.title | listingTitle) || 'Property in Tbilisi') : ''"
+                width="640" height="400"
                 [attr.aria-hidden]="photoIndex !== cardImageIndex(apartment) ? true : null"
                 loading="lazy" decoding="async" draggable="false" (error)="onApartmentImageError($event)" />
             </div>
@@ -600,6 +601,8 @@
             [class.active]="imageIndex === mapPreviewImageIndex"
             [src]="image"
             [alt]="imageIndex === mapPreviewImageIndex ? ((apartment.title | listingTitle) || 'Property in Tbilisi') : ''"
+            width="520"
+            height="340"
             [attr.aria-hidden]="imageIndex === mapPreviewImageIndex ? null : true"
             loading="eager"
             decoding="async"

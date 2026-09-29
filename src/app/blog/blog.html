@@ -41,7 +41,7 @@
         <div class="blog-grid">
           <article class="blog-card" *ngFor="let post of pagedPosts">
             <div class="card-image-wrapper">
-              <img [src]="post.imageUrl || '/banner.jpg'" [alt]="post.title" class="card-image" />
+              <img [src]="post.imageUrl || '/banner.jpg'" [alt]="post.title" class="card-image" width="640" height="400" loading="lazy" decoding="async" />
               <span class="card-category-tag">ARTICLE</span>
             </div>
 
