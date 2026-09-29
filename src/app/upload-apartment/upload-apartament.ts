@@ -258,12 +258,16 @@ export class UploadApartment implements OnInit, OnDestroy {
     'Plot': 'fa-solid fa-mountain-sun', 'Commercial area': 'fa-solid fa-store', 'Hotel': 'fa-solid fa-hotel',
     'For Sale': 'fa-solid fa-tag', 'For Rent': 'fa-solid fa-key', 'Lease': 'fa-solid fa-file-signature', 'Daily rent': 'fa-solid fa-calendar-day',
     'Minimum 6 months': 'fa-regular fa-calendar', 'Minimum 12 months': 'fa-regular fa-calendar-check',
-    'Old building': 'fa-solid fa-landmark', 'New building': 'fa-solid fa-city', 'Under construction': 'fa-solid fa-helmet-safety',
+    'Old building': 'fa-solid fa-landmark', 'New building': 'fa-solid fa-building-circle-check', 'Under construction': 'fa-solid fa-helmet-safety',
     'City View': 'fa-solid fa-city', 'Nature View': 'fa-solid fa-tree', 'No View': 'fa-regular fa-eye-slash',
+    'Newly Renovated': 'fa-solid fa-wand-magic-sparkles', 'Old renovated': 'fa-solid fa-couch',
+    'Current renovation': 'fa-solid fa-person-digging', 'Repairing': 'fa-solid fa-screwdriver-wrench',
+    'White frame': 'fa-regular fa-square', 'Black frame': 'fa-solid fa-square',
+    'Green frame': 'fa-solid fa-seedling', 'White Plus': 'fa-regular fa-square-plus',
   };
 
   chipIcon(option: string): string {
-    return this.chipIcons[option] || 'fa-solid fa-paint-roller';
+    return this.chipIcons[option] || 'fa-solid fa-circle-check';
   }
 
   form: UploadForm = {
@@ -465,7 +469,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       },
       en: {
         title: `${roomEn}${type[1]} ${deal[1]} in ${placeEn}${priceEn}`,
-        description: `${type[1]} ${deal[1]} in ${placeEn}.${detailsEn ? ` Key details: ${detailsEn}.` : ''} Condition: ${this.form.condition}. Contact us for more information or to arrange a viewing.`,
+        description: `${type[1]} ${deal[1]} in ${placeEn}.${detailsEn ? ` Key details: ${detailsEn}.` : ''}${this.form.condition ? ` Condition: ${this.form.condition}.` : ''} Contact us for more information or to arrange a viewing.`,
       },
       ru: {
         title: `${roomRu}${type[2]} ${deal[2]} в ${placeRu}${priceRu}`,
@@ -963,6 +967,12 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   select(field: keyof UploadForm, value: string): void {
     (this.form[field] as string) = value;
+    // Rentals are move-in ready, so the renovation/frame condition does not apply.
+    if (field === 'dealType') this.form.condition = this.isRentDeal ? '' : this.form.condition || 'Newly Renovated';
+  }
+
+  get isRentDeal(): boolean {
+    return ['For Rent', 'Daily rent', 'Lease'].includes(this.form.dealType);
   }
 
   chooseListingPlan(plan: ListingPlan): void {
@@ -1301,7 +1311,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   isStepComplete(index: number): boolean {
     switch (index) {
       case 0:
-        return !!(this.form.realEstateType && this.form.dealType && this.form.buildingStatus && this.form.condition);
+        return !!(this.form.realEstateType && this.form.dealType && this.form.buildingStatus && (this.isRentDeal || this.form.condition));
       case 1:
         return !!(
           this.selectedDistrictValue &&
@@ -1574,26 +1584,26 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     // Fresh duplicate check right before publishing so agents cannot post
     // the same apartment twice (area + price + street + rooms/bedrooms/floor).
+    // Dismissing the warning only hides it; it never allows publishing a duplicate.
+    // The API repeats the check (including listings still awaiting review).
     if (this.isEditMode) {
       this.duplicateMatch = null;
-    } else if (this.duplicateDismissedForKey !== this.duplicateSignature) {
+    } else {
       try {
         const apartments = await firstValueFrom(this.apartmentService.getApartments());
         const duplicate = this.findDuplicate(apartments || []);
         if (duplicate) {
           this.duplicateMatch = duplicate;
-          this.errorMessage = `Duplicate Found. The original owner of this listing is ${this.duplicateOwnerName}.`;
+          this.duplicateDismissedForKey = '';
+          this.errorMessage = this.duplicateErrorText;
           this.activeStep = 1;
+          setTimeout(() => document.querySelector('.duplicate-alert')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
           return;
         }
         this.duplicateMatch = null;
       } catch {
-        // If the listing catalogue cannot be loaded, continue with publishing
-        // rather than blocking the agent.
+        // Catalogue unavailable: the API still rejects duplicates on create.
       }
-    } else if (this.duplicateMatch) {
-      this.errorMessage = `Duplicate Found. The original owner of this listing is ${this.duplicateOwnerName}.`;
-      return;
     }
 
     this.loading = true;
@@ -1715,7 +1725,24 @@ export class UploadApartment implements OnInit, OnDestroy {
     return issues;
   }
 
+  get duplicateErrorText(): string {
+    return this.uploadLocationText(
+      'Duplicate found. This apartment is already listed on Velven, so it cannot be uploaded again.',
+      'ნაპოვნია დუბლიკატი. ეს ბინა უკვე განთავსებულია Velven-ზე და მისი ხელახლა ატვირთვა შეუძლებელია.',
+      'Найден дубликат. Эта квартира уже размещена на Velven, повторная загрузка невозможна.',
+    );
+  }
+
   get localizedUploadError(): string {
+    if (/Duplicate found/i.test(this.errorMessage)) {
+      return /waiting for review/i.test(this.errorMessage)
+        ? this.uploadLocationText(
+          'Duplicate found. This apartment was already submitted and is waiting for review.',
+          'ნაპოვნია დუბლიკატი. ეს ბინა უკვე გაგზავნილია და განხილვას ელოდება.',
+          'Найден дубликат. Эта квартира уже отправлена и ожидает проверки.',
+        )
+        : this.duplicateErrorText;
+    }
     if (/TotalFloors/i.test(this.errorMessage)) return this.uploadLocationText('Enter a valid building floor count (at least 1).', 'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).', 'Укажите корректную этажность здания (не менее 1).');
     if (/SizeSquareMeters/i.test(this.errorMessage)) return this.uploadLocationText('Enter the living area (at least 0.01 m²).', 'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).', 'Укажите площадь (не менее 0,01 м²).');
     if (/session|401/i.test(this.errorMessage)) return this.uploadLocationText('Your session expired. Please sign in again.', 'სესია დასრულდა. გთხოვთ, ხელახლა შეხვიდეთ.', 'Сессия истекла. Войдите снова.');

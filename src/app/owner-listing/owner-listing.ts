@@ -19,7 +19,16 @@ export class OwnerListing implements OnInit, OnDestroy {
     { value: 'Country house', icon: 'fa-solid fa-house-chimney' },
     { value: 'Commercial area', icon: 'fa-solid fa-store' },
   ];
-  readonly conditions = ['Newly Renovated', 'Old renovated', 'Current renovation', 'Repairing', 'White frame', 'Black frame', 'Green frame', 'White Plus'];
+  readonly conditions = [
+    { value: 'Newly Renovated', icon: 'fa-solid fa-wand-magic-sparkles' },
+    { value: 'Old renovated', icon: 'fa-solid fa-couch' },
+    { value: 'Current renovation', icon: 'fa-solid fa-person-digging' },
+    { value: 'Repairing', icon: 'fa-solid fa-screwdriver-wrench' },
+    { value: 'White frame', icon: 'fa-regular fa-square' },
+    { value: 'Black frame', icon: 'fa-solid fa-square' },
+    { value: 'Green frame', icon: 'fa-solid fa-seedling' },
+    { value: 'White Plus', icon: 'fa-regular fa-square-plus' },
+  ];
   readonly features = [
     { field: 'hasElevator', label: 'Elevator', icon: 'fa-solid fa-elevator' },
     { field: 'hasParking', label: 'Parking', icon: 'fa-solid fa-square-parking' },
@@ -162,7 +171,7 @@ export class OwnerListing implements OnInit, OnDestroy {
 
   get progress(): number {
     const checks = [!!this.selectedDistrict, !!this.selectedStreetValue, !this.errors.streetNumber, !this.errors.totalPrice, !this.errors.area,
-      !!this.data['condition'], this.photos.length > 0, !this.errors.ownerName, !this.errors.ownerPhone];
+      this.info?.dealType === 'Rent' || !!this.data['condition'], this.photos.length > 0, !this.errors.ownerName, !this.errors.ownerPhone];
     return Math.round(checks.filter(Boolean).length / checks.length * 100);
   }
 

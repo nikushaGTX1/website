@@ -127,7 +127,7 @@
           <span><i class="fa-solid fa-stairs"></i> {{ form.floor ?? "\u2014" }} <span>Floor</span></span>
         </div>
         <small class="preview-location"><i class="fa-solid fa-location-dot"></i> {{ previewLocation }}, Tbilisi</small>
-        <div class="preview-meta"><span><small>Deal type</small>{{ form.dealType }}</span><span><small>Property type</small>{{ form.realEstateType }}</span><span><small>Condition</small>{{ form.condition }}</span></div>
+        <div class="preview-meta"><span><small>Deal type</small>{{ form.dealType }}</span><span><small>Property type</small>{{ form.realEstateType }}</span><span *ngIf="form.condition"><small>Condition</small>{{ form.condition }}</span></div>
         <p class="preview-caption">This preview updates as you build your listing.</p>
       </div>
     </aside>
@@ -291,7 +291,7 @@
           </div>
         </div>
 
-        <div class="field-group">
+        <div class="field-group" *ngIf="!isRentDeal">
           <label class="field-label">Condition <span class="req">*</span></label>
           <div class="chip-grid chip-grid-wide">
             <button
@@ -577,20 +577,22 @@
       <p *ngIf="errorMessage" class="form-error" role="alert" data-no-translate>{{ localizedUploadError }}</p>
       <p *ngIf="pendingDebug" class="form-debug">{{ pendingDebug }}</p>
 
-      <div class="review-message" role="alert" *ngIf="duplicateChecking">
+      <div class="review-message" role="alert" *ngIf="duplicateChecking" data-no-translate>
         <span class="review-message-icon"><i class="fa-solid fa-spinner fa-spin"></i></span>
         <span class="review-message-copy">
-          <strong>Checking for duplicates…</strong>
-          <span>Comparing area, price, street and building with existing listings.</span>
+          <strong>{{ uploadLocationText('Checking for duplicates…', 'დუბლიკატების შემოწმება…', 'Проверка на дубликаты…') }}</strong>
+          <span>{{ uploadLocationText('Comparing area, price, street and building with existing listings.', 'ვადარებთ ფართს, ფასს, ქუჩას და შენობას არსებულ განცხადებებს.', 'Сравниваем площадь, цену, улицу и дом с существующими объявлениями.') }}</span>
         </span>
       </div>
 
-      <div class="review-message" role="alert" *ngIf="duplicateMatch as duplicate">
+      <div class="review-message duplicate-alert" role="alert" *ngIf="duplicateMatch as duplicate" data-no-translate>
         <span class="review-message-icon"><i class="fa-solid fa-circle-exclamation"></i></span>
         <span class="review-message-copy">
-          <strong>Duplicate Found</strong>
-          <span>The original owner of this listing is {{ duplicateOwnerName }}.</span>
-          <small>Matched: {{ duplicate.district }}, {{ duplicate.street }}{{ duplicate.buildingNumber ? ', ' + duplicate.buildingNumber : '' }} · {{ duplicate.sizeSquareMeters }} m² · ${{ duplicate.price }}</small>
+          <strong>{{ uploadLocationText('Duplicate found', 'ნაპოვნია დუბლიკატი', 'Найден дубликат') }}</strong>
+          <span>{{ uploadLocationText('This apartment is already listed, so it cannot be uploaded again.', 'ეს ბინა უკვე განთავსებულია და მისი ხელახლა ატვირთვა შეუძლებელია.', 'Эта квартира уже размещена, повторная загрузка невозможна.') }}
+            <ng-container *ngIf="duplicateOwnerName">{{ uploadLocationText('Listed by', 'განმათავსებელი:', 'Разместил:') }} {{ duplicateOwnerName }}.</ng-container></span>
+          <small>{{ uploadLocationText('Matched', 'დაემთხვა', 'Совпадение') }}: {{ duplicate.district }}, {{ duplicate.street }}{{ duplicate.buildingNumber ? ', ' + duplicate.buildingNumber : '' }} · {{ duplicate.sizeSquareMeters }} m² · ${{ duplicate.price }}
+            · <a [routerLink]="['/apartments', duplicate.id]" target="_blank">{{ uploadLocationText('View listing', 'განცხადების ნახვა', 'Открыть объявление') }}</a></small>
         </span>
         <button
           type="button"

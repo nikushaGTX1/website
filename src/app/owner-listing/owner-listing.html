@@ -66,10 +66,12 @@
           <div class="input-icon"><i class="fa-solid fa-building"></i><input type="number" min="1" name="totalFloors" inputmode="numeric" placeholder="12" [(ngModel)]="data['totalFloors']"></div>
         </label>
       </div>
+      <ng-container *ngIf="info.dealType !== 'Rent'">
       <div class="sub-label"><i class="fa-solid fa-paint-roller"></i>Condition</div>
       <div class="pill-row">
-        <button type="button" *ngFor="let c of conditions" class="pill" [class.active]="data['condition'] === c" (click)="data['condition'] = data['condition'] === c ? '' : c">{{ c }}</button>
+        <button type="button" *ngFor="let c of conditions" class="pill" [class.active]="data['condition'] === c.value" (click)="data['condition'] = data['condition'] === c.value ? '' : c.value"><i [class]="c.icon"></i> <span>{{ c.value }}</span></button>
       </div>
+      </ng-container>
     </section>
 
     <section class="card">

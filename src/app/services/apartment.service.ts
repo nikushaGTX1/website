@@ -174,6 +174,11 @@ export class ApartmentService {
       && coordinates.slice(1).every((hole) => !insideRing(hole));
   }
 
+  /** The signed-in user's own uploads, published and awaiting review. Never cached. */
+  getMyApartments(): Observable<Apartment[]> {
+    return this.http.get<Apartment[]>(`${this.apiUrl}/mine`);
+  }
+
   createApartment(data: CreateApartment): Observable<ApartmentMutationResponse> {
     return this.http
       .post<ApartmentMutationResponse>(this.apiUrl, this.toApartmentFormData(data))

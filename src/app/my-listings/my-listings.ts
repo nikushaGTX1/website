@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Apartment, CreateApartment } from '../models/apartment';
+import { Apartment } from '../models/apartment';
 import { User } from '../models/user';
 import { ApartmentService } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
@@ -16,6 +16,7 @@ import { PendingApartment, PendingApartmentService } from '../services/pending-a
 export class MyListings implements OnInit, OnDestroy {
   user: User | null = null;
   listings: Apartment[] = [];
+  awaitingReview: Apartment[] = [];
   pendingListings: PendingApartment[] = [];
   loading = false;
   saving = false;
@@ -59,9 +60,12 @@ export class MyListings implements OnInit, OnDestroy {
     this.loading = true;
     this.errorMessage = '';
 
-    this.apartmentService.getApartments().subscribe({
+    // Ownership comes from the API: the public list hides who uploaded each listing,
+    // so approved uploads never matched here before.
+    this.apartmentService.getMyApartments().subscribe({
       next: (apartments) => {
-        this.listings = apartments.filter((apartment) => this.isMine(apartment));
+        this.listings = apartments.filter((apartment) => apartment.isApproved !== false);
+        this.awaitingReview = apartments.filter((apartment) => apartment.isApproved === false);
         this.loading = false;
       },
       error: () => {
@@ -101,55 +105,6 @@ export class MyListings implements OnInit, OnDestroy {
     if (status === 'pending') return 'Waiting for agent';
     if (status === 'approved') return 'Approved';
     return 'Declined';
-  }
-
-  private isMine(apartment: Apartment): boolean {
-    if (!this.user) return false;
-
-    const userId = (this.user.id || '').toLowerCase();
-    const userEmail = this.user.email.toLowerCase();
-    const ownerIds = [
-      apartment.userId,
-      apartment.ownerId,
-      apartment.createdById,
-      apartment.applicationUserId,
-    ]
-      .filter((value): value is string => !!value)
-      .map((value) => value.toLowerCase());
-
-    const ownerEmails = [apartment.userEmail, apartment.createdByEmail]
-      .filter((value): value is string => !!value)
-      .map((value) => value.toLowerCase());
-
-    const description = apartment.description?.toLowerCase() || '';
-    const approvedRequests = this.pendingService
-      .getForUser(this.user)
-      .filter((request) => request.status === 'approved');
-    const linkedByPublishedId = approvedRequests.some(
-      (request) => request.publishedApartmentId === apartment.id,
-    );
-    const linkedByOriginalListing = approvedRequests.some(
-      (request) => this.isSameListing(request.apartment, apartment),
-    );
-
-    return (
-      linkedByPublishedId ||
-      linkedByOriginalListing ||
-      (!!userId && ownerIds.includes(userId)) ||
-      ownerEmails.includes(userEmail) ||
-      description.includes(`email: ${userEmail}`) ||
-      description.includes(userEmail)
-    );
-  }
-
-  private isSameListing(request: CreateApartment, apartment: Apartment): boolean {
-    const normalize = (value?: string): string => (value || '').trim().toLowerCase();
-
-    return (
-      normalize(request.title) === normalize(apartment.title) &&
-      Number(request.price) === Number(apartment.price) &&
-      normalize(request.address) === normalize(apartment.address)
-    );
   }
 
   private getApiError(error: HttpErrorResponse, fallback: string): string {

@@ -53,6 +53,38 @@
     </div>
   </section>
 
+  <section class="block" *ngIf="awaitingReview.length > 0">
+    <div class="block-head">
+      <h2>Awaiting manager review</h2>
+      <small>{{ awaitingReview.length }} listing(s)</small>
+    </div>
+
+    <div class="cards">
+      <article class="card" *ngFor="let apartment of awaitingReview">
+        <div class="photo">
+          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'" [alt]="apartment.title" loading="lazy" decoding="async" />
+          <span class="badge pending">Waiting for review</span>
+        </div>
+        <div class="body">
+          <div class="title-row">
+            <h3>{{ apartment.title }}</h3>
+            <strong><app-currency-price [usdPrice]="apartment.price"></app-currency-price></strong>
+          </div>
+          <p class="address"><i class="fa-solid fa-location-dot"></i> {{ apartment.address || apartment.district || 'No address' }}</p>
+          <div class="facts">
+            <span *ngIf="apartment.bedrooms"><i class="fa-solid fa-bed"></i> {{ apartment.bedrooms }}</span>
+            <span *ngIf="apartment.bathrooms"><i class="fa-solid fa-bath"></i> {{ apartment.bathrooms }}</span>
+            <span *ngIf="apartment.sizeSquareMeters"><i class="fa-solid fa-expand"></i> {{ apartment.sizeSquareMeters }} m²</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" routerLink="/upload-apartment" [queryParams]="{ edit: apartment.id }"><i class="fa-solid fa-pen"></i> Edit</a>
+            <button type="button" class="btn danger" (click)="deleteListing(apartment)"><i class="fa-regular fa-trash-can"></i> Delete</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
   <section class="block">
     <div class="block-head">
       <h2>Published listings</h2>
