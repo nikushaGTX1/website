@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, forkJoin, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { Agent } from '../models/agent';
 import { Apartment } from '../models/apartment';
 import { CrmLead } from '../models/crm';
@@ -46,9 +46,20 @@ export class AgentDetailProfile implements OnInit {
       .pipe(
         switchMap((agent) => {
           const crmAgentId = agent.userId || agent.id || agentId;
+          // Ask the API for this account's uploads; fall back to the old name/ID matching
+          // over the public list if the endpoint is unavailable.
+          const publicList$ = this.apartmentService
+            .getApartments()
+            .pipe(map((list) => ({ list, fromAgentEndpoint: false })));
+          const apartments$ = agent.userId
+            ? this.apartmentService.getAgentApartments(agent.userId).pipe(
+                map((list) => ({ list, fromAgentEndpoint: true })),
+                catchError(() => publicList$),
+              )
+            : publicList$;
           return forkJoin({
             agent: of(agent),
-            apartments: this.apartmentService.getApartments(),
+            apartments: apartments$,
             wonLeads: this.crmService
               .getLeads({ status: 'won', assignedAgentId: crmAgentId })
               .pipe(catchError(() => of(null as CrmLead[] | null))),
@@ -59,8 +70,9 @@ export class AgentDetailProfile implements OnInit {
       next: ({ agent, apartments, wonLeads }) => {
         this.agent = agent;
         this.seoService.updateAgent(agent);
-        this.listings = apartments
-          .filter((apartment) => this.belongsToAgent(apartment, agent, agentId))
+        // The by-agent endpoint already filters by uploader; only the public fallback needs matching.
+        this.listings = apartments.list
+          .filter((apartment) => apartments.fromAgentEndpoint || this.belongsToAgent(apartment, agent, agentId))
           .sort(
             (left, right) => Date.parse(right.createdAt || '') - Date.parse(left.createdAt || ''),
           );

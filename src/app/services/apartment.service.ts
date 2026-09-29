@@ -179,6 +179,11 @@ export class ApartmentService {
     return this.http.get<Apartment[]>(`${this.apiUrl}/mine`);
   }
 
+  /** Published listings uploaded by one agent's account, for their public profile. */
+  getAgentApartments(userId: string): Observable<Apartment[]> {
+    return this.http.get<Apartment[]>(`${this.apiUrl}/by-agent/${encodeURIComponent(userId)}`);
+  }
+
   createApartment(data: CreateApartment): Observable<ApartmentMutationResponse> {
     return this.http
       .post<ApartmentMutationResponse>(this.apiUrl, this.toApartmentFormData(data))
