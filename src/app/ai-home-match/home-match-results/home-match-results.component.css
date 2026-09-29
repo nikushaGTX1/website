@@ -105,6 +105,14 @@ h1 {
 .fit-grid p, .fit-grid b, .fit-grid span { display: block; margin: 0; }
 .fit-grid b { color: #30233f; font-size: 13px; }
 .fit-grid span { margin-top: 3px; color: #756d7e; font-size: 11px; line-height: 1.35; }
+.fit-grid article p { flex: 1; min-width: 0; }
+/* Walk-time badge on preference matches, e.g. "5 min". */
+.fit-grid .fit-meta {
+  flex: none; align-self: center;
+  padding: 4px 10px; border-radius: 999px;
+  background: #f1eafc; color: #451a8f;
+  font-size: 12px; font-style: normal; font-weight: 800; white-space: nowrap;
+}
 
 /* Polished, rank-first recommendation cards. */
 .card.best-match {

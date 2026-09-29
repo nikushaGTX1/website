@@ -140,7 +140,184 @@ export class ExploreProperty implements OnInit, OnDestroy {
   selectedConditions: string[] = [];
   conditionOpen = false;
   selectedMinArea = 0;
+  selectedMaxArea: number | null = null;
+  sizeOpen = false;
+  sizeMin: number | null = null;
+  sizeMax: number | null = null;
+  draftSizePresets: string[] | null = null;
+  appliedSizePresets: string[] | null = null;
+  private sizeTrigger?: HTMLElement;
+  readonly sizePresets = [
+    { name: 'Compact', description: 'Up to 50 m²', min: null, max: 50, plan: 'compact' },
+    { name: 'Medium', description: '50–100 m²', min: 50, max: 100, plan: 'medium' },
+    { name: 'Large', description: 'Over 100 m²', min: 100, max: null, plan: 'large' },
+  ];
+
+  get sizeSummary(): string {
+    if (this.appliedSizePresets?.includes('compact') && this.appliedSizePresets.includes('large') && !this.appliedSizePresets.includes('medium')) return '≤ 50, > 100 m²';
+    if (this.selectedMinArea && this.selectedMaxArea != null) return `${this.selectedMinArea}–${this.selectedMaxArea} m²`;
+    if (this.selectedMaxArea != null) return `≤ ${this.selectedMaxArea} m²`;
+    return this.selectedMinArea ? `${this.selectedMinArea}+ m²` : 'Area';
+  }
+
+  get sizeRangeInvalid(): boolean {
+    return (this.sizeMin != null && (!Number.isFinite(this.sizeMin) || this.sizeMin < 0)) ||
+      (this.sizeMax != null && (!Number.isFinite(this.sizeMax) || this.sizeMax < 0)) ||
+      (this.sizeMin != null && this.sizeMax != null && this.sizeMin > this.sizeMax);
+  }
+
+  isSizePresetSelected(preset: { min: number | null; max: number | null; plan: string }): boolean {
+    if (this.draftSizePresets != null) return this.draftSizePresets.includes(preset.plan);
+    if (this.sizeRangeInvalid || (this.sizeMin == null && this.sizeMax == null)) return false;
+    const min = this.sizeMin ?? 0;
+    const max = this.sizeMax ?? Infinity;
+    if (preset.plan === 'compact') return min < 50;
+    if (preset.plan === 'large') return max > 100;
+    return min <= 100 && max >= 50;
+  }
+
+  toggleSizePreset(preset: { plan: string }): void {
+    const selected = this.sizePresets.filter(option => this.isSizePresetSelected(option)).map(option => option.plan);
+    this.draftSizePresets = selected.includes(preset.plan)
+      ? selected.filter(plan => plan !== preset.plan) : [...selected, preset.plan];
+    const ranges = this.sizePresets.filter(option => this.draftSizePresets!.includes(option.plan));
+    this.sizeMin = ranges.length ? ranges[0].min : null;
+    this.sizeMax = ranges.length ? ranges[ranges.length - 1].max : null;
+  }
+
+  clearSizeDraft(): void {
+    this.sizeMin = null;
+    this.sizeMax = null;
+    this.draftSizePresets = null;
+  }
+
+  openSize(event: Event): void {
+    event.stopPropagation();
+    this.closeBudget();
+    this.filterMenu = null;
+    this.sizeTrigger = event.currentTarget as HTMLElement;
+    this.sizeMin = this.selectedMinArea || null;
+    this.sizeMax = this.selectedMaxArea;
+    this.draftSizePresets = this.appliedSizePresets ? [...this.appliedSizePresets] : null;
+    this.sizeOpen = true;
+    lockPageScroll();
+    this.cdr.detectChanges();
+    document.getElementById('size-close')?.focus();
+  }
+
+  closeSize(): void {
+    this.sizeOpen = false;
+    unlockPageScroll();
+    this.sizeTrigger?.focus();
+  }
+
+  applySize(): void {
+    if (this.sizeRangeInvalid) return;
+    this.selectedMinArea = this.sizeMin ?? 0;
+    this.selectedMaxArea = this.sizeMax;
+    this.appliedSizePresets = this.draftSizePresets?.length ? [...this.draftSizePresets] : null;
+    this.closeSize();
+    this.onSearch();
+  }
+
+  trapSizeFocus(event: KeyboardEvent): void {
+    if (event.key !== 'Tab') return;
+    const controls = Array.from((event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button:not(:disabled), input, select'));
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  }
   selectedMinFloor = 0;
+  selectedMaxFloor: number | null = null;
+  excludeFirstFloor = false;
+  excludeLastFloor = false;
+  floorOpen = false;
+  floorMin: number | null = null;
+  floorMax: number | null = null;
+  draftFloorPresets: number[] | null = null;
+  appliedFloorPresets: number[] | null = null;
+  draftExcludeFirstFloor = false;
+  draftExcludeLastFloor = false;
+  private floorTrigger?: HTMLElement;
+  readonly floorPresets = [
+    { name: 'Low', description: '1–3 floors', min: 1, max: 3, plan: 'low' },
+    { name: 'Medium', description: '4–8 floors', min: 4, max: 8, plan: 'middle' },
+    { name: 'High', description: '9+ floors', min: 9, max: null, plan: 'high' },
+  ];
+
+  get floorFilterActive(): boolean {
+    return this.selectedMinFloor > 0 || this.selectedMaxFloor != null || this.excludeFirstFloor || this.excludeLastFloor;
+  }
+
+  get floorSummary(): string {
+    if (this.appliedFloorPresets?.includes(1) && this.appliedFloorPresets.includes(9) && !this.appliedFloorPresets.includes(4)) return '1–3, 9+';
+    if (this.selectedMinFloor && this.selectedMaxFloor != null) return `${this.selectedMinFloor}–${this.selectedMaxFloor}`;
+    if (this.selectedMaxFloor != null) return `≤ ${this.selectedMaxFloor}`;
+    return this.selectedMinFloor ? `${this.selectedMinFloor}+` : 'Floor';
+  }
+
+  get floorRangeInvalid(): boolean {
+    return [this.floorMin, this.floorMax].some(value => value != null && (!Number.isInteger(value) || value < 1)) ||
+      (this.floorMin != null && this.floorMax != null && this.floorMin > this.floorMax);
+  }
+
+  isFloorPresetSelected(preset: { min: number; max: number | null }): boolean {
+    if (this.draftFloorPresets != null) return this.draftFloorPresets.includes(preset.min);
+    if (this.floorRangeInvalid || (this.floorMin == null && this.floorMax == null)) return false;
+    const min = this.floorMin ?? 1;
+    return min <= (preset.max ?? Infinity) && (this.floorMax ?? Infinity) >= preset.min;
+  }
+
+  toggleFloorPreset(preset: { min: number; max: number | null }): void {
+    const selected = this.floorPresets.filter(option => this.isFloorPresetSelected(option)).map(option => option.min);
+    this.draftFloorPresets = selected.includes(preset.min)
+      ? selected.filter(min => min !== preset.min) : [...selected, preset.min];
+    const ranges = this.floorPresets.filter(option => this.draftFloorPresets!.includes(option.min));
+    this.floorMin = ranges.length ? ranges[0].min : null;
+    this.floorMax = ranges.length ? ranges[ranges.length - 1].max : null;
+  }
+
+  openFloor(event: Event): void {
+    event.stopPropagation();
+    this.closeBudget();
+    this.filterMenu = null;
+    this.floorTrigger = event.currentTarget as HTMLElement;
+    this.floorMin = this.selectedMinFloor || null;
+    this.floorMax = this.selectedMaxFloor;
+    this.draftFloorPresets = this.appliedFloorPresets ? [...this.appliedFloorPresets] : null;
+    this.draftExcludeFirstFloor = this.excludeFirstFloor;
+    this.draftExcludeLastFloor = this.excludeLastFloor;
+    this.floorOpen = true;
+    lockPageScroll();
+    this.cdr.detectChanges();
+    document.getElementById('floor-close')?.focus();
+  }
+
+  closeFloor(): void {
+    this.floorOpen = false;
+    unlockPageScroll();
+    this.floorTrigger?.focus();
+  }
+
+  clearFloorDraft(): void {
+    this.draftFloorPresets = null;
+    this.floorMin = null;
+    this.floorMax = null;
+    this.draftExcludeFirstFloor = false;
+    this.draftExcludeLastFloor = false;
+  }
+
+  applyFloor(): void {
+    if (this.floorRangeInvalid) return;
+    this.selectedMinFloor = this.floorMin ?? 0;
+    this.selectedMaxFloor = this.floorMax;
+    this.appliedFloorPresets = this.draftFloorPresets?.length ? [...this.draftFloorPresets] : null;
+    this.excludeFirstFloor = this.draftExcludeFirstFloor;
+    this.excludeLastFloor = this.draftExcludeLastFloor;
+    this.closeFloor();
+    this.onSearch();
+  }
 
   selectedApartment: Apartment | null = null;
   mapPreviewApartment: Apartment | null = null;
@@ -451,6 +628,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   closeBudget(): void {
+    this.filterMenu = null;
     this.budgetOpen = false;
     this.bedroomOpen = false;
     this.propertyTypeOpen = false;
@@ -585,6 +763,78 @@ export class ExploreProperty implements OnInit, OnDestroy {
       ? this.selectedAmenities.filter((selected) => selected !== amenity)
       : [...this.selectedAmenities, amenity];
     this.onSearch();
+  }
+
+  // Custom dropdowns for area / floor / sort. The chip bar scrolls sideways (overflow hidden),
+  // so the menu is fixed-positioned under the tapped chip instead of nested inside it.
+  readonly areaOptions = [
+    { value: 0, label: 'Any area', icon: 'fa-solid fa-border-all' },
+    { value: 30, label: '30+ m²', icon: 'fa-solid fa-expand' },
+    { value: 50, label: '50+ m²', icon: 'fa-solid fa-expand' },
+    { value: 80, label: '80+ m²', icon: 'fa-solid fa-maximize' },
+    { value: 120, label: '120+ m²', icon: 'fa-solid fa-maximize' },
+  ];
+  readonly floorOptions = [
+    { value: 0, label: 'Any floor', icon: 'fa-solid fa-building' },
+    { value: 1, label: '1+ floor', icon: 'fa-solid fa-stairs' },
+    { value: 3, label: '3+ floor', icon: 'fa-solid fa-stairs' },
+    { value: 5, label: '5+ floor', icon: 'fa-solid fa-city' },
+    { value: 10, label: '10+ floor', icon: 'fa-solid fa-city' },
+  ];
+  readonly sortOptions = [
+    { value: 'newest', label: 'Recommended', icon: 'fa-solid fa-wand-magic-sparkles' },
+    { value: 'price-asc', label: 'Price: low to high', icon: 'fa-solid fa-arrow-up-wide-short' },
+    { value: 'price-desc', label: 'Price: high to low', icon: 'fa-solid fa-arrow-down-wide-short' },
+  ];
+  filterMenu: 'area' | 'floor' | 'sort' | null = null;
+  filterMenuPos = { top: 0, left: 0, width: 220 };
+
+  toggleFilterMenu(menu: 'area' | 'floor' | 'sort', event: Event): void {
+    event.stopPropagation();
+    if (this.filterMenu === menu) {
+      this.filterMenu = null;
+      return;
+    }
+    this.closeBudget();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const width = Math.max(220, rect.width);
+    this.filterMenuPos = {
+      top: rect.bottom + 8,
+      left: Math.min(Math.max(12, rect.left), window.innerWidth - width - 12),
+      width,
+    };
+    this.filterMenu = menu;
+  }
+
+  get sortLabel(): string {
+    return this.sortOptions.find((option) => option.value === this.currentSort)?.label || 'Recommended';
+  }
+
+  chooseMinimumArea(value: number): void {
+    this.selectedMinArea = value;
+    this.filterMenu = null;
+    this.onSearch();
+  }
+
+  chooseMinimumFloor(value: number): void {
+    this.selectedMinFloor = value;
+    this.filterMenu = null;
+    this.onSearch();
+  }
+
+  chooseSort(value: string): void {
+    this.filterMenu = null;
+    this.currentSort = value;
+    this.applySorting();
+    this.currentPage = 1;
+    this.updateVisibleApartments();
+    this.selectedApartment = this.visibleApartments[0] ?? null;
+  }
+
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  closeFilterMenuOnMove(): void {
+    if (this.filterMenu && window.innerWidth > 650) this.filterMenu = null;
   }
 
   setMinimumArea(event: Event): void {
@@ -961,6 +1211,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
+    if (this.floorOpen) { this.closeFloor(); return; }
+    if (this.sizeOpen) { this.closeSize(); return; }
     if (this.moreFiltersOpen) {
       this.closeMoreFilters();
       return;
@@ -1198,12 +1450,16 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.floorOpen) unlockPageScroll();
+    if (this.sizeOpen) unlockPageScroll();
     window.removeEventListener('wheel', this.forwardWheelToResults, true);
     window.clearTimeout(this.areaSheetTimer);
     if (this.areaSheetOpen) unlockPageScroll();
   }
 
   private readonly forwardWheelToResults = (event: WheelEvent): void => {
+    if (this.floorOpen) return;
+    if (this.sizeOpen) return;
     if (
       window.innerWidth <= 780 ||
       event.ctrlKey ||
@@ -1260,7 +1516,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedConditions = [];
     this.conditionOpen = false;
     this.selectedMinArea = 0;
+    this.appliedSizePresets = null;
+    this.selectedMaxArea = null;
     this.selectedMinFloor = 0;
+    this.appliedFloorPresets = null;
+    this.selectedMaxFloor = null;
+    this.excludeFirstFloor = false;
+    this.excludeLastFloor = false;
     this.moreFilters = this.emptyMoreFilters();
     this.featureFilter = '';
     this.drawnAreaActive = false;
@@ -1418,8 +1680,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
       const matchesAmenities = this.matchesAmenitiesFilter(apartment);
       const matchesCondition = this.matchesConditionFilter(apartment);
       const matchesFeature = this.matchesQuickFeature(apartment);
-      const matchesArea = !this.selectedMinArea || Number(apartment.sizeSquareMeters) >= this.selectedMinArea;
-      const matchesFloor = !this.selectedMinFloor || Number(apartment.floor) >= this.selectedMinFloor;
+      const matchesArea = (!this.selectedMinArea || Number(apartment.sizeSquareMeters) >= this.selectedMinArea) &&
+        (this.appliedSizePresets == null || (apartment.sizeSquareMeters != null && this.sizePresets.some(preset =>
+          this.appliedSizePresets!.includes(preset.plan) && Number(apartment.sizeSquareMeters) >= (preset.min ?? 0) &&
+          (preset.plan !== 'large' || Number(apartment.sizeSquareMeters) > 100) && Number(apartment.sizeSquareMeters) <= (preset.max ?? Infinity)))) &&
+        (this.selectedMaxArea == null || Number(apartment.sizeSquareMeters) <= this.selectedMaxArea);
+      const floor = Number(apartment.floor);
+      const matchesFloor = (!this.selectedMinFloor || floor >= this.selectedMinFloor) &&
+        (this.appliedFloorPresets == null || this.floorPresets.some(preset => this.appliedFloorPresets!.includes(preset.min) && floor >= preset.min && floor <= (preset.max ?? Infinity))) &&
+        (this.selectedMaxFloor == null || (apartment.floor != null && floor <= this.selectedMaxFloor)) &&
+        (!this.excludeFirstFloor || (apartment.floor != null && floor > 1)) &&
+        (!this.excludeLastFloor || (apartment.floor != null && Number(apartment.totalFloors) > floor));
       const matchesMore = this.matchesMoreFilters(apartment);
 
       return (
@@ -1514,7 +1785,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedConditions = [];
     this.conditionOpen = false;
     this.selectedMinArea = 0;
+    this.appliedSizePresets = null;
+    this.selectedMaxArea = null;
     this.selectedMinFloor = 0;
+    this.appliedFloorPresets = null;
+    this.selectedMaxFloor = null;
+    this.excludeFirstFloor = false;
+    this.excludeLastFloor = false;
     this.featureFilter = '';
     this.drawnAreaActive = false;
     sessionStorage.removeItem('white-tower-drawn-area');

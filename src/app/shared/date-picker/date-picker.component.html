@@ -1,0 +1,29 @@
+<button type="button" class="dp-trigger" [class.open]="open" [class.empty]="!value" [disabled]="disabled"
+  [attr.aria-expanded]="open" aria-haspopup="dialog" (click)="toggle()">
+  <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+  <span data-no-translate *ngIf="value">{{ displayValue }}</span>
+  <span *ngIf="!value">{{ placeholder }}</span>
+  <i class="fa-solid fa-chevron-down dp-caret" aria-hidden="true"></i>
+</button>
+
+<div class="dp-backdrop" *ngIf="open" (click)="open = false"></div>
+<div class="dp-panel" *ngIf="open" role="dialog" aria-label="Choose a date" (click)="$event.stopPropagation()">
+  <span class="dp-handle" aria-hidden="true"></span>
+  <div class="dp-head">
+    <button type="button" class="dp-nav" (click)="move(-1)" [disabled]="!canGoBack" aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+    <strong data-no-translate>{{ monthTitle }}</strong>
+    <button type="button" class="dp-nav" (click)="move(1)" aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+  <div class="dp-grid dp-weekdays" data-no-translate>
+    <span *ngFor="let weekday of weekdays">{{ weekday }}</span>
+  </div>
+  <div class="dp-grid">
+    <button type="button" *ngFor="let day of days; trackBy: trackDay" class="dp-day"
+      [class.out]="!day.inMonth" [class.today]="day.today" [class.selected]="day.iso === value"
+      [disabled]="day.disabled" [attr.aria-pressed]="day.iso === value" (click)="pick(day)">{{ day.date }}</button>
+  </div>
+  <div class="dp-foot">
+    <button type="button" class="dp-link" (click)="clear()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> <span>Clear</span></button>
+    <button type="button" class="dp-today" (click)="pickToday()"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i> <span>Today</span></button>
+  </div>
+</div>

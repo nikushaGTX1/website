@@ -111,6 +111,7 @@
           <article *ngFor="let match of answerMatches(result)">
             <i class="fa-solid" [ngClass]="match.icon"></i>
             <p><b>{{ match.title }}</b><span>{{ match.reason }}</span></p>
+            <em class="fit-meta" *ngIf="match.meta">{{ match.meta }}</em>
           </article>
         </div>
       </section>

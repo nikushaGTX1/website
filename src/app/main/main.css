@@ -1349,26 +1349,23 @@
 .property-image:active {
   cursor: grabbing;
 }
-/* Show the whole photo (portrait photos were cropped to a sliver); a blurred copy fills the sides. */
+/* Same framing as the Explore cards: a taller frame filled edge to edge, so portrait
+   photos show most of the room without blurred side bars. */
 .property-image {
+  aspect-ratio: 16 / 11 !important;
   background: #ece8f2;
-}
-.property-image::before {
-  content: '';
-  position: absolute;
-  inset: -20px;
-  z-index: 0;
-  background: var(--card-photo) center / cover no-repeat;
-  filter: blur(22px) brightness(0.85);
-  pointer-events: none;
 }
 .property-image img {
   position: relative;
   z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center;
   pointer-events: none;
+}
+@media (max-width: 650px) {
+  .property-image { aspect-ratio: 1.18 / 1 !important; }
 }
 .property-badge {
   position: absolute;
@@ -4917,4 +4914,35 @@
 /* Breathing room between the nearby cards and the button. */
 .property-card .view-details {
   margin-top: 14px !important;
+}
+
+/* White wash from the left so the headline reads clearly over the city photo.
+   isolation + z-index:-1 keeps the overlay above the hero background but below its content. */
+.hero { isolation: isolate; }
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(255, 255, 255, 0.82) 28%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 72%
+  );
+}
+@media (max-width: 650px) {
+  /* Phones: text spans the width, so wash from the top instead. */
+  .hero::after {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.7) 45%,
+      rgba(255, 255, 255, 0.15) 80%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
 }

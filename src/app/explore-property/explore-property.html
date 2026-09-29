@@ -268,18 +268,18 @@
         <i class="fa-solid fa-bed" aria-hidden="true"></i>
         {{ bedroomSummary }}
       </button>
-      <label class="chip filter-select compact-filter-chip" [class.selected]="selectedMinArea > 0">
+      <button type="button" class="chip compact-filter-chip menu-chip" [class.selected]="selectedMinArea > 0 || selectedMaxArea !== null || appliedSizePresets !== null" [class.open]="sizeOpen"
+        [attr.aria-expanded]="sizeOpen" aria-haspopup="dialog" (click)="openSize($event)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg>
-        <select [value]="selectedMinArea" (change)="setMinimumArea($event)" aria-label="Minimum area">
-          <option value="0">Area</option><option value="30">30+ m²</option><option value="50">50+ m²</option><option value="80">80+ m²</option><option value="120">120+ m²</option>
-        </select>
-      </label>
-      <label class="chip filter-select compact-filter-chip" [class.selected]="selectedMinFloor > 0">
+        <span>{{ sizeSummary }}</span>
+        <i class="fa-solid fa-chevron-down chip-caret" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="chip compact-filter-chip menu-chip" [class.selected]="floorFilterActive" [class.open]="floorOpen"
+        [attr.aria-expanded]="floorOpen" aria-haspopup="dialog" (click)="openFloor($event)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21h14M7 21V4h10v17M10 8h1M14 8h1M10 12h1M14 12h1M10 16h1M14 16h1"></path></svg>
-        <select [value]="selectedMinFloor" (change)="setMinimumFloor($event)" aria-label="Minimum floor">
-          <option value="0">Floor</option><option value="1">1+ floor</option><option value="3">3+ floor</option><option value="5">5+ floor</option><option value="10">10+ floor</option>
-        </select>
-      </label>
+        <span>{{ floorSummary }}</span>
+        <i class="fa-solid fa-chevron-down chip-caret" aria-hidden="true"></i>
+      </button>
       <button
         class="chip compact-filter-chip"
         type="button"
@@ -372,13 +372,12 @@
           </h1>
           <p>{{ visibleApartments.length | number }} verified homes in this map area</p>
         </div>
-        <label class="sort"
-          ><select [value]="currentSort" (change)="onSortChange($event)">
-            <option value="newest">Recommended</option>
-            <option value="price-asc">Price: low to high</option>
-            <option value="price-desc">Price: high to low</option></select
-          ><span></span
-        ></label>
+        <button type="button" class="sort-trigger" [class.open]="filterMenu === 'sort'" [attr.aria-expanded]="filterMenu === 'sort'"
+          aria-haspopup="listbox" (click)="toggleFilterMenu('sort', $event)">
+          <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+          <span>{{ sortLabel }}</span>
+          <i class="fa-solid fa-chevron-down chip-caret" aria-hidden="true"></i>
+        </button>
       </div>
       <div class="cards-grid" [class.single-result]="!loading && paginatedApartments.length === 1">
         <ng-container *ngIf="loading"
@@ -812,7 +811,7 @@
             </label>
             <label class="mf-date">
               <span>Move-in date</span>
-              <input type="date" [(ngModel)]="moreFiltersDraft.moveInDate" />
+              <app-date-picker placeholder="Any date" [(ngModel)]="moreFiltersDraft.moveInDate"></app-date-picker>
             </label>
           </section>
         </div>
@@ -841,3 +840,74 @@
     </section>
   </div>
 </main>
+
+<!-- Shared dropdown for area / floor / sort. Fixed-positioned so the scrolling chip bar never clips it;
+     a bottom sheet on phones. -->
+<div class="filter-menu-backdrop" *ngIf="filterMenu" (click)="filterMenu = null"></div>
+<div
+  class="filter-menu"
+  *ngIf="filterMenu"
+  role="listbox"
+  [style.top.px]="filterMenuPos.top"
+  [style.left.px]="filterMenuPos.left"
+  [style.min-width.px]="filterMenuPos.width"
+  (click)="$event.stopPropagation()"
+>
+  <span class="filter-menu-handle" aria-hidden="true"></span>
+  <h4>{{ filterMenu === 'area' ? 'Minimum area' : filterMenu === 'floor' ? 'Minimum floor' : 'Sort by' }}</h4>
+  <ng-container *ngIf="filterMenu === 'area'">
+    <button type="button" role="option" *ngFor="let option of areaOptions" [class.active]="selectedMinArea === option.value"
+      [attr.aria-selected]="selectedMinArea === option.value" (click)="chooseMinimumArea(option.value)">
+      <i [class]="option.icon" aria-hidden="true"></i><span>{{ option.label }}</span><i class="fa-solid fa-check tick" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+  <ng-container *ngIf="filterMenu === 'floor'">
+    <button type="button" role="option" *ngFor="let option of floorOptions" [class.active]="selectedMinFloor === option.value"
+      [attr.aria-selected]="selectedMinFloor === option.value" (click)="chooseMinimumFloor(option.value)">
+      <i [class]="option.icon" aria-hidden="true"></i><span>{{ option.label }}</span><i class="fa-solid fa-check tick" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+  <ng-container *ngIf="filterMenu === 'sort'">
+    <button type="button" role="option" *ngFor="let option of sortOptions" [class.active]="currentSort === option.value"
+      [attr.aria-selected]="currentSort === option.value" (click)="chooseSort(option.value)">
+      <i [class]="option.icon" aria-hidden="true"></i><span>{{ option.label }}</span><i class="fa-solid fa-check tick" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+</div>
+
+<div class="size-backdrop" *ngIf="floorOpen" (click)="closeFloor()">
+  <section class="size-dialog floor-dialog" role="dialog" aria-modal="true" aria-labelledby="floor-title" (click)="$event.stopPropagation()" (keydown)="trapSizeFocus($event)">
+    <button id="floor-close" class="size-close" type="button" aria-label="Close" (click)="closeFloor()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <h2 id="floor-title">Floor</h2>
+    <p class="size-subtitle">Choose your preferred floor</p>
+    <div class="size-presets">
+      <button type="button" *ngFor="let preset of floorPresets" [class.selected]="isFloorPresetSelected(preset)" [attr.aria-pressed]="isFloorPresetSelected(preset)" (click)="toggleFloorPreset(preset)">
+        <span class="size-check" *ngIf="isFloorPresetSelected(preset)" aria-hidden="true">&#10003;</span>
+        <span class="floor-artwork" aria-hidden="true"><img [src]="'/icons/floor-' + preset.plan + '.svg'" alt="" /></span>
+        <strong>{{ preset.name }}</strong><span>{{ preset.description }}</span>
+      </button>
+    </div>
+    <div class="size-range">
+      <h3>Floor range</h3>
+      <div class="size-inputs">
+        <fieldset><legend>From</legend><input type="number" min="1" step="1" inputmode="numeric" placeholder="Any" aria-label="Minimum floor" [(ngModel)]="floorMin" (ngModelChange)="draftFloorPresets = null" /></fieldset>
+        <fieldset><legend>To</legend><input type="number" min="1" step="1" inputmode="numeric" placeholder="Any" aria-label="Maximum floor" [(ngModel)]="floorMax" (ngModelChange)="draftFloorPresets = null" /></fieldset>
+      </div>
+      <p class="size-error" role="alert" *ngIf="floorRangeInvalid">Enter whole floor numbers from 1, with the minimum below the maximum.</p>
+    </div>
+    <div class="floor-exclusions">
+      <label><input type="checkbox" [(ngModel)]="draftExcludeFirstFloor" /><span>Exclude first floor</span></label>
+      <label><input type="checkbox" [(ngModel)]="draftExcludeLastFloor" /><span>Exclude last floor</span></label>
+    </div>
+    <footer class="size-footer"><button type="button" class="size-clear" (click)="clearFloorDraft()">Clear</button><button type="button" class="size-apply" [disabled]="floorRangeInvalid" (click)="applyFloor()">Select</button></footer>
+  </section>
+</div>
+
+<div class="size-backdrop" *ngIf="sizeOpen" (click)="closeSize()">
+<section class="size-dialog" role="dialog" aria-modal="true" aria-labelledby="size-title" (click)="$event.stopPropagation()" (keydown)="trapSizeFocus($event)">
+<button id="size-close" class="size-close" type="button" aria-label="Close" (click)="closeSize()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+<h2 id="size-title">Area</h2><p class="size-subtitle">Choose your preferred property size</p>
+<div class="size-presets"><button type="button" *ngFor="let preset of sizePresets" [class.selected]="isSizePresetSelected(preset)" [attr.aria-pressed]="isSizePresetSelected(preset)" (click)="toggleSizePreset(preset)"><span class="size-check" *ngIf="isSizePresetSelected(preset)" aria-hidden="true">&#10003;</span><img [src]="'/icons/size-' + preset.plan + '.svg'" alt="" /><strong>{{ preset.name }}</strong><span>{{ preset.description }}</span></button></div>
+<div class="size-range"><h3>Area range</h3><div class="size-inputs"><fieldset><legend>From</legend><input type="number" min="0" step="any" placeholder="0" aria-label="Minimum area" [(ngModel)]="sizeMin" (ngModelChange)="draftSizePresets = null" /><span>m&sup2;</span></fieldset><fieldset><legend>To</legend><input type="number" min="0" step="any" placeholder="Any" aria-label="Maximum area" [(ngModel)]="sizeMax" (ngModelChange)="draftSizePresets = null" /><span>m&sup2;</span></fieldset></div><p *ngIf="!sizeRangeInvalid">Enter your preferred area range</p><p class="size-error" role="alert" *ngIf="sizeRangeInvalid">Enter a valid range with the minimum below the maximum.</p></div>
+<footer class="size-footer"><button type="button" class="size-clear" (click)="clearSizeDraft()">Clear</button><button type="button" class="size-apply" [disabled]="sizeRangeInvalid" (click)="applySize()">Select</button></footer>
+</section></div>

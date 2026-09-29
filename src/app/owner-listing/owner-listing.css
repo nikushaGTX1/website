@@ -141,7 +141,9 @@ textarea { resize: vertical; min-height: 110px; }
 
 /* Price */
 .price-row { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start; }
-.segmented { display: flex; padding: 4px; border-radius: 12px; background: var(--brand-soft); }
+.segmented { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--brand-soft); }
+/* Options share the row equally and sit centred, so no empty stretch is left on the right. */
+.segmented > button { flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; }
 .segmented button { border: 0; background: none; padding: 13px 16px; border-radius: 9px; font: inherit; font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .segmented button.active { background: #fff; color: var(--brand); box-shadow: 0 2px 8px #451a8f1f; }
 .hint { display: flex; gap: 8px; align-items: center; margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; background: #f6f2fc; color: var(--muted); font-size: 13px; }
@@ -312,4 +314,18 @@ textarea { resize: vertical; min-height: 110px; }
 .stepper button:active:not(:disabled) { transform: scale(.92); background: var(--brand-soft) !important; }
 @media (max-width: 720px) {
   .counter { padding: 12px 8px 10px; gap: 10px; }
+}
+
+/* Feature tiles: never split a word ("კონდიციონე / რი"); wrap only between words. */
+.feature-grid button span {
+  min-width: 0;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  hyphens: none;
+  line-height: 1.25;
+}
+@media (max-width: 440px) {
+  .feature-grid { gap: 8px; }
+  .feature-grid button { gap: 8px; padding: 10px 9px; font-size: 12px; }
+  .feature-grid button > i:first-child { width: 16px; font-size: 13px; }
 }

@@ -13,7 +13,12 @@ interface LifestyleInsight {
   title: string;
   reason: string;
   icon: string;
+  /** Optional short value shown as a badge, e.g. "5 min". */
+  meta?: string;
 }
+
+/** A nearby place counts as a match only within this walk (the 'nearby' edge of priority scoring). */
+const MATCH_WALK_LIMIT = 18;
 @Component({
   selector: 'app-home-match-results',
   standalone: false,
@@ -282,17 +287,97 @@ export class HomeMatchResultsComponent implements OnChanges {
       add('Fits your rental period', answerLabel(p.rentalDuration), 'fa-hourglass-half');
     }
     if (rent && p.hasPet && apartment.isPetFriendly) add('Pet-friendly home', answerLabel(p.petType) || 'Pet', 'fa-paw');
-    if (p.transportation.includes('Car') && (apartment.hasParking || parkingScore(apartment) > 0)) {
+    const priorities = new Set(p.topPriorities.slice(0, 5));
+    // One parking card, whether parking came from driving or from the priority list.
+    if ((p.transportation.includes('Car') || priorities.has('Parking')) && (apartment.hasParking || parkingScore(apartment) > 0)) {
       add('Parking for your car', parseParkingCost(apartment.description || '').cost === 'Paid' ? 'Paid parking' : 'Parking available', 'fa-square-parking');
     }
-    // Top 5 priorities the home scores on (any points on the 0–5 scale).
-    for (const priority of p.topPriorities.slice(0, 5)) {
-      const score = scorePriority(priority, apartment, p);
-      if (score <= 0) continue;
-      add(answerLabel(priority), score >= 4 ? 'Strong match' : score >= 2 ? 'Good match' : 'Partial match', 'fa-star');
+    if ((priorities.has('QuietStreet') || p.lifestyles.includes('QuietLifestyle')) && apartment.isQuietStreet) {
+      add('Quiet street', 'Matches your quiet lifestyle', 'fa-volume-xmark');
+    }
+    if (priorities.has('SelectedLocationNearby') && scorePriority('SelectedLocationNearby', apartment, p) >= 2) {
+      add('Near the place you chose', 'Close to your chosen location', 'fa-location-crosshairs');
+    }
+
+    // Nearby places: shown here only when they answer something the user chose, with the
+    // reason tied to that answer. Everything else nearby stays in "Walking times" only.
+    for (const place of this.preferencePlaces(result)) {
+      const minutes = apartment[place.field];
+      if (typeof minutes !== 'number' || minutes < 0 || minutes > MATCH_WALK_LIMIT) continue;
+      items.push({ title: place.title, reason: place.reason, icon: place.icon, meta: `${Math.round(minutes)} min` });
     }
     this.answerMatchCache.set(apartment, items);
     return items;
+  }
+
+  /**
+   * Which nearby places matter to this user, and why. Each entry comes from a questionnaire
+   * answer (lifestyle, household, pet, transport) or a chosen top-5 priority; the first
+   * matching reason wins, so a place is never listed twice.
+   */
+  private preferencePlaces(result: HomeMatchResult): Array<{
+    field: keyof HomeMatchResult['apartment']; title: string; reason: string; icon: string;
+  }> {
+    const p = this.profile;
+    const priorities = new Set(p.topPriorities.slice(0, 5));
+    const lifestyles = new Set(p.lifestyles);
+    const ages = new Set(p.children > 0 ? p.childrenAgeGroups : []);
+    const hasKids = p.children > 0;
+    const dog = !!p.hasPet && p.petType === 'Dog';
+    const walks = p.transportation.includes('Walking');
+    const places: Array<{ field: keyof HomeMatchResult['apartment']; title: string; reason: string; icon: string }> = [];
+    const offer = (
+      field: keyof HomeMatchResult['apartment'], title: string, icon: string, reasons: Array<[boolean, string]>,
+    ) => {
+      const reason = reasons.find(([applies]) => applies)?.[1];
+      if (reason) places.push({ field, title, icon, reason });
+    };
+
+    offer('gymDistanceMinutes', 'Gym', 'fa-dumbbell', [
+      [lifestyles.has('Athlete'), 'Matches your active lifestyle'],
+      [priorities.has('GymNearby'), 'One of your top priorities'],
+    ]);
+    offer('parkDistanceMinutes', 'Park', 'fa-tree', [
+      [dog, 'Great for walking your dog'],
+      [hasKids && (priorities.has('PlaygroundNearby') || priorities.has('PlaygroundOrSportsFieldNearby')), 'Playground and outdoor space for your children'],
+      [lifestyles.has('Athlete'), 'Matches your outdoor lifestyle'],
+      [priorities.has('ParkNearby'), 'One of your top priorities'],
+      [lifestyles.has('QuietLifestyle'), 'Green space for a calm routine'],
+    ]);
+    offer('schoolDistanceMinutes', 'School', 'fa-school', [
+      [hasKids && (ages.has('Age7To12') || ages.has('Age13To17') || priorities.has('SchoolNearby')), 'Close for your children'],
+      [priorities.has('SchoolNearby'), 'One of your top priorities'],
+    ]);
+    offer('kindergartenDistanceMinutes', 'Kindergarten', 'fa-children', [
+      [hasKids && (ages.has('Age0To3') || ages.has('Age4To6') || priorities.has('KindergartenNearby')), 'Close for your little ones'],
+      [priorities.has('KindergartenNearby'), 'One of your top priorities'],
+    ]);
+    offer('universityDistanceMinutes', 'University', 'fa-graduation-cap', [
+      [lifestyles.has('Student'), 'Handy for your studies'],
+      [priorities.has('UniversityNearby'), 'One of your top priorities'],
+    ]);
+    const everyday = priorities.has('EverydayServicesNearby') || priorities.has('SupermarketNearby') || priorities.has('PharmacyNearby');
+    offer('groceryDistanceMinutes', 'Supermarket', 'fa-basket-shopping', [
+      [everyday, 'Everyday shopping on foot'],
+      [walks, 'Everyday shopping on foot'],
+    ]);
+    offer('pharmacyDistanceMinutes', 'Pharmacy', 'fa-prescription-bottle-medical', [
+      [everyday || priorities.has('ClinicNearby'), 'Everyday services close by'],
+    ]);
+    offer('metroDistanceMinutes', 'Metro', 'fa-train-subway', [
+      [p.transportation.includes('Metro'), 'Metro is part of your routine'],
+      [priorities.has('MetroNearby') || priorities.has('PublicTransportNearby'), 'One of your top priorities'],
+    ]);
+    offer('cafeDistanceMinutes', 'Café', 'fa-mug-hot', [
+      [lifestyles.has('RemoteWorker') || priorities.has('CafesOrCoworkingNearby'), 'Good for working remotely'],
+      [lifestyles.has('SocialLifestyle') || priorities.has('CafesAndRestaurantsNearby') || priorities.has('CafesNearby'), 'Matches your social lifestyle'],
+      [lifestyles.has('BusinessProfessional') || priorities.has('MeetingPlacesNearby'), 'Handy for meetings'],
+      [lifestyles.has('Student') || priorities.has('StudySpacesNearby'), 'A place to study nearby'],
+    ]);
+    offer('evChargerDistanceMinutes', 'EV charger', 'fa-charging-station', [
+      [p.transportation.includes('Car') && p.carFuelType === 'Electric', 'For your electric car'],
+    ]);
+    return places;
   }
 
   /** Walking minutes to every nearby place the listing has, closest first. */
@@ -313,7 +398,8 @@ export class HomeMatchResultsComponent implements OnChanges {
       ['EV charger', apartment.evChargerDistanceMinutes, 'fa-charging-station'],
     ];
     const value = places
-      .filter((place): place is [string, number, string] => typeof place[1] === 'number' && place[1] >= 0)
+      // Only genuinely walkable places: 10 minutes or less.
+      .filter((place): place is [string, number, string] => typeof place[1] === 'number' && place[1] >= 0 && place[1] <= 10)
       .map(([label, minutes, icon]) => ({ label, minutes: Math.round(minutes), icon }))
       .sort((a, b) => a.minutes - b.minutes);
     if (!value.length) {

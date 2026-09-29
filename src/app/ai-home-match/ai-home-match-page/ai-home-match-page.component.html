@@ -407,12 +407,12 @@
                   <use href="/ai-match-icons.svg#calendar"></use></svg
                 >{{ option.label }}</button
               ><label *ngIf="profile.moveInTiming === 'SpecificDate'"
-                >Move-in date<input
-                  type="date"
-                  [attr.min]="today"
+                >Move-in date<app-date-picker
+                  placeholder="Choose your move-in date"
+                  [min]="today"
                   [(ngModel)]="profile.moveInDate"
                   (ngModelChange)="persist()"
-              /><small class="field-error" role="alert" *ngIf="moveInDateInPast"
+              ></app-date-picker><small class="field-error" role="alert" *ngIf="moveInDateInPast"
                 >Please choose today or a future date.</small
               ></label></fieldset></ng-container
           ><ng-template #buyTiming

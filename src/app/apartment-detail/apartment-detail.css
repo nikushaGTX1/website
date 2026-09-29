@@ -3061,3 +3061,15 @@
 }
 .vp-last-confirmed i { font-size: 13px; color: #7d8594; }
 .vp-last-confirmed b { font-weight: 700; color: #2f3440; }
+
+/* Main gallery photo fills its frame like the thumbnails and the listing cards,
+   instead of a narrow centred photo between blurred side bars. */
+.vp-gallery-main img.vp-gallery-bg { display: none !important; }
+.vp-gallery-main img.vp-gallery-photo {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}

@@ -1,0 +1,121 @@
+:host { position: relative; display: block; width: 100%; font-family: inherit; }
+
+.dp-trigger {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: 48px; padding: 0 14px; box-sizing: border-box;
+  border: 1.5px solid #e6def2; border-radius: 12px; background: #fcfbfe;
+  color: #1f1433; font: inherit; font-size: 15px; font-weight: 600; text-align: left; cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.dp-trigger > i:first-child { color: #7136be; }
+.dp-trigger.empty span { color: #a497b8; font-weight: 500; }
+.dp-trigger span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-caret { font-size: 11px; color: #9a89b3; transition: transform .2s; }
+.dp-trigger:hover { border-color: #c9b6e8; }
+.dp-trigger.open { border-color: #451a8f; background: #fff; box-shadow: 0 0 0 4px rgba(113, 54, 190, .12); }
+.dp-trigger.open .dp-caret { transform: rotate(180deg); }
+.dp-trigger:disabled { opacity: .5; cursor: default; }
+
+.dp-backdrop { display: none; }
+.dp-panel {
+  position: absolute; z-index: 1000; top: calc(100% + 8px); left: 0;
+  width: 320px; max-width: calc(100vw - 24px); box-sizing: border-box;
+  padding: 16px; border: 1px solid #ece5f7; border-radius: 20px; background: #fff;
+  box-shadow: 0 24px 60px rgba(31, 20, 51, .18), 0 2px 8px rgba(31, 20, 51, .06);
+  animation: dp-in .16s ease-out;
+}
+.dp-handle { display: none; }
+.dp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.dp-head strong { font-size: 16px; color: #1f1433; }
+.dp-nav {
+  width: 36px; height: 36px; min-width: 36px; min-height: 36px; max-width: 36px; max-height: 36px; padding: 0;
+  display: grid; place-items: center; aspect-ratio: 1;
+  border: 1px solid #ece5f7; border-radius: 50%; background: #fff; color: #451a8f; font-size: 12px; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.dp-nav:hover:not(:disabled) { background: #451a8f; border-color: #451a8f; color: #fff; }
+.dp-nav:disabled { opacity: .3; cursor: default; }
+
+.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.dp-weekdays { margin-bottom: 6px; }
+.dp-weekdays span { text-align: center; color: #9a89b3; font-size: 11px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.dp-day {
+  aspect-ratio: 1; width: 100%; min-width: 0; min-height: 0; padding: 0;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: transparent;
+  color: #2b1d40; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background .12s, color .12s, transform .1s;
+}
+.dp-day:hover:not(:disabled):not(.selected) { background: #f3edfc; color: #451a8f; }
+.dp-day.out { color: #c4bad3; font-weight: 500; }
+.dp-day.today:not(.selected) { box-shadow: inset 0 0 0 1.5px #7136be; color: #451a8f; }
+.dp-day.selected { background: linear-gradient(135deg, #451a8f, #7136be); color: #fff; box-shadow: 0 6px 14px rgba(69, 26, 143, .3); }
+.dp-day:active:not(:disabled) { transform: scale(.92); }
+.dp-day:disabled { color: #d9d3e3; cursor: not-allowed; text-decoration: line-through; text-decoration-color: rgba(0, 0, 0, .08); }
+
+.dp-foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1ecf8; }
+.dp-link, .dp-today {
+  display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px;
+  border-radius: 10px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.dp-link { border: 0; background: transparent; color: #7a6e8e; }
+.dp-link:hover { background: #f7f4fc; color: #451a8f; }
+.dp-today { border: 1px solid #e3d9f7; background: #f7f3fe; color: #451a8f; }
+.dp-today:hover { background: #451a8f; border-color: #451a8f; color: #fff; }
+
+@keyframes dp-in { from { opacity: 0; transform: translateY(-6px); } }
+
+/* Phones: bottom sheet with bigger tap targets */
+@media (max-width: 650px) {
+  .dp-backdrop { display: block; position: fixed; inset: 0; z-index: 9998; background: rgba(23, 20, 33, .45); }
+  .dp-panel {
+    position: fixed; z-index: 9999; inset: auto 0 0 0; top: auto;
+    width: 100%; max-width: none;
+    padding: 24px 18px calc(18px + env(safe-area-inset-bottom));
+    border: 0; border-radius: 24px 24px 0 0;
+    animation: dp-sheet .26s cubic-bezier(.22, .8, .28, 1);
+  }
+  .dp-handle { display: block; position: absolute; top: 9px; left: 50%; width: 42px; height: 4px; border-radius: 4px; background: #d9d3e3; transform: translateX(-50%); }
+  .dp-head strong { font-size: 18px; }
+  .dp-day { font-size: 16px; }
+  .dp-foot button { flex: 1; justify-content: center; padding: 13px; font-size: 15px; }
+}
+@keyframes dp-sheet { from { transform: translateY(100%); } }
+
+/* Perfect circles: a fixed square size (the global mobile button min-height stretched them). */
+.dp-grid:not(.dp-weekdays) { justify-items: center; row-gap: 6px; }
+.dp-day {
+  --d: clamp(34px, 9vw, 40px);
+  width: var(--d) !important;
+  height: var(--d) !important;
+  min-width: var(--d) !important;
+  min-height: var(--d) !important;
+  max-width: var(--d) !important;
+  max-height: var(--d) !important;
+  aspect-ratio: 1 / 1;
+  border-radius: 50% !important;
+  line-height: 1;
+}
+/* Other-month days are selectable: clearly readable, just lighter than this month. */
+.dp-day.out { color: #8a7fa0; font-weight: 500; }
+/* Past (disabled) days: faint, no strike-through clutter. */
+.dp-day:disabled { color: #d6d0e0; text-decoration: none; background: transparent; }
+
+/* Host pages (e.g. the filters drawer) can inherit word-break/overflow-wrap "anywhere",
+   which split two-digit days into "3 / 1". Reset text wrapping inside the calendar. */
+.dp-panel, .dp-trigger {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+.dp-day, .dp-nav, .dp-weekdays span, .dp-head strong, .dp-foot button {
+  white-space: nowrap !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+  letter-spacing: 0;
+}
+.dp-foot button { padding: 10px 14px !important; }
+@media (max-width: 650px) {
+  .dp-foot button { padding: 13px !important; }
+  .dp-grid:not(.dp-weekdays) { row-gap: 4px; }
+}

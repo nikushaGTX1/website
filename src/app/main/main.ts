@@ -279,11 +279,6 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     return [...new Set(images)].length ? [...new Set(images)] : ['/property-placeholder.svg'];
   }
 
-  /** Blurred backdrop for the card photo, so portrait photos show whole instead of being cropped. */
-  cardPhotoBackground(apartment: Apartment): string {
-    return `url("${this.getApartmentCardImage(apartment).replace(/"/g, '%22')}")`;
-  }
-
   getApartmentCardImage(apartment: Apartment): string {
     return this.getApartmentGallery(apartment)[0];
   }

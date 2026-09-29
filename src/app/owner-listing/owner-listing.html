@@ -149,7 +149,7 @@
     <section class="card" *ngIf="info.dealType === 'Rent'">
       <div class="card-head"><span class="num">·</span><div><h2>Rental details</h2><p>Optional</p></div></div>
       <div class="grid two">
-        <label class="field"><span>Available from</span><div class="input-icon"><i class="fa-solid fa-calendar-day"></i><input type="date" name="availableFrom" [(ngModel)]="data['availableFrom']"></div></label>
+        <div class="field"><span>Available from</span><app-date-picker name="availableFrom" placeholder="Choose a date" [(ngModel)]="data['availableFrom']"></app-date-picker></div>
         <div class="field"><span>Minimum rental period</span><div class="segmented"><button type="button" *ngFor="let p of rentalPeriods" [class.active]="data['minimumRentalPeriod'] === p" (click)="data['minimumRentalPeriod'] = data['minimumRentalPeriod'] === p ? '' : p"><i class="fa-regular fa-calendar"></i> {{ p === 'Minimum 6 months' ? '6 months' : '12 months' }}</button></div></div>
       </div>
     </section>

@@ -5,12 +5,13 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { PropertyPointPickerComponent } from '../maps/property-point-picker/property-point-picker.component';
+import { DatePickerComponent } from '../shared/date-picker/date-picker.component';
 import { OwnerLinkInfo, OwnerListingService } from '../services/owner-listing.service';
 import { TranslationService } from '../services/translation.service';
 
 type FieldKey = 'location' | 'street' | 'streetNumber' | 'totalPrice' | 'area' | 'rooms' | 'ownerName' | 'ownerPhone' | 'ownerEmail' | 'floor';
 
-@Component({ selector: 'app-owner-listing', standalone: true, imports: [CommonModule, FormsModule, PropertyPointPickerComponent], templateUrl: './owner-listing.html', styleUrl: './owner-listing.css' })
+@Component({ selector: 'app-owner-listing', standalone: true, imports: [CommonModule, FormsModule, PropertyPointPickerComponent, DatePickerComponent], templateUrl: './owner-listing.html', styleUrl: './owner-listing.css' })
 export class OwnerListing implements OnInit, OnDestroy {
   readonly maxPhotos = 15;
   readonly propertyTypes = [

@@ -1,3 +1,4 @@
+import { DatePickerComponent } from './shared/date-picker/date-picker.component';
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -79,7 +80,7 @@ import { CrmLink } from './crm/crm-link/crm-link';
     CrmQuestioner,
     CrmLink,
   ],
-  imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule, PropertyPointPickerComponent],
+  imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule, PropertyPointPickerComponent, DatePickerComponent],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor, apiPerformanceInterceptor])),
