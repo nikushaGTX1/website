@@ -43,9 +43,10 @@ export class OwnerListing implements OnInit, OnDestroy {
   ];
   readonly rentalPeriods = ['Minimum 6 months', 'Minimum 12 months'];
   readonly counters: Array<{ field: string; label: string; icon: string; min: number }> = [
-    { field: 'rooms', label: 'Rooms', icon: 'fa-solid fa-door-open', min: 1 },
-    { field: 'bedrooms', label: 'Bedrooms', icon: 'fa-solid fa-bed', min: 0 },
-    { field: 'bathrooms', label: 'Bathrooms', icon: 'fa-solid fa-bath', min: 0 },
+    // Singular labels read naturally above a count in Georgian (ოთახი / საძინებელი / სააბაზანო).
+    { field: 'rooms', label: 'Room', icon: 'fa-solid fa-door-open', min: 1 },
+    { field: 'bedrooms', label: 'Bedroom', icon: 'fa-solid fa-bed', min: 0 },
+    { field: 'bathrooms', label: 'Bathroom', icon: 'fa-solid fa-bath', min: 0 },
   ];
 
   token = ''; info?: OwnerLinkInfo; loading = true; submitting = false; submitted = false; attempted = false; error = '';

@@ -1,3 +1,13 @@
+/* Rental details: long Georgian labels made the two fields collide side by side.
+   Stack them on phones with clear spacing; keep the month buttons on one line. */
+.grid.two { gap: 18px 20px; align-items: end; }
+.segmented button { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+@media (max-width: 720px) {
+  .grid.two { grid-template-columns: 1fr !important; gap: 18px !important; }
+  .grid.two .segmented { width: 100%; }
+  .grid.two .segmented button { flex: 1; padding: 12px 10px; }
+}
+
 :host {
   --brand: #451a8f;
   --brand-2: #7136be;

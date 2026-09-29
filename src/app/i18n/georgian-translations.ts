@@ -1617,6 +1617,8 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['5+ years', '5+ წელი'],
   ['Parking included', 'პარკინგი ადგილზეა'],
   ['Paid parking', 'პარკინგი ფასიანია'],
+  ['Room', 'ოთახი'],
+  ['Bathroom', 'სააბაზანო'],
   ['Matches your answers', 'ემთხვევა თქვენს პასუხებს'],
   ['Location matches', 'მდებარეობა ემთხვევა'],
   ['Within your budget', 'თქვენი ბიუჯეტის ფარგლებში'],
