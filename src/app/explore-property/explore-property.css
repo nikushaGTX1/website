@@ -2593,3 +2593,56 @@ svg {
   .size-apply { min-height: clamp(46px, 6vh, 68px); min-width: 200px; font-size: 18px !important; }
   .size-clear { font-size: 18px !important; }
 }
+
+/* Save heart: always a true circle (global mobile button min-height made it oval),
+   icon centred both ways, and filled once saved. */
+.heart,
+.map-preview-heart {
+  --heart-d: 40px;
+  width: var(--heart-d) !important;
+  height: var(--heart-d) !important;
+  min-width: var(--heart-d) !important;
+  min-height: var(--heart-d) !important;
+  max-width: var(--heart-d) !important;
+  max-height: var(--heart-d) !important;
+  padding: 0 !important;
+  aspect-ratio: 1 / 1;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center;
+  line-height: 0;
+  box-sizing: border-box;
+}
+@media (max-width: 780px) {
+  .heart, .map-preview-heart { --heart-d: 44px; }
+}
+.heart svg,
+.map-preview-heart svg {
+  display: block;
+  margin: 0 !important;
+}
+/* Same look as the main page cards: white circle, grey outline heart, red filled when saved. */
+.heart,
+.map-preview-heart,
+.heart.saved,
+.map-preview-heart.saved {
+  border: 1px solid #d9e0e9 !important;
+  background: #fff !important;
+  color: #516078 !important;
+  box-shadow: 0 4px 12px rgba(15, 24, 40, .12);
+}
+.heart svg,
+.map-preview-heart svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.heart.saved,
+.map-preview-heart.saved {
+  color: #e63957 !important;
+}
+.heart.saved svg,
+.map-preview-heart.saved svg {
+  fill: currentColor !important;
+}
