@@ -9,7 +9,7 @@
 }
 
 .services-hero {
-  min-height: 515px;
+  min-height: clamp(380px, 62vh, 515px);
   padding: 68px max(6.7vw, 32px);
   display: flex;
   align-items: flex-start;

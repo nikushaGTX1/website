@@ -4946,3 +4946,16 @@
     );
   }
 }
+
+/* Short laptop screens (1280x720, 1366x768, 1536x864): shorten the hero so the
+   overlapping search card stays fully inside the first screen. */
+@media (min-width: 1024px) and (max-height: 900px) {
+  .hero {
+    min-height: clamp(470px, calc(100dvh - 215px), 580px);
+    padding-top: clamp(28px, 5vh, 62px);
+  }
+
+  .hero-copy {
+    margin-top: clamp(8px, 2.5vh, 40px);
+  }
+}

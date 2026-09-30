@@ -1772,7 +1772,7 @@ svg {
     padding: 24px 24px 70px 46px;
   }
   .cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 30px 20px;
   }
   .cards-grid.single-result {
@@ -2429,6 +2429,7 @@ svg {
   padding: 10px 16px; border: 1px solid #e4dcf0; border-radius: 999px;
   background: #fff; color: #1f1433; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
   transition: border-color .15s, box-shadow .15s;
+  flex: 0 0 auto; white-space: nowrap; word-break: keep-all; overflow-wrap: normal;
 }
 .sort-trigger > i:first-child { color: #7136be; }
 .sort-trigger:hover, .sort-trigger.open { border-color: #451a8f; box-shadow: 0 0 0 3px rgba(69, 26, 143, .12); }
@@ -2558,4 +2559,12 @@ svg {
   .size-range p { margin-top: 12px; font-size: 13px; line-height: 1.6; }
   .size-dialog .size-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; padding: 0; }
   .size-dialog .size-footer button { width: 100%; min-width: 0; min-height: 50px; padding: 10px 6px; font-size: 14px !important; white-space: nowrap; line-height: 1.5; }
+}
+
+/* Laptops (1280–1699px): keep two cards per row; a lone full-width card
+   was taller than the viewport. */
+@media (min-width: 781px) and (max-width: 1699px) {
+  .cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  }
 }

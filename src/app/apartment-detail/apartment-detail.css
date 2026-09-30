@@ -60,8 +60,8 @@
   width: 100%;
   /* Airbnb-style desktop sizing: preserve the full content width, but make the
      gallery shallower on short laptop viewports so listing details remain visible. */
-  height: min(528px, calc((100vw - 54px) / 2.5), calc(100vh - 260px));
-  min-height: 360px;
+  height: min(528px, calc((100vw - 54px) / 2.5), calc(100dvh - 340px));
+  min-height: 320px;
   aspect-ratio: auto;
   max-height: none;
   display: grid;
