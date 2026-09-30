@@ -2568,3 +2568,28 @@ svg {
     grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
   }
 }
+
+/* Area / floor dialogs on laptop-height screens: shrink artwork and spacing with the
+   viewport height so the whole dialog fits without an inner scrollbar. */
+@media (min-width: 601px) and (max-height: 1100px) {
+  .size-dialog { padding: clamp(20px, 3vh, 32px) 32px clamp(20px, 3vh, 36px); }
+  .size-dialog h2 { font-size: clamp(26px, 3.6vh, 40px); margin-bottom: 4px; line-height: 1.25; }
+  .size-subtitle { font-size: clamp(14px, 1.9vh, 20px); margin-bottom: clamp(10px, 1.8vh, 22px); }
+  .size-presets button { padding: clamp(12px, 2vh, 24px) 10px clamp(10px, 1.6vh, 20px); gap: 4px; }
+  .size-presets img { height: clamp(70px, 13vh, 150px); margin: 0 0 4px; }
+  .floor-artwork { height: clamp(90px, 17vh, 220px); margin: 0 0 4px; }
+  .floor-dialog .size-presets .floor-artwork img { width: auto; height: 100%; }
+  .size-presets strong { font-size: clamp(15px, 2vh, 20px); }
+  .size-presets button > span:last-child { font-size: clamp(13px, 1.6vh, 16px); }
+  .size-range { margin-top: clamp(14px, 2.4vh, 32px); padding-top: clamp(10px, 1.8vh, 20px); }
+  .size-range h3 { font-size: clamp(15px, 2vh, 20px); margin-bottom: clamp(8px, 1.4vh, 18px); }
+  .size-inputs fieldset { padding: 4px 16px 8px; }
+  .size-inputs input, .size-inputs select { font-size: clamp(17px, 2.3vh, 23px); }
+  .size-range p { margin-top: 8px; font-size: 14px; }
+  .floor-exclusions { gap: clamp(8px, 1.4vh, 18px); margin-top: clamp(12px, 2vh, 30px); padding-top: clamp(10px, 1.8vh, 26px); }
+  .floor-exclusions label { font-size: clamp(14px, 1.8vh, 17px); }
+  .floor-exclusions input { width: 22px; height: 22px; }
+  .size-footer { margin-top: clamp(14px, 2.6vh, 48px); }
+  .size-apply { min-height: clamp(46px, 6vh, 68px); min-width: 200px; font-size: 18px !important; }
+  .size-clear { font-size: 18px !important; }
+}
