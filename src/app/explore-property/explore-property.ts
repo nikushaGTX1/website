@@ -1143,6 +1143,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   /** Bottom-sheet area picker ("იპოვეთ სასურველი უბანი"). Selections are draft until applied. */
   areaSheetOpen = false;
+  private areaSheetLocationBefore = '';
   areaSheetClosing = false;
   private areaSheetSnapshot: {
     areas: string[];
@@ -1162,6 +1163,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   openAreaSheet(): void {
     if (this.areaSheetOpen && !this.areaSheetClosing) return;
+    // The sheet search box reuses `location` (it drives the suggestions); restore it on cancel.
+    this.areaSheetLocationBefore = this.location;
+    this.location = '';
     window.clearTimeout(this.areaSheetTimer);
     this.areaSheetClosing = false;
     this.areaSheetSnapshot = {
@@ -1183,6 +1187,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   /** Cancel: drop the draft and restore the filters exactly as they were when the sheet opened. */
   cancelAreaSheet(): void {
     const snapshot = this.areaSheetSnapshot;
+    this.location = this.areaSheetLocationBefore;
     if (snapshot) {
       this.selectedLocationAreas = snapshot.areas;
       this.selectedLocationArea = snapshot.area;
@@ -1192,6 +1197,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
       this.inlineDrawnPolygon = snapshot.polygon;
       this.drawnDetectedArea = snapshot.detectedArea;
     }
+    this.closeAreaSheet();
+  }
+
+  /** Picking a district or street from the sheet search applies it right away. */
+  pickSheetSuggestion(suggestion: LocationSuggestion): void {
+    this.selectedLocationAreas = suggestion.type === 'Area' ? [suggestion.value || suggestion.label] : [];
+    this.selectLocation(suggestion);
     this.closeAreaSheet();
   }
 
@@ -1480,6 +1492,12 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   private readonly forwardWheelToResults = (event: WheelEvent): void => {
+    // Location picker open: nothing behind it may scroll; only the picker list itself scrolls.
+    if (this.areaSheetOpen) {
+      const inSheetList = event.target instanceof Element && !!event.target.closest('.area-sheet-scroll');
+      if (!inSheetList) event.preventDefault();
+      return;
+    }
     if (this.floorOpen) return;
     if (this.sizeOpen) return;
     if (

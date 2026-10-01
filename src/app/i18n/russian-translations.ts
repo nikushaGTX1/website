@@ -799,6 +799,16 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['The Verified badge means a Velven agent checked the property in person. Duplicate listings are removed.', 'Значок «Проверено» означает, что агент Velven лично осмотрел объект. Дубликаты объявлений удаляются.'],
   ["Not sure exactly what you're looking for?", 'Не знаете точно, что ищете?'],
   ['Find options tailored to you with AI.', 'Найдите подходящие вам варианты с помощью AI.'],
+  ['Grocery', 'Магазин'],
+  ['Closed Deals', 'Закрытые сделки'],
+  ['Avg. Response Time', 'Среднее время ответа'],
+  ['Fitness', 'Фитнес'],
+  ['Search area, street or landmark', 'Район, улица или ориентир'],
+  ['No matching districts or streets.', 'Подходящих районов или улиц не найдено.'],
+  ['Nearest supermarket', 'Ближайший супермаркет'],
+  ['Nearest pharmacy', 'Ближайшая аптека'],
+  ['Nearest café', 'Ближайшее кафе'],
+  ['Nearest EV charger', 'Ближайшая зарядка для электромобилей'],
 ]);
 
 const RUSSIAN_RULES: RussianRule[] = [

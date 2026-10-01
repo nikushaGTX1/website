@@ -234,15 +234,20 @@ export class GoogleNearbyTimeService {
       Promise.all(
         categories.map(async ({ type, key }) => {
           try {
+            const isCafe = type === 'cafe';
             const response = await Place.searchNearby({
-              fields: ['location'],
+              fields: isCafe ? ['location', 'rating', 'userRatingCount'] : ['location'],
               locationRestriction: { center: origin, radius: 5000 },
               // Gyms are often listed as fitness centers on Google; search both.
               includedPrimaryTypes: type === 'gym' ? ['gym', 'fitness_center'] : [type],
-              maxResultCount: 1,
+              // Cafés: look at the 20 closest and keep the nearest well-reviewed one.
+              maxResultCount: isCafe ? 20 : 1,
               rankPreference: SearchNearbyRankPreference.DISTANCE,
             });
-            const destination = response.places[0]?.location;
+            const place = isCafe
+              ? response.places.find((item) => (item.rating ?? 0) >= 4.7 && (item.userRatingCount ?? 0) >= 100)
+              : response.places[0];
+            const destination = place?.location;
             if (!destination) return [key, undefined] as const;
 
             const directions = await new routes.DirectionsService().route({

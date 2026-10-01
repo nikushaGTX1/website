@@ -572,7 +572,7 @@ export class HomeMatchResultsComponent implements OnChanges {
     if (this.profile.hasPet && apartment.isPetFriendly) {
       add('Pet-friendly home', `Because you live with ${this.profile.petType === 'Cat' ? 'a cat' : 'a pet'}`, 'fa-paw');
     }
-    if (apartment.metroDistanceMinutes != null && this.profile.transportation.includes('Metro')) {
+    if (apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes <= 20 && this.profile.transportation.includes('Metro')) {
       add(
         `Metro ${apartment.metroDistanceMinutes} min away`,
         'Because metro is part of your routine',

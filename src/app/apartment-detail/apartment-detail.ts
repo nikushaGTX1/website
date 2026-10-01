@@ -1129,12 +1129,16 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const places = [
       isVake
         ? { label: 'Vake Park', icon: 'fa-tree', minutes: 10, image: '/icons/areas/vake-fountain.png' }
-        : { label: 'Nearest metro', icon: 'fa-train-subway', minutes: apartment.metroDistanceMinutes },
+        // Metro only counts as "nearby" within a 20-minute walk; farther away it is left out.
+        : { label: 'Nearest metro', icon: 'fa-train-subway', minutes: Number(apartment.metroDistanceMinutes) <= 20 ? apartment.metroDistanceMinutes : undefined },
       {
         label: 'Nearest school',
         icon: 'fa-graduation-cap',
         minutes: apartment.schoolDistanceMinutes,
       },
+      // Everyday services.
+      { label: 'Nearest supermarket', icon: 'fa-basket-shopping', minutes: apartment.groceryDistanceMinutes },
+      { label: 'Nearest pharmacy', icon: 'fa-prescription-bottle-medical', minutes: apartment.pharmacyDistanceMinutes },
       { label: 'Nearest gym', icon: 'fa-dumbbell', minutes: apartment.gymDistanceMinutes },
       { label: 'Nearest park', icon: 'fa-tree', minutes: apartment.parkDistanceMinutes },
       {
@@ -1147,10 +1151,12 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         icon: 'fa-building-columns',
         minutes: apartment.universityDistanceMinutes,
       },
+      { label: 'Nearest café', icon: 'fa-mug-hot', minutes: apartment.cafeDistanceMinutes },
+      { label: 'Nearest EV charger', icon: 'fa-charging-station', minutes: apartment.evChargerDistanceMinutes },
     ];
     return places.filter((place): place is { label: string; icon: string; minutes: number } =>
       Number.isFinite(place.minutes),
-    );
+    ).slice(0, 9); // show up to 9 places (3 full rows)
   }
 
   viewSimilar(index: number): void {

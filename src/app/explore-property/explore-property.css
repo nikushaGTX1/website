@@ -2665,3 +2665,95 @@ svg {
   .size-dialog .size-footer { margin-top: clamp(12px, 2dvh, 24px); }
   .size-dialog .size-footer button { min-height: 46px; }
 }
+
+/* Location picker (opened from the Location field): title, search box, live suggestions. */
+.area-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 20px 4px;
+  flex: none;
+}
+.area-sheet-head h2 { margin: 0; color: #12172b; font-size: clamp(20px, 2vw, 26px); font-weight: 800; }
+.area-sheet-close {
+  width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important;
+  padding: 0; display: grid; place-items: center; border: 0; border-radius: 50%;
+  background: #f3f0f8; color: #4b4560; cursor: pointer;
+}
+.area-sheet-search {
+  margin: 10px 20px 2px;
+  height: 50px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  border: 1px solid #e3dfea;
+  border-radius: 14px;
+  background: #fff;
+  color: #8a8499;
+}
+.area-sheet-search:focus-within { border-color: #451a8f; box-shadow: 0 0 0 3px rgba(69, 26, 143, .12); }
+.area-sheet-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: #12172b; font: inherit; font-size: 16px; }
+.area-sheet-search button { width: 28px !important; height: 28px !important; min-height: 28px !important; padding: 0; border: 0; border-radius: 50%; background: #f1eef6; color: #6b6480; cursor: pointer; }
+.area-sheet-suggestions { display: grid; gap: 4px; padding-top: 8px; }
+.area-sheet-suggestions > button {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 12px;
+  border: 0; border-radius: 12px; background: transparent; text-align: left; cursor: pointer;
+}
+.area-sheet-suggestions > button:hover { background: #f7f3fd; }
+.area-sheet-suggestions > button > i { color: #451a8f; width: 18px; text-align: center; }
+.area-sheet-suggestions b { display: block; color: #1b1626; font-size: 15px; }
+.area-sheet-suggestions small { display: block; color: #7d8598; font-size: 12.5px; }
+.area-sheet-suggestions .suggestion-status { margin: 10px 4px; color: #7d8598; font-size: 14px; }
+.area-sheet-featured b,
+.area-sheet-featured small,
+.area-sheet-all span {
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+.area-sheet-featured b { font-size: clamp(14px, 3.8vw, 17px); }
+/* Keep scroll gestures inside the picker (touch devices). */
+.area-sheet-scroll { touch-action: pan-y; overscroll-behavior: contain; }
+
+/* Popular areas: same layout in every tile — name on top, short description under it
+   (max 2 lines), both aligned to the top so the four tiles line up. */
+.area-sheet-featured button {
+  align-items: flex-start;
+  min-height: 84px;
+}
+.area-sheet-featured .area-sheet-icon { margin-top: 2px; }
+.area-sheet-featured span {
+  align-content: start;
+  gap: 4px;
+  text-align: left;
+}
+.area-sheet-featured b {
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.area-sheet-featured small {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.35;
+}
+/* Phones: icon above the text so long Georgian names get the full tile width. */
+@media (max-width: 600px) {
+  .area-sheet-featured button {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 0;
+    padding: 12px;
+  }
+  .area-sheet-featured b {
+    white-space: normal;
+    overflow: visible;
+  }
+}

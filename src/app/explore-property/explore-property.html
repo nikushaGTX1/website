@@ -3,7 +3,7 @@
   <section class="search-row" aria-label="Property search">
     <div class="search-box">
       <div class="search-field location-field">
-        <button type="button" aria-haspopup="dialog" [attr.aria-expanded]="locationOpen" (click)="$event.stopPropagation(); toggleSearchMenu('location')">
+        <button type="button" aria-haspopup="dialog" [attr.aria-expanded]="areaSheetOpen" (click)="$event.stopPropagation(); openAreaSheet()">
           <small>Location</small><strong>{{ location || 'Tbilisi' }}</strong>
         </button>
         <div
@@ -512,12 +512,12 @@
             <div class="card-nearby">
               <span class="card-nearby-label">Nearby</span>
               <div class="card-nearby-grid">
-                <span *ngIf="apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes < 30">
+                <span *ngIf="apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes <= 20">
                   <i class="fa-solid fa-train-subway" aria-hidden="true"></i>
                   <b>Metro</b>
                   <small>{{ apartment.metroDistanceMinutes }} min walk</small>
                 </span>
-                <span *ngIf="apartment.metroDistanceMinutes == null || apartment.metroDistanceMinutes >= 30">
+                <span *ngIf="apartment.metroDistanceMinutes == null || apartment.metroDistanceMinutes > 20">
                   <i class="fa-solid fa-tree" aria-hidden="true"></i>
                   <b>Park</b>
                   <small>{{
@@ -535,10 +535,20 @@
                       : 'Not nearby'
                   }}</small>
                 </span>
-                <span>
+                <span *ngIf="apartment.hasParking">
                   <i class="fa-solid fa-car" aria-hidden="true"></i>
                   <b>Parking</b>
-                  <small>{{ apartment.hasParking ? parkingCostLabel(apartment) || 'Available' : 'Unavailable' }}</small>
+                  <small>{{ parkingCostLabel(apartment) || 'Available' }}</small>
+                </span>
+                <!-- No parking: show the nearest grocery instead of an "Unavailable" tile. -->
+                <span *ngIf="!apartment.hasParking">
+                  <i class="fa-solid fa-basket-shopping" aria-hidden="true"></i>
+                  <b>Grocery</b>
+                  <small>{{
+                    apartment.groceryDistanceMinutes != null
+                      ? apartment.groceryDistanceMinutes + ' min walk'
+                      : 'Not nearby'
+                  }}</small>
                 </span>
               </div>
             </div>
@@ -647,7 +657,32 @@
   <div class="area-sheet-backdrop" *ngIf="areaSheetOpen" [class.closing]="areaSheetClosing" (click)="cancelAreaSheet()">
     <section class="area-sheet" role="dialog" aria-modal="true" aria-label="Choose areas" (click)="$event.stopPropagation()">
       <div class="area-sheet-handle" aria-hidden="true"><span></span></div>
+      <header class="area-sheet-head">
+        <h2>Choose your location</h2>
+        <button type="button" class="area-sheet-close" aria-label="Close" (click)="cancelAreaSheet()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </header>
+      <label class="area-sheet-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input [(ngModel)]="location" (input)="onLocationInput()" placeholder="Search area, street or landmark"
+          aria-label="Search area, street or landmark" autocomplete="off" />
+        <button type="button" *ngIf="location.trim().length" (click)="location = ''; onLocationInput()" aria-label="Clear search">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </label>
       <div class="area-sheet-scroll">
+        <div class="area-sheet-suggestions" *ngIf="location.trim().length">
+          <p class="suggestion-status" *ngIf="locationLoading"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Loading locations…</p>
+          <ng-container *ngIf="!locationLoading">
+            <button type="button" *ngFor="let suggestion of areaSuggestions" (click)="pickSheetSuggestion(suggestion)">
+              <i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>{{ suggestion.label }}</b><small>{{ suggestion.city }}</small></span>
+            </button>
+            <button type="button" *ngFor="let suggestion of streetSuggestions" (click)="pickSheetSuggestion(suggestion)">
+              <i class="fa-solid fa-road" aria-hidden="true"></i><span><b>{{ suggestion.label }}</b><small>{{ suggestion.district }}</small></span>
+            </button>
+            <p class="suggestion-status" *ngIf="!hasLocationSuggestions"><i class="fa-regular fa-compass" aria-hidden="true"></i> No matching districts or streets.</p>
+          </ng-container>
+        </div>
+        <ng-container *ngIf="!location.trim().length">
         <h3>Popular areas</h3>
         <div class="area-sheet-featured">
           <button type="button" *ngFor="let area of featuredLocationAreas" [class.selected]="isAreaSelected(area.name)" (click)="chooseAreaForModal(area.name)">
@@ -671,6 +706,7 @@
             {{ moreAreasOpen ? 'View less' : 'View more' }}
           </button>
         </div>
+        </ng-container>
       </div>
       <footer class="area-sheet-footer">
         <button type="button" class="area-sheet-cancel" (click)="cancelAreaSheet()">Cancel</button>

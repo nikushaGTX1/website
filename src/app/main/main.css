@@ -2779,7 +2779,7 @@
   }
 
   .nearby-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .nearby-grid > span {
@@ -5029,10 +5029,10 @@
   .property-card .nearby-label {
     margin-bottom: 8px;
   }
-  /* Max two places, each a readable one-line pill. */
+  /* Three places per card; icon above the label so all three fit the card width. */
   .property-card .nearby-grid,
   :host-context(html:lang(ka)) .property-card .nearby-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
   .property-card .nearby-grid > span,
@@ -5222,4 +5222,28 @@
 }
 @media (max-width: 620px) {
   .search-top .ai-strip { width: 100%; }
+}
+@media (min-width: 651px) {
+  .property-card .nearby-grid > span,
+  :host-context(html:lang(ka)) .property-card .nearby-grid > span {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    row-gap: 3px;
+    padding: 8px 4px;
+    text-align: center;
+  }
+  .property-card .nearby-grid i,
+  :host-context(html:lang(ka)) .property-card .nearby-grid i {
+    grid-row: auto;
+  }
+  .property-card .nearby-grid b,
+  .property-card .nearby-grid small,
+  :host-context(html:lang(ka)) .property-card .nearby-grid b,
+  :host-context(html:lang(ka)) .property-card .nearby-grid small {
+    max-width: 100%;
+  }
+  .property-card .nearby-grid small,
+  :host-context(html:lang(ka)) .property-card .nearby-grid small {
+    font-size: 11px;
+  }
 }

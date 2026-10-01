@@ -1843,6 +1843,14 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['The Verified badge means a Velven agent checked the property in person. Duplicate listings are removed.', 'ნიშანი „გადამოწმებული“ ნიშნავს, რომ Velven-ის აგენტმა ქონება ადგილზე შეამოწმა. დუბლირებული განცხადებები იშლება.'],
   ["Not sure exactly what you're looking for?", 'არ იცით ზუსტად რას ეძებთ?'],
   ['Find options tailored to you with AI.', 'იპოვეთ თქვენზე მორგებული ვარიანტები AI-სთან ერთად.'],
+  ['Grocery', 'მარკეტი'],
+  ['Fitness', 'ფიტნესი'],
+  ['Search area, street or landmark', 'მოძებნეთ უბანი, ქუჩა ან ღირსშესანიშნაობა'],
+  ['No matching districts or streets.', 'შესაბამისი უბანი ან ქუჩა ვერ მოიძებნა.'],
+  ['Nearest supermarket', 'სუპერმარკეტი'],
+  ['Nearest pharmacy', 'აფთიაქი'],
+  ['Nearest café', 'კაფე'],
+  ['Nearest EV charger', 'ელექტრო დამტენი'],
 ]);
 
 // Velven Match: requirement statuses, review page and validation messages.

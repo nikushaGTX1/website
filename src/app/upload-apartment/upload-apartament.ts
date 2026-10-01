@@ -14,6 +14,12 @@ import {
 } from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
 import { parseParkingCost } from '../utils/parking-cost';
+
+const NEARBY_KEYS: Array<keyof NearbyWalkingTimes> = [
+  'schoolDistanceMinutes', 'kindergartenDistanceMinutes', 'groceryDistanceMinutes', 'cafeDistanceMinutes',
+  'gymDistanceMinutes', 'metroDistanceMinutes', 'parkDistanceMinutes', 'universityDistanceMinutes',
+  'pharmacyDistanceMinutes', 'evChargerDistanceMinutes',
+];
 import { AiPricingService } from '../services/ai-pricing.service';
 import { OwnerListingService, OwnerSubmission, OwnerSubmissionStatus } from '../services/owner-listing.service';
 
@@ -341,6 +347,8 @@ export class UploadApartment implements OnInit, OnDestroy {
   showSuccessModal = false;
   successModalEdited = false;
   editId: number | null = null;
+  private editSavedNearby: NearbyWalkingTimes = {};
+  private editSavedLocationKey = '';
   editPendingId: string | null = null;
   editLoading = false;
   private ownerSubmissionId: number | null = null;
@@ -593,6 +601,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       if (request) {
         this.editPendingId = pendingId;
         this.applyExistingListing(request.apartment);
+        this.editSavedLocationKey = this.nearbyLocationKey();
       }
       return;
     }
@@ -603,6 +612,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         next: (apartment) => {
           this.editLoading = false;
           this.applyExistingListing(apartment);
+          this.editSavedLocationKey = this.nearbyLocationKey();
           this.cdr.detectChanges();
         },
         error: () => {
@@ -620,7 +630,22 @@ export class UploadApartment implements OnInit, OnDestroy {
     return match ? match.slice(prefix.length).trim() : '';
   }
 
+  /** Location fingerprint: walking times only need recalculating when this changes. */
+  private nearbyLocationKey(): string {
+    return [
+      this.form.propertyLatitude, this.form.propertyLongitude,
+      this.selectedStreetValue, this.form.streetNumber, this.selectedDistrictValue,
+    ].map((part) => String(part ?? '').trim().toLowerCase()).join('|');
+  }
+
   private applyExistingListing(source: Partial<import('../models/apartment').Apartment & CreateApartment>): void {
+    // Walking times already saved on this listing; reused on save if the location is unchanged,
+    // so editing other fields never calls Google again.
+    const saved = source as Partial<Record<keyof NearbyWalkingTimes, number | null>>;
+    this.editSavedNearby = Object.fromEntries(
+      NEARBY_KEYS.filter((key) => saved[key] != null).map((key) => [key, Number(saved[key])]),
+    ) as NearbyWalkingTimes;
+    this.editSavedLocationKey = '';
     const description = source.description || '';
     const splitAt = description.lastIndexOf('\n\n');
     const tail = splitAt >= 0 ? description.slice(splitAt + 2) : '';
@@ -1614,7 +1639,13 @@ export class UploadApartment implements OnInit, OnDestroy {
       'Tbilisi',
     ].filter(Boolean).join(', ');
     let nearbyTimes: NearbyWalkingTimes = {};
-    try {
+    const reuseSaved =
+      Object.keys(this.editSavedNearby).length > 0 &&
+      !!this.editSavedLocationKey &&
+      this.editSavedLocationKey === this.nearbyLocationKey();
+    if (reuseSaved) {
+      nearbyTimes = { ...this.editSavedNearby };
+    } else try {
       // Google can hang or resolve outside Angular; never let it block publishing.
       nearbyTimes = await Promise.race([
         this.nearbyTimeService.getWalkingTimes(
