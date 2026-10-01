@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, HostListener, Input, NgZone, OnDestroy, OnInit, forwardRef } from '@angular/core';
+import { Component, ElementRef, Input, NgZone, OnDestroy, OnInit, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TranslationService } from '../../services/translation.service';
+import { claimEscape, escapeAlreadyHandled } from '../../utils/escape-layer';
 
 type Day = { iso: string; date: number; inMonth: boolean; today: boolean; disabled: boolean };
 
@@ -154,15 +155,23 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnDest
   };
 
   ngOnInit(): void {
-    this.zone.runOutsideAngular(() => document.addEventListener('pointerdown', this.outsidePress, true));
+    this.zone.runOutsideAngular(() => {
+      document.addEventListener('pointerdown', this.outsidePress, true);
+      // Capture phase: the calendar is the topmost layer, so it closes before any dialog around it.
+      document.addEventListener('keydown', this.escapePress, true);
+    });
   }
 
   ngOnDestroy(): void {
     document.removeEventListener('pointerdown', this.outsidePress, true);
+    document.removeEventListener('keydown', this.escapePress, true);
   }
 
-  @HostListener('document:keydown.escape')
-  closeOnEscape(): void { this.open = false; }
+  private readonly escapePress = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || !this.open || escapeAlreadyHandled(event)) return;
+    claimEscape(event);
+    this.zone.run(() => (this.open = false));
+  };
 
   writeValue(value: string | null): void { this.value = value || ''; }
   registerOnChange(fn: (value: string) => void): void { this.onChange = fn; }

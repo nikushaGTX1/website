@@ -6,11 +6,13 @@ import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { TranslationService } from '../services/translation.service';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
+import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 
 @Component({
   selector: 'app-main',
@@ -235,6 +237,8 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     readonly translationService: TranslationService,
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
+    private route: ActivatedRoute,
+    private location: Location,
   ) {}
 
   ngOnDestroy(): void {
@@ -244,6 +248,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnInit(): void {
+    this.restoreSearchState();
     this.loadApartments();
     this.loadAgents();
     this.loadLocations();
@@ -286,7 +291,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   get budgetSummary(): string {
     const min = this.appliedBudgetMin;
     const max = this.appliedBudgetMax;
-    if (min == null && max == null) return 'Any budget';
+    if (min == null && max == null) return 'Budget';
     if (min != null && max != null)
       return `${min.toLocaleString()} – ${max.toLocaleString()} ${this.budgetCurrency}`;
     if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
@@ -300,31 +305,44 @@ export class Main implements OnInit, OnDestroy, DoCheck {
       return `${min.toLocaleString()} - ${max.toLocaleString()} ${this.budgetCurrency}`;
     if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
     if (max != null) return `Up to ${max.toLocaleString()} ${this.budgetCurrency}`;
-    return 'Any budget';
+    return 'Budget';
+  }
+
+  /** Rent budgets are monthly; purchase prices need a much larger slider range. */
+  get budgetCap(): number {
+    return this.searchMode === 'buy' ? 1_000_000 : 5000;
+  }
+
+  get budgetStep(): number {
+    return this.searchMode === 'buy' ? 5000 : 50;
+  }
+
+  get budgetCapLabel(): string {
+    return this.searchMode === 'buy' ? '$1,000,000+' : '$5,000+';
   }
 
   get budgetMinPercent(): number {
-    return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
+    return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? this.budgetCap));
   }
 
   get budgetMaxPercent(): number {
-    return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
+    return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? this.budgetCap));
   }
 
   setBudgetMin(value: number | null): void {
-    const maximum = Number(this.budgetMax ?? 5000);
+    const maximum = Number(this.budgetMax ?? this.budgetCap);
     this.budgetMin = value == null ? null : Math.min(maximum, Math.max(0, Number(value)));
     this.selectedBudgetRange = '';
   }
 
   setBudgetMax(value: number | null): void {
     const minimum = Number(this.budgetMin ?? 0);
-    this.budgetMax = value == null ? null : Math.max(minimum, Math.min(5000, Number(value)));
+    this.budgetMax = value == null ? null : Math.max(minimum, Math.min(this.budgetCap, Number(value)));
     this.selectedBudgetRange = '';
   }
 
   private normalizedSliderValue(value: number | null): number {
-    return Math.min(100, Math.max(0, Number(value || 0) / 50));
+    return Math.min(100, Math.max(0, (Number(value || 0) / this.budgetCap) * 100));
   }
 
   get bedroomSummary(): string {
@@ -340,6 +358,17 @@ export class Main implements OnInit, OnDestroy, DoCheck {
 
   isBedroomSelected(value: string): boolean {
     return this.searchBedroomValues.includes(value);
+  }
+
+  /** Closes only the topmost open layer per press (see utils/escape-layer). */
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKey(event: Event): void {
+    if (escapeAlreadyHandled(event)) return;
+    const close = (fn: () => void) => { claimEscape(event); fn(); };
+    if (this.drawAreaOpen) return close(() => this.closeDrawArea());
+    if (this.locationOpen) return close(() => this.cancelLocationPicker());
+    if (this.budgetOpen || this.bedroomOpen || this.propertyTypeOpen)
+      return close(() => (this.budgetOpen = this.bedroomOpen = this.propertyTypeOpen = false));
   }
 
   @HostListener('document:click')
@@ -441,6 +470,8 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   }
 
   selectSearchMode(mode: 'rent' | 'buy'): void {
+    // Rent (monthly) and buy (purchase) budgets use different scales; never carry one into the other.
+    if (mode !== this.searchMode) this.resetBudget();
     this.searchMode = mode;
     this.updateApartmentsForSelectedMode();
     this.hydrateHomepageGalleries();
@@ -1037,7 +1068,60 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     return apartment.description?.trim() || 'No description provided.';
   }
 
+  /** Search criteria live in this page's own URL (written just before leaving for results),
+   *  so browser Back / refresh brings the same selections back. */
+  private restoreSearchState(): void {
+    const q = this.route.snapshot.queryParamMap;
+    const mode = q.get('mode');
+    if (mode === 'rent' || mode === 'buy') this.searchMode = mode;
+    const location = q.get('location');
+    if (location) {
+      this.selectedLocationValue = location;
+      this.searchLocation = q.get('label') || location;
+    }
+    const streetId = Number(q.get('street_id'));
+    if (streetId > 0) this.selectedStreetId = streetId;
+    this.searchPropertyType = q.get('propertyType') || '';
+    const currency = q.get('currency');
+    if (currency === 'GEL' || currency === 'USD') this.budgetCurrency = currency;
+    const numberParam = (key: string) => {
+      const raw = q.get(key);
+      return raw != null && raw !== '' && !isNaN(+raw) ? +raw : null;
+    };
+    this.budgetMin = this.appliedBudgetMin = numberParam('budgetMin');
+    this.budgetMax = this.appliedBudgetMax = numberParam('budgetMax');
+    this.searchBudget = this.appliedBudgetMax?.toString() || '';
+    const bedrooms = q.get('bedrooms');
+    if (bedrooms) {
+      this.searchBedrooms = bedrooms;
+      this.bedroomTouched = true;
+    }
+  }
+
+  private saveSearchState(): void {
+    const path = this.router.url.split(/[?#]/)[0] || '/';
+    const hasBudget = this.appliedBudgetMin != null || this.appliedBudgetMax != null;
+    const tree = this.router.createUrlTree([path], {
+      queryParams: {
+        mode: this.searchMode !== 'rent' ? this.searchMode : null,
+        location: this.selectedLocationValue || null,
+        label:
+          this.selectedLocationValue && this.searchLocation !== this.selectedLocationValue
+            ? this.searchLocation
+            : null,
+        street_id: this.selectedStreetId || null,
+        propertyType: this.searchPropertyType || null,
+        budgetMin: this.appliedBudgetMin,
+        budgetMax: this.appliedBudgetMax,
+        currency: hasBudget ? this.budgetCurrency : null,
+        bedrooms: this.searchBedrooms || null,
+      },
+    });
+    this.location.replaceState(this.router.serializeUrl(tree));
+  }
+
   searchHomes(): void {
+    this.saveSearchState();
     const useDrawnArea =
       !!this.inlineDrawnPolygon && !!this.drawnDetectedArea && !this.selectedLocationValue;
     void this.router.navigate(['/ExploreProperty'], {
@@ -1087,6 +1171,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   applyDrawnArea(polygon: GeoJsonPolygon): void {
     sessionStorage.setItem('white-tower-drawn-area', JSON.stringify(polygon));
     this.closeDrawArea();
+    this.saveSearchState();
     void this.router.navigate(['/ExploreProperty'], {
       queryParams: {
         mode: polygon.searchMode || this.searchMode,

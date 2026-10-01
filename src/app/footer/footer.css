@@ -74,7 +74,7 @@
 .footer-grid {
   padding: 10px 0 28px;
   display: grid;
-  grid-template-columns: 1.6fr repeat(5, 1fr);
+  grid-template-columns: 1.6fr repeat(4, 1fr);
   gap: 38px;
 }
 

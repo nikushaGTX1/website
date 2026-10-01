@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import {
@@ -22,7 +23,24 @@ export class Navigation implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     readonly translation: TranslationService,
+    private host: ElementRef<HTMLElement>,
   ) {}
+
+  /** Esc closes the language list first, then the menu, and returns focus to its toggle. */
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKey(event: Event): void {
+    if (escapeAlreadyHandled(event)) return;
+    if (this.languageOpen) {
+      claimEscape(event);
+      this.languageOpen = false;
+      return;
+    }
+    if (this.menuOpen) {
+      claimEscape(event);
+      this.menuOpen = false;
+      this.host.nativeElement.querySelector<HTMLElement>('.menu-toggle')?.focus();
+    }
+  }
 
   ngOnInit(): void {
     this.isLoggedIn = this.authService.isLoggedIn;

@@ -36,7 +36,7 @@ export class SeoService {
         'Read practical guides about renting, buying, neighborhoods and property trends in Tbilisi, Georgia.',
     },
     '/ai-home-match': {
-      title: 'AI Home Matcher for Tbilisi Apartments | Velven',
+      title: 'Velven Match — AI-powered home matching in Tbilisi | Velven',
       description:
         'Create a personalized home profile and discover Tbilisi apartments matched to your budget, commute and lifestyle.',
     },

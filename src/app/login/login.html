@@ -3,6 +3,7 @@
 
     <!-- ================= REGISTER CARD ================= -->
     <div class="auth-card" *ngIf="isRegisterMode">
+      <ng-container *ngTemplateOutlet="ownerNote"></ng-container>
       <h2 class="title">Create your account</h2>
       <p class="subtitle">Join Velven and find a place you'll love coming home to.</p>
 
@@ -103,6 +104,7 @@
     </div>
 
     <div class="auth-card" *ngIf="!isRegisterMode">
+      <ng-container *ngTemplateOutlet="ownerNote"></ng-container>
       <h2 class="title">Welcome Back</h2>
       <p class="subtitle">Sign in to your account</p>
 
@@ -216,3 +218,14 @@
 
   </div>
 </div>
+<!-- Shown when an owner arrives from "List your property": explains why an account is needed. -->
+<ng-template #ownerNote>
+  <div class="owner-note" *ngIf="isOwnerFlow" role="note">
+    <i class="fa-solid fa-house-circle-check" aria-hidden="true"></i>
+    <div>
+      <strong>List your property</strong>
+      <p>Sign in or create a free account to submit your property. You can track and edit your listing from My listings.</p>
+      <p>After signing in, you'll go straight to the listing form.</p>
+    </div>
+  </div>
+</ng-template>

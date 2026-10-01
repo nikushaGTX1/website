@@ -509,13 +509,20 @@ body:has(.viewing-backdrop) .route-content {
 
 body.photo-viewer-active .route-content {
   isolation: auto !important;
+  animation: none !important;
 }
 
 /* Full-screen photo viewer must ignore the generic dialog size cap above,
  * otherwise the page peeks out on the right/bottom edge. */
 .route-content .photo-viewer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
   max-width: none;
   max-height: none;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body.draw-map-open {

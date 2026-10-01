@@ -78,7 +78,7 @@
         <div class="vp-main">
           <section class="vp-intro">
             <div class="vp-eyebrow">
-              <span *ngIf="isVerifiedListing"><i class="fa-regular fa-circle-check"></i> VELVEN VERIFIED</span
+              <span *ngIf="isVerifiedListing" title="A Velven agent has checked this property in person."><i class="fa-regular fa-circle-check"></i> VELVEN VERIFIED</span
               ><span [class.deal-rent]="!isForSale">{{ listingType }}</span>
             </div>
             <h1 [class.georgian-copy]="hasGeorgianText(title)">{{ title }}</h1>
@@ -237,9 +237,13 @@
               ></app-currency-price
             ></strong>
           </div>
-          <div class="vp-proof">
+          <!-- Only for listings an agent marked as checked in person (same rule as the badge). -->
+          <div class="vp-proof" *ngIf="isVerifiedListing">
             <span class="vp-proof-icon"><i class="fa-solid fa-shield-halved"></i></span>
-            <h3>Verified by Velven</h3>
+            <div>
+              <h3>Verified by Velven</h3>
+              <p class="vp-proof-note">A Velven agent has checked this property in person.</p>
+            </div>
           </div>
           <button class="vp-primary" (click)="scheduleViewing()">
             <i class="fa-regular fa-calendar-check"></i> Schedule a viewing</button
@@ -282,13 +286,13 @@
         </section>
         </aside>
       </div>
-      <div class="photo-viewer" *ngIf="photoViewerOpen" role="dialog" aria-modal="true" aria-label="Property photos" (click)="closePhotoViewer()">
+      <dialog #photoViewer class="photo-viewer" *ngIf="photoViewerOpen" aria-modal="true" aria-label="Property photos" (click)="closePhotoViewer()">
         <button class="viewer-back" type="button" (click)="$event.stopPropagation(); closePhotoViewer()">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Back</span>
         </button>
         <button class="viewer-close" type="button" aria-label="Close photo viewer" (click)="$event.stopPropagation(); closePhotoViewer()">×</button>
         <div class="photo-viewer-track" (scroll)="updateActiveViewerPhoto($event)">
-          <div class="viewer-frame" *ngFor="let image of galleryImages; let i = index" [style.--viewer-bg]="viewerBg(image)">
+          <div class="viewer-frame" *ngFor="let image of galleryImages; let i = index" >
           <img
             [src]="image"
             [alt]="title + ' photo ' + (i + 1)"
@@ -303,8 +307,15 @@
           />
           </div>
         </div>
-        <span>{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
-      </div>
+        <button class="viewer-nav previous" type="button" aria-label="Previous photo" [disabled]="activePhotoIndex === 0" (click)="$event.stopPropagation(); stepViewer(-1)"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+        <button class="viewer-nav next" type="button" aria-label="Next photo" [disabled]="activePhotoIndex >= photoCount - 1" (click)="$event.stopPropagation(); stepViewer(1)"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+        <span class="viewer-count">{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
+        <div class="viewer-thumbnails" role="group" aria-label="Choose photo" (click)="$event.stopPropagation()">
+          <button *ngFor="let image of galleryImages; let i = index" type="button"
+            [class.active]="i === activePhotoIndex" [attr.aria-pressed]="i === activePhotoIndex" [attr.data-viewer-thumbnail]="i"
+            [attr.aria-label]="'Photo ' + (i + 1)" (click)="goToViewerPhoto(i)"><img [src]="image" alt="" loading="lazy" draggable="false" /></button>
+        </div>
+      </dialog>
     </ng-container>
     <ng-template #state
       ><section class="detail-empty-state">

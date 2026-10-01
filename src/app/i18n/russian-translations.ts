@@ -784,6 +784,19 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ["The form below is filled with the owner's answers. Check each field and fix anything that is wrong, then publish.", 'Форма ниже заполнена ответами владельца. Проверьте каждое поле, исправьте неверное и опубликуйте.'],
   ['Could not update the owner submission.', 'Не удалось обновить заявку.'],
   ['Everyday services (supermarket, pharmacy)', 'Повседневные услуги (супермаркет, аптека)'],
+  ['Sign in or create a free account to submit your property. You can track and edit your listing from My listings.', 'Войдите или создайте бесплатный аккаунт, чтобы отправить объект. Отслеживать и редактировать объявление можно в разделе «Мои объявления».'],
+  ["After signing in, you'll go straight to the listing form.", 'После входа вы сразу перейдёте к форме объявления.'],
+  ['District or street', 'Район или улица'],
+  ['Every property is reviewed, and duplicate listings are removed.', 'Каждый объект проверяется, а дубликаты объявлений удаляются.'],
+  ['Choose the purchase price that works for you', 'Выберите подходящую вам цену покупки'],
+  ['Choose the monthly price that works for you', 'Выберите подходящую вам ежемесячную цену'],
+  ['Your Velven Match results', 'Ваши результаты Velven Match'],
+  ['Try Velven Match', 'Попробуйте Velven Match'],
+  ['Velven Match progress', 'Прогресс Velven Match'],
+  ['Answer a few questions about your lifestyle, preferences and needs — and Velven Match will recommend properties that truly match you.', 'Ответьте на несколько вопросов о вашем образе жизни, предпочтениях и потребностях — и Velven Match подберёт объекты, которые действительно вам подходят.'],
+  ['List with Velven and reach people who are actively looking to rent or buy.', 'Разместите объект на Velven и найдите тех, кто активно ищет жильё в аренду или для покупки.'],
+  ['A Velven agent has checked this property in person.', 'Агент Velven лично проверил этот объект.'],
+  ['The Verified badge means a Velven agent checked the property in person. Duplicate listings are removed.', 'Значок «Проверено» означает, что агент Velven лично осмотрел объект. Дубликаты объявлений удаляются.'],
 ]);
 
 const RUSSIAN_RULES: RussianRule[] = [

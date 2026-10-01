@@ -430,74 +430,49 @@
   }
 }
 
-/* Switch translated navigation to the roomy menu before labels collide. */
+/* Georgian labels are longer: between tablet and wide desktop keep the full bar
+   (links + language + actions) but tighten spacing and type so nothing collides.
+   The hamburger only takes over at the shared ≤1020px breakpoint. */
 @media (min-width: 1021px) and (max-width: 1450px) {
-  :host-context(html:lang(ka)) .navigation {
-    min-height: 68px;
-    justify-content: space-between;
-  }
-
-  :host-context(html:lang(ka)) .menu-toggle {
-    width: 42px;
-    height: 42px;
-    padding: 10px;
-    border: 1px solid #e2e7ef;
-    border-radius: 9px;
-    display: flex;
-    flex: 0 0 42px;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    background: #fff;
-    cursor: pointer;
-  }
-
-  :host-context(html:lang(ka)) .menu-toggle span {
+  :host-context(html:lang(ka)) .navigation,
+  :host-context(html:lang(ka)) .navigation.logged-in {
     width: 100%;
-    height: 2px;
-    border-radius: 2px;
-    background: #111827;
+    padding-inline: clamp(14px, 1.6vw, 24px);
+    gap: clamp(10px, 1.4vw, 22px);
   }
 
-  :host-context(html:lang(ka)) .navigation-content {
-    position: absolute;
-    top: calc(100% + 1px);
-    right: 0;
-    left: 0;
-    padding: 20px 24px 24px;
-    display: none;
-    align-items: stretch;
-    flex-direction: column;
-    gap: 20px;
-    background: #fff;
-    border-bottom: 1px solid #e8edf4;
-    box-shadow: 0 18px 30px rgba(16, 32, 62, 0.1);
+  :host-context(html:lang(ka)) .brand-name {
+    font-size: clamp(20px, 1.8vw, 24px);
   }
 
-  :host-context(html:lang(ka)) .navigation-content.is-open {
-    display: flex;
+  :host-context(html:lang(ka)) .navigation-content,
+  :host-context(html:lang(ka)) .navigation.logged-in .navigation-content {
+    gap: clamp(10px, 1.3vw, 20px);
   }
 
-  :host-context(html:lang(ka)) .nav-links {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 4px 18px;
+  :host-context(html:lang(ka)) .nav-links,
+  :host-context(html:lang(ka)) .navigation.logged-in .nav-links {
+    gap: clamp(10px, 1.15vw, 18px);
   }
 
   :host-context(html:lang(ka)) .nav-links a {
-    width: 100%;
-    height: auto;
-    min-height: 44px;
-    white-space: normal;
+    font-size: clamp(12px, 0.95vw, 13.5px);
   }
 
   :host-context(html:lang(ka)) .nav-actions {
-    padding-top: 18px;
-    border-top: 1px solid #edf0f5;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  :host-context(html:lang(ka)) .nav-actions a,
+  :host-context(html:lang(ka)) .nav-actions button {
+    font-size: clamp(12px, 0.95vw, 13.5px);
   }
 
   :host-context(html:lang(ka)) .list-property {
-    max-width: none;
+    max-width: 150px;
+    padding-inline: 12px;
+    line-height: 1.2;
   }
 }
 
@@ -764,9 +739,13 @@
   }
 }
 
-@media (min-width: 1021px) and (max-width: 1450px) {
-  :host-context(html:lang(ka)) .nav-actions {
-    justify-content: flex-end;
-    flex-wrap: wrap;
-  }
+
+/* Narrowest full-bar widths (all languages): let the CTA wrap to two lines instead of
+   pushing past the edge. */
+@media (min-width: 1021px) and (max-width: 1120px) {
+  .navigation { padding-inline: 16px; gap: 14px; }
+  .navigation-content { gap: 14px; }
+  .nav-links { gap: 14px; }
+  .nav-actions { gap: 8px; }
+  .list-property { max-width: 140px; padding-inline: 12px; white-space: normal; line-height: 1.2; text-align: center; }
 }

@@ -2646,3 +2646,22 @@ svg {
 .map-preview-heart.saved svg {
   fill: currentColor !important;
 }
+
+/* Phones: Area / Floor dialogs scale with the visible height so they fit without scrolling. */
+@media (max-width: 600px) {
+  .size-backdrop { z-index: 100001; padding: 10px; }
+  .size-dialog { padding: clamp(14px, 2.4dvh, 22px) 14px; max-height: calc(100dvh - 20px); }
+  .size-dialog h2 { font-size: clamp(20px, 3.2dvh, 26px); margin-bottom: 2px; }
+  .size-subtitle { font-size: 13px; line-height: 1.4; margin-bottom: clamp(8px, 1.6dvh, 18px); }
+  .size-dialog .size-presets button { padding: clamp(10px, 1.8dvh, 20px) 4px clamp(8px, 1.2dvh, 12px); gap: 2px; }
+  .size-presets img { height: clamp(48px, 9dvh, 84px); }
+  .floor-artwork { height: clamp(64px, 12dvh, 132px); }
+  .floor-dialog .size-presets .floor-artwork img { width: auto; height: 100%; }
+  .size-range { margin-top: clamp(10px, 1.8dvh, 20px); padding-top: clamp(8px, 1.6dvh, 18px); }
+  .size-range h3 { font-size: 15px; margin-bottom: clamp(6px, 1.2dvh, 14px); }
+  .size-inputs input, .size-inputs select { height: 30px; font-size: 17px; }
+  .floor-exclusions { gap: clamp(6px, 1.2dvh, 14px); margin-top: clamp(10px, 1.8dvh, 20px); padding-top: clamp(8px, 1.6dvh, 18px); }
+  .floor-exclusions label { min-height: 28px; }
+  .size-dialog .size-footer { margin-top: clamp(12px, 2dvh, 24px); }
+  .size-dialog .size-footer button { min-height: 46px; }
+}

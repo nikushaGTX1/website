@@ -37,6 +37,7 @@ import { NearbyPlace } from '../maps/google-property-map/google-property-map.com
 import { AppLanguage, TranslationService } from '../services/translation.service';
 import { parkingCostLabel } from '../utils/parking-cost';
 import { SeoService } from '../services/seo.service';
+import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 
 interface Review {
   name: string;
@@ -69,6 +70,7 @@ interface ViewingInquiryForm {
   styleUrls: ['./apartment-detail.css', './apartment-detail.icons.css'],
 })
 export class ApartmentDetail implements OnInit, OnDestroy {
+  @ViewChild('photoViewer') private photoViewer?: ElementRef<HTMLDialogElement>;
   @ViewChild('viewingDialog') private viewingDialog?: ElementRef<HTMLElement>;
 
   apartment: Apartment | null = null;
@@ -557,19 +559,20 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   openPhotoViewer(): void {
     this.photoViewerOpen = true;
+    this.cdr.detectChanges();
+    this.photoViewer?.nativeElement.showModal();
     document.body.classList.add('photo-viewer-active');
-    document.body.style.overflow = 'hidden';
+    lockPageScroll(); // pins the page so iOS can't move it under the viewer
     requestAnimationFrame(() => {
-      document
-        .querySelector<HTMLElement>(`[data-viewer-photo="${this.activePhotoIndex}"]`)
-        ?.scrollIntoView({ block: 'center' });
+      this.revealViewerThumbnail();
+      this.scrollViewerToPhoto(this.activePhotoIndex, false);
     });
   }
 
   closePhotoViewer(): void {
     this.photoViewerOpen = false;
     document.body.classList.remove('photo-viewer-active');
-    document.body.style.overflow = '';
+    unlockPageScroll();
     // On the desktop photo grid the large tile is always the cover photo; browsing
     // in the viewer must not swap it. Phones keep their swipe position.
     if (window.matchMedia('(min-width: 741px)').matches) this.activePhotoIndex = 0;
@@ -577,7 +580,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     document.body.classList.remove('photo-viewer-active');
-    document.body.style.overflow = '';
+    unlockPageScroll();
     window.clearTimeout(this.gallerySlideResetTimer);
   }
 
@@ -588,18 +591,54 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   updateActiveViewerPhoto(event: Event): void {
     const viewer = event.currentTarget as HTMLElement;
-    const viewerCenter = viewer.getBoundingClientRect().top + viewer.clientHeight / 2;
+    const viewerCenter = viewer.getBoundingClientRect().left + viewer.clientWidth / 2;
     const photos = Array.from(viewer.querySelectorAll<HTMLElement>('[data-viewer-photo]'));
     const closest = photos.reduce<{ index: number; distance: number }>(
       (result, photo) => {
         const rect = photo.getBoundingClientRect();
-        const distance = Math.abs(rect.top + rect.height / 2 - viewerCenter);
+        const distance = Math.abs(rect.left + rect.width / 2 - viewerCenter);
         const index = Number(photo.dataset['viewerPhoto']);
         return distance < result.distance ? { index, distance } : result;
       },
       { index: this.activePhotoIndex, distance: Number.POSITIVE_INFINITY },
     );
-    this.activePhotoIndex = closest.index;
+    if (this.activePhotoIndex !== closest.index) {
+      this.activePhotoIndex = closest.index;
+      this.revealViewerThumbnail();
+    }
+  }
+
+  /** Arrow buttons and ← → keys: move the horizontal viewer one photo. */
+  stepViewer(direction: 1 | -1): void {
+    this.goToViewerPhoto(this.activePhotoIndex + direction);
+  }
+
+  goToViewerPhoto(index: number): void {
+    const next = Math.max(0, Math.min(this.photoCount - 1, index));
+    if (next === this.activePhotoIndex) return;
+    this.activePhotoIndex = next;
+    this.revealViewerThumbnail();
+    this.scrollViewerToPhoto(next, true);
+  }
+
+  private scrollViewerToPhoto(index: number, animate: boolean): void {
+    const track = document.querySelector<HTMLElement>('.photo-viewer-track');
+    if (!track) return;
+    // Horizontal only: set scrollLeft directly (Safari rejects some scrollTo options and could
+    // move the page vertically instead).
+    const smooth = animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    track.style.scrollBehavior = smooth ? 'smooth' : 'auto';
+    track.scrollLeft = index * track.clientWidth;
+  }
+
+  private revealViewerThumbnail(): void {
+    const thumbnail = document.querySelector<HTMLElement>(
+      '[data-viewer-thumbnail="' + this.activePhotoIndex + '"]',
+    );
+    const strip = thumbnail?.parentElement;
+    if (thumbnail && strip) {
+      strip.scrollLeft = thumbnail.offsetLeft - (strip.clientWidth - thumbnail.offsetWidth) / 2;
+    }
   }
 
   toggleFavorite(): void {
@@ -989,6 +1028,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     if (this.photoViewerOpen && event.key === 'Escape') {
       event.preventDefault();
       this.closePhotoViewer();
+      return;
+    }
+    if (this.photoViewerOpen && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {
+      event.preventDefault();
+      this.stepViewer(event.key === 'ArrowRight' ? 1 : -1);
       return;
     }
 

@@ -10,7 +10,8 @@ import {
 } from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
 import { ApiLocation, LocationSuggestion } from '../models/location';
@@ -606,23 +607,36 @@ export class ExploreProperty implements OnInit, OnDestroy {
     );
   }
 
+  /** Rent budgets are monthly; purchase prices need a much larger slider range. */
+  get budgetCap(): number {
+    return this.selectedType === 'For Sale' ? 1_000_000 : 5000;
+  }
+
+  get budgetStep(): number {
+    return this.selectedType === 'For Sale' ? 5000 : 50;
+  }
+
+  get budgetCapLabel(): string {
+    return this.selectedType === 'For Sale' ? '$1,000,000+' : '$5,000+';
+  }
+
   get budgetMinPercent(): number {
-    return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
+    return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? this.budgetCap));
   }
 
   get budgetMaxPercent(): number {
-    return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? 5000));
+    return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? this.budgetCap));
   }
 
   setBudgetMin(value: number | null): void {
-    const maximum = Number(this.budgetMax ?? 5000);
+    const maximum = Number(this.budgetMax ?? this.budgetCap);
     this.budgetMin = value == null ? null : Math.min(maximum, Math.max(0, Number(value)));
     this.selectedBudgetRange = '';
   }
 
   setBudgetMax(value: number | null): void {
     const minimum = Number(this.budgetMin ?? 0);
-    this.budgetMax = value == null ? null : Math.max(minimum, Math.min(5000, Number(value)));
+    this.budgetMax = value == null ? null : Math.max(minimum, Math.min(this.budgetCap, Number(value)));
     this.selectedBudgetRange = '';
   }
 
@@ -829,6 +843,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.currentPage = 1;
     this.updateVisibleApartments();
     this.selectedApartment = this.visibleApartments[0] ?? null;
+    this.syncFiltersToUrl();
   }
 
   @HostListener('window:scroll')
@@ -1126,7 +1141,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.locationOpen = false;
   }
 
-  /** Bottom-sheet area picker ("იპოვე სასურველი უბანი"). Selections are draft until applied. */
+  /** Bottom-sheet area picker ("იპოვეთ სასურველი უბანი"). Selections are draft until applied. */
   areaSheetOpen = false;
   areaSheetClosing = false;
   private areaSheetSnapshot: {
@@ -1209,15 +1224,23 @@ export class ExploreProperty implements OnInit, OnDestroy {
     }, 260);
   }
 
-  @HostListener('document:keydown.escape')
-  onEscapeKey(): void {
-    if (this.floorOpen) { this.closeFloor(); return; }
-    if (this.sizeOpen) { this.closeSize(); return; }
-    if (this.moreFiltersOpen) {
-      this.closeMoreFilters();
-      return;
-    }
-    if (this.areaSheetOpen && !this.areaSheetClosing) this.cancelAreaSheet();
+  /** Closes only the topmost open layer per press (see utils/escape-layer). */
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKey(event: Event): void {
+    if (escapeAlreadyHandled(event)) return;
+    const close = (fn: () => void) => { claimEscape(event); fn(); };
+    if (this.filterMenu) return close(() => (this.filterMenu = null));
+    if (this.budgetOpen || this.bedroomOpen || this.propertyTypeOpen || this.conditionOpen)
+      return close(() => {
+        this.budgetOpen = this.bedroomOpen = this.propertyTypeOpen = this.conditionOpen = false;
+      });
+    if (this.floorOpen) return close(() => this.closeFloor());
+    if (this.sizeOpen) return close(() => this.closeSize());
+    if (this.moreFiltersOpen) return close(() => this.closeMoreFilters());
+    if (this.drawAreaOpen) return close(() => this.closeDrawArea());
+    if (this.locationOpen) return close(() => this.cancelLocationPicker());
+    if (this.areaSheetOpen && !this.areaSheetClosing) return close(() => this.cancelAreaSheet());
+    if (this.mapPreviewApartment || this.mapGroupApartments) return close(() => this.closeMapPreview());
   }
 
   /** The bottom action shows only while nothing else is docked to the bottom of the map. */
@@ -1432,8 +1455,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.featureFilter = params.get('feature') || '';
     this.drawnAreaActive = params.get('area') === 'drawn';
     this.selectedStreetId = Number(params.get('street_id')) || null;
-    const budget = Number(params.get('budget'));
-    if (budget > 0) this.selectedPriceMax = budget;
+    this.restoreFiltersFromUrl(params);
     this.loadApartments();
     this.loadLocations();
     this.favoriteService.loadFavorites().subscribe({
@@ -1726,6 +1748,53 @@ export class ExploreProperty implements OnInit, OnDestroy {
     }
 
     this.cdr.detectChanges();
+    this.syncFiltersToUrl();
+  }
+
+  /** Budget (USD), area, floor, amenity, condition and sort filters are mirrored into the
+   *  URL so Back from a property page, refresh and shared links keep the same results. */
+  private restoreFiltersFromUrl(params: ParamMap): void {
+    const num = (key: string): number | null => {
+      const raw = params.get(key);
+      return raw != null && raw !== '' && Number.isFinite(+raw) && +raw >= 0 ? +raw : null;
+    };
+    const list = (key: string): string[] => (params.get(key) || '').split(',').filter(Boolean);
+    this.appliedBudgetMin = this.budgetMin = num('budgetMin');
+    this.appliedBudgetMax = this.budgetMax = num('budget');
+    this.selectedMinArea = num('minArea') ?? 0;
+    this.selectedMaxArea = num('maxArea');
+    this.selectedMinFloor = num('minFloor') ?? 0;
+    this.selectedMaxFloor = num('maxFloor');
+    this.excludeFirstFloor = params.get('noFirstFloor') === '1';
+    this.excludeLastFloor = params.get('noLastFloor') === '1';
+    this.selectedAmenities = list('amenities');
+    this.selectedConditions = list('conditions');
+    const sort = params.get('sort');
+    if (sort) this.currentSort = sort;
+  }
+
+  private syncFiltersToUrl(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        budget: this.appliedBudgetMax,
+        budgetMin: this.appliedBudgetMin,
+        minArea: this.selectedMinArea || null,
+        maxArea: this.selectedMaxArea,
+        minFloor: this.selectedMinFloor || null,
+        maxFloor: this.selectedMaxFloor,
+        noFirstFloor: this.excludeFirstFloor ? 1 : null,
+        noLastFloor: this.excludeLastFloor ? 1 : null,
+        amenities: this.selectedAmenities.join(',') || null,
+        conditions: this.selectedConditions.join(',') || null,
+        propertyType: this.homeType || null,
+        bedrooms: this.headerBedrooms || null,
+        rooms: this.headerRooms || null,
+        sort: this.currentSort !== 'newest' ? this.currentSort : null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   toggleFilterItem(list: string[], item: string): void {
@@ -2425,7 +2494,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   private normalizedSliderValue(value: number | null): number {
-    return Math.min(100, Math.max(0, Number(value || 0) / 50));
+    return Math.min(100, Math.max(0, (Number(value || 0) / this.budgetCap) * 100));
   }
 
   private matchesCustomBudget(priceInUsd: number): boolean {

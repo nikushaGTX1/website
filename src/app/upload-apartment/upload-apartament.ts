@@ -166,7 +166,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       benefits: [
         'Property listing',
         'Agent service',
-        'AI Property Match',
+        'Velven Match',
         'Client check & appointment confirmation',
         'Contract & legal service',
       ],

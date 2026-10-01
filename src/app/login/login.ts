@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { safeReturnUrl } from '../utils/return-url';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -29,8 +30,19 @@ export class Login {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
+
+  /** Where to continue after signing in (set by the auth guard or a "save" action). */
+  get returnUrl(): string | null {
+    return safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
+  }
+
+  /** Owners arriving from "List your property" get context about why an account is needed. */
+  get isOwnerFlow(): boolean {
+    return !!this.returnUrl?.startsWith('/upload-apartment');
+  }
 
   toggleMode(): void {
     this.isRegisterMode = !this.isRegisterMode;
@@ -87,7 +99,7 @@ export class Login {
     this.authService.login(this.loginData).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.router.navigate(['/main']);
+        void this.router.navigateByUrl(this.returnUrl ?? '/main');
       },
       error: () => {
         this.isSubmitting = false;

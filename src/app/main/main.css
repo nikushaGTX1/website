@@ -636,7 +636,7 @@
 
 .search-fields {
   display: grid;
-  grid-template-columns: 1.55fr 0.9fr 1fr 0.8fr auto;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr) auto;
   gap: 10px;
   padding: 20px 0;
 }
@@ -1310,7 +1310,8 @@
 }
 .property-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 384px));
+  /* Cards share the row evenly: 3 results fill the width instead of hugging the left of a 4-column grid. */
+  grid-template-columns: repeat(auto-fit, minmax(max(240px, calc((100% - 80px) / 4)), 1fr));
   justify-content: center;
   gap: 24px;
 }
@@ -1659,7 +1660,7 @@
 }
 .benefit-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid #e4e9f0;
   border-bottom: 1px solid #e4e9f0;
 }
@@ -2778,7 +2779,7 @@
   }
 
   .nearby-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .nearby-grid > span {
@@ -4958,4 +4959,224 @@
   .hero-copy {
     margin-top: clamp(8px, 2.5vh, 40px);
   }
+}
+
+/* Search card top row: Rent/Buy tabs on the left, Velven Match on the right
+   (replaces the old near-empty footer row under the fields). */
+.search-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #dfe5ee;
+}
+.search-top .search-tabs {
+  border-bottom: 0;
+}
+.search-top .ai-home-link {
+  height: 40px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #451a8f;
+  border-radius: 999px;
+  background: #f7f3fd;
+  color: #451a8f;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+.search-top .ai-home-link:hover {
+  background: #451a8f;
+  color: #fff;
+}
+@media (max-width: 620px) {
+  .search-top { border-bottom: 0; }
+  .search-top .search-tabs { width: 100%; border-bottom: 1px solid #dfe5ee; }
+  .search-top .ai-home-link { width: 100%; justify-content: center; margin-bottom: 4px; }
+}
+
+/* Featured property cards: compact and scannable (desktop/tablet; phones keep their slider styles). */
+@media (min-width: 651px) {
+  .property-card .property-info {
+    padding: 16px 18px 18px;
+    gap: 0;
+  }
+  .property-card .property-info h3 {
+    margin-bottom: 8px;
+  }
+  /* Two-line title instead of a one-line ellipsis that hid the room count / district. */
+  .property-card .property-info .property-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    overflow: hidden;
+    font-size: clamp(16px, 1.2vw, 18px);
+    line-height: 1.3;
+    min-height: 2.6em;
+    margin-bottom: 6px;
+  }
+  .property-card .nearby {
+    padding-top: 12px;
+    margin-top: 4px;
+  }
+  .property-card .nearby-label {
+    margin-bottom: 8px;
+  }
+  /* Max two places, each a readable one-line pill. */
+  .property-card .nearby-grid,
+  :host-context(html:lang(ka)) .property-card .nearby-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .property-card .nearby-grid > span,
+  :host-context(html:lang(ka)) .property-card .nearby-grid > span {
+    min-height: 0;
+    padding: 8px 10px;
+    grid-template-columns: 20px minmax(0, 1fr);
+    column-gap: 6px;
+    text-align: left;
+  }
+  .property-card .nearby-grid i,
+  :host-context(html:lang(ka)) .property-card .nearby-grid i {
+    font-size: 15px;
+  }
+  .property-card .nearby-grid b,
+  :host-context(html:lang(ka)) .property-card .nearby-grid b {
+    font-size: 12.5px;
+  }
+  .property-card .nearby-grid small,
+  :host-context(html:lang(ka)) .property-card .nearby-grid small {
+    font-size: 12px;
+    color: #4f5a6e;
+  }
+  .property-card .view-details {
+    margin-top: 14px;
+  }
+}
+
+/* Why Velven: four roomier advantages instead of five compressed columns. */
+@media (min-width: 1021px) {
+  .benefit-grid article {
+    padding: 30px clamp(20px, 2vw, 32px);
+    gap: 16px;
+  }
+  .benefit-grid h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  .benefit-grid p {
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 28ch;
+  }
+}
+
+/* Velven Match banner: copy + CTA on the left, the family illustration as the single
+   dominant visual on the right (the lifestyle-flow strip and checklist card were removed). */
+@media (min-width: 761px) {
+  .ai-match {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: center;
+    gap: 24px;
+    padding: 0 clamp(24px, 4vw, 56px) 0 0;
+  }
+  .ai-match .ai-copy {
+    padding: clamp(28px, 4vw, 48px) 0 clamp(28px, 4vw, 48px) clamp(24px, 4vw, 56px);
+    max-width: 520px;
+  }
+  .ai-match .ai-sportsman {
+    align-self: end;
+    justify-self: center;
+    width: auto;
+    max-width: 100%;
+    height: clamp(240px, 24vw, 330px);
+    max-height: none;
+  }
+}
+
+/* How it works: equal-height cards in a row, icon and title on the same top line. */
+@media (min-width: 1021px) {
+  .process-grid {
+    align-items: stretch;
+  }
+  .process-grid > span {
+    align-self: center;
+  }
+  .process-grid article {
+    align-items: flex-start;
+    height: 100%;
+    min-height: 0;
+    padding: 22px 20px;
+    box-sizing: border-box;
+  }
+  .process-grid article > i {
+    margin-top: 1px;
+  }
+  .process-grid h3 {
+    line-height: 1.3;
+  }
+  .process-grid p {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+}
+
+/* Owner call-to-action band: full section width, clearly separate from testimonials. */
+.owner-cta {
+  margin-top: clamp(40px, 5vw, 64px);
+  margin-bottom: clamp(32px, 4vw, 56px);
+  padding: clamp(24px, 3vw, 36px) clamp(20px, 4vw, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 32px;
+  flex-wrap: wrap;
+  border: 1px solid #e4dcf0;
+  border-radius: 20px;
+  background: linear-gradient(110deg, #f7f3fd, #fff 70%);
+  box-sizing: border-box;
+}
+.owner-cta-copy {
+  flex: 1 1 380px;
+  min-width: 0;
+}
+.owner-cta-copy h2 {
+  margin: 6px 0 8px;
+  font-family: Georgia, serif;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 500;
+  color: #0f1828;
+}
+.owner-cta-copy p {
+  margin: 0;
+  max-width: 56ch;
+  color: #5b6478;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.owner-cta-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  background: #451a8f;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .18s ease;
+}
+.owner-cta-button:hover { background: #7657f6; }
+@media (max-width: 620px) {
+  .owner-cta-button { width: 100%; justify-content: center; }
 }

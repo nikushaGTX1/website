@@ -337,7 +337,7 @@ togglePhoneCountryDropdown(): void {
   readonly translations:
     Record<AppLanguage, Record<string, string>> = {
       ka: {
-        brandCaption: 'იპოვე შენთვის იდეალური სახლი',
+        brandCaption: 'იპოვეთ თქვენთვის იდეალური სახლი',
 
         step: 'ნაბიჯი',
         lastStep: 'ბოლო ნაბიჯი',

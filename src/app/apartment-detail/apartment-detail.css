@@ -1180,8 +1180,10 @@
     gap: 28px;
   }
   .vp-gallery {
-    height: clamp(260px, 45vh, 368px);
-    max-height: clamp(260px, 45vh, 368px);
+    height: auto;
+    aspect-ratio: 2.1 / 1;
+    min-height: 300px;
+    max-height: 600px;
   }
   .vp-facts {
     grid-template-columns: repeat(2, 1fr);
@@ -1964,8 +1966,10 @@
     gap: 28px;
   }
   .vp-gallery {
-    height: clamp(260px, 45vh, 368px);
-    max-height: clamp(260px, 45vh, 368px);
+    height: auto;
+    aspect-ratio: 2.1 / 1;
+    min-height: 300px;
+    max-height: 600px;
   }
   .vp-facts {
     grid-template-columns: repeat(2, 1fr);
@@ -3073,3 +3077,141 @@
   object-fit: cover !important;
   object-position: center !important;
 }
+
+/* Explains what the Verified state means (agent checked the property in person). */
+.vp-proof-note {
+  margin: 2px 0 0;
+  color: #5b6478;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Keep the price clear of the buttons when the Verified box isn't shown. */
+.vp-inquiry .vp-price {
+  margin-bottom: 20px;
+}
+.vp-inquiry .vp-price + .vp-proof {
+  margin-top: 0;
+}
+
+/* Fullscreen viewer: horizontal slider (swipe / arrows / ← →) instead of a vertical scroll. */
+.photo-viewer .photo-viewer-track {
+  padding: 80px 0 72px;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  touch-action: pan-x pinch-zoom;
+}
+.photo-viewer .photo-viewer-track::-webkit-scrollbar { display: none; }
+.photo-viewer .viewer-frame {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0 clamp(56px, 6vw, 96px);
+  box-sizing: border-box;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  border-radius: 0;
+  background: transparent;
+}
+.photo-viewer .viewer-frame::before { inset: 0 clamp(56px, 6vw, 96px); border-radius: 8px; }
+.photo-viewer .photo-viewer-track .viewer-frame img {
+  max-height: 100%;
+  max-width: 100%;
+}
+.photo-viewer .viewer-nav {
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .92);
+  color: #1b1626;
+  font-size: 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+}
+.photo-viewer .viewer-nav:disabled { opacity: .35; cursor: default; }
+@media (max-width: 600px) {
+  .photo-viewer .photo-viewer-track { padding: 64px 0 60px; }
+  .photo-viewer .viewer-frame { padding: 0; }
+  .photo-viewer .viewer-frame::before { inset: 0; }
+  .photo-viewer .viewer-nav { width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; }
+  .photo-viewer .viewer-nav.previous { left: 10px; }
+  .photo-viewer .viewer-nav.next { right: 10px; }
+}
+
+
+/* Quiet canvas and a navigable photo strip. */
+.photo-viewer { background: #111113 !important; backdrop-filter: none; overflow: hidden; }
+.photo-viewer .photo-viewer-track { padding: 88px 0 116px; scrollbar-gutter: auto; }
+.photo-viewer .viewer-frame { overflow: hidden; padding: 12px 100px; }
+.photo-viewer .viewer-frame::before { display: none; }
+.photo-viewer .photo-viewer-track .viewer-frame img { border-radius: 6px; box-shadow: 0 16px 48px #0005; }
+.photo-viewer .viewer-count { top: 30px; bottom: auto; padding: 7px 12px; background: transparent; color: #bcbcc3; font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: .08em; }
+.photo-viewer .viewer-back, .photo-viewer .viewer-close, .photo-viewer .viewer-nav { background: #ffffff08; border: 1px solid #ffffff18; color: #f4f4f5; box-shadow: none; transition: background .18s ease, border-color .18s ease; }
+.photo-viewer .viewer-back { top: 24px; left: 32px; border-radius: 12px; font-weight: 500; }
+.photo-viewer .viewer-close { top: 24px; right: 32px; width: 42px; height: 42px; min-height: 42px; padding: 0; display: grid; place-items: center; border-radius: 12px; font-size: 18px; }
+.photo-viewer .viewer-nav { top: calc(50% - 14px); }
+.photo-viewer .viewer-nav.previous { left: 32px; }
+.photo-viewer .viewer-nav.next { right: 32px; }
+.photo-viewer .viewer-back:hover, .photo-viewer .viewer-close:hover, .photo-viewer .viewer-nav:not(:disabled):hover { background: #ffffff18; border-color: #ffffff40; }
+.photo-viewer .viewer-nav:disabled { opacity: .2; cursor: default; }
+.viewer-thumbnails { position: absolute; z-index: 3; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; gap: 8px; max-width: calc(100% - 64px); padding: 5px; overflow-x: auto; scrollbar-width: none; overscroll-behavior: contain; }
+.viewer-thumbnails::-webkit-scrollbar { display: none; }
+.viewer-thumbnails button { flex: 0 0 64px; width: 64px; height: 52px; min-height: 0; padding: 3px; border: 2px solid transparent; border-radius: 8px; background: transparent; opacity: .45; cursor: pointer; transition: opacity .18s ease, border-color .18s ease; }
+.viewer-thumbnails button img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 4px; user-select: none; }
+.viewer-thumbnails button:hover { opacity: .85; }
+.viewer-thumbnails button.active { opacity: 1; border-color: #fff; }
+.photo-viewer button:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 4px; }
+@media (max-width: 600px) {
+  .photo-viewer .photo-viewer-track { padding: 76px 0 100px; }
+  .photo-viewer .viewer-frame { padding: 8px 12px; }
+  .photo-viewer .photo-viewer-track .viewer-frame img { width: auto !important; height: auto !important; max-width: 100% !important; max-height: 100% !important; aspect-ratio: auto !important; object-fit: contain !important; }
+  .photo-viewer .viewer-back { top: 16px; left: 16px; }
+  .photo-viewer .viewer-close { top: 16px; right: 16px; }
+  .photo-viewer .viewer-count { top: 22px; }
+  .photo-viewer .viewer-nav { background: #18181bcc; }
+  .photo-viewer .viewer-nav.previous { left: 16px; }
+  .photo-viewer .viewer-nav.next { right: 16px; }
+  .viewer-thumbnails { bottom: max(16px, env(safe-area-inset-bottom)); max-width: calc(100% - 24px); gap: 6px; }
+  .viewer-thumbnails button { flex-basis: 54px; width: 54px; height: 46px; }
+}
+@media (prefers-reduced-motion: reduce) { .photo-viewer .photo-viewer-track { scroll-behavior: auto; } .photo-viewer button { transition: none; } }
+
+/* Laptop heights: shrink the whole gallery (width and height together, keeping the
+   2.1 : 1 shape) so it leaves room for the listing details; photos stay uncropped-looking. */
+@media (min-width: 981px) {
+  .vp-gallery {
+    width: min(100%, calc((100dvh - 230px) * 2.1));
+    max-height: min(600px, calc(100dvh - 230px));
+    min-height: 300px;
+    margin-inline: auto;
+  }
+}
+
+/* Native top layer keeps the viewer independent of route and page positioning. */
+dialog.photo-viewer {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0;
+  border: 0;
+  overflow: hidden !important;
+  color: #f4f4f5;
+  box-sizing: border-box;
+}
+dialog.photo-viewer::backdrop { background: #111113; }

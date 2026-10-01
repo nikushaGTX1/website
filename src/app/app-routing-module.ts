@@ -76,7 +76,7 @@ const routes: Routes = [
   {
     path: 'ai-home-match',
     component: AiHomeMatchPageComponent,
-    title: 'AI Home Matcher | Velven'
+    title: 'Velven Match | Velven'
   },
 
   {

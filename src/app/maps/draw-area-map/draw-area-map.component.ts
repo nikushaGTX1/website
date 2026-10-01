@@ -655,12 +655,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         if (Number.isFinite(lat) && Number.isFinite(lng)) bounds.extend({ lat, lng });
       }),
     );
-    extraBounds.forEach((extra) => bounds.union(extra));
+    // Geocoding can return no viewport for a district; skip those instead of throwing.
+    extraBounds.forEach((extra) => extra && bounds.union(extra));
     if (bounds.isEmpty()) return;
 
     // Compute a precise target, then ease both position and zoom toward it.
-    const northEast = bounds.getNorthEast();
-    const southWest = bounds.getSouthWest();
+    // toJSON() is safe even when a union produced bounds whose corner getters return undefined.
+    const box = bounds.toJSON();
+    if (!box || ![box.north, box.south, box.east, box.west].every(Number.isFinite)) return;
+    const northEast = { lat: () => box.north, lng: () => box.east };
+    const southWest = { lat: () => box.south, lng: () => box.west };
     const mercatorY = (latitude: number) => {
       const sine = Math.sin((latitude * Math.PI) / 180);
       return 0.5 - Math.log((1 + sine) / (1 - sine)) / (4 * Math.PI);
