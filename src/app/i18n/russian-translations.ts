@@ -797,6 +797,8 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['List with Velven and reach people who are actively looking to rent or buy.', 'Разместите объект на Velven и найдите тех, кто активно ищет жильё в аренду или для покупки.'],
   ['A Velven agent has checked this property in person.', 'Агент Velven лично проверил этот объект.'],
   ['The Verified badge means a Velven agent checked the property in person. Duplicate listings are removed.', 'Значок «Проверено» означает, что агент Velven лично осмотрел объект. Дубликаты объявлений удаляются.'],
+  ["Not sure exactly what you're looking for?", 'Не знаете точно, что ищете?'],
+  ['Find options tailored to you with AI.', 'Найдите подходящие вам варианты с помощью AI.'],
 ]);
 
 const RUSSIAN_RULES: RussianRule[] = [

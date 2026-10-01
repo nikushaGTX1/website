@@ -5078,28 +5078,6 @@
   }
 }
 
-/* Velven Match banner: copy + CTA on the left, the family illustration as the single
-   dominant visual on the right (the lifestyle-flow strip and checklist card were removed). */
-@media (min-width: 761px) {
-  .ai-match {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-    align-items: center;
-    gap: 24px;
-    padding: 0 clamp(24px, 4vw, 56px) 0 0;
-  }
-  .ai-match .ai-copy {
-    padding: clamp(28px, 4vw, 48px) 0 clamp(28px, 4vw, 48px) clamp(24px, 4vw, 56px);
-    max-width: 520px;
-  }
-  .ai-match .ai-sportsman {
-    align-self: end;
-    justify-self: center;
-    width: auto;
-    max-width: 100%;
-    height: clamp(240px, 24vw, 330px);
-    max-height: none;
-  }
-}
 
 /* How it works: equal-height cards in a row, icon and title on the same top line. */
 @media (min-width: 1021px) {
@@ -5179,4 +5157,69 @@
 .owner-cta-button:hover { background: #7657f6; }
 @media (max-width: 620px) {
   .owner-cta-button { width: 100%; justify-content: center; }
+}
+
+/* Velven Match hint between the Rent/Buy tabs and the Velven Match button. */
+.search-top .ai-hint {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: clamp(8px, 3vw, 48px);
+}
+.search-top .ai-hint > i {
+  color: #7657f6;
+  font-size: 20px;
+}
+.search-top .ai-hint strong {
+  display: block;
+  color: #451a8f;
+  font-size: 13px;
+  font-weight: 800;
+}
+.search-top .ai-hint span {
+  display: block;
+  margin-top: 2px;
+  color: #5b6478;
+  font-size: 11.5px;
+}
+.search-top .ai-hint strong,
+.search-top .ai-hint span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .search-top .ai-hint { display: none; }
+}
+
+/* Lavender band holding the Velven Match hint and button. */
+.search-top .ai-strip {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0 8px clamp(8px, 3vw, 40px);
+  padding: 10px 12px 10px 22px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f3eefc 0%, #f7f3fd 60%, #faf8ff 100%);
+}
+.search-top .ai-strip .ai-hint {
+  margin-left: 0;
+}
+.search-top .ai-strip .ai-home-link {
+  flex: 0 0 auto;
+  margin-left: auto;
+  background: #fff;
+}
+.search-top .ai-strip .ai-home-link:hover {
+  background: #451a8f;
+}
+@media (max-width: 900px) {
+  .search-top .ai-strip { flex: 0 0 auto; margin: 0; padding: 0; background: none; }
+}
+@media (max-width: 620px) {
+  .search-top .ai-strip { width: 100%; }
 }

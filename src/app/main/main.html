@@ -30,9 +30,18 @@
         </button>
       </div>
         <!-- Velven Match sits in the tab row so it no longer needs a near-empty row of its own. -->
+        <div class="ai-strip">
+        <div class="ai-hint">
+          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+          <div>
+            <strong>Not sure exactly what you're looking for?</strong>
+            <span>Find options tailored to you with AI.</span>
+          </div>
+        </div>
         <button class="ai-home-link" type="button" (click)="openAiHomeMatch()">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Velven Match
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Velven Match <span aria-hidden="true">→</span>
         </button>
+        </div>
       </div>
 
       <div class="search-fields">
@@ -495,6 +504,28 @@
       src="/ojaxi.png"
       alt="A family with two children and their golden retriever"
     />
+    <img class="ai-lifestyle-flow" src="/ai-match-lifestyle.png" alt="" aria-hidden="true" />
+    <div class="ai-match-card">
+      <h3>Matched to your lifestyle</h3>
+      <ul>
+        <li>
+          <i class="fa-solid fa-train-subway" aria-hidden="true"></i><span>Near Metro</span
+          ><b><i class="fa-solid fa-check" aria-hidden="true"></i></b>
+        </li>
+        <li>
+          <i class="fa-solid fa-paw" aria-hidden="true"></i><span>Pet Friendly</span
+          ><b><i class="fa-solid fa-check" aria-hidden="true"></i></b>
+        </li>
+        <li>
+          <i class="fa-solid fa-bed" aria-hidden="true"></i><span>2–3 Bedrooms</span
+          ><b><i class="fa-solid fa-check" aria-hidden="true"></i></b>
+        </li>
+        <li>
+          <i class="fa-solid fa-sack-dollar" aria-hidden="true"></i><span>Within Budget</span
+          ><b><i class="fa-solid fa-check" aria-hidden="true"></i></b>
+        </li>
+      </ul>
+    </div>
   </section>
 
   <section class="content-section lifestyle">

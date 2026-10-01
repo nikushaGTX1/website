@@ -1841,6 +1841,8 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['List with Velven and reach people who are actively looking to rent or buy.', 'განათავსეთ განცხადება Velven-ზე და მიაწვდინეთ ის ადამიანებს, ვინც აქტიურად ეძებს ბინას ქირით ან საყიდლად.'],
   ['A Velven agent has checked this property in person.', 'Velven-ის აგენტმა ეს ქონება ადგილზე შეამოწმა.'],
   ['The Verified badge means a Velven agent checked the property in person. Duplicate listings are removed.', 'ნიშანი „გადამოწმებული“ ნიშნავს, რომ Velven-ის აგენტმა ქონება ადგილზე შეამოწმა. დუბლირებული განცხადებები იშლება.'],
+  ["Not sure exactly what you're looking for?", 'არ იცით ზუსტად რას ეძებთ?'],
+  ['Find options tailored to you with AI.', 'იპოვეთ თქვენზე მორგებული ვარიანტები AI-სთან ერთად.'],
 ]);
 
 // Velven Match: requirement statuses, review page and validation messages.
