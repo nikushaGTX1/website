@@ -809,6 +809,9 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Nearest pharmacy', 'Ближайшая аптека'],
   ['Nearest café', 'Ближайшее кафе'],
   ['Nearest EV charger', 'Ближайшая зарядка для электромобилей'],
+  ['Verified listings', 'Проверенные объявления'],
+  ['Trusted agents', 'Надёжные агенты'],
+  ['Secure deals', 'Безопасные сделки'],
 ]);
 
 const RUSSIAN_RULES: RussianRule[] = [

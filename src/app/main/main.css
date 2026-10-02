@@ -4950,9 +4950,9 @@
 
 /* Short laptop screens (1280x720, 1366x768, 1536x864): shorten the hero so the
    overlapping search card stays fully inside the first screen. */
-@media (min-width: 1024px) and (max-height: 900px) {
+@media (min-width: 1024px) and (max-height: 1000px) {
   .hero {
-    min-height: clamp(470px, calc(100dvh - 215px), 580px);
+    min-height: clamp(430px, calc(100dvh - 300px), 580px);
     padding-top: clamp(28px, 5vh, 62px);
   }
 
@@ -5245,5 +5245,19 @@
   .property-card .nearby-grid small,
   :host-context(html:lang(ka)) .property-card .nearby-grid small {
     font-size: 11px;
+  }
+}
+
+/* Highlighted headline word: same typeface as the rest, only the purple colour. */
+.hero h1 em {
+  font-family: inherit;
+  font-style: normal;
+  font-weight: inherit;
+}
+
+/* Center the headline block vertically in the space above the search card. */
+@media (min-width: 1024px) {
+  .hero-copy {
+    margin-top: clamp(24px, 7vh, 90px) !important;
   }
 }

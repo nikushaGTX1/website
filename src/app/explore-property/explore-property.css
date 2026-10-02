@@ -2757,3 +2757,57 @@ svg {
     overflow: visible;
   }
 }
+
+/* Laptop / desktop: wider picker with compact multi-column tiles so the whole list fits
+   without an inner scrollbar; sits above the site header. */
+.area-sheet-backdrop { z-index: 10001; }
+@media (min-width: 781px) {
+  .area-sheet {
+    max-width: min(940px, calc(100vw - 48px));
+    max-height: calc(100dvh - 32px);
+  }
+  .area-sheet-handle { display: none; }
+  .area-sheet-head { padding-top: 18px; }
+  .area-sheet-scroll { padding: 6px 24px 14px; }
+  .area-sheet h3 { margin: 10px 0 8px; font-size: 12px; }
+  .area-sheet-subtitle { margin: -4px 0 8px; font-size: 13px; }
+  .area-sheet-featured {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .area-sheet-featured button { min-height: 0; padding: 10px 12px; }
+  .area-sheet-all {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .area-sheet-all button {
+    min-height: 0;
+    height: clamp(36px, 5dvh, 46px);
+    padding: 0 12px;
+    font-size: 14px;
+  }
+  .area-sheet-footer { padding-top: 10px; padding-bottom: 14px; }
+  .area-sheet-footer button { height: 46px; }
+}
+@media (min-width: 781px) and (max-height: 660px) {
+  .area-sheet-scroll { padding-bottom: 4px; }
+  .area-sheet h3 { margin: 6px 0 6px; }
+  .area-sheet-head { padding-top: 12px; }
+}
+@media (min-width: 781px) {
+  /* Explore sits in its own stacking context, so the site header stays on top: keep the
+     picker below it instead. */
+  .area-sheet-backdrop { padding: 84px 24px 12px; box-sizing: border-box; }
+  .area-sheet { max-height: calc(100dvh - 96px); }
+}
+@media (min-width: 781px) and (max-height: 620px) {
+  .area-sheet-backdrop { padding-top: 80px; padding-bottom: 6px; }
+  .area-sheet { max-height: calc(100dvh - 86px); }
+  .area-sheet-head { padding-top: 8px; }
+  .area-sheet-head h2 { font-size: 19px; }
+  .area-sheet-search { height: 40px; margin-top: 6px; }
+  .area-sheet-featured button { padding: 6px 10px; }
+  .area-sheet-all button { height: 32px; }
+  .area-sheet-footer { padding-top: 6px; padding-bottom: 8px; }
+  .area-sheet-footer button { height: 40px; }
+}

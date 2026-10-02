@@ -1851,6 +1851,8 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Nearest pharmacy', 'აფთიაქი'],
   ['Nearest café', 'კაფე'],
   ['Nearest EV charger', 'ელექტრო დამტენი'],
+  ['Trusted agents', 'სანდო აგენტები'],
+  ['Secure deals', 'უსაფრთხო გარიგებები'],
 ]);
 
 // Velven Match: requirement statuses, review page and validation messages.
