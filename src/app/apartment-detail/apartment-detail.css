@@ -3192,8 +3192,10 @@
    2.1 : 1 shape) so it leaves room for the listing details; photos stay uncropped-looking. */
 @media (min-width: 981px) {
   .vp-gallery {
-    width: min(100%, calc((100dvh - 230px) * 2.1));
-    max-height: min(600px, calc(100dvh - 230px));
+    width: 100%;
+    aspect-ratio: auto;
+    height: clamp(340px, calc(100dvh - 360px), 600px);
+    max-height: none;
     min-height: 300px;
     margin-inline: auto;
   }
