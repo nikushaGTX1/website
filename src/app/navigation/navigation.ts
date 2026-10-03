@@ -26,6 +26,15 @@ export class Navigation implements OnInit, OnDestroy {
     private host: ElementRef<HTMLElement>,
   ) {}
 
+  /** Any press outside the language picker (profile menu, page, other buttons) closes the list. */
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: Event): void {
+    if (!this.languageOpen) return;
+    const picker = this.host.nativeElement.querySelector('.language-picker');
+    if (picker && event.target instanceof Node && picker.contains(event.target)) return;
+    this.languageOpen = false;
+  }
+
   /** Esc closes the language list first, then the menu, and returns focus to its toggle. */
   @HostListener('document:keydown.escape', ['$event'])
   onEscapeKey(event: Event): void {
