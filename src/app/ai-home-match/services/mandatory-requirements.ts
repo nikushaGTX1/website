@@ -124,6 +124,12 @@ function listingMinimumMonths(apartment: HomeMatchApartment): number | null {
   return match ? Number(match[1]) : null;
 }
 
+/** "1 year", "2 years", "6 months" for the minimum-lease message. */
+function leaseTermLabel(months: number): string {
+  if (months % 12 === 0) return months === 12 ? '1 year' : `${months / 12} years`;
+  return months === 1 ? '1 month' : `${months} months`;
+}
+
 function checkRentalDuration(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
   if (profile.propertyGoal !== 'Rent') return 'pass';
   const minimum = listingMinimumMonths(apartment);
@@ -203,7 +209,7 @@ export function evaluateMandatoryRequirements(
       `Lease: this listing requires a minimum ${listingMinimumMonths(apartment)}-month stay`,
     );
   } else if (rentalDuration === 'unknown') {
-    confirmations.push('This listing has a minimum lease term; confirm it matches your plans');
+    confirmations.push(`This listing has a minimum lease term: ${leaseTermLabel(listingMinimumMonths(apartment)!)}`);
   }
 
   const availability = checkAvailability(apartment, profile);

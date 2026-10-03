@@ -420,39 +420,8 @@
           <div class="nearby">
             <span class="nearby-label">Nearby</span>
             <div class="nearby-grid">
-              <span
-                *ngIf="apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes <= 20"
-                ><i class="fa-solid fa-train-subway"></i><b>Metro</b
-                ><small>{{ apartment.metroDistanceMinutes }} min walk</small></span
-              >
-              <span
-                *ngIf="apartment.metroDistanceMinutes == null || apartment.metroDistanceMinutes > 20"
-                ><i class="fa-solid fa-tree"></i><b>Park</b
-                ><small>{{
-                  apartment.parkDistanceMinutes != null
-                    ? apartment.parkDistanceMinutes + ' min walk'
-                    : 'Not nearby'
-                }}</small></span
-              >
-              <span
-                ><i class="fa-solid fa-dumbbell"></i><b>Fitness</b
-                ><small>{{
-                  apartment.gymDistanceMinutes != null
-                    ? apartment.gymDistanceMinutes + ' min walk'
-                    : 'Not nearby'
-                }}</small></span
-              >
-              <!-- Third place from real listing data: parking if the listing has it, else the nearest grocery. -->
-              <span *ngIf="apartment.hasParking"
-                ><i class="fa-solid fa-car"></i><b>Parking</b><small>Available</small></span
-              >
-              <span *ngIf="!apartment.hasParking"
-                ><i class="fa-solid fa-basket-shopping"></i><b>Grocery</b
-                ><small>{{
-                  apartment.groceryDistanceMinutes != null
-                    ? apartment.groceryDistanceMinutes + ' min walk'
-                    : 'Not nearby'
-                }}</small></span
+              <span *ngFor="let place of nearbyPlaces(apartment)"
+                ><i [class]="place.icon"></i><b>{{ place.label }}</b><small>{{ place.detail }}</small></span
               >
             </div>
           </div>

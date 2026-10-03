@@ -35,6 +35,8 @@ export interface HomeMatchProfile {
   petOtherType?: string;
   petCount?: number;
   topPriorities: string[];
+  /** Preferred apartment style; 'Other' = something else / no preference. */
+  apartmentStyle?: 'Modern' | 'Vintage' | 'Other' | '';
 }
 
 export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {

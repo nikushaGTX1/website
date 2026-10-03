@@ -512,43 +512,10 @@
             <div class="card-nearby">
               <span class="card-nearby-label">Nearby</span>
               <div class="card-nearby-grid">
-                <span *ngIf="apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes <= 20">
-                  <i class="fa-solid fa-train-subway" aria-hidden="true"></i>
-                  <b>Metro</b>
-                  <small>{{ apartment.metroDistanceMinutes }} min walk</small>
-                </span>
-                <span *ngIf="apartment.metroDistanceMinutes == null || apartment.metroDistanceMinutes > 20">
-                  <i class="fa-solid fa-tree" aria-hidden="true"></i>
-                  <b>Park</b>
-                  <small>{{
-                    apartment.parkDistanceMinutes != null
-                      ? apartment.parkDistanceMinutes + ' min walk'
-                      : 'Not nearby'
-                  }}</small>
-                </span>
-                <span>
-                  <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
-                  <b>School</b>
-                  <small>{{
-                    apartment.schoolDistanceMinutes != null
-                      ? apartment.schoolDistanceMinutes + ' min walk'
-                      : 'Not nearby'
-                  }}</small>
-                </span>
-                <span *ngIf="apartment.hasParking">
-                  <i class="fa-solid fa-car" aria-hidden="true"></i>
-                  <b>Parking</b>
-                  <small>{{ parkingCostLabel(apartment) || 'Available' }}</small>
-                </span>
-                <!-- No parking: show the nearest grocery instead of an "Unavailable" tile. -->
-                <span *ngIf="!apartment.hasParking">
-                  <i class="fa-solid fa-basket-shopping" aria-hidden="true"></i>
-                  <b>Grocery</b>
-                  <small>{{
-                    apartment.groceryDistanceMinutes != null
-                      ? apartment.groceryDistanceMinutes + ' min walk'
-                      : 'Not nearby'
-                  }}</small>
+                <span *ngFor="let place of nearbyPlaces(apartment)">
+                  <i [class]="place.icon" aria-hidden="true"></i>
+                  <b>{{ place.label }}</b>
+                  <small>{{ place.detail }}</small>
                 </span>
               </div>
             </div>

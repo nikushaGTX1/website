@@ -1,3 +1,4 @@
+import { cardNearbyPlaces, NearbyPlace } from '../utils/nearby-places';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import {
   ChangeDetectorRef,
@@ -1570,6 +1571,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   /** Same rule as the main page and listing page: staff tag the description "Verified listing: Yes". */
+  /** Three nearby places that actually have data; missing ones are replaced by the next available. */
+  nearbyPlaces(apartment: Apartment): NearbyPlace[] {
+    return cardNearbyPlaces(apartment, 3, this.parkingCostLabel(apartment) || undefined);
+  }
+
   isVerifiedListing(apartment: Apartment): boolean {
     return /(?:^|[|\r\n])\s*Verified listing:\s*Yes\b/i.test(apartment.description || '');
   }

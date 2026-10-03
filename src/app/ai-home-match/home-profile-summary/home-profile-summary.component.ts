@@ -49,6 +49,7 @@ export class HomeProfileSummaryComponent {
     const rows: Array<AnswerRow | null> = [
       p.gender ? { step: 0, label: 'Gender', value: this.label(p.gender), icon: 'fa-venus-mars' } : null,
       p.propertyGoal ? { step: 1, label: 'Looking for', value: this.label(p.propertyGoal), icon: 'fa-house' } : null,
+      p.apartmentStyle ? { step: 12, label: 'Apartment style', value: p.apartmentStyle === 'Other' ? 'Something else' : p.apartmentStyle, icon: 'fa-couch' } : null,
       {
         step: 2,
         label: 'Location',

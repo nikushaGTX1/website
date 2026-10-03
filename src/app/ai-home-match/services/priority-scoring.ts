@@ -1,3 +1,4 @@
+import { normalizeApartmentStyle } from '../../utils/apartment-style';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchApartment, HomeMatchResult } from '../models/home-match-result';
 
@@ -181,6 +182,11 @@ export function scorePriority(priority: string, apartment: HomeMatchApartment, p
 /** Lifestyle answers that are not priorities still nudge the ranking. */
 function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
   let points = 0;
+  // Apartment style: a matching Modern / Vintage listing ranks higher; "Something else" has no effect.
+  if (profile.apartmentStyle === 'Modern' || profile.apartmentStyle === 'Vintage') {
+    const style = normalizeApartmentStyle(apartment.apartmentStyle);
+    if (style) points += style === profile.apartmentStyle ? 8 : -4;
+  }
   if (profile.hasPet) points += apartment.isPetFriendly || hasTag(apartment, 'Pet friendly') ? 8 : -12;
   if (profile.transportation.includes('Car')) points += parkingScore(apartment) >= 3 ? 6 : parkingScore(apartment) === 0 ? -6 : 0;
   // Electric car owners: an EV charger within a 10-minute walk earns 3 points.

@@ -1,3 +1,4 @@
+import { cardNearbyPlaces, NearbyPlace } from '../utils/nearby-places';
 import { Component, DoCheck, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
@@ -1012,6 +1013,11 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   }
 
   /** Verified badge only when the uploading agent explicitly ticked "Verified listing". */
+  /** Three nearby places that actually have data; missing ones are replaced by the next available. */
+  nearbyPlaces(apartment: Apartment): NearbyPlace[] {
+    return cardNearbyPlaces(apartment);
+  }
+
   isVerifiedListing(apartment: Apartment): boolean {
     return /(?:^|[|\r\n])\s*Verified listing:\s*Yes\b/i.test(apartment.description || '');
   }

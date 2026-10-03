@@ -847,9 +847,67 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ["Show password", "Показать пароль"],
   ["Hide password", "Скрыть пароль"],
   ['Resend in', 'Повторно через'],
+  ['Choose your character', 'Выберите персонажа'],
+  ['Newest', 'Сначала новые'],
+  ['Sort listings', 'Сортировка'],
+  ['Filter listings', 'Фильтр'],
+  ['Back to profile', 'Назад к профилю'],
+  ['All properties', 'Все объекты'],
+  ['listings', 'объявлений'],
+  ['All properties by', 'Все объекты агента'],
+  ["Real Estate Agent at VELVEN", "Агент по недвижимости в VELVEN"],
+  ["is a verified real estate professional dedicated to helping clients find the right property in Tbilisi.", "— проверенный специалист по недвижимости, который помогает клиентам найти подходящий объект в Тбилиси."],
+  ["People.", "Люди."],
+  ["Properties.", "Недвижимость."],
+  ["Better Tomorrows.", "Лучшее завтра."],
+  ["Properties Closed", "Закрытые сделки"],
+  ["Years Experience", "Лет опыта"],
+  ["Agent Rating", "Рейтинг агента"],
+  ["Client Satisfaction", "Удовлетворённость клиентов"],
+  ["About", "О агенте"],
+  ["Listings", "Объявления"],
+  ["CURATED PORTFOLIO", "ИЗБРАННОЕ ПОРТФОЛИО"],
+  ["Properties by", "Объекты агента"],
+  ["Discover current properties represented by this verified VELVEN agent.", "Актуальные объекты этого проверенного агента VELVEN."],
+  ["MEET YOUR AGENT", "ПОЗНАКОМЬТЕСЬ С АГЕНТОМ"],
+  ["Local expertise, personal service.", "Местная экспертиза, личный подход."],
+  ["Areas of expertise", "Районы работы"],
+  ["City Center", "Центр города"],
+  ["Property focus", "Типы недвижимости"],
+  ["GET IN TOUCH", "СВЯЖИТЕСЬ С НАМИ"],
+  ["Let’s find your next property.", "Давайте найдём ваш следующий объект."],
+  ["Have a question or want to schedule a viewing?", "Есть вопрос или хотите записаться на просмотр?"],
+  ["is ready to help.", "готов помочь."],
+  ["Browse listings", "Смотреть объявления"],
+  ["VELVEN promise", "Обещание VELVEN"],
+  ["Agent statistics", "Статистика агента"],
+  ["Profile sections", "Разделы профиля"],
+  ["Apartments", "Квартиры"],
+  ["Family homes", "Семейные дома"],
+  ["Investments", "Инвестиции"],
+  ['What style of apartment do you like?', 'Какой стиль квартиры вам нравится?'],
+  ['Modern', 'Современный'],
+  ['Vintage', 'Винтажный'],
+  ['Something else', 'Другое'],
+  ['Apartment style', 'Стиль квартиры'],
+  ['Clean lines, light, new finishes', 'Чистые линии, свет, новая отделка'],
+  ['Classic details, character, warmth', 'Классические детали, характер, уют'],
+  ['Open to any style', 'Подойдёт любой стиль'],
 ]);
 
 const RUSSIAN_RULES: RussianRule[] = [
+  {
+    pattern: /^This listing has a minimum lease term: (\d+) (year|years|month|months)$/i,
+    translate: (match) => {
+      const n = Number(match[1]);
+      const years = /year/i.test(match[2]);
+      const few = n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14);
+      const unit = years
+        ? (n % 10 === 1 && n % 100 !== 11 ? 'год' : few ? 'года' : 'лет')
+        : (n % 10 === 1 && n % 100 !== 11 ? 'месяц' : few ? 'месяца' : 'месяцев');
+      return `Минимальный срок аренды этого объекта: ${n} ${unit}`;
+    },
+  },
   {
     pattern: /^Step (\d+) of (\d+)$/i,
     translate: (match) => `Шаг ${match[1]} из ${match[2]}`,

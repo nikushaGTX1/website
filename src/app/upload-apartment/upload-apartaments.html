@@ -263,18 +263,6 @@
           </div>
         </div>
 
-        <div class="field-group" *ngIf="isRentalDeal">
-          <label class="field-label">Maximum occupants</label>
-          <input
-            type="number"
-            class="field-input"
-            min="1"
-            max="50"
-            [(ngModel)]="form.maxOccupants"
-            name="maxOccupants"
-            placeholder="e.g. 4"
-          />
-        </div>
 
         <div class="field-group">
           <label class="field-label">Status <span class="req">*</span></label>
@@ -450,16 +438,26 @@
         <div class="lifestyle-panel">
           <span class="lifestyle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M10 2.5c.4 3.9 2.6 6.1 6.5 6.5-3.9.4-6.1 2.6-6.5 6.5-.4-3.9-2.6-6.1-6.5-6.5 3.9-.4 6.1-2.6 6.5-6.5Z"/><path d="M18 13c.2 2.1 1.4 3.3 3.5 3.5-2.1.2-3.3 1.4-3.5 3.5-.2-2.1-1.4-3.3-3.5-3.5 2.1-.2 3.3-1.4 3.5-3.5Z" opacity=".7"/><circle cx="5" cy="18.5" r="1.3" opacity=".55"/></svg></span>
           <div class="lifestyle-copy"><strong>Help us understand the atmosphere</strong><small>This improves how your home appears in lifestyle-based search.</small></div>
-          <label class="style-select">
+          <div class="style-select" role="radiogroup" aria-label="Interior style">
               <span>Interior style</span>
-              <select name="apartmentStyle" [(ngModel)]="form.apartmentStyle">
-                <option value="Modern">Modern</option>
-                <option value="Luxury">Luxury</option>
-                <option value="Minimal">Minimal</option>
-                <option value="Classic">Classic</option>
-                <option value="Industrial">Industrial</option>
-              </select>
-          </label>
+              <div class="style-picks">
+                <button type="button" role="radio" class="style-pick" [class.selected]="form.apartmentStyle === 'Modern'"
+                  [attr.aria-checked]="form.apartmentStyle === 'Modern'" (click)="form.apartmentStyle = 'Modern'">
+                  <svg viewBox="0 0 48 36" aria-hidden="true"><rect width="48" height="36" rx="8" fill="#f3effd"/><rect x="5" y="5" width="17" height="15" rx="2" fill="#fff" stroke="#c9b8ff" stroke-width="1.5"/><line x1="13.5" y1="5" x2="13.5" y2="20" stroke="#c9b8ff" stroke-width="1.5"/><rect x="7" y="22" width="28" height="6" rx="2" fill="#451a8f"/><rect x="8" y="18" width="12" height="5" rx="1.5" fill="#6a3fd0"/><rect x="22" y="18" width="12" height="5" rx="1.5" fill="#6a3fd0"/><line x1="40" y1="12" x2="40" y2="29" stroke="#451a8f" stroke-width="1.5"/><path d="M36 12h8l-1.5-4h-5z" fill="#451a8f"/></svg>
+                  <b>Modern</b>
+                </button>
+                <button type="button" role="radio" class="style-pick" [class.selected]="form.apartmentStyle === 'Vintage'"
+                  [attr.aria-checked]="form.apartmentStyle === 'Vintage'" (click)="form.apartmentStyle = 'Vintage'">
+                  <svg viewBox="0 0 48 36" aria-hidden="true"><rect width="48" height="36" rx="8" fill="#fbf4ec"/><path d="M5 24V12a6 6 0 0 1 12 0v12z" fill="#fff" stroke="#d6b48a" stroke-width="1.5"/><rect x="30" y="5" width="12" height="9" rx="1" fill="#fff" stroke="#b07a3f" stroke-width="1.5"/><ellipse cx="29" cy="31" rx="15" ry="2.5" fill="#e8cfae"/><path d="M22 20c0-4 2.5-5.5 7-5.5s7 1.5 7 5.5v6H22z" fill="#8f3b5e"/><rect x="19" y="22" width="4" height="7" rx="2" fill="#a04a6e"/><rect x="35" y="22" width="4" height="7" rx="2" fill="#a04a6e"/></svg>
+                  <b>Vintage</b>
+                </button>
+                <button type="button" role="radio" class="style-pick" [class.selected]="form.apartmentStyle === 'Other'"
+                  [attr.aria-checked]="form.apartmentStyle === 'Other'" (click)="form.apartmentStyle = 'Other'">
+                  <svg viewBox="0 0 48 36" aria-hidden="true"><rect width="48" height="36" rx="8" fill="#eef6f3"/><rect x="5" y="10" width="12" height="17" rx="2.5" fill="#fff" stroke="#9fd3c2" stroke-width="1.5"/><rect x="31" y="10" width="12" height="17" rx="2.5" fill="#fff" stroke="#e0b07a" stroke-width="1.5"/><rect x="17" y="6" width="14" height="22" rx="2.5" fill="#fff" stroke="#7657f6" stroke-width="1.5"/><path d="M24 12l1.4 2.8 3.1.5-2.2 2.2.5 3.1-2.8-1.5-2.8 1.5.5-3.1-2.2-2.2 3.1-.5z" fill="#451a8f"/></svg>
+                  <b>Something else</b>
+                </button>
+              </div>
+          </div>
         </div>
         <p class="smart-location-note"><i class="fa-solid fa-location-crosshairs"></i><span><strong>Neighbourhood insights included</strong> Walking times to transit, parks, schools and daily essentials are calculated automatically from the address.</span></p>
       </section>

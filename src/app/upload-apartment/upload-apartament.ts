@@ -1,3 +1,4 @@
+import { normalizeApartmentStyle } from '../utils/apartment-style';
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -699,7 +700,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.minimumRentalPeriod = source.minimumRentalPeriod || tag('Minimum rental');
     f.availableFrom = source.availableFrom || '';
     f.maxOccupants = source.maxOccupants ?? null;
-    f.apartmentStyle = source.apartmentStyle || f.apartmentStyle;
+    f.apartmentStyle = normalizeApartmentStyle(source.apartmentStyle) || f.apartmentStyle;
     f.cadastralCode = tag('Cadastral');
     const district = source.district || tag('District');
     const street = source.street || tag('Street');

@@ -28,6 +28,7 @@ export interface HomeMatchApartment {
   id: number;
   title: string;
   description?: string;
+  apartmentStyle?: string;
   price: number;
   address?: string;
   latitude?: number;

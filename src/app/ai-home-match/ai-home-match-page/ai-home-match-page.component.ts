@@ -28,7 +28,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     'Review',
   ];
   readonly questions: HomeMatchQuestion[] = [
-    { title: 'Select your gender' },
+    { title: 'Choose your character' },
     { title: 'What are you looking for?' },
     { title: 'Where would you like to live?', subtitle: 'Choose one or more locations.' },
     { title: 'What is your budget?' },
@@ -46,6 +46,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       title: 'Rank your Top 5 priorities',
       subtitle: 'Choose them in order from most to least important.',
     },
+    { title: 'What style of apartment do you like?' },
   ];
   readonly districts = this.opts(
     [
@@ -245,7 +246,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return (this.stepNumber / this.visibleSteps.length) * 100;
   }
   get visibleSteps(): number[] {
-    return [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((step) =>
+    // Question 12 (apartment style) is asked right after Rent / Buy.
+    return [1, 12, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((step) =>
       !(this.profile.propertyGoal === 'Buy' && [3, 4, 5, 10].includes(step)) &&
       !(step === 5 && this.fixedHousehold),
     );
@@ -255,7 +257,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get currentPhase(): number {
     // Use the question ID as the source of truth so phase labels cannot drift.
-    if (this.step === 1 || this.step === 0) return 0;
+    if (this.step === 1 || this.step === 12 || this.step === 0) return 0;
     if (this.step === 2) return 1;
     if ([4, 5, 6, 7].includes(this.step)) return 2;
     if ([8, 9, 10].includes(this.step)) return 3;
@@ -534,13 +536,14 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       | 'rentalDuration'
       | 'moveInTiming'
       | 'purchaseTiming'
-      | 'proximityTarget',
+      | 'proximityTarget'
+      | 'apartmentStyle',
     value: string,
   ): void {
     (this.profile as Record<typeof key, string | undefined>)[key] = value;
     if (key === 'proximityTarget') this.proximitySuggestOpen = false;
     if (key === 'propertyGoal') {
-      for (const step of [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) this.clearStep(step);
+      for (const step of [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) this.clearStep(step);
       if (value === 'Buy') {
         this.profile.budgetMin = 0;
         this.profile.budgetMax = 2_000_000;
@@ -691,6 +694,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         );
       case 11:
         return this.profile.topPriorities.length === 5;
+      case 12:
+        return !!this.profile.apartmentStyle;
       default:
         return false;
     }
@@ -715,7 +720,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.showReview();
       return;
     }
-    if (this.step < this.questions.length - 1) {
+    if (this.stepNumber < this.visibleSteps.length) {
       this.step = this.visibleSteps[this.stepNumber];
     } else this.view = 'review';
     this.scrollToStepTop();
@@ -745,6 +750,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
       ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized', 'carFuelType'],
       ['lifestyles'], ['hasPet', 'petType', 'petOtherType', 'petCount'], ['topPriorities'],
+      ['apartmentStyle'],
     ];
     for (const key of fields[step]) {
       const value = EMPTY_HOME_MATCH_PROFILE[key];

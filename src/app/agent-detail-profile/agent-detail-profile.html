@@ -1,15 +1,29 @@
-<main class="agent-page">
+<main class="agent-page" [class.listings-page]="listingsPage">
   <div class="agent-shell">
     <nav class="breadcrumbs" aria-label="Breadcrumb">
       <a routerLink="/main">Home</a><i class="fa-solid fa-chevron-right"></i
       ><a routerLink="/agent-profile">Agents</a><i class="fa-solid fa-chevron-right"></i
-      ><span>{{ name }}</span>
+      ><a *ngIf="listingsPage" [routerLink]="['/agent-profile', agentRouteId]">{{ name }}</a
+      ><i *ngIf="listingsPage" class="fa-solid fa-chevron-right"></i
+      ><span>{{ listingsPage ? 'All properties' : name }}</span>
     </nav>
     <div class="status" *ngIf="loading">
       <i class="fa-solid fa-spinner fa-spin"></i> Loading agent profile&hellip;
     </div>
     <div class="status error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
     <ng-container *ngIf="!loading && agent">
+      <!-- Dedicated "all properties" page header (route /agent-profile/:id/listings). -->
+      <section class="listings-page-head" *ngIf="listingsPage">
+        <a class="listings-back" [routerLink]="['/agent-profile', agentRouteId]"><i class="fa-solid fa-arrow-left"></i> Back to profile</a>
+        <div class="listings-agent">
+          <img [src]="photo" [alt]="name" (error)="fixImage($event)" />
+          <div>
+            <span class="verified-pill"><i class="fa-solid fa-circle-check"></i> Verified Agent</span>
+            <h1><span>All properties by</span> {{ name }}</h1>
+            <p>{{ listings.length }} <span>listings</span> · <span>Real Estate Agent at VELVEN</span></p>
+          </div>
+        </div>
+      </section>
       <section class="profile-hero">
         <div class="portrait-wrap">
           <img [src]="photo" [alt]="name" (error)="fixImage($event)" /><span
@@ -22,7 +36,7 @@
           <span class="verified-pill"><i class="fa-solid fa-circle-check"></i> Verified Agent</span>
           <h1>{{ name }}</h1>
           <p class="role">Real Estate Agent at VELVEN</p>
-          <p class="intro">{{ bio }}</p>
+          <p class="intro"><ng-container *ngTemplateOutlet="bioText"></ng-container></p>
           <div class="agent-details">
             <span><i class="fa-solid fa-location-dot"></i>{{ location }}</span
             ><span><i class="fa-solid fa-globe"></i>Georgian, English, Russian</span
@@ -85,20 +99,39 @@
         <header class="section-heading">
           <div>
             <span>CURATED PORTFOLIO</span>
-            <h2>Properties by {{ name }}</h2>
+            <h2><span class="t">Properties by</span> {{ name }}</h2>
             <p>Discover current properties represented by this verified VELVEN agent.</p>
           </div>
-          <a routerLink="/ExploreProperty"
-            >View all properties <i class="fa-solid fa-arrow-right"></i
-          ></a>
+          <a class="view-all-toggle" *ngIf="!listingsPage && listings.length" [routerLink]="['/agent-profile', agentRouteId, 'listings']">
+            <span>View all properties</span>
+            <b class="view-all-count">{{ listings.length }}</b>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
         </header>
         <div class="empty-state" *ngIf="!listings.length">
           <i class="fa-regular fa-building"></i>
           <h3>No active listings yet</h3>
           <p>New properties from {{ name }} will appear here.</p>
         </div>
+        <!-- All listings view: deal-type filter + sort, shown after "View all properties". -->
+        <div class="portfolio-toolbar" *ngIf="listingsPage">
+          <div class="portfolio-filters" role="tablist" aria-label="Filter listings">
+            <button type="button" role="tab" *ngFor="let option of listingFilters" [hidden]="option.value !== 'all' && !listingCount(option.value)" [class.active]="listingFilter === option.value"
+              [attr.aria-selected]="listingFilter === option.value" (click)="listingFilter = option.value">
+              <span>{{ option.label }}</span><b>{{ listingCount(option.value) }}</b>
+            </button>
+          </div>
+          <label class="portfolio-sort">
+            <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+            <select [(ngModel)]="listingSort" aria-label="Sort listings">
+              <option value="newest">Newest</option>
+              <option value="price-asc">Price: low to high</option>
+              <option value="price-desc">Price: high to low</option>
+            </select>
+          </label>
+        </div>
         <div class="listing-grid" *ngIf="listings.length">
-          <article *ngFor="let apartment of listings | slice: 0 : 3">
+          <article *ngFor="let apartment of visibleListings">
             <a class="listing-image-link" [routerLink]="['/apartments', apartment.id]"
               ><img [src]="getListingImage(apartment)" [alt]="apartment.title" /><span
                 class="listing-badge"
@@ -127,7 +160,7 @@
         <div class="about-copy">
           <span class="section-kicker">MEET YOUR AGENT</span>
           <h2>Local expertise, personal service.</h2>
-          <p>{{ bio }}</p>
+          <p><ng-container *ngTemplateOutlet="bioText"></ng-container></p>
         </div>
         <div class="expertise-card">
           <h3>Areas of expertise</h3>
@@ -151,7 +184,7 @@
         <div>
           <span>GET IN TOUCH</span>
           <h2>Let’s find your next property.</h2>
-          <p>Have a question or want to schedule a viewing? {{ name }} is ready to help.</p>
+          <p><span class="t">Have a question or want to schedule a viewing?</span> {{ name }} <span class="t">is ready to help.</span></p>
         </div>
         <div class="banner-actions">
           <button type="button" (click)="callAgent()">
@@ -190,3 +223,9 @@
     </section>
   </div>
 </main>
+
+<!-- Agent bio: custom text as written; the default sentence is split so it can be translated. -->
+<ng-template #bioText>
+  <ng-container *ngIf="agent?.bio?.trim(); else defaultBio">{{ agent?.bio }}</ng-container>
+  <ng-template #defaultBio>{{ name }} <span class="t">is a verified real estate professional dedicated to helping clients find the right property in Tbilisi.</span></ng-template>
+</ng-template>

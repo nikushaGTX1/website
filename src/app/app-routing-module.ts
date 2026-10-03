@@ -116,6 +116,13 @@ const routes: Routes = [
   },
 
   {
+    path: 'agent-profile/:id/listings',
+    component: AgentDetailProfile,
+    data: { listingsPage: true },
+    title: 'Agent Properties | Velven'
+  },
+
+  {
     path: 'login',
     component: Login,
     title: 'Sign In | Velven',

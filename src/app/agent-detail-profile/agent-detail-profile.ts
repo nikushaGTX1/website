@@ -19,6 +19,38 @@ import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 export class AgentDetailProfile implements OnInit {
   agent: Agent | null = null;
   listings: Apartment[] = [];
+  listingFilter: 'all' | 'sale' | 'rent' = 'all';
+  listingSort: 'newest' | 'price-asc' | 'price-desc' = 'newest';
+  readonly listingFilters: Array<{ value: 'all' | 'sale' | 'rent'; label: string }> = [
+    { value: 'all', label: 'All' },
+    { value: 'sale', label: 'For Sale' },
+    { value: 'rent', label: 'For Rent' },
+  ];
+
+  /** First 3 on the profile; every listing (filtered + sorted) on the all-properties page. */
+  get visibleListings(): Apartment[] {
+    if (!this.listingsPage) return this.listings.slice(0, 3);
+    const filtered = this.listings.filter((apartment) =>
+      this.listingFilter === 'all' ? true : this.listingFilter === 'sale' ? this.isForSale(apartment) : !this.isForSale(apartment),
+    );
+    if (this.listingSort === 'newest') return filtered;
+    const direction = this.listingSort === 'price-asc' ? 1 : -1;
+    return [...filtered].sort((a, b) => (Number(a.price) - Number(b.price)) * direction);
+  }
+
+  listingCount(filter: 'all' | 'sale' | 'rent'): number {
+    if (filter === 'all') return this.listings.length;
+    return this.listings.filter((apartment) => (filter === 'sale') === this.isForSale(apartment)).length;
+  }
+
+  /** True on /agent-profile/:id/listings (the dedicated all-properties page). */
+  get listingsPage(): boolean {
+    return !!this.route.snapshot.data['listingsPage'];
+  }
+
+  get agentRouteId(): string {
+    return this.route.snapshot.paramMap.get('id') || '';
+  }
   loading = true;
   errorMessage = '';
   phoneDialogOpen = false;
