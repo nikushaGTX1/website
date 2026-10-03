@@ -238,6 +238,39 @@
           </div>
         </form>
 
+        <section class="password-zone" aria-labelledby="change-password-title">
+          <div class="password-zone-head">
+            <div>
+              <p class="section-kicker">Security</p>
+              <h2 id="change-password-title">Change password</h2>
+              <p>We'll email you a 6-digit code to confirm it's you.</p>
+            </div>
+            <button type="button" class="password-code-button" *ngIf="!passwordCodeSent"
+              (click)="sendPasswordCode()" [disabled]="passwordBusy">
+              {{ passwordBusy ? 'Sending…' : 'Send code' }}
+            </button>
+          </div>
+          <form class="password-form" *ngIf="passwordCodeSent" (ngSubmit)="submitPasswordChange()">
+            <label>
+              <span>6-digit code</span>
+              <input name="passwordCode" [(ngModel)]="passwordCode" inputmode="numeric" maxlength="6"
+                autocomplete="one-time-code" placeholder="••••••" required />
+            </label>
+            <label>
+              <span>New password</span>
+              <input name="newPassword" type="password" [(ngModel)]="newPassword" minlength="6"
+                autocomplete="new-password" placeholder="At least 6 characters" required />
+            </label>
+            <div class="password-form-actions">
+              <button type="button" class="password-link" (click)="sendPasswordCode()" [disabled]="passwordBusy">Resend code</button>
+              <button type="submit" class="password-code-button" [disabled]="passwordBusy">
+                {{ passwordBusy ? 'Saving…' : 'Change password' }}
+              </button>
+            </div>
+          </form>
+          <p class="password-message" *ngIf="passwordMessage" [class.error]="passwordError">{{ passwordMessage }}</p>
+        </section>
+
         <section class="danger-zone" aria-labelledby="delete-account-title">
           <div>
             <p class="section-kicker">Danger zone</p>

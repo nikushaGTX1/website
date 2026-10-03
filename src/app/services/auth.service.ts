@@ -90,6 +90,30 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register`, data);
   }
 
+  verifyEmail(email: string, code: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify-email`, { email, code });
+  }
+
+  resendVerification(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/resend-verification`, { email });
+  }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(email: string, code: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, { email, code, newPassword });
+  }
+
+  requestChangePasswordCode(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/change-password/request-code`, {});
+  }
+
+  changePassword(code: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/change-password`, { code, newPassword });
+  }
+
   login(data: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
       tap((response) => this.saveLogin(response))

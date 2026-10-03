@@ -33,6 +33,60 @@ export class MyProfile implements OnInit, OnDestroy {
 
   @ViewChild('profilePictureInput') private fileInput?: ElementRef<HTMLInputElement>;
 
+  // Change password with an emailed code.
+  passwordCodeSent = false;
+  passwordBusy = false;
+  passwordCode = '';
+  newPassword = '';
+  passwordMessage = '';
+  passwordError = false;
+
+  sendPasswordCode(): void {
+    if (this.passwordBusy) return;
+    this.passwordBusy = true;
+    this.passwordMessage = '';
+    this.authService.requestChangePasswordCode().subscribe({
+      next: () => {
+        this.passwordBusy = false;
+        this.passwordCodeSent = true;
+        this.passwordError = false;
+        this.passwordMessage = 'We sent a code to your email.';
+      },
+      error: (err) => {
+        this.passwordBusy = false;
+        this.passwordError = true;
+        this.passwordMessage = err.error?.message || 'Could not send the code. Please try again.';
+      },
+    });
+  }
+
+  submitPasswordChange(): void {
+    if (this.passwordBusy) return;
+    if (this.newPassword.length < 6) {
+      this.passwordError = true;
+      this.passwordMessage = 'Password must be at least 6 characters.';
+      return;
+    }
+    this.passwordBusy = true;
+    this.authService.changePassword(this.passwordCode, this.newPassword).subscribe({
+      next: () => {
+        this.passwordBusy = false;
+        this.passwordCodeSent = false;
+        this.passwordCode = '';
+        this.newPassword = '';
+        this.passwordError = false;
+        this.passwordMessage = 'Password changed.';
+      },
+      error: (err) => {
+        this.passwordBusy = false;
+        this.passwordError = true;
+        this.passwordMessage = Array.isArray(err.error)
+          ? err.error.map((x: any) => x.description).join(' ')
+          : err.error?.message || 'The code is incorrect or has expired.';
+      },
+    });
+  }
+
   constructor(
     private authService: AuthService,
     private router: Router

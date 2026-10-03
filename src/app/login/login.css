@@ -371,3 +371,25 @@
 .owner-note strong { display: block; margin-bottom: 4px; font-size: 14px; }
 .owner-note p { margin: 0; color: #5b5470; font-size: 13px; line-height: 1.5; }
 .owner-note p + p { margin-top: 4px; }
+
+.forgot-link {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #451a8f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  float: right;
+}
+.forgot-link:hover { text-decoration: underline; }
+.code-input {
+  letter-spacing: 0.5em;
+  font-size: 22px !important;
+  font-weight: 700;
+  text-align: center;
+  padding-left: 16px !important;
+}
+.auth-card .auth-toggle-footer { gap: 16px; flex-wrap: wrap; justify-content: center; }
