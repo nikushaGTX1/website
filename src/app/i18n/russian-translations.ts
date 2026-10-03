@@ -838,6 +838,15 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ["We'll email you a 6-digit code to confirm it's you.", "Мы отправим 6-значный код на email для подтверждения."],
   ["We sent a code to your email.", "Мы отправили код на ваш email."],
   ["Password changed.", "Пароль изменён."],
+  ["Enter the 6-digit code we sent to", "Введите 6-значный код, отправленный на"],
+  ["Enter the code we sent to", "Введите код, отправленный на"],
+  ["Change your password", "Смените пароль"],
+  ["Didn't get the code?", "Не получили код?"],
+  ["Check your spam folder if you can't find it.", "Если не нашли, проверьте папку «Спам»."],
+  ["Please wait…", "Подождите…"],
+  ["Show password", "Показать пароль"],
+  ["Hide password", "Скрыть пароль"],
+  ['Resend in', 'Повторно через'],
 ]);
 
 const RUSSIAN_RULES: RussianRule[] = [

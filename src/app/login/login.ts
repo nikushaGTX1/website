@@ -144,7 +144,8 @@ export class Login {
     this.successMessage = '';
   }
 
-  submitVerify(): void {
+  submitVerify(code: string): void {
+    this.code = code;
     if (this.isSubmitting || !this.code.trim()) return;
     this.isSubmitting = true;
     this.errorMessage = '';
@@ -197,7 +198,9 @@ export class Login {
     });
   }
 
-  submitReset(): void {
+  submitReset(code: string, password: string): void {
+    this.code = code;
+    this.newPassword = password;
     if (this.isSubmitting || !this.code.trim() || this.newPassword.length < 6) {
       if (this.newPassword && this.newPassword.length < 6) this.errorMessage = 'Password must be at least 6 characters.';
       return;

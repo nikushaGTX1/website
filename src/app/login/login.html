@@ -2,7 +2,7 @@
   <div class="auth-card-container">
 
     <!-- ================= REGISTER CARD ================= -->
-    <div class="auth-card" *ngIf="step === 'form' && isRegisterMode">
+    <div class="auth-card" *ngIf="(step === 'form' || step === 'verify') && isRegisterMode">
       <ng-container *ngTemplateOutlet="ownerNote"></ng-container>
       <h2 class="title">Create your account</h2>
       <p class="subtitle">Join Velven and find a place you'll love coming home to.</p>
@@ -13,8 +13,8 @@
         <button type="button" class="tab-btn">I'm an Agent</button>
       </div>
 
-      <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
-      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="success" *ngIf="successMessage && step === 'form'">{{ successMessage }}</p>
+      <p class="error" *ngIf="errorMessage && step === 'form'">{{ errorMessage }}</p>
 
       <form class="auth-form" (ngSubmit)="register()">
 
@@ -103,13 +103,13 @@
       </div>
     </div>
 
-    <div class="auth-card" *ngIf="step === 'form' && !isRegisterMode">
+    <div class="auth-card" *ngIf="(step === 'form' || step === 'verify') && !isRegisterMode">
       <ng-container *ngTemplateOutlet="ownerNote"></ng-container>
       <h2 class="title">Welcome Back</h2>
       <p class="subtitle">Sign in to your account</p>
 
-      <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
-      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="success" *ngIf="successMessage && step === 'form'">{{ successMessage }}</p>
+      <p class="error" *ngIf="errorMessage && step === 'form'">{{ errorMessage }}</p>
 
       <form class="auth-form" (ngSubmit)="login()">
         <div class="form-group">
@@ -169,50 +169,53 @@
       </div>
     </div>
 
-    <!-- Email code steps: verify a new account, or reset a forgotten password. -->
-    <div class="auth-card" *ngIf="step !== 'form'">
-      <h2 class="title">{{ step === 'verify' ? 'Verify your email' : 'Reset your password' }}</h2>
-      <p class="subtitle" *ngIf="step === 'forgot'">Enter your email and we'll send you a 6-digit code.</p>
-      <p class="subtitle" *ngIf="step !== 'forgot'">Code sent to <b>{{ codeEmail }}</b></p>
-
-      <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
-      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
-
-      <form class="auth-form" *ngIf="step === 'forgot'" (ngSubmit)="submitForgot()">
+    <!-- Forgot password: ask for the email; the code itself is entered in the pop-up. -->
+    <div class="auth-card" *ngIf="step === 'forgot' || step === 'reset'">
+      <h2 class="title">Reset your password</h2>
+      <p class="subtitle">Enter your email and we'll send you a 6-digit code.</p>
+      <p class="error" *ngIf="errorMessage && step === 'forgot'">{{ errorMessage }}</p>
+      <form class="auth-form" (ngSubmit)="submitForgot()">
         <div class="form-group">
           <label for="forgot-email">Email Address</label>
           <div class="input-icon-wrapper">
             <input type="email" id="forgot-email" name="forgotEmail" [(ngModel)]="codeEmail" placeholder="you@example.com" required autocomplete="email">
           </div>
         </div>
-        <button type="submit" class="submit-btn" [disabled]="isSubmitting">{{ isSubmitting ? 'Sending…' : 'Send code' }}</button>
+        <button type="submit" class="submit-btn" [disabled]="isSubmitting">{{ isSubmitting && step === 'forgot' ? 'Sending…' : 'Send code' }}</button>
       </form>
-
-      <form class="auth-form" *ngIf="step === 'verify' || step === 'reset'" (ngSubmit)="step === 'verify' ? submitVerify() : submitReset()">
-        <div class="form-group">
-          <label for="email-code">6-digit code</label>
-          <div class="input-icon-wrapper">
-            <input class="code-input" type="text" id="email-code" name="emailCode" [(ngModel)]="code" inputmode="numeric"
-              autocomplete="one-time-code" maxlength="6" placeholder="••••••" required>
-          </div>
-        </div>
-        <div class="form-group" *ngIf="step === 'reset'">
-          <label for="new-password">New password</label>
-          <div class="input-icon-wrapper">
-            <input type="password" id="new-password" name="newPassword" [(ngModel)]="newPassword" minlength="6"
-              autocomplete="new-password" placeholder="At least 6 characters" required>
-          </div>
-        </div>
-        <button type="submit" class="submit-btn" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Please wait…' : step === 'verify' ? 'Verify email' : 'Change password' }}
-        </button>
-      </form>
-
       <div class="auth-toggle-footer">
-        <button type="button" class="toggle-link-btn" *ngIf="step !== 'forgot'" (click)="resendCode()" [disabled]="isSubmitting">Resend code</button>
         <button type="button" class="toggle-link-btn" (click)="backToLogin()">Back to sign in</button>
       </div>
     </div>
+
+    <app-code-dialog
+      *ngIf="step === 'verify'"
+      heading="Verify your email"
+      description="Enter the 6-digit code we sent to"
+      submitLabel="Verify email"
+      [email]="codeEmail"
+      [busy]="isSubmitting"
+      [error]="errorMessage"
+      [info]="successMessage"
+      (submitted)="submitVerify($event.code)"
+      (resend)="resendCode()"
+      (closed)="backToLogin()"
+    ></app-code-dialog>
+
+    <app-code-dialog
+      *ngIf="step === 'reset'"
+      heading="Reset your password"
+      description="Enter the code we sent to"
+      submitLabel="Change password"
+      [askPassword]="true"
+      [email]="codeEmail"
+      [busy]="isSubmitting"
+      [error]="errorMessage"
+      [info]="successMessage"
+      (submitted)="submitReset($event.code, $event.password)"
+      (resend)="resendCode()"
+      (closed)="step = 'forgot'; errorMessage = ''"
+    ></app-code-dialog>
 
     <aside class="hero-sidebar">
       <div class="hero-content">

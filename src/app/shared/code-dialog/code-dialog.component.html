@@ -1,0 +1,74 @@
+<div class="cd-backdrop" (click)="closed.emit()">
+  <section class="cd-dialog" role="dialog" aria-modal="true" aria-labelledby="cd-title" (click)="$event.stopPropagation()">
+    <button type="button" class="cd-close" aria-label="Close" (click)="closed.emit()">
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+
+    <div class="cd-brand">
+      <span class="cd-logo"><img src="/logosh2-mark-v2.png" alt="" /></span>
+      <span class="cd-brand-name">VELVEN</span>
+    </div>
+
+    <div class="cd-icon" aria-hidden="true"><i class="fa-solid fa-envelope-open-text"></i></div>
+
+    <h2 id="cd-title">{{ heading }}</h2>
+    <p class="cd-text">
+      <span>{{ description }}</span><br />
+      <b data-no-translate>{{ email }}</b>
+    </p>
+
+    <form (ngSubmit)="submit()" autocomplete="off">
+      <div class="cd-digits" (paste)="onPaste($event)">
+        <input
+          #digit
+          *ngFor="let i of slots"
+          type="text"
+          inputmode="numeric"
+          maxlength="6"
+          [attr.autocomplete]="i === 0 ? 'one-time-code' : 'off'"
+          [attr.aria-label]="'Digit ' + (i + 1)"
+          [class.filled]="!!digits[i]"
+          [class.has-error]="!!error"
+          [value]="digits[i]"
+          (input)="onDigitInput(i, $event)"
+          (keydown)="onDigitKeydown(i, $event)"
+        />
+      </div>
+
+      <label class="cd-password" *ngIf="askPassword">
+        <span>New password</span>
+        <span class="cd-password-field">
+          <i class="fa-solid fa-lock" aria-hidden="true"></i>
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            name="newPassword"
+            [(ngModel)]="password"
+            autocomplete="new-password"
+            placeholder="At least 6 characters"
+          />
+          <button type="button" class="cd-eye" (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            <i [class]="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'" aria-hidden="true"></i>
+          </button>
+        </span>
+      </label>
+
+      <p class="cd-message cd-error" *ngIf="error" role="alert"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</p>
+      <p class="cd-message cd-info" *ngIf="info && !error"><i class="fa-solid fa-circle-check"></i> {{ info }}</p>
+
+      <button type="submit" class="cd-submit" [disabled]="!canSubmit">
+        <i class="fa-solid fa-circle-notch fa-spin" *ngIf="busy" aria-hidden="true"></i>
+        {{ busy ? 'Please wait…' : submitLabel }}
+      </button>
+    </form>
+
+    <p class="cd-resend">
+      <span>Didn't get the code?</span>
+      <button type="button" (click)="requestResend()" [disabled]="resendIn > 0 || busy">
+        <ng-container *ngIf="resendIn > 0"><span>Resend in</span> {{ resendIn }}s</ng-container>
+        <ng-container *ngIf="resendIn === 0">Resend code</ng-container>
+      </button>
+    </p>
+    <p class="cd-hint">Check your spam folder if you can't find it.</p>
+  </section>
+</div>

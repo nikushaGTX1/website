@@ -34,6 +34,10 @@ export class MyProfile implements OnInit, OnDestroy {
   @ViewChild('profilePictureInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   // Change password with an emailed code.
+  get currentEmail(): string {
+    return this.user?.email || '';
+  }
+
   passwordCodeSent = false;
   passwordBusy = false;
   passwordCode = '';

@@ -1879,6 +1879,15 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ["We'll email you a 6-digit code to confirm it's you.", "დასადასტურებლად ელფოსტაზე 6-ნიშნა კოდს გამოგიგზავნით."],
   ["We sent a code to your email.", "კოდი გამოგიგზავნეთ ელფოსტაზე."],
   ["Password changed.", "პაროლი შეიცვალა."],
+  ["Enter the 6-digit code we sent to", "შეიყვანეთ 6-ნიშნა კოდი, რომელიც გამოვგზავნეთ მისამართზე"],
+  ["Enter the code we sent to", "შეიყვანეთ კოდი, რომელიც გამოვგზავნეთ მისამართზე"],
+  ["Change your password", "შეცვალეთ პაროლი"],
+  ["Didn't get the code?", "კოდი არ მიგიღიათ?"],
+  ["Check your spam folder if you can't find it.", "თუ ვერ პოულობთ, შეამოწმეთ სპამის საქაღალდე."],
+  ["Please wait…", "გთხოვთ, მოიცადოთ…"],
+  ["Show password", "პაროლის ჩვენება"],
+  ["Hide password", "პაროლის დამალვა"],
+  ['Resend in', 'ხელახლა გაგზავნა'],
 ]);
 
 // Velven Match: requirement statuses, review page and validation messages.

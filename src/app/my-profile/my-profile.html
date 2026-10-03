@@ -250,25 +250,21 @@
               {{ passwordBusy ? 'Sending…' : 'Send code' }}
             </button>
           </div>
-          <form class="password-form" *ngIf="passwordCodeSent" (ngSubmit)="submitPasswordChange()">
-            <label>
-              <span>6-digit code</span>
-              <input name="passwordCode" [(ngModel)]="passwordCode" inputmode="numeric" maxlength="6"
-                autocomplete="one-time-code" placeholder="••••••" required />
-            </label>
-            <label>
-              <span>New password</span>
-              <input name="newPassword" type="password" [(ngModel)]="newPassword" minlength="6"
-                autocomplete="new-password" placeholder="At least 6 characters" required />
-            </label>
-            <div class="password-form-actions">
-              <button type="button" class="password-link" (click)="sendPasswordCode()" [disabled]="passwordBusy">Resend code</button>
-              <button type="submit" class="password-code-button" [disabled]="passwordBusy">
-                {{ passwordBusy ? 'Saving…' : 'Change password' }}
-              </button>
-            </div>
-          </form>
-          <p class="password-message" *ngIf="passwordMessage" [class.error]="passwordError">{{ passwordMessage }}</p>
+          <app-code-dialog
+            *ngIf="passwordCodeSent"
+            heading="Change your password"
+            description="Enter the code we sent to"
+            submitLabel="Change password"
+            [askPassword]="true"
+            [email]="currentEmail"
+            [busy]="passwordBusy"
+            [error]="passwordError ? passwordMessage : ''"
+            [info]="passwordError ? '' : passwordMessage"
+            (submitted)="passwordCode = $event.code; newPassword = $event.password; submitPasswordChange()"
+            (resend)="sendPasswordCode()"
+            (closed)="passwordCodeSent = false; passwordMessage = ''"
+          ></app-code-dialog>
+          <p class="password-message" *ngIf="passwordMessage && !passwordCodeSent" [class.error]="passwordError">{{ passwordMessage }}</p>
         </section>
 
         <section class="danger-zone" aria-labelledby="delete-account-title">
