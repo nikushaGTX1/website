@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
@@ -24,16 +24,20 @@ export class Navigation implements OnInit, OnDestroy {
     private authService: AuthService,
     readonly translation: TranslationService,
     private host: ElementRef<HTMLElement>,
+    private zone: NgZone,
   ) {}
 
-  /** Any press outside the language picker (profile menu, page, other buttons) closes the list. */
-  @HostListener('document:pointerdown', ['$event'])
-  onDocumentPointerDown(event: Event): void {
+  /**
+   * Any press outside the language picker closes the list. Registered outside Angular:
+   * a document-wide @HostListener re-rendered the whole page on every tap, and on phones
+   * that mid-tap DOM churn made taps get swallowed instead of becoming clicks.
+   */
+  private readonly onDocumentPointerDown = (event: Event): void => {
     if (!this.languageOpen) return;
     const picker = this.host.nativeElement.querySelector('.language-picker');
     if (picker && event.target instanceof Node && picker.contains(event.target)) return;
-    this.languageOpen = false;
-  }
+    this.zone.run(() => (this.languageOpen = false));
+  };
 
   /** Esc closes the language list first, then the menu, and returns focus to its toggle. */
   @HostListener('document:keydown.escape', ['$event'])
@@ -52,6 +56,9 @@ export class Navigation implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.zone.runOutsideAngular(() =>
+      document.addEventListener('pointerdown', this.onDocumentPointerDown, { passive: true }),
+    );
     this.isLoggedIn = this.authService.isLoggedIn;
     this.canOpenAdmin = this.authService.isAgent || this.authService.isCrmManager;
     this.subscription = this.authService.currentUser$.subscribe(() => {
@@ -61,6 +68,7 @@ export class Navigation implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    document.removeEventListener('pointerdown', this.onDocumentPointerDown);
     this.subscription?.unsubscribe();
   }
 
