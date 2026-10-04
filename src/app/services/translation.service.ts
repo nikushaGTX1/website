@@ -382,9 +382,11 @@ export class TranslationService {
 
     this.georgianTranslatorRequest ??= import('../i18n/georgian-translations')
       .then((module) => {
+        sessionStorage.removeItem('velven-stale-build-reload');
         this.georgianTranslator = module.georgianTranslation;
         return this.georgianTranslator;
-      });
+      })
+      .catch((error) => this.recoverFromStaleBuild(error));
     return this.georgianTranslatorRequest;
   }
 
@@ -395,10 +397,25 @@ export class TranslationService {
 
     this.russianTranslatorRequest ??= import('../i18n/russian-translations')
       .then((module) => {
+        sessionStorage.removeItem('velven-stale-build-reload');
         this.russianTranslator = module.russianTranslation;
         return this.russianTranslator;
-      });
+      })
+      .catch((error) => this.recoverFromStaleBuild(error));
     return this.russianTranslatorRequest;
+  }
+
+  /**
+   * A tab opened before a deploy still points at the old build, whose lazily loaded files no
+   * longer exist; the page would stay half in English. Reload once to pick up the new build.
+   */
+  private recoverFromStaleBuild(error: unknown): never {
+    const key = 'velven-stale-build-reload';
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, String(Date.now()));
+      window.location.reload();
+    }
+    throw error;
   }
 
   private loadTranslator(

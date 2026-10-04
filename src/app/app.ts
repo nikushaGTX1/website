@@ -5,7 +5,7 @@ import {
   signal
 } from '@angular/core';
 
-import { Router } from '@angular/router';
+import { NavigationError, Router } from '@angular/router';
 
 import { TranslationService } from './services/translation.service';
 import { SeoService } from './services/seo.service';
@@ -26,6 +26,16 @@ export class App implements AfterViewInit {
     private router: Router
   ) {
     this.seo.start();
+    // A tab left open across a deploy asks for page files that no longer exist, so taps on
+    // links silently fail. Load the target page fresh instead (once per session).
+    this.router.events.subscribe((event) => {
+      if (!(event instanceof NavigationError)) return;
+      const message = String((event.error as Error)?.message || event.error || '');
+      if (!/dynamically imported module|Loading chunk|Importing a module script failed|error loading dynamically/i.test(message)) return;
+      if (sessionStorage.getItem('velven-stale-build-reload')) return;
+      sessionStorage.setItem('velven-stale-build-reload', String(Date.now()));
+      window.location.assign(event.url);
+    });
   }
 
   ngAfterViewInit(): void {
