@@ -85,8 +85,10 @@
   transition: all 0.2s ease;
 }
 
+@media (hover: hover) {
 .pill-btn:hover {
   background: #f1f5f9;
+}
 }
 
 .pill-btn.active {
@@ -148,9 +150,11 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+@media (hover: hover) {
 .blog-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.07);
+}
 }
 
 .card-image-wrapper {
@@ -214,8 +218,10 @@
   text-decoration: none;
 }
 
+@media (hover: hover) {
 .read-more-btn:hover {
   text-decoration: underline;
+}
 }
 
 /* Pagination */
@@ -243,9 +249,11 @@
   transition: all 0.2s;
 }
 
+@media (hover: hover) {
 .blog-pagination button:hover:not(:disabled) {
   border-color: #451a8f;
   color: #451a8f;
+}
 }
 
 .blog-pagination button.active {
@@ -411,8 +419,10 @@
   transition: background 0.2s ease;
 }
 
+@media (hover: hover) {
 .career-btn:hover {
   background: #f1f5f9;
+}
 }
 
 /* Loading & Error States */

@@ -203,10 +203,12 @@ app-root {
   box-shadow: 0 8px 20px rgba(160, 60, 71, 0.2);
 }
 
+@media (hover: hover) {
 .velven-alert__confirm:hover {
   background: #8d303b;
   border-color: #8d303b;
   transform: translateY(-1px);
+}
 }
 
 .velven-alert__cancel {
@@ -215,9 +217,11 @@ app-root {
   border: 1px solid #dcd7e2;
 }
 
+@media (hover: hover) {
 .velven-alert__cancel:hover {
   background: #f8f6f9;
   border-color: #c9c2cf;
+}
 }
 
 .swal2-validation-message {

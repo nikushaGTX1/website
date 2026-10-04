@@ -60,7 +60,9 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
 .save-message { min-height: 20px; margin: 0; color: #4d3cad; text-align: center; }
 .actions { display: flex; justify-content: center; gap: 10px; padding-top: 20px; border-top: 1px solid #ece7f2; flex-wrap: wrap; }
 .actions button { min-height: 48px; padding: 0 19px; border-radius: 12px; font: inherit; font-weight: 800; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+@media (hover: hover) {
 .actions button:hover { transform: translateY(-2px); }
+}
 .actions button:disabled { cursor: wait; opacity: .55; }
 .primary { border: 0; color: #fff; background: linear-gradient(135deg, #4c168f, #792bc6); box-shadow: 0 12px 24px rgba(82, 32, 154, .24); }
 .secondary { color: #4c227f; border: 1px solid #ddd3e8; background: #fff; }
@@ -228,10 +230,12 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
   background: #fbfafd;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
+@media (hover: hover) {
 .answer-review li:hover {
   border-color: #ddd6f2;
   background: #fff;
   box-shadow: 0 4px 14px rgba(41, 25, 82, 0.06);
+}
 }
 .answer-head {
   display: flex;
@@ -282,8 +286,10 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
   text-decoration-color: transparent;
   transition: text-decoration-color .15s ease;
 }
+@media (hover: hover) {
 .answer-review button:hover {
   text-decoration-color: currentColor;
+}
 }
 @media (max-width: 640px) {
   .answer-review { padding: 16px; }
@@ -299,9 +305,11 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
   cursor: pointer;
   transition: border-color .18s ease, box-shadow .18s ease;
 }
+@media (hover: hover) {
 .profile-attribute:hover {
   border-color: #b69ae9;
   box-shadow: 0 14px 34px rgba(69, 26, 143, .14);
+}
 }
 .profile-attribute:focus-visible {
   outline: 3px solid #451a8f;
@@ -376,9 +384,13 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
   transition: transform .15s ease, background .15s ease;
 }
 .profile-attribute { padding-right: 52px !important; }
+@media (hover: hover) {
 .profile-attribute:hover .attribute-edit { transform: translateY(-50%) scale(1.1); background: #6a2fd0 !important; }
+}
+@media (hover: hover) {
 .profile-attribute:hover,
 .profile-attribute:focus-visible { animation-play-state: paused !important; z-index: 6; }
+}
 
 .extra-answers {
   display: grid;

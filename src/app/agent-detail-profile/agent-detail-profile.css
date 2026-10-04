@@ -334,9 +334,11 @@
     transform 0.2s,
     box-shadow 0.2s;
 }
+@media (hover: hover) {
 .listing-grid article:hover {
   transform: translateY(-4px);
   box-shadow: 0 18px 40px #28205f17;
+}
 }
 .listing-image-link {
   position: relative;
@@ -351,8 +353,10 @@
   object-fit: cover;
   transition: transform 0.35s;
 }
+@media (hover: hover) {
 .listing-grid article:hover img {
   transform: scale(1.035);
+}
 }
 .listing-badge {
   position: absolute;
@@ -981,7 +985,9 @@
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
+@media (hover: hover) {
 .view-all-toggle:hover { background: #451a8f; border-color: #451a8f; color: #fff; }
+}
 .view-all-count {
   min-width: 22px;
   height: 22px;
@@ -993,7 +999,9 @@
   color: #451a8f;
   font-size: 12px;
 }
+@media (hover: hover) {
 .view-all-toggle:hover .view-all-count { background: rgba(255, 255, 255, 0.2); color: #fff; }
+}
 
 .portfolio-toolbar {
   margin: 0 0 22px;
@@ -1081,7 +1089,9 @@
   font-weight: 700;
   text-decoration: none;
 }
+@media (hover: hover) {
 .listings-back:hover { text-decoration: underline; }
+}
 .listings-agent { display: flex; align-items: center; gap: 18px; }
 .listings-agent img {
   width: 76px;

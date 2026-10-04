@@ -596,12 +596,14 @@ fieldset input,
   transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+@media (hover: hover) {
 .hero-actions button:hover {
   background: var(--match-blue-hover, #5845c7);
   transform: translateY(-1px);
   box-shadow: 0 9px 22px 5845c7;
 
 
+}
 }
 .hero-actions a {
   color: var(--match-blue);
@@ -871,9 +873,11 @@ fieldset button {
   text-align: center;
 }
 
+@media (hover: hover) {
 .options button:hover,
 fieldset button:hover {
   border-color: #451a8f;
+}
 }
 
 .options button.selected,
@@ -972,10 +976,12 @@ fieldset button.selected {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+@media (hover: hover) {
 .household-step .options button:hover {
   border-color: #9e8bd0;
   box-shadow: 0 7px 18px rgba(37, 25, 82, 0.08);
   transform: translateY(-1px);
+}
 }
 
 .household-step .options button.selected {
@@ -984,9 +990,11 @@ fieldset button.selected {
   box-shadow: 0 0 0 1px var(--match-blue), 0 8px 20px rgba(69, 26, 143, 0.1);
 }
 
+@media (hover: hover) {
 .household-step .options button:hover .household-option-images img,
 .household-step .options button.selected .household-option-images img {
   transform: translateY(-1px);
+}
 }
 
 .question fieldset {
@@ -1015,11 +1023,13 @@ fieldset button.selected {
   margin-right: 9px;
   vertical-align: middle;
 }
+@media (hover: hover) {
 .options button:hover .option-icon,
 fieldset button:hover .option-icon,
 .options button.selected .option-icon,
 fieldset button.selected .option-icon {
   transform: translateY(-2px) scale(1.06);
+}
 }
 .section-icon {
   width: 25px;
@@ -1445,9 +1455,11 @@ fieldset {
 .proximity-suggestions button:last-child {
   border-bottom: 0;
 }
+@media (hover: hover) {
 .proximity-suggestions button:hover {
   background: #f7faff;
   color: #451a8f;
+}
 }
 .proximity-suggestions button i {
   color: #451a8f;
@@ -1765,7 +1777,9 @@ fieldset {
 .car-fuel-title { margin: 0 0 12px; color: #2d2540; font-weight: 800; }
 .car-fuel-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .fuel-card { position: relative; display: grid; justify-items: center; gap: 6px; padding: 20px 14px 16px; border: 2px solid #e5e2e9; border-radius: 16px; background: #fff; text-align: center; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
+@media (hover: hover) {
 .fuel-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(40, 30, 80, 0.08); }
+}
 .fuel-card strong { color: #241c35; font-size: 15px; }
 .fuel-card small { color: #7a7389; font-size: 12px; font-weight: 600; }
 .fuel-icon { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 16px; font-size: 24px; }
@@ -1876,7 +1890,9 @@ fieldset {
   cursor: pointer;
   transition: border-color .18s, box-shadow .18s, transform .18s;
 }
+@media (hover: hover) {
 .style-card:hover { border-color: #c9b8ff; box-shadow: 0 14px 30px rgba(69, 26, 143, .12); transform: translateY(-2px); }
+}
 .style-card.selected { border-color: #451a8f; box-shadow: 0 0 0 4px rgba(69, 26, 143, .12), 0 14px 30px rgba(69, 26, 143, .14); }
 .style-art { display: block; margin-bottom: 10px; border-radius: 14px; overflow: hidden; }
 .style-art svg { display: block; width: 100%; height: auto; }

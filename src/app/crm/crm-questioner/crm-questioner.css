@@ -302,6 +302,7 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .choice-card:hover {
   border-color: var(--purple-border);
 
@@ -309,6 +310,7 @@ h1 {
 
   box-shadow:
     0 10px 25px rgba(51, 30, 88, 0.07);
+}
 }
 
 
@@ -658,8 +660,10 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .chip:hover {
   border-color: var(--purple-border);
+}
 }
 
 
@@ -769,8 +773,10 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .number-choice:hover {
   border-color: var(--purple-border);
+}
 }
 
 
@@ -1176,12 +1182,14 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .street-suggestions button:hover,
 .street-suggestions button:focus-visible,
 .street-suggestions button.active {
   background: var(--purple-light);
 
   color: var(--purple-dark);
+}
 }
 
 .feature-card:disabled {
@@ -1620,11 +1628,13 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .continue-button:hover:not(:disabled) {
   transform: translateY(-1px);
 
   box-shadow:
     0 11px 25px rgba(89, 39, 172, 0.27);
+}
 }
 
 
@@ -2098,11 +2108,13 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .language-button:hover {
   color: var(--purple);
 
   background:
     #faf8fd;
+}
 }
 
 
@@ -2179,10 +2191,12 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .country-select:hover,
 .country-select.open {
   border-color:
     var(--purple-border);
+}
 }
 
 
@@ -2446,9 +2460,11 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .country-option:hover {
   background:
     #f8f5fc;
+}
 }
 
 
@@ -2886,12 +2902,14 @@ h1 {
 }
 
 
+@media (hover: hover) {
 .success-modal-action:hover,
 .success-modal-action:focus-visible {
   box-shadow:
     0 16px 30px rgba(94, 45, 181, 0.34);
 
   transform: translateY(-2px);
+}
 }
 
 
@@ -3242,6 +3260,7 @@ h1 {
     box-shadow 0.18s ease;
 }
 
+@media (hover: hover) {
 .child-age-card:hover {
   border-color: var(--purple-border);
 
@@ -3249,6 +3268,7 @@ h1 {
 
   box-shadow:
     0 8px 20px rgba(51, 30, 88, 0.06);
+}
 }
 
 .child-age-card.active {
@@ -3381,6 +3401,7 @@ h1 {
     box-shadow 0.18s ease;
 }
 
+@media (hover: hover) {
 .pet-card:hover {
   border-color: var(--purple-border);
 
@@ -3388,6 +3409,7 @@ h1 {
 
   box-shadow:
     0 10px 24px rgba(51, 30, 88, 0.06);
+}
 }
 
 .pet-card.active {
@@ -3489,10 +3511,12 @@ h1 {
     box-shadow 0.18s ease;
 }
 
+@media (hover: hover) {
 .pet-size-button:hover {
   border-color: var(--purple-border);
 
   transform: translateY(-1px);
+}
 }
 
 .pet-size-button.active {

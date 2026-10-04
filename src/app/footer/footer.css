@@ -117,9 +117,11 @@
   text-decoration: none;
 }
 
+@media (hover: hover) {
 .socials a:hover {
   transform: translateY(-3px);
   transition: transform 0.2s ease-in-out;
+}
 }
 
 .footer-column {
@@ -144,8 +146,10 @@
   text-decoration: none;
 }
 
+@media (hover: hover) {
 .footer-column a:hover {
   color: #451a8f;
+}
 }
 
 .footer-column > a {

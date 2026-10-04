@@ -148,9 +148,11 @@
   transition: 0.18s ease;
   color: #27233b;
 }
+@media (hover: hover) {
 .option:hover {
   border-color: #bdb4f1;
   transform: translateY(-2px);
+}
 }
 .option:focus-visible,
 button:focus-visible,

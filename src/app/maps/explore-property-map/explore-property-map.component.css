@@ -92,10 +92,12 @@
   text-align: left;
   cursor: pointer;
 }
+@media (hover: hover) {
 .settings-menu button:hover,
 .settings-menu button.active {
   color: #451a8f;
   background: #f5f1ff;
+}
 }
 .map-count {
   position: absolute;

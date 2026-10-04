@@ -156,9 +156,11 @@ select:focus {
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
+@media (hover: hover) {
 .upload-box:hover {
   border-color: #7b55cc;
   background: #f6f1ff;
+}
 }
 .upload-box > i {
   width: 48px;
@@ -219,9 +221,11 @@ form footer {
   box-shadow: 0 12px 28px rgba(69, 26, 143, 0.25);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+@media (hover: hover) {
 .submit-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 16px 34px rgba(69, 26, 143, 0.32);
+}
 }
 .submit-button:disabled {
   opacity: 0.65;

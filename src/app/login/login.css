@@ -140,8 +140,10 @@
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
+@media (hover: hover) {
 .submit-btn:hover {
   background-color: #451a8f;
+}
 }
 
 .submit-btn:disabled {
@@ -198,8 +200,10 @@
   flex: 0 0 18px;
 }
 
+@media (hover: hover) {
 .social-btn:hover {
   background-color: #f8fafc;
+}
 }
 
 /* Footer Link Switcher */
@@ -384,7 +388,9 @@
   cursor: pointer;
   float: right;
 }
+@media (hover: hover) {
 .forgot-link:hover { text-decoration: underline; }
+}
 .code-input {
   letter-spacing: 0.5em;
   font-size: 22px !important;
@@ -468,7 +474,9 @@
   font-size: 15px;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
+@media (hover: hover) {
 .input-icon-wrapper input:hover { border-color: #cfc6e2 !important; }
+}
 .input-icon-wrapper input:focus {
   outline: 0;
   border-color: #451a8f !important;
@@ -487,7 +495,9 @@
   box-shadow: 0 14px 30px rgba(69, 26, 143, 0.28);
   transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
 }
+@media (hover: hover) {
 .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 18px 34px rgba(69, 26, 143, 0.34); }
+}
 
 .divider { margin: clamp(14px, 2.5vh, 24px) 0; color: #9a93ab; }
 .social-btn {
@@ -498,7 +508,9 @@
   color: #2b1d40;
   transition: border-color 0.15s, background 0.15s;
 }
+@media (hover: hover) {
 .social-btn:hover { border-color: #cfc6e2 !important; background: #faf8ff !important; }
+}
 .auth-toggle-footer { margin-top: clamp(14px, 2.5vh, 24px); color: #6b6480; }
 .toggle-link-btn { color: #451a8f !important; font-weight: 800; }
 .error, .success { border-radius: 12px; }

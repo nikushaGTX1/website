@@ -226,9 +226,11 @@ svg {
   color: #70657f;
   cursor: pointer;
 }
+@media (hover: hover) {
 .location-popover-close:hover {
   background: #ece5f7;
   color: var(--purple);
+}
 }
 .location-popover button:focus-visible {
   outline: 3px solid #bfa4eb;
@@ -295,7 +297,9 @@ svg {
   cursor: pointer;
   transform: translateY(-50%);
 }
+@media (hover: hover) {
 .location-popover-clear:hover { background: #e6e0f2; color: var(--purple); }
+}
 /* Keep icon buttons square even when global button rules add a minimum height. */
 .location-popover .location-popover-close,
 .location-popover .location-popover-clear {
@@ -345,8 +349,12 @@ svg {
   text-align: left;
   transition: background-color .12s ease;
 }
+@media (hover: hover) {
 .location-suggestions section > button:hover { background: #f7f3fb; }
+}
+@media (hover: hover) {
 .location-suggestions section > button:hover .location-suggestion-arrow { opacity: 1; transform: translateX(0); }
+}
 .location-suggestions section > button > i:first-child {
   flex: none;
   width: 32px;
@@ -445,6 +453,7 @@ svg {
   font-weight: 700;
 }
 .quick-locations button.quick-location-all > i:first-child { background: var(--purple); color: #fff; }
+@media (hover: hover) {
 .quick-locations button:hover,
 .budget-presets button:hover,
 .compact-popover > button:hover,
@@ -454,7 +463,10 @@ svg {
   border-color: #b69ae9;
   background: #f7f3ff;
 }
+}
+@media (hover: hover) {
 .quick-locations button:hover { transform: translateY(-1px); }
+}
 .compact-popover {
   width: 230px;
 }
@@ -492,9 +504,11 @@ svg {
   font-size: 16px;
   cursor: pointer;
 }
+@media (hover: hover) {
 .property-type-heading button:hover {
   color: var(--purple);
   background: #f8f5fd;
+}
 }
 .property-type-content {
   padding: 22px;
@@ -532,9 +546,11 @@ svg {
 .property-type-grid button i {
   font-size: 25px;
 }
+@media (hover: hover) {
 .property-type-grid button:hover {
   border-color: #6940b4;
   background: #faf8ff;
+}
 }
 .property-type-grid button.selected {
   color: #351078;
@@ -656,7 +672,9 @@ svg {
   font-size: 14px;
   transition: background-color .12s ease, transform .12s ease;
 }
+@media (hover: hover) {
 .location-popover .popover-apply:hover { background: #3a1576; }
+}
 .location-popover .popover-apply:active { transform: scale(0.98); }
 
 .chip-bar {
@@ -773,11 +791,13 @@ svg {
 .filter-select select::-ms-expand {
   display: none;
 }
+@media (hover: hover) {
 .chip:hover,
 .chip.selected {
   color: var(--purple);
   border-color: #b69ae9;
   background: #f7f3ff;
+}
 }
 .condition-filter {
   position: relative;
@@ -821,11 +841,13 @@ svg {
   text-align: left;
   cursor: pointer;
 }
+@media (hover: hover) {
 .condition-popover > button:hover,
 .condition-popover > button.selected {
   color: var(--purple);
   border-color: #d5c5f0;
   background: #f7f3ff;
+}
 }
 .condition-popover > button svg {
   width: 15px;
@@ -1340,8 +1362,10 @@ svg {
 .map-preview-close svg,
 .map-preview-arrow svg { width: 18px; height: 18px; display: block; margin: auto; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .map-preview-heart.saved { color: var(--purple); }
+@media (hover: hover) {
 .map-preview-heart:hover,
 .map-preview-close:hover { background: #f7f7f7; }
+}
 .map-preview-arrow {
   top: 50%;
   opacity: 1 !important;
@@ -1349,7 +1373,9 @@ svg {
   transform: translateY(-50%) scale(1);
   transition: background .16s ease, transform .16s ease;
 }
+@media (hover: hover) {
 .map-preview-arrow:hover { background: #f7f7f7; transform: translateY(-50%) scale(1.04); }
+}
 .map-preview-arrow.previous { left: 10px; }
 .map-preview-arrow.next { right: 10px; }
 .map-preview-dots {
@@ -1882,12 +1908,16 @@ svg {
     background-color 160ms ease,
     transform 160ms ease;
 }
+@media (hover: hover) {
 .property-card:hover .card-nearby-grid > span {
   border-color: #cbbce4;
 }
+}
+@media (hover: hover) {
 .card-nearby-grid > span:hover {
   background: #faf8ff;
   transform: translateY(-1px);
+}
 }
 .card-nearby-grid i {
   grid-row: auto;
@@ -1931,7 +1961,9 @@ svg {
 .card-photo-arrow { position: absolute; top: 50%; z-index: 4; display: grid; place-items: center; width: 36px; min-width: 36px; max-width: 36px; height: 36px; min-height: 36px; max-height: 36px; aspect-ratio: 1 / 1; box-sizing: border-box; padding: 0; border: 1px solid #00000014; border-radius: 999px; color: #242124; background: #fffffff2; box-shadow: 0 2px 6px #00000026; cursor: pointer; line-height: 1; transform: translateY(-50%); transition: opacity 150ms ease, scale 150ms ease; }
 .card-photo-arrow.previous { left: 12px; }
 .card-photo-arrow.next { right: 12px; }
+@media (hover: hover) {
 .card-photo-arrow:hover { background: #fff; scale: 1.06; }
+}
 .card-photo-arrow:focus-visible { outline: 2px solid #451a8f; outline-offset: 3px; }
 .card-photo-arrow i { display: block; width: 1em; height: 1em; font-size: 11px; line-height: 1; }
 .card-photo-dots { position: absolute; bottom: 13px; left: 50%; z-index: 3; width: 50px; height: 14px; overflow: hidden; border-radius: 999px; transform: translateX(-50%); pointer-events: none; }
@@ -2269,7 +2301,9 @@ svg {
 .mf-head h2 { margin: 0; color: #171421; font-size: 28px; font-weight: 800; }
 .mf-head p { margin: 6px 0 0; color: #7a7489; font-size: 15px; }
 .mf-close { width: 40px; height: 40px; min-height: 40px; display: grid; place-items: center; flex: none; border: 0; border-radius: 50%; background: transparent; color: #29222f; font-size: 20px; cursor: pointer; }
+@media (hover: hover) {
 .mf-close:hover { background: #f3f0f8; }
+}
 
 .mf-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0 36px; padding: 8px 34px 12px; overflow-y: auto; overscroll-behavior: contain; }
 .mf-col + .mf-col { padding-left: 36px; border-left: 1px solid #efedf3; }
@@ -2284,13 +2318,17 @@ svg {
 .mf-pills { display: flex; flex-wrap: wrap; gap: 10px; }
 .mf-pills button { box-sizing: border-box;  display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px; border: 1px solid #e3dfea; border-radius: 12px; background: #fff; color: #29222f; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s; }
 .mf-pills button i { color: #5b5468; font-size: 15px; }
+@media (hover: hover) {
 .mf-pills button:hover { border-color: #c9bde6; }
+}
 .mf-pills button.selected { border-color: #a58ce0; background: #f1ecff; color: #451a8f; }
 .mf-pills button.selected i { color: #451a8f; }
 
 .mf-segment { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 4px; padding: 4px; border: 1px solid #e3dfea; border-radius: 14px; background: #f7f5fb; }
 .mf-dialog .mf-segment button { min-width: 0; min-height: 40px; padding: 0 4px; white-space: nowrap; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #4a4356; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+@media (hover: hover) {
 .mf-dialog .mf-segment button:hover { background: #fff; }
+}
 .mf-dialog .mf-segment button.selected { border-color: #b9a6ea; background: #fff; color: #451a8f; box-shadow: 0 1px 3px rgba(69, 26, 143, 0.12); }
 .mf-dialog .mf-segment.ev button.selected { border-color: #8fd6b3; color: #0f8f61; box-shadow: 0 1px 3px rgba(15, 143, 97, 0.14); }
 
@@ -2320,7 +2358,9 @@ svg {
 .mf-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 12px; padding: 16px 22px 16px 34px; border-top: 1px solid #efedf3; }
 .mf-clear { border: 0; background: transparent; color: #1d1726; font: inherit; font-size: 15px; font-weight: 600; text-decoration: underline; cursor: pointer; }
 .mf-dialog .mf-apply { white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 30px; border: 0; border-radius: 12px; background: #451a8f; color: #fff; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(69, 26, 143, 0.28); }
+@media (hover: hover) {
 .mf-apply:hover { background: #3a1578; }
+}
 
 @keyframes mfFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes mfRise { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
@@ -2432,7 +2472,9 @@ svg {
   flex: 0 0 auto; white-space: nowrap; word-break: keep-all; overflow-wrap: normal;
 }
 .sort-trigger > i:first-child { color: #7136be; }
+@media (hover: hover) {
 .sort-trigger:hover, .sort-trigger.open { border-color: #451a8f; box-shadow: 0 0 0 3px rgba(69, 26, 143, .12); }
+}
 
 .filter-menu-backdrop { position: fixed; inset: 0; z-index: 9998; background: transparent; }
 .filter-menu {
@@ -2457,7 +2499,9 @@ svg {
   width: 30px; height: 30px; display: grid; place-items: center;
   border-radius: 9px; background: #f4effc; color: #7136be; font-size: 13px;
 }
+@media (hover: hover) {
 .filter-menu button:hover { background: #f7f3fd; }
+}
 .filter-menu button .tick { color: #451a8f; opacity: 0; font-size: 13px; }
 .filter-menu button.active { background: #f1eafc; color: #451a8f; }
 .filter-menu button.active > i:first-child { background: #451a8f; color: #fff; }
@@ -2702,7 +2746,9 @@ svg {
   display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 12px;
   border: 0; border-radius: 12px; background: transparent; text-align: left; cursor: pointer;
 }
+@media (hover: hover) {
 .area-sheet-suggestions > button:hover { background: #f7f3fd; }
+}
 .area-sheet-suggestions > button > i { color: #451a8f; width: 18px; text-align: center; }
 .area-sheet-suggestions b { display: block; color: #1b1626; font-size: 15px; }
 .area-sheet-suggestions small { display: block; color: #7d8598; font-size: 12.5px; }
@@ -2810,4 +2856,18 @@ svg {
   .area-sheet-all button { height: 32px; }
   .area-sheet-footer { padding-top: 6px; padding-bottom: 8px; }
   .area-sheet-footer button { height: 40px; }
+}
+
+/* Phones: keep the hidden map laid out at full size (not display:none), so Google Maps
+   draws it sharp from the start instead of a blurry first pass that sharpens later. */
+@media (max-width: 780px) {
+  .map-pane {
+    display: block !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .show-map .map-pane {
+    visibility: visible;
+    pointer-events: auto;
+  }
 }

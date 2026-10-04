@@ -117,13 +117,17 @@
   transition: transform 0.18s ease;
 }
 
+@media (hover: hover) {
 .nav-links a:hover,
 .nav-links a.active {
   color: #451a8f;
 }
+}
 
+@media (hover: hover) {
 .nav-links a:hover {
   color: #7657f6;
+}
 }
 
 
@@ -206,9 +210,11 @@
   cursor: pointer;
 }
 
+@media (hover: hover) {
 .language-menu button:hover {
   color: #6748db;
   background: #f2eeff;
+}
 }
 
 .language-menu span {
@@ -242,12 +248,14 @@
   stroke-width: 1.7;
 }
 
+@media (hover: hover) {
 .language:hover,
 .sign-in:hover,
 .admin-link:hover {
   border-color: #9b86f8;
   color: #6748db;
   background: #f2eeff;
+}
 }
 
 .list-property {
@@ -261,9 +269,11 @@
   transition: background 0.18s ease, transform 0.18s ease;
 }
 
+@media (hover: hover) {
 .list-property:hover {
   background: #7657f6;
   transform: translateY(-1px);
+}
 }
 
 .menu-toggle {

@@ -50,8 +50,10 @@
   transition: background-color 0.2s;
 }
 
+@media (hover: hover) {
 .list-property-btn:hover {
   background-color: #1e40af;
+}
 }
 
 .hero-section {
@@ -287,10 +289,12 @@
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
+@media (hover: hover) {
 .agent-card:hover {
   transform: translateY(-4px);
   border-color: #dbe6ff;
   box-shadow: 0 16px 36px rgba(69,26,143, 0.1);
+}
 }
 
 .avatar-container {
@@ -429,6 +433,7 @@
   color: #16a34a;
 }
 
+@media (hover: hover) {
 .action-btn.icon-only:hover {
   color: #ffffff;
   background-color: #451a8f;
@@ -436,12 +441,15 @@
   transform: translateY(-2px);
   box-shadow: 0 7px 15px rgba(69,26,143, 0.22);
 }
+}
 
+@media (hover: hover) {
 .action-btn.whatsapp-btn:hover {
   color: #ffffff;
   background-color: #16a34a;
   border-color: #16a34a;
   box-shadow: 0 7px 15px rgba(22, 163, 74, 0.2);
+}
 }
 
 .action-btn.icon-only:active,
@@ -480,11 +488,13 @@
   text-decoration: none;
 }
 
+@media (hover: hover) {
 .profile-btn:hover {
   background-color: #174dc9;
   color: #ffffff;
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgba(69,26,143, 0.24);
+}
 }
 
 .phone-dialog-backdrop {
@@ -528,10 +538,12 @@
   transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
+@media (hover: hover) {
 .dialog-close:hover {
   color: #0f172a;
   background: #e2e8f0;
   transform: rotate(5deg);
+}
 }
 
 .dialog-close svg {
@@ -619,10 +631,12 @@
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+@media (hover: hover) {
 .call-now-btn:hover {
   background: #174dc9;
   transform: translateY(-2px);
   box-shadow: 0 10px 22px rgba(69,26,143, 0.24);
+}
 }
 
 .call-now-btn svg {
@@ -693,10 +707,12 @@
   transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
 }
 
+@media (hover: hover) {
 .trust-card:hover {
   border-color: #b9ccf3;
   box-shadow: 0 12px 25px rgba(69,26,143,.1);
   transform: translateY(-3px);
+}
 }
 
 .trust-icon {
@@ -730,8 +746,10 @@
   color: #ffffff;
 }
 
+@media (hover: hover) {
 .career-btn.primary:hover {
   background-color: #451a8f;
+}
 }
 
 .career-btn.secondary {
@@ -739,8 +757,10 @@
   color: #334155;
 }
 
+@media (hover: hover) {
 .career-btn.secondary:hover {
   color: #451a8f;
+}
 }
 
 .team-banner {
@@ -804,10 +824,12 @@
   transition: color .2s ease, background .2s ease, transform .2s ease;
 }
 
+@media (hover: hover) {
 .team-join-btn:hover {
   color: #fff;
   background: #451a8f;
   transform: translateY(-2px);
+}
 }
 
 .play-icon {

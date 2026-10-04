@@ -106,10 +106,12 @@
     cursor:pointer;
 }
 
+@media (hover: hover) {
 .menu-list a:hover,
 .menu-list button:hover{
     background:#f6f7fb;
     color:#451a8f;
+}
 }
 
 .menu-list a > i,
@@ -121,9 +123,11 @@
     transition:.2s;
 }
 
+@media (hover: hover) {
 .menu-list a:hover > i,
 .menu-list button:hover > i{
     color:#451a8f;
+}
 }
 
 .sep{
@@ -141,9 +145,11 @@
     color:#ef4444;
 }
 
+@media (hover: hover) {
 .logout a:hover,
 .logout button:hover{
     background:#fff1f2;
+}
 }
 
 .profile-burger{

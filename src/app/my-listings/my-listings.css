@@ -98,9 +98,11 @@
   text-decoration: none;
   transition: border-color 0.15s, background 0.15s;
 }
+@media (hover: hover) {
 .owner-shortcut:hover {
   border-color: var(--purple);
   background: #f7f3ff;
+}
 }
 
 .notice {
@@ -155,9 +157,11 @@
   background: #fff;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
+@media (hover: hover) {
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 16px 36px rgba(21, 16, 28, 0.1);
+}
 }
 .photo {
   position: relative;
@@ -304,8 +308,10 @@
   background: #fff5f5;
   color: #b42318;
 }
+@media (hover: hover) {
 .btn:hover {
   filter: brightness(0.96);
+}
 }
 
 .loading,

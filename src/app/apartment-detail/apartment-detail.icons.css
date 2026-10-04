@@ -21,7 +21,9 @@
   mask: url('/measurement.svg') center / contain no-repeat;
 }
 
+@media (hover: hover) {
 .contact.primary:hover {
   border-color: #7657f6;
   background: #7657f6;
+}
 }

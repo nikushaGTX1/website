@@ -131,10 +131,12 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+@media (hover: hover) {
 .service-card:hover {
   border-color: #b9d0f6;
   box-shadow: 0 14px 32px rgba(23, 79, 165, 0.09);
   transform: translateY(-3px);
+}
 }
 
 .service-card svg {
@@ -189,10 +191,12 @@
   transition: transform .18s ease, background .18s ease, color .18s ease;
 }
 
+@media (hover: hover) {
 .service-card a:hover span {
   color: #fff;
   background: #451a8f;
   transform: translateX(3px);
+}
 }
 
 .contact-banner {

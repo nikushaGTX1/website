@@ -290,8 +290,10 @@ button {
 .street-suggestions button:last-child {
   border-bottom: 0;
 }
+@media (hover: hover) {
 .street-suggestions button:hover {
   background: #f7f5ff;
+}
 }
 .street-suggestions i {
   color: #5b21b6;
@@ -414,8 +416,10 @@ h3 {
   text-align: left;
   font-size: 11px;
 }
+@media (hover: hover) {
 .street-columns button:hover {
   background: #f8faff;
+}
 }
 .street-columns button.selected {
   border-color: #451a8f;
@@ -1078,8 +1082,10 @@ h3 {
   color: #344158;
   text-align: left;
 }
+@media (hover: hover) {
 .compact-street-results button:hover {
   background: #f7f5ff;
+}
 }
 .compact-street-results span {
   overflow: hidden;

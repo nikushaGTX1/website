@@ -45,10 +45,12 @@
 .vp-toolbar button {
   padding: 0 12px;
 }
+@media (hover: hover) {
 .vp-toolbar button:hover,
 .vp-toolbar button.saved {
   color: var(--purple);
   background: var(--lavender);
+}
 }
 .status-message {
   padding: 12px 15px;
@@ -91,8 +93,10 @@
   pointer-events: none;
   transition: opacity 0.28s ease;
 }
+@media (hover: hover) {
 .vp-gallery > button:hover::after {
   opacity: 1;
+}
 }
 .vp-gallery-main {
   grid-row: 1/3;
@@ -108,8 +112,10 @@
   -webkit-touch-callout: none;
   user-select: none;
 }
+@media (hover: hover) {
 .vp-gallery button:hover img {
   transform: none;
+}
 }
 .vp-gallery-main img.gallery-slide-left-a { animation: gallery-slide-in-left 0.32s ease; }
 .vp-gallery-main img.gallery-slide-left-b { animation: gallery-slide-in-left-b 0.32s ease; }
@@ -756,8 +762,10 @@
   font-weight: 700;
   backdrop-filter: blur(8px);
 }
+@media (hover: hover) {
 .viewer-back:hover {
   background: rgba(255, 255, 255, 0.16);
+}
 }
 .viewer-close {
   z-index: 2;
@@ -970,9 +978,11 @@
   color: #201c34;
   transition: border-color 0.15s ease;
 }
+@media (hover: hover) {
 .velven-datepicker-trigger:hover,
 .velven-datepicker-trigger.open {
   border-color: #451a8f;
+}
 }
 .velven-datepicker-trigger i:first-child {
   color: #451a8f;
@@ -1029,8 +1039,10 @@
   cursor: pointer;
   font-size: 11px;
 }
+@media (hover: hover) {
 .velven-calendar-head button:hover:not(:disabled) {
   background: #ece4fb;
+}
 }
 .velven-calendar-head button:disabled {
   opacity: 0.35;
@@ -1071,8 +1083,10 @@
   white-space: nowrap;
   cursor: pointer;
 }
+@media (hover: hover) {
 .velven-calendar-day:hover:not(:disabled) {
   background: #f4f1fa;
+}
 }
 .velven-calendar-day.muted {
   color: #cabee0;
@@ -1113,9 +1127,11 @@
   background: white;
   cursor: pointer;
 }
+@media (hover: hover) {
 .velven-calendar-time select:focus,
 .velven-calendar-time select:hover {
   border-color: #451a8f;
+}
 }
 .velven-calendar-time span {
   font-weight: 800;
@@ -1135,8 +1151,10 @@
   letter-spacing: 0.04em;
   cursor: pointer;
 }
+@media (hover: hover) {
 .velven-calendar-done:hover {
   background: #38156f;
+}
 }
 .viewing-dialog footer {
   margin-top: 19px;
@@ -2297,9 +2315,11 @@
   z-index: 1;
   object-fit: contain;
 }
+@media (hover: hover) {
 .vp-gallery button:hover .vp-gallery-bg {
   transform: none;
   filter: blur(22px) brightness(0.55) saturate(1.1);
+}
 }
 
 /* Fullscreen viewer: each photo keeps its own shape (portrait or wide) and
@@ -2947,9 +2967,11 @@
   text-align: left;
   cursor: pointer;
 }
+@media (hover: hover) {
 .vd-country-list button:hover,
 .vd-country-list button.active {
   background: #f4effd;
+}
 }
 .vd-country-name {
   min-width: 0;
@@ -3164,13 +3186,17 @@
 .photo-viewer .viewer-nav { top: calc(50% - 14px); }
 .photo-viewer .viewer-nav.previous { left: 32px; }
 .photo-viewer .viewer-nav.next { right: 32px; }
+@media (hover: hover) {
 .photo-viewer .viewer-back:hover, .photo-viewer .viewer-close:hover, .photo-viewer .viewer-nav:not(:disabled):hover { background: #ffffff18; border-color: #ffffff40; }
+}
 .photo-viewer .viewer-nav:disabled { opacity: .2; cursor: default; }
 .viewer-thumbnails { position: absolute; z-index: 3; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; gap: 8px; max-width: calc(100% - 64px); padding: 5px; overflow-x: auto; scrollbar-width: none; overscroll-behavior: contain; }
 .viewer-thumbnails::-webkit-scrollbar { display: none; }
 .viewer-thumbnails button { flex: 0 0 64px; width: 64px; height: 52px; min-height: 0; padding: 3px; border: 2px solid transparent; border-radius: 8px; background: transparent; opacity: .45; cursor: pointer; transition: opacity .18s ease, border-color .18s ease; }
 .viewer-thumbnails button img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 4px; user-select: none; }
+@media (hover: hover) {
 .viewer-thumbnails button:hover { opacity: .85; }
+}
 .viewer-thumbnails button.active { opacity: 1; border-color: #fff; }
 .photo-viewer button:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 4px; }
 @media (max-width: 600px) {

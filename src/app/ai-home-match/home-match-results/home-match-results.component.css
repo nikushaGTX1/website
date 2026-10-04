@@ -708,8 +708,12 @@ h1 {
 }
 .mc-nav.prev { left: 14px; }
 .mc-nav.next { right: 14px; }
+@media (hover: hover) {
 .mc-gallery:hover .mc-nav { opacity: 1; }
+}
+@media (hover: hover) {
 .mc-nav:hover { transform: translateY(-50%) scale(1.08); }
+}
 .mc-count {
   position: absolute; right: 16px; bottom: 16px; z-index: 2;
   display: inline-flex; gap: 6px; align-items: center;
@@ -781,7 +785,9 @@ h1 {
   box-shadow: 0 12px 26px rgba(69, 26, 143, 0.28);
   transition: transform 0.15s, box-shadow 0.15s;
 }
+@media (hover: hover) {
 .mc-cta:hover { transform: translateY(-1px); box-shadow: 0 16px 32px rgba(69, 26, 143, 0.34); }
+}
 
 @media (max-width: 720px) {
   .match-card { border-radius: 18px !important; }

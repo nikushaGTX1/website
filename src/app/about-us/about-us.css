@@ -51,8 +51,10 @@
   transition: background-color 0.2s;
 }
 
+@media (hover: hover) {
 .btn-primary:hover {
   background-color: #451a8f;
+}
 }
 
 .btn-large {
@@ -485,8 +487,10 @@
   margin-bottom: 10px;
 }
 
+@media (hover: hover) {
 .footer-col a:hover {
   color: #451a8f;
+}
 }
 
 .footer-bottom {

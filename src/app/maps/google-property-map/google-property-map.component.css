@@ -16,7 +16,9 @@
   cursor: pointer;
   background: #faf9fc;
 }
+@media (hover: hover) {
 .nearest-summary article:hover { border-color: #7767cf; }
+}
 .nearest-summary :is(span, strong, b) { display: block; }
 .nearest-summary span {
   color: #777;

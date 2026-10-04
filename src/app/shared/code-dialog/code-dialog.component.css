@@ -42,7 +42,9 @@
   color: #4b4560;
   cursor: pointer;
 }
+@media (hover: hover) {
 .cd-close:hover { background: #e9e3f5; }
+}
 
 .cd-brand {
   display: inline-flex;
@@ -160,7 +162,9 @@
   box-shadow: 0 12px 26px rgba(69, 26, 143, 0.28);
   transition: background 0.15s, opacity 0.15s;
 }
+@media (hover: hover) {
 .cd-submit:hover:not(:disabled) { background: #5a2bb0; }
+}
 .cd-submit:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
 
 .cd-resend {

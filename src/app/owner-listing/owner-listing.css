@@ -99,7 +99,9 @@ textarea { resize: vertical; min-height: 110px; }
   background: #fcfbfe; color: var(--muted); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s;
 }
 .type-grid i { font-size: 22px; color: #9a89b3; transition: color .15s; }
+@media (hover: hover) {
 .type-grid button:hover { border-color: #c9b6e8; }
+}
 .type-grid button.active { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); box-shadow: 0 0 0 3px #451a8f14; }
 .type-grid button.active i { color: var(--brand); }
 
@@ -110,14 +112,18 @@ textarea { resize: vertical; min-height: 110px; }
 .counter-label i { color: var(--brand-2); }
 .stepper { display: flex; align-items: center; gap: 6px; }
 .stepper button { display: grid; place-items: center; flex: none; padding: 0; min-width: 0; min-height: 0; aspect-ratio: 1; font-size: 12px; line-height: 1; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: #fff; color: var(--brand); cursor: pointer; transition: all .15s; }
+@media (hover: hover) {
 .stepper button:hover:not(:disabled) { background: var(--brand); color: #fff; border-color: var(--brand); }
+}
 .stepper button:disabled { opacity: .35; cursor: default; }
 .stepper output { min-width: 22px; text-align: center; font-weight: 800; font-size: 16px; }
 
 /* Pills */
 .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill { border: 1.5px solid var(--line); background: #fcfbfe; padding: 9px 14px; border-radius: 999px; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+@media (hover: hover) {
 .pill:hover { border-color: #c9b6e8; }
+}
 .pill.active { background: var(--brand); border-color: var(--brand); color: #fff; }
 
 /* Location picker */
@@ -128,7 +134,9 @@ textarea { resize: vertical; min-height: 110px; }
   animation: pop .14s ease-out;
 }
 .dropdown button { display: flex; gap: 12px; align-items: center; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px; background: none; text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
+@media (hover: hover) {
 .dropdown button:hover { background: var(--brand-soft); }
+}
 .dropdown button i { color: var(--brand-2); width: 16px; text-align: center; }
 .dropdown button span { display: grid; font-weight: 600; font-size: 14px; }
 .dropdown small { color: var(--muted); font-weight: 400; font-size: 12px; }
@@ -156,7 +164,9 @@ textarea { resize: vertical; min-height: 110px; }
   background: #fcfbfe; color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 600; text-align: left; cursor: pointer; transition: all .15s;
 }
 .feature-grid button > i:first-child { width: 18px; text-align: center; color: #9a89b3; transition: color .15s; }
+@media (hover: hover) {
 .feature-grid button:hover { border-color: #c9b6e8; }
+}
 .feature-grid .tick { position: absolute; top: -7px; right: -7px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--brand); color: #fff; font-size: 10px; transform: scale(0); transition: transform .15s; }
 .feature-grid button.active { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
 .feature-grid button.active > i:first-child { color: var(--brand); }
@@ -169,7 +179,9 @@ textarea { resize: vertical; min-height: 110px; }
 }
 .dropzone i { font-size: 30px; }
 .dropzone small { color: var(--muted); }
+@media (hover: hover) {
 .dropzone:hover, .dropzone.drag { border-color: var(--brand); background: var(--brand-soft); }
+}
 .dropzone.full { opacity: .6; cursor: default; }
 .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: inherit; }
 .photos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 14px; }
@@ -181,8 +193,12 @@ textarea { resize: vertical; min-height: 110px; }
   display: grid; place-items: center; aspect-ratio: 1; border: 0; border-radius: 50%; line-height: 1; font-size: 13px;
   background: #1c1230b3; color: #fff; backdrop-filter: blur(6px); cursor: pointer; opacity: 0; transition: opacity .15s, background .15s, transform .15s;
 }
+@media (hover: hover) {
 .photos figure:hover button, .photos button:focus-visible { opacity: 1; }
+}
+@media (hover: hover) {
 .photos button:hover { background: var(--bad); transform: scale(1.08); }
+}
 @media (hover: none) { .photos button { opacity: 1; } }
 
 /* Submit */
@@ -193,7 +209,9 @@ textarea { resize: vertical; min-height: 110px; }
   background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer;
   box-shadow: 0 12px 28px #451a8f45; transition: transform .15s, box-shadow .15s;
 }
+@media (hover: hover) {
 .submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 34px #451a8f55; }
+}
 .submit:disabled { opacity: .7; cursor: wait; }
 .privacy { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
 
@@ -293,9 +311,11 @@ textarea { resize: vertical; min-height: 110px; }
 }
 .stepper output { text-align: center; }
 
+@media (hover: hover) {
 /* Stepper polish: smaller, lighter circles that fit the narrow Georgian cards, and no
    "stuck" purple fill after a tap (touch screens keep :hover until the next tap). */
 .stepper { gap: 2px; width: 100%; }
+}
 .stepper button {
   --size: clamp(28px, 7.6vw, 32px);
   border: 1.5px solid #e2d8f2 !important;
@@ -307,7 +327,9 @@ textarea { resize: vertical; min-height: 110px; }
 }
 .stepper button:disabled { opacity: .35; box-shadow: none; }
 .stepper output { font-size: 16px; font-weight: 800; color: var(--ink); }
+@media (hover: hover) {
 .stepper button:hover:not(:disabled) { background: #fff !important; color: var(--brand) !important; border-color: #e2d8f2 !important; }
+}
 @media (hover: hover) {
   .stepper button:hover:not(:disabled) { background: var(--brand) !important; color: #fff !important; border-color: var(--brand) !important; }
 }

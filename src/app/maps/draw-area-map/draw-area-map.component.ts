@@ -1075,6 +1075,28 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     document.body.classList.toggle('draw-map-open', this.visible && this.mapOnly);
   }
 
+  /** Resolves once the element's size has stopped changing for ~120 ms (max ~900 ms). */
+  private waitForStableSize(element: HTMLElement): Promise<void> {
+    return new Promise((resolve) => {
+      const started = performance.now();
+      let last = '';
+      let stableSince = started;
+      const check = () => {
+        const rect = element.getBoundingClientRect();
+        const size = `${Math.round(rect.width)}x${Math.round(rect.height)}`;
+        const now = performance.now();
+        if (size !== last) {
+          last = size;
+          stableSince = now;
+        }
+        const settled = rect.width > 0 && rect.height > 0 && now - stableSince >= 120;
+        if (settled || now - started > 900) resolve();
+        else requestAnimationFrame(check);
+      };
+      requestAnimationFrame(check);
+    });
+  }
+
   private async initializeMap(): Promise<void> {
     const apiKey = document
       .querySelector<HTMLMetaElement>('meta[name="google-maps-api-key"]')
@@ -1110,6 +1132,21 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         TerraDrawRenderMode,
       } = terraDraw;
       const { TerraDrawGoogleMapsAdapter } = googleAdapter;
+      // The picker opens with a slide/grow animation. Creating the map mid-animation drew it
+      // at a small size first and then visibly re-rendered it sharp; wait for the final size.
+      await this.waitForStableSize(mapElement.nativeElement);
+      // Keep the map invisible through Google's first low-res pass and re-render, then fade it
+      // in once tiles have loaded and the map has been idle for a moment.
+      const canvas = mapElement.nativeElement;
+      canvas.style.opacity = '0';
+      canvas.style.transition = 'opacity .25s ease';
+      let revealed = false;
+      const reveal = () => {
+        if (revealed) return;
+        revealed = true;
+        canvas.style.opacity = '1';
+      };
+      window.setTimeout(reveal, 3000);
       // Outside Angular: map frames/gestures must not run page-wide change detection.
       this.map = this.zone.runOutsideAngular(() => new Map(mapElement.nativeElement, {
         center: { lat: 41.7151, lng: 44.8271 },
@@ -1132,6 +1169,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         fullscreenControl: false,
         clickableIcons: false,
       }));
+      google.maps.event.addListenerOnce(this.map, 'tilesloaded', () => {
+        window.setTimeout(reveal, 350);
+      });
       this.parks?.destroy();
       this.parks = new ParkLayer(this.map);
       // The wheel zooms the map only: once Google Maps has handled it, stop it from also
