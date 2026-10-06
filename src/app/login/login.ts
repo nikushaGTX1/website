@@ -65,11 +65,16 @@ export class Login {
       email: this.registerData.email,
       password: this.registerData.password
     }).subscribe({
-      next: () => {
+      next: (response) => {
         this.isSubmitting = false;
         this.isRegisterMode = false;
         this.loginData.email = this.registerData.email;
-        this.openVerify(this.registerData.email, 'We sent a 6-digit code to your email. Enter it to activate your account.');
+        this.openVerify(response.email || this.registerData.email.trim(), response.emailSent === false
+          ? ''
+          : 'We sent a 6-digit code to your email. Enter it to activate your account.');
+        if (response.emailSent === false) {
+          this.errorMessage = 'Your account was created, but we could not send the verification email. Please try Resend code.';
+        }
       },
       error: (err) => {
         console.error(err);
@@ -79,6 +84,8 @@ export class Login {
           this.errorMessage = Object.values(err.error.errors).flat().join(' ');
         } else if (Array.isArray(err.error)) {
           this.errorMessage = err.error.map((x: any) => x.description).join(' ');
+        } else if (err.error?.message) {
+          this.errorMessage = err.error.message;
         } else if (typeof err.error === 'string') {
           this.errorMessage = err.error;
         } else {
@@ -171,10 +178,11 @@ export class Login {
       next: () => {
         this.isSubmitting = false;
         this.errorMessage = '';
-        this.successMessage = 'A new code has been sent.';
+        this.successMessage = 'If your account needs a code, a new code has been sent.';
       },
       error: () => {
         this.isSubmitting = false;
+        this.successMessage = '';
         this.errorMessage = 'Could not send the code. Please try again.';
       },
     });
