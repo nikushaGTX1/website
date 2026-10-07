@@ -214,7 +214,7 @@ export class AdminPanel implements OnInit, OnDestroy {
         ? this.adminService.getUserIds().pipe(catchError(() => of([] as string[])))
         : of([] as string[]),
       agents: this.adminService.getAgents().pipe(catchError(() => of([] as Agent[]))),
-      apartments: this.apartmentService.getApartments().pipe(catchError(() => of([] as Apartment[]))),
+      apartments: this.apartmentService.getApartmentsFresh().pipe(catchError(() => of([] as Apartment[]))),
       uploaders: this.apartmentService.getApartmentUploaders().pipe(catchError(() => of([] as ApartmentUploader[]))),
       vacancyPositions: this.isAdmin
         ? this.crmService.getVacancyPositions(true).pipe(catchError(() => of([] as CrmVacancyPosition[])))

@@ -103,6 +103,13 @@ export class ApartmentService {
     return this.apartmentsCache$;
   }
 
+  /** Always hits the API (drops the in-memory and localStorage list cache first). Used by
+   *  screens that manage listings, so an edit made in another browser shows up at once. */
+  getApartmentsFresh(): Observable<Apartment[]> {
+    this.clearApartmentCache();
+    return this.getApartments();
+  }
+
   getApartment(id: number): Observable<Apartment> {
     const persistedApartment = this.readPersistedApartments()?.find(
       (apartment) => apartment.id === id,

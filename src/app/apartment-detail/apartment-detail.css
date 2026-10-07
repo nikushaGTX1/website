@@ -3220,7 +3220,7 @@
   .vp-gallery {
     width: 100%;
     aspect-ratio: auto;
-    height: clamp(340px, calc(100dvh - 360px), 600px);
+    height: clamp(420px, calc(100dvh - 250px), 600px);
     max-height: none;
     min-height: 300px;
     margin-inline: auto;

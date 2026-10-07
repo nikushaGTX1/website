@@ -166,6 +166,7 @@
           <i class="fa-solid fa-check"></i> {{ actionId === '' + item.id ? 'Publishing…' : 'Confirm & publish' }}
         </button>
         <a class="preview" [routerLink]="['/apartments', item.id]" target="_blank"><i class="fa-regular fa-eye"></i> Preview</a>
+        <a class="preview" routerLink="/upload-apartment" [queryParams]="{ edit: item.id }" *ngIf="canOperateDashboard"><i class="fa-solid fa-pen"></i> Edit</a>
         <button type="button" class="details" (click)="togglePendingDetails(item)">
           <i class="fa-solid" [class.fa-chevron-down]="expandedPendingId !== item.id" [class.fa-chevron-up]="expandedPendingId === item.id"></i>
           {{ expandedPendingId === item.id ? 'Less' : 'More details' }}
@@ -384,6 +385,7 @@
 
       <div class="listing-side">
         <strong class="listing-price"><app-currency-price [usdPrice]="apartment.price"></app-currency-price></strong>
+        <a class="edit-listing" routerLink="/upload-apartment" [queryParams]="{ edit: apartment.id }" *ngIf="canOperateDashboard"><i class="fa-solid fa-pen"></i> Edit</a>
         <button type="button" class="danger" (click)="deleteApartment(apartment)" [disabled]="actionId === ('' + apartment.id)">
           <i class="fa-regular fa-trash-can"></i> Delete
         </button>
