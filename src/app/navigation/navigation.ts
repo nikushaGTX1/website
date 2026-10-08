@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
+import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import {
@@ -16,7 +17,17 @@ import {
 export class Navigation implements OnInit, OnDestroy {
   isLoggedIn = false;
   canOpenAdmin = false;
-  menuOpen = false;
+  private menuIsOpen = false;
+  get menuOpen(): boolean {
+    return this.menuIsOpen;
+  }
+  /** While the mobile menu is open only the menu scrolls, never the page behind it (VELVEN-023). */
+  set menuOpen(open: boolean) {
+    if (open === this.menuIsOpen) return;
+    this.menuIsOpen = open;
+    if (open) lockPageScroll();
+    else unlockPageScroll();
+  }
   languageOpen = false;
   private subscription?: Subscription;
 
@@ -68,6 +79,7 @@ export class Navigation implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.menuOpen = false;
     document.removeEventListener('pointerdown', this.onDocumentPointerDown);
     this.subscription?.unsubscribe();
   }

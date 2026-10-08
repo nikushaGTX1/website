@@ -2344,6 +2344,7 @@ svg {
 .mf-switch input:checked + span { background: #451a8f; }
 .mf-switch input:checked + span::after { transform: translateX(18px); }
 .mf-switch input:focus-visible + span { outline: 3px solid #c9bde6; outline-offset: 2px; }
+.mf-pills button:focus-visible, .mf-dialog button:focus-visible { outline: 3px solid #b8a0e5; outline-offset: 2px; }
 .mf-date { display: grid; gap: 8px; margin-top: 18px; color: #29222f; font-size: 14px; }
 .mf-date input { min-height: 46px; padding: 0 14px; border: 1px solid #e3dfea; border-radius: 12px; color: #29222f; font: inherit; }
 

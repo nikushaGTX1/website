@@ -175,9 +175,74 @@ function checkAvailability(apartment: HomeMatchApartment, profile: HomeMatchProf
   return availableFrom.slice(0, 10) <= requested ? 'pass' : 'fail';
 }
 
+/** Exchange rates used to compare a budget typed in GEL/EUR with listing prices (stored in USD). */
+export interface BudgetRates {
+  /** GEL per 1 USD */
+  usdGel: number;
+  /** EUR per 1 USD */
+  usdEur: number;
+}
+
+export const DEFAULT_BUDGET_RATES: BudgetRates = { usdGel: 2.7, usdEur: 0.92 };
+
+/** Rentals may run up to $200 over the typed maximum; purchases never get this flexibility. */
+export const RENT_BUDGET_FLEXIBILITY_USD = 200;
+
+/** Converts an amount in the profile's currency to USD. */
+export function toUsd(amount: number, currency: string, rates: BudgetRates = DEFAULT_BUDGET_RATES): number {
+  if (currency === 'GEL') return amount / (rates.usdGel || DEFAULT_BUDGET_RATES.usdGel);
+  if (currency === 'EUR') return amount / (rates.usdEur || DEFAULT_BUDGET_RATES.usdEur);
+  return amount;
+}
+
+/** Converts a USD amount to the profile's currency (for explanations shown to the user). */
+export function fromUsd(amountUsd: number, currency: string, rates: BudgetRates = DEFAULT_BUDGET_RATES): number {
+  if (currency === 'GEL') return amountUsd * (rates.usdGel || DEFAULT_BUDGET_RATES.usdGel);
+  if (currency === 'EUR') return amountUsd * (rates.usdEur || DEFAULT_BUDGET_RATES.usdEur);
+  return amountUsd;
+}
+
+export function formatBudgetAmount(amount: number, currency: string): string {
+  const symbol = currency === 'GEL' ? '₾' : currency === 'EUR' ? '€' : '$';
+  return `${symbol}${Math.round(amount).toLocaleString('en-US')}`;
+}
+
+/** The selected budget range in USD; a 0 / empty bound means "no limit". */
+export function budgetRangeUsd(
+  profile: HomeMatchProfile,
+  rates: BudgetRates = DEFAULT_BUDGET_RATES,
+): { min: number | null; max: number | null } {
+  const min = Number(profile.budgetMin) > 0 ? toUsd(Number(profile.budgetMin), profile.currency, rates) : null;
+  const max = Number(profile.budgetMax) > 0 ? toUsd(Number(profile.budgetMax), profile.currency, rates) : null;
+  return { min, max };
+}
+
+/**
+ * Hard budget filter: homes over the maximum (plus the rental allowance) are not shown at all.
+ * Homes below the minimum are kept but classified as alternatives by evaluateMandatoryRequirements.
+ */
+export function withinBudgetCeiling(
+  priceUsd: number,
+  profile: HomeMatchProfile,
+  rates: BudgetRates = DEFAULT_BUDGET_RATES,
+): boolean {
+  const { max } = budgetRangeUsd(profile, rates);
+  if (max === null || !priceUsd) return true;
+  const allowance = profile.propertyGoal === 'Rent' ? RENT_BUDGET_FLEXIBILITY_USD : 0;
+  return priceUsd <= max + allowance;
+}
+
+/** The listing explicitly does not allow pets (field or "Pet friendly: No" in its details). */
+function explicitlyNotPetFriendly(apartment: HomeMatchApartment): boolean {
+  if (apartment.isPetFriendly === true) return false;
+  return /pet[\s-]*friendly:\s*no\b|pets?:\s*(no|not allowed)\b|no pets/i.test(apartment.description || '')
+    || apartment.isPetFriendly === false;
+}
+
 export function evaluateMandatoryRequirements(
   apartment: HomeMatchApartment,
   profile: HomeMatchProfile,
+  rates: BudgetRates = DEFAULT_BUDGET_RATES,
 ): RequirementEvaluation {
   const mismatches: string[] = [];
   const confirmations: string[] = [];
@@ -221,16 +286,25 @@ export function evaluateMandatoryRequirements(
     confirmations.push('Confirm this listing is available by your move-in date');
   }
 
-  // Rentals may pass the mandatory budget filter up to $200 over the typed maximum; flag it
-  // here so a home using that allowance is never silently shown as an exact/Top match.
-  if (
-    profile.propertyGoal === 'Rent' &&
-    profile.currency === 'USD' &&
-    profile.budgetMax > 0 &&
-    apartment.price > profile.budgetMax
-  ) {
+  // Budget, compared in USD whatever currency the user typed it in.
+  const price = Number(apartment.price);
+  const budget = budgetRangeUsd(profile, rates);
+  if (price > 0 && budget.min !== null && price < budget.min) {
+    mismatches.push(
+      `Budget: ${formatBudgetAmount(fromUsd(price, profile.currency, rates), profile.currency)} is below your minimum of ${formatBudgetAmount(Number(profile.budgetMin), profile.currency)}`,
+    );
+  } else if (price > 0 && budget.max !== null && price > budget.max) {
+    // Rentals may pass the hard filter up to $200 over the maximum; flag it so a home using
+    // that allowance is never silently shown as an exact/Top match.
     confirmations.push(
-      `$${Math.round(apartment.price - profile.budgetMax)} over your budget (within the allowed $200 flexibility)`,
+      `${formatBudgetAmount(fromUsd(price - budget.max, profile.currency, rates), profile.currency)} over your budget (within the allowed ${formatBudgetAmount(fromUsd(RENT_BUDGET_FLEXIBILITY_USD, profile.currency, rates), profile.currency)} flexibility)`,
+    );
+  }
+
+  // Pets: a home that says it does not allow pets is never an exact match for a pet owner.
+  if (profile.propertyGoal === 'Rent' && profile.hasPet && explicitlyNotPetFriendly(apartment)) {
+    confirmations.push(
+      `Pets: this listing is not marked as pet-friendly — confirm your ${profile.petType === 'Dog' ? 'dog' : profile.petType === 'Cat' ? 'cat' : 'pet'} is allowed`,
     );
   }
 

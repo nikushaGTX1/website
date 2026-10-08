@@ -48,6 +48,9 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     return this._locationOpen;
   }
   set locationOpen(value: boolean) {
+    // Outside clicks re-set "closed"; unlocking then would release another overlay's lock
+    // (the mobile menu's, VELVEN-023).
+    if (value === this._locationOpen) return;
     this._locationOpen = value;
     document.body.classList.toggle('location-picker-open', value);
     if (value) lockPageScroll();

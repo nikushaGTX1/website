@@ -1,0 +1,59 @@
+.viewings-page {
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 48px) 0 64px;
+  color: #1b1626;
+}
+.viewings-head h1 { margin: 0 0 6px; font-size: clamp(26px, 3vw, 34px); font-weight: 800; }
+.viewings-head p { margin: 0 0 24px; color: #6b6480; }
+.viewings-state { color: #6b6480; }
+.viewings-state.error { color: #b42318; }
+.viewings-empty {
+  padding: 40px 20px;
+  border: 1px dashed #d9cdf1;
+  border-radius: 20px;
+  text-align: center;
+  background: #faf8ff;
+}
+.viewings-empty i { font-size: 30px; color: #451a8f; }
+.viewings-empty h2 { margin: 12px 0 6px; font-size: 20px; }
+.viewings-empty p { margin: 0 0 16px; color: #6b6480; }
+.viewings-empty a {
+  display: inline-block; padding: 12px 20px; border-radius: 12px;
+  background: #451a8f; color: #fff; font-weight: 700; text-decoration: none;
+}
+.viewings-group { margin-top: 24px; }
+.viewings-group h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: #7a6e8e; }
+.viewing {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  padding: 16px 18px;
+  border: 1px solid #ece5f7;
+  border-radius: 16px;
+  background: #fff;
+}
+.viewing-date { display: flex; gap: 12px; align-items: center; }
+.viewing-date i { color: #451a8f; font-size: 20px; }
+.viewing-date strong, .viewing-property a, .viewing-property span { display: block; font-weight: 700; color: #1b1626; text-decoration: none; }
+.viewing-property a:hover { color: #451a8f; }
+.viewing small { display: block; margin-top: 2px; color: #7d8598; font-size: 13px; }
+.viewing-status {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  background: #f1ebfb;
+  color: #451a8f;
+}
+.viewing-status[data-status='Visited'] { background: #e9f7ef; color: #1f7a4d; }
+.viewing-status[data-status='DealDone'] { background: #1f7a4d; color: #fff; }
+.viewing-status[data-status='Past'] { background: #f3f4f6; color: #6b7280; }
+.viewing-status[data-status='Cancelled'] { background: #fff1f1; color: #b42318; }
+@media (max-width: 640px) {
+  .viewing { grid-template-columns: 1fr; gap: 8px; }
+  .viewing-status { justify-self: start; }
+}

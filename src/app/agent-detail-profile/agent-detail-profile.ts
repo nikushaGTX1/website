@@ -9,6 +9,7 @@ import { ApartmentService } from '../services/apartment.service';
 import { CrmService } from '../services/crm.service';
 import { SeoService } from '../services/seo.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
+import { whatsappDigits } from '../utils/phone';
 
 @Component({
   selector: 'app-agent-detail-profile',
@@ -182,7 +183,7 @@ export class AgentDetailProfile implements OnInit {
   }
 
   whatsappAgent(): void {
-    const phone = this.contactPhone.replace(/\D/g, '');
+    const phone = whatsappDigits(this.contactPhone);
     window.open(`https://wa.me/${phone}`, '_blank', 'noopener');
   }
 

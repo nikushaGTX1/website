@@ -148,4 +148,20 @@ export class CrmService {
   submitInquiry(request: CrmInquiryRequest): Observable<CrmInquiryResponse> {
     return this.http.post<CrmInquiryResponse>(`${this.apiUrl}/inquiries`, request);
   }
+
+  /** Viewings the signed-in customer requested, with their status. */
+  getMyViewings(): Observable<MyViewing[]> {
+    return this.http.get<MyViewing[]>(`${this.apiUrl}/my-viewings`);
+  }
+}
+
+export interface MyViewing {
+  id: number;
+  apartmentId?: number | null;
+  apartmentTitle?: string | null;
+  apartmentAddress?: string | null;
+  requestedViewingAt: string;
+  message?: string | null;
+  status: 'Pending' | 'Visited' | 'DealDone' | 'Past' | 'Cancelled';
+  createdAt: string;
 }

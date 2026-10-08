@@ -5,7 +5,13 @@ import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { applyPriorityScoring, everydayServicesMinutes, parkingScore, scorePriority } from '../services/priority-scoring';
 import { answerLabel } from '../services/answer-labels';
-import { evaluateMandatoryRequirements } from '../services/mandatory-requirements';
+import {
+  budgetRangeUsd,
+  evaluateMandatoryRequirements,
+  formatBudgetAmount,
+  fromUsd,
+} from '../services/mandatory-requirements';
+import { CurrencyService } from '../../services/currency.service';
 import { ApartmentService } from '../../services/apartment.service';
 import { parseParkingCost } from '../../utils/parking-cost';
 
@@ -33,13 +39,17 @@ export class HomeMatchResultsComponent implements OnChanges {
   private readonly failedImageIndexes = new WeakMap<HTMLImageElement, number>();
   private readonly attemptedEnrichment = new WeakSet<HomeMatchResult>();
 
-  constructor(private readonly apartmentService: ApartmentService, private readonly cdr: ChangeDetectorRef) {}
+  constructor(
+    private readonly apartmentService: ApartmentService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly currency: CurrencyService,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['matches']) {
       this.matches.forEach((result) => {
         Object.assign(result, applyPriorityScoring(result, this.profile));
-        result.requirement = evaluateMandatoryRequirements(result.apartment, this.profile);
+        result.requirement = evaluateMandatoryRequirements(result.apartment, this.profile, this.currency.rates);
         if (!this.imageCandidates(result).length) this.enrichApartment(result);
       });
     }
@@ -271,11 +281,23 @@ export class HomeMatchResultsComponent implements OnChanges {
     const add = (title: string, reason: string, icon: string) => items.push({ title, reason, icon });
 
     const districts = p.districts.filter((d) => d !== 'SelectOnMap');
-    if ((districts.length || p.selectedMapArea) && !p.locationFlexible && !mismatch('Location')) {
+    const unverified = (prefix: string) => (result.requirement?.confirmations || []).some((note) => note.startsWith(prefix));
+    // Only claim a location match when the location was actually verified inside the selected area.
+    if ((districts.length || p.selectedMapArea) && !p.locationFlexible && !mismatch('Location') && !unverified('Location')) {
       add('Location matches', apartment.district || apartment.address || '', 'fa-location-dot');
     }
-    if (p.budgetMax > 0 && apartment.price <= p.budgetMax) {
-      add('Within your budget', `$${Math.round(apartment.price).toLocaleString('en-US')} ≤ $${p.budgetMax.toLocaleString('en-US')}`, 'fa-wallet');
+    // Budget in the user's own currency, checked against both bounds.
+    const budget = budgetRangeUsd(p, this.currency.rates);
+    const price = Number(apartment.price);
+    if (
+      budget.max !== null && price > 0 && price <= budget.max &&
+      (budget.min === null || price >= budget.min)
+    ) {
+      const shown = formatBudgetAmount(fromUsd(price, p.currency, this.currency.rates), p.currency);
+      const range = budget.min !== null
+        ? `${formatBudgetAmount(p.budgetMin, p.currency)}–${formatBudgetAmount(p.budgetMax, p.currency)}`
+        : `≤ ${formatBudgetAmount(p.budgetMax, p.currency)}`;
+      add('Within your budget', `${shown} · ${range}`, 'fa-wallet');
     }
     if (p.bedrooms != null && p.bedrooms > 0 && apartment.bedrooms != null && apartment.bedrooms >= p.bedrooms) {
       add('Enough bedrooms', `${apartment.bedrooms} ≥ ${p.bedrooms}`, 'fa-bed');
@@ -323,7 +345,8 @@ export class HomeMatchResultsComponent implements OnChanges {
     const lifestyles = new Set(p.lifestyles);
     const ages = new Set(p.children > 0 ? p.childrenAgeGroups : []);
     const hasKids = p.children > 0;
-    const dog = !!p.hasPet && p.petType === 'Dog';
+    // Dog-walking benefits only for homes that actually allow pets.
+    const dog = !!p.hasPet && p.petType === 'Dog' && !(result.requirement?.confirmations || []).some((note) => note.startsWith('Pets'));
     const walks = p.transportation.includes('Walking');
     const places: Array<{ field: keyof HomeMatchResult['apartment']; title: string; reason: string; icon: string }> = [];
     const offer = (
@@ -484,7 +507,8 @@ export class HomeMatchResultsComponent implements OnChanges {
     );
     const lifestyles = new Set(this.profile.lifestyles);
     const drives = this.profile.transportation.includes('Car');
-    const hasDog = this.profile.hasPet === true && this.profile.petType === 'Dog';
+    const hasDog = this.profile.hasPet === true && this.profile.petType === 'Dog' &&
+      !(result.requirement?.confirmations || []).some((note) => note.startsWith('Pets'));
 
     // A nearby park is more meaningful for a dog owner than the generic
     // athlete/family explanation, so keep it first and protect it from the

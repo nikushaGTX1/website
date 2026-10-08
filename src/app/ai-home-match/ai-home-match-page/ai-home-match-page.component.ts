@@ -10,6 +10,8 @@ import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { applyPriorityScoring } from '../services/priority-scoring';
 import { answerLabel, answerList, isPastDate, todayIso } from '../services/answer-labels';
+import { withinBudgetCeiling } from '../services/mandatory-requirements';
+import { CurrencyService } from '../../services/currency.service';
 
 type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
 @Component({
@@ -198,8 +200,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     private service: HomeMatchService,
     private cdr: ChangeDetectorRef,
     private locationService: LocationService,
+    private currencyService: CurrencyService,
   ) {
-    service.reset();
+    const restored = service.restoreFromSession();
+    if (!restored) service.reset();
     this.profile = {
       ...service.profile,
       gender: service.profile.gender || '',
@@ -226,6 +230,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       max: this.profile.budgetMax,
       currency: this.profile.currency,
     });
+    if (restored) {
+      // Resume the saved profile: its summary when complete, else the first unanswered question.
+      this.quizStarted = true;
+      const missing = this.firstIncompleteStep();
+      if (missing === undefined) this.view = 'review';
+      else this.step = missing;
+    }
     this.locationService.getLocations().subscribe({
       next: (locations) => {
         this.locationEntries = locations;
@@ -646,8 +657,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   ): boolean {
     return this.profile[key].includes(value);
   }
-  canContinue(): boolean {
-    switch (this.step) {
+  canContinue(step: number = this.step): boolean {
+    switch (step) {
       case 0:
         return !!this.profile.gender;
       case 1:
@@ -715,14 +726,21 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     }
     this.persist();
     if (this.returnToReviewAfterStep) {
-      // Changing a single answer from the profile page goes straight back to it.
+      // Changing a single answer from the profile page goes back to it — unless that change
+      // (e.g. switching Rent/Buy) cleared other answers; then walk through those first.
+      const missing = this.firstIncompleteStep();
+      if (missing !== undefined) {
+        this.step = missing;
+        this.scrollToStepTop();
+        return;
+      }
       this.returnToReviewAfterStep = false;
       this.showReview();
       return;
     }
     if (this.stepNumber < this.visibleSteps.length) {
       this.step = this.visibleSteps[this.stepNumber];
-    } else this.view = 'review';
+    } else this.showReview();
     this.scrollToStepTop();
   }
   private scrollToStepTop(): void {
@@ -769,7 +787,22 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   /** Opens the answer summary, where every answer has its own "Change" action. */
+  /** First visible question that still has no valid answer, in the order questions are shown. */
+  firstIncompleteStep(): number | undefined {
+    return this.visibleSteps.find((step) => !this.canContinue(step));
+  }
+
   showReview(): void {
+    // The profile page (and "Find My Best Matches") is only reachable with every answer filled in.
+    const missing = this.firstIncompleteStep();
+    if (missing !== undefined) {
+      this.returnToReviewAfterStep = true;
+      this.step = missing;
+      this.view = 'questions';
+      this.quizStarted = true;
+      this.scrollToStepTop();
+      return;
+    }
     this.view = 'review';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -791,6 +824,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.scrollToStepTop();
   }
   submit(): void {
+    // Never calculate with an incomplete profile (it used to end in a calculation error).
+    if (this.firstIncompleteStep() !== undefined) {
+      this.showReview();
+      return;
+    }
     this.view = 'loading';
     this.errorMessage = '';
     this.startLoadingMessages();
@@ -818,17 +856,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       });
   }
 
-  /** Rentals may run up to $200 over the typed maximum; purchases never get this flexibility. */
-  private static readonly RENT_BUDGET_FLEXIBILITY_USD = 200;
-
-  // Prices are stored in USD, so other currencies are left to the backend.
+  // Prices are stored in USD; the budget is converted from GEL/EUR before comparing.
+  // Homes below the minimum stay in the list and are classified as alternatives.
   private withinBudget(match: HomeMatchResult): boolean {
-    const max = Number(this.profile.budgetMax);
-    const price = Number(match.apartment.price);
-    if (this.profile.currency !== 'USD' || !max || !price) return true;
-    const allowance =
-      this.profile.propertyGoal === 'Rent' ? AiHomeMatchPageComponent.RENT_BUDGET_FLEXIBILITY_USD : 0;
-    return price <= max + allowance;
+    return withinBudgetCeiling(Number(match.apartment.price), this.profile, this.currencyService.rates);
   }
 
   private matchesPropertyGoal(match: HomeMatchResult): boolean {
@@ -842,22 +873,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
 
   save(): void {
-    this.saving = true;
-    this.saveMessage = '';
-    this.service
-      .saveProfile(this.profile)
-      .pipe(
-        finalize(() => {
-          this.saving = false;
-          this.cdr.detectChanges();
-        }),
-      )
-      .subscribe({
-        next: () => (this.saveMessage = 'Your Home Profile has been saved.'),
-        error: () =>
-          (this.saveMessage =
-            'Profile saving is not available yet. Your answers remain saved for this browser session.'),
-      });
+    this.saveMessage = this.service.saveToSession(this.profile)
+      ? 'Your answers are saved for this browser session. Reloading this tab keeps them.'
+      : 'Your answers could not be saved in this browser. Check that site storage is allowed.';
+    this.cdr.detectChanges();
   }
   persist(): void {
     this.service.update({ ...this.profile });

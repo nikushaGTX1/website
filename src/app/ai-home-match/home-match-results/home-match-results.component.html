@@ -105,7 +105,7 @@
       <section class="lifestyle-fit" *ngIf="answerMatches(result).length">
         <div class="fit-heading">
           <span><i class="fa-solid fa-circle-check"></i></span>
-          <div><small>Matches your answers</small><h3>Why this home fits you</h3></div>
+          <div><small>{{ kind === 'exact' ? 'Matches your answers' : 'Matches some of your answers' }}</small><h3>Why this home fits you</h3></div>
         </div>
         <div class="fit-grid">
           <article *ngFor="let match of answerMatches(result)">

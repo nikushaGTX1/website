@@ -69,7 +69,7 @@
         <div>
           <i class="fa-solid fa-house-chimney"></i>
           <p>
-            <b>{{ closedDeals }}+</b><span>Properties Closed</span>
+            <b>{{ closedDeals }}{{ closedDeals > 0 ? '+' : '' }}</b><span>Properties Closed</span>
           </p>
         </div>
         <div>

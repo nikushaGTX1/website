@@ -1,8 +1,9 @@
 import { normalizeApartmentStyle } from '../utils/apartment-style';
+import { isValidPhone } from '../utils/phone';
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { firstValueFrom, Subscription, timeout, TimeoutError } from 'rxjs';
 import { ApartmentService } from '../services/apartment.service';
 import { CreateApartment } from '../models/apartment';
 import { AuthService } from '../services/auth.service';
@@ -15,6 +16,9 @@ import {
 } from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
 import { parseParkingCost } from '../utils/parking-cost';
+
+/** Publishing never waits longer than this before showing an error. */
+const SAVE_TIMEOUT_MS = 45000;
 
 const NEARBY_KEYS: Array<keyof NearbyWalkingTimes> = [
   'schoolDistanceMinutes', 'kindergartenDistanceMinutes', 'groceryDistanceMinutes', 'cafeDistanceMinutes',
@@ -141,6 +145,14 @@ type FolderListingData = Record<string, unknown>;
   styleUrl: './upload-apartment.css',
 })
 export class UploadApartment implements OnInit, OnDestroy {
+  /**
+   * The local approval-queue counter is a diagnostic: it never sees listings waiting on the
+   * server, so for agents it contradicted My listings (VELVEN-024). Admins still get it.
+   */
+  get showPendingDebug(): boolean {
+    return this.authService.isAdmin;
+  }
+
   /** Only staff may mark a listing verified; the API strips the tag for everyone else too. */
   get canMarkVerified(): boolean {
     return this.authService.isAgent || this.authService.isAdmin || this.authService.isCrmManager;
@@ -1354,7 +1366,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       case 4:
         return !!(this.form.title.trim() && this.form.description.trim() && this.uploadedImageCount);
       case 5:
-        return !!(this.form.contactName.trim() && this.form.contactPhone.trim() && this.form.agentName.trim() && this.form.agentPhone.trim());
+        return !!(this.form.contactName.trim() && isValidPhone(this.form.contactPhone) && this.form.agentName.trim() && isValidPhone(this.form.agentPhone));
       default:
         return false;
     }
@@ -1583,7 +1595,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.form.totalPrice || !this.form.contactName.trim() || !this.form.contactPhone.trim() || !this.form.agentName.trim() || !this.form.agentPhone.trim()) {
+    if (!this.form.totalPrice || !this.form.contactName.trim() || !isValidPhone(this.form.contactPhone) || !this.form.agentName.trim() || !isValidPhone(this.form.agentPhone)) {
       this.errorMessage = 'Please fill in the price and all owner and agent contact fields before publishing.';
       return;
     }
@@ -1616,7 +1628,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.duplicateMatch = null;
     } else {
       try {
-        const apartments = await firstValueFrom(this.apartmentService.getApartments());
+        const apartments = await firstValueFrom(this.apartmentService.getApartments().pipe(timeout(15000)));
         const duplicate = this.findDuplicate(apartments || []);
         if (duplicate) {
           this.duplicateMatch = duplicate;
@@ -1674,15 +1686,17 @@ export class UploadApartment implements OnInit, OnDestroy {
     }
 
     if (this.editId) {
-      this.apartmentService.updateApartment(this.editId, this.toCreateApartment(true, nearbyTimes)).subscribe({
+      this.apartmentService.updateApartment(this.editId, this.toCreateApartment(true, nearbyTimes)).pipe(timeout(SAVE_TIMEOUT_MS)).subscribe({
         next: () => {
           this.loading = false;
           this.successMessage = 'Listing updated.';
           this.openSuccessModal(false, true);
         },
-        error: (error: HttpErrorResponse) => {
+        error: (error: HttpErrorResponse | TimeoutError) => {
           this.loading = false;
-          this.errorMessage = error.status === 403
+          this.errorMessage = error instanceof TimeoutError
+            ? 'The server did not respond in time. Check your connection and try again.'
+            : error.status === 403
             ? 'You do not have permission to change this listing.'
             : error.status === 401
               ? 'Your session expired. Please sign in again.'
@@ -1697,7 +1711,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     const payload = this.toCreateApartment(isAdmin, nearbyTimes);
     if (this.ownerSubmissionId) payload.ownerSubmissionId = this.ownerSubmissionId;
-    this.apartmentService.createApartment(payload).subscribe({
+    this.apartmentService.createApartment(payload).pipe(timeout(SAVE_TIMEOUT_MS)).subscribe({
       next: (result) => {
         this.loading = false;
         const published = isAdmin || this.authService.isCrmManager || result.apartment?.isApproved !== false;
@@ -1707,8 +1721,13 @@ export class UploadApartment implements OnInit, OnDestroy {
         this.openSuccessModal(!published);
         // The API marks the owner submission published and links the apartment itself.
       },
-      error: (error: HttpErrorResponse) => {
+      error: (error: HttpErrorResponse | TimeoutError) => {
         this.loading = false;
+        if (error instanceof TimeoutError) {
+          this.errorMessage = 'The server did not respond in time. Check your connection and try again.';
+          this.cdr.detectChanges();
+          return;
+        }
         const validationMessage = error.error?.errors && typeof error.error.errors === 'object'
           ? Object.values(error.error.errors as Record<string, string[]>).flat().join(' ')
           : '';
@@ -1722,6 +1741,7 @@ export class UploadApartment implements OnInit, OnDestroy {
           (error.status === 500
             ? 'The apartment API encountered a server or database error. Please check the Railway API logs.'
             : `Could not publish the apartment (HTTP ${error.status || 'network error'}).`);
+        this.cdr.detectChanges();
       },
     });
   }
@@ -1754,8 +1774,10 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (!positive(this.form.totalPrice)) add('totalPrice', 3, 'Enter a price greater than zero.', 'მიუთითეთ ნულზე მეტი ფასი.', 'Укажите цену больше нуля.');
     if (!this.form.contactName.trim()) add('contactName', 5, 'Enter the owner’s name.', 'მიუთითეთ მესაკუთრის სახელი.', 'Укажите имя собственника.');
     if (!this.form.contactPhone.trim()) add('contactPhone', 5, 'Enter the owner’s phone number.', 'მიუთითეთ მესაკუთრის ტელეფონის ნომერი.', 'Укажите телефон собственника.');
+    else if (!isValidPhone(this.form.contactPhone)) add('contactPhone', 5, 'Enter a valid owner phone number, e.g. 555 12 34 56.', 'მიუთითეთ მესაკუთრის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.', 'Укажите корректный телефон собственника, например 555 12 34 56.');
     if (!this.form.agentName.trim()) add('agentName', 5, 'Enter the agent’s name.', 'მიუთითეთ აგენტის სახელი.', 'Укажите имя агента.');
     if (!this.form.agentPhone.trim()) add('agentPhone', 5, 'Enter the agent’s phone number.', 'მიუთითეთ აგენტის ტელეფონის ნომერი.', 'Укажите телефон агента.');
+    else if (!isValidPhone(this.form.agentPhone)) add('agentPhone', 5, 'Enter a valid agent phone number, e.g. 555 12 34 56.', 'მიუთითეთ აგენტის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.', 'Укажите корректный телефон агента, например 555 12 34 56.');
     return issues;
   }
 
@@ -1780,6 +1802,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (/TotalFloors/i.test(this.errorMessage)) return this.uploadLocationText('Enter a valid building floor count (at least 1).', 'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).', 'Укажите корректную этажность здания (не менее 1).');
     if (/SizeSquareMeters/i.test(this.errorMessage)) return this.uploadLocationText('Enter the living area (at least 0.01 m²).', 'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).', 'Укажите площадь (не менее 0,01 м²).');
     if (/session|401/i.test(this.errorMessage)) return this.uploadLocationText('Your session expired. Please sign in again.', 'სესია დასრულდა. გთხოვთ, ხელახლა შეხვიდეთ.', 'Сессия истекла. Войдите снова.');
+    if (/did not respond in time/i.test(this.errorMessage)) return this.uploadLocationText('The server did not respond in time. Check your connection and try again.', 'სერვერმა დროულად არ უპასუხა. შეამოწმეთ კავშირი და სცადეთ ხელახლა.', 'Сервер не ответил вовремя. Проверьте подключение и повторите попытку.');
+    if (/phone/i.test(this.errorMessage)) return this.uploadLocationText('Enter valid owner and agent phone numbers, e.g. 555 12 34 56.', 'მიუთითეთ მესაკუთრისა და აგენტის სწორი ტელეფონის ნომრები, მაგ. 555 12 34 56.', 'Укажите корректные телефоны собственника и агента, например 555 12 34 56.');
     if (/Duplicate/i.test(this.errorMessage)) return this.uploadLocationText('This property already has a listing. Check the duplicate below.', 'ამ უძრავ ქონებაზე განცხადება უკვე არსებობს. შეამოწმეთ დუბლიკატი ქვემოთ.', 'Объявление об этом объекте уже существует. Проверьте дубликат ниже.');
     return this.uploadLocationText('Could not save the listing. Check the fields and try again.', 'განცხადების შენახვა ვერ მოხერხდა. შეამოწმეთ ველები და სცადეთ ხელახლა.', 'Не удалось сохранить объявление. Проверьте поля и повторите попытку.');
   }

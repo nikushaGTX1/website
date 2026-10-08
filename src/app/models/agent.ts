@@ -17,5 +17,8 @@ export interface Agent {
   rating?: number;
   averageRating?: number;
   ratingCount?: number;
+  /** Won CRM deals assigned to the agent; same number on the directory and the profile. */
   closedDeals?: number;
+  /** The agent's own published listings. */
+  listingCount?: number;
 }

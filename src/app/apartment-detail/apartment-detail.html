@@ -5,10 +5,13 @@
       <div class="vp-toolbar">
         <a
           routerLink="/ExploreProperty"
-          [queryParams]="isForSale ? { mode: 'buy' } : null"
+          [queryParams]="backToResultsQuery"
           ><i class="fa-solid fa-chevron-left"></i> Back to results</a
         >
-        <div>
+        <div class="vp-share-wrap">
+          <span class="vp-share-toast" role="status" aria-live="polite" *ngIf="shareFeedback"
+            ><i class="fa-solid fa-check" aria-hidden="true"></i> {{ shareFeedback }}</span
+          >
           <button (click)="shareApartment()">
             <i class="fa-solid fa-arrow-up-from-bracket"></i> Share</button
           ><button (click)="toggleFavorite()" [class.saved]="favorite">
@@ -392,7 +395,7 @@
 
           <span class="vd-label">Preferred time</span>
           <div class="vd-times">
-            <button type="button" *ngFor="let option of viewingTimeOptions" [class.active]="viewingTimeOfDay === option.value" (click)="setViewingTimeOfDay(option.value)">{{ option.label }}</button>
+            <button type="button" *ngFor="let option of viewingTimeOptions" [class.active]="viewingTimeOfDay === option.value" [disabled]="viewingSlotDisabled(option.value)" [attr.title]="viewingSlotDisabled(option.value) ? 'This time has already passed today' : null" (click)="setViewingTimeOfDay(option.value)">{{ option.label }}</button>
           </div>
 
           <label class="vd-field">

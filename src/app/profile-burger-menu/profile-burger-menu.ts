@@ -26,6 +26,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
     { label: 'My Profile', route: '/my-profile', icon: 'fa-regular fa-user' },
     { label: 'My listings', route: '/my-listings', icon: 'fa-solid fa-list' },
     { label: 'Saved listings', route: '/saved-listings', icon: 'fa-regular fa-heart' },
+    { label: 'My viewings', route: '/my-viewings', icon: 'fa-regular fa-calendar-check' },
   ];
 
   get menuItems(): MenuItem[] {

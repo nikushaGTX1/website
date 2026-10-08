@@ -45,6 +45,23 @@
 .vp-toolbar button {
   padding: 0 12px;
 }
+.vp-share-wrap {
+  position: relative;
+}
+.vp-share-toast {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 5;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: #1b1626;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgb(27 22 38 / 18%);
+}
 @media (hover: hover) {
 .vp-toolbar button:hover,
 .vp-toolbar button.saved {
@@ -3243,3 +3260,6 @@ dialog.photo-viewer {
   box-sizing: border-box;
 }
 dialog.photo-viewer::backdrop { background: #111113; }
+
+/* Time slots that already passed today. */
+.vd-times button:disabled { opacity: .4; cursor: not-allowed; text-decoration: line-through; }

@@ -37,6 +37,7 @@ import { NearbyPlace } from '../maps/google-property-map/google-property-map.com
 import { AppLanguage, TranslationService } from '../services/translation.service';
 import { parkingCostLabel } from '../utils/parking-cost';
 import { SeoService } from '../services/seo.service';
+import { backToResultsQuery, lastResultsUrl } from '../utils/results-return';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 
 interface Review {
@@ -115,6 +116,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     },
   ];
+
+  /** "Back to results" returns to the search the visitor came from (VELVEN-005). */
+  get backToResultsQuery(): Record<string, string> | null {
+    return backToResultsQuery(lastResultsUrl(), this.isForSale);
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -667,14 +673,60 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     });
   }
 
+  /** Visible result of Share (VELVEN-020); cleared after a few seconds. */
+  shareFeedback = '';
+  private shareFeedbackTimer?: number;
+
   async shareApartment(): Promise<void> {
-    const shareData = { title: this.title, text: this.address, url: location.href };
+    const url = location.href;
     if (navigator.share) {
-      await navigator.share(shareData).catch(() => undefined);
-      return;
+      try {
+        await navigator.share({ title: this.title, text: this.address, url });
+        return;
+      } catch (error) {
+        // The visitor closed the share sheet: nothing else to do.
+        if ((error as DOMException)?.name === 'AbortError') return;
+        // Share sheet unavailable or blocked: fall back to copying the link.
+      }
     }
-    await navigator.clipboard?.writeText(location.href);
-    this.errorMessage = 'Apartment link copied.';
+    if (await this.copyText(url)) {
+      this.showShareFeedback('Link copied');
+    } else {
+      window.prompt(this.translation.translate('Copy this link', this.translation.language$.value), url);
+    }
+  }
+
+  private async copyText(text: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Clipboard API missing or denied; try the legacy copy command.
+    }
+    try {
+      const field = document.createElement('textarea');
+      field.value = text;
+      field.setAttribute('readonly', '');
+      field.style.position = 'fixed';
+      field.style.opacity = '0';
+      document.body.appendChild(field);
+      field.select();
+      const copied = document.execCommand('copy');
+      field.remove();
+      return copied;
+    } catch {
+      return false;
+    }
+  }
+
+  private showShareFeedback(message: string): void {
+    this.shareFeedback = message;
+    window.clearTimeout(this.shareFeedbackTimer);
+    this.shareFeedbackTimer = window.setTimeout(() => {
+      this.shareFeedback = '';
+      this.cdr.detectChanges();
+    }, 3000);
+    this.cdr.detectChanges();
   }
 
   openWhatsApp(): void {
@@ -876,9 +928,53 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   setViewingTimeOfDay(value: 'morning' | 'noon' | 'evening' | 'any'): void {
+    if (this.viewingSlotDisabled(value)) return;
     this.viewingTimeOfDay = value;
     const parsed = this.parseViewingValue();
-    if (parsed) this.writeViewingValue(parsed.y, parsed.m, parsed.d, this.timeOfDayHours[value], 0);
+    if (parsed) this.writeViewingValue(parsed.y, parsed.m, parsed.d, this.slotHour(value, parsed), 0);
+  }
+
+  /** Viewings need at least an hour's notice. */
+  private static readonly VIEWING_NOTICE_HOURS = 1;
+  /** Latest hour a viewing can start; "Any time" today falls back to the next free hour up to this. */
+  private static readonly LAST_VIEWING_HOUR = 20;
+
+  private isToday(parsed: { y: number; m: number; d: number }): boolean {
+    const now = new Date();
+    return parsed.y === now.getFullYear() && parsed.m === now.getMonth() && parsed.d === now.getDate();
+  }
+
+  /** Earliest bookable whole hour today. */
+  private earliestHourToday(): number {
+    const now = new Date();
+    return now.getHours() + ApartmentDetail.VIEWING_NOTICE_HOURS + (now.getMinutes() > 0 ? 1 : 0);
+  }
+
+  /** Hour written for a slot; "Any time" on today moves to the next bookable hour. */
+  private slotHour(value: 'morning' | 'noon' | 'evening' | 'any', parsed: { y: number; m: number; d: number }): number {
+    const hour = this.timeOfDayHours[value];
+    if (value === 'any' && this.isToday(parsed)) return Math.max(hour, this.earliestHourToday());
+    return hour;
+  }
+
+  /** A time slot that has already passed (or is under an hour away) on the chosen day. */
+  viewingSlotDisabled(value: 'morning' | 'noon' | 'evening' | 'any'): boolean {
+    const parsed = this.parseViewingValue();
+    if (!parsed || !this.isToday(parsed)) return false;
+    const earliest = this.earliestHourToday();
+    if (value === 'any') return earliest > ApartmentDetail.LAST_VIEWING_HOUR;
+    return this.timeOfDayHours[value] < earliest;
+  }
+
+  /** After the day changes, move off a slot that is no longer available. */
+  private ensureViewingSlotAvailable(): void {
+    if (!this.viewingSlotDisabled(this.viewingTimeOfDay)) {
+      const parsed = this.parseViewingValue();
+      if (parsed) this.writeViewingValue(parsed.y, parsed.m, parsed.d, this.slotHour(this.viewingTimeOfDay, parsed), 0);
+      return;
+    }
+    const next = this.viewingTimeOptions.map((option) => option.value).find((value) => !this.viewingSlotDisabled(value));
+    if (next) this.setViewingTimeOfDay(next);
   }
   viewingHourOptions = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
   viewingMinuteOptions = ['00', '15', '30', '45'];
@@ -983,7 +1079,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         inMonth: cell.getMonth() === month,
         selected: !!parsed && parsed.y === cell.getFullYear() && parsed.m === cell.getMonth() && parsed.d === cell.getDate(),
         isToday: cellDay.getTime() === today.getTime(),
-        disabled: cellDay.getTime() < today.getTime(),
+        disabled:
+          cellDay.getTime() < today.getTime() ||
+          (cellDay.getTime() === today.getTime() && this.earliestHourToday() > ApartmentDetail.LAST_VIEWING_HOUR),
         fullYear: cell.getFullYear(),
         fullMonth: cell.getMonth(),
       });
@@ -994,6 +1092,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   selectViewingDay(day: { date: number; fullYear: number; fullMonth: number; disabled: boolean }): void {
     if (day.disabled) return;
     this.writeViewingValue(day.fullYear, day.fullMonth, day.date, this.timeOfDayHours[this.viewingTimeOfDay], 0);
+    this.ensureViewingSlotAvailable();
   }
 
   get viewingHour(): string {
@@ -1367,6 +1466,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   private localizedPropertyType(language: 'en' | 'ru'): string {
     const type =
       `${this.getListingMetadata('Type')} ${this.apartment?.apartmentStyle || ''}`.toLowerCase();
+    // Commercial listings ("Type: Commercial area", "კომერციული ფართი") are not apartments (VELVEN-011).
+    const commercial = /commercial|office|shop|კომერციულ|საოფისე|коммерч/i.test(`${type} ${this.apartment?.title || ''}`);
+    if (commercial) return language === 'ru' ? 'Коммерческое помещение' : 'Commercial space';
     const house = type.includes('house') || type.includes('villa') || type.includes('cottage');
     return language === 'ru' ? (house ? 'Дом' : 'Квартира') : house ? 'House' : 'Apartment';
   }

@@ -1,0 +1,48 @@
+<main class="viewings-page">
+  <header class="viewings-head">
+    <h1>My viewings</h1>
+    <p>Viewings you requested and their status. An agent confirms each request with you.</p>
+  </header>
+
+  <p class="viewings-state" *ngIf="loading"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Loading…</p>
+  <p class="viewings-state error" *ngIf="error">{{ error }}</p>
+
+  <section class="viewings-empty" *ngIf="!loading && !error && !viewings.length">
+    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+    <h2>No viewings yet</h2>
+    <p>Open a property and choose “Schedule a viewing”.</p>
+    <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }">Browse properties</a>
+  </section>
+
+  <ng-template #row let-item>
+    <article class="viewing">
+      <div class="viewing-date">
+        <i class="fa-regular fa-calendar-check" aria-hidden="true"></i>
+        <div>
+          <strong data-no-translate>{{ dateLabel(item.requestedViewingAt) }}</strong>
+          <small *ngIf="preferredTime(item)">{{ preferredTime(item) }}</small>
+        </div>
+      </div>
+      <div class="viewing-property">
+        <a *ngIf="item.apartmentId; else noLink" [routerLink]="['/apartments', item.apartmentId]">{{ item.apartmentTitle || 'Property' }}</a>
+        <ng-template #noLink><span>{{ item.apartmentTitle || 'Property' }}</span></ng-template>
+        <small *ngIf="item.apartmentAddress">{{ item.apartmentAddress }}</small>
+      </div>
+      <span class="viewing-status" [attr.data-status]="item.status">{{ statusLabel(item.status) }}</span>
+    </article>
+  </ng-template>
+
+  <section class="viewings-group" *ngIf="upcoming.length">
+    <h2>Upcoming</h2>
+    <ng-container *ngFor="let item of upcoming">
+      <ng-container *ngTemplateOutlet="row; context: { $implicit: item }"></ng-container>
+    </ng-container>
+  </section>
+
+  <section class="viewings-group" *ngIf="history.length">
+    <h2>History</h2>
+    <ng-container *ngFor="let item of history">
+      <ng-container *ngTemplateOutlet="row; context: { $implicit: item }"></ng-container>
+    </ng-container>
+  </section>
+</main>

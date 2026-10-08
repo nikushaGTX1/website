@@ -573,7 +573,7 @@
       </section>
 
       <p *ngIf="errorMessage" class="form-error" role="alert" data-no-translate>{{ localizedUploadError }}</p>
-      <p *ngIf="pendingDebug" class="form-debug">{{ pendingDebug }}</p>
+      <p *ngIf="pendingDebug && showPendingDebug" class="form-debug">{{ pendingDebug }}</p>
 
       <div class="review-message" role="alert" *ngIf="duplicateChecking" data-no-translate>
         <span class="review-message-icon"><i class="fa-solid fa-spinner fa-spin"></i></span>

@@ -403,7 +403,7 @@
         </div>
         <div class="property-info">
           <h3>
-            <app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price>
+            <app-currency-price [usdPrice]="apartment.price" [suffix]="searchMode === 'buy' ? '' : '/ month'"></app-currency-price>
           </h3>
           <strong class="property-title">{{ getApartmentTitle(apartment) | listingTitle }}</strong>
           <p class="property-address">

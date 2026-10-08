@@ -2,6 +2,8 @@ import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/cor
 import { Agent as ApiAgent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
+import { Router } from '@angular/router';
+import { whatsappDigits } from '../utils/phone';
 
 export interface AgentCard {
   id: string | number;
@@ -37,6 +39,7 @@ export class AgentProfile implements OnInit {
 
   constructor(
     private agentService: AgentService,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -115,8 +118,19 @@ export class AgentProfile implements OnInit {
     this.closePhoneDialog();
   }
 
+  /** Directory headline: the sum of the per-agent counts shown on the cards. */
+  get totalClosedDeals(): number {
+    return this.allAgents.reduce((total, agent) => total + agent.closedDeals, 0);
+  }
+
+  /** WhatsApp chat when the agent has a phone; otherwise their profile's contact section. */
   onMessage(agent: AgentCard): void {
-    console.log(`Messaging ${agent.name}`);
+    const phone = whatsappDigits(agent.phoneNumber);
+    if (phone) {
+      window.open(`https://wa.me/${phone}`, '_blank', 'noopener');
+      return;
+    }
+    void this.router.navigate(['/agent-profile', agent.id]);
   }
 
   fixAgentImage(event: Event): void {

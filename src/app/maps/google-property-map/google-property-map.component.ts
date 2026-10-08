@@ -109,6 +109,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
   private parks?: ParkLayer;
 
   ngOnDestroy(): void {
+    GooglePropertyMapComponent.instances.delete(this);
     this.parks?.destroy();
     this.mapResizeObserver?.disconnect();
     this.clearPlaceMarkers();
@@ -183,6 +184,10 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
     return this.categories.find((item) => item.value === category)?.label || 'Place';
   }
 
+  private static readonly unavailableText = 'The map is unavailable right now.';
+  /** Live maps, so a key rejection (reported once, globally) can update each of them. */
+  private static readonly instances = new Set<GooglePropertyMapComponent>();
+
   private async initialize(): Promise<void> {
     if (!this.mapContainer || !this.address.trim()) return;
     this.mapResizeObserver?.disconnect();
@@ -197,17 +202,27 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       .querySelector<HTMLMetaElement>('meta[name="google-maps-map-id"]')
       ?.content.trim();
     if (!apiKey) {
+      console.error('Google Maps: add a browser-restricted API key to the google-maps-api-key meta tag.');
       this.loading = false;
-      this.errorMessage =
-        'Google Maps is not configured. Add a browser-restricted API key to the google-maps-api-key meta tag.';
+      this.errorMessage = GooglePropertyMapComponent.unavailableText;
       this.refreshView();
       return;
     }
+    // Google calls this when the key rejects the current domain (RefererNotAllowedMapError).
+    GooglePropertyMapComponent.instances.add(this);
+    const authWindow = window as Window & { gm_authFailure?: () => void };
+    authWindow.gm_authFailure ??= () => {
+      console.error(`Google Maps rejected the API key on ${location.host}: add this domain to the key's HTTP referrer allowlist.`);
+      GooglePropertyMapComponent.instances.forEach((map) => {
+        map.loading = false;
+        map.errorMessage = GooglePropertyMapComponent.unavailableText;
+        map.refreshView();
+      });
+    };
+    // Visitors see a plain note; configuration hints stay in the console (VELVEN-014).
     const loadTimeout = window.setTimeout(() => {
-      if (!this.loading) return;
-      this.loading = false;
-      this.errorMessage =
-        'Google Maps did not load. Check that this website domain is allowed on the Maps API key.';
+      if (!this.loading || this.mapReady) return;
+      this.errorMessage = 'The map is taking longer than usual to load.';
       this.refreshView();
     }, 12000);
     try {
@@ -274,11 +289,13 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         google.maps.event.addListenerOnce(this.map!, 'idle', () => resolve());
       });
       this.mapReady = true;
+      // A slow load may have shown the "taking longer" note; the map is here now.
+      this.errorMessage = '';
       this.refreshView();
       if (this.loadNearby) await this.findNearby();
-    } catch {
-      this.errorMessage =
-        'Google Maps could not locate this apartment. Check the address and API configuration.';
+    } catch (error) {
+      console.error('Google Maps could not show this property (address or API key configuration):', error);
+      this.errorMessage = GooglePropertyMapComponent.unavailableText;
     } finally {
       window.clearTimeout(loadTimeout);
       this.loading = false;

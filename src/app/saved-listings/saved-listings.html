@@ -9,7 +9,7 @@
     <span class="heading-icon"><i class="fa-regular fa-bookmark"></i></span>
     <div>
       <h1>Saved Listings</h1>
-      <p>Properties you’ve saved for later. You can compare, remove or contact agents.</p>
+      <p>Properties you’ve saved for later. You can sort, remove or contact agents.</p>
     </div>
   </header>
 
@@ -48,7 +48,7 @@
               (click)="removeFavorite($event, apartment)"><i class="fa-solid fa-heart"></i></button>
           </div>
           <div class="card-body">
-            <app-currency-price [usdPrice]="apartment.price" suffix="/ month"></app-currency-price>
+            <app-currency-price [usdPrice]="apartment.price" [suffix]="isSaleListing(apartment) ? '' : '/ month'"></app-currency-price>
             <h2>{{ (apartment.title | listingTitle) || 'Apartment in Tbilisi' }}</h2>
             <p class="location"><i class="fa-solid fa-location-dot"></i>{{ getLocation(apartment) }}</p>
             <div class="specs">
@@ -69,7 +69,7 @@
         <p>Save properties you love and come back to them anytime.</p>
         <ul>
           <li><i class="fa-solid fa-heart"></i>Save unlimited properties</li>
-          <li><i class="fa-solid fa-scale-balanced"></i>Compare your favorites</li>
+          <li><i class="fa-solid fa-arrow-down-wide-short"></i>Sort and review your favorites</li>
           <li><i class="fa-regular fa-bell"></i>Get price and status updates</li>
           <li><i class="fa-regular fa-comment"></i>Contact agents easily</li>
         </ul>

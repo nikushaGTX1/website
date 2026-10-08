@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Params, Router } from '@angular/router';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -19,6 +19,7 @@ import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { AppLanguage, TranslationService } from '../services/translation.service';
 import { parkingCostLabel } from '../utils/parking-cost';
+import { rememberResultsUrl } from '../utils/results-return';
 import { PropertyMapPreviewAnchor } from '../maps/explore-property-map/explore-property-map.component';
 
 @Component({
@@ -1350,7 +1351,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedLocationValue = '';
     this.selectedStreetId = null;
     this.locationDisplayLanguage = this.locationService.languageForQuery(this.location);
-    this.locationOpen = true;
+    // The location sheet has its own suggestions; never stack the popover picker on top of it.
+    this.locationOpen = !this.areaSheetOpen;
   }
 
   private loadLocations(): void {
@@ -1462,8 +1464,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const locationLanguage = params.get('locationLanguage');
     this.locationDisplayLanguage =
       locationLanguage === 'en' || locationLanguage === 'ru' ? locationLanguage : 'ka';
-    this.homeType = params.get('propertyType') || '';
+    // Values from the homepage/URL are active filters: show them, not the "Select" placeholder.
+    this.homeType = ExploreProperty.normalizeHomeType(params.get('propertyType') || '');
+    this.homeTypeTouched = !!this.homeType;
     this.headerBedrooms = params.get('bedrooms') || '';
+    this.headerBedroomsTouched = !!this.headerBedrooms;
     this.headerRooms = params.get('rooms') || '';
     this.featureFilter = params.get('feature') || '';
     this.drawnAreaActive = params.get('area') === 'drawn';
@@ -1666,11 +1671,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedStreetId = polygon.streetId || null;
     if (polygon.searchMode)
       this.selectedType = polygon.searchMode === 'buy' ? 'For Sale' : 'For Rent';
-    if (polygon.propertyType) this.homeType = polygon.propertyType;
+    if (polygon.propertyType) {
+      this.homeType = ExploreProperty.normalizeHomeType(polygon.propertyType);
+      this.homeTypeTouched = true;
+    }
     if (polygon.budget) {
       this.appliedBudgetMax = polygon.budget;
     }
-    if (polygon.bedrooms) this.headerBedrooms = polygon.bedrooms;
+    if (polygon.bedrooms) {
+      this.headerBedrooms = polygon.bedrooms;
+      this.headerBedroomsTouched = true;
+    }
     this.closeDrawArea();
     void this.router.navigate([], {
       relativeTo: this.route,
@@ -1795,6 +1806,59 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedConditions = list('conditions');
     const sort = params.get('sort');
     if (sort) this.currentSort = sort;
+    const moveIn = params.get('moveIn') || '';
+    this.moreFilters = {
+      features: list('more'),
+      bathrooms: num('baths') ?? 0,
+      metroMinutes: num('metroMin') ?? 0,
+      evChargerMinutes: num('evMin') ?? 0,
+      leaseMonths: num('lease') ?? 0,
+      noDeposit: params.get('noDeposit') === '1',
+      moveInDate: /^d{4}-d{2}-d{2}$/.test(moveIn) ? moveIn : '',
+      conditions: list('moreConditions'),
+    };
+    const streets = (params.get('streets') || '')
+      .split('|')
+      .map((item) => {
+        const [id, district, ...label] = item.split('~');
+        return { streetId: Number(id), district: district || '', street: label.join('~') };
+      })
+      .filter((item) => item.streetId > 0 && item.street);
+    if (streets.length && !this.drawnAreaActive) {
+      this.selectedModalStreetDetails = streets;
+      this.selectedModalStreets = streets.map((item) => item.street);
+      this.selectedLocationValue = this.selectedModalStreets.join(',');
+      this.location = `${this.selectedLocationAreas.join(', ')}: ${this.selectedModalStreets.join(', ')}`;
+    }
+  }
+
+  /** Detailed ("More filters") selections as URL params, so reloads and shared links keep them. */
+  private moreFiltersQuery(): Params {
+    const f = this.moreFilters;
+    return {
+      more: f.features.join(',') || null,
+      moreConditions: f.conditions.join(',') || null,
+      baths: f.bathrooms || null,
+      metroMin: f.metroMinutes || null,
+      evMin: f.evChargerMinutes || null,
+      lease: f.leaseMonths || null,
+      noDeposit: f.noDeposit ? 1 : null,
+      moveIn: f.moveInDate || null,
+    };
+  }
+
+  /** Applied areas and exact streets. A drawn map area keeps its own params. */
+  private locationQuery(): Params {
+    if (this.drawnAreaActive) return {};
+    const streets = this.selectedModalStreetDetails;
+    const streetMode = streets.length > 0 && this.selectedLocationValue === this.selectedModalStreets.join(',');
+    return {
+      location: (streetMode ? this.selectedLocationAreas.join(',') : this.selectedLocationValue) || null,
+      streets: streetMode
+        ? streets.map((item) => `${item.streetId}~${item.district}~${item.street}`).join('|')
+        : null,
+      street_id: this.selectedStreetId || null,
+    };
   }
 
   private syncFiltersToUrl(): void {
@@ -1815,10 +1879,12 @@ export class ExploreProperty implements OnInit, OnDestroy {
         bedrooms: this.headerBedrooms || null,
         rooms: this.headerRooms || null,
         sort: this.currentSort !== 'newest' ? this.currentSort : null,
+        ...this.moreFiltersQuery(),
+        ...this.locationQuery(),
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,
-    });
+    }).then(() => rememberResultsUrl(this.router.url));
   }
 
   toggleFilterItem(list: string[], item: string): void {
@@ -1854,6 +1920,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
+    // A street or drawn-area search fetched only part of the catalogue; reload it all.
+    const narrowedFetch = !!this.selectedStreetId || this.drawnAreaActive;
     this.searchQuery = '';
     this.priceRange = '';
     this.budgetMin = null;
@@ -1885,11 +1953,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedMaxFloor = null;
     this.excludeFirstFloor = false;
     this.excludeLastFloor = false;
+    this.moreFilters = this.emptyMoreFilters();
+    this.selectedLocationAreas = [];
+    this.selectedModalStreets = [];
+    this.selectedModalStreetDetails = [];
+    this.selectedStreetId = null;
     this.featureFilter = '';
     this.drawnAreaActive = false;
     sessionStorage.removeItem('white-tower-drawn-area');
 
-    this.onSearch();
+    if (narrowedFetch) this.loadApartments();
+    else this.onSearch();
   }
 
   onSortChange(event: Event): void {
@@ -2259,13 +2333,25 @@ export class ExploreProperty implements OnInit, OnDestroy {
     return !!match && Number(match[1]) === Number(this.headerRooms);
   }
 
+  /** Homepage/draw-map values ("Apartament", "Commercial Place") mapped to this page's options. */
+  static normalizeHomeType(value: string): string {
+    const known: Record<string, string> = {
+      apartament: 'Apartment',
+      apartment: 'Apartment',
+      house: 'House',
+      'country house': 'Country house',
+      'commercial place': 'Commercial place',
+    };
+    return known[value.trim().toLowerCase()] ?? value.trim();
+  }
+
   private matchesHeaderPropertyType(apartment: Apartment, selectedType: string): boolean {
     if (!selectedType) return true;
     const text =
       `${apartment.apartmentStyle || ''} ${apartment.title || ''} ${apartment.description || ''}`.toLowerCase();
     if (selectedType === 'house' && text.includes('country house')) return false;
     const aliases: Record<string, string[]> = {
-      apartment: ['apartment', 'flat'],
+      apartment: ['apartment', 'apartament', 'flat'],
       apartament: ['apartment', 'apartament', 'flat'],
       'commercial place': ['commercial place', 'commercial', 'office', 'shop'],
       house: ['house', 'private house'],

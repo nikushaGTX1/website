@@ -1,0 +1,9 @@
+<main class="not-found">
+  <span class="not-found-code" aria-hidden="true">404</span>
+  <h1>Page not found</h1>
+  <p>The page you are looking for does not exist or has moved.</p>
+  <div class="not-found-actions">
+    <a class="primary" routerLink="/main">Go to homepage</a>
+    <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }">Browse properties</a>
+  </div>
+</main>

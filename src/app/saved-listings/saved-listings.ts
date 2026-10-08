@@ -4,6 +4,7 @@ import { Apartment } from '../models/apartment';
 import { ApartmentService } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { toMediaUrl } from '../utils/api-media';
+import { isSaleListing } from '../utils/listing-deal';
 
 @Component({
   selector: 'app-saved-listings',
@@ -12,6 +13,7 @@ import { toMediaUrl } from '../utils/api-media';
   styleUrls: ['./saved-listings.css', './saved-listings.icons.css'],
 })
 export class SavedListings implements OnInit {
+  readonly isSaleListing = isSaleListing;
   apartments: Apartment[] = [];
   loading = true;
   errorMessage = '';

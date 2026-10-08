@@ -10,6 +10,7 @@ import { MyProfile } from './my-profile/my-profile';
 
 import { authGuard } from './guards/auth.guard';
 import { agentGuard, crmGuard } from './guards/agent.guard';
+import { questionnaireLinkGuard } from './guards/questionnaire-link.guard';
 import { guestGuard } from './guards/guest.guard';
 
 import { UploadApartment } from './upload-apartment/upload-apartament';
@@ -218,6 +219,12 @@ const routes: Routes = [
   },
 
   {
+    path: 'my-viewings',
+    loadComponent: () => import('./my-viewings/my-viewings').then((module) => module.MyViewings),
+    title: 'My viewings | Velven',
+    canActivate: [authGuard]
+  },
+  {
     path: 'saved-listings',
     component: SavedListings,
     title: 'Saved Listings | Velven',
@@ -285,12 +292,14 @@ const routes: Routes = [
   {
     path: ':agentToken',
     component: CrmQuestioner,
-    title: 'Apartment Questionnaire | Velven'
+    title: 'Apartment Questionnaire | Velven',
+    canMatch: [questionnaireLinkGuard]
   },
 
   {
     path: '**',
-    redirectTo: 'main'
+    loadComponent: () => import('./not-found/not-found').then((module) => module.NotFound),
+    title: 'Page not found | Velven'
   }
 
 ];

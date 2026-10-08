@@ -370,7 +370,7 @@
             Homes {{ selectedType === 'For Sale' ? 'for sale' : 'for rent' }} in
             {{ location || 'Tbilisi' }}
           </h1>
-          <p>{{ visibleApartments.length | number }} verified homes in this map area</p>
+          <p>{{ filteredApartments.length | number }} verified homes in this map area</p>
         </div>
         <button type="button" class="sort-trigger" [class.open]="filterMenu === 'sort'" [attr.aria-expanded]="filterMenu === 'sort'"
           aria-haspopup="listbox" (click)="toggleFilterMenu('sort', $event)">
@@ -723,7 +723,7 @@
           <section class="mf-group">
             <h3>Layout &amp; outdoor space</h3>
             <div class="mf-pills">
-              <button type="button" *ngFor="let item of moreFilterLayout" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+              <button type="button" *ngFor="let item of moreFilterLayout" [class.selected]="moreFiltersDraft.features.includes(item.key)" [attr.aria-pressed]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
                 <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
               </button>
             </div>
@@ -732,7 +732,7 @@
           <section class="mf-group">
             <h3>Bathrooms</h3>
             <div class="mf-segment">
-              <button type="button" *ngFor="let count of moreFilterBathrooms" [class.selected]="moreFiltersDraft.bathrooms === count" (click)="moreFiltersDraft.bathrooms = count">
+              <button type="button" *ngFor="let count of moreFilterBathrooms" [class.selected]="moreFiltersDraft.bathrooms === count" [attr.aria-pressed]="moreFiltersDraft.bathrooms === count" (click)="moreFiltersDraft.bathrooms = count">
                 {{ count === 0 ? 'Any' : count === 3 ? '3+' : count }}
               </button>
             </div>
@@ -741,7 +741,7 @@
           <section class="mf-group">
             <h3>Furnishing</h3>
             <div class="mf-pills">
-              <button type="button" *ngFor="let item of moreFilterFurnishing" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+              <button type="button" *ngFor="let item of moreFilterFurnishing" [class.selected]="moreFiltersDraft.features.includes(item.key)" [attr.aria-pressed]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
                 <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
               </button>
             </div>
@@ -750,7 +750,7 @@
           <section class="mf-group">
             <h3>Appliances</h3>
             <div class="mf-pills">
-              <button type="button" *ngFor="let item of moreFilterAppliances" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+              <button type="button" *ngFor="let item of moreFilterAppliances" [class.selected]="moreFiltersDraft.features.includes(item.key)" [attr.aria-pressed]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
                 <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
               </button>
             </div>
@@ -759,7 +759,7 @@
           <section class="mf-group">
             <h3>Heating</h3>
             <div class="mf-pills">
-              <button type="button" *ngFor="let item of moreFilterHeating" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+              <button type="button" *ngFor="let item of moreFilterHeating" [class.selected]="moreFiltersDraft.features.includes(item.key)" [attr.aria-pressed]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
                 <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
               </button>
             </div>
@@ -770,7 +770,7 @@
           <section class="mf-group">
             <h3>Building</h3>
             <div class="mf-pills">
-              <button type="button" *ngFor="let item of moreFilterBuilding" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+              <button type="button" *ngFor="let item of moreFilterBuilding" [class.selected]="moreFiltersDraft.features.includes(item.key)" [attr.aria-pressed]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
                 <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
               </button>
             </div>
@@ -779,7 +779,7 @@
           <section class="mf-group">
             <h3>Building amenities</h3>
             <div class="mf-pills">
-              <button type="button" *ngFor="let item of moreFilterBuildingAmenities" [class.selected]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
+              <button type="button" *ngFor="let item of moreFilterBuildingAmenities" [class.selected]="moreFiltersDraft.features.includes(item.key)" [attr.aria-pressed]="moreFiltersDraft.features.includes(item.key)" (click)="toggleMoreFeature(item.key)">
                 <svg class="mf-icon" aria-hidden="true"><use [attr.href]="'#mfi-' + item.key"></use></svg>{{ item.label }}
               </button>
             </div>
@@ -788,7 +788,7 @@
           <section class="mf-group">
             <div class="mf-title-row"><h3>Metro proximity</h3><span>Walking distance</span></div>
             <div class="mf-segment">
-              <button type="button" *ngFor="let minutes of moreFilterMinutes" [class.selected]="moreFiltersDraft.metroMinutes === minutes" (click)="moreFiltersDraft.metroMinutes = minutes">
+              <button type="button" *ngFor="let minutes of moreFilterMinutes" [class.selected]="moreFiltersDraft.metroMinutes === minutes" [attr.aria-pressed]="moreFiltersDraft.metroMinutes === minutes" (click)="moreFiltersDraft.metroMinutes = minutes">
                 {{ minutes === 0 ? 'Any' : minutes + ' min' }}
               </button>
             </div>
@@ -797,7 +797,7 @@
           <section class="mf-group">
             <div class="mf-title-row"><h3><svg class="mf-icon mf-ev-icon" aria-hidden="true"><use href="#mfi-ev"></use></svg> Near EV charging station</h3><span>Walking distance</span></div>
             <div class="mf-segment ev">
-              <button type="button" *ngFor="let minutes of moreFilterMinutes" [class.selected]="moreFiltersDraft.evChargerMinutes === minutes" (click)="moreFiltersDraft.evChargerMinutes = minutes">
+              <button type="button" *ngFor="let minutes of moreFilterMinutes" [class.selected]="moreFiltersDraft.evChargerMinutes === minutes" [attr.aria-pressed]="moreFiltersDraft.evChargerMinutes === minutes" (click)="moreFiltersDraft.evChargerMinutes = minutes">
                 {{ minutes === 0 ? 'Any' : minutes + ' min' }}
               </button>
             </div>
@@ -807,7 +807,7 @@
             <h3>Rental terms</h3>
             <p class="mf-sub">Lease length</p>
             <div class="mf-segment">
-              <button type="button" *ngFor="let months of moreFilterLease" [class.selected]="moreFiltersDraft.leaseMonths === months" (click)="moreFiltersDraft.leaseMonths = moreFiltersDraft.leaseMonths === months ? 0 : months">
+              <button type="button" *ngFor="let months of moreFilterLease" [class.selected]="moreFiltersDraft.leaseMonths === months" [attr.aria-pressed]="moreFiltersDraft.leaseMonths === months" (click)="moreFiltersDraft.leaseMonths = moreFiltersDraft.leaseMonths === months ? 0 : months">
                 {{ months === 12 ? '12+ months' : months + ' months' }}
               </button>
             </div>
@@ -831,7 +831,7 @@
           <i class="fa-solid fa-chevron-down mf-chevron" [class.open]="conditionSectionOpen" aria-hidden="true"></i>
         </button>
         <div class="mf-pills" *ngIf="conditionSectionOpen">
-          <button type="button" *ngFor="let condition of conditionOptions" [class.selected]="moreFiltersDraft.conditions.includes(condition)" (click)="toggleMoreCondition(condition)">
+          <button type="button" *ngFor="let condition of conditionOptions" [class.selected]="moreFiltersDraft.conditions.includes(condition)" [attr.aria-pressed]="moreFiltersDraft.conditions.includes(condition)" (click)="toggleMoreCondition(condition)">
             {{ condition }}
           </button>
         </div>

@@ -26,6 +26,17 @@ export class CurrencyService {
       }),
       catchError(() => of(2.7)),
     ).subscribe((rate) => this.usdGelSubject.next(rate));
+    this.http.get<FrankfurterRate>('https://api.frankfurter.dev/v2/rate/USD/EUR').pipe(
+      map((rate) => (Number(rate.rate) > 0 ? Number(rate.rate) : 0.92)),
+      catchError(() => of(0.92)),
+    ).subscribe((rate) => (this.usdEurRate = rate));
+  }
+
+  private usdEurRate = 0.92;
+
+  /** Current rates for converting budgets typed in GEL/EUR into USD listing prices. */
+  get rates(): { usdGel: number; usdEur: number } {
+    return { usdGel: this.usdGelSubject.value, usdEur: this.usdEurRate };
   }
 
 }
