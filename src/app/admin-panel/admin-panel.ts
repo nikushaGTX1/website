@@ -12,7 +12,7 @@ import { BlogService } from '../services/blog.service';
 import { CrmVacancyPosition } from '../models/crm';
 import { CrmService } from '../services/crm.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
-import { GoogleNearbyTimeService, NearbyWalkingTimes } from '../maps/services/google-nearby-time.service';
+import { GoogleNearbyTimeService, NearbyTimeKey } from '../maps/services/google-nearby-time.service';
 
 @Component({
   selector: 'app-admin-panel',
@@ -948,7 +948,7 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.actionId = 'gym-distances';
     this.errorMessage = '';
     this.successMessage = '';
-    const keys: Array<keyof NearbyWalkingTimes> = [
+    const keys: NearbyTimeKey[] = [
       'metroDistanceMinutes',
       'gymDistanceMinutes',
       'parkDistanceMinutes',
@@ -959,6 +959,8 @@ export class AdminPanel implements OnInit, OnDestroy {
       'pharmacyDistanceMinutes',
       'cafeDistanceMinutes',
       'evChargerDistanceMinutes',
+      'petStoreDistanceMinutes',
+      'veterinaryDistanceMinutes',
     ];
     const listings = [...this.apartments, ...this.pendingApartments.map((item) => item.apartment)];
     let improved = 0;
@@ -973,13 +975,24 @@ export class AdminPanel implements OnInit, OnDestroy {
         if (!pin && !apartment.address) continue;
         try {
           const times = await this.nearbyTimes.getWalkingTimes(apartment.address || '', pin);
-          const changes: Partial<Record<keyof NearbyWalkingTimes, number>> = {};
+          const changes: Partial<Record<NearbyTimeKey, number>> & { nearbyPlaceNames?: string } = {};
+          let names: Record<string, string> = {};
+          try {
+            names = JSON.parse(apartment.nearbyPlaceNames || '{}') || {};
+          } catch {
+            names = {};
+          }
           for (const key of keys) {
             const next = times[key];
             const current = apartment[key as keyof Apartment] as number | undefined | null;
-            if (next != null && (current == null || next < current)) changes[key] = next;
+            if (next != null && (current == null || next < current)) {
+              changes[key] = next;
+              const name = times.placeNames?.[key];
+              if (name) names[key] = name;
+            }
           }
           if (!Object.keys(changes).length) continue;
+          if (Object.keys(names).length) changes.nearbyPlaceNames = JSON.stringify(names);
           await firstValueFrom(this.apartmentService.updateApartment(apartment.id, changes));
           Object.assign(apartment, changes);
           improved++;

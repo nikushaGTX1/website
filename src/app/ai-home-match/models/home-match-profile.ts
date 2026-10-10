@@ -2,6 +2,8 @@ import { GeoJsonPolygon } from '../../services/apartment.service';
 export type PropertyGoal = 'Rent' | 'Buy';
 export type Currency = 'USD' | 'GEL' | 'EUR';
 export type Gender = 'Male' | 'Female' | '';
+export type PetKind = 'Dog' | 'Cat' | 'Other';
+export type DogSize = 'Small' | 'Medium' | 'Large';
 export interface HomeMatchProfile {
   propertyGoal: PropertyGoal | '';
   districts: string[];
@@ -31,7 +33,12 @@ export interface HomeMatchProfile {
   carFuelType?: 'Electric' | 'Fuel' | '';
   lifestyles: string[];
   hasPet: boolean | null;
+  /** First selected pet ('None' = no pets); kept for older saved profiles and summaries. */
   petType?: 'None' | 'Dog' | 'Cat' | 'Other';
+  /** Every pet the user lives with (multi-select). Empty with petType 'None' = no pets. */
+  petTypes?: PetKind[];
+  /** Asked when Dog is selected. */
+  dogSize?: DogSize;
   petOtherType?: string;
   petCount?: number;
   topPriorities: string[];
@@ -57,6 +64,8 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   lifestyles: [],
   hasPet: null,
   petType: undefined,
+  petTypes: [],
+  dogSize: undefined,
   petOtherType: '',
   petCount: 1,
   topPriorities: [],

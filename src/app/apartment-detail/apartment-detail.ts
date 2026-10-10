@@ -38,6 +38,8 @@ import { AppLanguage, TranslationService } from '../services/translation.service
 import { parkingCostLabel } from '../utils/parking-cost';
 import { SeoService } from '../services/seo.service';
 import { backToResultsQuery, lastResultsUrl } from '../utils/results-return';
+import { HomeMatchService } from '../ai-home-match/services/home-match.service';
+import { selectedPets } from '../ai-home-match/services/mandatory-requirements';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 
 interface Review {
@@ -133,6 +135,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     private crmService: CrmService,
     private seoService: SeoService,
     readonly translation: TranslationService,
+    private homeMatch: HomeMatchService,
   ) {}
 
   ngOnInit(): void {
@@ -1220,42 +1223,89 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     });
   }
 
-  get storedNearbyPlaces(): Array<{ label: string; icon: string; minutes: number; image?: string }> {
+  /** Nearest place names saved at upload ({"groceryDistanceMinutes": "Carrefour", ...}). */
+  private get nearbyPlaceNames(): Record<string, string> {
+    try {
+      const names = JSON.parse(this.apartment?.nearbyPlaceNames || 'null');
+      return names && typeof names === 'object' ? names : {};
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * Nearby categories that matter to this visitor's Velven Match answers (this session).
+   * Pet owners see pet shops and vets first; families schools; drivers of electric cars chargers.
+   */
+  private get nearbyPriorityKeys(): Set<string> {
+    // Answers given earlier in this tab, or saved with "Save My Profile".
+    if (!this.homeMatch.profile.propertyGoal) this.homeMatch.restoreFromSession();
+    const profile = this.homeMatch.profile;
+    const keys = new Set<string>();
+    if (selectedPets(profile).length) {
+      keys.add('petStoreDistanceMinutes').add('veterinaryDistanceMinutes').add('parkDistanceMinutes');
+    }
+    if (profile.children > 0) keys.add('schoolDistanceMinutes').add('kindergartenDistanceMinutes');
+    if (profile.lifestyles.includes('Athlete')) keys.add('gymDistanceMinutes');
+    if (profile.lifestyles.includes('Student')) keys.add('universityDistanceMinutes');
+    if (profile.transportation.includes('Metro')) keys.add('metroDistanceMinutes');
+    if (profile.transportation.includes('Car') && profile.carFuelType === 'Electric') keys.add('evChargerDistanceMinutes');
+    return keys;
+  }
+
+  get storedNearbyPlaces(): Array<{ label: string; icon: string; minutes: number; image?: string; name?: string }> {
     const apartment = this.apartment;
     if (!apartment) return [];
+    const names = this.nearbyPlaceNames;
     // Vake has no metro station of its own; show the neighborhood's park instead.
     const isVake = (apartment.district || '').trim().toLowerCase() === 'vake';
     const places = [
       isVake
         ? { label: 'Vake Park', icon: 'fa-tree', minutes: 10, image: '/icons/areas/vake-fountain.png' }
         // Metro only counts as "nearby" within a 20-minute walk; farther away it is left out.
-        : { label: 'Nearest metro', icon: 'fa-train-subway', minutes: Number(apartment.metroDistanceMinutes) <= 20 ? apartment.metroDistanceMinutes : undefined },
+        : { key: 'metroDistanceMinutes', label: 'Nearest metro', icon: 'fa-train-subway', minutes: Number(apartment.metroDistanceMinutes) <= 20 ? apartment.metroDistanceMinutes : undefined },
       {
+        key: 'schoolDistanceMinutes',
         label: 'Nearest school',
         icon: 'fa-graduation-cap',
         minutes: apartment.schoolDistanceMinutes,
       },
       // Everyday services.
-      { label: 'Nearest supermarket', icon: 'fa-basket-shopping', minutes: apartment.groceryDistanceMinutes },
-      { label: 'Nearest pharmacy', icon: 'fa-prescription-bottle-medical', minutes: apartment.pharmacyDistanceMinutes },
-      { label: 'Nearest gym', icon: 'fa-dumbbell', minutes: apartment.gymDistanceMinutes },
-      { label: 'Nearest park', icon: 'fa-tree', minutes: apartment.parkDistanceMinutes },
+      { key: 'groceryDistanceMinutes', label: 'Nearest supermarket', icon: 'fa-basket-shopping', minutes: apartment.groceryDistanceMinutes },
+      { key: 'pharmacyDistanceMinutes', label: 'Nearest pharmacy', icon: 'fa-prescription-bottle-medical', minutes: apartment.pharmacyDistanceMinutes },
+      { key: 'gymDistanceMinutes', label: 'Nearest gym', icon: 'fa-dumbbell', minutes: apartment.gymDistanceMinutes },
+      { key: 'parkDistanceMinutes', label: 'Nearest park', icon: 'fa-tree', minutes: apartment.parkDistanceMinutes },
       {
+        key: 'kindergartenDistanceMinutes',
         label: 'Nearest kindergarten',
         icon: 'fa-children',
         minutes: apartment.kindergartenDistanceMinutes,
       },
       {
+        key: 'universityDistanceMinutes',
         label: 'Nearest university',
         icon: 'fa-building-columns',
         minutes: apartment.universityDistanceMinutes,
       },
-      { label: 'Nearest café', icon: 'fa-mug-hot', minutes: apartment.cafeDistanceMinutes },
-      { label: 'Nearest EV charger', icon: 'fa-charging-station', minutes: apartment.evChargerDistanceMinutes },
+      { key: 'cafeDistanceMinutes', label: 'Nearest café', icon: 'fa-mug-hot', minutes: apartment.cafeDistanceMinutes },
+      { key: 'evChargerDistanceMinutes', label: 'Nearest EV charger', icon: 'fa-charging-station', minutes: apartment.evChargerDistanceMinutes },
+      // Pet services: shown first for pet owners, otherwise only when there is room.
+      { key: 'petStoreDistanceMinutes', label: 'Nearest pet shop', icon: 'fa-paw', minutes: apartment.petStoreDistanceMinutes },
+      { key: 'veterinaryDistanceMinutes', label: 'Nearest vet clinic', icon: 'fa-stethoscope', minutes: apartment.veterinaryDistanceMinutes },
     ];
-    return places.filter((place): place is { label: string; icon: string; minutes: number } =>
-      Number.isFinite(place.minutes),
-    ).slice(0, 9); // show up to 9 places (3 full rows)
+    const priority = this.nearbyPriorityKeys;
+    // Relevant places first, in the order they were added above (pets first for pet owners).
+    const order = [...priority];
+    const relevant = (place: { key?: string }) => {
+      const rank = place.key ? order.indexOf(place.key) : -1;
+      return rank < 0 ? order.length : rank;
+    };
+    return places
+      .filter((place): place is typeof place & { minutes: number } => Number.isFinite(place.minutes))
+      // Stable sort: answers from Velven Match move their places up; the default order stays otherwise.
+      .sort((a, b) => relevant(a) - relevant(b))
+      .slice(0, 9) // show up to 9 places (3 full rows)
+      .map(({ key, ...place }) => ({ ...place, name: key ? names[key] : undefined }));
   }
 
   viewSimilar(index: number): void {

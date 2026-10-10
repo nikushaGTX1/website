@@ -5287,3 +5287,116 @@
     margin-top: clamp(24px, 7vh, 90px) !important;
   }
 }
+
+/* ===== Homepage property search: clearer hierarchy (client feedback, Oct 2026) =====
+   Same layout and text positions; the card is rounded, Rent/Buy is a segmented
+   control, and fields/button share one height and focus style. */
+.home-page .property-search {
+  border-color: #e6e0f3;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(45, 22, 95, 0.16), 0 2px 6px rgba(45, 22, 95, 0.05);
+}
+.home-page .search-top .search-tabs {
+  align-self: center;
+  height: auto;
+  gap: 4px;
+  margin: 14px 0;
+  padding: 4px;
+  border-radius: 999px;
+  background: #f3effb;
+}
+.home-page .search-top .search-tabs button {
+  height: 42px;
+  min-width: 112px;
+  padding: 0 18px;
+  border-bottom: 0;
+  border-radius: 999px;
+  color: #5b5470;
+}
+.home-page .search-tabs button::before {
+  display: none;
+}
+.home-page .search-top .search-tabs button.active {
+  background: #fff;
+  color: #451a8f;
+  box-shadow: 0 2px 8px rgba(69, 26, 143, 0.14);
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-page .search-tabs button:not(.active):hover {
+    background: rgba(255, 255, 255, 0.6);
+    color: #451a8f;
+  }
+}
+.home-page .search-tabs button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.25);
+}
+.home-page .search-fields label > span,
+.home-page .search-fields .location-field > span {
+  color: #3b3450;
+  letter-spacing: 0.02em;
+}
+.home-page .property-search.property-search :is(.field-control, .property-type-trigger, .main-budget-trigger, .main-bedroom-trigger) {
+  height: 50px;
+  min-height: 50px;
+  border-color: #e0dbea;
+  border-radius: 12px;
+}
+.home-page .property-search.property-search :is(.field-control, .property-type-trigger, .main-budget-trigger, .main-bedroom-trigger):hover {
+  border-color: #c9bde6;
+}
+.home-page .property-search.property-search :is(.field-control, .property-type-trigger, .main-budget-trigger, .main-bedroom-trigger):focus-within,
+.home-page .property-search.property-search :is(.field-control, .property-type-trigger, .main-budget-trigger, .main-bedroom-trigger).is-open {
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.12);
+}
+.home-page .search-submit {
+  height: 50px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #5a24b3 0%, #451a8f 100%);
+  font-size: 14px;
+  box-shadow: 0 10px 22px rgba(69, 26, 143, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-page .search-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px rgba(69, 26, 143, 0.32);
+  }
+}
+/* Tablet: two field columns, and the button spans both instead of sitting half-width. */
+@media (min-width: 621px) and (max-width: 1023px) {
+  .home-page .search-submit {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-self: stretch;
+  }
+  .home-page .property-search {
+    padding-bottom: 18px;
+  }
+}
+/* Phones: full-width segmented control and slightly tighter spacing. */
+@media (max-width: 620px) {
+  .home-page .search-top .search-tabs {
+    width: 100%;
+    margin: 12px 0 10px;
+    border-bottom: 0;
+  }
+  .home-page .search-top .search-tabs button {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+  }
+  .home-page .search-fields {
+    gap: 10px;
+  }
+  .home-page .property-search.property-search :is(.field-control, .property-type-trigger, .main-budget-trigger, .main-bedroom-trigger),
+  .home-page .search-submit {
+    height: 48px;
+    min-height: 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-page .search-submit {
+    transition: none;
+  }
+}

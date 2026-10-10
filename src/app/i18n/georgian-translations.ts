@@ -1955,6 +1955,20 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Go to homepage', 'მთავარ გვერდზე დაბრუნება'],
   ['The map is taking longer than usual to load.', 'რუკის ჩატვირთვას ჩვეულებრივზე მეტი დრო სჭირდება.'],
   ['The map is unavailable right now.', 'რუკა ამჟამად მიუწვდომელია.'],
+  ['Select all that apply', 'აირჩიეთ ყველა შესაბამისი'],
+  ['What size is your dog?', 'რა ზომისაა თქვენი ძაღლი?'],
+  ['Small', 'პატარა'],
+  ['Medium', 'საშუალო'],
+  ['Large', 'დიდი'],
+  ['Up to 10 kg', '10 კგ-მდე'],
+  ['10–25 kg', '10–25 კგ'],
+  ['Over 25 kg', '25 კგ-ზე მეტი'],
+  ['Above your budget', 'ბიუჯეტზე მეტი'],
+  ['Nearest pet shop', 'უახლოესი ზოომაღაზია'],
+  ['Nearest vet clinic', 'უახლოესი ვეტკლინიკა'],
+  ['Pet shop', 'ზოომაღაზია'],
+  ['Vet clinic', 'ვეტკლინიკა'],
+  ['Photo', 'ფოტო'],
 ]);
 
 // Velven Match: requirement statuses, review page and validation messages.
@@ -1990,7 +2004,60 @@ const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
   [...GEORGIAN_TRANSLATIONS].map(([source, translation]) => [source.toLocaleLowerCase('en'), translation]),
 );
 
+/** "dog and cat" (Velven Match pet list) in this language. */
+function kaPets(list: string): string {
+  return list
+    .replace(/\bdog\b/g, 'ძაღლი')
+    .replace(/\bcat\b/g, 'კატა')
+    .replace(/\bpet\b/g, 'შინაური ცხოველი')
+    .replace(/ and /g, ' და ');
+}
+
 const GEORGIAN_RULES: GeorgianRule[] = [
+  // Velven Match budget tolerance and multi-pet notes.
+  {
+    pattern: /^Budget: (.+)\/month above your maximum of (.+)$/i,
+    translate: (match) => `ბიუჯეტი: თვეში ${match[1]}-ით მეტია თქვენს მაქსიმუმზე (${match[2]})`,
+  },
+  {
+    pattern: /^Budget: (.+) is above your maximum of (.+)$/i,
+    translate: (match) => `ბიუჯეტი: ${match[1]} აღემატება თქვენს მაქსიმუმს (${match[2]})`,
+  },
+  {
+    pattern: /^Budget: (.+) is below your minimum of (.+)$/i,
+    translate: (match) => `ბიუჯეტი: ${match[1]} ნაკლებია თქვენს მინიმუმზე (${match[2]})`,
+  },
+  {
+    pattern: /^\+(.+)\/month over (.+)$/i,
+    translate: (match) => `+${match[1]} თვეში, ${match[2]}-ზე მეტი`,
+  },
+  {
+    pattern: /^Pets: this listing does not allow your (.+)$/i,
+    translate: (match) => `შინაური ცხოველები: ეს განცხადება არ უშვებს — ${kaPets(match[1])}`,
+  },
+  {
+    pattern: /^Pets: the listing does not confirm that your (.+) (?:is|are) allowed — check with the agent$/i,
+    translate: (match) => `შინაური ცხოველები: განცხადებაში არ არის დადასტურებული, რომ დასაშვებია — ${kaPets(match[1])}. გადაამოწმეთ აგენტთან`,
+  },
+  {
+    pattern: /^(Supplies|Care) for your (.+)$/i,
+    translate: (match) => `${match[1].toLowerCase() === 'care' ? 'მოვლა' : 'საჭიროებები'}: ${kaPets(match[2])}`,
+  },
+  {
+    pattern: /^Because you live with your (.+)$/i,
+    translate: (match) => `რადგან თქვენთან ცხოვრობს: ${kaPets(match[1])}`,
+  },
+  {
+    // Pet summary on the review screen, e.g. "Dog (Medium), Cat".
+    pattern: /^(?:(?:Dog(?: \((?:Small|Medium|Large)\))?|Cat|Other)(?:, |$))+$/,
+    translate: (match) => match[0].replace(/Dog/g, 'ძაღლი').replace(/Cat/g, 'კატა').replace(/Other/g, 'სხვა')
+      .replace(/Small/g, 'პატარა').replace(/Medium/g, 'საშუალო').replace(/Large/g, 'დიდი'),
+  },
+  {
+    pattern: /^Dog \((Small|Medium|Large)\)$/,
+    translate: (match) => `ძაღლი (${({ Small: 'პატარა', Medium: 'საშუალო', Large: 'დიდი' } as Record<string, string>)[match[1]]})`,
+  },
+
   {
     pattern: /^This listing has a minimum lease term: (\d+) (year|years|month|months)$/i,
     translate: (match) =>

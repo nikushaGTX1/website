@@ -12,6 +12,7 @@ import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import {
   GoogleNearbyTimeService,
+  NearbyTimeKey,
   NearbyWalkingTimes,
 } from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
@@ -20,10 +21,10 @@ import { parseParkingCost } from '../utils/parking-cost';
 /** Publishing never waits longer than this before showing an error. */
 const SAVE_TIMEOUT_MS = 45000;
 
-const NEARBY_KEYS: Array<keyof NearbyWalkingTimes> = [
+const NEARBY_KEYS: NearbyTimeKey[] = [
   'schoolDistanceMinutes', 'kindergartenDistanceMinutes', 'groceryDistanceMinutes', 'cafeDistanceMinutes',
   'gymDistanceMinutes', 'metroDistanceMinutes', 'parkDistanceMinutes', 'universityDistanceMinutes',
-  'pharmacyDistanceMinutes', 'evChargerDistanceMinutes',
+  'pharmacyDistanceMinutes', 'evChargerDistanceMinutes', 'petStoreDistanceMinutes', 'veterinaryDistanceMinutes',
 ];
 import { AiPricingService } from '../services/ai-pricing.service';
 import { OwnerListingService, OwnerSubmission, OwnerSubmissionStatus } from '../services/owner-listing.service';
@@ -654,10 +655,16 @@ export class UploadApartment implements OnInit, OnDestroy {
   private applyExistingListing(source: Partial<import('../models/apartment').Apartment & CreateApartment>): void {
     // Walking times already saved on this listing; reused on save if the location is unchanged,
     // so editing other fields never calls Google again.
-    const saved = source as Partial<Record<keyof NearbyWalkingTimes, number | null>>;
+    const saved = source as Partial<Record<NearbyTimeKey, number | null>>;
     this.editSavedNearby = Object.fromEntries(
       NEARBY_KEYS.filter((key) => saved[key] != null).map((key) => [key, Number(saved[key])]),
     ) as NearbyWalkingTimes;
+    try {
+      const names = JSON.parse(source.nearbyPlaceNames || 'null');
+      if (names && typeof names === 'object') this.editSavedNearby.placeNames = names;
+    } catch {
+      // Unreadable names are simply measured again on the next location change.
+    }
     this.editSavedLocationKey = '';
     const description = source.description || '';
     const splitAt = description.lastIndexOf('\n\n');
@@ -1954,6 +1961,11 @@ export class UploadApartment implements OnInit, OnDestroy {
       kindergartenDistanceMinutes: nearbyTimes.kindergartenDistanceMinutes,
       universityDistanceMinutes: nearbyTimes.universityDistanceMinutes,
       evChargerDistanceMinutes: nearbyTimes.evChargerDistanceMinutes,
+      petStoreDistanceMinutes: nearbyTimes.petStoreDistanceMinutes,
+      veterinaryDistanceMinutes: nearbyTimes.veterinaryDistanceMinutes,
+      nearbyPlaceNames: nearbyTimes.placeNames && Object.keys(nearbyTimes.placeNames).length
+        ? JSON.stringify(nearbyTimes.placeNames)
+        : undefined,
       imageUrl: this.form.imageUrls[0] || undefined,
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };

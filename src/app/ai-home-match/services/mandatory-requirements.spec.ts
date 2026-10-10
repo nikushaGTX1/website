@@ -5,6 +5,11 @@ import { EMPTY_HOME_MATCH_PROFILE, HomeMatchProfile } from '../models/home-match
 import { HomeMatchApartment } from '../models/home-match-result';
 import {
   budgetRangeUsd,
+  maxRecommendedPriceUsd,
+  petListLabel,
+  petPermission,
+  petsExplicitlyProhibited,
+  selectedPets,
   evaluateMandatoryRequirements,
   withinBudgetCeiling,
 } from './mandatory-requirements';
@@ -86,4 +91,69 @@ test('VELVEN-028: Vake home is an alternative when Saburtalo was chosen', () => 
   const result = evaluateMandatoryRequirements(apartment({ district: 'Vake' }), profile(), rates);
   assert.equal(result.status, 'alternative');
   assert.ok(result.mismatches.some((note) => note.startsWith('Location')));
+});
+
+// Rental tolerance: none up to $1,000; above that, up to 25% over the maximum.
+for (const [max, ceiling] of [[1000, 1000], [1001, 1251.25], [1400, 1750], [2000, 2500], [3000, 3750]]) {
+  test(`budget $${max}: ceiling is $${ceiling}`, () => {
+    assert.equal(maxRecommendedPriceUsd(max, 'Rent'), ceiling);
+    const p = profile({ budgetMin: 0, budgetMax: max });
+    assert.equal(withinBudgetCeiling(ceiling, p, rates), true);
+    assert.equal(withinBudgetCeiling(ceiling + 1, p, rates), false);
+  });
+}
+
+test('purchases get no tolerance', () => {
+  assert.equal(maxRecommendedPriceUsd(300000, 'Buy'), 300000);
+  assert.equal(withinBudgetCeiling(300001, profile({ propertyGoal: 'Buy', budgetMin: 0, budgetMax: 300000 }), rates), false);
+});
+
+test('GEL budget equal to $1,000 gets no tolerance', () => {
+  assert.equal(withinBudgetCeiling(1001, profile({ currency: 'GEL', budgetMin: 0, budgetMax: 2700 }), rates), false);
+});
+
+test('over-budget rental is not exact and reports the extra monthly amount', () => {
+  const result = evaluateMandatoryRequirements(apartment({ price: 1600 }), profile({ budgetMin: 0, budgetMax: 1400 }), rates);
+  assert.equal(result.status, 'confirm');
+  assert.equal(result.overBudgetUsd, 200);
+  assert.ok(result.confirmations.includes('Budget: $200/month above your maximum of $1,400'));
+});
+
+test('home at the maximum is within budget', () => {
+  const result = evaluateMandatoryRequirements(apartment({ price: 1400 }), profile({ budgetMin: 0, budgetMax: 1400 }), rates);
+  assert.equal(result.status, 'exact');
+  assert.equal(result.overBudgetUsd, 0);
+});
+
+// Pets: multi-select, dog size, explicit prohibition vs. unconfirmed permission.
+test('dog and cat: a "no cats" listing is prohibited', () => {
+  const p = profile({ hasPet: true, petType: 'Dog', petTypes: ['Dog', 'Cat'], dogSize: 'Medium' });
+  const listing = apartment({ description: 'Deal: For Rent | No cats', isPetFriendly: true });
+  assert.equal(petsExplicitlyProhibited(listing, p), true);
+  assert.equal(evaluateMandatoryRequirements(listing, p, rates).status, 'alternative');
+});
+
+test('large dog: "small dogs only" is prohibited, small dog is allowed', () => {
+  const listing = apartment({ description: 'Small dogs only', isPetFriendly: true });
+  assert.equal(petPermission(listing, ['Dog'], 'Large'), 'prohibited');
+  assert.equal(petPermission(listing, ['Dog'], 'Small'), 'allowed');
+});
+
+test('unticked pet-friendly box is unconfirmed, not prohibited', () => {
+  const p = profile({ hasPet: true, petType: 'Cat', petTypes: ['Cat'] });
+  const listing = apartment({ isPetFriendly: false });
+  assert.equal(petsExplicitlyProhibited(listing, p), false);
+  const result = evaluateMandatoryRequirements(listing, p, rates);
+  assert.equal(result.status, 'confirm');
+  assert.ok(result.confirmations.some((note) => note.startsWith('Pets: the listing does not confirm')));
+});
+
+test('no pets: pet rules do not apply', () => {
+  const p = profile({ hasPet: false, petType: 'None', petTypes: [] });
+  assert.equal(evaluateMandatoryRequirements(apartment({ description: 'No pets' }), p, rates).status, 'exact');
+});
+
+test('older profiles with a single petType still work', () => {
+  assert.deepEqual(selectedPets(profile({ hasPet: true, petType: 'Dog' })), ['Dog']);
+  assert.equal(petListLabel(['Dog', 'Cat']), 'dog and cat');
 });

@@ -917,9 +917,74 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Go to homepage', 'На главную'],
   ['The map is taking longer than usual to load.', 'Карта загружается дольше обычного.'],
   ['The map is unavailable right now.', 'Карта сейчас недоступна.'],
+  ['Select all that apply', 'Выберите все подходящие'],
+  ['What size is your dog?', 'Какого размера ваша собака?'],
+  ['Small', 'Маленькая'],
+  ['Medium', 'Средняя'],
+  ['Large', 'Крупная'],
+  ['Up to 10 kg', 'До 10 кг'],
+  ['10–25 kg', '10–25 кг'],
+  ['Over 25 kg', 'Более 25 кг'],
+  ['Dog', 'Собака'],
+  ['Cat', 'Кошка'],
+  ['Other', 'Другое'],
+  ['Above your budget', 'Выше вашего бюджета'],
+  ['Nearest pet shop', 'Ближайший зоомагазин'],
+  ['Nearest vet clinic', 'Ближайшая ветклиника'],
+  ['Pet shop', 'Зоомагазин'],
+  ['Vet clinic', 'Ветклиника'],
+  ['Previous photo', 'Предыдущее фото'],
+  ['Next photo', 'Следующее фото'],
 ]);
 
+/** "dog and cat" (Velven Match pet list) in this language. */
+function ruPets(list: string): string {
+  return list
+    .replace(/\bdog\b/g, 'собака')
+    .replace(/\bcat\b/g, 'кошка')
+    .replace(/\bpet\b/g, 'питомец')
+    .replace(/ and /g, ' и ');
+}
+
 const RUSSIAN_RULES: RussianRule[] = [
+  // Velven Match budget tolerance and multi-pet notes.
+  {
+    pattern: /^Budget: (.+)\/month above your maximum of (.+)$/i,
+    translate: (match) => `Бюджет: на ${match[1]} в месяц выше вашего максимума (${match[2]})`,
+  },
+  {
+    pattern: /^Budget: (.+) is above your maximum of (.+)$/i,
+    translate: (match) => `Бюджет: ${match[1]} выше вашего максимума (${match[2]})`,
+  },
+  {
+    pattern: /^Budget: (.+) is below your minimum of (.+)$/i,
+    translate: (match) => `Бюджет: ${match[1]} ниже вашего минимума (${match[2]})`,
+  },
+  {
+    pattern: /^\+(.+)\/month over (.+)$/i,
+    translate: (match) => `+${match[1]} в месяц сверх ${match[2]}`,
+  },
+  {
+    pattern: /^Pets: this listing does not allow your (.+)$/i,
+    translate: (match) => `Питомцы: объявление не допускает — ${ruPets(match[1])}`,
+  },
+  {
+    pattern: /^Pets: the listing does not confirm that your (.+) (?:is|are) allowed — check with the agent$/i,
+    translate: (match) => `Питомцы: в объявлении не подтверждено, что можно — ${ruPets(match[1])}. Уточните у агента`,
+  },
+  {
+    pattern: /^(Supplies|Care) for your (.+)$/i,
+    translate: (match) => `${match[1].toLowerCase() === 'care' ? 'Уход' : 'Товары'}: ${ruPets(match[2])}`,
+  },
+  {
+    pattern: /^Because you live with your (.+)$/i,
+    translate: (match) => `Потому что с вами живёт: ${ruPets(match[1])}`,
+  },
+  {
+    pattern: /^Dog \((Small|Medium|Large)\)$/,
+    translate: (match) => `Собака (${({ Small: 'маленькая', Medium: 'средняя', Large: 'крупная' } as Record<string, string>)[match[1]]})`,
+  },
+
   {
     pattern: /^This listing has a minimum lease term: (\d+) (year|years|month|months)$/i,
     translate: (match) => {

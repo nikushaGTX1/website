@@ -499,9 +499,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (gesture.axis !== 'x') return;
     event.preventDefault();
     this.cardDraggingId = gesture.id;
-    const left = gesture.index < gesture.count - 1 ? -gesture.width : 0;
-    const right = gesture.index > 0 ? gesture.width : 0;
-    this.cardDragOffset = Math.max(left, Math.min(right, dx));
+    // Past the first/last photo the strip resists instead of stopping dead.
+    const atEdge = (gesture.index === 0 && dx > 0) || (gesture.index >= gesture.count - 1 && dx < 0);
+    this.cardDragOffset = atEdge ? dx * 0.3 : Math.max(-gesture.width, Math.min(gesture.width, dx));
     this.suppressCardClickUntil = Date.now() + 600;
   }
 

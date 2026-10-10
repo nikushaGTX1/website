@@ -1,4 +1,4 @@
-import { HomeMatchProfile } from '../models/home-match-profile';
+import { DogSize, HomeMatchProfile, PetKind } from '../models/home-match-profile';
 import { HomeMatchApartment } from '../models/home-match-result';
 import { answerLabel } from './answer-labels';
 
@@ -16,6 +16,8 @@ export interface RequirementEvaluation {
   mismatches: string[];
   /** Requirements the listing does not let us verify. */
   confirmations: string[];
+  /** USD per month above the typed maximum (rentals inside the tolerance); 0 when within budget. */
+  overBudgetUsd: number;
 }
 
 const GEORGIAN_DISTRICTS: Record<string, string> = {
@@ -185,8 +187,21 @@ export interface BudgetRates {
 
 export const DEFAULT_BUDGET_RATES: BudgetRates = { usdGel: 2.7, usdEur: 0.92 };
 
-/** Rentals may run up to $200 over the typed maximum; purchases never get this flexibility. */
-export const RENT_BUDGET_FLEXIBILITY_USD = 200;
+/**
+ * Rental budget tolerance. Up to $1,000/month nothing above the maximum is recommended;
+ * above $1,000, homes up to 25% over the maximum may be shown (as over-budget options).
+ * Purchases never get a tolerance. The API applies the same rule (RentalBudgetPolicy).
+ */
+export const RENT_TOLERANCE_THRESHOLD_USD = 1000;
+export const RENT_TOLERANCE_RATE = 0.25;
+
+/** Highest price (USD) Velven Match may recommend for a maximum budget (USD). */
+export function maxRecommendedPriceUsd(maxUsd: number, goal: HomeMatchProfile['propertyGoal']): number {
+  // Cents precision, so a GEL budget converting to exactly $1,000 is not read as $1,000.0001.
+  const max = Math.round(maxUsd * 100) / 100;
+  if (goal !== 'Rent' || max <= RENT_TOLERANCE_THRESHOLD_USD) return max;
+  return max * (1 + RENT_TOLERANCE_RATE);
+}
 
 /** Converts an amount in the profile's currency to USD. */
 export function toUsd(amount: number, currency: string, rates: BudgetRates = DEFAULT_BUDGET_RATES): number {
@@ -218,8 +233,8 @@ export function budgetRangeUsd(
 }
 
 /**
- * Hard budget filter: homes over the maximum (plus the rental allowance) are not shown at all.
- * Homes below the minimum are kept but classified as alternatives by evaluateMandatoryRequirements.
+ * Hard budget filter: homes over the recommended ceiling (maxRecommendedPriceUsd) are not
+ * shown at all. Homes below the minimum are kept but classified as alternatives.
  */
 export function withinBudgetCeiling(
   priceUsd: number,
@@ -228,15 +243,56 @@ export function withinBudgetCeiling(
 ): boolean {
   const { max } = budgetRangeUsd(profile, rates);
   if (max === null || !priceUsd) return true;
-  const allowance = profile.propertyGoal === 'Rent' ? RENT_BUDGET_FLEXIBILITY_USD : 0;
-  return priceUsd <= max + allowance;
+  return priceUsd <= maxRecommendedPriceUsd(max, profile.propertyGoal) + 0.005;
 }
 
-/** The listing explicitly does not allow pets (field or "Pet friendly: No" in its details). */
-function explicitlyNotPetFriendly(apartment: HomeMatchApartment): boolean {
-  if (apartment.isPetFriendly === true) return false;
-  return /pet[\s-]*friendly:\s*no\b|pets?:\s*(no|not allowed)\b|no pets/i.test(apartment.description || '')
-    || apartment.isPetFriendly === false;
+/** Pets the user lives with. Older saved profiles only have petType/hasPet. */
+export function selectedPets(profile: HomeMatchProfile): PetKind[] {
+  if (profile.petTypes?.length) return [...new Set(profile.petTypes)];
+  if (profile.petType && profile.petType !== 'None') return [profile.petType];
+  return profile.hasPet ? ['Other'] : [];
+}
+
+export type PetPermission = 'allowed' | 'prohibited' | 'unconfirmed';
+
+const NO_PETS =
+  /pet[\s-]*friendly:\s*no\b|pets?(?:\s+allowed)?:\s*(?:no|not allowed)\b|\bno pets\b|pets? (?:are )?not (?:allowed|permitted)|without pets|შინაური ცხოველ\S*\s+(?:არ|აკრძალ)|ცხოველები\s+(?:არ|აკრძალ)|ცხოველების გარეშე|без (?:домашних )?животных|животны\S* (?:не допуска|запрещ)/i;
+const NO_DOGS = /\bno dogs\b|dogs? (?:are )?not (?:allowed|permitted)|ძაღლ\S*\s+(?:არ|აკრძალ)|без собак|собаки? запрещ/i;
+const NO_CATS = /\bno cats\b|cats? (?:are )?not (?:allowed|permitted)|კატ\S*\s+(?:არ|აკრძალ)|без кош/i;
+const SMALL_DOGS_ONLY = /small (?:dogs?|pets?) only|only small (?:dogs?|pets?)|მხოლოდ პატარა|только (?:маленьк|мелк)/i;
+const NO_LARGE_DOGS = /no (?:large|big) dogs|large dogs? (?:are )?not (?:allowed|permitted)|без крупных собак/i;
+const PETS_ALLOWED =
+  /pet[\s-]*friendly:\s*yes\b|pets? (?:are )?(?:allowed|welcome|permitted)|შინაური ცხოველ\S*\s+(?:დასაშვებ|ნებადართ)|можно с (?:домашними )?животными/i;
+
+/**
+ * Whether this listing lets the user's pets in. 'prohibited' only when the listing says so;
+ * an unticked "Pet friendly" box is not a prohibition, just unconfirmed.
+ */
+export function petPermission(apartment: HomeMatchApartment, pets: PetKind[], dogSize?: DogSize): PetPermission {
+  if (!pets.length) return 'allowed';
+  const text = `${apartment.title || ''} ${apartment.description || ''}`;
+  if (NO_PETS.test(text)) return 'prohibited';
+  if (pets.includes('Dog')) {
+    if (NO_DOGS.test(text)) return 'prohibited';
+    if (dogSize && dogSize !== 'Small' && SMALL_DOGS_ONLY.test(text)) return 'prohibited';
+    if (dogSize === 'Large' && NO_LARGE_DOGS.test(text)) return 'prohibited';
+  }
+  if (pets.includes('Cat') && NO_CATS.test(text)) return 'prohibited';
+  return apartment.isPetFriendly === true || PETS_ALLOWED.test(text) ? 'allowed' : 'unconfirmed';
+}
+
+/** Hard filter: a rental that says the user's pets are not allowed is never recommended. */
+export function petsExplicitlyProhibited(apartment: HomeMatchApartment, profile: HomeMatchProfile): boolean {
+  return (
+    profile.propertyGoal === 'Rent' &&
+    petPermission(apartment, selectedPets(profile), profile.dogSize) === 'prohibited'
+  );
+}
+
+/** "dog", "dog and cat", "dog, cat and pet" for explanations. */
+export function petListLabel(pets: PetKind[]): string {
+  const names = pets.map((pet) => (pet === 'Dog' ? 'dog' : pet === 'Cat' ? 'cat' : 'pet'));
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0] || 'pet';
 }
 
 export function evaluateMandatoryRequirements(
@@ -289,25 +345,34 @@ export function evaluateMandatoryRequirements(
   // Budget, compared in USD whatever currency the user typed it in.
   const price = Number(apartment.price);
   const budget = budgetRangeUsd(profile, rates);
+  const money = (usd: number) => formatBudgetAmount(fromUsd(usd, profile.currency, rates), profile.currency);
+  let overBudgetUsd = 0;
   if (price > 0 && budget.min !== null && price < budget.min) {
     mismatches.push(
-      `Budget: ${formatBudgetAmount(fromUsd(price, profile.currency, rates), profile.currency)} is below your minimum of ${formatBudgetAmount(Number(profile.budgetMin), profile.currency)}`,
+      `Budget: ${money(price)} is below your minimum of ${formatBudgetAmount(Number(profile.budgetMin), profile.currency)}`,
     );
-  } else if (price > 0 && budget.max !== null && price > budget.max) {
-    // Rentals may pass the hard filter up to $200 over the maximum; flag it so a home using
-    // that allowance is never silently shown as an exact/Top match.
-    confirmations.push(
-      `${formatBudgetAmount(fromUsd(price - budget.max, profile.currency, rates), profile.currency)} over your budget (within the allowed ${formatBudgetAmount(fromUsd(RENT_BUDGET_FLEXIBILITY_USD, profile.currency, rates), profile.currency)} flexibility)`,
-    );
+  } else if (price > 0 && budget.max !== null && price > budget.max + 0.005) {
+    const maximum = formatBudgetAmount(Number(profile.budgetMax), profile.currency);
+    if (price <= maxRecommendedPriceUsd(budget.max, profile.propertyGoal) + 0.005) {
+      // Inside the rental tolerance: shown, but never as "within your budget" or a top match.
+      overBudgetUsd = price - budget.max;
+      confirmations.push(`Budget: ${money(overBudgetUsd)}/month above your maximum of ${maximum}`);
+    } else {
+      mismatches.push(`Budget: ${money(price)} is above your maximum of ${maximum}`);
+    }
   }
 
-  // Pets: a home that says it does not allow pets is never an exact match for a pet owner.
-  if (profile.propertyGoal === 'Rent' && profile.hasPet && explicitlyNotPetFriendly(apartment)) {
+  // Pets: a listing that prohibits the user's pets fails; an unconfirmed one needs checking.
+  const pets = profile.propertyGoal === 'Rent' ? selectedPets(profile) : [];
+  const permission = petPermission(apartment, pets, profile.dogSize);
+  if (permission === 'prohibited') {
+    mismatches.push(`Pets: this listing does not allow your ${petListLabel(pets)}`);
+  } else if (permission === 'unconfirmed') {
     confirmations.push(
-      `Pets: this listing is not marked as pet-friendly — confirm your ${profile.petType === 'Dog' ? 'dog' : profile.petType === 'Cat' ? 'cat' : 'pet'} is allowed`,
+      `Pets: the listing does not confirm that your ${petListLabel(pets)} ${pets.length > 1 ? 'are' : 'is'} allowed — check with the agent`,
     );
   }
 
   const status: RequirementStatus = mismatches.length ? 'alternative' : confirmations.length ? 'confirm' : 'exact';
-  return { status, mismatches, confirmations };
+  return { status, mismatches, confirmations, overBudgetUsd };
 }

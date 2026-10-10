@@ -396,6 +396,7 @@ export class ApartmentService {
       ['viewType', 'ViewType'],
       ['minimumRentalPeriod', 'MinimumRentalPeriod'],
       ['availableFrom', 'AvailableFrom'],
+      ['nearbyPlaceNames', 'NearbyPlaceNames'],
     ];
     const numberFields: Array<[keyof CreateApartment, string]> = [
       ['latitude', 'Latitude'],
@@ -421,6 +422,8 @@ export class ApartmentService {
       ['pharmacyDistanceMinutes', 'PharmacyDistanceMinutes'],
       ['cafeDistanceMinutes', 'CafeDistanceMinutes'],
       ['evChargerDistanceMinutes', 'EvChargerDistanceMinutes'],
+      ['petStoreDistanceMinutes', 'PetStoreDistanceMinutes'],
+      ['veterinaryDistanceMinutes', 'VeterinaryDistanceMinutes'],
     ];
     const booleanFields: Array<[keyof CreateApartment, string]> = [
       ['hasElevator', 'HasElevator'],

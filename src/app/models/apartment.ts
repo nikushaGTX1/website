@@ -64,6 +64,10 @@ export interface Apartment {
   kindergartenDistanceMinutes?: number;
   universityDistanceMinutes?: number;
   evChargerDistanceMinutes?: number;
+  petStoreDistanceMinutes?: number;
+  veterinaryDistanceMinutes?: number;
+  /** JSON: nearest place name per minutes field, e.g. {"groceryDistanceMinutes":"Carrefour"}. */
+  nearbyPlaceNames?: string;
   imageUrl?: string;
   imageUrls?: string[];
   images?: ApartmentImage[];
@@ -154,6 +158,10 @@ export interface CreateApartment {
   kindergartenDistanceMinutes?: number;
   universityDistanceMinutes?: number;
   evChargerDistanceMinutes?: number;
+  petStoreDistanceMinutes?: number;
+  veterinaryDistanceMinutes?: number;
+  /** JSON: nearest place name per minutes field, e.g. {"groceryDistanceMinutes":"Carrefour"}. */
+  nearbyPlaceNames?: string;
   imageUrl?: string;
   imageUrls?: string[];
   imageFile?: File;

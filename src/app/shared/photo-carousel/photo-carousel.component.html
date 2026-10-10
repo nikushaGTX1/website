@@ -1,0 +1,51 @@
+<div
+  #viewport
+  class="pc-viewport"
+  tabindex="0"
+  role="group"
+  aria-roledescription="carousel"
+  [attr.aria-label]="alt"
+  (keydown)="onKeydown($event)"
+  (click)="onClick($event)"
+  (dragstart)="$event.preventDefault()"
+>
+  <div #track class="pc-track">
+    <div
+      class="pc-slide"
+      *ngFor="let image of images; let i = index; trackBy: trackByIndex"
+      [attr.aria-hidden]="i !== index ? true : null"
+    >
+      <img
+        *ngIf="shouldRender(i)"
+        [src]="image"
+        [alt]="i === index ? alt : ''"
+        [class.contain]="fit === 'contain'"
+        [attr.loading]="i === index ? 'eager' : 'lazy'"
+        decoding="async"
+        draggable="false"
+        (error)="onImageError(i, $event)"
+      />
+    </div>
+  </div>
+  <ng-content></ng-content>
+  <ng-container *ngIf="showArrows && count > 1">
+    <button type="button" class="pc-arrow previous" *ngIf="index > 0" aria-label="Previous photo" (click)="go(index - 1, $event)">
+      <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+    </button>
+    <button type="button" class="pc-arrow next" *ngIf="index < count - 1" aria-label="Next photo" (click)="go(index + 1, $event)">
+      <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+  <div class="pc-dots" *ngIf="count > 1">
+    <button
+      type="button"
+      *ngFor="let dot of dots; trackBy: trackByIndex"
+      [class.active]="dot.index === index"
+      [class.small]="dot.small && dot.index !== index"
+      [attr.aria-label]="'Photo ' + (dot.index + 1)"
+      [attr.aria-current]="dot.index === index ? 'true' : null"
+      (click)="go(dot.index, $event)"
+    ><span></span></button>
+  </div>
+  <span class="pc-status" aria-live="polite" data-no-translate>{{ index + 1 }} / {{ count }}</span>
+</div>

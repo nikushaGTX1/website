@@ -210,7 +210,19 @@ export class HomeProfileSummaryComponent {
   }
 
   private get petValue(): string {
-    if (this.profile.petType && this.profile.petType !== 'None') return this.label(this.profile.petType);
-    return this.profile.hasPet ? 'Yes' : 'No';
+    if (this.profile.petType === 'None' || this.profile.hasPet === false) return 'No';
+    const pets = this.profile.petTypes?.length
+      ? this.profile.petTypes
+      : this.profile.petType
+        ? [this.profile.petType]
+        : [];
+    if (!pets.length) return this.profile.hasPet ? 'Yes' : 'No';
+    return pets
+      .map((pet) =>
+        pet === 'Dog' && this.profile.dogSize
+          ? `${this.label('Dog')} (${this.label(this.profile.dogSize)})`
+          : this.label(pet),
+      )
+      .join(', ');
   }
 }

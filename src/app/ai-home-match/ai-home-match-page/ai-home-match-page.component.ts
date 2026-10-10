@@ -10,7 +10,8 @@ import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { applyPriorityScoring } from '../services/priority-scoring';
 import { answerLabel, answerList, isPastDate, todayIso } from '../services/answer-labels';
-import { withinBudgetCeiling } from '../services/mandatory-requirements';
+import { petsExplicitlyProhibited, selectedPets, withinBudgetCeiling } from '../services/mandatory-requirements';
+import { DogSize, PetKind } from '../models/home-match-profile';
 import { CurrencyService } from '../../services/currency.service';
 
 type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
@@ -225,6 +226,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       petCount: Math.max(1, service.profile.petCount || 1),
       topPriorities: service.profile.topPriorities || [],
     };
+    // Multi-select pets; older profiles carried a single petType.
+    this.profile.petTypes = this.profile.hasPet ? selectedPets(this.profile) : [];
     this.budgetForm.setValue({
       min: this.profile.budgetMin,
       max: this.profile.budgetMax,
@@ -631,12 +634,58 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.profile.bedrooms = value;
     this.persist();
   }
-  setPetType(value: 'None' | 'Dog' | 'Cat' | 'Other'): void {
-    this.profile.petType = value;
-    this.profile.hasPet = value !== 'None';
-    if (value !== 'Other') this.profile.petOtherType = '';
-    if (value === 'None') this.profile.petCount = 1;
+  readonly dogSizes: Array<{ value: DogSize; label: string; hint: string; scale: number }> = [
+    { value: 'Small', label: 'Small', hint: 'Up to 10 kg', scale: 0.75 },
+    { value: 'Medium', label: 'Medium', hint: '10–25 kg', scale: 1 },
+    { value: 'Large', label: 'Large', hint: 'Over 25 kg', scale: 1.25 },
+  ];
+
+  isPetSelected(value: 'None' | PetKind): boolean {
+    return value === 'None' ? this.profile.petType === 'None' : (this.profile.petTypes || []).includes(value);
+  }
+
+  /** Pets are multi-select: "No" clears every pet, and choosing a pet clears "No". */
+  togglePet(value: 'None' | PetKind): void {
+    if (value === 'None') {
+      this.profile.petTypes = [];
+      this.profile.petType = 'None';
+      this.profile.hasPet = false;
+      this.profile.petOtherType = '';
+      this.profile.petCount = 1;
+      this.profile.dogSize = undefined;
+    } else {
+      const chosen = new Set(this.profile.petTypes || []);
+      if (chosen.has(value)) chosen.delete(value);
+      else chosen.add(value);
+      const pets = (['Dog', 'Cat', 'Other'] as const).filter((pet) => chosen.has(pet));
+      this.profile.petTypes = pets;
+      this.profile.petType = pets[0];
+      this.profile.hasPet = pets.length ? true : null;
+      if (!pets.includes('Other')) this.profile.petOtherType = '';
+      if (!pets.includes('Dog')) this.profile.dogSize = undefined;
+    }
     this.persist();
+  }
+
+  setDogSize(size: DogSize): void {
+    this.profile.dogSize = size;
+    this.persist();
+  }
+
+  /** "Dog (Medium), Cat" for the review; "No pets" / "Not answered" otherwise. */
+  get petSummary(): string {
+    if (this.profile.petType === 'None') return 'No pets';
+    const pets = this.profile.petTypes || [];
+    if (!pets.length) return 'Not answered';
+    return pets
+      .map((pet) =>
+        pet === 'Dog' && this.profile.dogSize
+          ? `Dog (${this.profile.dogSize})`
+          : pet === 'Other'
+            ? this.profile.petOtherType?.trim() || 'Other'
+            : pet,
+      )
+      .join(', ');
   }
   setMetro(value: number | null): void {
     this.profile.metroDistanceMinutes = value;
@@ -697,12 +746,16 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         );
       case 9:
         return this.profile.lifestyles.length > 0 && this.profile.lifestyles.length <= 3;
-      case 10:
+      case 10: {
+        if (this.profile.petType === 'None') return true;
+        const pets = this.profile.petTypes || [];
         return (
-          !!this.profile.petType &&
-          (this.profile.petType !== 'Other' || !!this.profile.petOtherType?.trim()) &&
-          (this.profile.petType === 'None' || Number(this.profile.petCount) >= 1)
+          pets.length > 0 &&
+          (!pets.includes('Dog') || !!this.profile.dogSize) &&
+          (!pets.includes('Other') || !!this.profile.petOtherType?.trim()) &&
+          Number(this.profile.petCount) >= 1
         );
+      }
       case 11:
         return this.profile.topPriorities.length === 5;
       case 12:
@@ -767,7 +820,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['adults', 'children', 'childrenAgeGroups'], ['bedrooms'],
       ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
       ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized', 'carFuelType'],
-      ['lifestyles'], ['hasPet', 'petType', 'petOtherType', 'petCount'], ['topPriorities'],
+      ['lifestyles'], ['hasPet', 'petType', 'petTypes', 'dogSize', 'petOtherType', 'petCount'], ['topPriorities'],
       ['apartmentStyle'],
     ];
     for (const key of fields[step]) {
@@ -843,7 +896,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       .subscribe({
         next: (response) => {
           this.matches = (Array.isArray(response) ? response : response.matches)
-            .filter((match) => this.matchesPropertyGoal(match) && this.withinBudget(match))
+            // Hard filters: deal type, budget ceiling, and pets the listing prohibits.
+            .filter(
+              (match) =>
+                this.matchesPropertyGoal(match) &&
+                this.withinBudget(match) &&
+                !petsExplicitlyProhibited(match.apartment, this.profile),
+            )
             .map((match) => applyPriorityScoring(match, this.profile))
             .sort((a, b) => (b.rankingScore || 0) - (a.rankingScore || 0));
           this.view = 'results';

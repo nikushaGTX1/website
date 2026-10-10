@@ -2872,3 +2872,12 @@ svg {
     pointer-events: auto;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-photo-track,
+  .card-photo-dot-track,
+  .card-photo-dots span {
+    transition: none;
+    animation: none;
+  }
+}

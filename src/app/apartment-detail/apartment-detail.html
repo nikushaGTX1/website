@@ -21,6 +21,16 @@
         </div>
       </div>
       <section class="vp-gallery" data-protected-image>
+        <!-- Phones: swipeable strip that follows the finger. Desktop keeps the photo grid below. -->
+        <app-photo-carousel
+          class="vp-mobile-carousel"
+          [images]="galleryImages.length ? galleryImages : ['/property-placeholder.svg']"
+          [alt]="title"
+          [index]="activePhotoIndex"
+          (indexChange)="selectPhoto($event)"
+          (photoTap)="openPhotoViewer()"
+          (contextmenu)="preventImageAction($event)"
+        ></app-photo-carousel>
         <button
           class="vp-gallery-main"
           (click)="openPhotoViewerUnlessSwiped($event)"
@@ -157,6 +167,7 @@
                 <ng-template #faIcon><i class="fa-solid {{ place.icon }}"></i></ng-template>
                 <p>
                   <strong>{{ place.label }}</strong
+                  ><span class="nearby-place-name" *ngIf="place.name" data-no-translate>{{ place.name }}</span
                   ><small>{{ place.minutes }} min walk</small>
                 </p>
               </div>

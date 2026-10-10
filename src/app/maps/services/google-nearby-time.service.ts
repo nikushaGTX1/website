@@ -12,6 +12,10 @@ export interface NearbyWalkingTimes {
   universityDistanceMinutes?: number;
   pharmacyDistanceMinutes?: number;
   evChargerDistanceMinutes?: number;
+  petStoreDistanceMinutes?: number;
+  veterinaryDistanceMinutes?: number;
+  /** Name of the nearest place for each measured category (from Google Places). */
+  placeNames?: Partial<Record<NearbyTimeKey, string>>;
 }
 
 export interface NearestSchoolResult {
@@ -20,7 +24,7 @@ export interface NearestSchoolResult {
   nearest_school_distance_meters: number;
 }
 
-type NearbyTimeKey = keyof NearbyWalkingTimes;
+export type NearbyTimeKey = Exclude<keyof NearbyWalkingTimes, 'placeNames'>;
 
 function straightLineMeters(a: google.maps.LatLng, b: google.maps.LatLng): number {
   const rad = (value: number) => (value * Math.PI) / 180;
@@ -227,6 +231,8 @@ export class GoogleNearbyTimeService {
       { type: 'university', key: 'universityDistanceMinutes' },
       { type: 'pharmacy', key: 'pharmacyDistanceMinutes' },
       { type: 'electric_vehicle_charging_station', key: 'evChargerDistanceMinutes' },
+      { type: 'pet_store', key: 'petStoreDistanceMinutes' },
+      { type: 'veterinary_care', key: 'veterinaryDistanceMinutes' },
     ];
 
     const [nearestSchool, entries] = await Promise.all([
@@ -236,7 +242,7 @@ export class GoogleNearbyTimeService {
           try {
             const isCafe = type === 'cafe';
             const response = await Place.searchNearby({
-              fields: isCafe ? ['location', 'rating', 'userRatingCount'] : ['location'],
+              fields: isCafe ? ['location', 'displayName', 'rating', 'userRatingCount'] : ['location', 'displayName'],
               locationRestriction: { center: origin, radius: 5000 },
               // Gyms are often listed as fitness centers on Google; search both.
               includedPrimaryTypes: type === 'gym' ? ['gym', 'fitness_center'] : [type],
@@ -248,7 +254,8 @@ export class GoogleNearbyTimeService {
               ? response.places.find((item) => (item.rating ?? 0) >= 4.7 && (item.userRatingCount ?? 0) >= 100)
               : response.places[0];
             const destination = place?.location;
-            if (!destination) return [key, undefined] as const;
+            if (!destination) return [key, undefined, undefined] as const;
+            const name = place.displayName?.trim() || undefined;
 
             const directions = await new routes.DirectionsService().route({
               origin,
@@ -266,22 +273,28 @@ export class GoogleNearbyTimeService {
             const straightMinutes = Math.max(1, Math.ceil((straight * 1.3) / 80));
             const routeMeters = leg?.distance?.value ?? 0;
             if (routeMeters > Math.max(400, straight * 2.5)) {
-              return [key, Math.min(routeMinutes ?? straightMinutes, straightMinutes)] as const;
+              return [key, Math.min(routeMinutes ?? straightMinutes, straightMinutes), name] as const;
             }
-            return [key, routeMinutes] as const;
+            return [key, routeMinutes, name] as const;
           } catch {
-            return [key, undefined] as const;
+            return [key, undefined, undefined] as const;
           }
         }),
       ),
     ]);
 
+    const measured = entries.filter((entry) => entry[1] !== undefined);
     const walkingTimes = Object.fromEntries(
-      entries.filter((entry) => entry[1] !== undefined),
+      measured.map(([key, minutes]) => [key, minutes]),
     ) as NearbyWalkingTimes;
+    const placeNames: Partial<Record<NearbyTimeKey, string>> = Object.fromEntries(
+      measured.filter((entry) => !!entry[2]).map(([key, , name]) => [key, name]),
+    );
     if (nearestSchool) {
       walkingTimes.schoolDistanceMinutes = nearestSchool.nearest_school_walk_minutes;
+      if (nearestSchool.nearest_school_name) placeNames.schoolDistanceMinutes = nearestSchool.nearest_school_name;
     }
+    if (Object.keys(placeNames).length) walkingTimes.placeNames = placeNames;
     return walkingTimes;
   }
 

@@ -3263,3 +3263,34 @@ dialog.photo-viewer::backdrop { background: #111113; }
 
 /* Time slots that already passed today. */
 .vd-times button:disabled { opacity: .4; cursor: not-allowed; text-decoration: line-through; }
+
+/* Phones swipe through a strip that follows the finger (app-photo-carousel);
+ * the desktop photo grid is unchanged. The carousel brings its own dots. */
+.vp-mobile-carousel {
+  display: none;
+}
+@media (max-width: 740px) {
+  .vp-mobile-carousel {
+    display: block;
+    width: 100%;
+    height: 100%;
+    --photo-carousel-background: #15101c;
+  }
+  .vp-gallery > .vp-gallery-main,
+  .vp-gallery > .vp-photo-dots {
+    display: none !important;
+  }
+  .vp-mobile-carousel ::ng-deep .pc-dots {
+    bottom: 14px;
+  }
+}
+
+/* Business name of the nearest place (saved at upload), between the label and the walk time. */
+.vp-nearby .nearby-place-name {
+  display: block;
+  overflow: hidden;
+  color: #4b4458;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -67,9 +67,15 @@ export class VelvenLifestyleAvatarComponent {
       const sizeGroup = (Object.keys(childByAge) as string[]).find((key) => childByAge[key] === src);
       return { src, role: 'child', ageGroup: sizeGroup };
     });
-    const selectedPet: AvatarFigure[] = this.profile.hasPet
-      ? [{ src: this.profile.petType === 'Cat' ? '/Characters/კატა.png' : '/Characters/ძაღლი.png', role: 'pet' }]
-      : [];
+    // One figure per pet kind (a dog and a cat can both appear); "Other" is drawn as a dog.
+    const pets = this.profile.petTypes?.length
+      ? this.profile.petTypes
+      : this.profile.hasPet
+        ? [this.profile.petType === 'Cat' ? 'Cat' : 'Dog']
+        : [];
+    const selectedPet: AvatarFigure[] = [...new Set(pets.map((pet) => (pet === 'Cat' ? 'Cat' : 'Dog')))].map(
+      (pet) => ({ src: pet === 'Cat' ? '/Characters/კატა.png' : '/Characters/ძაღლი.png', role: 'pet' as const }),
+    );
     const primaryWoman = this.profile.gender === 'Female';
     const selectedGenderAdults = primaryWoman
       ? [

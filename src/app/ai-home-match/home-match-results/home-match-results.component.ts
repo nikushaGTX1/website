@@ -10,6 +10,9 @@ import {
   evaluateMandatoryRequirements,
   formatBudgetAmount,
   fromUsd,
+  petListLabel,
+  petPermission,
+  selectedPets,
 } from '../services/mandatory-requirements';
 import { CurrencyService } from '../../services/currency.service';
 import { ApartmentService } from '../../services/apartment.service';
@@ -60,7 +63,11 @@ export class HomeMatchResultsComponent implements OnChanges {
   private byStatus(status: 'exact' | 'confirm' | 'alternative'): HomeMatchResult[] {
     return this.matches
       .filter((result) => (result.requirement?.status ?? 'exact') === status)
-      .sort((a, b) => (b.rankingScore ?? b.matchScore) - (a.rankingScore ?? a.matchScore));
+      .sort(
+        (a, b) =>
+          Number((a.requirement?.overBudgetUsd ?? 0) > 0) - Number((b.requirement?.overBudgetUsd ?? 0) > 0) ||
+          (b.rankingScore ?? b.matchScore) - (a.rankingScore ?? a.matchScore),
+      );
   }
   /** Meet every mandatory requirement and need no confirmation. */
   get exactMatches(): HomeMatchResult[] {
@@ -270,6 +277,16 @@ export class HomeMatchResultsComponent implements OnChanges {
    * "Why this home fits you": each questionnaire answer this home satisfies, with the
    * listing's value next to it. Failed answers are already listed as mismatches above.
    */
+  /** Only listings that confirm the user's pets may be described as pet-friendly. */
+  private petsConfirmed(result: HomeMatchResult): boolean {
+    const pets = selectedPets(this.profile);
+    return (
+      this.profile.propertyGoal === 'Rent' &&
+      pets.length > 0 &&
+      petPermission(result.apartment, pets, this.profile.dogSize) === 'allowed'
+    );
+  }
+
   answerMatches(result: HomeMatchResult): LifestyleInsight[] {
     const apartment = result.apartment;
     const cached = this.answerMatchCache.get(apartment);
@@ -299,6 +316,12 @@ export class HomeMatchResultsComponent implements OnChanges {
         : `≤ ${formatBudgetAmount(p.budgetMax, p.currency)}`;
       add('Within your budget', `${shown} · ${range}`, 'fa-wallet');
     }
+    // Over-budget rentals (inside the tolerance) say how much more they cost each month.
+    const overUsd = result.requirement?.overBudgetUsd ?? 0;
+    if (overUsd > 0) {
+      const extra = formatBudgetAmount(fromUsd(overUsd, p.currency, this.currency.rates), p.currency);
+      add('Above your budget', `+${extra}/month over ${formatBudgetAmount(p.budgetMax, p.currency)}`, 'fa-arrow-trend-up');
+    }
     if (p.bedrooms != null && p.bedrooms > 0 && apartment.bedrooms != null && apartment.bedrooms >= p.bedrooms) {
       add('Enough bedrooms', `${apartment.bedrooms} ≥ ${p.bedrooms}`, 'fa-bed');
     }
@@ -308,7 +331,7 @@ export class HomeMatchResultsComponent implements OnChanges {
     if (rent && p.rentalDuration && !mismatch('Lease')) {
       add('Fits your rental period', answerLabel(p.rentalDuration), 'fa-hourglass-half');
     }
-    if (rent && p.hasPet && apartment.isPetFriendly) add('Pet-friendly home', answerLabel(p.petType) || 'Pet', 'fa-paw');
+    if (rent && this.petsConfirmed(result)) add('Pet-friendly home', petListLabel(selectedPets(p)), 'fa-paw');
     const priorities = new Set(p.topPriorities.slice(0, 5));
     // One parking card, whether parking came from driving or from the priority list.
     if ((p.transportation.includes('Car') || priorities.has('Parking')) && (apartment.hasParking || parkingScore(apartment) > 0)) {
@@ -346,7 +369,7 @@ export class HomeMatchResultsComponent implements OnChanges {
     const ages = new Set(p.children > 0 ? p.childrenAgeGroups : []);
     const hasKids = p.children > 0;
     // Dog-walking benefits only for homes that actually allow pets.
-    const dog = !!p.hasPet && p.petType === 'Dog' && !(result.requirement?.confirmations || []).some((note) => note.startsWith('Pets'));
+    const dog = selectedPets(p).includes('Dog') && this.petsConfirmed(result);
     const walks = p.transportation.includes('Walking');
     const places: Array<{ field: keyof HomeMatchResult['apartment']; title: string; reason: string; icon: string }> = [];
     const offer = (
@@ -400,6 +423,10 @@ export class HomeMatchResultsComponent implements OnChanges {
     offer('evChargerDistanceMinutes', 'EV charger', 'fa-charging-station', [
       [p.transportation.includes('Car') && p.carFuelType === 'Electric', 'For your electric car'],
     ]);
+    // Pet services for anyone living with pets (whatever the listing's pet policy says).
+    const pets = selectedPets(p);
+    offer('petStoreDistanceMinutes', 'Pet shop', 'fa-paw', [[pets.length > 0, `Supplies for your ${petListLabel(pets)}`]]);
+    offer('veterinaryDistanceMinutes', 'Vet clinic', 'fa-stethoscope', [[pets.length > 0, `Care for your ${petListLabel(pets)}`]]);
     return places;
   }
 
@@ -419,6 +446,8 @@ export class HomeMatchResultsComponent implements OnChanges {
       ['Kindergarten', apartment.kindergartenDistanceMinutes, 'fa-children'],
       ['University', apartment.universityDistanceMinutes, 'fa-graduation-cap'],
       ['EV charger', apartment.evChargerDistanceMinutes, 'fa-charging-station'],
+      ['Pet shop', apartment.petStoreDistanceMinutes, 'fa-paw'],
+      ['Vet clinic', apartment.veterinaryDistanceMinutes, 'fa-stethoscope'],
     ];
     const value = places
       // Only genuinely walkable places: 10 minutes or less.
@@ -507,8 +536,7 @@ export class HomeMatchResultsComponent implements OnChanges {
     );
     const lifestyles = new Set(this.profile.lifestyles);
     const drives = this.profile.transportation.includes('Car');
-    const hasDog = this.profile.hasPet === true && this.profile.petType === 'Dog' &&
-      !(result.requirement?.confirmations || []).some((note) => note.startsWith('Pets'));
+    const hasDog = selectedPets(this.profile).includes('Dog') && this.petsConfirmed(result);
 
     // A nearby park is more meaningful for a dog owner than the generic
     // athlete/family explanation, so keep it first and protect it from the
@@ -593,8 +621,8 @@ export class HomeMatchResultsComponent implements OnChanges {
     ) {
       add('Extra bedroom', 'Because you often host guests', 'fa-bed');
     }
-    if (this.profile.hasPet && apartment.isPetFriendly) {
-      add('Pet-friendly home', `Because you live with ${this.profile.petType === 'Cat' ? 'a cat' : 'a pet'}`, 'fa-paw');
+    if (this.petsConfirmed(result)) {
+      add('Pet-friendly home', `Because you live with your ${petListLabel(selectedPets(this.profile))}`, 'fa-paw');
     }
     if (apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes <= 20 && this.profile.transportation.includes('Metro')) {
       add(

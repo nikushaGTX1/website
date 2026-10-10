@@ -1937,3 +1937,32 @@ fieldset {
   .style-card strong,
   .style-card small { word-break: keep-all; overflow-wrap: normal; white-space: normal; }
 }
+
+/* Dog size follow-up (shown only when Dog is selected). */
+.pet-hint {
+  margin: 0 0 12px;
+}
+.question fieldset.dog-size {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+.question fieldset.dog-size legend {
+  grid-column: 1 / -1;
+}
+.question fieldset.dog-size button {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+}
+.dog-size-icon {
+  font-size: 22px;
+  color: #451a8f;
+}
+.question fieldset.dog-size small {
+  color: #7a6e8e;
+  font-size: 12px;
+  font-weight: 500;
+}
