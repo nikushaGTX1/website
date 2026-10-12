@@ -151,27 +151,42 @@
         >
           <h3 class="budget-title">Price range</h3>
           <p class="budget-caption" *ngIf="budgetCap === 5000">Choose the monthly price that works for you</p><p class="budget-caption" *ngIf="budgetCap !== 5000">Choose the purchase price that works for you</p>
+          <div class="budget-presets" role="group" aria-label="Quick price ranges">
+            <button
+              type="button"
+              *ngFor="let preset of budgetPresets"
+              [class.selected]="isBudgetPresetActive(preset)"
+              [attr.aria-pressed]="isBudgetPresetActive(preset)"
+              (click)="chooseBudgetPreset(preset)"
+            >{{ preset.label }}</button>
+          </div>
           <div class="budget-chart" aria-hidden="true">
             <span
               *ngFor="let height of budgetHistogram; let i = index"
-              [class.in-range]="i / (budgetHistogram.length - 1) * 100 >= budgetMinPercent && i / (budgetHistogram.length - 1) * 100 <= budgetMaxPercent"
+              [class.in-range]="isBudgetBarInRange(i)"
               [style.height.%]="height"
             ></span>
           </div>
           <div class="budget-range-control">
             <div class="budget-range-track"></div>
-            <div class="budget-range-fill" [style.left.%]="budgetMinPercent" [style.right.%]="100 - budgetMaxPercent"></div>
-            <input type="range" min="0" [max]="budgetCap" [step]="budgetStep" aria-label="Minimum price" [ngModel]="budgetMin ?? 0" (ngModelChange)="setBudgetMin($event)" />
-            <input type="range" min="0" [max]="budgetCap" [step]="budgetStep" aria-label="Maximum price" [ngModel]="budgetMax ?? budgetCap" (ngModelChange)="setBudgetMax($event)" />
+            <div
+              class="budget-range-fill"
+              [style.left]="budgetTrackOffset(budgetMinPercent)"
+              [style.width]="'calc((100% - 26px) * ' + (budgetMaxPercent - budgetMinPercent) / 100 + ')'"
+            ></div>
+            <input type="range" min="0" max="100" step="0.5" aria-label="Minimum price" [attr.aria-valuetext]="'$' + (budgetMin ?? 0)" [ngModel]="budgetMinPercent" (ngModelChange)="slideBudget('min', $event)" />
+            <input type="range" min="0" max="100" step="0.5" aria-label="Maximum price" [attr.aria-valuetext]="budgetMax == null ? budgetCapLabel : '$' + budgetMax" [ngModel]="budgetMaxPercent" (ngModelChange)="slideBudget('max', $event)" />
           </div>
-          <div class="budget-range-labels"><span>$0</span><span>{{ budgetCapLabel }}</span></div>
+          <div class="budget-range-labels budget-scale-labels" data-no-translate>
+            <span *ngFor="let tick of budgetScaleLabels" [style.left]="budgetTrackOffset(tick.position)">{{ tick.label }}</span>
+          </div>
           <div class="budget-fields">
             <label
-              ><span>Min price</span><input type="number" min="0" [step]="budgetStep" [ngModel]="budgetMin" (ngModelChange)="setBudgetMin($event)"
-            /></label>
+              ><span>Min price</span><span class="budget-input"><b aria-hidden="true">$</b><input type="number" min="0" [step]="budgetStep" inputmode="numeric" placeholder="No min" [ngModel]="budgetMin" (ngModelChange)="typeBudget('min', $event)" (blur)="finishBudgetTyping()" (keydown.enter)="applyBudget()"
+            /></span></label>
             <label
-              ><span>Max price</span><input type="number" min="0" [step]="budgetStep" [ngModel]="budgetMax" (ngModelChange)="setBudgetMax($event)"
-            /></label>
+              ><span>Max price</span><span class="budget-input"><b aria-hidden="true">$</b><input type="number" min="0" [step]="budgetStep" inputmode="numeric" placeholder="No max" [ngModel]="budgetMax" (ngModelChange)="typeBudget('max', $event)" (blur)="finishBudgetTyping()" (keydown.enter)="applyBudget()"
+            /></span></label>
           </div>
           <div class="popover-actions">
             <button type="button" (click)="resetBudget()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset</button

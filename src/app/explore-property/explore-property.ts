@@ -62,10 +62,143 @@ export class ExploreProperty implements OnInit, OnDestroy {
     { label: '$1,500 – $3,000', min: 1500, max: 3000 },
     { label: '$3,000 – $5,000', min: 3000, max: 5000 },
   ];
-  readonly budgetHistogram = [
-    5, 7, 6, 8, 9, 10, 12, 14, 18, 24, 31, 38, 45, 52, 48, 55, 58, 62, 57, 54,
-    51, 56, 53, 61, 66, 100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
-  ];
+  private budgetHistogramCache?: { apartments: Apartment[]; type: string; bars: number[] };
+
+  /** Real price distribution of the listings for the current deal type (30 bars from $0 to the cap). */
+  get budgetHistogram(): number[] {
+    const cached = this.budgetHistogramCache;
+    if (cached && cached.apartments === this.apartments && cached.type === this.selectedType) return cached.bars;
+    const bins = 30;
+    const counts = new Array<number>(bins).fill(0);
+    for (const apartment of this.apartments) {
+      const price = Number(apartment.price);
+      if (!(price > 0) || !this.matchesSelectedDealType(apartment)) continue;
+      counts[Math.min(bins - 1, Math.floor((this.priceToPosition(price) / 100) * bins))]++;
+    }
+    const peak = Math.max(1, ...counts);
+    const bars = counts.map((count) => (count ? Math.max(10, Math.round((count / peak) * 100)) : 4));
+    this.budgetHistogramCache = { apartments: this.apartments, type: this.selectedType, bars };
+    return bars;
+  }
+
+/**
+   * Slider scale: most homes cost far less than the cap, so the common range gets most of the
+   * track. Rent: $0–1,000 = 0–40%, $1,000–2,500 = 40–80%, $2,500–5,000 = 80–100%.
+   */
+  get budgetScale(): Array<[number, number]> {
+    return this.selectedType === 'For Sale'
+      ? [[0, 0], [200000, 40], [500000, 80], [1000000, 100]]
+      : [[0, 0], [1000, 40], [2500, 80], [5000, 100]];
+  }
+
+  /** Labels under the slider, at the scale's breakpoints. */
+  get budgetScaleLabels(): Array<{ position: number; label: string }> {
+    return this.budgetScale.map(([price, position]) => ({
+      position,
+      label: `$${price.toLocaleString('en-US')}${price === this.budgetCap ? '+' : ''}`,
+    }));
+  }
+
+  /** Price -> slider position (0–100). */
+  priceToPosition(price: number): number {
+    const scale = this.budgetScale;
+    const value = Math.min(this.budgetCap, Math.max(0, Number(price) || 0));
+    for (let i = 1; i < scale.length; i++) {
+      const [p1, s1] = scale[i];
+      const [p0, s0] = scale[i - 1];
+      if (value <= p1) return s0 + ((value - p0) / (p1 - p0)) * (s1 - s0);
+    }
+    return 100;
+  }
+
+  /** Slider position (0–100) -> price, rounded to the slider step. */
+  positionToPrice(position: number): number {
+    const scale = this.budgetScale;
+    const at = Math.min(100, Math.max(0, Number(position) || 0));
+    for (let i = 1; i < scale.length; i++) {
+      const [p1, s1] = scale[i];
+      const [p0, s0] = scale[i - 1];
+      if (at <= s1) {
+        const price = p0 + ((at - s0) / (s1 - s0)) * (p1 - p0);
+        return Math.round(price / this.budgetStep) * this.budgetStep;
+      }
+    }
+    return this.budgetCap;
+  }
+
+  /** Slider handles move in scale positions; the fields keep real prices. */
+  slideBudget(which: 'min' | 'max', position: number): void {
+    if (which === 'min') this.setBudgetMin(this.positionToPrice(position));
+    else this.setBudgetMax(this.positionToPrice(position));
+  }
+
+  /** Whether a histogram bar (by index) lies inside the chosen range. */
+  isBudgetBarInRange(index: number): boolean {
+    const bars = this.budgetHistogram.length;
+    const centre = ((index + 0.5) / bars) * 100;
+    return centre >= this.budgetMinPercent && centre <= this.budgetMaxPercent;
+  }
+
+  /** CSS left/width that line the purple fill up with the 26px handles' centres. */
+  budgetTrackOffset(percent: number): string {
+    return `calc(13px + (100% - 26px) * ${percent / 100})`;
+  }
+
+  /** One-tap price ranges, so nobody has to drag the slider to a round number. */
+  get budgetPresets(): Array<{ label: string; min: number | null; max: number | null }> {
+    return this.selectedType === 'For Sale'
+      ? [
+          { label: 'Up to $100,000', min: null, max: 100000 },
+          { label: '$100,000 – $200,000', min: 100000, max: 200000 },
+          { label: '$200,000 – $400,000', min: 200000, max: 400000 },
+          { label: '$400,000+', min: 400000, max: null },
+        ]
+      : [
+          { label: 'Up to $500', min: null, max: 500 },
+          { label: '$500 – $1,000', min: 500, max: 1000 },
+          { label: '$1,000 – $1,500', min: 1000, max: 1500 },
+          { label: '$1,500 – $2,500', min: 1500, max: 2500 },
+          { label: '$2,500+', min: 2500, max: null },
+        ];
+  }
+
+  isBudgetPresetActive(preset: { min: number | null; max: number | null }): boolean {
+    return (this.budgetMin ?? null) === preset.min && (this.budgetMax ?? null) === preset.max;
+  }
+
+  chooseBudgetPreset(preset: { min: number | null; max: number | null }): void {
+    if (this.isBudgetPresetActive(preset)) {
+      this.budgetMin = null;
+      this.budgetMax = null;
+      return;
+    }
+    this.budgetMin = preset.min;
+    this.budgetMax = preset.max;
+    this.selectedBudgetRange = '';
+  }
+
+  /** Typed price: kept exactly as typed (no clamping mid-typing, so 500 -> 650 is possible). */
+  typeBudget(which: 'min' | 'max', value: number | string | null): void {
+    const number = value === null || value === '' ? NaN : Number(value);
+    const next = Number.isFinite(number) ? Math.max(0, number) : null;
+    if (which === 'min') this.budgetMin = next;
+    else this.budgetMax = next;
+    this.selectedBudgetRange = '';
+  }
+
+  /**
+   * Tidies typed prices when the field is left (or on apply): rounds to the slider step,
+   * keeps them inside the slider range, and swaps them if min ended up above max.
+   */
+  finishBudgetTyping(): void {
+    const tidy = (value: number | null): number | null =>
+      value == null ? null : Math.min(this.budgetCap, Math.max(0, Math.round(value / this.budgetStep) * this.budgetStep));
+    let min = tidy(this.budgetMin);
+    let max = tidy(this.budgetMax);
+    if (min != null && max != null && min > max) [min, max] = [max, min];
+    this.budgetMin = min;
+    this.budgetMax = max;
+  }
   readonly headerBedroomOptions = [
     { label: '1 Bedroom', value: '1', icon: 'fa-solid fa-bed' },
     { label: '2 Bedrooms', value: '2', icon: 'fa-solid fa-bed' },
@@ -697,6 +830,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   applyBudget(): void {
+    this.finishBudgetTyping();
     this.appliedBudgetMin = this.normalizedBudgetValue(this.budgetMin);
     this.appliedBudgetMax = this.normalizedBudgetValue(this.budgetMax);
     this.budgetOpen = false;
@@ -2604,7 +2738,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   private normalizedSliderValue(value: number | null): number {
-    return Math.min(100, Math.max(0, (Number(value || 0) / this.budgetCap) * 100));
+    return this.priceToPosition(Number(value || 0));
   }
 
   private matchesCustomBudget(priceInUsd: number): boolean {

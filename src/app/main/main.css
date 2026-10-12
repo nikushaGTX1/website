@@ -5289,46 +5289,12 @@
 }
 
 /* ===== Homepage property search: clearer hierarchy (client feedback, Oct 2026) =====
-   Same layout and text positions; the card is rounded, Rent/Buy is a segmented
-   control, and fields/button share one height and focus style. */
+   Same layout and text positions; the card is rounded, and fields/button share
+   one height and focus style. Rent/Buy tabs keep their original look. */
 .home-page .property-search {
   border-color: #e6e0f3;
   border-radius: 20px;
   box-shadow: 0 24px 60px rgba(45, 22, 95, 0.16), 0 2px 6px rgba(45, 22, 95, 0.05);
-}
-.home-page .search-top .search-tabs {
-  align-self: center;
-  height: auto;
-  gap: 4px;
-  margin: 14px 0;
-  padding: 4px;
-  border-radius: 999px;
-  background: #f3effb;
-}
-.home-page .search-top .search-tabs button {
-  height: 42px;
-  min-width: 112px;
-  padding: 0 18px;
-  border-bottom: 0;
-  border-radius: 999px;
-  color: #5b5470;
-}
-.home-page .search-tabs button::before {
-  display: none;
-}
-.home-page .search-top .search-tabs button.active {
-  background: #fff;
-  color: #451a8f;
-  box-shadow: 0 2px 8px rgba(69, 26, 143, 0.14);
-}
-@media (hover: hover) and (pointer: fine) {
-  .home-page .search-tabs button:not(.active):hover {
-    background: rgba(255, 255, 255, 0.6);
-    color: #451a8f;
-  }
-}
-.home-page .search-tabs button:focus-visible {
-  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.25);
 }
 .home-page .search-fields label > span,
 .home-page .search-fields .location-field > span {
@@ -5374,18 +5340,8 @@
     padding-bottom: 18px;
   }
 }
-/* Phones: full-width segmented control and slightly tighter spacing. */
+/* Phones: slightly tighter spacing. */
 @media (max-width: 620px) {
-  .home-page .search-top .search-tabs {
-    width: 100%;
-    margin: 12px 0 10px;
-    border-bottom: 0;
-  }
-  .home-page .search-top .search-tabs button {
-    flex: 1;
-    min-width: 0;
-    height: 40px;
-  }
   .home-page .search-fields {
     gap: 10px;
   }
@@ -5399,4 +5355,15 @@
   .home-page .search-submit {
     transition: none;
   }
+}
+
+/* Typed prices: no spinner arrows. */
+.main-budget-fields input::-webkit-outer-spin-button,
+.main-budget-fields input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+.main-budget-fields input {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }

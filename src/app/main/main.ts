@@ -349,6 +349,29 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     return Math.min(100, Math.max(0, (Number(value || 0) / this.budgetCap) * 100));
   }
 
+  /** Typed price: kept exactly as typed (no clamping mid-typing, so 500 -> 650 is possible). */
+  typeBudget(which: 'min' | 'max', value: number | string | null): void {
+    const number = value === null || value === '' ? NaN : Number(value);
+    const next = Number.isFinite(number) ? Math.max(0, number) : null;
+    if (which === 'min') this.budgetMin = next;
+    else this.budgetMax = next;
+    this.selectedBudgetRange = '';
+  }
+
+  /**
+   * Tidies typed prices when the field is left (or on apply): rounds to the slider step,
+   * keeps them inside the slider range, and swaps them if min ended up above max.
+   */
+  finishBudgetTyping(): void {
+    const tidy = (value: number | null): number | null =>
+      value == null ? null : Math.min(this.budgetCap, Math.max(0, Math.round(value / this.budgetStep) * this.budgetStep));
+    let min = tidy(this.budgetMin);
+    let max = tidy(this.budgetMax);
+    if (min != null && max != null && min > max) [min, max] = [max, min];
+    this.budgetMin = min;
+    this.budgetMax = max;
+  }
+
   get bedroomSummary(): string {
     if (!this.bedroomTouched || !this.searchBedrooms) return 'Bedrooms';
     const values = this.searchBedroomValues;
@@ -436,6 +459,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   }
 
   applyBudget(): void {
+    this.finishBudgetTyping();
     this.appliedBudgetMin = this.normalizeBudget(this.budgetMin);
     this.appliedBudgetMax = this.normalizeBudget(this.budgetMax);
     this.searchBudget = this.appliedBudgetMax?.toString() || '';
@@ -1130,6 +1154,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   }
 
   searchHomes(): void {
+    this.finishBudgetTyping();
     this.saveSearchState();
     const useDrawnArea =
       !!this.inlineDrawnPolygon && !!this.drawnDetectedArea && !this.selectedLocationValue;

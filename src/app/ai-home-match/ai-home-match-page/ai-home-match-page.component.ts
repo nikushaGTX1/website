@@ -634,10 +634,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.profile.bedrooms = value;
     this.persist();
   }
-  readonly dogSizes: Array<{ value: DogSize; label: string; hint: string; scale: number }> = [
-    { value: 'Small', label: 'Small', hint: 'Up to 10 kg', scale: 0.75 },
-    { value: 'Medium', label: 'Medium', hint: '10–25 kg', scale: 1 },
-    { value: 'Large', label: 'Large', hint: 'Over 25 kg', scale: 1.25 },
+  readonly dogSizes: Array<{ value: DogSize; label: string; hint: string; iconSize: number }> = [
+    { value: 'Small', label: 'Small', hint: 'Up to 10 kg', iconSize: 18 },
+    { value: 'Medium', label: 'Medium', hint: '10–25 kg', iconSize: 24 },
+    { value: 'Large', label: 'Large', hint: 'Over 25 kg', iconSize: 30 },
   ];
 
   isPetSelected(value: 'None' | PetKind): boolean {

@@ -2881,3 +2881,107 @@ svg {
     animation: none;
   }
 }
+
+/* Price picker: one-tap ranges, a real price histogram and "$" inside the fields. */
+.budget-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.budget-presets button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid #ded7ec;
+  border-radius: 999px;
+  background: #fff;
+  color: #2c2538;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+@media (hover: hover) {
+  .budget-presets button:hover {
+    border-color: #a98bdc;
+    background: #faf8ff;
+  }
+}
+.budget-presets button.selected {
+  border-color: var(--purple);
+  background: var(--purple);
+  color: #fff;
+}
+.budget-presets button:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}
+.budget-input {
+  position: relative;
+  display: block;
+}
+.budget-input b {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  color: #6b6480;
+  font-size: 16px;
+  font-weight: 700;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.budget-fields .budget-input input {
+  padding: 0 14px 0 32px;
+  font-weight: 650;
+}
+.budget-fields .budget-input input::placeholder {
+  color: #a59db3;
+  font-weight: 500;
+}
+
+/* Typed prices: no spinner arrows. */
+.budget-fields input::-webkit-outer-spin-button,
+.budget-fields input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+.budget-fields input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Price slider: bars, fill and labels share the handles' travel (13px in from each side). */
+.budget-popover .budget-chart {
+  padding: 0 13px;
+  gap: 2px;
+}
+.budget-popover .budget-range-control {
+  margin: -15px 0 0;
+}
+.budget-popover .budget-range-track {
+  left: 13px;
+  right: 13px;
+}
+.budget-popover .budget-range-fill {
+  right: auto;
+}
+.budget-popover .budget-scale-labels {
+  position: relative;
+  display: block;
+  height: 18px;
+  margin: 4px 0 18px;
+}
+.budget-popover .budget-scale-labels span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.budget-popover .budget-scale-labels span:first-child {
+  transform: translateX(-13px);
+}
+.budget-popover .budget-scale-labels span:last-child {
+  transform: translateX(calc(-100% + 13px));
+}

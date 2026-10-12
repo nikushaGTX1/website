@@ -591,20 +591,22 @@
             <button type="button" [class.selected]="isPetSelected('Cat')" [attr.aria-pressed]="isPetSelected('Cat')" (click)="togglePet('Cat')"><img class="pet-option-image" src="/Characters/კატა.png" alt="" />Cat</button>
             <button type="button" [class.selected]="isPetSelected('Other')" [attr.aria-pressed]="isPetSelected('Other')" (click)="togglePet('Other')"><span class="pet-symbol">🐾</span>Other</button>
           </div>
-          <fieldset class="dog-size" *ngIf="isPetSelected('Dog')">
-            <legend>What size is your dog?</legend>
-            <button
-              type="button"
-              *ngFor="let size of dogSizes"
-              [class.selected]="profile.dogSize === size.value"
-              [attr.aria-pressed]="profile.dogSize === size.value"
-              (click)="setDogSize(size.value)"
-            >
-              <i class="fa-solid fa-dog dog-size-icon" [style.transform]="'scale(' + size.scale + ')'" aria-hidden="true"></i>
-              <span>{{ size.label }}</span>
-              <small>{{ size.hint }}</small>
-            </button>
-          </fieldset>
+          <div class="dog-size" *ngIf="isPetSelected('Dog')" role="group" aria-labelledby="dog-size-title">
+            <p class="dog-size-title" id="dog-size-title">What size is your dog?</p>
+            <div class="options dog-size-options">
+              <button
+                type="button"
+                *ngFor="let size of dogSizes"
+                [class.selected]="profile.dogSize === size.value"
+                [attr.aria-pressed]="profile.dogSize === size.value"
+                (click)="setDogSize(size.value)"
+              >
+                <i class="fa-solid fa-dog dog-size-icon" [style.font-size.px]="size.iconSize" aria-hidden="true"></i>
+                <span>{{ size.label }}</span>
+                <small>{{ size.hint }}</small>
+              </button>
+            </div>
+          </div>
           <div class="pet-details" *ngIf="isPetSelected('Other')">
             <label>What kind of animal do you have?<input type="text" [(ngModel)]="profile.petOtherType" (ngModelChange)="persist()" placeholder="Example: Rabbit" /></label>
             <label>How many pets?<input type="number" min="1" max="20" [(ngModel)]="profile.petCount" (ngModelChange)="persist()" /></label>

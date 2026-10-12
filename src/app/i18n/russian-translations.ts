@@ -935,6 +935,10 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Vet clinic', 'Ветклиника'],
   ['Previous photo', 'Предыдущее фото'],
   ['Next photo', 'Следующее фото'],
+  ['Up to $500', 'До $500'],
+  ['Up to $100,000', 'До $100,000'],
+  ['No min', 'Любая'],
+  ['No max', 'Любая'],
 ]);
 
 /** "dog and cat" (Velven Match pet list) in this language. */

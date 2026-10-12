@@ -449,9 +449,12 @@ export class HomeMatchResultsComponent implements OnChanges {
       ['Pet shop', apartment.petStoreDistanceMinutes, 'fa-paw'],
       ['Vet clinic', apartment.veterinaryDistanceMinutes, 'fa-stethoscope'],
     ];
+    // Only genuinely walkable places: 10 minutes or less. Pet owners also see the nearest
+    // pet shop and vet up to 20 minutes, since those are fewer and farther apart.
+    const hasPets = this.profile.propertyGoal === 'Rent' && selectedPets(this.profile).length > 0;
+    const limit = (label: string) => (hasPets && (label === 'Pet shop' || label === 'Vet clinic') ? 20 : 10);
     const value = places
-      // Only genuinely walkable places: 10 minutes or less.
-      .filter((place): place is [string, number, string] => typeof place[1] === 'number' && place[1] >= 0 && place[1] <= 10)
+      .filter((place): place is [string, number, string] => typeof place[1] === 'number' && place[1] >= 0 && place[1] <= limit(place[0]))
       .map(([label, minutes, icon]) => ({ label, minutes: Math.round(minutes), icon }))
       .sort((a, b) => a.minutes - b.minutes);
     if (!value.length) {

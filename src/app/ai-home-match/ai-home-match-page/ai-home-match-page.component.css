@@ -1938,31 +1938,54 @@ fieldset {
   .style-card small { word-break: keep-all; overflow-wrap: normal; white-space: normal; }
 }
 
-/* Dog size follow-up (shown only when Dog is selected). */
+/* Dog size follow-up (shown only when Dog is selected): three equal cards in one row. */
 .pet-hint {
   margin: 0 0 12px;
 }
-.question fieldset.dog-size {
-  display: grid;
+.dog-size {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f7f6fa;
+}
+.dog-size-title {
+  margin: 0 0 12px;
+  color: #1b1626;
+  font-size: 16px;
+  font-weight: 800;
+}
+.question .options.dog-size-options {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 18px;
 }
-.question fieldset.dog-size legend {
-  grid-column: 1 / -1;
-}
-.question fieldset.dog-size button {
+.question .options.dog-size-options button {
+  min-height: 96px;
   display: grid;
   justify-items: center;
   align-content: center;
   gap: 4px;
+  padding: 12px 8px;
 }
 .dog-size-icon {
-  font-size: 22px;
+  height: 30px;
+  display: grid;
+  place-items: end center;
   color: #451a8f;
 }
-.question fieldset.dog-size small {
+.dog-size-options small {
   color: #7a6e8e;
   font-size: 12px;
   font-weight: 500;
+}
+@media (max-width: 480px) {
+  .dog-size {
+    padding: 12px;
+  }
+  .question .options.dog-size-options {
+    gap: 8px;
+  }
+  .question .options.dog-size-options button {
+    min-height: 88px;
+    padding: 10px 4px;
+  }
 }

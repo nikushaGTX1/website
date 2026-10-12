@@ -273,7 +273,10 @@
                   min="0"
                   [max]="budgetCap"
                   [step]="budgetStep"
-                  (ngModelChange)="setBudgetMin($event)"
+                  inputmode="numeric"
+                  placeholder="No min"
+                  (ngModelChange)="typeBudget('min', $event)"
+                  (blur)="finishBudgetTyping()"
               /></label>
               <b aria-hidden="true">–</b>
               <label
@@ -285,7 +288,10 @@
                   min="0"
                   [max]="budgetCap"
                   [step]="budgetStep"
-                  (ngModelChange)="setBudgetMax($event)"
+                  inputmode="numeric"
+                  placeholder="No max"
+                  (ngModelChange)="typeBudget('max', $event)"
+                  (blur)="finishBudgetTyping()"
               /></label>
             </div>
             <div class="main-budget-actions">
