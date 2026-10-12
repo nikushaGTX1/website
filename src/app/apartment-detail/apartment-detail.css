@@ -398,7 +398,7 @@
 }
 .vp-nearby {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 20px;
 }
@@ -3286,11 +3286,22 @@ dialog.photo-viewer::backdrop { background: #111113; }
 }
 
 /* Business name of the nearest place (saved at upload), between the label and the walk time. */
+/* Long (often Georgian) place names wrap to at most two lines inside the card. */
+.vp-nearby > div,
+.vp-nearby p {
+  min-width: 0;
+}
+.vp-nearby p {
+  flex: 1;
+}
 .vp-nearby .nearby-place-name {
-  display: block;
+  display: -webkit-box;
   overflow: hidden;
   color: #4b4458;
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
