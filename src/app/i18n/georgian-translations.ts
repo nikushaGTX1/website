@@ -1252,7 +1252,6 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Search leads', 'ლიდების ძიება'],
   ['Owner link', 'მესაკუთრის ბმული'],
   ['Owner submissions', 'მესაკუთრეების განაცხადები'],
-  ['Rent', 'ქირა'],
   ['Sale', 'გაყიდვა'],
   ['Owner link copied to clipboard.', 'მესაკუთრის ბმული დაკოპირებულია.'],
   ['Owner link created.', 'მესაკუთრის ბმული შეიქმნა.'],

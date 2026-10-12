@@ -697,7 +697,7 @@
     </section>
   </div>
 
-  <div #mfBackdrop class="mf-backdrop" *ngIf="moreFiltersOpen" (click)="closeMoreFilters()">
+  <div #mfBackdrop class="mf-backdrop" *ngIf="moreFiltersOpen" (click)="applyMoreFilters()">
     <section class="mf-dialog" role="dialog" aria-modal="true" aria-labelledby="mf-title" (click)="$event.stopPropagation()">
       <svg class="mf-sprite" aria-hidden="true" focusable="false">
         <symbol id="mfi-balcony" viewBox="0 0 24 24"><path d="M5 12V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v7M3 12h18M4 12v8M20 12v8M3 20h18M8 12v8M12 12v8M16 12v8"/></symbol>

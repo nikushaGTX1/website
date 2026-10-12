@@ -305,22 +305,21 @@
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Back</span>
         </button>
         <button class="viewer-close" type="button" aria-label="Close photo viewer" (click)="$event.stopPropagation(); closePhotoViewer()">×</button>
-        <div class="photo-viewer-track" (scroll)="updateActiveViewerPhoto($event)">
-          <div class="viewer-frame" *ngFor="let image of galleryImages; let i = index" >
-          <img
-            [src]="image"
-            [alt]="title + ' photo ' + (i + 1)"
-            [attr.data-viewer-photo]="i"
-            [attr.loading]="i < 2 ? 'eager' : 'lazy'"
-            decoding="async"
-            [attr.fetchpriority]="i === activePhotoIndex ? 'high' : 'low'"
-            draggable="false"
-            (click)="$event.stopPropagation()"
-            (contextmenu)="preventImageAction($event)"
-            (dragstart)="preventImageAction($event)"
-          />
-          </div>
-        </div>
+        <!-- Same swipe strip as the phone gallery: quick slide on arrows/keys/thumbnails,
+             one photo per wheel or trackpad flick, finger-following on touch. -->
+        <app-photo-carousel
+          class="photo-viewer-carousel"
+          [images]="galleryImages"
+          [alt]="title"
+          [index]="activePhotoIndex"
+          fit="contain"
+          [showArrows]="false"
+          [showDots]="false"
+          [wheelNavigation]="true"
+          (indexChange)="onViewerIndexChange($event)"
+          (click)="$event.stopPropagation()"
+          (contextmenu)="preventImageAction($event)"
+        ></app-photo-carousel>
         <button class="viewer-nav previous" type="button" aria-label="Previous photo" [disabled]="activePhotoIndex === 0" (click)="$event.stopPropagation(); stepViewer(-1)"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
         <button class="viewer-nav next" type="button" aria-label="Next photo" [disabled]="activePhotoIndex >= photoCount - 1" (click)="$event.stopPropagation(); stepViewer(1)"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
         <span class="viewer-count">{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>

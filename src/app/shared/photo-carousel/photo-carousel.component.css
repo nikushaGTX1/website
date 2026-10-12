@@ -46,8 +46,22 @@
   object-position: center;
   pointer-events: none;
 }
+/* Whole photo at its own shape, centred (fullscreen viewer). */
+.pc-slide:has(img.contain) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--photo-carousel-slide-padding, 0);
+  box-sizing: border-box;
+}
 .pc-slide img.contain {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
+  border-radius: var(--photo-carousel-image-radius, 0);
+  box-shadow: var(--photo-carousel-image-shadow, none);
 }
 .pc-arrow {
   position: absolute;

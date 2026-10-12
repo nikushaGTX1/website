@@ -33,6 +33,9 @@ export class PhotoCarouselComponent implements OnChanges, AfterViewInit, OnDestr
   /** 'cover' fills the frame (cropped); 'contain' shows the whole photo. */
   @Input() fit: 'cover' | 'contain' = 'cover';
   @Input() showArrows = true;
+  @Input() showDots = true;
+  /** Mouse wheel / trackpad moves one photo per gesture (fullscreen viewer). */
+  @Input() wheelNavigation = false;
   @Output() indexChange = new EventEmitter<number>();
   /** A tap/click on a photo that was not part of a swipe. */
   @Output() photoTap = new EventEmitter<number>();
@@ -55,6 +58,9 @@ export class PhotoCarouselComponent implements OnChanges, AfterViewInit, OnDestr
     velocity: number;
   } | null = null;
   private suppressClickUntil = 0;
+  private wheelLocked = false;
+  private wheelTimer?: number;
+  private wheelDelta = 0;
   private readonly cleanup: Array<() => void> = [];
 
   constructor(
@@ -81,6 +87,8 @@ export class PhotoCarouselComponent implements OnChanges, AfterViewInit, OnDestr
         this.cleanup.push(() => element.removeEventListener(type, handler as EventListener));
       };
       listen('pointerdown', (event) => this.onPointerDown(event));
+      element.addEventListener('wheel', this.onWheel, { passive: false });
+      this.cleanup.push(() => element.removeEventListener('wheel', this.onWheel));
       listen('pointermove', (event) => this.onPointerMove(event));
       listen('pointerup', (event) => this.onPointerEnd(event, false));
       listen('pointercancel', (event) => this.onPointerEnd(event, true));
@@ -94,7 +102,33 @@ export class PhotoCarouselComponent implements OnChanges, AfterViewInit, OnDestr
 
   ngOnDestroy(): void {
     this.cleanup.forEach((remove) => remove());
+    window.clearTimeout(this.wheelTimer);
   }
+
+  /**
+   * One wheel/trackpad gesture = one photo. Trackpads keep sending inertia events after the
+   * fingers lift, so the next step only unlocks once the events pause.
+   */
+  private readonly onWheel = (event: WheelEvent): void => {
+    if (!this.wheelNavigation || this.count < 2 || event.ctrlKey) return;
+    event.preventDefault();
+    window.clearTimeout(this.wheelTimer);
+    this.wheelTimer = window.setTimeout(() => {
+      this.wheelLocked = false;
+      this.wheelDelta = 0;
+    }, 160);
+    if (this.wheelLocked) return;
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    this.wheelDelta += delta;
+    if (Math.abs(this.wheelDelta) < 25) return;
+    this.wheelLocked = true;
+    const step = this.wheelDelta > 0 ? 1 : -1;
+    this.wheelDelta = 0;
+    this.zone.run(() => {
+      this.go(this.index + step);
+      this.cdr.markForCheck();
+    });
+  };
 
   get count(): number {
     return this.images.length;

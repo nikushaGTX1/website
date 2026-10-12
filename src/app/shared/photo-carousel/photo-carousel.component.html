@@ -36,7 +36,7 @@
       <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
     </button>
   </ng-container>
-  <div class="pc-dots" *ngIf="count > 1">
+  <div class="pc-dots" *ngIf="showDots && count > 1">
     <button
       type="button"
       *ngFor="let dot of dots; trackBy: trackByIndex"

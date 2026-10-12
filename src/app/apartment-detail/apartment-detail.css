@@ -3305,3 +3305,19 @@ dialog.photo-viewer::backdrop { background: #111113; }
   -webkit-line-clamp: 2;
   line-clamp: 2;
 }
+
+/* Fullscreen viewer strip (app-photo-carousel): fills the space between the top bar and thumbnails. */
+.photo-viewer .photo-viewer-carousel {
+  position: absolute;
+  inset: 88px 0 116px;
+  --photo-carousel-background: transparent;
+  --photo-carousel-slide-padding: 12px 100px;
+  --photo-carousel-image-radius: 6px;
+  --photo-carousel-image-shadow: 0 16px 48px #0005;
+}
+@media (max-width: 740px) {
+  .photo-viewer .photo-viewer-carousel {
+    inset: 76px 0 100px;
+    --photo-carousel-slide-padding: 8px 12px;
+  }
+}

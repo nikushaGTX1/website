@@ -574,7 +574,6 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     lockPageScroll(); // pins the page so iOS can't move it under the viewer
     requestAnimationFrame(() => {
       this.revealViewerThumbnail();
-      this.scrollViewerToPhoto(this.activePhotoIndex, false);
     });
   }
 
@@ -598,25 +597,6 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     event.stopPropagation();
   }
 
-  updateActiveViewerPhoto(event: Event): void {
-    const viewer = event.currentTarget as HTMLElement;
-    const viewerCenter = viewer.getBoundingClientRect().left + viewer.clientWidth / 2;
-    const photos = Array.from(viewer.querySelectorAll<HTMLElement>('[data-viewer-photo]'));
-    const closest = photos.reduce<{ index: number; distance: number }>(
-      (result, photo) => {
-        const rect = photo.getBoundingClientRect();
-        const distance = Math.abs(rect.left + rect.width / 2 - viewerCenter);
-        const index = Number(photo.dataset['viewerPhoto']);
-        return distance < result.distance ? { index, distance } : result;
-      },
-      { index: this.activePhotoIndex, distance: Number.POSITIVE_INFINITY },
-    );
-    if (this.activePhotoIndex !== closest.index) {
-      this.activePhotoIndex = closest.index;
-      this.revealViewerThumbnail();
-    }
-  }
-
   /** Arrow buttons and ← → keys: move the horizontal viewer one photo. */
   stepViewer(direction: 1 | -1): void {
     this.goToViewerPhoto(this.activePhotoIndex + direction);
@@ -627,17 +607,12 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     if (next === this.activePhotoIndex) return;
     this.activePhotoIndex = next;
     this.revealViewerThumbnail();
-    this.scrollViewerToPhoto(next, true);
   }
 
-  private scrollViewerToPhoto(index: number, animate: boolean): void {
-    const track = document.querySelector<HTMLElement>('.photo-viewer-track');
-    if (!track) return;
-    // Horizontal only: set scrollLeft directly (Safari rejects some scrollTo options and could
-    // move the page vertically instead).
-    const smooth = animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    track.style.scrollBehavior = smooth ? 'smooth' : 'auto';
-    track.scrollLeft = index * track.clientWidth;
+  /** Swipe / wheel in the viewer: keep the counter and thumbnail strip in step. */
+  onViewerIndexChange(index: number): void {
+    this.activePhotoIndex = index;
+    requestAnimationFrame(() => this.revealViewerThumbnail());
   }
 
   private revealViewerThumbnail(): void {
