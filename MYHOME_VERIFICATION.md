@@ -1,5 +1,45 @@
 # MyHome listing verification
 
+## Browser-assisted update
+
+The dashboard now starts `BROWSER` jobs by default. Reload the unpacked Nikas
+extension from `C:\Users\user\Desktop\Nikas-Extension` in `chrome://extensions`,
+sign in through its existing Website API connection with an Admin/Manager
+account, then refresh the dashboard tab and click **Verify MyHome Listings**.
+The extension opens one MyHome tab, checks public rendered evidence and sends
+authenticated results to the API. CAPTCHA pauses the job for manual completion;
+use **Resume verification** afterwards. Keep Chrome open while checking.
+
+`AddBrowserMyHomeVerification` adds a job mode plus private browser lease fields.
+Existing jobs retain `SERVER` mode. A two-minute lease prevents competing
+browsers, validates the current ID, and rejects expired submissions. Browser
+results are stored in the same history/report and update only verification
+metadata. Agent access remains forbidden. No website token crosses the extension
+bridge, and no CAPTCHA/access protection is bypassed. The API's original server
+engine remains available through `POST /jobs?mode=server`.
+
+New API file: `Controllers/MyHomeBrowserController.cs`; new tests:
+`Website API.Tests/MyHomeBrowserTests.cs` plus browser lease integration checks.
+Extension setup and file manifest are in its `VELVEN_VERIFICATION.md`.
+
+The separately observed listing-save failure was a Supabase HTTP 502 during
+photo upload. `Service/SupabaseStorageService.cs` now retries transient failures
+up to three times with a fresh stream and the same uniquely generated path.
+Retries can replace only their own new object. Failed-upload cleanup is bounded
+and cannot mask the original error. `Services/StorageUploadException.cs` and the
+apartment controller return a safe photo-specific error; the existing form shows
+a translated message while preserving inputs. Tests cover 502 recovery,
+exhausted retries, fresh bodies, permanent failures and cancellation.
+
+Update validation: 85 backend tests, 32 frontend unit tests, four browser UI
+scenarios and seven new extension verification tests pass. The new migration was
+applied to isolated local PostgreSQL. The extension's full suite has seven
+existing importer/SS.ge failures, also reproduced without the new feature.
+No authenticated live MyHome check was performed automatically.
+
+The original report below documents the server implementation and initial
+validation; the extension-assisted mode above supersedes its default workflow.
+
 Implemented in the existing Angular website and the separate API checkout at
 `C:\Users\user\Desktop\WebsiteAPI`. Both checkouts are needed to run this feature.
 Nothing was pushed, deployed, or applied to a production database. The original

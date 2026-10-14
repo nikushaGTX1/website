@@ -27,6 +27,16 @@ try {
       email: 'test@example.invalid',
     };
     await context.addInitScript((user) => {
+      window.addEventListener('message', (event) => {
+        if (event.source === window && event.data?.source === 'velven-verification') {
+          if ('token' in event.data || 'password' in event.data)
+            throw Error('Credentials must not cross the bridge');
+          window.postMessage(
+            { source: 'nikas-verification', requestId: event.data.requestId, ok: true },
+            location.origin,
+          );
+        }
+      });
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem(
         'token',
@@ -39,6 +49,7 @@ try {
     const job = {
       id: '11111111-1111-1111-1111-111111111111',
       state: 'RUNNING',
+      mode: 'BROWSER',
       totalApartments: 10,
       missingIds: 2,
       createdAt: new Date().toISOString(),
@@ -57,6 +68,7 @@ try {
           ],
         };
       else if (url.pathname === '/api/MyHomeVerification/jobs') {
+        assert.equal(url.searchParams.get('mode'), 'browser');
         started++;
         data = job;
       } else if (url.pathname.endsWith('/results'))
@@ -93,6 +105,10 @@ try {
     }
     await panel.getByRole('heading', { name: 'MyHome verification' }).waitFor();
     await panel.getByText('50%', { exact: true }).waitFor();
+    await panel.getByRole('button', { name: 'Resume verification', exact: true }).click();
+    await panel
+      .getByText('Extension connected. Checking listings in your browser.', { exact: true })
+      .waitFor();
     assert.equal(await panel.getByRole('button', { name: 'Checking listings' }).isDisabled(), true);
     await panel.getByRole('button', { name: 'Show report' }).click();
     await panel.locator('tbody tr.removed-row').waitFor();

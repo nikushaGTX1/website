@@ -1,4 +1,40 @@
 export const verificationTranslations = [
+  ['Resume verification', 'შემოწმების გაგრძელება', 'Продолжить проверку'],
+  [
+    'Keep Chrome open. The Nikas extension checks listings using your browser session. Complete any MyHome security challenge manually.',
+    'დატოვეთ Chrome გახსნილი. Nikas გაფართოება ამოწმებს განცხადებებს თქვენი ბრაუზერის სესიით. MyHome-ის უსაფრთხოების შემოწმება გაიარეთ ხელით.',
+    'Оставьте Chrome открытым. Расширение Nikas проверяет объявления в вашей сессии браузера. Пройдите проверку безопасности MyHome вручную.',
+  ],
+  [
+    'Waiting for the Nikas extension. Click Resume verification to connect.',
+    'ველოდებით Nikas გაფართოებას. დასაკავშირებლად დააჭირეთ შემოწმების გაგრძელებას.',
+    'Ожидаем расширение Nikas. Нажмите Продолжить проверку для подключения.',
+  ],
+  [
+    'Connecting to the Nikas extension…',
+    'Nikas გაფართოებასთან დაკავშირება…',
+    'Подключение к расширению Nikas…',
+  ],
+  [
+    'Extension connected. Checking listings in your browser.',
+    'გაფართოება დაკავშირებულია. განცხადებები მოწმდება თქვენს ბრაუზერში.',
+    'Расширение подключено. Проверяем объявления в браузере.',
+  ],
+  [
+    'Open the Nikas extension, sign in as an admin or manager, and click Resume verification.',
+    'გახსენით Nikas გაფართოება, შედით ადმინისტრატორის ან მენეჯერის ანგარიშით და გააგრძელეთ შემოწმება.',
+    'Откройте расширение Nikas, войдите как администратор или менеджер и нажмите Продолжить проверку.',
+  ],
+  [
+    'Reload the Nikas extension and this page, sign in to its Website API, then click Resume verification.',
+    'გადატვირთეთ Nikas გაფართოება და ეს გვერდი, შედით გაფართოების Website API ანგარიშში და გააგრძელეთ შემოწმება.',
+    'Перезагрузите расширение Nikas и страницу, войдите в Website API расширения и нажмите Продолжить проверку.',
+  ],
+  [
+    'Browser verification paused. Complete any MyHome challenge, then resume in the Nikas extension.',
+    'ბრაუზერში შემოწმება შეჩერებულია. გაიარეთ MyHome-ის უსაფრთხოების შემოწმება და გააგრძელეთ Nikas გაფართოებიდან.',
+    'Проверка в браузере приостановлена. Пройдите проверку MyHome и продолжите через расширение Nikas.',
+  ],
   ['Verify MyHome Listings', 'MyHome განცხადებების შემოწმება', 'Проверить объявления MyHome'],
   ['MyHome verification', 'MyHome შემოწმება', 'Проверка MyHome'],
   ['Review removed listings', 'წაშლილი განცხადებების ნახვა', 'Посмотреть удалённые'],

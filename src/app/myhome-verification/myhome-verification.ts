@@ -6,7 +6,12 @@ import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { TranslationService } from '../services/translation.service';
 import { toMediaUrl } from '../utils/api-media';
-import { VerificationOverview, VerificationRow, verificationProgress } from './verification-model';
+import {
+  VerificationJob,
+  VerificationOverview,
+  VerificationRow,
+  verificationProgress,
+} from './verification-model';
 import { verificationTranslations } from './verification-translations';
 
 @Component({
@@ -42,6 +47,23 @@ export class MyHomeVerification implements OnInit, OnDestroy {
   private requests = new Subscription();
   private resultRequest?: Subscription;
   private destroyed = false;
+  browserMessage = '';
+  private bridgeTimer?: ReturnType<typeof setTimeout>;
+  private bridgeRequest = '';
+  private bridgeResponse = (event: MessageEvent) => {
+    if (
+      event.source !== window ||
+      event.origin !== location.origin ||
+      event.data?.source !== 'nikas-verification' ||
+      event.data.requestId !== this.bridgeRequest
+    )
+      return;
+    clearTimeout(this.bridgeTimer);
+    this.browserMessage = event.data.ok
+      ? 'Extension connected. Checking listings in your browser.'
+      : 'Open the Nikas extension, sign in as an admin or manager, and click Resume verification.';
+    this.cdr.markForCheck();
+  };
   private readonly api = '/api/MyHomeVerification';
   constructor(
     private http: HttpClient,
@@ -58,10 +80,13 @@ export class MyHomeVerification implements OnInit, OnDestroy {
     );
   }
   ngOnInit(): void {
+    window.addEventListener('message', this.bridgeResponse);
     this.refresh();
   }
   ngOnDestroy(): void {
     this.destroyed = true;
+    window.removeEventListener('message', this.bridgeResponse);
+    clearTimeout(this.bridgeTimer);
     clearTimeout(this.timer);
     clearTimeout(this.searchTimer);
     this.requests.unsubscribe();
@@ -111,9 +136,10 @@ export class MyHomeVerification implements OnInit, OnDestroy {
     this.expanded = true;
     this.page = 1;
     this.requests.add(
-      this.http.post(this.api + '/jobs', {}).subscribe({
-        next: () => {
+      this.http.post<VerificationJob>(this.api + '/jobs?mode=browser', {}).subscribe({
+        next: (job) => {
           this.starting = false;
+          if (job.mode === 'BROWSER') this.connectBrowser(job.id);
           this.refresh();
           this.cdr.markForCheck();
         },
@@ -124,6 +150,23 @@ export class MyHomeVerification implements OnInit, OnDestroy {
         },
       }),
     );
+  }
+  resumeBrowser(): void {
+    if (this.overview.job?.mode === 'BROWSER') this.connectBrowser(this.overview.job.id);
+  }
+  private connectBrowser(jobId: string): void {
+    clearTimeout(this.bridgeTimer);
+    this.bridgeRequest = crypto.randomUUID();
+    this.browserMessage = 'Connecting to the Nikas extension…';
+    window.postMessage(
+      { source: 'velven-verification', type: 'START', jobId, requestId: this.bridgeRequest },
+      location.origin,
+    );
+    this.bridgeTimer = setTimeout(() => {
+      this.browserMessage =
+        'Reload the Nikas extension and this page, sign in to its Website API, then click Resume verification.';
+      this.cdr.markForCheck();
+    }, 5000);
   }
   refresh(): void {
     clearTimeout(this.timer);

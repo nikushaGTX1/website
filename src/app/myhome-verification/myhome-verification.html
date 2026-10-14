@@ -16,6 +16,18 @@
   </header>
   <p class="error" role="alert" *ngIf="error">{{ error }}</p>
   <ng-container *ngIf="overview.job as job">
+    <div class="progress" *ngIf="job.mode === 'BROWSER' && running">
+      <p>
+        Keep Chrome open. The Nikas extension checks listings using your browser session. Complete
+        any MyHome security challenge manually.
+      </p>
+      <p role="status">
+        {{
+          browserMessage || 'Waiting for the Nikas extension. Click Resume verification to connect.'
+        }}
+      </p>
+      <button type="button" (click)="resumeBrowser()">Resume verification</button>
+    </div>
     <div class="metrics">
       <div *ngFor="let title of metrics; let i = index" [class.removed]="i === 3 && metric(i) > 0">
         <span>{{ title }}</span

@@ -3,6 +3,7 @@ export type VerificationStatus =
 export interface VerificationJob {
   id: string;
   state: string;
+  mode?: 'SERVER' | 'BROWSER';
   totalApartments: number;
   missingIds: number;
   createdAt: string;

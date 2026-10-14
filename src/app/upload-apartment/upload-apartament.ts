@@ -1711,6 +1711,8 @@ export class UploadApartment implements OnInit, OnDestroy {
           this.loading = false;
           this.errorMessage = error instanceof TimeoutError
             ? 'The server did not respond in time. Check your connection and try again.'
+            : error.error?.code === 'PHOTO_UPLOAD_UNAVAILABLE' || error.error?.code === 'PHOTO_UPLOAD_FAILED'
+            ? error.error.code
             : error.status === 403
             ? 'You do not have permission to change this listing.'
             : error.status === 401
@@ -1749,7 +1751,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         const apiMessage =
           typeof error.error === 'string'
             ? error.error
-            : [error.error?.message, error.error?.detail].filter(Boolean).join(' — ') || validationMessage || error.error?.title;
+            : [error.error?.code, error.error?.message, error.error?.detail].filter(Boolean).join(' — ') || validationMessage || error.error?.title;
 
         this.errorMessage =
           apiMessage ||
@@ -1805,6 +1807,8 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   get localizedUploadError(): string {
+    if (/PHOTO_UPLOAD_UNAVAILABLE|Supabase upload failed|Photo uploads are temporarily unavailable/i.test(this.errorMessage)) return this.uploadLocationText('Photo uploads are temporarily unavailable. Your form is unchanged. Please try publishing again shortly.', 'ფოტოების ატვირთვა დროებით მიუწვდომელია. ფორმა შენარჩუნებულია. ცოტა ხანში ხელახლა სცადეთ გამოქვეყნება.', 'Загрузка фотографий временно недоступна. Форма сохранена. Попробуйте опубликовать снова чуть позже.');
+    if (/PHOTO_UPLOAD_FAILED/i.test(this.errorMessage)) return this.uploadLocationText('Photos could not be uploaded. Please try again or contact support.', 'ფოტოების ატვირთვა ვერ მოხერხდა. სცადეთ ხელახლა ან დაუკავშირდით მხარდაჭერას.', 'Не удалось загрузить фотографии. Попробуйте снова или обратитесь в поддержку.');
     if (/Duplicate found/i.test(this.errorMessage)) {
       return /waiting for review/i.test(this.errorMessage)
         ? this.uploadLocationText(
