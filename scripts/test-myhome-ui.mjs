@@ -55,6 +55,8 @@ try {
       createdAt: new Date().toISOString(),
     };
     let started = 0;
+    let reportTotal = 1;
+    let missingId = false;
     await context.route('**/api/**', async (route) => {
       const url = new URL(route.request().url());
       let data = [];
@@ -73,14 +75,14 @@ try {
         data = job;
       } else if (url.pathname.endsWith('/results'))
         data = {
-          total: 1,
+          total: reportTotal,
           items: [
             {
               id: 1,
               apartmentId: 7,
-              myHomeId: '12345678',
+              myHomeId: missingId ? '' : '12345678',
               address: 'Test address',
-              status: 'REMOVED',
+              status: missingId ? 'NO_MYHOME_ID' : 'REMOVED',
               checkedAt: new Date().toISOString(),
               detail: 'MyHome explicitly reports deleted or inactive listing',
             },
@@ -111,6 +113,27 @@ try {
       .waitFor();
     assert.equal(await panel.getByRole('button', { name: 'Checking listings' }).isDisabled(), true);
     await panel.getByRole('button', { name: 'Show report' }).click();
+    await panel.locator('tbody tr.removed-row').waitFor();
+    reportTotal = 100;
+    await panel.getByRole('button', { name: 'Refresh', exact: true }).click();
+    await panel.getByRole('button', { name: 'Next', exact: true }).click();
+    await page.waitForFunction(() =>
+      /Page\s+2\s*\/\s*2/.test(
+        document.querySelector('app-myhome-verification .pagination')?.textContent || '',
+      ),
+    );
+    reportTotal = 1;
+    missingId = true;
+    await panel.getByRole('button', { name: 'Refresh', exact: true }).click();
+    await page.waitForFunction(() =>
+      /Page\s+1\s*\/\s*1/.test(
+        document.querySelector('app-myhome-verification .pagination')?.textContent || '',
+      ),
+    );
+    await panel.locator('tbody .badge').filter({ hasText: 'Missing MyHome IDs' }).waitFor();
+    assert.equal(await panel.getByRole('link', { name: 'Open MyHome' }).count(), 0);
+    missingId = false;
+    await panel.getByRole('button', { name: 'Refresh', exact: true }).click();
     await panel.locator('tbody tr.removed-row').waitFor();
     assert.equal(await panel.locator('progress').getAttribute('value'), '4');
     assert.equal(

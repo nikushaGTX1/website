@@ -115,6 +115,7 @@
             </td>
             <td class="links">
               <a
+                *ngIf="row.myHomeId"
                 [href]="'https://www.myhome.ge/ka/pr/' + row.myHomeId"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -132,7 +133,9 @@
     </div>
     <div class="pagination">
       <button type="button" (click)="move(-1)" [disabled]="page <= 1 || loading">Previous</button
-      ><span>{{ page }} · {{ total }}</span
+      ><span
+        ><span>Page</span> {{ page }} / {{ Math.ceil(total / 50) || 1 }} · {{ total }}
+        <span>listings</span></span
       ><button type="button" (click)="move(1)" [disabled]="page * 50 >= total || loading">
         Next
       </button>

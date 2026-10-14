@@ -1,4 +1,6 @@
 export const verificationTranslations = [
+  ['Page', 'გვერდი', 'Страница'],
+  ['listings', 'განცხადება', 'объявлений'],
   ['Resume verification', 'შემოწმების გაგრძელება', 'Продолжить проверку'],
   [
     'Keep Chrome open. The Nikas extension checks listings using your browser session. Complete any MyHome security challenge manually.',

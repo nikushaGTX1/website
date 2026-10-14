@@ -1,5 +1,23 @@
 # MyHome listing verification
 
+## Catalogue count correction
+
+Verification now uses the same published-catalogue filter as the public apartment
+list and dashboard: approved records without raw MyHome/SS.ge import markers.
+Every page of that catalogue is included. Imported staging records and pending
+uploads no longer inflate the report. The live public API returned 42 properties
+when diagnosing the reported 579-row discrepancy; apartment #148 returned 404.
+
+Existing report history is preserved. Dashboard overview/results filter legacy
+rows against the current published catalogue, and browser/server queues ignore
+hidden entries. No listing or stored history is deleted. Pagination labels show
+page count and listing count explicitly, automatically return to a valid page
+when results shrink, and omit MyHome links for missing IDs.
+
+`Data/ApartmentCatalogue.cs` supplies the shared filter. PostgreSQL integration
+tests cover both source markers, case-insensitive imports, pending uploads,
+all catalogue pages, and legacy report filtering. No schema migration is needed.
+
 ## Browser-assisted update
 
 The dashboard now starts `BROWSER` jobs by default. Reload the unpacked Nikas

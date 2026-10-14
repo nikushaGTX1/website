@@ -22,6 +22,7 @@ import { verificationTranslations } from './verification-translations';
   styleUrl: './myhome-verification.css',
 })
 export class MyHomeVerification implements OnInit, OnDestroy {
+  readonly Math = Math;
   overview: VerificationOverview = { job: null };
   rows: VerificationRow[] = [];
   readonly statuses = ['ALL', 'ACTIVE', 'REMOVED', 'UNCERTAIN', 'ERROR'];
@@ -226,8 +227,14 @@ export class MyHomeVerification implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (data) => {
-          this.rows = data.items;
           this.total = data.total;
+          const lastPage = Math.max(1, Math.ceil(data.total / 50));
+          if (this.page > lastPage) {
+            this.page = lastPage;
+            this.results();
+            return;
+          }
+          this.rows = data.items;
           this.loading = false;
           this.cdr.markForCheck();
         },
