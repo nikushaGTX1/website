@@ -1,6 +1,7 @@
 import { DatePickerComponent } from './shared/date-picker/date-picker.component';
 import { CodeDialogComponent } from './shared/code-dialog/code-dialog.component';
 import { PhotoCarouselComponent } from './shared/photo-carousel/photo-carousel.component';
+import { MyHomeVerification } from './myhome-verification/myhome-verification';
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -82,7 +83,7 @@ import { CrmLink } from './crm/crm-link/crm-link';
     CrmQuestioner,
     CrmLink,
   ],
-  imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule, PropertyPointPickerComponent, DatePickerComponent, CodeDialogComponent, PhotoCarouselComponent],
+  imports: [MyHomeVerification, BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule, PropertyPointPickerComponent, DatePickerComponent, CodeDialogComponent, PhotoCarouselComponent],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor, apiPerformanceInterceptor])),

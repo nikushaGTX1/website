@@ -1,0 +1,129 @@
+<section class="verification" aria-labelledby="verification-title">
+  <header>
+    <div>
+      <span class="eyebrow">VELVEN · MYHOME</span>
+      <h2 id="verification-title">MyHome verification</h2>
+    </div>
+    <div class="actions">
+      <button class="primary" type="button" (click)="start()" [disabled]="starting || running">
+        {{
+          starting ? 'Loading' : running ? 'Checking listings' : 'Verify MyHome Listings'
+        }}</button
+      ><button type="button" (click)="toggle()" [attr.aria-expanded]="expanded">
+        {{ expanded ? 'Hide report' : 'Show report' }}</button
+      ><button type="button" (click)="refresh()">Refresh</button>
+    </div>
+  </header>
+  <p class="error" role="alert" *ngIf="error">{{ error }}</p>
+  <ng-container *ngIf="overview.job as job">
+    <div class="metrics">
+      <div *ngFor="let title of metrics; let i = index" [class.removed]="i === 3 && metric(i) > 0">
+        <span>{{ title }}</span
+        ><strong>{{ metric(i) }}</strong>
+      </div>
+    </div>
+    <div class="progress" role="status" aria-live="polite">
+      <div>
+        <strong>{{ running ? 'Checking listings' : 'Verification complete' }}</strong
+        ><span>{{ progress.percent }}%</span>
+      </div>
+      <progress
+        [value]="progress.eligible ? progress.processed : 1"
+        [max]="progress.eligible || 1"
+        [class.running]="running"
+        aria-label="Verification progress"
+      ></progress>
+      <p>
+        <span>Processed</span>: {{ progress.processed }} / {{ progress.eligible }} ·
+        <span>Remaining</span>: {{ progress.remaining }}
+      </p>
+      <p class="error" *ngIf="job.error">{{ job.error }}</p>
+    </div>
+    <button class="review" type="button" (click)="select('REMOVED')">
+      <span>Review removed listings</span> ({{ metric(3) }})
+    </button>
+  </ng-container>
+  <div *ngIf="expanded" class="report">
+    <div class="filters">
+      <div class="tabs" role="group" aria-label="Verification status filters">
+        <button
+          *ngFor="let status of statuses"
+          type="button"
+          [class.selected]="filter === status"
+          [attr.aria-pressed]="filter === status"
+          (click)="select(status)"
+        >
+          {{ label(status) }}
+        </button>
+      </div>
+      <input
+        type="search"
+        [(ngModel)]="search"
+        (ngModelChange)="searchChanged()"
+        placeholder="Search address, Velven ID or MyHome ID"
+        aria-label="Search address, Velven ID or MyHome ID"
+      />
+    </div>
+    <p *ngIf="loading" role="status">Loading</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Velven ID</th>
+            <th>MyHome ID</th>
+            <th>Status</th>
+            <th>Last checked</th>
+            <th aria-label="Listing actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows" [class.removed-row]="row.status === 'REMOVED'">
+            <td>
+              <div class="property">
+                <img
+                  *ngIf="row.imageUrl"
+                  [src]="image(row.imageUrl)"
+                  (error)="imageError($event)"
+                  alt=""
+                  loading="lazy"
+                /><span>{{ row.address || '—' }}</span>
+              </div>
+            </td>
+            <td><span class="cell-label">Velven ID</span>#{{ row.apartmentId }}</td>
+            <td><span class="cell-label">MyHome ID</span>{{ row.myHomeId }}</td>
+            <td>
+              <span class="cell-label">Status</span>
+              <span class="badge" [attr.data-status]="row.status">{{ label(row.status) }}</span
+              ><small>{{ row.detail }}</small>
+            </td>
+            <td>
+              <span class="cell-label">Last checked</span
+              >{{ row.checkedAt ? (row.checkedAt | date: 'medium') : '—' }}
+            </td>
+            <td class="links">
+              <a
+                [href]="'https://www.myhome.ge/ka/pr/' + row.myHomeId"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Open MyHome ↗</a
+              ><a [routerLink]="['/apartments', row.apartmentId]" target="_blank" rel="noopener"
+                >Open Velven ↗</a
+              >
+            </td>
+          </tr>
+          <tr *ngIf="!rows.length && !loading">
+            <td colspan="6">No results</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button type="button" (click)="move(-1)" [disabled]="page <= 1 || loading">Previous</button
+      ><span>{{ page }} · {{ total }}</span
+      ><button type="button" (click)="move(1)" [disabled]="page * 50 >= total || loading">
+        Next
+      </button>
+    </div>
+  </div>
+</section>

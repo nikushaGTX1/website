@@ -13,7 +13,7 @@ import {
 const app = express();
 app.disable('x-powered-by');
 const port = Number(process.env.PORT) || 3000;
-const apiOrigin = 'https://websiteapi-production-c970.up.railway.app';
+const apiOrigin = process.env.API_ORIGIN || 'https://websiteapi-production-c970.up.railway.app';
 const canonicalHost = 'velven.ge';
 const canonicalOrigin = `https://${canonicalHost}`;
 const legacyHosts = new Set([

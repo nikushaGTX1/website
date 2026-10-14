@@ -15,6 +15,9 @@ export interface Apartment {
   price: number;
   address?: string;
   phoneNumber?: string;
+  myHomeId?: string | null;
+  myHomeStatus?: string | null;
+  myHomeCheckedAt?: string | null;
   ownerName?: string;
   ownerPhoneNumber?: string;
   agentPhoneNumber?: string;
@@ -108,6 +111,9 @@ export interface CreateApartment {
   price: number;
   address?: string;
   phoneNumber?: string;
+  myHomeId?: string | null;
+  myHomeStatus?: string | null;
+  myHomeCheckedAt?: string | null;
   ownerName?: string;
   ownerPhoneNumber?: string;
   agentName?: string;

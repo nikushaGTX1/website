@@ -10,7 +10,8 @@
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:unit": "tsx --test \"src/**/*.spec.ts\""
+    "test:unit": "tsx --test \"src/**/*.spec.ts\"",
+    "test:myhome:ui": "node scripts/test-myhome-ui.mjs"
   },
   "dependencies": {
     "@angular/common": "^21.2.0",
@@ -38,6 +39,7 @@
     "@angular/build": "^21.2.5",
     "@angular/cli": "^21.2.5",
     "@angular/compiler-cli": "^21.2.0",
+    "playwright": "^1.64.0",
     "prettier": "^3.8.1",
     "tsx": "^4.23.15",
     "typescript": "~5.9.2"

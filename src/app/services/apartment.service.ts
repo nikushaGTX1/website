@@ -375,6 +375,7 @@ export class ApartmentService {
       formData.append('Address', data.address || '');
     }
 
+    if (data.myHomeId !== undefined) formData.append('MyHomeId', data.myHomeId?.trim() || '');
     if (data.phoneNumber !== undefined) {
       formData.append('PhoneNumber', data.phoneNumber || '');
     }

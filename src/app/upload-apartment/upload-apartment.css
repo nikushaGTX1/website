@@ -2206,3 +2206,7 @@ select:focus {
   .style-pick { padding: 8px 2px 9px; }
   .style-pick b { font-size: 10px; letter-spacing: -0.02em; }
 }
+.myhome-field { padding: 22px; margin-bottom: 18px; background: #fff; border: 1px solid #e6e0ef; border-radius: 16px; display: grid; gap: 8px; }
+.myhome-field label { font-weight: 700; }
+.myhome-field small { color: #655b75; font-weight: 400; }
+.myhome-field input { max-width: 320px; padding: 12px; border: 1px solid #bcb2cc; border-radius: 9px; font: inherit; }

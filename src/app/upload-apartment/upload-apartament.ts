@@ -43,6 +43,7 @@ type UploadForm = {
   propertyLatitude: number | null;
   propertyLongitude: number | null;
   cadastralCode: string;
+  myHomeId: string;
   hideAddress: boolean;
   isVerified: boolean;
   totalPrice: number | null;
@@ -301,6 +302,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     propertyLatitude: null,
     propertyLongitude: null,
     cadastralCode: '',
+    myHomeId: '',
     hideAddress: false,
     isVerified: false,
     totalPrice: null,
@@ -732,6 +734,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.propertyLatitude = num(source.propertyLatitude ?? source.latitude);
     f.propertyLongitude = num(source.propertyLongitude ?? source.longitude);
     f.contactName = source.ownerName || '';
+    f.myHomeId = source.myHomeId || '';
     f.contactPhone = source.ownerPhoneNumber || '';
     f.agentName = source.agentName || f.agentName;
     f.agentPhone = source.agentPhoneNumber || source.phoneNumber || f.agentPhone;
@@ -1595,6 +1598,11 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.successMessage = '';
     this.errorMessage = '';
     this.validationAttempted = true;
+    this.form.myHomeId = this.form.myHomeId.trim();
+    if (this.form.myHomeId && !/^[1-9][0-9]{4,7}$/.test(this.form.myHomeId)) {
+      this.errorMessage = this.uploadLocationText('MyHome ID must contain 5 to 8 digits.', 'MyHome ID უნდა შეიცავდეს 5-დან 8 ციფრამდე.', 'MyHome ID должен содержать от 5 до 8 цифр.');
+      return;
+    }
     const issues = this.validationIssues;
     if (issues.length) {
       this.openStep(issues[0].step);
@@ -1910,6 +1918,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       description: `${this.form.description || 'Apartment listing'}\n\n${meta}`,
       price: this.form.totalPrice || 0,
       address: this.form.hideAddress ? [street, district].filter(Boolean).join(', ') : addressParts.join(', '),
+      myHomeId: this.form.myHomeId.trim(),
       phoneNumber: this.form.agentPhone.trim(),
       ownerName: this.form.contactName.trim(),
       ownerPhoneNumber: this.form.contactPhone.trim(),

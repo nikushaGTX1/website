@@ -17,6 +17,7 @@
     </div>
   </header>
 
+  <app-myhome-verification *ngIf="canOperateDashboard"></app-myhome-verification>
   <div class="kpi-grid">
     <button type="button" class="kpi kpi-pending" [class.has-work]="waitingCount > 0" (click)="activeTab = 'pending'">
       <span class="kpi-icon"><i class="fa-regular fa-clock" aria-hidden="true"></i></span>

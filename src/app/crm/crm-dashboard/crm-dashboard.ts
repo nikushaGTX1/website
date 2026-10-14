@@ -1,3 +1,4 @@
+import { MyHomeVerification } from '../../myhome-verification/myhome-verification';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import {
@@ -42,7 +43,7 @@ interface ManualLeadForm extends CreateCrmLeadRequest {
 @Component({
   selector: 'app-crm-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [MyHomeVerification, CommonModule, FormsModule, RouterModule],
   templateUrl: './crm-dashboard.html',
   styleUrl: './crm-dashboard.css',
 })

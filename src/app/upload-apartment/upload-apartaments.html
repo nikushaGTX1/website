@@ -133,6 +133,11 @@
     </aside>
 
     <form class="upload-main" (ngSubmit)="publish()" novalidate>
+      <div class="myhome-field">
+        <label for="myhome-id">MyHome ID <small>{{ uploadLocationText('Optional', 'არასავალდებულო', 'Необязательно') }}</small></label>
+        <input id="myhome-id" name="myHomeId" [(ngModel)]="form.myHomeId" inputmode="numeric" maxlength="10" placeholder="12345678" aria-describedby="myhome-hint">
+        <small id="myhome-hint">{{ uploadLocationText('Link the original MyHome listing for availability checks.', 'მიუთითეთ MyHome განცხადება ხელმისაწვდომობის შესამოწმებლად.', 'Укажите исходное объявление MyHome для проверки доступности.') }}</small>
+      </div>
       <div class="upload-validation" role="alert" *ngIf="validationAttempted && validationIssues.length" data-no-translate>
         <strong>{{ uploadLocationText('Please complete these fields', 'გთხოვთ, შეავსოთ შემდეგი ველები', 'Пожалуйста, заполните эти поля') }}</strong>
         <button type="button" *ngFor="let issue of validationIssues" (click)="openStep(issue.step)"><i class="fa-solid fa-circle-exclamation"></i>{{ issue.message }}<i class="fa-solid fa-arrow-right"></i></button>
