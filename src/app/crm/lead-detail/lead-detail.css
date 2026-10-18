@@ -373,3 +373,11 @@
 .deal-input input { width: 120px; padding: 8px 0; border: 0; background: transparent; font: inherit; font-weight: 800; color: #16121f; }
 .deal-input input:focus { outline: none; }
 .deal-amount small { color: #4f6b5c; font-size: 12px; }
+/* Commission box in brand colours */
+.deal-amount { border-color: #e2d8f6; background: linear-gradient(120deg, #faf7ff, #f3edff); }
+.deal-amount label { color: #2a1660; }
+.deal-amount i { color: #6d3fd1; }
+.deal-input { border-color: #d9cdf1; }
+.deal-input:focus-within { border-color: #6d3fd1; box-shadow: 0 0 0 3px rgba(109, 63, 209, 0.15); }
+.deal-input b { color: #451a8f; }
+.deal-amount small { color: #6b6480; }

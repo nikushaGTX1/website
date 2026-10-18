@@ -2019,3 +2019,9 @@ button:disabled {
 }
 /* Must stay last: earlier desktop sizing rules would otherwise win on small screens. */
 @media (max-width: 900px) { .best-agent { grid-template-columns: 1fr; } }
+/* Brand colours for money (was green) */
+.best-stats .money { background: linear-gradient(135deg, #451a8f, #6d3fd1); }
+.best-stats .money i, .best-stats .money b { color: #fff; }
+.best-stats .money small { color: #e6dcff; }
+.runner-stats .runner-money { background: #451a8f; color: #fff; }
+.runner-stats > span:not(.runner-money) { background: #f1ebfb; color: #451a8f; }
