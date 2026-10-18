@@ -451,13 +451,22 @@ export class HomeMatchResultsComponent implements OnChanges {
       ['Vet clinic', apartment.veterinaryDistanceMinutes, 'fa-stethoscope'],
     ];
     // Only genuinely walkable places: 10 minutes or less. Pet owners also see the nearest
-    // pet shop and vet up to 20 minutes, since those are fewer and farther apart.
+    // pet shop and vet up to 20 minutes, and students the nearest university, since those
+    // are fewer and farther apart.
     const hasPets = this.profile.propertyGoal === 'Rent' && selectedPets(this.profile).length > 0;
-    const limit = (label: string) => (hasPets && (label === 'Pet shop' || label === 'Vet clinic') ? 20 : 10);
+    const student = this.profile.lifestyles.includes('Student') || this.profile.topPriorities.includes('UniversityNearby');
+    const hasKids = this.profile.children > 0;
+    const limit = (label: string) =>
+      (hasPets && (label === 'Pet shop' || label === 'Vet clinic')) || (student && label === 'University') ? 20 : 10;
+    // Schools and kindergartens only matter to households with children.
+    const relevant = (label: string) => hasKids || (label !== 'School' && label !== 'Kindergarten');
+    // What this visitor asked for comes first, then everything else by distance.
+    const first = (label: string) => (student && label === 'University' ? 0 : 1);
     const value = places
-      .filter((place): place is [string, number, string] => typeof place[1] === 'number' && place[1] >= 0 && place[1] <= limit(place[0]))
+      .filter((place): place is [string, number, string] =>
+        typeof place[1] === 'number' && place[1] >= 0 && place[1] <= limit(place[0]) && relevant(place[0]))
       .map(([label, minutes, icon]) => ({ label, minutes: Math.round(minutes), icon }))
-      .sort((a, b) => a.minutes - b.minutes);
+      .sort((a, b) => first(a.label) - first(b.label) || a.minutes - b.minutes);
     if (!value.length) {
       // Match results can arrive without walking data; load the full listing once, then rebuild.
       queueMicrotask(() => this.enrichApartment(result));

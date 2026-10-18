@@ -439,7 +439,7 @@
             <div class="card-photo-track" [class.dragging]="cardDraggingId === apartment.id"
               [style.transform]="cardTrackTransform(apartment)">
               <img *ngFor="let image of (cardImages(apartment).length ? cardImages(apartment) : ['/property-placeholder.svg']); let photoIndex = index"
-                [src]="image" [alt]="photoIndex === cardImageIndex(apartment) ? ((apartment.title | listingTitle) || 'Property in Tbilisi') : ''"
+                [src]="isNearPhoto(apartment, photoIndex) ? image : blankPhoto" [alt]="photoIndex === cardImageIndex(apartment) ? ((apartment.title | listingTitle) || 'Property in Tbilisi') : ''"
                 width="640" height="400"
                 [attr.aria-hidden]="photoIndex !== cardImageIndex(apartment) ? true : null"
                 loading="lazy" decoding="async" draggable="false" (error)="onApartmentImageError($event)" />

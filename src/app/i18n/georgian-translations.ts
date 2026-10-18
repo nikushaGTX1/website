@@ -1933,6 +1933,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Open to any style', 'ნებისმიერი სტილი მომწონს'],
   ['This time has already passed today', 'ეს დრო დღეს უკვე გავიდა'],
   ['My viewings', 'ჩემი ნახვები'],
+  ['My reviews', 'ჩემი შეფასებები'],
   ['Viewings you requested and their status. An agent confirms each request with you.', 'თქვენ მიერ მოთხოვნილი ნახვები და მათი სტატუსი. აგენტი თითოეულ მოთხოვნას თქვენთან დაადასტურებს.'],
   ['No viewings yet', 'ნახვები ჯერ არ გაქვთ'],
   ['Open a property and choose “Schedule a viewing”.', 'გახსენით ობიექტი და აირჩიეთ „ნახვის დაგეგმვა“.'],

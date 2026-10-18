@@ -66,9 +66,6 @@ export class ReviewService {
   }
 }
 
-/** Label shown for each star rating. */
-export const RATING_LABELS = ['', 'Very Bad', 'Bad', 'Average', 'Good', 'Excellent'] as const;
-
 /** Full public URL of a review link, e.g. https://velven.ge/review/giorgi-lomidze. */
 export function reviewLinkUrl(slug: string): string {
   return `${window.location.origin}/review/${slug}`;

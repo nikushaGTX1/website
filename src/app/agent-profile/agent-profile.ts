@@ -4,6 +4,7 @@ import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { Router } from '@angular/router';
 import { whatsappDigits } from '../utils/phone';
+import { languageShortList } from '../utils/agent-languages';
 
 export interface AgentCard {
   id: string | number;
@@ -16,6 +17,8 @@ export interface AgentCard {
   avatarUrl: string;
   bio: string;
   phoneNumber: string;
+  /** Spoken languages as card labels, e.g. "Ge, En, Ru". */
+  languages: string;
 }
 
 @Component({
@@ -149,6 +152,7 @@ export class AgentProfile implements OnInit {
       avatarUrl: toMediaUrl(agent.profilePictureUrl || agent.profilePicture || agent.avatarUrl) || '/agent1.jpg',
       bio: agent.bio || 'Verified real estate agent ready to help with apartments and property questions.',
       phoneNumber: agent.phoneNumber?.trim() || '',
+      languages: languageShortList(agent.languages),
     };
   }
 }

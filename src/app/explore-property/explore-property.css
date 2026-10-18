@@ -2985,3 +2985,28 @@ svg {
 .budget-popover .budget-scale-labels span:last-child {
   transform: translateX(calc(-100% + 13px));
 }
+
+/* Desktop: Airbnb-style layout. The results list scrolls with the page itself (native
+   browser scrolling and momentum, wherever the pointer is) and the map stays pinned
+   beside it under the sticky search and filter bars (86px + 62px). Phones keep their
+   own list/map toggle above. */
+@media (min-width: 781px) {
+  .explorer {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    align-items: start;
+  }
+  .results-pane {
+    overflow: visible;
+    min-height: calc(100dvh - 148px);
+    scroll-margin-top: 148px;
+  }
+  .map-pane {
+    position: sticky;
+    top: 148px;
+    height: calc(100dvh - 148px - 36px);
+    min-height: 400px;
+    align-self: start;
+  }
+}

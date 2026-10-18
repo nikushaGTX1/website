@@ -5,12 +5,13 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import {
   AgentReviewItem,
-  RATING_LABELS,
   ReviewDashboard,
   ReviewService,
   ReviewSort,
   reviewLinkUrl,
 } from '../services/review.service';
+import { AppLanguage, TranslationService } from '../services/translation.service';
+import { formatReviewDate, pick, ratingLabel, reviewsText, ruPlural, starsText } from '../utils/review-i18n';
 
 /** How often the dashboard checks for new reviews while the tab is visible. */
 const POLL_MS = 20000;
@@ -28,12 +29,12 @@ const POLL_MS = 20000;
 })
 export class MyReviews implements OnInit, OnDestroy {
   readonly stars = [1, 2, 3, 4, 5];
-  readonly labels = RATING_LABELS;
 
   data: ReviewDashboard | null = null;
   loading = true;
   refreshing = false;
-  error = '';
+  /** Why the first load failed; worded in the current language by errorText. */
+  errorKind: '' | 'forbidden' | 'offline' | 'failed' = '';
   ratingFilter: number | null = null;
   sort: ReviewSort = 'newest';
   copied = false;
@@ -46,12 +47,14 @@ export class MyReviews implements OnInit, OnDestroy {
   private timer?: ReturnType<typeof setInterval>;
   private request?: Subscription;
   private copiedTimer?: ReturnType<typeof setTimeout>;
+  private languageSubscription?: Subscription;
   private readonly onVisibility = () => {
     if (document.visibilityState === 'visible') this.load(true);
   };
 
   constructor(
     private readonly reviews: ReviewService,
+    private readonly translation: TranslationService,
     private readonly zone: NgZone,
     private readonly cdr: ChangeDetectorRef,
   ) {}
@@ -65,6 +68,7 @@ export class MyReviews implements OnInit, OnDestroy {
       }, POLL_MS);
     });
     document.addEventListener('visibilitychange', this.onVisibility);
+    this.languageSubscription = this.translation.language$.subscribe(() => this.cdr.markForCheck());
   }
 
   ngOnDestroy(): void {
@@ -72,6 +76,67 @@ export class MyReviews implements OnInit, OnDestroy {
     clearTimeout(this.copiedTimer);
     this.request?.unsubscribe();
     document.removeEventListener('visibilitychange', this.onVisibility);
+    this.languageSubscription?.unsubscribe();
+  }
+
+  get lang(): AppLanguage {
+    return this.translation.language$.value;
+  }
+
+  t(en: string, ka: string, ru: string): string {
+    return pick(this.lang, en, ka, ru);
+  }
+
+  get errorText(): string {
+    switch (this.errorKind) {
+      case 'forbidden':
+        return this.t('Reviews are available for Velven agents only.', 'შეფასებები ხელმისაწვდომია მხოლოდ Velven-ის აგენტებისთვის.', 'Отзывы доступны только агентам Velven.');
+      case 'offline':
+        return this.t('No connection. Check your internet and try again.', 'კავშირი არ არის. შეამოწმეთ ინტერნეტი და სცადეთ ხელახლა.', 'Нет подключения. Проверьте интернет и попробуйте снова.');
+      case 'failed':
+        return this.t('Reviews could not be loaded. Please try again.', 'შეფასებების ჩატვირთვა ვერ მოხერხდა. სცადეთ ხელახლა.', 'Не удалось загрузить отзывы. Попробуйте снова.');
+      default:
+        return '';
+    }
+  }
+
+  get totalText(): string {
+    return reviewsText(this.lang, this.total);
+  }
+
+  get newText(): string {
+    const n = this.newCount;
+    return this.t(
+      `${n} new ${n === 1 ? 'review' : 'reviews'} just arrived`,
+      `მოვიდა ${n} ახალი შეფასება`,
+      `${n} ${ruPlural(n, 'новый отзыв', 'новых отзыва', 'новых отзывов')}`,
+    );
+  }
+
+  label(rating: number): string {
+    return ratingLabel(this.lang, rating);
+  }
+
+  barAria(stars: number, count: number): string {
+    return `${starsText(this.lang, stars)}: ${reviewsText(this.lang, count)}`;
+  }
+
+  noneForFilterText(stars: number | null): string {
+    return this.t(
+      `No ${stars}-star reviews yet.`,
+      `${stars}-ვარსკვლავიანი შეფასებები ჯერ არ არის.`,
+      `Отзывов с оценкой ${stars} пока нет.`,
+    );
+  }
+
+  date(review: AgentReviewItem): string {
+    return formatReviewDate(this.lang, review.createdAt, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   get link(): string {
@@ -98,7 +163,11 @@ export class MyReviews implements OnInit, OnDestroy {
   }
 
   get whatsappHref(): string {
-    const text = `Hi! Could you rate your experience with me on Velven? It takes less than a minute: ${this.link}`;
+    const text = this.t(
+      `Hi! Could you rate your experience with me on Velven? It takes less than a minute: ${this.link}`,
+      `გამარჯობა! შეგიძლიათ შეაფასოთ ჩემთან თანამშრომლობა Velven-ზე? ერთ წუთზე ნაკლებს დაიკავებს: ${this.link}`,
+      `Здравствуйте! Оцените, пожалуйста, работу со мной на Velven — это займёт меньше минуты: ${this.link}`,
+    );
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
   }
 
@@ -116,7 +185,7 @@ export class MyReviews implements OnInit, OnDestroy {
     if (background) this.refreshing = true;
     else {
       this.loading = !this.data;
-      this.error = '';
+      this.errorKind = '';
     }
     this.request?.unsubscribe();
     this.request = this.reviews.getMine(this.ratingFilter, this.sort).subscribe({
@@ -131,7 +200,7 @@ export class MyReviews implements OnInit, OnDestroy {
         this.data = data;
         this.loading = false;
         this.refreshing = false;
-        this.error = '';
+        this.errorKind = '';
         this.cdr.detectChanges();
       },
       error: (error: HttpErrorResponse) => {
@@ -139,12 +208,7 @@ export class MyReviews implements OnInit, OnDestroy {
         this.refreshing = false;
         // A failed background refresh keeps the current list; only the first load shows an error.
         if (!background || !this.data) {
-          this.error =
-            error.status === 403
-              ? 'Reviews are available for Velven agents only.'
-              : error.status === 0
-                ? 'No connection. Check your internet and try again.'
-                : 'Reviews could not be loaded. Please try again.';
+          this.errorKind = error.status === 403 ? 'forbidden' : error.status === 0 ? 'offline' : 'failed';
         }
         this.cdr.detectChanges();
       },
@@ -216,8 +280,12 @@ export class MyReviews implements OnInit, OnDestroy {
   async share(): Promise<void> {
     try {
       await navigator.share({
-        title: 'Rate your experience',
-        text: 'Could you rate your experience with me on Velven? It takes less than a minute.',
+        title: this.t('Rate your experience', 'შეაფასეთ თანამშრომლობა', 'Оцените работу'),
+        text: this.t(
+          'Could you rate your experience with me on Velven? It takes less than a minute.',
+          'შეგიძლიათ შეაფასოთ ჩემთან თანამშრომლობა Velven-ზე? ერთ წუთზე ნაკლებს დაიკავებს.',
+          'Оцените, пожалуйста, работу со мной на Velven — это займёт меньше минуты.',
+        ),
         url: this.link,
       });
     } catch {
@@ -226,7 +294,7 @@ export class MyReviews implements OnInit, OnDestroy {
   }
 
   displayName(review: AgentReviewItem): string {
-    return review.customerName?.trim() || 'Anonymous client';
+    return review.customerName?.trim() || this.t('Anonymous client', 'ანონიმური კლიენტი', 'Анонимный клиент');
   }
 
   initial(review: AgentReviewItem): string {

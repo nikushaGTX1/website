@@ -28,7 +28,9 @@ export function toMediaUrl(value?: string | null): string {
         // The upstream API can reuse a signed URL after its embedded expiry time,
         // while Supabase still serves the object. Let the same-origin media proxy
         // fetch/cache the real image instead of rejecting it from the token alone.
-        return `/media/apartment-image?url=${encodeURIComponent(normalizedValue)}`;
+        // ".jpg" lets Cloudflare cache the photo at the edge; listing photo URLs stay the
+        // same for days (the API signs them for a week), so repeat visits load from cache.
+        return `/media/apartment-image.jpg?url=${encodeURIComponent(normalizedValue)}`;
       }
     } catch {
       return '';

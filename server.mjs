@@ -614,11 +614,13 @@ async function fetchApartmentImage(value) {
       body: Buffer.from(await upstreamResponse.arrayBuffer()),
       contentType: upstreamResponse.headers.get('content-type') || 'image/jpeg',
       etag: upstreamResponse.headers.get('etag'),
-      expiresAt: Date.now() + 180 * 60_000,
+      // A storage path always holds the same photo, so keep it for a day.
+      expiresAt: Date.now() + 24 * 60 * 60_000,
     };
 
     apartmentImageCache.set(cacheKey, image);
-    if (apartmentImageCache.size > 200) {
+    // About ten photos per listing: 200 entries evicted photos still on screen.
+    if (apartmentImageCache.size > 600) {
       apartmentImageCache.delete(apartmentImageCache.keys().next().value);
     }
     return image;
@@ -680,7 +682,9 @@ function warmApartmentDetails(body) {
   }
 }
 
-app.get('/media/apartment-image', async (request, response) => {
+// "/media/apartment-image.jpg" is the same proxy with an image extension, so Cloudflare
+// caches each photo at its edge (it only caches static-looking paths by default).
+app.get(['/media/apartment-image', '/media/apartment-image.jpg'], async (request, response) => {
   try {
     const source = String(request.query.url || '');
     const image = await fetchApartmentImage(source);
@@ -1306,13 +1310,73 @@ app.get('/', (_request, response) => {
   response.redirect(301, '/main');
 });
 
+// Hashed build files are compressed once (Brotli, gzip fallback) and kept in memory:
+// Brotli makes the main bundle about a quarter smaller than the gzip it got before.
+const compressedAssets = new Map();
+const hashedAsset = /[-.][A-Z0-9]{8}\.(?:js|css)$/i;
+
+function compressAsset(raw) {
+  // Quality 9 is ~5% larger than 11 but compresses the 1.9 MB main bundle in well
+  // under a second instead of blocking the server for seconds on the first visitor.
+  return {
+    br: brotliCompressSync(raw, { params: { [zlibConstants.BROTLI_PARAM_QUALITY]: 9 } }),
+    gzip: gzipSync(raw, { level: 9 }),
+  };
+}
+
+// Compress every build file right after start-up, one per tick, so no visitor waits for it.
+void (async () => {
+  try {
+    const { readdir } = await import('node:fs/promises');
+    for (const name of await readdir(browserDirectory)) {
+      const filePath = path.join(browserDirectory, name);
+      if (!hashedAsset.test(filePath) || compressedAssets.has(filePath)) continue;
+      compressedAssets.set(filePath, compressAsset(await readFile(filePath)));
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+  } catch (error) {
+    console.error('Asset pre-compression failed:', error);
+  }
+})();
+
+app.get(/\.(?:js|css)$/, async (request, response, next) => {
+  let relative;
+  try {
+    relative = decodeURIComponent(request.path).replace(/^\/+/, '');
+  } catch {
+    return next();
+  }
+  const filePath = path.join(browserDirectory, relative);
+  if (!hashedAsset.test(filePath) || !filePath.startsWith(browserDirectory + path.sep)) return next();
+  const accepted = String(request.get('accept-encoding') || '');
+  const encoding = /\bbr\b/.test(accepted) ? 'br' : /\bgzip\b/.test(accepted) ? 'gzip' : '';
+  if (!encoding) return next();
+  try {
+    let entry = compressedAssets.get(filePath);
+    if (!entry) {
+      entry = compressAsset(await readFile(filePath));
+      compressedAssets.set(filePath, entry);
+    }
+    response.setHeader('Content-Type', filePath.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8');
+    response.setHeader('Content-Encoding', encoding);
+    response.setHeader('Vary', 'Accept-Encoding');
+    response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    response.send(entry[encoding]);
+  } catch {
+    next();
+  }
+});
+
 app.use(express.static(browserDirectory, {
   setHeaders(response, filePath) {
     // Public preview artwork may be fetched directly by browser-based sharing clients.
     if (/^velven-share-square-v\d+\.jpg$/i.test(path.basename(filePath))) {
       response.setHeader('Access-Control-Allow-Origin', '*');
     }
-    if (/\.[A-Z0-9]{8}\.(?:js|css)$/i.test(filePath)) {
+    // Hashed build files (main-444GX5AC.js, chunk-RZ3736J7.js, styles-XXXXXXXX.css) never
+    // change content, so browsers may keep them for a year. The older "main.HASH.js"
+    // pattern no longer matched Angular's output, so these were only cached for hours.
+    if (/[-.][A-Z0-9]{8}\.(?:js|css)$/i.test(filePath)) {
       response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     } else if (/\.(?:png|jpe?g|webp|svg|ico|woff2?)$/i.test(filePath)) {
       response.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');

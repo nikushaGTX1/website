@@ -1,17 +1,19 @@
-<main class="reviews-page">
+<!-- Text comes from t() in all three languages, so the page-wide translator skips this page. -->
+<main class="reviews-page" data-no-translate>
   <header class="page-head">
     <div>
-      <span class="kicker">CLIENT FEEDBACK</span>
-      <h1>My reviews</h1>
-      <p>Send your review link to clients after a viewing or a deal. New reviews appear here automatically.</p>
+      <span class="kicker">{{ t('CLIENT FEEDBACK', 'კლიენტების შეფასებები', 'ОТЗЫВЫ КЛИЕНТОВ') }}</span>
+      <h1>{{ t('My reviews', 'ჩემი შეფასებები', 'Мои отзывы') }}</h1>
+      <p>{{ t('Send your review link to clients after a viewing or a deal. New reviews appear here automatically.', 'ნახვის ან გარიგების შემდეგ გაუგზავნეთ ბმული კლიენტებს. ახალი შეფასებები აქ ავტომატურად გამოჩნდება.', 'Отправляйте ссылку клиентам после просмотра или сделки. Новые отзывы появятся здесь автоматически.') }}</p>
     </div>
-    <span class="live" *ngIf="data" [class.busy]="refreshing" title="Checks for new reviews every 20 seconds">
-      <span class="dot"></span> Live
+    <span class="live" *ngIf="data" [class.busy]="refreshing"
+      [title]="t('Checks for new reviews every 20 seconds', 'ახალ შეფასებებს ყოველ 20 წამში ამოწმებს', 'Проверяет новые отзывы каждые 20 секунд')">
+      <span class="dot"></span> {{ t('Live', 'ონლაინ', 'Онлайн') }}
     </span>
   </header>
 
   <!-- Loading -->
-  <div class="skeleton-grid" *ngIf="loading" aria-label="Loading reviews">
+  <div class="skeleton-grid" *ngIf="loading" [attr.aria-label]="t('Loading reviews', 'შეფასებები იტვირთება', 'Загрузка отзывов')">
     <div class="sk card tall"></div>
     <div class="sk card tall"></div>
     <div class="sk card"></div>
@@ -19,11 +21,11 @@
   </div>
 
   <!-- Error -->
-  <section class="state-card" *ngIf="!loading && error && !data">
+  <section class="state-card" *ngIf="!loading && errorKind && !data">
     <span class="state-icon error"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
-    <h2>Something went wrong</h2>
-    <p>{{ error }}</p>
-    <button type="button" class="btn ghost" (click)="load(false)">Try again</button>
+    <h2>{{ t('Something went wrong', 'რაღაც შეცდომა მოხდა', 'Что-то пошло не так') }}</h2>
+    <p>{{ errorText }}</p>
+    <button type="button" class="btn ghost" (click)="load(false)">{{ t('Try again', 'ხელახლა ცდა', 'Попробовать снова') }}</button>
   </section>
 
   <ng-container *ngIf="data && !loading">
@@ -32,47 +34,47 @@
       <div class="link-copy">
         <span class="link-icon"><i class="fa-solid fa-link" aria-hidden="true"></i></span>
         <div>
-          <h2>Your review link</h2>
-          <p>Permanent link — share it on WhatsApp, Messenger, Instagram or SMS. No sign-in needed for clients.</p>
+          <h2>{{ t('Your review link', 'თქვენი შეფასების ბმული', 'Ваша ссылка для отзывов') }}</h2>
+          <p>{{ t('Permanent link — share it on WhatsApp, Messenger, Instagram or SMS. No sign-in needed for clients.', 'მუდმივი ბმული — გააზიარეთ WhatsApp-ში, Messenger-ში, Instagram-ში ან SMS-ით. კლიენტებს რეგისტრაცია არ სჭირდებათ.', 'Постоянная ссылка — отправьте её в WhatsApp, Messenger, Instagram или по SMS. Клиентам не нужно регистрироваться.') }}</p>
         </div>
       </div>
       <div class="link-row">
-        <input class="link-input" type="text" readonly [value]="link" aria-label="Your review link" (focus)="$any($event.target).select()" data-no-translate />
+        <input class="link-input" type="text" readonly [value]="link" [attr.aria-label]="t('Your review link', 'თქვენი შეფასების ბმული', 'Ваша ссылка для отзывов')" (focus)="$any($event.target).select()" />
         <button type="button" class="btn primary" (click)="copyLink()" [class.done]="copied">
           <i class="fa-solid" [class.fa-copy]="!copied" [class.fa-check]="copied" aria-hidden="true"></i>
-          {{ copied ? 'Copied!' : 'Copy link' }}
+          {{ copied ? t('Copied!', 'დაკოპირდა!', 'Скопировано!') : t('Copy link', 'ბმულის კოპირება', 'Копировать ссылку') }}
         </button>
       </div>
-      <p class="copy-error" *ngIf="copyFailed" role="alert">Copy failed — select the link and copy it manually.</p>
+      <p class="copy-error" *ngIf="copyFailed" role="alert">{{ t('Copy failed — select the link and copy it manually.', 'კოპირება ვერ მოხერხდა — მონიშნეთ ბმული და დააკოპირეთ ხელით.', 'Не удалось скопировать — выделите ссылку и скопируйте вручную.') }}</p>
       <div class="share-row">
         <a class="chip whatsapp" [href]="whatsappHref" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
-        <button type="button" class="chip" *ngIf="canShare" (click)="share()"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Share…</button>
-        <a class="chip" [href]="link" target="_blank" rel="noopener"><i class="fa-regular fa-eye" aria-hidden="true"></i> Preview</a>
+        <button type="button" class="chip" *ngIf="canShare" (click)="share()"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> {{ t('Share…', 'გაზიარება…', 'Поделиться…') }}</button>
+        <a class="chip" [href]="link" target="_blank" rel="noopener"><i class="fa-regular fa-eye" aria-hidden="true"></i> {{ t('Preview', 'გადახედვა', 'Просмотр') }}</a>
       </div>
     </section>
 
     <!-- Summary -->
     <section class="summary">
       <div class="score-card">
-        <span class="score-label">Average rating</span>
+        <span class="score-label">{{ t('Average rating', 'საშუალო შეფასება', 'Средняя оценка') }}</span>
         <div class="score">
           <b>{{ total ? (average | number: '1.1-1') : '—' }}</b><span>/ 5</span>
         </div>
-        <div class="avg-stars" [attr.aria-label]="'Average ' + (average | number: '1.1-1') + ' of 5'">
+        <div class="avg-stars" [attr.aria-label]="(average | number: '1.1-1') + ' / 5'">
           <span class="avg-star" *ngFor="let star of stars">
             <i class="fa-solid fa-star base" aria-hidden="true"></i>
             <i class="fa-solid fa-star fill" aria-hidden="true" [style.width.%]="starFill(star)"></i>
           </span>
         </div>
-        <p>{{ total }} {{ total === 1 ? 'review' : 'reviews' }}</p>
+        <p>{{ totalText }}</p>
       </div>
 
       <div class="dist-card">
-        <h2>Rating distribution</h2>
+        <h2>{{ t('Rating distribution', 'შეფასებების განაწილება', 'Распределение оценок') }}</h2>
         <button type="button" class="bar-row" *ngFor="let row of distribution"
           [class.active]="ratingFilter === row.stars" [disabled]="!row.count && ratingFilter !== row.stars"
           (click)="setFilter(row.stars)" [attr.aria-pressed]="ratingFilter === row.stars"
-          [attr.aria-label]="row.stars + ' stars: ' + row.count + ' reviews'">
+          [attr.aria-label]="barAria(row.stars, row.count)">
           <span class="bar-label">{{ row.stars }} <i class="fa-solid fa-star" aria-hidden="true"></i></span>
           <span class="bar"><span class="bar-fill" [style.width.%]="row.percent" [attr.data-stars]="row.stars"></span></span>
           <span class="bar-count">{{ row.count }}</span>
@@ -83,22 +85,22 @@
     <!-- New reviews notice -->
     <button type="button" class="new-toast" *ngIf="newCount" (click)="dismissNew()">
       <i class="fa-solid fa-bell" aria-hidden="true"></i>
-      {{ newCount }} new {{ newCount === 1 ? 'review' : 'reviews' }} just arrived
+      {{ newText }}
       <i class="fa-solid fa-xmark" aria-hidden="true"></i>
     </button>
 
     <!-- Toolbar -->
     <section class="toolbar" *ngIf="total">
-      <div class="filters" role="group" aria-label="Filter by rating">
-        <button type="button" class="filter" [class.active]="ratingFilter === null" (click)="setFilter(null)">All <b>{{ total }}</b></button>
+      <div class="filters" role="group" [attr.aria-label]="t('Filter by rating', 'ფილტრი შეფასებით', 'Фильтр по оценке')">
+        <button type="button" class="filter" [class.active]="ratingFilter === null" (click)="setFilter(null)">{{ t('All', 'ყველა', 'Все') }} <b>{{ total }}</b></button>
         <button type="button" class="filter" *ngFor="let row of distribution" [class.active]="ratingFilter === row.stars"
           (click)="setFilter(row.stars)">{{ row.stars }} <i class="fa-solid fa-star" aria-hidden="true"></i> <b>{{ row.count }}</b></button>
       </div>
       <label class="sort">
         <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-        <select [ngModel]="sort" (ngModelChange)="setSort($event)" aria-label="Sort reviews">
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
+        <select [ngModel]="sort" (ngModelChange)="setSort($event)" [attr.aria-label]="t('Sort reviews', 'დალაგება', 'Сортировка')">
+          <option value="newest">{{ t('Newest first', 'ჯერ ახალი', 'Сначала новые') }}</option>
+          <option value="oldest">{{ t('Oldest first', 'ჯერ ძველი', 'Сначала старые') }}</option>
         </select>
       </label>
     </section>
@@ -106,34 +108,34 @@
     <!-- Empty: no reviews at all -->
     <section class="state-card" *ngIf="!total">
       <span class="state-icon"><i class="fa-regular fa-star" aria-hidden="true"></i></span>
-      <h2>No reviews yet</h2>
-      <p>Copy your link above and send it to a client you recently helped. Their review will show up here.</p>
-      <button type="button" class="btn primary" (click)="copyLink()"><i class="fa-solid fa-copy" aria-hidden="true"></i> {{ copied ? 'Copied!' : 'Copy review link' }}</button>
+      <h2>{{ t('No reviews yet', 'შეფასებები ჯერ არ არის', 'Отзывов пока нет') }}</h2>
+      <p>{{ t('Copy your link above and send it to a client you recently helped. Their review will show up here.', 'დააკოპირეთ ბმული და გაუგზავნეთ კლიენტს, რომელსაც ახლახან დაეხმარეთ. მისი შეფასება აქ გამოჩნდება.', 'Скопируйте ссылку и отправьте клиенту, которому вы недавно помогли. Его отзыв появится здесь.') }}</p>
+      <button type="button" class="btn primary" (click)="copyLink()"><i class="fa-solid fa-copy" aria-hidden="true"></i> {{ copied ? t('Copied!', 'დაკოპირდა!', 'Скопировано!') : t('Copy review link', 'ბმულის კოპირება', 'Копировать ссылку') }}</button>
     </section>
 
     <!-- Empty: filter has no matches -->
     <section class="state-card slim" *ngIf="total && !data.reviews.length">
-      <p>No {{ ratingFilter }}-star reviews yet.</p>
-      <button type="button" class="btn ghost" (click)="setFilter(null)">Show all reviews</button>
+      <p>{{ noneForFilterText(ratingFilter) }}</p>
+      <button type="button" class="btn ghost" (click)="setFilter(null)">{{ t('Show all reviews', 'ყველა შეფასების ჩვენება', 'Показать все отзывы') }}</button>
     </section>
 
     <!-- List -->
-    <section class="review-list" *ngIf="data.reviews.length" [class.dim]="refreshing && !data.reviews.length">
+    <section class="review-list" *ngIf="data.reviews.length">
       <article class="review" *ngFor="let review of data.reviews; trackBy: trackById" [class.fresh]="freshIds.has(review.id)">
         <header>
           <span class="avatar" [attr.data-rating]="review.rating">{{ initial(review) }}</span>
           <div class="who">
-            <strong data-no-translate>{{ displayName(review) }}</strong>
-            <time [attr.datetime]="review.createdAt">{{ review.createdAt | date: 'MMM d, y · HH:mm' }}</time>
+            <strong>{{ displayName(review) }}</strong>
+            <time [attr.datetime]="review.createdAt">{{ date(review) }}</time>
           </div>
-          <span class="badge-new" *ngIf="freshIds.has(review.id)">New</span>
+          <span class="badge-new" *ngIf="freshIds.has(review.id)">{{ t('New', 'ახალი', 'Новый') }}</span>
         </header>
-        <div class="review-stars" [attr.aria-label]="review.rating + ' of 5 stars'">
+        <div class="review-stars" [attr.aria-label]="review.rating + ' / 5'">
           <i *ngFor="let star of stars" class="fa-star" [class.fa-solid]="star <= review.rating" [class.fa-regular]="star > review.rating" aria-hidden="true"></i>
-          <span class="review-label">{{ labels[review.rating] }}</span>
+          <span class="review-label">{{ label(review.rating) }}</span>
         </div>
-        <p class="comment" *ngIf="review.comment; else noComment" data-no-translate>{{ review.comment }}</p>
-        <ng-template #noComment><p class="comment muted">No comment left.</p></ng-template>
+        <p class="comment" *ngIf="review.comment; else noComment">{{ review.comment }}</p>
+        <ng-template #noComment><p class="comment muted">{{ t('No comment left.', 'კომენტარი არ დაუტოვებია.', 'Без комментария.') }}</p></ng-template>
       </article>
     </section>
   </ng-container>

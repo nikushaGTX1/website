@@ -20,6 +20,11 @@ export class AgentService {
     return this.http.get<Agent>(`${this.apiUrl}/${agentId}`);
   }
 
+  /** Admins and managers only. Returns the saved codes in display order. */
+  setLanguages(agentId: string, languages: string[]): Observable<{ languages: string[] }> {
+    return this.http.put<{ languages: string[] }>(`${this.apiUrl}/${encodeURIComponent(agentId)}/languages`, { languages });
+  }
+
   rateAgent(agentId: string, rating: number): Observable<unknown> {
     return this.http.post(`${this.apiUrl}/${agentId}/ratings`, { rating });
   }

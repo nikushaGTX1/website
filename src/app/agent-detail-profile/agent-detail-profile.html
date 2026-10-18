@@ -39,10 +39,33 @@
           <p class="intro"><ng-container *ngTemplateOutlet="bioText"></ng-container></p>
           <div class="agent-details">
             <span><i class="fa-solid fa-location-dot"></i>{{ location }}</span
-            ><span><i class="fa-solid fa-globe"></i>Georgian, English, Russian</span
+            ><span class="agent-languages" data-no-translate
+              ><i class="fa-solid fa-globe"></i>{{ languageNames
+              }}<button type="button" class="lang-edit" *ngIf="canEditLanguages && !languageEditorOpen" (click)="openLanguageEditor()"
+                [attr.aria-label]="rt('Edit languages', 'ენების შეცვლა', 'Изменить языки')" [title]="rt('Edit languages', 'ენების შეცვლა', 'Изменить языки')"
+                ><i class="fa-solid fa-pen" aria-hidden="true"></i></button></span
             ><span *ngIf="agent.email"
               ><i class="fa-regular fa-envelope"></i>{{ agent.email }}</span
             >
+          </div>
+          <!-- Admins and managers choose the languages this agent speaks. -->
+          <div class="lang-editor" *ngIf="languageEditorOpen" data-no-translate>
+            <p class="lang-editor-title">{{ rt('Languages this agent speaks', 'ენები, რომლებზეც აგენტი საუბრობს', 'Языки, на которых говорит агент') }}</p>
+            <div class="lang-options" role="group" [attr.aria-label]="rt('Languages', 'ენები', 'Языки')">
+              <button type="button" *ngFor="let language of allLanguages" [class.on]="languageDraft.has(language.code)"
+                [attr.aria-pressed]="languageDraft.has(language.code)" (click)="toggleLanguage(language.code)">
+                <i class="fa-solid" [class.fa-check]="languageDraft.has(language.code)" [class.fa-plus]="!languageDraft.has(language.code)" aria-hidden="true"></i>
+                {{ languageLabel(language) }}
+              </button>
+            </div>
+            <p class="lang-error" *ngIf="languageError" role="alert">{{ languageError }}</p>
+            <div class="lang-actions">
+              <button type="button" class="lang-cancel" (click)="closeLanguageEditor()" [disabled]="languageSaving">{{ rt('Cancel', 'გაუქმება', 'Отмена') }}</button>
+              <button type="button" class="lang-save" (click)="saveLanguages()" [disabled]="languageSaving || !languageDraft.size">
+                <i class="fa-solid fa-spinner fa-spin" *ngIf="languageSaving" aria-hidden="true"></i>
+                {{ rt('Save languages', 'ენების შენახვა', 'Сохранить языки') }}
+              </button>
+            </div>
           </div>
           <div class="contact-actions">
             <button type="button" class="primary-action" (click)="callAgent()">
@@ -178,32 +201,32 @@
           </div>
         </div>
       </section>
-      <!-- Real client reviews (signed-in ratings + reviews from the agent's review link). -->
-      <section class="content-section client-reviews" id="client-reviews" *ngIf="!listingsPage && reviews.length">
+      <!-- Real client reviews (signed-in ratings + reviews from the agent's review link). Worded by rt() in all three languages. -->
+      <section class="content-section client-reviews" id="client-reviews" *ngIf="!listingsPage && reviews.length" data-no-translate>
         <header class="section-heading">
           <div>
-            <span>WHAT CLIENTS SAY</span>
-            <h2>Client reviews</h2>
+            <span>{{ rt('WHAT CLIENTS SAY', 'რას ამბობენ კლიენტები', 'ЧТО ГОВОРЯТ КЛИЕНТЫ') }}</span>
+            <h2>{{ rt('Client reviews', 'კლიენტების შეფასებები', 'Отзывы клиентов') }}</h2>
             <p>
               <span class="reviews-score"><i class="fa-solid fa-star"></i> {{ rating | number: '1.1-1' }}</span>
-              · {{ agent.ratingCount || reviews.length }} {{ (agent.ratingCount || reviews.length) === 1 ? 'review' : 'reviews' }}
+              · {{ reviewCountText }}
             </p>
           </div>
         </header>
         <div class="client-review-grid">
           <article class="client-review" *ngFor="let review of visibleReviews">
-            <div class="client-review-stars" [attr.aria-label]="review.stars + ' of 5 stars'">
+            <div class="client-review-stars" [attr.aria-label]="review.stars + ' / 5'">
               <i *ngFor="let star of [1, 2, 3, 4, 5]" class="fa-star" [class.fa-solid]="star <= review.stars" [class.fa-regular]="star > review.stars" aria-hidden="true"></i>
             </div>
-            <p class="client-review-text" *ngIf="review.comment" data-no-translate>{{ review.comment }}</p>
+            <p class="client-review-text" *ngIf="review.comment">{{ review.comment }}</p>
             <footer>
               <span class="client-review-avatar">{{ (review.reviewerName || 'V').charAt(0) }}</span>
-              <span><b data-no-translate>{{ review.reviewerName || 'Velven client' }}</b><small>{{ review.createdAt | date: 'MMM y' }}</small></span>
+              <span><b>{{ review.reviewerName || rt('Velven client', 'Velven-ის კლიენტი', 'Клиент Velven') }}</b><small>{{ reviewMonth(review) }}</small></span>
             </footer>
           </article>
         </div>
         <button type="button" class="client-reviews-more" *ngIf="reviews.length > visibleReviews.length" (click)="showAllReviews = true">
-          Show all {{ reviews.length }} reviews <i class="fa-solid fa-chevron-down"></i>
+          {{ rt('Show all reviews', 'ყველა შეფასების ჩვენება', 'Показать все отзывы') }} ({{ reviews.length }}) <i class="fa-solid fa-chevron-down"></i>
         </button>
       </section>
       <section class="contact-banner">

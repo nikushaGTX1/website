@@ -1212,3 +1212,110 @@ span.t {
     grid-template-columns: 1fr;
   }
 }
+
+/* Spoken languages + editor (admins and managers) ---------------------- */
+.agent-languages .lang-edit {
+  width: 28px;
+  height: 28px;
+  margin-left: 2px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #ddd8f3;
+  border-radius: 50%;
+  background: #fff;
+  color: #493dbe;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.agent-languages .lang-edit:hover {
+  background: #f4f1ff;
+  border-color: #493dbe;
+}
+.agent-languages .lang-edit i {
+  width: auto;
+  font-size: 11px;
+}
+.lang-editor {
+  margin: -6px 0 18px;
+  padding: 16px;
+  border: 1px solid #e6e4ef;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, #f8f6ff);
+  animation: lang-editor-in 0.2s ease-out;
+}
+.lang-editor-title {
+  margin: 0 0 12px;
+  color: #1b1626;
+  font-size: 13px;
+  font-weight: 800;
+}
+.lang-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lang-options button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid #ddd8f3;
+  border-radius: 999px;
+  background: #fff;
+  color: #444b69;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lang-options button i {
+  font-size: 10px;
+  color: #9a92ad;
+}
+.lang-options button.on {
+  border-color: #493dbe;
+  background: #493dbe;
+  color: #fff;
+}
+.lang-options button.on i {
+  color: #fff;
+}
+.lang-error {
+  margin: 10px 0 0;
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 600;
+}
+.lang-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+.lang-actions button {
+  padding: 9px 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lang-cancel {
+  border: 1px solid #ddd8f3;
+  background: #fff;
+  color: #444b69;
+}
+.lang-save {
+  border: 0;
+  background: #493dbe;
+  color: #fff;
+}
+.lang-actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+@keyframes lang-editor-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}

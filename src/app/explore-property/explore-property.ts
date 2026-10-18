@@ -5,6 +5,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -466,7 +467,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
   currentPage = 1;
-  pageSize = 6;
+  pageSize = 20;
+  /** Cards whose full photo gallery is fetched up front; the rest load when hovered. */
+  private readonly galleryPrefetchCount = 6;
 
   private readonly cardImageIndexes = new Map<number, number>();
   private cardGesture: { id: number; pointer: number; x: number; y: number; width: number; started: number; index: number; count: number; axis: 'x' | 'y' | null } | null = null;
@@ -488,7 +491,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
         const images = (detailed.imageUrls || []).filter(Boolean);
         if (images.length > 1) {
           this.cardGalleries.set(apartment.id, images);
-          this.queuePreload(images);
+          // Only the next photo: whole galleries for every card meant ~90 photos (11 MB)
+          // downloading in the background and slowing the photos actually on screen.
+          this.queuePreload(images.slice(1, 2));
           this.cdr.detectChanges();
         }
       },
@@ -537,6 +542,18 @@ export class ExploreProperty implements OnInit, OnDestroy {
     image.src = url;
   }
 
+  /** 1×1 transparent image for gallery slots that are not near the photo being shown. */
+  readonly blankPhoto = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+  /**
+   * A card's swipe track holds every photo, and lazy loading still fetched them all because
+   * they sit right beside the visible one. Only the shown photo and its neighbours load;
+   * the rest load as the user swipes towards them.
+   */
+  isNearPhoto(apartment: Apartment, photoIndex: number): boolean {
+    return Math.abs(photoIndex - this.cardImageIndex(apartment)) <= 1;
+  }
+
   cardTrackTransform(apartment: Apartment): string {
     const offset = this.cardDraggingId === apartment.id ? this.cardDragOffset : 0;
     return `translate3d(calc(${-100 * this.cardImageIndex(apartment)}% + ${offset}px), 0, 0)`;
@@ -583,7 +600,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   private prefetchCardGalleries(): void {
-    this.pageApartments.forEach((apartment) => this.loadCardGallery(apartment));
+    // Twenty cards per page: fetching every gallery at once would fire twenty detail requests
+    // and preload hundreds of photos. The first cards get theirs now, the rest on hover.
+    this.pageApartments.slice(0, this.galleryPrefetchCount).forEach((apartment) => this.loadCardGallery(apartment));
   }
 
   onCardHover(apartment: Apartment): void {
@@ -1579,13 +1598,18 @@ export class ExploreProperty implements OnInit, OnDestroy {
     private translationService: TranslationService,
     readonly favoriteService: FavoriteService,
     private authService: AuthService,
+    private zone: NgZone,
   ) {}
 
   ngOnInit(): void {
-    window.addEventListener('wheel', this.forwardWheelToResults, {
-      capture: true,
-      passive: false,
-    });
+    // Outside Angular: wheel events change no bound state, so they must not run change
+    // detection over twenty cards on every tick.
+    this.zone.runOutsideAngular(() =>
+      window.addEventListener('wheel', this.guardWheel, {
+        capture: true,
+        passive: false,
+      }),
+    );
     const params = this.route.snapshot.queryParamMap;
     this.selectedType = params.get('mode') === 'buy' ? 'For Sale' : 'For Rent';
     this.location = params.get('location') || '';
@@ -1626,58 +1650,20 @@ export class ExploreProperty implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.floorOpen) unlockPageScroll();
     if (this.sizeOpen) unlockPageScroll();
-    window.removeEventListener('wheel', this.forwardWheelToResults, true);
+    window.removeEventListener('wheel', this.guardWheel, true);
     window.clearTimeout(this.areaSheetTimer);
     if (this.areaSheetOpen) unlockPageScroll();
   }
 
-  private readonly forwardWheelToResults = (event: WheelEvent): void => {
-    // Location picker open: nothing behind it may scroll; only the picker list itself scrolls.
-    if (this.areaSheetOpen) {
-      const inSheetList = event.target instanceof Element && !!event.target.closest('.area-sheet-scroll');
-      if (!inSheetList) event.preventDefault();
-      return;
-    }
-    if (this.floorOpen) return;
-    if (this.sizeOpen) return;
-    if (
-      window.innerWidth <= 780 ||
-      event.ctrlKey ||
-      Math.abs(event.deltaX) > Math.abs(event.deltaY)
-    ) return;
-
-    // The detailed-filters dialog is modal: its wheel stays with it.
-    if (this.moreFiltersOpen) return;
-    const results = this.resultsPane?.nativeElement;
-    const target = event.target instanceof Element ? event.target : null;
-    if (!results || !target || results.contains(target)) return;
-
-    // Footer content scrolls the page normally; everything above it
-    // (navbar, filter bar, map) forwards into the results list instead.
-    if (target.closest('footer, app-footer')) return;
-
-    // Keep map wheel gestures inside Google Maps. They must never move the
-    // independent property-card results pane.
-    if (target.closest('app-explore-property-map')) return;
-
-    const nestedScroller = target.closest<HTMLElement>(
-      '.location-modal-body, .area-picker-column, .popover, .language-menu',
-    );
-    if (nestedScroller && nestedScroller.scrollHeight > nestedScroller.clientHeight) return;
-
-    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? results.clientHeight : 1;
-    const delta = event.deltaY * unit;
-    const atTop = results.scrollTop <= 0;
-    const atBottom = results.scrollTop + results.clientHeight >= results.scrollHeight - 1;
-    // Once the list has nowhere left to scroll in this direction, let the
-    // event fall through to the page so the footer stays reachable.
-    if ((delta < 0 && atTop) || (delta > 0 && atBottom)) return;
-
-    event.preventDefault();
-    // Stop the event before it reaches Google Maps, otherwise the map zooms
-    // while the list scrolls and the motion feels hard and too fast.
-    event.stopPropagation();
-    results.scrollBy({ top: delta, behavior: 'smooth' });
+  /**
+   * The results list scrolls with the page itself (native browser scrolling, map pinned
+   * beside it), so wheel input is no longer forwarded anywhere. The only rule left: while
+   * the location picker is open, nothing behind it may scroll; only its own list does.
+   */
+  private readonly guardWheel = (event: WheelEvent): void => {
+    if (!this.areaSheetOpen) return;
+    const inSheetList = event.target instanceof Element && !!event.target.closest('.area-sheet-scroll');
+    if (!inSheetList) event.preventDefault();
   };
 
   private resetModeNavigationFilters(location: string): void {
@@ -2113,10 +2099,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
     this.updateVisibleApartments();
     this.selectedApartment = this.visibleApartments[0] ?? null;
-    document.querySelector('.results-header')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
+    // New page starts at its first card (scroll-margin-top keeps it below the sticky bars).
+    this.resultsPane?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   onPageSizeChange(event: Event): void {

@@ -895,6 +895,7 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Open to any style', 'Подойдёт любой стиль'],
   ['This time has already passed today', 'Это время сегодня уже прошло'],
   ['My viewings', 'Мои просмотры'],
+  ['My reviews', 'Мои отзывы'],
   ['Viewings you requested and their status. An agent confirms each request with you.', 'Запрошенные вами просмотры и их статус. Агент подтвердит каждый запрос.'],
   ['No viewings yet', 'Просмотров пока нет'],
   ['Open a property and choose “Schedule a viewing”.', 'Откройте объект и выберите «Запланировать просмотр».'],

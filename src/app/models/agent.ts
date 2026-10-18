@@ -21,6 +21,8 @@ export interface Agent {
   closedDeals?: number;
   /** The agent's own published listings. */
   listingCount?: number;
+  /** Spoken language codes, e.g. ["ka", "en", "ru"]; set by admins and managers. */
+  languages?: string[];
   /** Client reviews, newest first (profile endpoint only). Only the reviewer's first name is public. */
   ratings?: AgentPublicReview[];
 }

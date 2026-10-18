@@ -1,5 +1,8 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+// Georgian is the default language, so its dictionary ships in the main bundle: loading it
+// lazily showed English text first and swapped it a moment later.
+import { georgianTranslation } from '../i18n/georgian-translations';
 
 export type AppLanguage = 'en' | 'ka' | 'ru';
 
@@ -32,8 +35,7 @@ export class TranslationService {
   private observer?: MutationObserver;
   private timer?: number;
   private generation = 0;
-  private georgianTranslator?: GeorgianTranslator;
-  private georgianTranslatorRequest?: Promise<GeorgianTranslator>;
+  private georgianTranslator?: GeorgianTranslator = georgianTranslation;
   private russianTranslator?: RussianTranslator;
   private russianTranslatorRequest?: Promise<RussianTranslator>;
 
@@ -380,14 +382,8 @@ export class TranslationService {
       return Promise.resolve(this.georgianTranslator);
     }
 
-    this.georgianTranslatorRequest ??= import('../i18n/georgian-translations')
-      .then((module) => {
-        sessionStorage.removeItem('velven-stale-build-reload');
-        this.georgianTranslator = module.georgianTranslation;
-        return this.georgianTranslator;
-      })
-      .catch((error) => this.recoverFromStaleBuild(error));
-    return this.georgianTranslatorRequest;
+    this.georgianTranslator = georgianTranslation;
+    return Promise.resolve(this.georgianTranslator);
   }
 
   private loadRussianTranslator(): Promise<RussianTranslator> {

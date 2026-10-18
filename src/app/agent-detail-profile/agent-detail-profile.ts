@@ -8,6 +8,10 @@ import { AgentService } from '../services/agent.service';
 import { ApartmentService } from '../services/apartment.service';
 import { CrmService } from '../services/crm.service';
 import { SeoService } from '../services/seo.service';
+import { TranslationService } from '../services/translation.service';
+import { formatReviewDate, pick, reviewsText } from '../utils/review-i18n';
+import { AGENT_LANGUAGES, languageNameList } from '../utils/agent-languages';
+import { AuthService } from '../services/auth.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { whatsappDigits } from '../utils/phone';
 
@@ -64,6 +68,8 @@ export class AgentDetailProfile implements OnInit {
     private apartmentService: ApartmentService,
     private crmService: CrmService,
     private seoService: SeoService,
+    private translationService: TranslationService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -158,6 +164,82 @@ export class AgentDetailProfile implements OnInit {
 
   get visibleReviews(): AgentPublicReview[] {
     return this.showAllReviews ? this.reviews : this.reviews.slice(0, 6);
+  }
+
+  /** Review-section copy in the visitor's language (the section opts out of the page translator). */
+  rt(en: string, ka: string, ru: string): string {
+    return pick(this.translationService.language$.value, en, ka, ru);
+  }
+
+  get reviewCountText(): string {
+    return reviewsText(this.translationService.language$.value, this.agent?.ratingCount || this.reviews.length);
+  }
+
+  readonly allLanguages = AGENT_LANGUAGES;
+  languageEditorOpen = false;
+  languageDraft = new Set<string>();
+  languageSaving = false;
+  languageError = '';
+
+  /** "Georgian, English, Russian" in the visitor's language. */
+  get languageNames(): string {
+    return languageNameList(this.agent?.languages, this.translationService.language$.value);
+  }
+
+  /** Only admins and managers may change an agent's languages (the API enforces the same). */
+  get canEditLanguages(): boolean {
+    return this.authService.isCrmManager && !!this.agent?.id;
+  }
+
+  languageLabel(language: (typeof AGENT_LANGUAGES)[number]): string {
+    return language[this.translationService.language$.value];
+  }
+
+  openLanguageEditor(): void {
+    this.languageDraft = new Set(this.agent?.languages?.length ? this.agent.languages : ['ka', 'en', 'ru']);
+    this.languageError = '';
+    this.languageEditorOpen = true;
+  }
+
+  closeLanguageEditor(): void {
+    this.languageEditorOpen = false;
+    this.languageError = '';
+  }
+
+  toggleLanguage(code: string): void {
+    const next = new Set(this.languageDraft);
+    if (next.has(code)) next.delete(code);
+    else next.add(code);
+    this.languageDraft = next;
+  }
+
+  saveLanguages(): void {
+    const agentId = this.agent?.id;
+    if (!agentId || !this.languageDraft.size || this.languageSaving) return;
+    this.languageSaving = true;
+    this.languageError = '';
+    // Send in display order; the API stores them in the same order.
+    const codes = AGENT_LANGUAGES.map((language) => language.code).filter((code) => this.languageDraft.has(code));
+    this.agentService.setLanguages(agentId, codes).subscribe({
+      next: ({ languages }) => {
+        if (this.agent) this.agent = { ...this.agent, languages };
+        this.languageSaving = false;
+        this.languageEditorOpen = false;
+        this.cdr.detectChanges();
+      },
+      error: (error: { status?: number }) => {
+        this.languageSaving = false;
+        this.languageError =
+          error.status === 403 || error.status === 401
+            ? this.rt('Only admins and managers can change languages.', 'ენების შეცვლა მხოლოდ ადმინისტრატორს და მენეჯერს შეუძლია.', 'Менять языки могут только администраторы и менеджеры.')
+            : this.rt('Languages could not be saved. Please try again.', 'ენების შენახვა ვერ მოხერხდა. სცადეთ ხელახლა.', 'Не удалось сохранить языки. Попробуйте снова.');
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  reviewMonth(review: AgentPublicReview): string {
+    return formatReviewDate(this.translationService.language$.value, review.createdAt, { year: 'numeric', month: 'short' });
   }
 
   get location(): string {
