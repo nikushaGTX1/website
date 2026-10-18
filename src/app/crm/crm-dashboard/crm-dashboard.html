@@ -253,24 +253,34 @@
 
     <!-- Best agent: most won leads this month (managers only; computed from real leads). -->
     <section class="best-agent" *ngIf="leaderboard as board" aria-label="Best agent">
-      <div class="best-main" *ngIf="board.items[0] as top">
-        <span class="best-trophy"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
-        <div class="best-photo">
-          <img *ngIf="top.photo; else bestInitials" [src]="top.photo" alt="" />
-          <ng-template #bestInitials><span>{{ top.initials }}</span></ng-template>
+      <article class="bc-card" *ngIf="board.items[0] as top">
+        <header class="bc-head">
+          <span class="bc-trophy"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
+          <div>
+            <h3>Best Agent at Velven</h3>
+            <p>{{ board.period }}</p>
+          </div>
+        </header>
+        <div class="bc-photo">
+          <img *ngIf="top.photo; else bcInitials" [src]="top.photo" alt="" />
+          <ng-template #bcInitials><span>{{ top.initials }}</span></ng-template>
           <i class="fa-solid fa-star" aria-hidden="true"></i>
         </div>
-        <div class="best-text">
-          <small>Best agent at Velven · {{ board.period }}</small>
-          <strong data-no-translate>{{ top.name }}</strong>
-          <span>Real Estate Agent</span>
+        <strong class="bc-name" data-no-translate>{{ top.name }}</strong>
+        <span class="bc-role">Real Estate Agent</span>
+        <div class="bc-stats">
+          <div>
+            <span class="bc-stat-icon"><i class="fa-solid fa-handshake" aria-hidden="true"></i></span>
+            <small>Closed Deals</small>
+            <b>{{ top.won }}</b>
+          </div>
+          <div>
+            <span class="bc-stat-icon"><i class="fa-solid fa-wallet" aria-hidden="true"></i></span>
+            <small>Revenue Generated</small>
+            <b data-no-translate>{{ top.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</b>
+          </div>
         </div>
-        <div class="best-stats">
-          <div><i class="fa-solid fa-handshake" aria-hidden="true"></i><b>{{ top.won }}</b><small>Deals won</small></div>
-          <div class="money"><i class="fa-solid fa-wallet" aria-hidden="true"></i><b data-no-translate>{{ top.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</b><small>Earned</small></div>
-          <div><i class="fa-solid fa-chart-line" aria-hidden="true"></i><b>{{ top.rate }}%</b><small>Win rate</small></div>
-        </div>
-      </div>
+      </article>
       <div class="best-runners" *ngIf="board.items.length > 1">
         <p class="runners-title"><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> Top agents</p>
         <ol>

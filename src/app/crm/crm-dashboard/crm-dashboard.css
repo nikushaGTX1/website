@@ -2025,3 +2025,25 @@ button:disabled {
 .best-stats .money small { color: #e6dcff; }
 .runner-stats .runner-money { background: #451a8f; color: #fff; }
 .runner-stats > span:not(.runner-money) { background: #f1ebfb; color: #451a8f; }
+
+/* Best agent: vertical showcase card (matches the design mock-up) ------- */
+.best-agent { grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); align-items: stretch; }
+.bc-card { display: flex; flex-direction: column; align-items: center; padding: 26px 22px 22px; border: 1px solid #ece6f6; border-radius: 26px; background: #fff; box-shadow: 0 24px 50px -36px rgba(69, 26, 143, 0.55); text-align: center; }
+.bc-head { align-self: stretch; display: flex; align-items: center; gap: 14px; text-align: left; }
+.bc-trophy { flex: none; width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; background: #f1ebfb; color: #451a8f; font-size: 22px; }
+.bc-head h3 { margin: 0; color: #16121f; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.bc-head p { margin: 3px 0 0; color: #6b6480; font-size: 14px; }
+.bc-photo { position: relative; width: 168px; height: 168px; margin: 22px 0 16px; padding: 6px; border-radius: 50%; background: #efe8fb; }
+.bc-photo img, .bc-photo span { width: 100%; height: 100%; display: grid; place-items: center; border-radius: 50%; object-fit: cover; background: #451a8f; color: #fff; font-size: 46px; font-weight: 800; }
+.bc-photo i { position: absolute; right: 6px; bottom: 10px; width: 38px; height: 38px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; background: #6d3fd1; color: #fff; font-size: 15px; box-shadow: 0 6px 14px -6px rgba(69, 26, 143, 0.8); }
+.bc-name { color: #16121f; font-size: 25px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; overflow-wrap: anywhere; }
+.bc-role { margin-top: 4px; color: #6b6480; font-size: 14px; }
+.bc-stats { align-self: stretch; display: grid; grid-template-columns: 1fr 1fr; margin-top: 20px; padding: 16px 8px; border-radius: 18px; background: #f3effc; }
+.bc-stats > div { display: grid; justify-items: center; gap: 6px; padding: 0 8px; }
+.bc-stats > div + div { border-left: 1px solid #ddd3f1; }
+.bc-stat-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #e8dffa; color: #2a1660; font-size: 17px; }
+.bc-stats small { color: #4b3f63; font-size: 13px; }
+.bc-stats b { color: #16121f; font-size: 28px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+.best-agent .best-runners { justify-content: flex-start; }
+@media (max-width: 900px) { .best-agent { grid-template-columns: 1fr; } .bc-card { max-width: 440px; width: 100%; justify-self: center; } }
+@media (max-width: 400px) { .bc-photo { width: 140px; height: 140px; } .bc-head h3 { font-size: 19px; } .bc-stats b { font-size: 23px; } }
