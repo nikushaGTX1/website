@@ -94,6 +94,8 @@ export interface CrmLead {
   originalOwnerUserId?: string;
   originalOwnerName?: string;
   closedAt?: string;
+  /** Commission earned on a won lead, in USD (estimated when won, editable). */
+  dealAmountUsd?: number | null;
   createdAt: string;
   updatedAt?: string;
   activities?: CrmLeadActivity[];

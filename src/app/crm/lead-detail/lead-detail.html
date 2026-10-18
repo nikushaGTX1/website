@@ -393,6 +393,22 @@
 
         </div>
 
+        <!-- Won lead: commission earned, counted on the CRM "Best agent" card. -->
+        <div class="deal-amount" *ngIf="currentLead.status === 'won'">
+          <label>
+            <span><i class="fa-solid fa-sack-dollar" aria-hidden="true"></i> Commission earned (USD)</span>
+            <span class="deal-input">
+              <b>$</b>
+              <input type="number" min="0" step="50" inputmode="decimal"
+                [value]="currentLead.dealAmountUsd ?? ''"
+                [disabled]="dealSaving || !canWorkLead"
+                (change)="saveDealAmount($any($event.target).value)"
+                placeholder="e.g. 1300" />
+            </span>
+          </label>
+          <small>{{ dealSaving ? 'Saving…' : 'Filled in automatically from the listing (rent: 1 month, sale: 3%). Change it if the real amount differs.' }}</small>
+        </div>
+
       </section>
 
 

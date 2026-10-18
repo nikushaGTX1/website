@@ -331,6 +331,28 @@ export class CrmLeadDetail implements OnInit {
      INIT
   ======================================================= */
 
+  dealSaving = false;
+
+  saveDealAmount(raw: string): void {
+    if (!this.lead || this.dealSaving) return;
+    const value = raw === '' ? null : Number(raw);
+    if (value !== null && (!Number.isFinite(value) || value < 0)) return;
+    this.dealSaving = true;
+    this.crmService.updateDealAmount(this.lead.id, value).subscribe({
+      next: (lead) => {
+        this.lead = lead;
+        this.dealSaving = false;
+        this.successMessage = 'Commission saved.';
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.dealSaving = false;
+        this.pageError = 'Commission could not be saved. Please try again.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   ngOnInit(): void {
 
     const leadId =

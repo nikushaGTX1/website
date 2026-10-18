@@ -363,3 +363,13 @@
 
 /* Assignment button: readable when disabled. */
 .assignment-button:disabled { background: #d9d1ef; color: #6b5aa6; opacity: 1; }
+
+/* Commission on a won lead */
+.deal-amount { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 14px; padding: 12px 14px; border: 1px solid #cfe9db; border-radius: 12px; background: #f1faf5; }
+.deal-amount label { display: flex; align-items: center; gap: 12px; font-weight: 700; color: #1f4d36; }
+.deal-amount i { color: #1f7a4d; }
+.deal-input { display: inline-flex; align-items: center; gap: 4px; padding: 0 10px; border: 1px solid #bfe0cd; border-radius: 10px; background: #fff; }
+.deal-input b { color: #1f7a4d; }
+.deal-input input { width: 120px; padding: 8px 0; border: 0; background: transparent; font: inherit; font-weight: 800; color: #16121f; }
+.deal-input input:focus { outline: none; }
+.deal-amount small { color: #4f6b5c; font-size: 12px; }

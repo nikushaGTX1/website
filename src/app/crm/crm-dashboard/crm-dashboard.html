@@ -267,6 +267,7 @@
         </div>
         <div class="best-stats">
           <div><i class="fa-solid fa-handshake" aria-hidden="true"></i><b>{{ top.won }}</b><small>Deals won</small></div>
+          <div class="money"><i class="fa-solid fa-wallet" aria-hidden="true"></i><b data-no-translate>{{ top.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</b><small>Earned</small></div>
           <div><i class="fa-solid fa-chart-line" aria-hidden="true"></i><b>{{ top.rate }}%</b><small>Win rate</small></div>
         </div>
       </div>
@@ -278,7 +279,8 @@
             <ng-template #runnerInitials>{{ agent.initials }}</ng-template>
           </span>
           <span class="runner-name" data-no-translate>{{ agent.name }}</span>
-          <span class="runner-won">{{ agent.won }} <small>won</small></span>
+          <span class="runner-won">{{ agent.won }} <small>won</small>
+            <em data-no-translate>{{ agent.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</em></span>
         </li>
       </ol>
     </section>

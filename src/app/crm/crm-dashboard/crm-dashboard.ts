@@ -624,7 +624,7 @@ export class CrmDashboard implements OnInit {
   get leaderboard(): {
     monthly: boolean;
     period: string;
-    items: Array<{ id: string; name: string; photo: string; initials: string; won: number; closed: number; rate: number }>;
+    items: Array<{ id: string; name: string; photo: string; initials: string; won: number; closed: number; rate: number; earned: number }>;
   } | null {
     if (!this.isManager) return null;
     const now = new Date();
@@ -633,12 +633,15 @@ export class CrmDashboard implements OnInit {
       return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
     };
     const rank = (leads: CrmLead[]) => {
-      const byAgent = new Map<string, { won: number; closed: number }>();
+      const byAgent = new Map<string, { won: number; closed: number; earned: number }>();
       for (const lead of leads) {
         if (!lead.assignedAgentId || (lead.status !== 'won' && lead.status !== 'lost')) continue;
-        const entry = byAgent.get(lead.assignedAgentId) ?? { won: 0, closed: 0 };
+        const entry = byAgent.get(lead.assignedAgentId) ?? { won: 0, closed: 0, earned: 0 };
         entry.closed++;
-        if (lead.status === 'won') entry.won++;
+        if (lead.status === 'won') {
+          entry.won++;
+          entry.earned += Number(lead.dealAmountUsd) || 0;
+        }
         byAgent.set(lead.assignedAgentId, entry);
       }
       return [...byAgent.entries()]
@@ -655,10 +658,12 @@ export class CrmDashboard implements OnInit {
             initials: name.split(/\s+/).map((part) => part.charAt(0)).join('').slice(0, 2).toUpperCase(),
             won: stats.won,
             closed: stats.closed,
+            earned: Math.round(stats.earned),
             rate: Math.round((stats.won / stats.closed) * 100),
           };
         })
-        .sort((a, b) => b.won - a.won || b.rate - a.rate || a.name.localeCompare(b.name))
+        // Most won deals; ties go to more money earned, then the better win rate.
+        .sort((a, b) => b.won - a.won || b.earned - a.earned || b.rate - a.rate || a.name.localeCompare(b.name))
         .slice(0, 3);
     };
     const monthly = rank(this.leads.filter(thisMonth));

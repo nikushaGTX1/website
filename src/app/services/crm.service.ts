@@ -110,6 +110,11 @@ export class CrmService {
     );
   }
 
+  /** Commission earned on a won lead, in USD; null clears it. */
+  updateDealAmount(leadId: number, amountUsd: number | null): Observable<CrmLead> {
+    return this.http.patch<CrmLead>(`${this.apiUrl}/leads/${leadId}/deal-amount`, { amountUsd });
+  }
+
   assignLead(leadId: number, assignedAgentId: string | null): Observable<CrmLead> {
     return this.http.put<CrmLead>(
       `${this.apiUrl}/leads/${leadId}/assignment`,

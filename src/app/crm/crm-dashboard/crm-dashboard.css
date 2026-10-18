@@ -1958,3 +1958,25 @@ button:disabled {
   .best-stats { width: 100%; }
   .best-stats div { flex: 1; }
 }
+/* Best agent: larger card with earnings */
+.best-agent { grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); }
+.best-main { gap: 22px; padding: 22px 26px; }
+.best-trophy { width: 52px; height: 52px; font-size: 22px; border-radius: 15px; }
+.best-photo { width: 88px; height: 88px; padding: 4px; }
+.best-photo span { font-size: 26px; }
+.best-photo i { width: 26px; height: 26px; font-size: 11px; }
+.best-text small { font-size: 12px; }
+.best-text strong { font-size: 26px; }
+.best-text span { font-size: 14px; }
+.best-stats { gap: 10px; }
+.best-stats div { min-width: 112px; padding: 14px 16px; border-radius: 16px; }
+.best-stats i { font-size: 17px; }
+.best-stats b { font-size: 26px; }
+.best-stats small { font-size: 12px; }
+.best-stats .money { background: #ecf8f1; }
+.best-stats .money i, .best-stats .money b { color: #1f7a4d; }
+.best-runners { padding: 16px; }
+.runner-photo { width: 40px; height: 40px; }
+.runner-won { display: grid; justify-items: end; line-height: 1.2; }
+.runner-won em { color: #6b6480; font-size: 12px; font-style: normal; font-weight: 700; }
+@media (max-width: 1100px) { .best-stats div { min-width: 96px; padding: 12px; } .best-stats b { font-size: 22px; } }
