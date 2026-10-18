@@ -99,6 +99,11 @@ export class CrmService {
     );
   }
 
+  /** This month's company-wide best agent (null agent when nobody has won yet). */
+  getBestAgent(): Observable<CrmBestAgent> {
+    return this.http.get<CrmBestAgent>(`${this.apiUrl}/best-agent`);
+  }
+
   deleteLead(leadId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/leads/${leadId}`);
   }
@@ -169,4 +174,10 @@ export interface MyViewing {
   message?: string | null;
   status: 'Pending' | 'Visited' | 'DealDone' | 'Past' | 'Cancelled';
   createdAt: string;
+}
+
+export interface CrmBestAgent {
+  /** First day of the month being ranked (UTC). */
+  period: string;
+  agent: { id: string; name: string; photo?: string | null; won: number; earned: number } | null;
 }

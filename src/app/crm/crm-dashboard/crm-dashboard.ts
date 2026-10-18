@@ -26,7 +26,7 @@ import {
 } from '../../models/crm';
 import { AgentService } from '../../services/agent.service';
 import { AuthService } from '../../services/auth.service';
-import { CrmService } from '../../services/crm.service';
+import { CrmService, CrmBestAgent } from '../../services/crm.service';
 import { OwnerDealType, OwnerListingService } from '../../services/owner-listing.service';
 
 type StatusFilter = 'all' | CrmLeadStatus;
@@ -442,11 +442,13 @@ export class CrmDashboard implements OnInit {
         ? this.crmService.getJobApplications().pipe(catchError(() => of([] as CrmJobApplication[])))
         : of([] as CrmJobApplication[]),
       metrics: this.crmService.getMetrics().pipe(catchError(() => of(null))),
+      bestAgent: this.crmService.getBestAgent().pipe(catchError(() => of(null))),
       agents: this.isManager
         ? this.agentService.getAgents().pipe(catchError(() => of([] as Agent[])))
         : of([] as Agent[]),
     }).subscribe({
-      next: ({ leads, applications, metrics, agents }) => {
+      next: ({ leads, applications, metrics, agents, bestAgent }) => {
+        this.bestAgent = bestAgent;
         this.leads = this.scopeLeads(leads);
         this.jobApplications = applications;
         this.agents = agents;
@@ -617,67 +619,20 @@ export class CrmDashboard implements OnInit {
     return this.statusLabels[status];
   }
 
-  /**
-   * "Best agent" ranking: most won leads closed this month; if nobody has won yet this
-   * month, the all-time ranking. Ties go to the better win rate. Real CRM data only.
-   */
-  get leaderboard(): {
-    monthly: boolean;
-    period: string;
-    items: Array<{ id: string; name: string; photo: string; initials: string; won: number; closed: number; rate: number; earned: number }>;
-  } | null {
-    if (!this.isManager) return null;
-    const now = new Date();
-    const thisMonth = (lead: CrmLead) => {
-      const date = new Date(lead.closedAt || lead.createdAt);
-      return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
-    };
-    const rank = (leads: CrmLead[]) => {
-      const byAgent = new Map<string, { won: number; closed: number; earned: number }>();
-      for (const lead of leads) {
-        if (!lead.assignedAgentId || (lead.status !== 'won' && lead.status !== 'lost')) continue;
-        const entry = byAgent.get(lead.assignedAgentId) ?? { won: 0, closed: 0, earned: 0 };
-        entry.closed++;
-        if (lead.status === 'won') {
-          entry.won++;
-          entry.earned += Number(lead.dealAmountUsd) || 0;
-        }
-        byAgent.set(lead.assignedAgentId, entry);
-      }
-      // Every agent takes part, so places 2-4 fill up even when few have won yet.
-      for (const agent of this.agents) {
-        const id = this.agentId(agent);
-        if (id && !byAgent.has(id)) byAgent.set(id, { won: 0, closed: 0, earned: 0 });
-      }
-      return [...byAgent.entries()]
-        .map(([id, stats]) => {
-          const agent = this.agents.find((item) => this.agentId(item) === id);
-          const name = agent
-            ? this.agentFirstLastName(agent)
-            : this.leads.find((lead) => lead.assignedAgentId === id)?.assignedAgentName || 'Agent';
-          return {
-            id,
-            name,
-            photo: toMediaUrl(agent?.profilePictureUrl || agent?.profilePicture || ''),
-            initials: name.split(/\s+/).map((part) => part.charAt(0)).join('').slice(0, 2).toUpperCase(),
-            won: stats.won,
-            closed: stats.closed,
-            earned: Math.round(stats.earned),
-            rate: stats.closed ? Math.round((stats.won / stats.closed) * 100) : 0,
-          };
-        })
-        // Most won deals; ties go to more money earned, then the better win rate.
-        .sort((a, b) => b.won - a.won || b.earned - a.earned || b.rate - a.rate || a.name.localeCompare(b.name))
-        .slice(0, 4);
-    };
-    // Only this calendar month counts: on the 1st the board starts again from zero.
-    const monthly = rank(this.leads.filter((lead) => lead.status === 'won' && !!lead.closedAt && thisMonth(lead)))
-      .filter((agent) => agent.won > 0);
-    return {
-      monthly: true,
-      period: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      items: monthly,
-    };
+  /** This month's best agent for every CRM user (agents included), from the API. */
+  bestAgent: CrmBestAgent | null = null;
+
+  get bestAgentPeriod(): string {
+    const date = this.bestAgent ? new Date(this.bestAgent.period) : new Date();
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  }
+
+  get bestAgentPhoto(): string {
+    return toMediaUrl(this.bestAgent?.agent?.photo || '');
+  }
+
+  get bestAgentInitials(): string {
+    return (this.bestAgent?.agent?.name || '').split(/\s+/).map((part) => part.charAt(0)).join('').slice(0, 2).toUpperCase();
   }
 
   agentId(agent: Agent): string {
