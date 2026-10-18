@@ -2073,3 +2073,29 @@ button:disabled {
 /* Winner only: one centred card */
 .best-agent { grid-template-columns: minmax(0, 420px); justify-content: center; }
 .bc-card { width: 100%; }
+/* Desktop: full-width horizontal banner (phones keep the vertical card) */
+@media (min-width: 901px) {
+  .best-agent { grid-template-columns: 1fr; justify-content: stretch; }
+  .bc-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(320px, 420px);
+    grid-template-areas:
+      "photo head stats"
+      "photo name stats"
+      "photo role stats";
+    align-items: center;
+    column-gap: 28px;
+    padding: 24px 28px;
+    text-align: left;
+    background: radial-gradient(120% 140% at 0% 50%, #f4eeff 0%, #fff 55%);
+  }
+  .bc-head { grid-area: head; align-self: end; }
+  .bc-photo { grid-area: photo; width: 150px; height: 150px; margin: 0; }
+  .bc-name { grid-area: name; align-self: center; font-size: 28px; }
+  .bc-role { grid-area: role; align-self: start; margin-top: 0; }
+  .bc-stats { grid-area: stats; align-self: center; margin-top: 0; padding: 20px 10px; }
+  .bc-head h3 { font-size: 15px; color: #6d3fd1; text-transform: uppercase; letter-spacing: 0.06em; }
+  .bc-head p { font-size: 13px; }
+  .bc-trophy { width: 44px; height: 44px; font-size: 19px; border-radius: 13px; }
+  .bc-stats b { font-size: 30px; }
+}
