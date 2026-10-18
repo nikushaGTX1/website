@@ -1,59 +1,46 @@
 <section class="verification" aria-labelledby="verification-title">
   <header>
-    <div>
+    <div class="title">
       <span class="eyebrow">VELVEN · MYHOME</span>
       <h2 id="verification-title">MyHome verification</h2>
     </div>
     <div class="actions">
       <button class="primary" type="button" (click)="start()" [disabled]="starting || running">
-        {{
-          starting ? 'Loading' : running ? 'Checking listings' : 'Verify MyHome Listings'
-        }}</button
+        <i class="fa-solid" [class.fa-spinner]="starting || running" [class.fa-spin]="starting || running" [class.fa-shield-halved]="!starting && !running" aria-hidden="true"></i>
+        {{ starting ? 'Loading' : running ? 'Checking…' : 'Verify listings' }}</button
       ><button type="button" (click)="toggle()" [attr.aria-expanded]="expanded">
-        {{ expanded ? 'Hide report' : 'Show report' }}</button
-      ><button type="button" (click)="refresh()">Refresh</button>
+        {{ expanded ? 'Hide report' : 'Report' }}</button
+      ><button type="button" class="icon" (click)="refresh()" aria-label="Refresh" title="Refresh">
+        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i></button>
     </div>
   </header>
   <p class="error" role="alert" *ngIf="error">{{ error }}</p>
   <ng-container *ngIf="overview.job as job">
-    <div class="progress" *ngIf="job.mode === 'BROWSER' && running">
-      <p>
-        Keep Chrome open. The Nikas extension checks listings using your browser session. Complete
-        any MyHome security challenge manually.
-      </p>
-      <p role="status">
-        {{
-          browserMessage || 'Waiting for the Nikas extension. Click Resume verification to connect.'
-        }}
-      </p>
-      <button type="button" (click)="resumeBrowser()">Resume verification</button>
+    <!-- One slim line while the browser extension works; nothing when idle. -->
+    <div class="notice" *ngIf="job.mode === 'BROWSER' && running" role="status">
+      <i class="fa-brands fa-chrome" aria-hidden="true"></i>
+      <span [title]="'Keep Chrome open. The Nikas extension checks listings using your browser session. Complete any MyHome security challenge manually.'">
+        {{ browserMessage || 'Waiting for the Nikas extension.' }}</span>
+      <button type="button" class="link" (click)="resumeBrowser()">Resume</button>
     </div>
     <div class="metrics">
-      <div *ngFor="let title of metrics; let i = index" [class.removed]="i === 3 && metric(i) > 0">
-        <span>{{ title }}</span
-        ><strong>{{ metric(i) }}</strong>
-      </div>
+      <button type="button" *ngFor="let title of metrics; let i = index"
+        [class.removed]="i === 3 && metric(i) > 0"
+        [class.warn]="i === 6 && metric(i) > 0"
+        [class.muted]="!metric(i)"
+        (click)="metricClick(i)" [title]="title">
+        <strong>{{ metric(i) }}</strong><span>{{ shortMetric(i) }}</span>
+      </button>
     </div>
-    <div class="progress" role="status" aria-live="polite">
-      <div>
-        <strong>{{ running ? 'Checking listings' : 'Verification complete' }}</strong
-        ><span>{{ progress.percent }}%</span>
-      </div>
-      <progress
-        [value]="progress.eligible ? progress.processed : 1"
-        [max]="progress.eligible || 1"
-        [class.running]="running"
-        aria-label="Verification progress"
-      ></progress>
-      <p>
-        <span>Processed</span>: {{ progress.processed }} / {{ progress.eligible }} ·
-        <span>Remaining</span>: {{ progress.remaining }}
-      </p>
+    <div class="progress" role="status" aria-live="polite" [class.done]="!running">
+      <progress [value]="progress.eligible ? progress.processed : 1" [max]="progress.eligible || 1"
+        [class.running]="running" aria-label="Verification progress"></progress>
+      <small>
+        {{ running ? 'Checking' : 'Done' }} · {{ progress.processed }}/{{ progress.eligible }}
+        <span *ngIf="progress.remaining"> · {{ progress.remaining }} left</span> · {{ progress.percent }}%
+      </small>
       <p class="error" *ngIf="job.error">{{ job.error }}</p>
     </div>
-    <button class="review" type="button" (click)="select('REMOVED')">
-      <span>Review removed listings</span> ({{ metric(3) }})
-    </button>
   </ng-container>
   <div *ngIf="expanded" class="report">
     <div class="filters">

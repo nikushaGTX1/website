@@ -35,6 +35,15 @@ export class MyHomeVerification implements OnInit, OnDestroy {
     'Failed checks',
     'Missing MyHome IDs',
   ];
+  private readonly shortMetrics = ['Total', 'Checked', 'Active', 'Removed', 'Uncertain', 'Failed', 'No MyHome ID'];
+  shortMetric(index: number): string {
+    return this.shortMetrics[index] ?? this.metrics[index];
+  }
+  /** Pills open the report filtered to that group (total shows everything). */
+  metricClick(index: number): void {
+    const status = ['ALL', 'ALL', 'ACTIVE', 'REMOVED', 'UNCERTAIN', 'ERROR', 'ALL'][index];
+    this.select(status);
+  }
   filter = 'ALL';
   search = '';
   page = 1;

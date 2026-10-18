@@ -1,6 +1,6 @@
 :host {
   display: block;
-  max-width: 1480px;
+  max-width: 1240px; /* same column as the dashboard cards below */
   margin: 0 auto 24px;
   color: #172033;
   font-family: Arial, Helvetica, sans-serif;
@@ -306,5 +306,157 @@ td small {
 @media (prefers-reduced-motion: reduce) {
   .running {
     animation: none;
+  }
+}
+
+/* Compact top strip ---------------------------------------------------- */
+.verification {
+  padding: 16px 18px;
+  border-radius: 16px;
+}
+header {
+  flex-wrap: nowrap;
+}
+.title {
+  min-width: 0;
+}
+.eyebrow {
+  font-size: 10px;
+}
+h2 {
+  margin: 2px 0 0;
+  font-size: 18px;
+}
+.actions {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.actions button.icon {
+  padding: 7px 10px;
+}
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: #f4f0fb;
+  color: #4b3f63;
+  font-size: 12.5px;
+}
+.notice i {
+  color: #451a8f;
+}
+.notice span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+button.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #451a8f;
+  font-size: 12.5px;
+  text-decoration: underline;
+}
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+}
+.metrics > button {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid #eee8f4;
+  border-radius: 999px;
+  background: #faf8fd;
+  color: #172033;
+  font-weight: 600;
+  transition: border-color 0.15s, background 0.15s;
+}
+.metrics > button:hover {
+  border-color: #c9b9e6;
+  background: #f4effc;
+}
+.metrics strong {
+  font-size: 14px;
+}
+.metrics span {
+  font-size: 12px;
+  color: #655b75;
+}
+.metrics .muted strong {
+  color: #9a92ad;
+}
+.metrics .removed {
+  background: #fff0f0;
+  border-color: #f7bbbb;
+}
+.metrics .removed strong,
+.metrics .removed span {
+  color: #ab2525;
+}
+.metrics .warn {
+  background: #fff8eb;
+  border-color: #f3d79b;
+}
+.metrics .warn span {
+  color: #8a5a00;
+}
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 0 0;
+  padding: 0;
+  background: none;
+}
+.progress progress {
+  flex: 1;
+  min-width: 140px;
+  height: 6px;
+  margin: 0;
+}
+.progress small {
+  color: #655b75;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.progress .error {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+}
+.report {
+  margin-top: 14px;
+  padding-top: 14px;
+}
+@media (max-width: 640px) {
+  header {
+    flex-wrap: wrap;
+  }
+  .actions {
+    width: 100%;
+  }
+  .actions button.primary {
+    flex: 1;
+    justify-content: center;
   }
 }
