@@ -2053,3 +2053,11 @@ button:disabled {
   .best-runners li { align-items: center; }
   .runner-info strong { text-align: center; }
 }
+/* Runner photo: always a fixed circle, never taller than its frame. */
+.best-runners .runner-photo { flex: none; width: 48px; height: 48px; min-height: 48px; display: block; }
+.best-runners .runner-photo img { display: block; width: 48px; height: 48px; max-width: none; border-radius: 50%; object-fit: cover; object-position: center top; }
+.best-runners .runner-photo:not(:has(img)) { display: grid; place-items: center; }
+@media (max-width: 640px) {
+  .best-runners .runner-photo { width: 56px; height: 56px; min-height: 56px; margin-bottom: 2px; }
+  .best-runners .runner-photo img { width: 56px; height: 56px; }
+}
