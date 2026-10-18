@@ -412,3 +412,16 @@
   .deal-badge { order: 3; }
   .deal-field { max-width: none; }
 }
+/* Narrow screens: icon + text side by side, badge on its own line, no squeezed title. */
+@media (max-width: 720px) {
+  .deal-head { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: start; column-gap: 12px; row-gap: 10px; padding: 14px; }
+  .deal-titles { grid-column: 2; }
+  .deal-titles h3 { font-size: 15px; overflow-wrap: break-word; }
+  .deal-badge { grid-column: 2; justify-self: start; }
+  .deal-body { padding: 14px; }
+  .deal-field { flex-basis: 100%; max-width: none; height: 52px; }
+  .deal-field input { font-size: 22px; }
+  .deal-rules { width: 100%; }
+  .deal-rules span { flex: 1; justify-content: center; }
+  .deal-hint { padding: 12px 14px; }
+}
