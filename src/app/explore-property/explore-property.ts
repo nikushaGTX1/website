@@ -1005,6 +1005,29 @@ export class ExploreProperty implements OnInit, OnDestroy {
   @HostListener('window:resize')
   closeFilterMenuOnMove(): void {
     if (this.filterMenu && window.innerWidth > 650) this.filterMenu = null;
+    this.fitPageSizeToGrid();
+  }
+
+  /** About this many homes per page; rounded to whole rows of the card grid. */
+  private readonly targetPageSize = 20;
+
+  /**
+   * 20 homes in a 3-column grid leave a half-empty last row on every page. Round the page
+   * size to whole rows for the current number of columns (3 → 21, 2 or 4 → 20), so only
+   * the final page can end short.
+   */
+  private fitPageSizeToGrid(): void {
+    const grid = document.querySelector<HTMLElement>('.cards-grid');
+    if (!grid) return;
+    const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').filter((part) => part && part !== 'none').length || 1;
+    const size = Math.ceil(this.targetPageSize / columns) * columns;
+    if (size === this.pageSize) return;
+    const firstShown = (this.currentPage - 1) * this.pageSize;
+    this.pageSize = size;
+    // Keep the visitor on the page that contains the first home they were looking at.
+    this.currentPage = Math.min(Math.floor(firstShown / size) + 1, this.totalPages);
+    this.updateVisibleApartments();
+    this.cdr.detectChanges();
   }
 
   setMinimumArea(event: Event): void {
@@ -1754,6 +1777,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
         this.onSearch(); // Perform initial search on page load
         this.loading = false;
         this.cdr.detectChanges();
+        // The card grid exists now: match the page size to its column count.
+        this.fitPageSizeToGrid();
       },
       error: (err) => {
         console.error('API Error:', err);
