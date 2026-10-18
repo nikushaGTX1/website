@@ -2099,3 +2099,10 @@ button:disabled {
   .bc-trophy { width: 44px; height: 44px; font-size: 19px; border-radius: 13px; }
   .bc-stats b { font-size: 30px; }
 }
+/* Horizontal banner, two stats (no win rate) */
+.best-agent { grid-template-columns: 1fr; justify-content: stretch; }
+.best-main { width: 100%; box-sizing: border-box; }
+.best-photo img { object-position: center top; }
+@media (max-width: 640px) {
+  .best-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
