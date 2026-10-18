@@ -1209,6 +1209,31 @@ async function agentSeo(pathname) {
   };
 }
 
+/**
+ * Public review links (/review/{slug}) are shared in Messenger, WhatsApp and SMS, whose link
+ * previews read this server-rendered HTML. Without it they showed "Page Not Found".
+ */
+async function reviewSeo(pathname) {
+  const match = /^\/review\/([a-z0-9]+(?:-[a-z0-9]+)*)$/i.exec(pathname);
+  if (!match) return undefined;
+  const apiResponse = await fetchPublicApi(`/api/Reviews/link/${encodeURIComponent(match[1].toLowerCase())}`, false);
+  if (apiResponse.status === 404 || apiResponse.status === 400) return null;
+  if (apiResponse.status < 200 || apiResponse.status >= 300) return undefined;
+  const link = JSON.parse(apiResponse.body.toString('utf8'));
+  const name = plainText(link.agentName, 70) || 'Velven';
+  // Georgian first: most clients receiving the link read Georgian.
+  const title = `შეაფასეთ ${name} ⭐ | Velven`;
+  const description = `როგორ შეაფასებდით თანამშრომლობას ${name}-სთან? დატოვეთ შეფასება 1 წუთში, რეგისტრაციის გარეშე. · Rate your experience with ${name} on Velven.`;
+  return {
+    title,
+    description,
+    canonicalUrl: `${canonicalOrigin}${pathname.toLowerCase()}`,
+    image: defaultSeo.image,
+    fallbackHtml: `<main id="main-content"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p></main>`,
+    structuredData: pageGraph(pathname, title, description),
+  };
+}
+
 app.get('/seo/apartment-image/:id', async (request, response) => {
   try {
     if (!/^\d+$/.test(request.params.id)) {
@@ -1406,9 +1431,10 @@ app.use(async (request, response) => {
     const pathname = request.path.replace(/\/+$/, '') || '/main';
     const apartmentMetadata = await apartmentSeo(pathname);
     const agentMetadata = apartmentMetadata === undefined ? await agentSeo(pathname) : undefined;
+    const reviewMetadata = await reviewSeo(pathname);
     const questionnaireMetadata = crmQuestionnaireSeo(pathname);
-    const missingResource = apartmentMetadata === null || agentMetadata === null;
-    const dynamicMetadata = apartmentMetadata || agentMetadata || questionnaireMetadata;
+    const missingResource = apartmentMetadata === null || agentMetadata === null || reviewMetadata === null;
+    const dynamicMetadata = apartmentMetadata || agentMetadata || reviewMetadata || questionnaireMetadata;
     const staticMetadata = routeSeo.get(pathname);
     const knownPrivateRoute = privateRoutePattern.test(pathname)
       || ['/property', '/apartment-detail'].includes(pathname);
