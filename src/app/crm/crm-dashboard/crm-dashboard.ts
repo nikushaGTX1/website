@@ -14,6 +14,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js/max';
 import { Agent } from '../../models/agent';
+import { toMediaUrl } from '../../utils/api-media';
 import {
   CRM_LEAD_STATUSES,
   CreateCrmLeadRequest,
@@ -614,6 +615,60 @@ export class CrmDashboard implements OnInit {
 
   statusLabel(status: CrmLeadStatus): string {
     return this.statusLabels[status];
+  }
+
+  /**
+   * "Best agent" ranking: most won leads closed this month; if nobody has won yet this
+   * month, the all-time ranking. Ties go to the better win rate. Real CRM data only.
+   */
+  get leaderboard(): {
+    monthly: boolean;
+    period: string;
+    items: Array<{ id: string; name: string; photo: string; initials: string; won: number; closed: number; rate: number }>;
+  } | null {
+    if (!this.isManager) return null;
+    const now = new Date();
+    const thisMonth = (lead: CrmLead) => {
+      const date = new Date(lead.closedAt || lead.updatedAt || lead.createdAt);
+      return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+    };
+    const rank = (leads: CrmLead[]) => {
+      const byAgent = new Map<string, { won: number; closed: number }>();
+      for (const lead of leads) {
+        if (!lead.assignedAgentId || (lead.status !== 'won' && lead.status !== 'lost')) continue;
+        const entry = byAgent.get(lead.assignedAgentId) ?? { won: 0, closed: 0 };
+        entry.closed++;
+        if (lead.status === 'won') entry.won++;
+        byAgent.set(lead.assignedAgentId, entry);
+      }
+      return [...byAgent.entries()]
+        .filter(([, stats]) => stats.won > 0)
+        .map(([id, stats]) => {
+          const agent = this.agents.find((item) => this.agentId(item) === id);
+          const name = agent
+            ? this.agentFirstLastName(agent)
+            : this.leads.find((lead) => lead.assignedAgentId === id)?.assignedAgentName || 'Agent';
+          return {
+            id,
+            name,
+            photo: toMediaUrl(agent?.profilePictureUrl || agent?.profilePicture || ''),
+            initials: name.split(/\s+/).map((part) => part.charAt(0)).join('').slice(0, 2).toUpperCase(),
+            won: stats.won,
+            closed: stats.closed,
+            rate: Math.round((stats.won / stats.closed) * 100),
+          };
+        })
+        .sort((a, b) => b.won - a.won || b.rate - a.rate || a.name.localeCompare(b.name))
+        .slice(0, 3);
+    };
+    const monthly = rank(this.leads.filter(thisMonth));
+    const items = monthly.length ? monthly : rank(this.leads);
+    if (!items.length) return null;
+    return {
+      monthly: monthly.length > 0,
+      period: monthly.length ? now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'All time',
+      items,
+    };
   }
 
   agentId(agent: Agent): string {

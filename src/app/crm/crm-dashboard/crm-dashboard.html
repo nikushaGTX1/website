@@ -251,6 +251,38 @@
     <!-- FILTERS -->
     <!-- ===================================================== -->
 
+    <!-- Best agent: most won leads this month (managers only; computed from real leads). -->
+    <section class="best-agent" *ngIf="leaderboard as board" aria-label="Best agent">
+      <div class="best-main" *ngIf="board.items[0] as top">
+        <span class="best-trophy"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
+        <div class="best-photo">
+          <img *ngIf="top.photo; else bestInitials" [src]="top.photo" alt="" />
+          <ng-template #bestInitials><span>{{ top.initials }}</span></ng-template>
+          <i class="fa-solid fa-star" aria-hidden="true"></i>
+        </div>
+        <div class="best-text">
+          <small>Best agent at Velven · {{ board.period }}</small>
+          <strong data-no-translate>{{ top.name }}</strong>
+          <span>Real Estate Agent</span>
+        </div>
+        <div class="best-stats">
+          <div><i class="fa-solid fa-handshake" aria-hidden="true"></i><b>{{ top.won }}</b><small>Deals won</small></div>
+          <div><i class="fa-solid fa-chart-line" aria-hidden="true"></i><b>{{ top.rate }}%</b><small>Win rate</small></div>
+        </div>
+      </div>
+      <ol class="best-runners" *ngIf="board.items.length > 1">
+        <li *ngFor="let agent of board.items.slice(1); let i = index">
+          <span class="runner-rank">{{ i + 2 }}</span>
+          <span class="runner-photo">
+            <img *ngIf="agent.photo; else runnerInitials" [src]="agent.photo" alt="" />
+            <ng-template #runnerInitials>{{ agent.initials }}</ng-template>
+          </span>
+          <span class="runner-name" data-no-translate>{{ agent.name }}</span>
+          <span class="runner-won">{{ agent.won }} <small>won</small></span>
+        </li>
+      </ol>
+    </section>
+
     <section class="filter-panel" aria-label="Lead filters">
       <!-- SEARCH -->
 
