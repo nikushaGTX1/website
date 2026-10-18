@@ -178,8 +178,34 @@
           </div>
         </div>
       </section>
-      <!-- "What clients say" removed: the same three 5-star quotes were hard-coded for every agent,
-           so they could not be genuine reviews. Re-add from real review data. -->
+      <!-- Real client reviews (signed-in ratings + reviews from the agent's review link). -->
+      <section class="content-section client-reviews" id="client-reviews" *ngIf="!listingsPage && reviews.length">
+        <header class="section-heading">
+          <div>
+            <span>WHAT CLIENTS SAY</span>
+            <h2>Client reviews</h2>
+            <p>
+              <span class="reviews-score"><i class="fa-solid fa-star"></i> {{ rating | number: '1.1-1' }}</span>
+              · {{ agent.ratingCount || reviews.length }} {{ (agent.ratingCount || reviews.length) === 1 ? 'review' : 'reviews' }}
+            </p>
+          </div>
+        </header>
+        <div class="client-review-grid">
+          <article class="client-review" *ngFor="let review of visibleReviews">
+            <div class="client-review-stars" [attr.aria-label]="review.stars + ' of 5 stars'">
+              <i *ngFor="let star of [1, 2, 3, 4, 5]" class="fa-star" [class.fa-solid]="star <= review.stars" [class.fa-regular]="star > review.stars" aria-hidden="true"></i>
+            </div>
+            <p class="client-review-text" *ngIf="review.comment" data-no-translate>{{ review.comment }}</p>
+            <footer>
+              <span class="client-review-avatar">{{ (review.reviewerName || 'V').charAt(0) }}</span>
+              <span><b data-no-translate>{{ review.reviewerName || 'Velven client' }}</b><small>{{ review.createdAt | date: 'MMM y' }}</small></span>
+            </footer>
+          </article>
+        </div>
+        <button type="button" class="client-reviews-more" *ngIf="reviews.length > visibleReviews.length" (click)="showAllReviews = true">
+          Show all {{ reviews.length }} reviews <i class="fa-solid fa-chevron-down"></i>
+        </button>
+      </section>
       <section class="contact-banner">
         <div>
           <span>GET IN TOUCH</span>

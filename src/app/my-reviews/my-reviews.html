@@ -1,0 +1,140 @@
+<main class="reviews-page">
+  <header class="page-head">
+    <div>
+      <span class="kicker">CLIENT FEEDBACK</span>
+      <h1>My reviews</h1>
+      <p>Send your review link to clients after a viewing or a deal. New reviews appear here automatically.</p>
+    </div>
+    <span class="live" *ngIf="data" [class.busy]="refreshing" title="Checks for new reviews every 20 seconds">
+      <span class="dot"></span> Live
+    </span>
+  </header>
+
+  <!-- Loading -->
+  <div class="skeleton-grid" *ngIf="loading" aria-label="Loading reviews">
+    <div class="sk card tall"></div>
+    <div class="sk card tall"></div>
+    <div class="sk card"></div>
+    <div class="sk card"></div>
+  </div>
+
+  <!-- Error -->
+  <section class="state-card" *ngIf="!loading && error && !data">
+    <span class="state-icon error"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+    <h2>Something went wrong</h2>
+    <p>{{ error }}</p>
+    <button type="button" class="btn ghost" (click)="load(false)">Try again</button>
+  </section>
+
+  <ng-container *ngIf="data && !loading">
+    <!-- Review link -->
+    <section class="link-card">
+      <div class="link-copy">
+        <span class="link-icon"><i class="fa-solid fa-link" aria-hidden="true"></i></span>
+        <div>
+          <h2>Your review link</h2>
+          <p>Permanent link — share it on WhatsApp, Messenger, Instagram or SMS. No sign-in needed for clients.</p>
+        </div>
+      </div>
+      <div class="link-row">
+        <input class="link-input" type="text" readonly [value]="link" aria-label="Your review link" (focus)="$any($event.target).select()" data-no-translate />
+        <button type="button" class="btn primary" (click)="copyLink()" [class.done]="copied">
+          <i class="fa-solid" [class.fa-copy]="!copied" [class.fa-check]="copied" aria-hidden="true"></i>
+          {{ copied ? 'Copied!' : 'Copy link' }}
+        </button>
+      </div>
+      <p class="copy-error" *ngIf="copyFailed" role="alert">Copy failed — select the link and copy it manually.</p>
+      <div class="share-row">
+        <a class="chip whatsapp" [href]="whatsappHref" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+        <button type="button" class="chip" *ngIf="canShare" (click)="share()"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Share…</button>
+        <a class="chip" [href]="link" target="_blank" rel="noopener"><i class="fa-regular fa-eye" aria-hidden="true"></i> Preview</a>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <div class="score-card">
+        <span class="score-label">Average rating</span>
+        <div class="score">
+          <b>{{ total ? (average | number: '1.1-1') : '—' }}</b><span>/ 5</span>
+        </div>
+        <div class="avg-stars" [attr.aria-label]="'Average ' + (average | number: '1.1-1') + ' of 5'">
+          <span class="avg-star" *ngFor="let star of stars">
+            <i class="fa-solid fa-star base" aria-hidden="true"></i>
+            <i class="fa-solid fa-star fill" aria-hidden="true" [style.width.%]="starFill(star)"></i>
+          </span>
+        </div>
+        <p>{{ total }} {{ total === 1 ? 'review' : 'reviews' }}</p>
+      </div>
+
+      <div class="dist-card">
+        <h2>Rating distribution</h2>
+        <button type="button" class="bar-row" *ngFor="let row of distribution"
+          [class.active]="ratingFilter === row.stars" [disabled]="!row.count && ratingFilter !== row.stars"
+          (click)="setFilter(row.stars)" [attr.aria-pressed]="ratingFilter === row.stars"
+          [attr.aria-label]="row.stars + ' stars: ' + row.count + ' reviews'">
+          <span class="bar-label">{{ row.stars }} <i class="fa-solid fa-star" aria-hidden="true"></i></span>
+          <span class="bar"><span class="bar-fill" [style.width.%]="row.percent" [attr.data-stars]="row.stars"></span></span>
+          <span class="bar-count">{{ row.count }}</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- New reviews notice -->
+    <button type="button" class="new-toast" *ngIf="newCount" (click)="dismissNew()">
+      <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      {{ newCount }} new {{ newCount === 1 ? 'review' : 'reviews' }} just arrived
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+
+    <!-- Toolbar -->
+    <section class="toolbar" *ngIf="total">
+      <div class="filters" role="group" aria-label="Filter by rating">
+        <button type="button" class="filter" [class.active]="ratingFilter === null" (click)="setFilter(null)">All <b>{{ total }}</b></button>
+        <button type="button" class="filter" *ngFor="let row of distribution" [class.active]="ratingFilter === row.stars"
+          (click)="setFilter(row.stars)">{{ row.stars }} <i class="fa-solid fa-star" aria-hidden="true"></i> <b>{{ row.count }}</b></button>
+      </div>
+      <label class="sort">
+        <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+        <select [ngModel]="sort" (ngModelChange)="setSort($event)" aria-label="Sort reviews">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+      </label>
+    </section>
+
+    <!-- Empty: no reviews at all -->
+    <section class="state-card" *ngIf="!total">
+      <span class="state-icon"><i class="fa-regular fa-star" aria-hidden="true"></i></span>
+      <h2>No reviews yet</h2>
+      <p>Copy your link above and send it to a client you recently helped. Their review will show up here.</p>
+      <button type="button" class="btn primary" (click)="copyLink()"><i class="fa-solid fa-copy" aria-hidden="true"></i> {{ copied ? 'Copied!' : 'Copy review link' }}</button>
+    </section>
+
+    <!-- Empty: filter has no matches -->
+    <section class="state-card slim" *ngIf="total && !data.reviews.length">
+      <p>No {{ ratingFilter }}-star reviews yet.</p>
+      <button type="button" class="btn ghost" (click)="setFilter(null)">Show all reviews</button>
+    </section>
+
+    <!-- List -->
+    <section class="review-list" *ngIf="data.reviews.length" [class.dim]="refreshing && !data.reviews.length">
+      <article class="review" *ngFor="let review of data.reviews; trackBy: trackById" [class.fresh]="freshIds.has(review.id)">
+        <header>
+          <span class="avatar" [attr.data-rating]="review.rating">{{ initial(review) }}</span>
+          <div class="who">
+            <strong data-no-translate>{{ displayName(review) }}</strong>
+            <time [attr.datetime]="review.createdAt">{{ review.createdAt | date: 'MMM d, y · HH:mm' }}</time>
+          </div>
+          <span class="badge-new" *ngIf="freshIds.has(review.id)">New</span>
+        </header>
+        <div class="review-stars" [attr.aria-label]="review.rating + ' of 5 stars'">
+          <i *ngFor="let star of stars" class="fa-star" [class.fa-solid]="star <= review.rating" [class.fa-regular]="star > review.rating" aria-hidden="true"></i>
+          <span class="review-label">{{ labels[review.rating] }}</span>
+        </div>
+        <p class="comment" *ngIf="review.comment; else noComment" data-no-translate>{{ review.comment }}</p>
+        <ng-template #noComment><p class="comment muted">No comment left.</p></ng-template>
+      </article>
+    </section>
+  </ng-container>
+</main>

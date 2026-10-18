@@ -21,4 +21,14 @@ export interface Agent {
   closedDeals?: number;
   /** The agent's own published listings. */
   listingCount?: number;
+  /** Client reviews, newest first (profile endpoint only). Only the reviewer's first name is public. */
+  ratings?: AgentPublicReview[];
+}
+
+export interface AgentPublicReview {
+  id: string;
+  stars: number;
+  comment?: string | null;
+  createdAt: string;
+  reviewerName?: string | null;
 }

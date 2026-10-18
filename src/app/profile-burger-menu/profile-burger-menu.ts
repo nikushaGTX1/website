@@ -30,12 +30,20 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   ];
 
   get menuItems(): MenuItem[] {
-    return this.canOpenCrm
+    const items = this.canOpenCrm
       ? [
           { label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-address-book' },
           ...this.accountMenuItems,
         ]
       : this.accountMenuItems;
+    // Agents collect client reviews through their own review link.
+    return this.canOpenReviews
+      ? [...items, { label: 'My reviews', route: '/my-reviews', icon: 'fa-regular fa-star' }]
+      : items;
+  }
+
+  get canOpenReviews(): boolean {
+    return this.authService.isAgent || this.authService.isCrmManager;
   }
 
   private subscription?: Subscription;

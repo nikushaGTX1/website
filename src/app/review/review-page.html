@@ -1,0 +1,100 @@
+<main class="review-page">
+  <section class="review-card" aria-live="polite">
+    <!-- Loading -->
+    <div class="review-state" *ngIf="loading">
+      <span class="skeleton avatar"></span>
+      <span class="skeleton line wide"></span>
+      <span class="skeleton line"></span>
+    </div>
+
+    <!-- Invalid link -->
+    <div class="review-state" *ngIf="!loading && notFound">
+      <span class="state-icon"><i class="fa-solid fa-link-slash" aria-hidden="true"></i></span>
+      <h1>This review link is not valid</h1>
+      <p>Ask your agent to send you their review link again.</p>
+      <a class="ghost-button" routerLink="/main">Go to Velven</a>
+    </div>
+
+    <!-- Load error -->
+    <div class="review-state" *ngIf="!loading && loadError">
+      <span class="state-icon error"><i class="fa-solid fa-wifi" aria-hidden="true"></i></span>
+      <h1>Something went wrong</h1>
+      <p>{{ loadError }}</p>
+      <button class="ghost-button" type="button" (click)="load()">Try again</button>
+    </div>
+
+    <!-- Success -->
+    <div class="review-state success" *ngIf="link && submitted">
+      <span class="state-icon ok"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+      <h1>Thank you!</h1>
+      <p>Your review for <strong data-no-translate>{{ link.agentName }}</strong> was sent. It helps other people choose with confidence.</p>
+      <div class="success-stars" aria-label="Your rating: {{ rating }} of 5">
+        <i *ngFor="let star of stars" class="fa-star" [class.fa-solid]="star <= rating" [class.fa-regular]="star > rating" aria-hidden="true"></i>
+      </div>
+      <a class="ghost-button" routerLink="/main">Explore homes on Velven</a>
+    </div>
+
+    <!-- Form -->
+    <form *ngIf="link && !submitted && !loading" (ngSubmit)="submit()" novalidate>
+      <header class="review-head">
+        <div class="agent-avatar">
+          <img *ngIf="link.profilePicture; else initials" [src]="link.profilePicture" alt="" />
+          <ng-template #initials><span>{{ (link.agentName || 'V').charAt(0) }}</span></ng-template>
+          <i class="fa-solid fa-circle-check verified" aria-hidden="true"></i>
+        </div>
+        <span class="kicker">VELVEN AGENT</span>
+        <h1>How was your experience with <span data-no-translate>{{ link.agentName }}</span>?</h1>
+        <p>Your feedback takes less than a minute and no sign-in is needed.</p>
+      </header>
+
+      <fieldset class="rating-block" [class.missing]="ratingMissing">
+        <legend class="sr-only">Your rating</legend>
+        <div class="stars" role="radiogroup" aria-label="Rating from 1 to 5 stars"
+          (mouseleave)="hover = 0" (keydown)="onStarKey($event)">
+          <button *ngFor="let star of stars" type="button" class="star"
+            role="radio"
+            [attr.aria-checked]="rating === star"
+            [attr.aria-label]="star + (star === 1 ? ' star' : ' stars')"
+            [attr.tabindex]="(rating ? rating === star : star === 1) ? 0 : -1"
+            [class.on]="star <= shownRating"
+            [class.chosen]="star === rating"
+            (mouseenter)="hover = star"
+            (focus)="hover = 0"
+            (click)="select(star)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" /></svg>
+          </button>
+        </div>
+        <p class="rating-label" [class.active]="shownRating > 0" [attr.data-rating]="shownRating">
+          <span *ngIf="shownRating">{{ shownRating }} {{ shownRating === 1 ? 'Star' : 'Stars' }} — </span>{{ ratingLabel }}
+        </p>
+        <p class="field-error" *ngIf="ratingMissing" role="alert"><i class="fa-solid fa-circle-exclamation"></i> Please choose a rating first.</p>
+      </fieldset>
+
+      <label class="field">
+        <span>Your comment <small>Optional</small></span>
+        <textarea name="comment" rows="5" [(ngModel)]="comment" [maxlength]="maxComment"
+          placeholder="Tell us about your experience..."></textarea>
+        <small class="counter" [class.near]="comment.length > maxComment - 100">{{ comment.length }} / {{ maxComment }}</small>
+      </label>
+
+      <label class="field">
+        <span>Your name <small>Optional</small></span>
+        <input name="customerName" type="text" autocomplete="given-name" [(ngModel)]="customerName" [maxlength]="maxName" placeholder="e.g. Nino" />
+        <small class="hint">Only your first name is shown publicly.</small>
+      </label>
+
+      <!-- Honeypot: hidden from people and screen readers. -->
+      <div class="hp" aria-hidden="true">
+        <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" [(ngModel)]="website" /></label>
+      </div>
+
+      <p class="submit-error" *ngIf="submitError" role="alert"><i class="fa-solid fa-triangle-exclamation"></i> {{ submitError }}</p>
+
+      <button class="submit" type="submit" [disabled]="submitting" [class.ready]="rating > 0">
+        <span *ngIf="!submitting">Submit Review <i class="fa-solid fa-paper-plane" aria-hidden="true"></i></span>
+        <span *ngIf="submitting"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Sending…</span>
+      </button>
+      <p class="fine-print"><i class="fa-solid fa-lock" aria-hidden="true"></i> We never share your contact details.</p>
+    </form>
+  </section>
+</main>

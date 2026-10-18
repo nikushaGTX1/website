@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
-import { Agent } from '../models/agent';
+import { Agent, AgentPublicReview } from '../models/agent';
 import { Apartment } from '../models/apartment';
 import { CrmLead } from '../models/crm';
 import { AgentService } from '../services/agent.service';
@@ -146,6 +146,18 @@ export class AgentDetailProfile implements OnInit {
 
   get rating(): number {
     return this.agent?.averageRating || this.agent?.rating || 0;
+  }
+
+  showAllReviews = false;
+
+  /** Real client reviews, newest first: those with a comment come first. */
+  get reviews(): AgentPublicReview[] {
+    const all = this.agent?.ratings ?? [];
+    return [...all.filter((review) => review.comment?.trim()), ...all.filter((review) => !review.comment?.trim())];
+  }
+
+  get visibleReviews(): AgentPublicReview[] {
+    return this.showAllReviews ? this.reviews : this.reviews.slice(0, 6);
   }
 
   get location(): string {

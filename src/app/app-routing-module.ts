@@ -284,6 +284,19 @@ const routes: Routes = [
   },
 
   {
+    path: 'review/:slug',
+    loadComponent: () => import('./review/review-page').then(module => module.ReviewPage),
+    title: 'Leave a Review | Velven'
+  },
+
+  {
+    path: 'my-reviews',
+    loadComponent: () => import('./my-reviews/my-reviews').then(module => module.MyReviews),
+    title: 'My Reviews | Velven',
+    canActivate: [authGuard, agentGuard]
+  },
+
+  {
     path: 'owner/:token',
     loadComponent: () => import('./owner-listing/owner-listing').then(module => module.OwnerListing),
     title: 'List Your Property | Velven'

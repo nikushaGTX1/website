@@ -1123,3 +1123,92 @@ span.t {
   padding: 0 !important;
   background: none !important;
 }
+
+/* Client reviews (real data from the API) ------------------------------- */
+.reviews-score {
+  color: #1b1626;
+  font-weight: 800;
+}
+.reviews-score i {
+  color: #f5b301;
+}
+.client-review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.client-review {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid #e6e4ef;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fff, #f8f6ff);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.client-review:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -30px rgba(69, 26, 143, 0.55);
+}
+.client-review-stars {
+  display: flex;
+  gap: 3px;
+  color: #f5b301;
+}
+.client-review-stars .fa-regular {
+  color: #ddd3ee;
+}
+.client-review-text {
+  margin: 0;
+  color: #3a3448;
+  line-height: 1.6;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.client-review footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+}
+.client-review-avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f1ebfb;
+  color: #451a8f;
+  font-weight: 800;
+}
+.client-review footer b,
+.client-review footer small {
+  display: block;
+}
+.client-review footer small {
+  color: #8a83a0;
+  font-size: 12px;
+}
+.client-reviews-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 11px 18px;
+  border: 1px solid #d9cdf1;
+  border-radius: 12px;
+  background: #fff;
+  color: #451a8f;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.client-reviews-more:hover {
+  background: #faf8ff;
+}
+@media (max-width: 900px) {
+  .client-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
