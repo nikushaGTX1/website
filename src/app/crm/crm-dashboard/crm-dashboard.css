@@ -1980,3 +1980,42 @@ button:disabled {
 .runner-won { display: grid; justify-items: end; line-height: 1.2; }
 .runner-won em { color: #6b6480; font-size: 12px; font-style: normal; font-weight: 700; }
 @media (max-width: 1100px) { .best-stats div { min-width: 96px; padding: 12px; } .best-stats b { font-size: 22px; } }
+/* Runner-up list (2nd / 3rd) */
+.best-runners { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 16px 18px; background: linear-gradient(160deg, #fff, #faf7ff); }
+.runners-title { margin: 0; color: #6d3fd1; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.runners-title i { margin-right: 4px; }
+.best-runners ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.best-runners li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #efe9f8; border-radius: 14px; background: #fff; transition: transform 0.15s, box-shadow 0.15s; }
+.best-runners li:hover { background: #fff; transform: translateY(-1px); box-shadow: 0 10px 22px -18px rgba(69, 26, 143, 0.7); }
+.runner-photo { position: relative; overflow: visible; width: 44px; height: 44px; }
+.runner-photo img { border-radius: 50%; }
+.best-runners li[data-rank='2'] .runner-photo { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #c7cbd6; }
+.best-runners li[data-rank='3'] .runner-photo { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #e0b089; }
+.runner-medal { position: absolute; right: -4px; bottom: -4px; width: 18px; height: 18px; display: grid; place-items: center; border: 2px solid #fff; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 800; }
+.best-runners li[data-rank='2'] .runner-medal { background: linear-gradient(135deg, #b8bcc8, #8d93a3); }
+.best-runners li[data-rank='3'] .runner-medal { background: linear-gradient(135deg, #e3a86f, #b87440); }
+.runner-info { min-width: 0; flex: 1; display: grid; gap: 3px; }
+.runner-info strong { color: #16121f; font-size: 14px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.runner-stats { display: flex; flex-wrap: wrap; gap: 6px; }
+.runner-stats > span { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; background: #f4effc; color: #451a8f; font-size: 12px; font-weight: 800; }
+.runner-stats i { font-size: 10px; }
+.runner-stats .runner-money { background: #ecf8f1; color: #1f7a4d; }
+
+/* Mobile: winner card stacks centered, runners side by side */
+@media (max-width: 640px) {
+  .best-main { flex-direction: column; text-align: center; gap: 12px; padding: 22px 16px 18px; background: radial-gradient(120% 70% at 50% 0%, #f1e9ff, #fff 70%); }
+  .best-trophy { display: grid; position: absolute; top: 14px; left: 14px; width: 38px; height: 38px; font-size: 16px; }
+  .best-photo { width: 96px; height: 96px; }
+  .best-text { justify-items: center; }
+  .best-text strong { font-size: 24px; white-space: normal; }
+  .best-stats { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .best-stats div { min-width: 0; padding: 12px 6px; }
+  .best-stats b { font-size: 19px; }
+  .best-runners { padding: 14px; }
+  .best-runners ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .best-runners li { flex-direction: column; text-align: center; gap: 8px; padding: 14px 8px; }
+  .runner-info { justify-items: center; }
+  .runner-stats { justify-content: center; }
+}
+/* Must stay last: earlier desktop sizing rules would otherwise win on small screens. */
+@media (max-width: 900px) { .best-agent { grid-template-columns: 1fr; } }

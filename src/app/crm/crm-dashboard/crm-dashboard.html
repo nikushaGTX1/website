@@ -271,18 +271,25 @@
           <div><i class="fa-solid fa-chart-line" aria-hidden="true"></i><b>{{ top.rate }}%</b><small>Win rate</small></div>
         </div>
       </div>
-      <ol class="best-runners" *ngIf="board.items.length > 1">
-        <li *ngFor="let agent of board.items.slice(1); let i = index">
-          <span class="runner-rank">{{ i + 2 }}</span>
-          <span class="runner-photo">
-            <img *ngIf="agent.photo; else runnerInitials" [src]="agent.photo" alt="" />
-            <ng-template #runnerInitials>{{ agent.initials }}</ng-template>
-          </span>
-          <span class="runner-name" data-no-translate>{{ agent.name }}</span>
-          <span class="runner-won">{{ agent.won }} <small>won</small>
-            <em data-no-translate>{{ agent.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</em></span>
-        </li>
-      </ol>
+      <div class="best-runners" *ngIf="board.items.length > 1">
+        <p class="runners-title"><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> Top agents</p>
+        <ol>
+          <li *ngFor="let agent of board.items.slice(1); let i = index" [attr.data-rank]="i + 2">
+            <span class="runner-photo">
+              <img *ngIf="agent.photo; else runnerInitials" [src]="agent.photo" alt="" />
+              <ng-template #runnerInitials>{{ agent.initials }}</ng-template>
+              <b class="runner-medal">{{ i + 2 }}</b>
+            </span>
+            <span class="runner-info">
+              <strong data-no-translate>{{ agent.name }}</strong>
+              <span class="runner-stats">
+                <span><i class="fa-solid fa-handshake" aria-hidden="true"></i> {{ agent.won }}</span>
+                <span class="runner-money" data-no-translate><i class="fa-solid fa-wallet" aria-hidden="true"></i> {{ agent.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
+              </span>
+            </span>
+          </li>
+        </ol>
+      </div>
     </section>
 
     <section class="filter-panel" aria-label="Lead filters">
