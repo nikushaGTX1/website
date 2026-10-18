@@ -151,6 +151,7 @@ export class CrmDashboard implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadBestAgent();
     const requestedStatus = this.route.snapshot.paramMap.get('status');
     if (this.isDisplayedStatus(requestedStatus)) {
       this.dedicatedStatus = requestedStatus;
@@ -442,13 +443,11 @@ export class CrmDashboard implements OnInit {
         ? this.crmService.getJobApplications().pipe(catchError(() => of([] as CrmJobApplication[])))
         : of([] as CrmJobApplication[]),
       metrics: this.crmService.getMetrics().pipe(catchError(() => of(null))),
-      bestAgent: this.crmService.getBestAgent().pipe(catchError(() => of(null))),
       agents: this.isManager
         ? this.agentService.getAgents().pipe(catchError(() => of([] as Agent[])))
         : of([] as Agent[]),
     }).subscribe({
-      next: ({ leads, applications, metrics, agents, bestAgent }) => {
-        this.bestAgent = bestAgent;
+      next: ({ leads, applications, metrics, agents }) => {
         this.leads = this.scopeLeads(leads);
         this.jobApplications = applications;
         this.agents = agents;
@@ -621,6 +620,32 @@ export class CrmDashboard implements OnInit {
 
   /** This month's best agent for every CRM user (agents included), from the API. */
   bestAgent: CrmBestAgent | null = null;
+  private static readonly bestAgentCacheKey = 'velven-crm-best-agent';
+
+  /**
+   * Shows the last known best agent instantly (saved in this browser), then refreshes it
+   * with its own small request instead of waiting for all leads and metrics to load.
+   */
+  private loadBestAgent(): void {
+    try {
+      const cached = JSON.parse(localStorage.getItem(CrmDashboard.bestAgentCacheKey) || 'null') as CrmBestAgent | null;
+      const sameMonth = cached && new Date(cached.period).getUTCMonth() === new Date().getUTCMonth()
+        && new Date(cached.period).getUTCFullYear() === new Date().getUTCFullYear();
+      if (sameMonth) this.bestAgent = cached;
+    } catch {
+      // No saved copy: the request below fills it in.
+    }
+    this.crmService.getBestAgent().pipe(catchError(() => of(null))).subscribe((result) => {
+      this.bestAgent = result;
+      try {
+        if (result) localStorage.setItem(CrmDashboard.bestAgentCacheKey, JSON.stringify(result));
+        else localStorage.removeItem(CrmDashboard.bestAgentCacheKey);
+      } catch {
+        // Storage unavailable (private mode): nothing to keep.
+      }
+      this.cdr.markForCheck();
+    });
+  }
 
   get bestAgentPeriod(): string {
     const date = this.bestAgent ? new Date(this.bestAgent.period) : new Date();
