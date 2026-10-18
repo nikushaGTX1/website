@@ -681,11 +681,6 @@ export class CrmDashboard implements OnInit {
     };
   }
 
-  /** Place numbers (2-4) that have no agent yet. */
-  emptyPlaces(filled: number): number[] {
-    return [2, 3, 4].filter((place) => place > filled);
-  }
-
   agentId(agent: Agent): string {
     return agent.userId || agent.id || '';
   }

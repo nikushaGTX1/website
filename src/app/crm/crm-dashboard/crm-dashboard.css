@@ -2070,3 +2070,6 @@ button:disabled {
 .best-runners .runner-empty .runner-photo { display: grid; place-items: center; background: #f1ebfb; color: #b3a5d6; font-size: 18px; box-shadow: none; }
 .best-runners .runner-empty strong { color: #9a92ad; font-weight: 700; }
 .best-runners .runner-empty:hover { transform: none; box-shadow: none; }
+/* Winner only: one centred card */
+.best-agent { grid-template-columns: minmax(0, 420px); justify-content: center; }
+.bc-card { width: 100%; }
