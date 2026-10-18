@@ -13,6 +13,8 @@ import { CrmVacancyPosition } from '../models/crm';
 import { CrmService } from '../services/crm.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { GoogleNearbyTimeService, NearbyTimeKey } from '../maps/services/google-nearby-time.service';
+import { encodeNearbyPlaceNames, splitNearbyPlaceNames } from '../utils/nearby-places';
+import { isListedUniversity } from '../utils/universities';
 
 @Component({
   selector: 'app-admin-panel',
@@ -976,23 +978,32 @@ export class AdminPanel implements OnInit, OnDestroy {
         try {
           const times = await this.nearbyTimes.getWalkingTimes(apartment.address || '', pin);
           const changes: Partial<Record<NearbyTimeKey, number>> & { nearbyPlaceNames?: string } = {};
-          let names: Record<string, string> = {};
-          try {
-            names = JSON.parse(apartment.nearbyPlaceNames || '{}') || {};
-          } catch {
-            names = {};
-          }
+          const saved = splitNearbyPlaceNames(apartment.nearbyPlaceNames);
+          const names: Record<string, string> = saved.names;
+          const driving: Record<string, number | undefined> = saved.driveMinutes;
+          let drivingChanged = false;
           for (const key of keys) {
             const next = times[key];
             const current = apartment[key as keyof Apartment] as number | undefined | null;
-            if (next != null && (current == null || next < current)) {
+            // A saved "university" that is not on the approved list (e.g. a training centre) is replaced.
+            const unlistedUniversity = key === 'universityDistanceMinutes' && !isListedUniversity(names[key]);
+            if (next != null && (current == null || next < current || unlistedUniversity)) {
               changes[key] = next;
               const name = times.placeNames?.[key];
               if (name) names[key] = name;
             }
+            // Drive times (out-of-town homes) are refreshed whenever Google returns one.
+            const drive = times.drivingMinutes?.[key];
+            if (drive != null && drive !== driving[key]) {
+              driving[key] = drive;
+              drivingChanged = true;
+              const name = times.placeNames?.[key];
+              if (name && !names[key]) names[key] = name;
+            }
           }
-          if (!Object.keys(changes).length) continue;
-          if (Object.keys(names).length) changes.nearbyPlaceNames = JSON.stringify(names);
+          if (!Object.keys(changes).length && !drivingChanged) continue;
+          const encodedNames = encodeNearbyPlaceNames(names, driving);
+          if (encodedNames) changes.nearbyPlaceNames = encodedNames;
           await firstValueFrom(this.apartmentService.updateApartment(apartment.id, changes));
           Object.assign(apartment, changes);
           improved++;
@@ -1001,7 +1012,7 @@ export class AdminPanel implements OnInit, OnDestroy {
           failed++;
         }
       }
-      this.successMessage = `Nearby walking times improved for ${improved} listing(s).` +
+      this.successMessage = `Nearby walking/drive times improved for ${improved} listing(s).` +
         (failed ? ` ${failed} could not be saved.` : '');
     } finally {
       this.actionId = '';

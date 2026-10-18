@@ -24,9 +24,12 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
   /** Only the first address shown (an existing listing opening) may keep its saved pin. */
   private initialAddressShown = false;
   private mapResizeObserver?: ResizeObserver;
+  private geocodeTimer?: ReturnType<typeof setTimeout>;
   loading = true;
   errorMessage = '';
   pointConfirmed = false;
+  /** True when Google matched only the street or area, not the building itself. */
+  approximate = false;
 
   ngAfterViewInit(): void { void this.initialize(); }
 
@@ -35,10 +38,15 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
   ngOnDestroy(): void {
     this.parks?.destroy();
     this.mapResizeObserver?.disconnect();
+    clearTimeout(this.geocodeTimer);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['address'] && this.map) void this.showAddress();
+    if (changes['address'] && this.map) {
+      // Wait until typing pauses so each keystroke of the street number is not geocoded.
+      clearTimeout(this.geocodeTimer);
+      this.geocodeTimer = setTimeout(() => void this.showAddress(), 500);
+    }
     if ((changes['latitude'] || changes['longitude']) && this.map && this.hasPoint) {
       this.pointConfirmed = true;
       this.setPoint(this.latitude!, this.longitude!, false);
@@ -88,6 +96,7 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
         const point = event.latLng;
         if (point) {
           this.pointConfirmed = true;
+          this.approximate = false;
           this.setPoint(point.lat(), point.lng(), true);
         }
       });
@@ -153,6 +162,9 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
       // The geocoded pin counts as the selection; clicking the map refines it.
       this.pointConfirmed = true;
       this.setPoint(point.lat(), point.lng(), true);
+      this.approximate =
+        match.geometry.location_type !== google.maps.GeocoderLocationType.ROOFTOP &&
+        match.geometry.location_type !== google.maps.GeocoderLocationType.RANGE_INTERPOLATED;
       if (match.geometry.viewport) this.map.fitBounds(match.geometry.viewport);
       this.map.setZoom(Math.min(this.map.getZoom() || 15, 16));
       this.errorMessage = '';

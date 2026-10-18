@@ -41,6 +41,8 @@ import { backToResultsQuery, lastResultsUrl } from '../utils/results-return';
 import { HomeMatchService } from '../ai-home-match/services/home-match.service';
 import { selectedPets } from '../ai-home-match/services/mandatory-requirements';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
+import { nearbyDriveMinutes } from '../utils/nearby-places';
+import { isListedUniversity } from '../utils/universities';
 
 interface Review {
   name: string;
@@ -1228,7 +1230,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return keys;
   }
 
-  get storedNearbyPlaces(): Array<{ label: string; icon: string; minutes: number; image?: string; name?: string }> {
+  get storedNearbyPlaces(): Array<{ label: string; icon: string; minutes: number; mode: string; image?: string; name?: string }> {
     const apartment = this.apartment;
     if (!apartment) return [];
     const names = this.nearbyPlaceNames;
@@ -1275,10 +1277,24 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       const rank = place.key ? order.indexOf(place.key) : -1;
       return rank < 0 ? order.length : rank;
     };
-    return places
+    // Out-of-town homes: a place too far to walk shows its drive time instead.
+    const driving = nearbyDriveMinutes(apartment);
+    const withMode = places.map((place) => {
+      // Only universities from the approved list count; training centres are left out.
+      if (place.key === 'universityDistanceMinutes' && !isListedUniversity(names[place.key])) {
+        return { ...place, minutes: undefined, mode: 'walk' };
+      }
+      const walk = Number(place.minutes);
+      const drive = place.key ? driving[place.key] : undefined;
+      if (place.minutes != null && Number.isFinite(walk) && (walk <= 20 || drive == null)) {
+        return { ...place, minutes: walk, mode: 'walk' };
+      }
+      return { ...place, minutes: drive, mode: 'drive' };
+    });
+    return withMode
       .filter((place): place is typeof place & { minutes: number } => Number.isFinite(place.minutes))
-      // Stable sort: answers from Velven Match move their places up; the default order stays otherwise.
-      .sort((a, b) => relevant(a) - relevant(b))
+      // Walkable places first; stable sort keeps Velven Match priorities inside each group.
+      .sort((a, b) => Number(a.mode === 'drive') - Number(b.mode === 'drive') || relevant(a) - relevant(b))
       .slice(0, 9) // show up to 9 places (3 full rows)
       .map(({ key, ...place }) => ({ ...place, name: key ? names[key] : undefined }));
   }

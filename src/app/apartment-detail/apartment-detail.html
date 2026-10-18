@@ -168,7 +168,7 @@
                 <p>
                   <strong>{{ place.label }}</strong
                   ><span class="nearby-place-name" *ngIf="place.name" data-no-translate>{{ place.name }}</span
-                  ><small>{{ place.minutes }} min walk</small>
+                  ><small>{{ place.minutes }} min {{ place.mode === 'drive' ? 'drive' : 'walk' }}</small>
                 </p>
               </div>
             </div>

@@ -17,6 +17,7 @@ import {
 import { CurrencyService } from '../../services/currency.service';
 import { ApartmentService } from '../../services/apartment.service';
 import { parseParkingCost } from '../../utils/parking-cost';
+import { listedUniversityMinutes } from '../../utils/universities';
 
 interface LifestyleInsight {
   title: string;
@@ -347,7 +348,7 @@ export class HomeMatchResultsComponent implements OnChanges {
     // Nearby places: shown here only when they answer something the user chose, with the
     // reason tied to that answer. Everything else nearby stays in "Walking times" only.
     for (const place of this.preferencePlaces(result)) {
-      const minutes = apartment[place.field];
+      const minutes = place.field === 'universityDistanceMinutes' ? listedUniversityMinutes(apartment) : apartment[place.field];
       if (typeof minutes !== 'number' || minutes < 0 || minutes > MATCH_WALK_LIMIT) continue;
       items.push({ title: place.title, reason: place.reason, icon: place.icon, meta: `${Math.round(minutes)} min` });
     }
@@ -444,7 +445,7 @@ export class HomeMatchResultsComponent implements OnChanges {
       ['Café', apartment.cafeDistanceMinutes, 'fa-mug-hot'],
       ['School', apartment.schoolDistanceMinutes, 'fa-school'],
       ['Kindergarten', apartment.kindergartenDistanceMinutes, 'fa-children'],
-      ['University', apartment.universityDistanceMinutes, 'fa-graduation-cap'],
+      ['University', listedUniversityMinutes(apartment), 'fa-graduation-cap'],
       ['EV charger', apartment.evChargerDistanceMinutes, 'fa-charging-station'],
       ['Pet shop', apartment.petStoreDistanceMinutes, 'fa-paw'],
       ['Vet clinic', apartment.veterinaryDistanceMinutes, 'fa-stethoscope'],

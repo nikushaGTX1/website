@@ -17,6 +17,7 @@ import {
 } from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
 import { parseParkingCost } from '../utils/parking-cost';
+import { encodeNearbyPlaceNames, splitNearbyPlaceNames } from '../utils/nearby-places';
 
 /** Publishing never waits longer than this before showing an error. */
 const SAVE_TIMEOUT_MS = 45000;
@@ -661,12 +662,10 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.editSavedNearby = Object.fromEntries(
       NEARBY_KEYS.filter((key) => saved[key] != null).map((key) => [key, Number(saved[key])]),
     ) as NearbyWalkingTimes;
-    try {
-      const names = JSON.parse(source.nearbyPlaceNames || 'null');
-      if (names && typeof names === 'object') this.editSavedNearby.placeNames = names;
-    } catch {
-      // Unreadable names are simply measured again on the next location change.
-    }
+    // Unreadable names are simply measured again on the next location change.
+    const { names, driveMinutes } = splitNearbyPlaceNames(source.nearbyPlaceNames);
+    if (Object.keys(names).length) this.editSavedNearby.placeNames = names;
+    if (Object.keys(driveMinutes).length) this.editSavedNearby.drivingMinutes = driveMinutes;
     this.editSavedLocationKey = '';
     const description = source.description || '';
     const splitAt = description.lastIndexOf('\n\n');
@@ -1682,7 +1681,8 @@ export class UploadApartment implements OnInit, OnDestroy {
             ? { lat: Number(this.form.propertyLatitude), lng: Number(this.form.propertyLongitude) }
             : null,
         ),
-        new Promise<NearbyWalkingTimes>((resolve) => setTimeout(() => resolve({}), 8000)),
+        // Out-of-town homes also need drive routes, so allow a little longer.
+        new Promise<NearbyWalkingTimes>((resolve) => setTimeout(() => resolve({}), 12000)),
       ]);
     } catch (error) {
       console.error('Could not calculate nearby walking times:', error);
@@ -1976,9 +1976,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       evChargerDistanceMinutes: nearbyTimes.evChargerDistanceMinutes,
       petStoreDistanceMinutes: nearbyTimes.petStoreDistanceMinutes,
       veterinaryDistanceMinutes: nearbyTimes.veterinaryDistanceMinutes,
-      nearbyPlaceNames: nearbyTimes.placeNames && Object.keys(nearbyTimes.placeNames).length
-        ? JSON.stringify(nearbyTimes.placeNames)
-        : undefined,
+      nearbyPlaceNames: encodeNearbyPlaceNames(nearbyTimes.placeNames, nearbyTimes.drivingMinutes),
       imageUrl: this.form.imageUrls[0] || undefined,
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };

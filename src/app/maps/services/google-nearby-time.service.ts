@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { isListedUniversity } from '../../utils/universities';
 
 export interface NearbyWalkingTimes {
   schoolDistanceMinutes?: number;
@@ -16,15 +17,23 @@ export interface NearbyWalkingTimes {
   veterinaryDistanceMinutes?: number;
   /** Name of the nearest place for each measured category (from Google Places). */
   placeNames?: Partial<Record<NearbyTimeKey, string>>;
+  /** Driving minutes for categories too far to walk (out-of-town houses). */
+  drivingMinutes?: Partial<Record<NearbyTimeKey, number>>;
 }
+
+/** Beyond this walk a place is measured by car instead (matches the cards' "nearby" limit). */
+export const MAX_WALK_MINUTES = 20;
 
 export interface NearestSchoolResult {
   nearest_school_name: string;
-  nearest_school_walk_minutes: number;
+  /** Undefined when no school is within a 20-minute walk. */
+  nearest_school_walk_minutes?: number;
+  /** Set only when no school is walkable. */
+  nearest_school_drive_minutes?: number;
   nearest_school_distance_meters: number;
 }
 
-export type NearbyTimeKey = Exclude<keyof NearbyWalkingTimes, 'placeNames'>;
+export type NearbyTimeKey = Exclude<keyof NearbyWalkingTimes, 'placeNames' | 'drivingMinutes'>;
 
 function straightLineMeters(a: google.maps.LatLng, b: google.maps.LatLng): number {
   const rad = (value: number) => (value * Math.PI) / 180;
@@ -190,7 +199,28 @@ export class GoogleNearbyTimeService {
       }
     });
 
-    if (!nearest) return null;
+    if (!nearest) {
+      // Out of town nothing is walkable; report the quickest school by car instead.
+      const driving = await new DistanceMatrixService().getDistanceMatrix({
+        origins: [propertyCoordinates],
+        destinations: schools.map((school) => school.location!),
+        travelMode: TravelMode.DRIVING,
+      });
+      let quickest: { school: google.maps.places.Place; durationSeconds: number; distanceMeters: number } | undefined;
+      (driving.rows[0]?.elements || []).forEach((route, index) => {
+        if (route.status !== 'OK' || !route.duration || !route.distance) return;
+        if (!quickest || route.duration.value < quickest.durationSeconds) {
+          quickest = { school: schools[index], durationSeconds: route.duration.value, distanceMeters: route.distance.value };
+        }
+      });
+      if (!quickest) return null;
+      return {
+        nearest_school_name: quickest.school.displayName || 'Unnamed school',
+        nearest_school_walk_minutes: undefined,
+        nearest_school_drive_minutes: Math.max(1, Math.round(quickest.durationSeconds / 60)),
+        nearest_school_distance_meters: quickest.distanceMeters,
+      };
+    }
     return {
       nearest_school_name: nearest.school.displayName || 'Unnamed school',
       nearest_school_walk_minutes: Math.max(1, Math.round(nearest.durationSeconds / 60)),
@@ -204,7 +234,7 @@ export class GoogleNearbyTimeService {
   ): Promise<NearbyWalkingTimes> {
     this.configure();
 
-    const [{ Geocoder }, { Place, SearchNearbyRankPreference }, routes] = await Promise.all([
+    const [{ Geocoder }, { Place, SearchNearbyRankPreference, SearchByTextRankPreference }, routes] = await Promise.all([
       importLibrary('geocoding') as Promise<google.maps.GeocodingLibrary>,
       importLibrary('places') as Promise<google.maps.PlacesLibrary>,
       importLibrary('routes') as Promise<google.maps.RoutesLibrary>,
@@ -238,23 +268,45 @@ export class GoogleNearbyTimeService {
     const [nearestSchool, entries] = await Promise.all([
       this.getNearestSchool(origin).catch(() => null),
       Promise.all(
-        categories.map(async ({ type, key }) => {
+        categories.map(async ({ type, key }): Promise<readonly [NearbyTimeKey, number | undefined, string | undefined, number | undefined]> => {
           try {
             const isCafe = type === 'cafe';
-            const response = await Place.searchNearby({
-              fields: isCafe ? ['location', 'displayName', 'rating', 'userRatingCount'] : ['location', 'displayName'],
-              locationRestriction: { center: origin, radius: 5000 },
-              // Gyms are often listed as fitness centers on Google; search both.
-              includedPrimaryTypes: type === 'gym' ? ['gym', 'fitness_center'] : [type],
-              // Cafés: look at the 20 closest and keep the nearest well-reviewed one.
-              maxResultCount: isCafe ? 20 : 1,
-              rankPreference: SearchNearbyRankPreference.DISTANCE,
-            });
-            const place = isCafe
-              ? response.places.find((item) => (item.rating ?? 0) >= 4.7 && (item.userRatingCount ?? 0) >= 100)
-              : response.places[0];
+            const isUniversity = type === 'university';
+            const search = (radius: number) =>
+              Place.searchNearby({
+                fields: isCafe ? ['location', 'displayName', 'rating', 'userRatingCount'] : ['location', 'displayName'],
+                locationRestriction: { center: origin, radius },
+                // Gyms are often listed as fitness centers on Google; search both.
+                ...(isUniversity
+                  ? { includedTypes: [type] }
+                  : { includedPrimaryTypes: type === 'gym' ? ['gym', 'fitness_center'] : [type] }),
+                // Cafés: look at the 20 closest and keep the nearest well-reviewed one.
+                // Universities: the 20 closest, keeping the first real university from the list.
+                maxResultCount: isCafe || isUniversity ? 20 : 1,
+                rankPreference: SearchNearbyRankPreference.DISTANCE,
+              });
+            const pick = (places: google.maps.places.Place[]) =>
+              isCafe
+                ? places.find((item) => (item.rating ?? 0) >= 4.7 && (item.userRatingCount ?? 0) >= 100)
+                : isUniversity
+                  ? places.find((item) => !!item.location && isListedUniversity(item.displayName))
+                  : places[0];
+            // Out-of-town houses can have nothing within 5 km; look further for a drive time.
+            let place = pick((await search(5000)).places);
+            if (!place?.location) place = pick((await search(20000)).places);
+            if (!place?.location && isUniversity) {
+              // Training centres can fill the 20 nearest results; search university names directly.
+              const byText = await Place.searchByText({
+                textQuery: 'university უნივერსიტეტი',
+                fields: ['location', 'displayName'],
+                locationBias: { center: origin, radius: 20000 },
+                maxResultCount: 20,
+                rankPreference: SearchByTextRankPreference.DISTANCE,
+              });
+              place = pick(byText.places);
+            }
             const destination = place?.location;
-            if (!destination) return [key, undefined, undefined] as const;
+            if (!place || !destination) return [key, undefined, undefined, undefined] as const;
             const name = place.displayName?.trim() || undefined;
 
             const directions = await new routes.DirectionsService().route({
@@ -264,7 +316,7 @@ export class GoogleNearbyTimeService {
             });
             const leg = directions.routes[0]?.legs[0];
             const seconds = leg?.duration?.value;
-            const routeMinutes = seconds ? Math.max(1, Math.round(seconds / 60)) : undefined;
+            let walkMinutes = seconds ? Math.max(1, Math.round(seconds / 60)) : undefined;
             // A pin beside a highway or closed block can make Google route a 60 m walk
             // as 1 km. If the route is far longer than the straight line, estimate from it.
             const straight = google.maps.geometry?.spherical
@@ -273,28 +325,44 @@ export class GoogleNearbyTimeService {
             const straightMinutes = Math.max(1, Math.ceil((straight * 1.3) / 80));
             const routeMeters = leg?.distance?.value ?? 0;
             if (routeMeters > Math.max(400, straight * 2.5)) {
-              return [key, Math.min(routeMinutes ?? straightMinutes, straightMinutes), name] as const;
+              walkMinutes = Math.min(walkMinutes ?? straightMinutes, straightMinutes);
             }
-            return [key, routeMinutes, name] as const;
+            if (walkMinutes != null && walkMinutes <= MAX_WALK_MINUTES) return [key, walkMinutes, name, undefined] as const;
+
+            const drive = await new routes.DirectionsService()
+              .route({ origin, destination, travelMode: routes.TravelMode.DRIVING })
+              .catch(() => null);
+            const driveSeconds = drive?.routes[0]?.legs[0]?.duration?.value;
+            const driveMinutes = driveSeconds ? Math.max(1, Math.round(driveSeconds / 60)) : undefined;
+            return [key, walkMinutes, name, driveMinutes] as const;
           } catch {
-            return [key, undefined, undefined] as const;
+            return [key, undefined, undefined, undefined] as const;
           }
         }),
       ),
     ]);
 
-    const measured = entries.filter((entry) => entry[1] !== undefined);
+    const measured = entries.filter((entry) => entry[1] !== undefined || entry[3] !== undefined);
     const walkingTimes = Object.fromEntries(
-      measured.map(([key, minutes]) => [key, minutes]),
+      measured.filter((entry) => entry[1] !== undefined).map(([key, minutes]) => [key, minutes]),
     ) as NearbyWalkingTimes;
     const placeNames: Partial<Record<NearbyTimeKey, string>> = Object.fromEntries(
       measured.filter((entry) => !!entry[2]).map(([key, , name]) => [key, name]),
     );
+    const drivingMinutes: Partial<Record<NearbyTimeKey, number>> = Object.fromEntries(
+      measured.filter((entry) => entry[3] !== undefined).map(([key, , , drive]) => [key, drive]),
+    );
     if (nearestSchool) {
-      walkingTimes.schoolDistanceMinutes = nearestSchool.nearest_school_walk_minutes;
+      if (nearestSchool.nearest_school_walk_minutes != null) {
+        walkingTimes.schoolDistanceMinutes = nearestSchool.nearest_school_walk_minutes;
+      }
+      if (nearestSchool.nearest_school_drive_minutes != null) {
+        drivingMinutes.schoolDistanceMinutes = nearestSchool.nearest_school_drive_minutes;
+      }
       if (nearestSchool.nearest_school_name) placeNames.schoolDistanceMinutes = nearestSchool.nearest_school_name;
     }
     if (Object.keys(placeNames).length) walkingTimes.placeNames = placeNames;
+    if (Object.keys(drivingMinutes).length) walkingTimes.drivingMinutes = drivingMinutes;
     return walkingTimes;
   }
 

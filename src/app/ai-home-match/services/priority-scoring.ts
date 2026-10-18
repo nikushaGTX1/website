@@ -1,6 +1,7 @@
 import { normalizeApartmentStyle } from '../../utils/apartment-style';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchApartment, HomeMatchResult } from '../models/home-match-result';
+import { listedUniversityMinutes } from '../../utils/universities';
 
 const PRIORITY_MULTIPLIERS = [5, 4, 3, 2, 1] as const;
 const PRIORITY_LABELS: Record<string, string> = {
@@ -74,7 +75,8 @@ function hasTag(apartment: HomeMatchApartment, tag: string): boolean {
 
 function minutesOf(apartment: HomeMatchApartment, ...fields: Array<keyof HomeMatchApartment>): number | undefined {
   const values = fields
-    .map((field) => apartment[field])
+    // Only universities from the approved list count; training centres are ignored.
+    .map((field) => (field === 'universityDistanceMinutes' ? listedUniversityMinutes(apartment) : apartment[field]))
     .filter((value): value is number => typeof value === 'number' && value >= 0);
   return values.length ? Math.min(...values) : undefined;
 }
@@ -218,7 +220,7 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
     if ((apartment.gymDistanceMinutes ?? 99) <= 10) points += 5;
     if ((apartment.parkDistanceMinutes ?? 99) <= 10) points += 3;
   }
-  if (lifestyles.has('Student') && (apartment.universityDistanceMinutes ?? 99) <= 15) points += 5;
+  if (lifestyles.has('Student') && (listedUniversityMinutes(apartment) ?? 99) <= 15) points += 5;
   // Business/professional: commute to work and transportation access.
   if (
     lifestyles.has('BusinessProfessional') &&

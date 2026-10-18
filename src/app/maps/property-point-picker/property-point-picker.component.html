@@ -6,6 +6,11 @@
   <p class="map-state" *ngIf="loading">Loading map…</p>
   <p class="map-state error" *ngIf="errorMessage">{{ errorMessage }}</p>
   <p class="coordinates" *ngIf="address"><i class="fa-solid fa-location-dot"></i> {{ address }}</p>
-  <p class="coordinates confirmed" *ngIf="pointConfirmed"><i class="fa-solid fa-circle-check"></i> Exact location selected</p>
+  <p class="coordinates confirmed" *ngIf="pointConfirmed && hasPoint && !approximate">
+    <i class="fa-solid fa-circle-check"></i> Exact location selected · <span data-no-translate>{{ latitude | number: '1.6-6' }}, {{ longitude | number: '1.6-6' }}</span>
+  </p>
+  <p class="coordinates missing" *ngIf="pointConfirmed && hasPoint && approximate">
+    <i class="fa-solid fa-triangle-exclamation"></i> Approximate location · <span data-no-translate>{{ latitude | number: '1.6-6' }}, {{ longitude | number: '1.6-6' }}</span> — click the building on the map to refine it.
+  </p>
   <p class="coordinates missing" *ngIf="!address && !loading">Choose a district and street to preview the location.</p>
 </section>
