@@ -251,7 +251,7 @@
     <!-- FILTERS -->
     <!-- ===================================================== -->
 
-    <!-- Best agent: most won leads this month (managers only; computed from real leads). -->
+    <!-- Best agent of the month: shown to admins, managers and agents; the API enforces who may see it. -->
     <section class="best-agent" *ngIf="bestAgent" aria-label="Best agent" data-no-translate>
       <!-- New month, nobody has won yet: the board starts from zero. -->
       <div class="best-main best-empty" *ngIf="!bestAgent.agent">
