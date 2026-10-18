@@ -1632,6 +1632,14 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.drawnAreaActive = params.get('area') === 'drawn';
     this.selectedStreetId = Number(params.get('street_id')) || null;
     this.restoreFiltersFromUrl(params);
+    // Homepage "Explore by lifestyle" tiles that have a filter chip here turn that chip on,
+    // so the visitor sees (and can switch off) the filter instead of a hidden one.
+    const chipForFeature: Record<string, string> = { pets: 'Pet friendly', parking: 'Parking', new: 'New building' };
+    const chip = chipForFeature[this.featureFilter];
+    if (chip) {
+      if (!this.selectedAmenities.includes(chip)) this.selectedAmenities = [...this.selectedAmenities, chip];
+      this.featureFilter = '';
+    }
     this.loadApartments();
     this.loadLocations();
     this.favoriteService.loadFavorites().subscribe({
