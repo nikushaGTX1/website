@@ -2047,3 +2047,9 @@ button:disabled {
 .best-agent .best-runners { justify-content: flex-start; }
 @media (max-width: 900px) { .best-agent { grid-template-columns: 1fr; } .bc-card { max-width: 440px; width: 100%; justify-self: center; } }
 @media (max-width: 400px) { .bc-photo { width: 140px; height: 140px; } .bc-head h3 { font-size: 19px; } .bc-stats b { font-size: 23px; } }
+/* Runner-ups: columns follow how many there are, so a single one fills the row. */
+@media (max-width: 640px) {
+  .best-runners ol { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .best-runners li { align-items: center; }
+  .runner-info strong { text-align: center; }
+}
