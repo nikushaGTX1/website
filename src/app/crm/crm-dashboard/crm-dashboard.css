@@ -2106,3 +2106,4 @@ button:disabled {
 @media (max-width: 640px) {
   .best-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+.best-empty strong { color: #4b3f63; font-size: 20px; }

@@ -629,7 +629,7 @@ export class CrmDashboard implements OnInit {
     if (!this.isManager) return null;
     const now = new Date();
     const thisMonth = (lead: CrmLead) => {
-      const date = new Date(lead.closedAt || lead.updatedAt || lead.createdAt);
+      const date = new Date(lead.closedAt || lead.createdAt);
       return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
     };
     const rank = (leads: CrmLead[]) => {
@@ -670,14 +670,13 @@ export class CrmDashboard implements OnInit {
         .sort((a, b) => b.won - a.won || b.earned - a.earned || b.rate - a.rate || a.name.localeCompare(b.name))
         .slice(0, 4);
     };
-    const hasWinner = (list: ReturnType<typeof rank>) => list.length > 0 && list[0].won > 0;
-    const monthly = rank(this.leads.filter(thisMonth));
-    const items = hasWinner(monthly) ? monthly : rank(this.leads);
-    if (!hasWinner(items)) return null;
+    // Only this calendar month counts: on the 1st the board starts again from zero.
+    const monthly = rank(this.leads.filter((lead) => lead.status === 'won' && !!lead.closedAt && thisMonth(lead)))
+      .filter((agent) => agent.won > 0);
     return {
-      monthly: hasWinner(monthly),
-      period: hasWinner(monthly) ? now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'All time',
-      items,
+      monthly: true,
+      period: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      items: monthly,
     };
   }
 

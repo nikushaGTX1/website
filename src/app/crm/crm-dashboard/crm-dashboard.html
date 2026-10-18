@@ -253,6 +253,15 @@
 
     <!-- Best agent: most won leads this month (managers only; computed from real leads). -->
     <section class="best-agent" *ngIf="leaderboard as board" aria-label="Best agent">
+      <!-- New month, nobody has won yet: the board starts from zero. -->
+      <div class="best-main best-empty" *ngIf="!board.items.length">
+        <span class="best-trophy"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
+        <div class="best-text">
+          <small><span>Best Agent at Velven</span> · {{ board.period }}</small>
+          <strong>No deals closed yet this month</strong>
+          <span>The first agent to win a deal takes the top spot.</span>
+        </div>
+      </div>
       <div class="best-main" *ngIf="board.items[0] as top">
         <span class="best-trophy"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
         <div class="best-photo">

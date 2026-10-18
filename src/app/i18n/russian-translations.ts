@@ -896,6 +896,8 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['This time has already passed today', 'Это время сегодня уже прошло'],
   ['My viewings', 'Мои просмотры'],
   ['My reviews', 'Мои отзывы'],
+  ["No deals closed yet this month","В этом месяце сделок пока нет"],
+  ["The first agent to win a deal takes the top spot.","Первый агент, закрывший сделку, займёт первое место."],
   ["No agent yet","Агента пока нет"],
   ["Best Agent at Velven","Лучший агент Velven"],
   ["Revenue Generated","Заработано"],
