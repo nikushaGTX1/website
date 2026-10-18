@@ -644,8 +644,12 @@ export class CrmDashboard implements OnInit {
         }
         byAgent.set(lead.assignedAgentId, entry);
       }
+      // Every agent takes part, so places 2-4 fill up even when few have won yet.
+      for (const agent of this.agents) {
+        const id = this.agentId(agent);
+        if (id && !byAgent.has(id)) byAgent.set(id, { won: 0, closed: 0, earned: 0 });
+      }
       return [...byAgent.entries()]
-        .filter(([, stats]) => stats.won > 0)
         .map(([id, stats]) => {
           const agent = this.agents.find((item) => this.agentId(item) === id);
           const name = agent
@@ -659,21 +663,27 @@ export class CrmDashboard implements OnInit {
             won: stats.won,
             closed: stats.closed,
             earned: Math.round(stats.earned),
-            rate: Math.round((stats.won / stats.closed) * 100),
+            rate: stats.closed ? Math.round((stats.won / stats.closed) * 100) : 0,
           };
         })
         // Most won deals; ties go to more money earned, then the better win rate.
         .sort((a, b) => b.won - a.won || b.earned - a.earned || b.rate - a.rate || a.name.localeCompare(b.name))
-        .slice(0, 3);
+        .slice(0, 4);
     };
+    const hasWinner = (list: ReturnType<typeof rank>) => list.length > 0 && list[0].won > 0;
     const monthly = rank(this.leads.filter(thisMonth));
-    const items = monthly.length ? monthly : rank(this.leads);
-    if (!items.length) return null;
+    const items = hasWinner(monthly) ? monthly : rank(this.leads);
+    if (!hasWinner(items)) return null;
     return {
-      monthly: monthly.length > 0,
-      period: monthly.length ? now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'All time',
+      monthly: hasWinner(monthly),
+      period: hasWinner(monthly) ? now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'All time',
       items,
     };
+  }
+
+  /** Place numbers (2-4) that have no agent yet. */
+  emptyPlaces(filled: number): number[] {
+    return [2, 3, 4].filter((place) => place > filled);
   }
 
   agentId(agent: Agent): string {

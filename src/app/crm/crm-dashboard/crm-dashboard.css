@@ -2061,3 +2061,12 @@ button:disabled {
   .best-runners .runner-photo { width: 56px; height: 56px; min-height: 56px; margin-bottom: 2px; }
   .best-runners .runner-photo img { width: 56px; height: 56px; }
 }
+/* Places 2-4: evenly spread rows, 4th place medal, empty places */
+.best-agent .best-runners ol { flex: 1; grid-auto-rows: 1fr; align-content: stretch; }
+.best-runners li[data-rank='4'] .runner-photo { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #d9cdf1; }
+.best-runners li[data-rank='4'] .runner-medal { background: linear-gradient(135deg, #8f6ed8, #6d3fd1); }
+.best-runners li.no-deals .runner-stats > span { opacity: 0.7; }
+.best-runners .runner-empty { border-style: dashed; background: #fbf9ff; }
+.best-runners .runner-empty .runner-photo { display: grid; place-items: center; background: #f1ebfb; color: #b3a5d6; font-size: 18px; box-shadow: none; }
+.best-runners .runner-empty strong { color: #9a92ad; font-weight: 700; }
+.best-runners .runner-empty:hover { transform: none; box-shadow: none; }

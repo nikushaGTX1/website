@@ -896,6 +896,7 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['This time has already passed today', 'Это время сегодня уже прошло'],
   ['My viewings', 'Мои просмотры'],
   ['My reviews', 'Мои отзывы'],
+  ["No agent yet","Агента пока нет"],
   ["Best Agent at Velven","Лучший агент Velven"],
   ["Revenue Generated","Заработано"],
   ["All time","За всё время"],

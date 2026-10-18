@@ -1934,6 +1934,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['This time has already passed today', 'ეს დრო დღეს უკვე გავიდა'],
   ['My viewings', 'ჩემი ნახვები'],
   ['My reviews', 'ჩემი შეფასებები'],
+  ["No agent yet","აგენტი ჯერ არ არის"],
   ["Best Agent at Velven","Velven-ის საუკეთესო აგენტი"],
   ["Revenue Generated","გამომუშავებული შემოსავალი"],
   ["All time","ყველა დროის"],

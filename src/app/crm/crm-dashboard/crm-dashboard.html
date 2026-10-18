@@ -284,7 +284,7 @@
       <div class="best-runners" *ngIf="board.items.length > 1">
         <p class="runners-title"><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> Top agents</p>
         <ol>
-          <li *ngFor="let agent of board.items.slice(1); let i = index" [attr.data-rank]="i + 2">
+          <li *ngFor="let agent of board.items.slice(1); let i = index" [attr.data-rank]="i + 2" [class.no-deals]="!agent.won">
             <span class="runner-photo">
               <img *ngIf="agent.photo; else runnerInitials" [src]="agent.photo" alt="" />
               <ng-template #runnerInitials>{{ agent.initials }}</ng-template>
@@ -297,6 +297,11 @@
                 <span class="runner-money" data-no-translate><i class="fa-solid fa-wallet" aria-hidden="true"></i> {{ agent.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
               </span>
             </span>
+          </li>
+          <!-- Empty places so 2nd-4th always show. -->
+          <li class="runner-empty" *ngFor="let place of emptyPlaces(board.items.length)" [attr.data-rank]="place">
+            <span class="runner-photo"><i class="fa-regular fa-user" aria-hidden="true"></i><b class="runner-medal">{{ place }}</b></span>
+            <span class="runner-info"><strong>No agent yet</strong><span class="runner-stats"><span>—</span></span></span>
           </li>
         </ol>
       </div>
