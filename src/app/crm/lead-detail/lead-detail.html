@@ -394,20 +394,39 @@
         </div>
 
         <!-- Won lead: commission earned, counted on the CRM "Best agent" card. -->
-        <div class="deal-amount" *ngIf="currentLead.status === 'won'">
-          <label>
-            <span><i class="fa-solid fa-sack-dollar" aria-hidden="true"></i> Commission earned (USD)</span>
-            <span class="deal-input">
-              <b>$</b>
-              <input type="number" min="0" step="50" inputmode="decimal"
+        <section class="deal-card" *ngIf="currentLead.status === 'won'" aria-labelledby="deal-card-title">
+          <header class="deal-head">
+            <span class="deal-icon"><i class="fa-solid fa-sack-dollar" aria-hidden="true"></i></span>
+            <div class="deal-titles">
+              <h3 id="deal-card-title">Commission earned (USD)</h3>
+              <p>Counts toward the agent's earnings on the CRM leaderboard.</p>
+            </div>
+            <span class="deal-badge" [class.saving]="dealSaving" [class.empty]="currentLead.dealAmountUsd == null">
+              <i class="fa-solid" [class.fa-spinner]="dealSaving" [class.fa-spin]="dealSaving"
+                [class.fa-circle-check]="!dealSaving && currentLead.dealAmountUsd != null"
+                [class.fa-circle-exclamation]="!dealSaving && currentLead.dealAmountUsd == null" aria-hidden="true"></i>
+              {{ dealSaving ? 'Saving…' : currentLead.dealAmountUsd == null ? 'Not set' : 'Saved' }}
+            </span>
+          </header>
+          <div class="deal-body">
+            <label class="deal-field">
+              <span class="deal-currency">$</span>
+              <input type="number" min="0" step="50" inputmode="decimal" aria-label="Commission earned (USD)"
                 [value]="currentLead.dealAmountUsd ?? ''"
                 [disabled]="dealSaving || !canWorkLead"
                 (change)="saveDealAmount($any($event.target).value)"
-                placeholder="e.g. 1300" />
-            </span>
-          </label>
-          <small>{{ dealSaving ? 'Saving…' : 'Filled in automatically from the listing (rent: 1 month, sale: 3%). Change it if the real amount differs.' }}</small>
-        </div>
+                (keydown.enter)="$any($event.target).blur()"
+                placeholder="0" />
+              <span class="deal-unit">USD</span>
+            </label>
+            <div class="deal-rules">
+              <span><i class="fa-solid fa-key" aria-hidden="true"></i> Rent: 1 month</span>
+              <span><i class="fa-solid fa-house-circle-check" aria-hidden="true"></i> Sale: 3%</span>
+            </div>
+          </div>
+          <p class="deal-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            Filled in automatically from the listing (rent: 1 month, sale: 3%). Change it if the real amount differs.</p>
+        </section>
 
       </section>
 
