@@ -4,6 +4,11 @@ const apiOrigin = API_BASE_URL;
 const profileUploadsPath = 'uploads/profiles';
 const attemptedMediaFallbacks = new WeakMap<HTMLImageElement, number>();
 
+/** Original-resolution version of a listing photo URL (for the fullscreen viewer). */
+export function fullSizeImage(url: string): string {
+  return url.replace(/&w=\d+$/, '');
+}
+
 export function toMediaUrl(value?: string | null): string {
   if (!value) {
     return '';
@@ -30,7 +35,9 @@ export function toMediaUrl(value?: string | null): string {
         // fetch/cache the real image instead of rejecting it from the token alone.
         // ".jpg" lets Cloudflare cache the photo at the edge; listing photo URLs stay the
         // same for days (the API signs them for a week), so repeat visits load from cache.
-        return `/media/apartment-image.jpg?url=${encodeURIComponent(normalizedValue)}`;
+        // w=960: a resized WebP (~3x smaller than the 1280px original) — enough for cards,
+        // the map preview and the listing page. fullSizeImage() drops it for the photo viewer.
+        return `/media/apartment-image.jpg?url=${encodeURIComponent(normalizedValue)}&w=960`;
       }
     } catch {
       return '';

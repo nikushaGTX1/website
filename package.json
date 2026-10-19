@@ -28,6 +28,7 @@
     "libphonenumber": "^0.0.9",
     "libphonenumber-js": "^1.13.11",
     "rxjs": "~7.8.0",
+    "sharp": "^0.34.5",
     "supercluster": "^9.1.0",
     "sweetalert2": "^11.26.25",
     "terra-draw": "^1.32.2",

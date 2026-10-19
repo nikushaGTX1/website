@@ -16,7 +16,7 @@ import { ApartmentService } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
 import { CrmService } from '../services/crm.service';
-import { toMediaUrl } from '../utils/api-media';
+import { fullSizeImage, toMediaUrl } from '../utils/api-media';
 import {
   CountryCode,
   getCountries,
@@ -104,6 +104,17 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   errorMessage = '';
 
   galleryImages: string[] = [];
+  private viewerImagesSource: string[] = [];
+  private viewerImagesCache: string[] = [];
+
+  /** Fullscreen viewer shows the original photos; the page itself uses the lighter versions. */
+  get viewerImages(): string[] {
+    if (this.viewerImagesSource !== this.galleryImages) {
+      this.viewerImagesSource = this.galleryImages;
+      this.viewerImagesCache = this.galleryImages.map(fullSizeImage);
+    }
+    return this.viewerImagesCache;
+  }
   activePhotoIndex = 0;
   photoViewerOpen = false;
   favorite = false;

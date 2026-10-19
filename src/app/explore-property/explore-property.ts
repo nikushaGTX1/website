@@ -2447,6 +2447,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.mapGroupApartments = null;
   }
 
+  /** Map preview: only the shown photo and its neighbours load (it used to fetch all ~14 at once). */
+  isNearMapPhoto(index: number): boolean {
+    return Math.abs(index - this.mapPreviewImageIndex) <= 1;
+  }
+
   getMapPreviewImages(apartment: Apartment): string[] {
     const images = (apartment.imageUrls || []).filter(Boolean);
     return images.length ? images : [apartment.imageUrl || '/property-placeholder.svg'];

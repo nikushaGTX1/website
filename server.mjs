@@ -620,7 +620,7 @@ async function fetchApartmentImage(value) {
 
     apartmentImageCache.set(cacheKey, image);
     // About ten photos per listing: 200 entries evicted photos still on screen.
-    if (apartmentImageCache.size > 600) {
+    if (apartmentImageCache.size > 1200) {
       apartmentImageCache.delete(apartmentImageCache.keys().next().value);
     }
     return image;
@@ -652,7 +652,7 @@ function warmApartmentImages(body) {
     });
 
     for (const imageUrl of new Set(imageUrls.filter(Boolean))) {
-      void fetchApartmentImage(imageUrl).catch((error) =>
+      void resizedApartmentImage(imageUrl, 960).catch((error) =>
         console.error('Apartment image warm-up failed:', error),
       );
     }
@@ -684,10 +684,54 @@ function warmApartmentDetails(body) {
 
 // "/media/apartment-image.jpg" is the same proxy with an image extension, so Cloudflare
 // caches each photo at its edge (it only caches static-looking paths by default).
+// Listing photos are stored at 1280px (~150 KB). Cards and the map preview show them at
+// 300-600px, so the proxy can return a resized WebP (?w=960 → ~3x smaller), made once and
+// kept in memory; Cloudflare then caches each size. Without sharp, the original is sent.
+const resizedImageCache = new Map();
+const resizedImageRequests = new Map();
+const allowedImageWidths = new Set([480, 640, 960]);
+let sharpModule;
+async function loadSharp() {
+  if (sharpModule === undefined) {
+    sharpModule = await import('sharp').then((module) => module.default).catch((error) => {
+      console.error('Image resizing unavailable, serving originals:', error.message);
+      return null;
+    });
+  }
+  return sharpModule;
+}
+
+async function resizedApartmentImage(source, width) {
+  const key = `${validateApartmentImageUrl(source).pathname}@${width}`;
+  const cached = resizedImageCache.get(key);
+  if (cached) return cached;
+  if (resizedImageRequests.has(key)) return resizedImageRequests.get(key);
+  const request = (async () => {
+    const original = await fetchApartmentImage(source);
+    const sharp = await loadSharp();
+    if (!sharp) return original;
+    const body = await sharp(original.body)
+      .rotate()
+      .resize({ width, withoutEnlargement: true })
+      .webp({ quality: 74, effort: 4 })
+      .toBuffer();
+    const image = { body, contentType: 'image/webp', etag: null };
+    resizedImageCache.set(key, image);
+    // ~50 KB each: keep the most recent ~1500 sizes (about 75 MB at most).
+    if (resizedImageCache.size > 1500) resizedImageCache.delete(resizedImageCache.keys().next().value);
+    return image;
+  })().finally(() => resizedImageRequests.delete(key));
+  resizedImageRequests.set(key, request);
+  return request;
+}
+
 app.get(['/media/apartment-image', '/media/apartment-image.jpg'], async (request, response) => {
   try {
     const source = String(request.query.url || '');
-    const image = await fetchApartmentImage(source);
+    const width = Number(request.query.w);
+    const image = allowedImageWidths.has(width)
+      ? await resizedApartmentImage(source, width)
+      : await fetchApartmentImage(source);
     response.setHeader('Content-Type', image.contentType);
     // Listing photos are stable per object path (the proxy cache key strips
     // rotating signed-URL tokens), so browsers can keep them for a day.
@@ -1492,3 +1536,50 @@ app.listen(port, '0.0.0.0', () => {
 
 const apiWarmUpTimer = setInterval(() => void warmPublicApis(), 4 * 60_000);
 apiWarmUpTimer.unref();
+
+/**
+ * A photo nobody has opened yet takes 2-12 s to come from Supabase; one already in memory
+ * takes ~2 ms. So every photo of every listing is fetched and resized ahead of time (a few
+ * at a time, so visitors' own requests are not slowed), at start-up and every 6 hours.
+ */
+let photoWarmUpRunning = false;
+async function warmAllListingPhotos() {
+  if (photoWarmUpRunning) return;
+  photoWarmUpRunning = true;
+  const started = Date.now();
+  let count = 0;
+  try {
+    const list = await fetchPublicApi('/api/Apartments', false);
+    const apartments = JSON.parse(list.body.toString('utf8'));
+    if (!Array.isArray(apartments)) return;
+    const urls = [];
+    for (const apartment of apartments) {
+      if (apartment?.id == null) continue;
+      const detail = await fetchPublicApi(`/api/Apartments/${apartment.id}`, false).catch(() => null);
+      if (!detail || detail.status < 200 || detail.status >= 300) continue;
+      const full = JSON.parse(detail.body.toString('utf8'));
+      const gallery = Array.isArray(full?.images) ? full.images.map((image) => image?.url).filter(Boolean) : [];
+      urls.push(...(gallery.length ? gallery : [full?.imageUrl].filter(Boolean)));
+    }
+    const queue = [...new Set(urls)];
+    const worker = async () => {
+      while (queue.length) {
+        const url = queue.shift();
+        try {
+          await resizedApartmentImage(url, 960);
+          count++;
+        } catch {
+          // A missing photo is skipped; the card shows its placeholder.
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: 6 }, worker));
+  } catch (error) {
+    console.error('Photo warm-up failed:', error);
+  } finally {
+    photoWarmUpRunning = false;
+    console.log(`Photo warm-up: ${count} listing photos ready in ${Math.round((Date.now() - started) / 1000)}s`);
+  }
+}
+setTimeout(() => void warmAllListingPhotos(), 5_000).unref();
+setInterval(() => void warmAllListingPhotos(), 6 * 60 * 60_000).unref();

@@ -1,5 +1,17 @@
-import { NgModule } from '@angular/core';
-import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { Injectable, NgModule } from '@angular/core';
+import { Observable, mergeMap, timer } from 'rxjs';
+import { PreloadingStrategy, Route, RouterModule, Routes } from '@angular/router';
+
+/**
+ * Fetch the other pages in the background, but only after the first page and its photos
+ * have loaded: preloading ~70 files at start-up delayed the photos on screen.
+ */
+@Injectable({ providedIn: 'root' })
+export class AfterFirstPagePreloading implements PreloadingStrategy {
+  preload(_route: Route, load: () => Observable<unknown>): Observable<unknown> {
+    return timer(2500).pipe(mergeMap(() => load()));
+  }
+}
 
 
 import { authGuard } from './guards/auth.guard';
@@ -300,7 +312,7 @@ const routes: Routes = [
     RouterModule.forRoot(routes, {
       // After the first page shows, fetch the other pages in the background so later
       // clicks open instantly.
-      preloadingStrategy: PreloadAllModules,
+      preloadingStrategy: AfterFirstPagePreloading,
       scrollPositionRestoration: 'top',
     })
   ],
