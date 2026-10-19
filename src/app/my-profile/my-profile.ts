@@ -1,15 +1,19 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models/user';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
+import { NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CodeDialogComponent } from '../shared/code-dialog/code-dialog.component';
+import { ProfilePhotoCropperComponent } from './profile-photo-cropper/profile-photo-cropper';
 
 @Component({
   selector: 'app-my-profile',
-  standalone: false,
   templateUrl: './my-profile.html',
   styleUrl: './my-profile.css',
+  imports: [RouterLink, NgIf, FormsModule, CodeDialogComponent, ProfilePhotoCropperComponent],
 })
 export class MyProfile implements OnInit, OnDestroy {
   user: User | null = null;
@@ -93,7 +97,7 @@ export class MyProfile implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -309,24 +313,26 @@ export class MyProfile implements OnInit, OnDestroy {
 
     this.saving = true;
 
-    this.authService.updateProfileSettings({
-      fullName: this.fullName.trim(),
-      bio: this.bio.trim(),
-      phoneNumber: this.phoneNumber.trim(),
-      profilePicture: this.profilePicture,
-    }).subscribe({
-      next: () => {
-        this.saving = false;
-        this.profilePicture = null;
-        this.clearLocalPreview();
-        this.successMessage = 'Your profile changes have been saved.';
-      },
-      error: (err) => {
-        this.saving = false;
-        console.error(err);
-        this.errorMessage = 'We could not save your changes. Please try again.';
-      },
-    });
+    this.authService
+      .updateProfileSettings({
+        fullName: this.fullName.trim(),
+        bio: this.bio.trim(),
+        phoneNumber: this.phoneNumber.trim(),
+        profilePicture: this.profilePicture,
+      })
+      .subscribe({
+        next: () => {
+          this.saving = false;
+          this.profilePicture = null;
+          this.clearLocalPreview();
+          this.successMessage = 'Your profile changes have been saved.';
+        },
+        error: (err) => {
+          this.saving = false;
+          console.error(err);
+          this.errorMessage = 'We could not save your changes. Please try again.';
+        },
+      });
   }
 
   get userInitials(): string {

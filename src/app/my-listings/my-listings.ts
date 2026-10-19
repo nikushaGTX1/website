@@ -6,12 +6,15 @@ import { User } from '../models/user';
 import { ApartmentService } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
+import { NgIf, NgFor } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { CurrencyPrice } from '../currency-price/currency-price';
 
 @Component({
   selector: 'app-my-listings',
-  standalone: false,
   templateUrl: './my-listings.html',
   styleUrl: './my-listings.css',
+  imports: [NgIf, RouterLink, NgFor, CurrencyPrice],
 })
 export class MyListings implements OnInit, OnDestroy {
   user: User | null = null;
@@ -37,15 +40,14 @@ export class MyListings implements OnInit, OnDestroy {
         this.user = user;
         this.pendingListings = this.pendingService.getForUser(user);
         this.loadListings();
-      })
+      }),
     );
 
     this.subscriptions.add(
       this.pendingService.pendingApartments$.subscribe(() => {
         this.pendingListings = this.pendingService.getForUser(this.user);
-      })
+      }),
     );
-
   }
 
   /** The API only lets admins and managers delete apartments; others would just get an error. */
@@ -87,7 +89,7 @@ export class MyListings implements OnInit, OnDestroy {
     if (this.pendingService.remove(request.id)) {
       this.successMessage = 'Upload request deleted.';
       this.errorMessage = '';
-          }
+    }
   }
 
   deleteListing(apartment: Apartment): void {
@@ -114,9 +116,7 @@ export class MyListings implements OnInit, OnDestroy {
 
   private getApiError(error: HttpErrorResponse, fallback: string): string {
     const apiMessage =
-      typeof error.error === 'string'
-        ? error.error
-        : error.error?.message || error.error?.title;
+      typeof error.error === 'string' ? error.error : error.error?.message || error.error?.title;
 
     if (error.status === 401) return 'Your session expired. Please sign in again.';
     if (error.status === 403) return 'You do not have permission to change this listing.';

@@ -1,12 +1,16 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ApartmentMatchResult } from '../models/apartment-match-result';
 import { toMediaUrl } from '../../utils/api-media';
+import { NgIf, NgFor, SlicePipe } from '@angular/common';
+import { CurrencyPrice } from '../../currency-price/currency-price';
+import { RouterLink } from '@angular/router';
+import { ListingTitlePipe } from '../../shared/listing-title.pipe';
 
 @Component({
   selector: 'app-concierge-results',
-  standalone: false,
   templateUrl: './concierge-results.component.html',
   styleUrl: './concierge-results.component.css',
+  imports: [NgIf, NgFor, CurrencyPrice, RouterLink, SlicePipe, ListingTitlePipe],
 })
 export class ConciergeResultsComponent {
   @Input() matches: ApartmentMatchResult[] = [];

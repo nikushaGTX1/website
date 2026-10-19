@@ -8,7 +8,7 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
@@ -33,7 +33,10 @@ interface PhoneCountryOption {
   flag: string;
   callingCode: string;
 }
-import { NearbyPlace } from '../maps/google-property-map/google-property-map.component';
+import {
+  NearbyPlace,
+  GooglePropertyMapComponent,
+} from '../maps/google-property-map/google-property-map.component';
 import { AppLanguage, TranslationService } from '../services/translation.service';
 import { parkingCostLabel } from '../utils/parking-cost';
 import { SeoService } from '../services/seo.service';
@@ -43,6 +46,10 @@ import { selectedPets } from '../ai-home-match/services/mandatory-requirements';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { nearbyDriveMinutes } from '../utils/nearby-places';
 import { isListedUniversity } from '../utils/universities';
+import { NgIf, NgClass, NgFor, SlicePipe, DecimalPipe } from '@angular/common';
+import { PhotoCarouselComponent } from '../shared/photo-carousel/photo-carousel.component';
+import { FormsModule } from '@angular/forms';
+import { CurrencyPrice } from '../currency-price/currency-price';
 
 interface Review {
   name: string;
@@ -70,9 +77,20 @@ interface ViewingInquiryForm {
 
 @Component({
   selector: 'app-apartment-detail',
-  standalone: false,
   templateUrl: './apartment-detail.html',
   styleUrls: ['./apartment-detail.css', './apartment-detail.icons.css'],
+  imports: [
+    NgIf,
+    RouterLink,
+    PhotoCarouselComponent,
+    NgClass,
+    NgFor,
+    GooglePropertyMapComponent,
+    FormsModule,
+    CurrencyPrice,
+    SlicePipe,
+    DecimalPipe,
+  ],
 })
 export class ApartmentDetail implements OnInit, OnDestroy {
   @ViewChild('photoViewer') private photoViewer?: ElementRef<HTMLDialogElement>;
@@ -230,12 +248,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const apartment = this.apartment;
     const source =
       apartment?.address?.trim() ||
-      [
-        apartment?.street?.trim(),
-        apartment?.district?.trim(),
-        apartment?.city?.trim(),
-      ]
-        .filter((value, index, values): value is string => !!value && values.indexOf(value) === index)
+      [apartment?.street?.trim(), apartment?.district?.trim(), apartment?.city?.trim()]
+        .filter(
+          (value, index, values): value is string => !!value && values.indexOf(value) === index,
+        )
         .join(', ');
     if (!source)
       return language === 'ru'
@@ -250,7 +266,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const address = this.address;
     return address.includes(',')
       ? address.split(',')[0].trim()
-      : address === 'Address not provided' || address === 'მისამართი არ არის მითითებული' || address === 'Адрес не указан'
+      : address === 'Address not provided' ||
+          address === 'მისამართი არ არის მითითებული' ||
+          address === 'Адрес не указан'
         ? 'Tbilisi, Georgia'
         : address;
   }
@@ -260,7 +278,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   get mortgageLoanAmount(): number {
-    return Math.max(0, this.safeMortgageNumber(this.mortgagePrice) - this.safeMortgageNumber(this.mortgageDownPayment));
+    return Math.max(
+      0,
+      this.safeMortgageNumber(this.mortgagePrice) -
+        this.safeMortgageNumber(this.mortgageDownPayment),
+    );
   }
 
   get mortgageMonthlyPayment(): number {
@@ -274,9 +296,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   get mortgageTotalRepayment(): number {
-    return this.mortgageMonthlyPayment * Math.max(
-      1,
-      this.safeMortgageNumber(this.mortgageLoanTermMonths),
+    return (
+      this.mortgageMonthlyPayment *
+      Math.max(1, this.safeMortgageNumber(this.mortgageLoanTermMonths))
     );
   }
 
@@ -450,7 +472,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       {
         icon: 'fa-car',
         label: 'Private parking',
-        value: apartment.hasParking ? parkingCostLabel(apartment) || this.yesNo(true) : this.yesNo(apartment.hasParking),
+        value: apartment.hasParking
+          ? parkingCostLabel(apartment) || this.yesNo(true)
+          : this.yesNo(apartment.hasParking),
         highlight: apartment.hasParking && !!parkingCostLabel(apartment),
       },
       { icon: 'fa-building', label: 'Balcony', value: this.yesNo(apartment.hasBalcony) },
@@ -536,7 +560,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     else this.previousPhoto();
     // Alternate class names so the CSS animation restarts on every swipe.
     this.gallerySlideToggle = !this.gallerySlideToggle;
-    this.gallerySlideDirection = (dx < 0 ? 'left' : 'right');
+    this.gallerySlideDirection = dx < 0 ? 'left' : 'right';
     this.gallerySlideKey = this.gallerySlideToggle ? 'a' : 'b';
     const count = this.galleryImages.length;
     for (const offset of [1, -1]) {
@@ -672,7 +696,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     if (await this.copyText(url)) {
       this.showShareFeedback('Link copied');
     } else {
-      window.prompt(this.translation.translate('Copy this link', this.translation.language$.value), url);
+      window.prompt(
+        this.translation.translate('Copy this link', this.translation.language$.value),
+        url,
+      );
     }
   }
 
@@ -724,7 +751,8 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     // Staff (agents, managers, admins) book viewings for clients, so their own
     // name/contact must not be pre-filled; only customers get their details filled in.
-    const isStaff = this.authService.isAgent || this.authService.isAdmin || this.authService.isCrmManager;
+    const isStaff =
+      this.authService.isAgent || this.authService.isAdmin || this.authService.isCrmManager;
     const user = isStaff ? null : this.authService.currentUser;
     this.inquiryForm = {
       ...this.emptyInquiryForm(),
@@ -745,7 +773,13 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     }
     const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
     this.viewingCalendarMonth = new Date(start.getFullYear(), start.getMonth(), 1);
-    this.writeViewingValue(start.getFullYear(), start.getMonth(), start.getDate(), this.timeOfDayHours.any, 0);
+    this.writeViewingValue(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate(),
+      this.timeOfDayHours.any,
+      0,
+    );
     this.inquiryError = '';
     this.inquirySubmitted = false;
     this.viewingDialogOpen = true;
@@ -768,7 +802,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const name = this.inquiryForm.name.trim();
     const email = this.inquiryForm.email.trim();
     // Numbers are parsed against the chosen country; typing a full +number overrides it.
-    const parsedPhone = parsePhoneNumberFromString(this.inquiryForm.phone.trim(), this.phoneCountry);
+    const parsedPhone = parsePhoneNumberFromString(
+      this.inquiryForm.phone.trim(),
+      this.phoneCountry,
+    );
     const phone = parsedPhone?.isValid() ? parsedPhone.formatInternational() : '';
     const nationalPhone = this.inquiryForm.phone.replace(/[^\d]/g, '');
     const requestedViewingAt = this.toIsoDate(this.inquiryForm.requestedViewingAt);
@@ -799,7 +836,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         email: email || undefined,
         phone: phone || undefined,
         requestedViewingAt,
-        message: [this.inquiryForm.message.trim(), `Preferred time: ${this.viewingTimeLabel}`].filter(Boolean).join(' | '),
+        message: [this.inquiryForm.message.trim(), `Preferred time: ${this.viewingTimeLabel}`]
+          .filter(Boolean)
+          .join(' | '),
         consentToContact: true, // the form states that an agent will contact the customer
         website: this.inquiryForm.website,
       })
@@ -822,7 +861,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   private get viewingTimeLabel(): string {
-    return { morning: 'Morning', noon: 'Midday', evening: 'Evening', any: 'Any time' }[this.viewingTimeOfDay];
+    return { morning: 'Morning', noon: 'Midday', evening: 'Evening', any: 'Any time' }[
+      this.viewingTimeOfDay
+    ];
   }
 
   get minimumViewingDate(): string {
@@ -911,7 +952,8 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     if (this.viewingSlotDisabled(value)) return;
     this.viewingTimeOfDay = value;
     const parsed = this.parseViewingValue();
-    if (parsed) this.writeViewingValue(parsed.y, parsed.m, parsed.d, this.slotHour(value, parsed), 0);
+    if (parsed)
+      this.writeViewingValue(parsed.y, parsed.m, parsed.d, this.slotHour(value, parsed), 0);
   }
 
   /** Viewings need at least an hour's notice. */
@@ -921,7 +963,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   private isToday(parsed: { y: number; m: number; d: number }): boolean {
     const now = new Date();
-    return parsed.y === now.getFullYear() && parsed.m === now.getMonth() && parsed.d === now.getDate();
+    return (
+      parsed.y === now.getFullYear() && parsed.m === now.getMonth() && parsed.d === now.getDate()
+    );
   }
 
   /** Earliest bookable whole hour today. */
@@ -931,7 +975,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   /** Hour written for a slot; "Any time" on today moves to the next bookable hour. */
-  private slotHour(value: 'morning' | 'noon' | 'evening' | 'any', parsed: { y: number; m: number; d: number }): number {
+  private slotHour(
+    value: 'morning' | 'noon' | 'evening' | 'any',
+    parsed: { y: number; m: number; d: number },
+  ): number {
     const hour = this.timeOfDayHours[value];
     if (value === 'any' && this.isToday(parsed)) return Math.max(hour, this.earliestHourToday());
     return hour;
@@ -950,10 +997,19 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   private ensureViewingSlotAvailable(): void {
     if (!this.viewingSlotDisabled(this.viewingTimeOfDay)) {
       const parsed = this.parseViewingValue();
-      if (parsed) this.writeViewingValue(parsed.y, parsed.m, parsed.d, this.slotHour(this.viewingTimeOfDay, parsed), 0);
+      if (parsed)
+        this.writeViewingValue(
+          parsed.y,
+          parsed.m,
+          parsed.d,
+          this.slotHour(this.viewingTimeOfDay, parsed),
+          0,
+        );
       return;
     }
-    const next = this.viewingTimeOptions.map((option) => option.value).find((value) => !this.viewingSlotDisabled(value));
+    const next = this.viewingTimeOptions
+      .map((option) => option.value)
+      .find((value) => !this.viewingSlotDisabled(value));
     if (next) this.setViewingTimeOfDay(next);
   }
   viewingHourOptions = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
@@ -1057,11 +1113,16 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       days.push({
         date: cell.getDate(),
         inMonth: cell.getMonth() === month,
-        selected: !!parsed && parsed.y === cell.getFullYear() && parsed.m === cell.getMonth() && parsed.d === cell.getDate(),
+        selected:
+          !!parsed &&
+          parsed.y === cell.getFullYear() &&
+          parsed.m === cell.getMonth() &&
+          parsed.d === cell.getDate(),
         isToday: cellDay.getTime() === today.getTime(),
         disabled:
           cellDay.getTime() < today.getTime() ||
-          (cellDay.getTime() === today.getTime() && this.earliestHourToday() > ApartmentDetail.LAST_VIEWING_HOUR),
+          (cellDay.getTime() === today.getTime() &&
+            this.earliestHourToday() > ApartmentDetail.LAST_VIEWING_HOUR),
         fullYear: cell.getFullYear(),
         fullMonth: cell.getMonth(),
       });
@@ -1069,9 +1130,20 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return days;
   }
 
-  selectViewingDay(day: { date: number; fullYear: number; fullMonth: number; disabled: boolean }): void {
+  selectViewingDay(day: {
+    date: number;
+    fullYear: number;
+    fullMonth: number;
+    disabled: boolean;
+  }): void {
     if (day.disabled) return;
-    this.writeViewingValue(day.fullYear, day.fullMonth, day.date, this.timeOfDayHours[this.viewingTimeOfDay], 0);
+    this.writeViewingValue(
+      day.fullYear,
+      day.fullMonth,
+      day.date,
+      this.timeOfDayHours[this.viewingTimeOfDay],
+      0,
+    );
     this.ensureViewingSlotAvailable();
   }
 
@@ -1220,17 +1292,28 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const profile = this.homeMatch.profile;
     const keys = new Set<string>();
     if (selectedPets(profile).length) {
-      keys.add('petStoreDistanceMinutes').add('veterinaryDistanceMinutes').add('parkDistanceMinutes');
+      keys
+        .add('petStoreDistanceMinutes')
+        .add('veterinaryDistanceMinutes')
+        .add('parkDistanceMinutes');
     }
     if (profile.children > 0) keys.add('schoolDistanceMinutes').add('kindergartenDistanceMinutes');
     if (profile.lifestyles.includes('Athlete')) keys.add('gymDistanceMinutes');
     if (profile.lifestyles.includes('Student')) keys.add('universityDistanceMinutes');
     if (profile.transportation.includes('Metro')) keys.add('metroDistanceMinutes');
-    if (profile.transportation.includes('Car') && profile.carFuelType === 'Electric') keys.add('evChargerDistanceMinutes');
+    if (profile.transportation.includes('Car') && profile.carFuelType === 'Electric')
+      keys.add('evChargerDistanceMinutes');
     return keys;
   }
 
-  get storedNearbyPlaces(): Array<{ label: string; icon: string; minutes: number; mode: string; image?: string; name?: string }> {
+  get storedNearbyPlaces(): Array<{
+    label: string;
+    icon: string;
+    minutes: number;
+    mode: string;
+    image?: string;
+    name?: string;
+  }> {
     const apartment = this.apartment;
     if (!apartment) return [];
     const names = this.nearbyPlaceNames;
@@ -1238,9 +1321,22 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const isVake = (apartment.district || '').trim().toLowerCase() === 'vake';
     const places = [
       isVake
-        ? { label: 'Vake Park', icon: 'fa-tree', minutes: 10, image: '/icons/areas/vake-fountain.png' }
-        // Metro only counts as "nearby" within a 20-minute walk; farther away it is left out.
-        : { key: 'metroDistanceMinutes', label: 'Nearest metro', icon: 'fa-train-subway', minutes: Number(apartment.metroDistanceMinutes) <= 20 ? apartment.metroDistanceMinutes : undefined },
+        ? {
+            label: 'Vake Park',
+            icon: 'fa-tree',
+            minutes: 10,
+            image: '/icons/areas/vake-fountain.png',
+          }
+        : // Metro only counts as "nearby" within a 20-minute walk; farther away it is left out.
+          {
+            key: 'metroDistanceMinutes',
+            label: 'Nearest metro',
+            icon: 'fa-train-subway',
+            minutes:
+              Number(apartment.metroDistanceMinutes) <= 20
+                ? apartment.metroDistanceMinutes
+                : undefined,
+          },
       {
         key: 'schoolDistanceMinutes',
         label: 'Nearest school',
@@ -1248,10 +1344,30 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         minutes: apartment.schoolDistanceMinutes,
       },
       // Everyday services.
-      { key: 'groceryDistanceMinutes', label: 'Nearest supermarket', icon: 'fa-basket-shopping', minutes: apartment.groceryDistanceMinutes },
-      { key: 'pharmacyDistanceMinutes', label: 'Nearest pharmacy', icon: 'fa-prescription-bottle-medical', minutes: apartment.pharmacyDistanceMinutes },
-      { key: 'gymDistanceMinutes', label: 'Nearest gym', icon: 'fa-dumbbell', minutes: apartment.gymDistanceMinutes },
-      { key: 'parkDistanceMinutes', label: 'Nearest park', icon: 'fa-tree', minutes: apartment.parkDistanceMinutes },
+      {
+        key: 'groceryDistanceMinutes',
+        label: 'Nearest supermarket',
+        icon: 'fa-basket-shopping',
+        minutes: apartment.groceryDistanceMinutes,
+      },
+      {
+        key: 'pharmacyDistanceMinutes',
+        label: 'Nearest pharmacy',
+        icon: 'fa-prescription-bottle-medical',
+        minutes: apartment.pharmacyDistanceMinutes,
+      },
+      {
+        key: 'gymDistanceMinutes',
+        label: 'Nearest gym',
+        icon: 'fa-dumbbell',
+        minutes: apartment.gymDistanceMinutes,
+      },
+      {
+        key: 'parkDistanceMinutes',
+        label: 'Nearest park',
+        icon: 'fa-tree',
+        minutes: apartment.parkDistanceMinutes,
+      },
       {
         key: 'kindergartenDistanceMinutes',
         label: 'Nearest kindergarten',
@@ -1264,11 +1380,31 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         icon: 'fa-building-columns',
         minutes: apartment.universityDistanceMinutes,
       },
-      { key: 'cafeDistanceMinutes', label: 'Nearest café', icon: 'fa-mug-hot', minutes: apartment.cafeDistanceMinutes },
-      { key: 'evChargerDistanceMinutes', label: 'Nearest EV charger', icon: 'fa-charging-station', minutes: apartment.evChargerDistanceMinutes },
+      {
+        key: 'cafeDistanceMinutes',
+        label: 'Nearest café',
+        icon: 'fa-mug-hot',
+        minutes: apartment.cafeDistanceMinutes,
+      },
+      {
+        key: 'evChargerDistanceMinutes',
+        label: 'Nearest EV charger',
+        icon: 'fa-charging-station',
+        minutes: apartment.evChargerDistanceMinutes,
+      },
       // Pet services: shown first for pet owners, otherwise only when there is room.
-      { key: 'petStoreDistanceMinutes', label: 'Nearest pet shop', icon: 'fa-paw', minutes: apartment.petStoreDistanceMinutes },
-      { key: 'veterinaryDistanceMinutes', label: 'Nearest vet clinic', icon: 'fa-stethoscope', minutes: apartment.veterinaryDistanceMinutes },
+      {
+        key: 'petStoreDistanceMinutes',
+        label: 'Nearest pet shop',
+        icon: 'fa-paw',
+        minutes: apartment.petStoreDistanceMinutes,
+      },
+      {
+        key: 'veterinaryDistanceMinutes',
+        label: 'Nearest vet clinic',
+        icon: 'fa-stethoscope',
+        minutes: apartment.veterinaryDistanceMinutes,
+      },
     ];
     const priority = this.nearbyPriorityKeys;
     // Relevant places first, in the order they were added above (pets first for pet owners).
@@ -1291,12 +1427,19 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       }
       return { ...place, minutes: drive, mode: 'drive' };
     });
-    return withMode
-      .filter((place): place is typeof place & { minutes: number } => Number.isFinite(place.minutes))
-      // Walkable places first; stable sort keeps Velven Match priorities inside each group.
-      .sort((a, b) => Number(a.mode === 'drive') - Number(b.mode === 'drive') || relevant(a) - relevant(b))
-      .slice(0, 9) // show up to 9 places (3 full rows)
-      .map(({ key, ...place }) => ({ ...place, name: key ? names[key] : undefined }));
+    return (
+      withMode
+        .filter((place): place is typeof place & { minutes: number } =>
+          Number.isFinite(place.minutes),
+        )
+        // Walkable places first; stable sort keeps Velven Match priorities inside each group.
+        .sort(
+          (a, b) =>
+            Number(a.mode === 'drive') - Number(b.mode === 'drive') || relevant(a) - relevant(b),
+        )
+        .slice(0, 9) // show up to 9 places (3 full rows)
+        .map(({ key, ...place }) => ({ ...place, name: key ? names[key] : undefined }))
+    );
   }
 
   viewSimilar(index: number): void {
@@ -1482,17 +1625,23 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   /** "Sep 20, 2026" (or Georgian month names) — when staff last confirmed the listing. */
   get lastConfirmedLabel(): string {
-    const value = this.apartment?.lastConfirmedAt || (this.apartment?.isApproved !== false ? this.apartment?.createdAt : null);
+    const value =
+      this.apartment?.lastConfirmedAt ||
+      (this.apartment?.isApproved !== false ? this.apartment?.createdAt : null);
     if (!value) return '';
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) return '';
-    const locale = document.documentElement.lang === 'ka' ? 'ka-GE' : document.documentElement.lang === 'ru' ? 'ru-RU' : 'en-US';
+    const locale =
+      document.documentElement.lang === 'ka'
+        ? 'ka-GE'
+        : document.documentElement.lang === 'ru'
+          ? 'ru-RU'
+          : 'en-US';
     return date.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   get isForSale(): boolean {
-    const deal =
-      this.getListingMetadata('Deal') || this.getListingMetadata('Listing type');
+    const deal = this.getListingMetadata('Deal') || this.getListingMetadata('Listing type');
     if (deal) return /sale|buy|იყიდება|продаж/i.test(deal);
 
     const title = this.apartment?.title || '';
@@ -1508,7 +1657,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const type =
       `${this.getListingMetadata('Type')} ${this.apartment?.apartmentStyle || ''}`.toLowerCase();
     // Commercial listings ("Type: Commercial area", "კომერციული ფართი") are not apartments (VELVEN-011).
-    const commercial = /commercial|office|shop|კომერციულ|საოფისე|коммерч/i.test(`${type} ${this.apartment?.title || ''}`);
+    const commercial = /commercial|office|shop|კომერციულ|საოფისე|коммерч/i.test(
+      `${type} ${this.apartment?.title || ''}`,
+    );
     if (commercial) return language === 'ru' ? 'Коммерческое помещение' : 'Commercial space';
     const house = type.includes('house') || type.includes('villa') || type.includes('cottage');
     return language === 'ru' ? (house ? 'Дом' : 'Квартира') : house ? 'House' : 'Apartment';

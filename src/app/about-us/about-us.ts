@@ -2,12 +2,13 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApartmentService } from '../services/apartment.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-about-us',
-  standalone: false,
   templateUrl: './about-us.html',
   styleUrl: './about-us.css',
+  imports: [RouterLink, FormsModule],
 })
 export class AboutUs {
   scrollToWhyVelven(): void {

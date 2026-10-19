@@ -5,12 +5,17 @@ import { ApartmentService } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { toMediaUrl } from '../utils/api-media';
 import { isSaleListing } from '../utils/listing-deal';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { NgIf, NgFor } from '@angular/common';
+import { CurrencyPrice } from '../currency-price/currency-price';
+import { ListingTitlePipe } from '../shared/listing-title.pipe';
 
 @Component({
   selector: 'app-saved-listings',
-  standalone: false,
   templateUrl: './saved-listings.html',
   styleUrls: ['./saved-listings.css', './saved-listings.icons.css'],
+  imports: [RouterLink, FormsModule, NgIf, NgFor, CurrencyPrice, ListingTitlePipe],
 })
 export class SavedListings implements OnInit {
   readonly isSaleListing = isSaleListing;
@@ -67,7 +72,9 @@ export class SavedListings implements OnInit {
   }
 
   getImage(apartment: Apartment): string {
-    return toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg';
+    return (
+      toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg'
+    );
   }
 
   getLocation(apartment: Apartment): string {
@@ -75,9 +82,7 @@ export class SavedListings implements OnInit {
   }
 
   isExclusiveListing(apartment: Apartment): boolean {
-    return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(
-      apartment.description || '',
-    );
+    return /(?:^|[|\r\n])\s*Listing plan:\s*Velven Exclusive\b/i.test(apartment.description || '');
   }
 
   private applySort(): void {

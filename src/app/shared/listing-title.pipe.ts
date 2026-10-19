@@ -3,7 +3,10 @@ import { LocationService } from '../services/location.service';
 import { TranslationService } from '../services/translation.service';
 import { localizeListingTitle, TitleDistrict } from '../utils/listing-title';
 
-@Pipe({ name: 'listingTitle', standalone: false, pure: false })
+@Pipe({
+  name: 'listingTitle',
+  pure: false,
+})
 export class ListingTitlePipe implements PipeTransform {
   private districts: TitleDistrict[] = [];
   private lastKey = '';

@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { HomeMatchProfile } from '../models/home-match-profile';
+import { NgIf, NgFor } from '@angular/common';
 
 interface AvatarFigure {
   src: string;
@@ -11,9 +12,9 @@ interface AvatarFigure {
 
 @Component({
   selector: 'app-velven-lifestyle-avatar',
-  standalone: false,
   templateUrl: './lifestyle-avatar.component.html',
   styleUrl: './lifestyle-avatar.component.css',
+  imports: [NgIf, NgFor],
 })
 export class VelvenLifestyleAvatarComponent {
   @Input({ required: true }) profile!: HomeMatchProfile;
@@ -54,28 +55,41 @@ export class VelvenLifestyleAvatarComponent {
     });
     // Never repeat a child character: use the age-matched asset first, then
     // fall back to the next unused one so siblings look different.
-    const childPool = [childByAge['Age0To3'], childByAge['Age4To6'], childByAge['Age7To12'], childByAge['Age13To17']];
+    const childPool = [
+      childByAge['Age0To3'],
+      childByAge['Age4To6'],
+      childByAge['Age7To12'],
+      childByAge['Age13To17'],
+    ];
     const usedChildren = new Set<string>();
-    const selectedChildren = Array.from({ length: Math.min(this.profile.children, 4) }, (_, index): AvatarFigure => {
-      const ageGroup = this.profile.childrenAgeGroups[index];
-      const preferred = childByAge[ageGroup];
-      const src =
-        (preferred && !usedChildren.has(preferred) ? preferred : undefined) ??
-        childPool.find((candidate) => !usedChildren.has(candidate)) ??
-        childPool[index % childPool.length];
-      usedChildren.add(src);
-      const sizeGroup = (Object.keys(childByAge) as string[]).find((key) => childByAge[key] === src);
-      return { src, role: 'child', ageGroup: sizeGroup };
-    });
+    const selectedChildren = Array.from(
+      { length: Math.min(this.profile.children, 4) },
+      (_, index): AvatarFigure => {
+        const ageGroup = this.profile.childrenAgeGroups[index];
+        const preferred = childByAge[ageGroup];
+        const src =
+          (preferred && !usedChildren.has(preferred) ? preferred : undefined) ??
+          childPool.find((candidate) => !usedChildren.has(candidate)) ??
+          childPool[index % childPool.length];
+        usedChildren.add(src);
+        const sizeGroup = (Object.keys(childByAge) as string[]).find(
+          (key) => childByAge[key] === src,
+        );
+        return { src, role: 'child', ageGroup: sizeGroup };
+      },
+    );
     // One figure per pet kind (a dog and a cat can both appear); "Other" is drawn as a dog.
     const pets = this.profile.petTypes?.length
       ? this.profile.petTypes
       : this.profile.hasPet
         ? [this.profile.petType === 'Cat' ? 'Cat' : 'Dog']
         : [];
-    const selectedPet: AvatarFigure[] = [...new Set(pets.map((pet) => (pet === 'Cat' ? 'Cat' : 'Dog')))].map(
-      (pet) => ({ src: pet === 'Cat' ? '/Characters/კატა.png' : '/Characters/ძაღლი.png', role: 'pet' as const }),
-    );
+    const selectedPet: AvatarFigure[] = [
+      ...new Set(pets.map((pet) => (pet === 'Cat' ? 'Cat' : 'Dog'))),
+    ].map((pet) => ({
+      src: pet === 'Cat' ? '/Characters/კატა.png' : '/Characters/ძაღლი.png',
+      role: 'pet' as const,
+    }));
     const primaryWoman = this.profile.gender === 'Female';
     const selectedGenderAdults = primaryWoman
       ? [
@@ -130,7 +144,8 @@ export class VelvenLifestyleAvatarComponent {
   }
 
   variantFigureSrc(figure: AvatarFigure): string {
-    if (figure.role !== 'adult' || !figure.primary || figure.gender !== this.profile.gender) return figure.src;
+    if (figure.role !== 'adult' || !figure.primary || figure.gender !== this.profile.gender)
+      return figure.src;
 
     const isWoman = figure.gender === 'Female';
     const lifestyles = new Set(this.profile.lifestyles);

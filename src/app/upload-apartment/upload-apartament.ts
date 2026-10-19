@@ -1,8 +1,15 @@
 import { normalizeApartmentStyle } from '../utils/apartment-style';
 import { isValidPhone } from '../utils/phone';
-import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  NgZone,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, Subscription, timeout, TimeoutError } from 'rxjs';
 import { ApartmentService } from '../services/apartment.service';
 import { CreateApartment } from '../models/apartment';
@@ -23,12 +30,28 @@ import { encodeNearbyPlaceNames, splitNearbyPlaceNames } from '../utils/nearby-p
 const SAVE_TIMEOUT_MS = 45000;
 
 const NEARBY_KEYS: NearbyTimeKey[] = [
-  'schoolDistanceMinutes', 'kindergartenDistanceMinutes', 'groceryDistanceMinutes', 'cafeDistanceMinutes',
-  'gymDistanceMinutes', 'metroDistanceMinutes', 'parkDistanceMinutes', 'universityDistanceMinutes',
-  'pharmacyDistanceMinutes', 'evChargerDistanceMinutes', 'petStoreDistanceMinutes', 'veterinaryDistanceMinutes',
+  'schoolDistanceMinutes',
+  'kindergartenDistanceMinutes',
+  'groceryDistanceMinutes',
+  'cafeDistanceMinutes',
+  'gymDistanceMinutes',
+  'metroDistanceMinutes',
+  'parkDistanceMinutes',
+  'universityDistanceMinutes',
+  'pharmacyDistanceMinutes',
+  'evChargerDistanceMinutes',
+  'petStoreDistanceMinutes',
+  'veterinaryDistanceMinutes',
 ];
 import { AiPricingService } from '../services/ai-pricing.service';
-import { OwnerListingService, OwnerSubmission, OwnerSubmissionStatus } from '../services/owner-listing.service';
+import {
+  OwnerListingService,
+  OwnerSubmission,
+  OwnerSubmissionStatus,
+} from '../services/owner-listing.service';
+import { NgIf, NgFor } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { PropertyPointPickerComponent } from '../maps/property-point-picker/property-point-picker.component';
 
 type ListingCopyLanguage = 'ka' | 'en' | 'ru';
 type ListingCopy = { title: string; description: string };
@@ -143,9 +166,9 @@ type FolderListingData = Record<string, unknown>;
 
 @Component({
   selector: 'app-upload-apartment',
-  standalone: false,
   templateUrl: './upload-apartaments.html',
   styleUrl: './upload-apartment.css',
+  imports: [NgIf, NgFor, RouterLink, FormsModule, PropertyPointPickerComponent],
 })
 export class UploadApartment implements OnInit, OnDestroy {
   /**
@@ -166,8 +189,13 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   onPlanScroll(scroller: HTMLElement): void {
     const card = scroller.firstElementChild as HTMLElement | null;
-    const step = card ? card.offsetWidth + parseFloat(getComputedStyle(scroller).columnGap || '0') : scroller.clientWidth;
-    this.planIndex = Math.max(0, Math.min(this.listingPlans.length - 1, Math.round(scroller.scrollLeft / Math.max(1, step))));
+    const step = card
+      ? card.offsetWidth + parseFloat(getComputedStyle(scroller).columnGap || '0')
+      : scroller.clientWidth;
+    this.planIndex = Math.max(
+      0,
+      Math.min(this.listingPlans.length - 1, Math.round(scroller.scrollLeft / Math.max(1, step))),
+    );
   }
 
   scrollPlans(direction: number): void {
@@ -260,7 +288,11 @@ export class UploadApartment implements OnInit, OnDestroy {
     { label: 'Security or concierge', field: 'hasSecurity', icon: 'fa-solid fa-shield-halved' },
     { label: 'Modern building', field: 'isModernBuilding', icon: 'fa-solid fa-city' },
     { label: 'Isolated bedrooms', field: 'hasIsolatedBedrooms', icon: 'fa-solid fa-door-closed' },
-    { label: 'Company lease available', field: 'hasCompanyLease', icon: 'fa-solid fa-file-contract' },
+    {
+      label: 'Company lease available',
+      field: 'hasCompanyLease',
+      icon: 'fa-solid fa-file-contract',
+    },
   ];
   readonly parkingTypeOptions = [
     { label: 'Garage', value: 'Garage', points: 5 },
@@ -276,16 +308,32 @@ export class UploadApartment implements OnInit, OnDestroy {
   readonly minimumRentalPeriodOptions = ['Minimum 6 months', 'Minimum 12 months'];
 
   private readonly chipIcons: Record<string, string> = {
-    'Apartment': 'fa-solid fa-building', 'Private house': 'fa-solid fa-house', 'Country house': 'fa-solid fa-house-chimney',
-    'Plot': 'fa-solid fa-mountain-sun', 'Commercial area': 'fa-solid fa-store', 'Hotel': 'fa-solid fa-hotel',
-    'For Sale': 'fa-solid fa-tag', 'For Rent': 'fa-solid fa-key', 'Lease': 'fa-solid fa-file-signature', 'Daily rent': 'fa-solid fa-calendar-day',
-    'Minimum 6 months': 'fa-regular fa-calendar', 'Minimum 12 months': 'fa-regular fa-calendar-check',
-    'Old building': 'fa-solid fa-landmark', 'New building': 'fa-solid fa-building-circle-check', 'Under construction': 'fa-solid fa-helmet-safety',
-    'City View': 'fa-solid fa-city', 'Nature View': 'fa-solid fa-tree', 'No View': 'fa-regular fa-eye-slash',
-    'Newly Renovated': 'fa-solid fa-wand-magic-sparkles', 'Old renovated': 'fa-solid fa-couch',
-    'Current renovation': 'fa-solid fa-person-digging', 'Repairing': 'fa-solid fa-screwdriver-wrench',
-    'White frame': 'fa-regular fa-square', 'Black frame': 'fa-solid fa-square',
-    'Green frame': 'fa-solid fa-seedling', 'White Plus': 'fa-regular fa-square-plus',
+    Apartment: 'fa-solid fa-building',
+    'Private house': 'fa-solid fa-house',
+    'Country house': 'fa-solid fa-house-chimney',
+    Plot: 'fa-solid fa-mountain-sun',
+    'Commercial area': 'fa-solid fa-store',
+    Hotel: 'fa-solid fa-hotel',
+    'For Sale': 'fa-solid fa-tag',
+    'For Rent': 'fa-solid fa-key',
+    Lease: 'fa-solid fa-file-signature',
+    'Daily rent': 'fa-solid fa-calendar-day',
+    'Minimum 6 months': 'fa-regular fa-calendar',
+    'Minimum 12 months': 'fa-regular fa-calendar-check',
+    'Old building': 'fa-solid fa-landmark',
+    'New building': 'fa-solid fa-building-circle-check',
+    'Under construction': 'fa-solid fa-helmet-safety',
+    'City View': 'fa-solid fa-city',
+    'Nature View': 'fa-solid fa-tree',
+    'No View': 'fa-regular fa-eye-slash',
+    'Newly Renovated': 'fa-solid fa-wand-magic-sparkles',
+    'Old renovated': 'fa-solid fa-couch',
+    'Current renovation': 'fa-solid fa-person-digging',
+    Repairing: 'fa-solid fa-screwdriver-wrench',
+    'White frame': 'fa-regular fa-square',
+    'Black frame': 'fa-solid fa-square',
+    'Green frame': 'fa-solid fa-seedling',
+    'White Plus': 'fa-regular fa-square-plus',
   };
 
   chipIcon(option: string): string {
@@ -383,17 +431,23 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (!submission || this.ownerStatusSaving) return;
     if (status === 'rejected' && !confirm('Reject this owner submission?')) return;
     this.ownerStatusSaving = true;
-    this.ownerListingService.updateSubmission(submission.id, { status, verification: submission.verification, agentNotes: submission.agentNotes || '' }).subscribe({
-      next: (updated) => {
-        this.ownerSubmission = updated;
-        this.ownerStatusSaving = false;
-        if (status === 'rejected') this.router.navigate(['/crm/owner-submissions']);
-      },
-      error: () => {
-        this.ownerStatusSaving = false;
-        this.errorMessage = 'Could not update the owner submission.';
-      },
-    });
+    this.ownerListingService
+      .updateSubmission(submission.id, {
+        status,
+        verification: submission.verification,
+        agentNotes: submission.agentNotes || '',
+      })
+      .subscribe({
+        next: (updated) => {
+          this.ownerSubmission = updated;
+          this.ownerStatusSaving = false;
+          if (status === 'rejected') this.router.navigate(['/crm/owner-submissions']);
+        },
+        error: () => {
+          this.ownerStatusSaving = false;
+          this.errorMessage = 'Could not update the owner submission.';
+        },
+      });
   }
   private editOriginalMeta = '';
   successModalPending = false;
@@ -408,7 +462,9 @@ export class UploadApartment implements OnInit, OnDestroy {
   draggedImageIndex: number | null = null;
   imageDropIndex: number | null = null;
 
-  get copyLanguage(): ListingCopyLanguage { return this.translationService.language$.value; }
+  get copyLanguage(): ListingCopyLanguage {
+    return this.translationService.language$.value;
+  }
   listingCopy: Record<ListingCopyLanguage, ListingCopy> = {
     ka: { title: '', description: '' },
     en: { title: '', description: '' },
@@ -453,11 +509,19 @@ export class UploadApartment implements OnInit, OnDestroy {
       Lease: ['გრძელვადიანი იჯარა', 'for lease', 'в долгосрочную аренду'],
       'Daily rent': ['ქირავდება დღიურად', 'for daily rent', 'в посуточную аренду'],
     }[this.form.dealType] || ['იყიდება', 'for sale', 'на продажу'];
-    const districtEntry = this.locationEntries.find((entry) => entry.district === this.selectedDistrictValue);
+    const districtEntry = this.locationEntries.find(
+      (entry) => entry.district === this.selectedDistrictValue,
+    );
     const places = {
-      ka: districtEntry ? this.locationService.districtName(districtEntry, 'ka') : this.form.location,
-      en: districtEntry ? this.locationService.districtName(districtEntry, 'en') : this.form.location,
-      ru: districtEntry ? this.locationService.districtName(districtEntry, 'ru') : this.form.location,
+      ka: districtEntry
+        ? this.locationService.districtName(districtEntry, 'ka')
+        : this.form.location,
+      en: districtEntry
+        ? this.locationService.districtName(districtEntry, 'en')
+        : this.form.location,
+      ru: districtEntry
+        ? this.locationService.districtName(districtEntry, 'ru')
+        : this.form.location,
     };
     const price = this.form.totalPrice
       ? `${this.form.currency === 'GEL' ? '₾' : '$'}${new Intl.NumberFormat('en-US').format(this.form.totalPrice)}`
@@ -472,9 +536,29 @@ export class UploadApartment implements OnInit, OnDestroy {
     const priceKa = price ? ` — ${price}${monthly ? '/თვე' : ''}` : '';
     const priceEn = price ? ` — ${price}${monthly ? '/month' : ''}` : '';
     const priceRu = price ? ` — ${price}${monthly ? '/месяц' : ''}` : '';
-    const detailsKa = [this.form.area ? `${this.form.area} მ²` : '', this.form.bedrooms ? `${this.form.bedrooms} საძინებელი` : '', this.form.floor != null ? `${this.form.floor} სართული` : ''].filter(Boolean).join(', ');
-    const detailsEn = [this.form.area ? `${this.form.area} m²` : '', this.form.bedrooms ? `${this.form.bedrooms} bedroom${this.form.bedrooms === 1 ? '' : 's'}` : '', this.form.floor != null ? `floor ${this.form.floor}` : ''].filter(Boolean).join(', ');
-    const detailsRu = [this.form.area ? `${this.form.area} м²` : '', this.form.bedrooms ? `${this.form.bedrooms} спал.` : '', this.form.floor != null ? `${this.form.floor} этаж` : ''].filter(Boolean).join(', ');
+    const detailsKa = [
+      this.form.area ? `${this.form.area} მ²` : '',
+      this.form.bedrooms ? `${this.form.bedrooms} საძინებელი` : '',
+      this.form.floor != null ? `${this.form.floor} სართული` : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
+    const detailsEn = [
+      this.form.area ? `${this.form.area} m²` : '',
+      this.form.bedrooms
+        ? `${this.form.bedrooms} bedroom${this.form.bedrooms === 1 ? '' : 's'}`
+        : '',
+      this.form.floor != null ? `floor ${this.form.floor}` : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
+    const detailsRu = [
+      this.form.area ? `${this.form.area} м²` : '',
+      this.form.bedrooms ? `${this.form.bedrooms} спал.` : '',
+      this.form.floor != null ? `${this.form.floor} этаж` : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
     const conditions: Record<string, [string, string]> = {
       'Newly Renovated': ['ახალი რემონტით', 'Свежий ремонт'],
       'Old renovated': ['ძველი რემონტით', 'Старый ремонт'],
@@ -576,30 +660,45 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.ownerSubmissionId = ownerId;
       this.editLoading = true;
       this.ownerListingService.getSubmission(ownerId).subscribe({
-        next: async submission => {
+        next: async (submission) => {
           this.ownerSubmission = submission;
           const agentName = this.form.agentName;
           const agentPhone = this.form.agentPhone;
-          const knownKeys = Object.keys(this.form).filter(key => !['agentName', 'agentPhone', 'imageUrl', 'imageUrls'].includes(key));
-          for (const key of knownKeys) if (Object.prototype.hasOwnProperty.call(submission.data || {}, key)) (this.form as any)[key] = submission.data[key];
-          const booleanFlags = new Set<BooleanFeature>(this.featureOptions.map(option => option.field));
+          const knownKeys = Object.keys(this.form).filter(
+            (key) => !['agentName', 'agentPhone', 'imageUrl', 'imageUrls'].includes(key),
+          );
+          for (const key of knownKeys)
+            if (Object.prototype.hasOwnProperty.call(submission.data || {}, key))
+              (this.form as any)[key] = submission.data[key];
+          const booleanFlags = new Set<BooleanFeature>(
+            this.featureOptions.map((option) => option.field),
+          );
           for (const [key, value] of Object.entries(submission.verification || {})) {
-            if (typeof value === 'boolean' && booleanFlags.has(key as BooleanFeature)) (this.form as any)[key] = value;
+            if (typeof value === 'boolean' && booleanFlags.has(key as BooleanFeature))
+              (this.form as any)[key] = value;
           }
           this.form.agentName = agentName;
           this.form.agentPhone = agentPhone;
           this.resolveImportedLocation();
-          const prepared = await Promise.all((submission.photos || []).map(async (url, index) => {
-            try {
-              const response = await fetch(url);
-              const blob = await response.blob();
-              return await this.prepareImage(new File([blob], `owner-photo-${index + 1}.jpg`, { type: blob.type || 'image/jpeg' }));
-            } catch { return null; }
-          }));
+          const prepared = await Promise.all(
+            (submission.photos || []).map(async (url, index) => {
+              try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return await this.prepareImage(
+                  new File([blob], `owner-photo-${index + 1}.jpg`, {
+                    type: blob.type || 'image/jpeg',
+                  }),
+                );
+              } catch {
+                return null;
+              }
+            }),
+          );
           const images = prepared.filter((item): item is PreparedImage => item !== null);
-          this.form.imageUrls = images.map(item => item.previewUrl);
+          this.form.imageUrls = images.map((item) => item.previewUrl);
           this.form.imageUrl = this.form.imageUrls[0] || '';
-          this.selectedImages = images.map(item => item.file);
+          this.selectedImages = images.map((item) => item.file);
           this.editLoading = false;
           this.cdr.detectChanges();
         },
@@ -643,19 +742,33 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   private metaTag(meta: string, name: string): string {
     const prefix = name.toLowerCase() + ':';
-    const match = meta.split('|').map((part) => part.trim()).find((part) => part.toLowerCase().startsWith(prefix));
+    const match = meta
+      .split('|')
+      .map((part) => part.trim())
+      .find((part) => part.toLowerCase().startsWith(prefix));
     return match ? match.slice(prefix.length).trim() : '';
   }
 
   /** Location fingerprint: walking times only need recalculating when this changes. */
   private nearbyLocationKey(): string {
     return [
-      this.form.propertyLatitude, this.form.propertyLongitude,
-      this.selectedStreetValue, this.form.streetNumber, this.selectedDistrictValue,
-    ].map((part) => String(part ?? '').trim().toLowerCase()).join('|');
+      this.form.propertyLatitude,
+      this.form.propertyLongitude,
+      this.selectedStreetValue,
+      this.form.streetNumber,
+      this.selectedDistrictValue,
+    ]
+      .map((part) =>
+        String(part ?? '')
+          .trim()
+          .toLowerCase(),
+      )
+      .join('|');
   }
 
-  private applyExistingListing(source: Partial<import('../models/apartment').Apartment & CreateApartment>): void {
+  private applyExistingListing(
+    source: Partial<import('../models/apartment').Apartment & CreateApartment>,
+  ): void {
     // Walking times already saved on this listing; reused on save if the location is unchanged,
     // so editing other fields never calls Google again.
     const saved = source as Partial<Record<NearbyTimeKey, number | null>>;
@@ -698,23 +811,50 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.floor = num(source.floor);
     f.totalFloors = num(source.totalFloors);
     const flags: BooleanFeature[] = [
-      'hasElevator', 'hasParking', 'isQuietStreet', 'hasBalcony', 'hasBathtub', 'hasAirConditioning',
-      'hasDishwasher', 'isPetFriendly', 'hasHomeOfficeSpace', 'hasLargeKitchen', 'hasView', 'isFurnished',
+      'hasElevator',
+      'hasParking',
+      'isQuietStreet',
+      'hasBalcony',
+      'hasBathtub',
+      'hasAirConditioning',
+      'hasDishwasher',
+      'isPetFriendly',
+      'hasHomeOfficeSpace',
+      'hasLargeKitchen',
+      'hasView',
+      'isFurnished',
     ];
     for (const flag of flags) f[flag] = !!(source as Record<string, unknown>)[flag];
     const tagged: BooleanFeature[] = [
-      'hasLargeLivingRoom', 'hasPlaygroundNearby', 'hasCoworkingNearby', 'hasCafeNearby', 'hasEverydayServicesNearby', 'hasSecurity',
-      'isModernBuilding', 'hasIsolatedBedrooms', 'isAwayFromNightlife', 'hasCompanyLease',
+      'hasLargeLivingRoom',
+      'hasPlaygroundNearby',
+      'hasCoworkingNearby',
+      'hasCafeNearby',
+      'hasEverydayServicesNearby',
+      'hasSecurity',
+      'isModernBuilding',
+      'hasIsolatedBedrooms',
+      'isAwayFromNightlife',
+      'hasCompanyLease',
     ];
     for (const option of this.featureOptions) {
       if (tagged.includes(option.field)) f[option.field] = meta.includes(option.label + ': Yes');
     }
     f.isVerified = meta.includes('Verified listing: Yes');
     const parkingLabel = tag('Parking type');
-    f.parkingCondition = source.parkingCondition ||
-      this.parkingTypeOptions.find((o) => o.label === parkingLabel)?.value || '';
+    f.parkingCondition =
+      source.parkingCondition ||
+      this.parkingTypeOptions.find((o) => o.label === parkingLabel)?.value ||
+      '';
     const parkingCost = parseParkingCost(source.description || '');
-    f.parkingCost = parkingCost.cost === 'Free' ? 'Free' : parkingCost.cost === 'Paid' ? (parkingCost.price != null ? 'Paid' : 'PaidUnknown') : '';
+    f.parkingCost =
+      parkingCost.cost === 'Free'
+        ? 'Free'
+        : parkingCost.cost === 'Paid'
+          ? parkingCost.price != null
+            ? 'Paid'
+            : 'PaidUnknown'
+          : '';
     f.parkingPrice = parkingCost.price;
     f.viewType = source.viewType || tag('View type');
     f.minimumRentalPeriod = source.minimumRentalPeriod || tag('Minimum rental');
@@ -761,11 +901,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   private refreshUserMessages(): void {
     this.userMessages = this.pendingService
       .getForUser(this.authService.currentUser)
-      .filter(
-        (item) =>
-          item.status === 'declined' &&
-          !this.dismissedNotificationIds.has(item.id),
-      );
+      .filter((item) => item.status === 'declined' && !this.dismissedNotificationIds.has(item.id));
     this.pendingDebug = this.pendingService.getStorageDebug();
   }
 
@@ -875,7 +1011,11 @@ export class UploadApartment implements OnInit, OnDestroy {
       days.push({
         date: cell.getDate(),
         inMonth: cell.getMonth() === month,
-        selected: !!parsed && parsed.y === cell.getFullYear() && parsed.m === cell.getMonth() && parsed.d === cell.getDate(),
+        selected:
+          !!parsed &&
+          parsed.y === cell.getFullYear() &&
+          parsed.m === cell.getMonth() &&
+          parsed.d === cell.getDate(),
         isToday: cellDay.getTime() === today.getTime(),
         disabled: cellDay.getTime() < today.getTime(),
         fullYear: cell.getFullYear(),
@@ -885,7 +1025,12 @@ export class UploadApartment implements OnInit, OnDestroy {
     return days;
   }
 
-  selectAvailDay(day: { date: number; fullYear: number; fullMonth: number; disabled: boolean }): void {
+  selectAvailDay(day: {
+    date: number;
+    fullYear: number;
+    fullMonth: number;
+    disabled: boolean;
+  }): void {
     if (day.disabled) return;
     const pad = (n: number) => String(n).padStart(2, '0');
     this.form.availableFrom = `${day.fullYear}-${pad(day.fullMonth + 1)}-${pad(day.date)}`;
@@ -902,17 +1047,23 @@ export class UploadApartment implements OnInit, OnDestroy {
     const language = this.translationService.language$.value;
     const seen = new Set<string>();
     const normalize = (value: string): string =>
-      value.trim().toLocaleLowerCase().replace(/[^a-z0-9\u10a0-\u10ff\u0400-\u04ff]+/g, '');
+      value
+        .trim()
+        .toLocaleLowerCase()
+        .replace(/[^a-z0-9\u10a0-\u10ff\u0400-\u04ff]+/g, '');
 
     return this.locationEntries
       .filter((entry) => entry.city === 'Tbilisi')
-      .filter((entry) =>
-        !query ||
-        entry.district.toLowerCase().includes(query) ||
-        this.locationService.districtName(entry, 'ka').toLowerCase().includes(query),
+      .filter(
+        (entry) =>
+          !query ||
+          entry.district.toLowerCase().includes(query) ||
+          this.locationService.districtName(entry, 'ka').toLowerCase().includes(query),
       )
       .filter((entry) => {
-        const key = normalize(entry.district) || normalize(this.locationService.districtName(entry, language));
+        const key =
+          normalize(entry.district) ||
+          normalize(this.locationService.districtName(entry, language));
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -1015,7 +1166,8 @@ export class UploadApartment implements OnInit, OnDestroy {
   select(field: keyof UploadForm, value: string): void {
     (this.form[field] as string) = value;
     // Rentals are move-in ready, so the renovation/frame condition does not apply.
-    if (field === 'dealType') this.form.condition = this.isRentDeal ? '' : this.form.condition || 'Newly Renovated';
+    if (field === 'dealType')
+      this.form.condition = this.isRentDeal ? '' : this.form.condition || 'Newly Renovated';
   }
 
   get isRentDeal(): boolean {
@@ -1033,11 +1185,16 @@ export class UploadApartment implements OnInit, OnDestroy {
   openStep(index: number): void {
     this.activeStep = index;
     if (index === 4) this.generateListingCopy(false);
-    document.getElementById(`listing-step-${index}`)?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    document
+      .getElementById(`listing-step-${index}`)
+      ?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
 
   get completionPercentage(): number {
-    return Math.round((this.steps.filter((_, index) => this.isStepComplete(index)).length / this.steps.length) * 100);
+    return Math.round(
+      (this.steps.filter((_, index) => this.isStepComplete(index)).length / this.steps.length) *
+        100,
+    );
   }
 
   saveDraft(): void {
@@ -1198,9 +1355,8 @@ export class UploadApartment implements OnInit, OnDestroy {
   recalculateSqPrice(): void {
     const totalPrice = Number(this.form.totalPrice);
     const area = Number(this.form.area);
-    this.form.sqPrice = totalPrice > 0 && area > 0
-      ? Math.round((totalPrice / area) * 100) / 100
-      : null;
+    this.form.sqPrice =
+      totalPrice > 0 && area > 0 ? Math.round((totalPrice / area) * 100) / 100 : null;
   }
 
   get duplicateOwnerName(): string {
@@ -1221,7 +1377,12 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.duplicateMatch = null;
       return;
     }
-    if (!this.selectedDistrictValue || !this.selectedStreetId || !this.form.area || !this.form.totalPrice) {
+    if (
+      !this.selectedDistrictValue ||
+      !this.selectedStreetId ||
+      !this.form.area ||
+      !this.form.totalPrice
+    ) {
       this.duplicateMatch = null;
       return;
     }
@@ -1244,7 +1405,10 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   private normalizeText(value: string | null | undefined): string {
-    return (value || '').trim().toLowerCase().replace(/[\s_]+/g, ' ');
+    return (value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_]+/g, ' ');
   }
 
   private toUsdPrice(): number {
@@ -1253,7 +1417,9 @@ export class UploadApartment implements OnInit, OnDestroy {
     return this.form.currency === 'GEL' ? price / 2.7 : price;
   }
 
-  private findDuplicate(apartments: import('../models/apartment').Apartment[]): import('../models/apartment').Apartment | null {
+  private findDuplicate(
+    apartments: import('../models/apartment').Apartment[],
+  ): import('../models/apartment').Apartment | null {
     const district = this.normalizeText(this.selectedDistrictValue);
     const streetId = this.selectedStreetId;
     const streetName = this.normalizeText(this.selectedStreetValue || this.form.street);
@@ -1270,9 +1436,10 @@ export class UploadApartment implements OnInit, OnDestroy {
     for (const apartment of apartments) {
       let score = 0;
       // Street must match by id when available, otherwise by normalized name.
-      const sameStreet = streetId != null && apartment.streetId != null
-        ? apartment.streetId === streetId
-        : streetName && this.normalizeText(apartment.street) === streetName;
+      const sameStreet =
+        streetId != null && apartment.streetId != null
+          ? apartment.streetId === streetId
+          : streetName && this.normalizeText(apartment.street) === streetName;
       if (!sameStreet) continue;
       if (district && this.normalizeText(apartment.district) !== district) continue;
 
@@ -1305,9 +1472,13 @@ export class UploadApartment implements OnInit, OnDestroy {
       if (
         Number.isFinite(Number(this.form.propertyLatitude)) &&
         Number.isFinite(Number(this.form.propertyLongitude)) &&
-        Number.isFinite(lat) && Number.isFinite(lng)
+        Number.isFinite(lat) &&
+        Number.isFinite(lng)
       ) {
-        const distance = Math.hypot(lat - Number(this.form.propertyLatitude), lng - Number(this.form.propertyLongitude));
+        const distance = Math.hypot(
+          lat - Number(this.form.propertyLatitude),
+          lng - Number(this.form.propertyLongitude),
+        );
         if (distance < 0.0005) score += 2;
       }
 
@@ -1321,7 +1492,9 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   get previewTitle(): string {
-    return this.form.title.trim() || `${this.form.realEstateType} ${this.form.dealType.toLowerCase()}`;
+    return (
+      this.form.title.trim() || `${this.form.realEstateType} ${this.form.dealType.toLowerCase()}`
+    );
   }
 
   get previewLocation(): string {
@@ -1358,7 +1531,12 @@ export class UploadApartment implements OnInit, OnDestroy {
   isStepComplete(index: number): boolean {
     switch (index) {
       case 0:
-        return !!(this.form.realEstateType && this.form.dealType && this.form.buildingStatus && (this.isRentDeal || this.form.condition));
+        return !!(
+          this.form.realEstateType &&
+          this.form.dealType &&
+          this.form.buildingStatus &&
+          (this.isRentDeal || this.form.condition)
+        );
       case 1:
         return !!(
           this.selectedDistrictValue &&
@@ -1373,9 +1551,18 @@ export class UploadApartment implements OnInit, OnDestroy {
       case 3:
         return !!this.form.totalPrice;
       case 4:
-        return !!(this.form.title.trim() && this.form.description.trim() && this.uploadedImageCount);
+        return !!(
+          this.form.title.trim() &&
+          this.form.description.trim() &&
+          this.uploadedImageCount
+        );
       case 5:
-        return !!(this.form.contactName.trim() && isValidPhone(this.form.contactPhone) && this.form.agentName.trim() && isValidPhone(this.form.agentPhone));
+        return !!(
+          this.form.contactName.trim() &&
+          isValidPhone(this.form.contactPhone) &&
+          this.form.agentName.trim() &&
+          isValidPhone(this.form.agentPhone)
+        );
       default:
         return false;
     }
@@ -1461,7 +1648,14 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   moveImage(source: number, target: number): void {
-    if (source === target || source < 0 || target < 0 || source >= this.form.imageUrls.length || target >= this.form.imageUrls.length) return;
+    if (
+      source === target ||
+      source < 0 ||
+      target < 0 ||
+      source >= this.form.imageUrls.length ||
+      target >= this.form.imageUrls.length
+    )
+      return;
     const previews = [...this.form.imageUrls];
     const files = [...this.selectedImages];
     const [preview] = previews.splice(source, 1);
@@ -1484,7 +1678,9 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.folderImportError = '';
     if (!files.length) return;
 
-    const dataFile = files.find((file) => /(^|\/)data\.json$/i.test(file.webkitRelativePath || file.name));
+    const dataFile = files.find((file) =>
+      /(^|\/)data\.json$/i.test(file.webkitRelativePath || file.name),
+    );
     if (!dataFile) {
       this.folderImportError = 'The selected folder does not contain data.json.';
       input.value = '';
@@ -1494,15 +1690,28 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.importingFolder = true;
     try {
       const parsed = JSON.parse(await dataFile.text()) as unknown;
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('data.json must contain one listing object.');
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+        throw new Error('data.json must contain one listing object.');
       this.applyFolderListingData(parsed as FolderListingData);
       this.resolveImportedLocation();
 
       const imageFiles = files
-        .filter((file) => /(^|\/)images\//i.test((file.webkitRelativePath || file.name).replace(/\\/g, '/')) && file.type.startsWith('image/'))
-        .sort((a, b) => (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name, undefined, { numeric: true }))
+        .filter(
+          (file) =>
+            /(^|\/)images\//i.test((file.webkitRelativePath || file.name).replace(/\\/g, '/')) &&
+            file.type.startsWith('image/'),
+        )
+        .sort((a, b) =>
+          (a.webkitRelativePath || a.name).localeCompare(
+            b.webkitRelativePath || b.name,
+            undefined,
+            { numeric: true },
+          ),
+        )
         .slice(0, this.maxImages);
-      const prepared = await Promise.all(imageFiles.map((file) => this.prepareImage(file).catch(() => null)));
+      const prepared = await Promise.all(
+        imageFiles.map((file) => this.prepareImage(file).catch(() => null)),
+      );
       const images = prepared.filter((item): item is PreparedImage => item !== null);
       this.form.imageUrls = images.map((item) => item.previewUrl);
       this.selectedImages = images.map((item) => item.file);
@@ -1511,7 +1720,10 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.folderImportMessage = `Imported data.json and ${images.length} photo${images.length === 1 ? '' : 's'}.${skipped ? ` ${skipped} could not be processed.` : ''}`;
       this.activeStep = 0;
     } catch (error) {
-      this.folderImportError = error instanceof Error ? `Could not import folder: ${error.message}` : 'Could not import folder.';
+      this.folderImportError =
+        error instanceof Error
+          ? `Could not import folder: ${error.message}`
+          : 'Could not import folder.';
     } finally {
       this.importingFolder = false;
       input.value = '';
@@ -1519,18 +1731,44 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   private applyFolderListingData(data: FolderListingData): void {
-    const text = (key: string): string => data[key] == null ? '' : String(data[key]).trim();
+    const text = (key: string): string => (data[key] == null ? '' : String(data[key]).trim());
     const number = (key: string): number | null => {
       const raw = data[key];
       if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
       const parsed = Number(String(raw ?? '').replace(/[^\d.-]/g, ''));
       return String(raw ?? '').trim() && Number.isFinite(parsed) ? parsed : null;
     };
-    const enabled = (key: string): boolean => ['true', 'yes', 'კი', 'არის', '1'].includes(text(key).toLowerCase());
-    const propertyTypes: Record<string, string> = { 'ბინა': 'Apartment', 'კერძო სახლი': 'Private house', 'აგარაკი': 'Country house', 'მიწის ნაკვეთი': 'Plot', 'კომერციული ფართი': 'Commercial area', 'სასტუმრო': 'Hotel' };
-    const dealTypes: Record<string, string> = { 'იყიდება': 'For Sale', 'ქირავდება': 'For Rent', 'გირავდება': 'Lease', 'ქირავდება დღიურად': 'Daily rent' };
-    const statuses: Record<string, string> = { 'ძველი აშენებული': 'Old building', 'ახალი აშენებული': 'New building', 'მშენებარე': 'Under construction' };
-    const conditions: Record<string, string> = { 'ახალი რემონტით': 'Newly Renovated', 'ძველი რემონტით': 'Old renovated', 'მიმდინარე რემონტი': 'Current renovation', 'სარემონტო': 'Repairing', 'თეთრი კარკასი': 'White frame', 'შავი კარკასი': 'Black frame', 'მწვანე კარკასი': 'Green frame', 'თეთრი პლუსი': 'White Plus' };
+    const enabled = (key: string): boolean =>
+      ['true', 'yes', 'კი', 'არის', '1'].includes(text(key).toLowerCase());
+    const propertyTypes: Record<string, string> = {
+      ბინა: 'Apartment',
+      'კერძო სახლი': 'Private house',
+      აგარაკი: 'Country house',
+      'მიწის ნაკვეთი': 'Plot',
+      'კომერციული ფართი': 'Commercial area',
+      სასტუმრო: 'Hotel',
+    };
+    const dealTypes: Record<string, string> = {
+      იყიდება: 'For Sale',
+      ქირავდება: 'For Rent',
+      გირავდება: 'Lease',
+      'ქირავდება დღიურად': 'Daily rent',
+    };
+    const statuses: Record<string, string> = {
+      'ძველი აშენებული': 'Old building',
+      'ახალი აშენებული': 'New building',
+      მშენებარე: 'Under construction',
+    };
+    const conditions: Record<string, string> = {
+      'ახალი რემონტით': 'Newly Renovated',
+      'ძველი რემონტით': 'Old renovated',
+      'მიმდინარე რემონტი': 'Current renovation',
+      სარემონტო: 'Repairing',
+      'თეთრი კარკასი': 'White frame',
+      'შავი კარკასი': 'Black frame',
+      'მწვანე კარკასი': 'Green frame',
+      'თეთრი პლუსი': 'White Plus',
+    };
     const deal = text('გაყიდვა/ქირა') || text('განცხადების სახეობა');
     const condition = text('რემონტი') || text('მდგომარეობა');
 
@@ -1539,7 +1777,9 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.form.buildingStatus = statuses[text('სტატუსი')] || this.form.buildingStatus;
     this.form.condition = conditions[condition] || this.form.condition;
     this.form.location = text('უბანი');
-    this.form.street = text('მისამართი').replace(/\s+(ქ\.?|ქუჩა)$/i, '').trim();
+    this.form.street = text('მისამართი')
+      .replace(/\s+(ქ\.?|ქუჩა)$/i, '')
+      .trim();
     this.form.totalPrice = number('ფასი');
     this.form.sqPrice = number('ფასი / მ²');
     this.form.currency = text('ვალუტა').toUpperCase() === 'GEL' ? 'GEL' : '$';
@@ -1562,18 +1802,38 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.form.hasElevator = enabled('ლიფტი');
     this.form.hasParking = enabled('პარკინგი');
     this.form.hasBalcony = enabled('აივანი');
-    this.form.isFurnished = /ავეჯ|მოწყობილ/i.test(`${text('მდგომარეობა')} ${this.form.description}`);
-    this.form.title = [this.form.realEstateType, this.form.dealType, this.form.location].filter(Boolean).join(' · ');
+    this.form.isFurnished = /ავეჯ|მოწყობილ/i.test(
+      `${text('მდგომარეობა')} ${this.form.description}`,
+    );
+    this.form.title = [this.form.realEstateType, this.form.dealType, this.form.location]
+      .filter(Boolean)
+      .join(' · ');
   }
 
   private resolveImportedLocation(): void {
-    const normalize = (value: string): string => value.trim().toLowerCase().replace(/\s+(ქ\.?|ქუჩა)$/i, '').replace(/[^a-z0-9\u10a0-\u10ff]/g, '');
+    const normalize = (value: string): string =>
+      value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+(ქ\.?|ქუჩა)$/i, '')
+        .replace(/[^a-z0-9\u10a0-\u10ff]/g, '');
     const districtQuery = normalize(this.form.location);
-    const district = this.locationEntries.find((entry) => normalize(entry.district) === districtQuery || normalize(this.locationService.districtName(entry, 'ka')) === districtQuery);
+    const district = this.locationEntries.find(
+      (entry) =>
+        normalize(entry.district) === districtQuery ||
+        normalize(this.locationService.districtName(entry, 'ka')) === districtQuery,
+    );
     this.selectedDistrictValue = district?.district || '';
     if (district) this.form.location = this.locationService.districtName(district, 'ka');
     const streetQuery = normalize(this.form.street);
-    const street = district ? this.locationService.streetNames(district, 'ka').find((item) => normalize(item.label) === streetQuery || normalize(item.value) === streetQuery) : undefined;
+    const street = district
+      ? this.locationService
+          .streetNames(district, 'ka')
+          .find(
+            (item) =>
+              normalize(item.label) === streetQuery || normalize(item.value) === streetQuery,
+          )
+      : undefined;
     this.selectedStreetId = street?.id || null;
     this.selectedStreetValue = street?.value || '';
     if (street) this.form.street = street.label;
@@ -1599,7 +1859,11 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.validationAttempted = true;
     this.form.myHomeId = this.form.myHomeId.trim();
     if (this.form.myHomeId && !/^[1-9][0-9]{4,7}$/.test(this.form.myHomeId)) {
-      this.errorMessage = this.uploadLocationText('MyHome ID must contain 5 to 8 digits.', 'MyHome ID უნდა შეიცავდეს 5-დან 8 ციფრამდე.', 'MyHome ID должен содержать от 5 до 8 цифр.');
+      this.errorMessage = this.uploadLocationText(
+        'MyHome ID must contain 5 to 8 digits.',
+        'MyHome ID უნდა შეიცავდეს 5-დან 8 ციფრამდე.',
+        'MyHome ID должен содержать от 5 до 8 цифр.',
+      );
       return;
     }
     const issues = this.validationIssues;
@@ -1609,8 +1873,15 @@ export class UploadApartment implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.form.totalPrice || !this.form.contactName.trim() || !isValidPhone(this.form.contactPhone) || !this.form.agentName.trim() || !isValidPhone(this.form.agentPhone)) {
-      this.errorMessage = 'Please fill in the price and all owner and agent contact fields before publishing.';
+    if (
+      !this.form.totalPrice ||
+      !this.form.contactName.trim() ||
+      !isValidPhone(this.form.contactPhone) ||
+      !this.form.agentName.trim() ||
+      !isValidPhone(this.form.agentPhone)
+    ) {
+      this.errorMessage =
+        'Please fill in the price and all owner and agent contact fields before publishing.';
       return;
     }
 
@@ -1624,7 +1895,10 @@ export class UploadApartment implements OnInit, OnDestroy {
       return;
     }
 
-    if (!Number.isFinite(this.form.propertyLatitude) || !Number.isFinite(this.form.propertyLongitude)) {
+    if (
+      !Number.isFinite(this.form.propertyLatitude) ||
+      !Number.isFinite(this.form.propertyLongitude)
+    ) {
       this.errorMessage = 'Please click the exact property location on the map.';
       return;
     }
@@ -1642,14 +1916,20 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.duplicateMatch = null;
     } else {
       try {
-        const apartments = await firstValueFrom(this.apartmentService.getApartments().pipe(timeout(15000)));
+        const apartments = await firstValueFrom(
+          this.apartmentService.getApartments().pipe(timeout(15000)),
+        );
         const duplicate = this.findDuplicate(apartments || []);
         if (duplicate) {
           this.duplicateMatch = duplicate;
           this.duplicateDismissedForKey = '';
           this.errorMessage = this.duplicateErrorText;
           this.activeStep = 1;
-          setTimeout(() => document.querySelector('.duplicate-alert')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+          setTimeout(() =>
+            document
+              .querySelector('.duplicate-alert')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+          );
           return;
         }
         this.duplicateMatch = null;
@@ -1664,7 +1944,9 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.streetNumber,
       this.selectedDistrictValue,
       'Tbilisi',
-    ].filter(Boolean).join(', ');
+    ]
+      .filter(Boolean)
+      .join(', ');
     let nearbyTimes: NearbyWalkingTimes = {};
     const reuseSaved =
       Object.keys(this.editSavedNearby).length > 0 &&
@@ -1672,28 +1954,35 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.editSavedLocationKey === this.nearbyLocationKey();
     if (reuseSaved) {
       nearbyTimes = { ...this.editSavedNearby };
-    } else try {
-      // Google can hang or resolve outside Angular; never let it block publishing.
-      nearbyTimes = await Promise.race([
-        this.nearbyTimeService.getWalkingTimes(
-          calculationAddress,
-          this.form.propertyLatitude != null && this.form.propertyLongitude != null
-            ? { lat: Number(this.form.propertyLatitude), lng: Number(this.form.propertyLongitude) }
-            : null,
-        ),
-        // Out-of-town homes also need drive routes, so allow a little longer.
-        new Promise<NearbyWalkingTimes>((resolve) => setTimeout(() => resolve({}), 12000)),
-      ]);
-    } catch (error) {
-      console.error('Could not calculate nearby walking times:', error);
-    }
+    } else
+      try {
+        // Google can hang or resolve outside Angular; never let it block publishing.
+        nearbyTimes = await Promise.race([
+          this.nearbyTimeService.getWalkingTimes(
+            calculationAddress,
+            this.form.propertyLatitude != null && this.form.propertyLongitude != null
+              ? {
+                  lat: Number(this.form.propertyLatitude),
+                  lng: Number(this.form.propertyLongitude),
+                }
+              : null,
+          ),
+          // Out-of-town homes also need drive routes, so allow a little longer.
+          new Promise<NearbyWalkingTimes>((resolve) => setTimeout(() => resolve({}), 12000)),
+        ]);
+      } catch (error) {
+        console.error('Could not calculate nearby walking times:', error);
+      }
     this.applyNearbyFeatureFlags(nearbyTimes);
     // Google callbacks resume outside NgZone, which would leave the page stuck
     // on "loading" until the next click. Re-enter the zone before sending.
     await new Promise<void>((resolve) => this.zone.run(() => resolve()));
 
     if (this.editPendingId) {
-      this.pendingService.updateSubmission(this.editPendingId, this.toCreateApartment(false, nearbyTimes));
+      this.pendingService.updateSubmission(
+        this.editPendingId,
+        this.toCreateApartment(false, nearbyTimes),
+      );
       this.loading = false;
       this.successMessage = 'Changes saved and sent for approval.';
       this.openSuccessModal(true, true);
@@ -1701,26 +1990,31 @@ export class UploadApartment implements OnInit, OnDestroy {
     }
 
     if (this.editId) {
-      this.apartmentService.updateApartment(this.editId, this.toCreateApartment(true, nearbyTimes)).pipe(timeout(SAVE_TIMEOUT_MS)).subscribe({
-        next: () => {
-          this.loading = false;
-          this.successMessage = 'Listing updated.';
-          this.openSuccessModal(false, true);
-        },
-        error: (error: HttpErrorResponse | TimeoutError) => {
-          this.loading = false;
-          this.errorMessage = error instanceof TimeoutError
-            ? 'The server did not respond in time. Check your connection and try again.'
-            : error.error?.code === 'PHOTO_UPLOAD_UNAVAILABLE' || error.error?.code === 'PHOTO_UPLOAD_FAILED'
-            ? error.error.code
-            : error.status === 403
-            ? 'You do not have permission to change this listing.'
-            : error.status === 401
-              ? 'Your session expired. Please sign in again.'
-              : `Could not update the listing (HTTP ${error.status || 'network error'}).`;
-          this.cdr.detectChanges();
-        },
-      });
+      this.apartmentService
+        .updateApartment(this.editId, this.toCreateApartment(true, nearbyTimes))
+        .pipe(timeout(SAVE_TIMEOUT_MS))
+        .subscribe({
+          next: () => {
+            this.loading = false;
+            this.successMessage = 'Listing updated.';
+            this.openSuccessModal(false, true);
+          },
+          error: (error: HttpErrorResponse | TimeoutError) => {
+            this.loading = false;
+            this.errorMessage =
+              error instanceof TimeoutError
+                ? 'The server did not respond in time. Check your connection and try again.'
+                : error.error?.code === 'PHOTO_UPLOAD_UNAVAILABLE' ||
+                    error.error?.code === 'PHOTO_UPLOAD_FAILED'
+                  ? error.error.code
+                  : error.status === 403
+                    ? 'You do not have permission to change this listing.'
+                    : error.status === 401
+                      ? 'Your session expired. Please sign in again.'
+                      : `Could not update the listing (HTTP ${error.status || 'network error'}).`;
+            this.cdr.detectChanges();
+          },
+        });
       return;
     }
 
@@ -1728,39 +2022,51 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     const payload = this.toCreateApartment(isAdmin, nearbyTimes);
     if (this.ownerSubmissionId) payload.ownerSubmissionId = this.ownerSubmissionId;
-    this.apartmentService.createApartment(payload).pipe(timeout(SAVE_TIMEOUT_MS)).subscribe({
-      next: (result) => {
-        this.loading = false;
-        const published = isAdmin || this.authService.isCrmManager || result.apartment?.isApproved !== false;
-        this.successMessage = published
-          ? 'Apartment listing published successfully.'
-          : 'Your apartment was sent for admin confirmation. It will be published after approval.';
-        this.openSuccessModal(!published);
-        // The API marks the owner submission published and links the apartment itself.
-      },
-      error: (error: HttpErrorResponse | TimeoutError) => {
-        this.loading = false;
-        if (error instanceof TimeoutError) {
-          this.errorMessage = 'The server did not respond in time. Check your connection and try again.';
-          this.cdr.detectChanges();
-          return;
-        }
-        const validationMessage = error.error?.errors && typeof error.error.errors === 'object'
-          ? Object.values(error.error.errors as Record<string, string[]>).flat().join(' ')
-          : '';
-        const apiMessage =
-          typeof error.error === 'string'
-            ? error.error
-            : [error.error?.code, error.error?.message, error.error?.detail].filter(Boolean).join(' — ') || validationMessage || error.error?.title;
+    this.apartmentService
+      .createApartment(payload)
+      .pipe(timeout(SAVE_TIMEOUT_MS))
+      .subscribe({
+        next: (result) => {
+          this.loading = false;
+          const published =
+            isAdmin || this.authService.isCrmManager || result.apartment?.isApproved !== false;
+          this.successMessage = published
+            ? 'Apartment listing published successfully.'
+            : 'Your apartment was sent for admin confirmation. It will be published after approval.';
+          this.openSuccessModal(!published);
+          // The API marks the owner submission published and links the apartment itself.
+        },
+        error: (error: HttpErrorResponse | TimeoutError) => {
+          this.loading = false;
+          if (error instanceof TimeoutError) {
+            this.errorMessage =
+              'The server did not respond in time. Check your connection and try again.';
+            this.cdr.detectChanges();
+            return;
+          }
+          const validationMessage =
+            error.error?.errors && typeof error.error.errors === 'object'
+              ? Object.values(error.error.errors as Record<string, string[]>)
+                  .flat()
+                  .join(' ')
+              : '';
+          const apiMessage =
+            typeof error.error === 'string'
+              ? error.error
+              : [error.error?.code, error.error?.message, error.error?.detail]
+                  .filter(Boolean)
+                  .join(' — ') ||
+                validationMessage ||
+                error.error?.title;
 
-        this.errorMessage =
-          apiMessage ||
-          (error.status === 500
-            ? 'The apartment API encountered a server or database error. Please check the Railway API logs.'
-            : `Could not publish the apartment (HTTP ${error.status || 'network error'}).`);
-        this.cdr.detectChanges();
-      },
-    });
+          this.errorMessage =
+            apiMessage ||
+            (error.status === 500
+              ? 'The apartment API encountered a server or database error. Please check the Railway API logs.'
+              : `Could not publish the apartment (HTTP ${error.status || 'network error'}).`);
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   private openSuccessModal(pending: boolean, edited = false): void {
@@ -1778,23 +2084,132 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   get validationIssues(): { field: string; step: number; message: string }[] {
     const issues: { field: string; step: number; message: string }[] = [];
-    const add = (field: string, step: number, en: string, ka: string, ru: string) => issues.push({ field, step, message: this.uploadLocationText(en, ka, ru) });
+    const add = (field: string, step: number, en: string, ka: string, ru: string) =>
+      issues.push({ field, step, message: this.uploadLocationText(en, ka, ru) });
     const positive = (value: number | null) => value != null && Number.isFinite(value) && value > 0;
-    if (!this.selectedDistrictValue) add('location', 1, 'Select a district from the suggestions.', 'აირჩიეთ უბანი შეთავაზებული სიიდან.', 'Выберите район из списка.');
-    if (!this.selectedStreetId) add('street', 1, 'Select a street from the suggestions.', 'აირჩიეთ ქუჩა შეთავაზებული სიიდან.', 'Выберите улицу из списка.');
-    if (!Number.isFinite(this.form.propertyLatitude) || !Number.isFinite(this.form.propertyLongitude)) add('location', 1, 'Mark the property location on the map.', 'მონიშნეთ უძრავი ქონების მდებარეობა რუკაზე.', 'Отметьте расположение объекта на карте.');
-    if (!positive(this.form.area) || Number(this.form.area) < 0.01) add('area', 2, 'Enter the living area (at least 0.01 m²).', 'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).', 'Укажите площадь (не менее 0,01 м²).');
-    if (!positive(this.form.rooms) || !Number.isInteger(this.form.rooms)) add('rooms', 2, 'Enter the room count (at least 1).', 'მიუთითეთ ოთახების რაოდენობა (მინიმუმ 1).', 'Укажите количество комнат (не менее 1).');
-    if (!positive(this.form.totalFloors) || !Number.isInteger(this.form.totalFloors)) add('totalFloors', 2, 'Enter the total number of building floors (at least 1).', 'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).', 'Укажите количество этажей в здании (не менее 1).');
-    if (this.form.floor == null || !Number.isInteger(this.form.floor) || this.form.floor < 0) add('floor', 2, 'Enter the property floor (0 for ground floor).', 'მიუთითეთ ბინის სართული (მიწის დონე — 0).', 'Укажите этаж объекта (0 — уровень земли).');
-    if (this.floorExceedsTotalFloors) add('floor', 2, 'The property floor cannot exceed the building floors.', 'ბინის სართული არ უნდა აღემატებოდეს შენობის სართულების რაოდენობას.', 'Этаж объекта не может превышать этажность здания.');
-    if (!positive(this.form.totalPrice)) add('totalPrice', 3, 'Enter a price greater than zero.', 'მიუთითეთ ნულზე მეტი ფასი.', 'Укажите цену больше нуля.');
-    if (!this.form.contactName.trim()) add('contactName', 5, 'Enter the owner’s name.', 'მიუთითეთ მესაკუთრის სახელი.', 'Укажите имя собственника.');
-    if (!this.form.contactPhone.trim()) add('contactPhone', 5, 'Enter the owner’s phone number.', 'მიუთითეთ მესაკუთრის ტელეფონის ნომერი.', 'Укажите телефон собственника.');
-    else if (!isValidPhone(this.form.contactPhone)) add('contactPhone', 5, 'Enter a valid owner phone number, e.g. 555 12 34 56.', 'მიუთითეთ მესაკუთრის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.', 'Укажите корректный телефон собственника, например 555 12 34 56.');
-    if (!this.form.agentName.trim()) add('agentName', 5, 'Enter the agent’s name.', 'მიუთითეთ აგენტის სახელი.', 'Укажите имя агента.');
-    if (!this.form.agentPhone.trim()) add('agentPhone', 5, 'Enter the agent’s phone number.', 'მიუთითეთ აგენტის ტელეფონის ნომერი.', 'Укажите телефон агента.');
-    else if (!isValidPhone(this.form.agentPhone)) add('agentPhone', 5, 'Enter a valid agent phone number, e.g. 555 12 34 56.', 'მიუთითეთ აგენტის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.', 'Укажите корректный телефон агента, например 555 12 34 56.');
+    if (!this.selectedDistrictValue)
+      add(
+        'location',
+        1,
+        'Select a district from the suggestions.',
+        'აირჩიეთ უბანი შეთავაზებული სიიდან.',
+        'Выберите район из списка.',
+      );
+    if (!this.selectedStreetId)
+      add(
+        'street',
+        1,
+        'Select a street from the suggestions.',
+        'აირჩიეთ ქუჩა შეთავაზებული სიიდან.',
+        'Выберите улицу из списка.',
+      );
+    if (
+      !Number.isFinite(this.form.propertyLatitude) ||
+      !Number.isFinite(this.form.propertyLongitude)
+    )
+      add(
+        'location',
+        1,
+        'Mark the property location on the map.',
+        'მონიშნეთ უძრავი ქონების მდებარეობა რუკაზე.',
+        'Отметьте расположение объекта на карте.',
+      );
+    if (!positive(this.form.area) || Number(this.form.area) < 0.01)
+      add(
+        'area',
+        2,
+        'Enter the living area (at least 0.01 m²).',
+        'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).',
+        'Укажите площадь (не менее 0,01 м²).',
+      );
+    if (!positive(this.form.rooms) || !Number.isInteger(this.form.rooms))
+      add(
+        'rooms',
+        2,
+        'Enter the room count (at least 1).',
+        'მიუთითეთ ოთახების რაოდენობა (მინიმუმ 1).',
+        'Укажите количество комнат (не менее 1).',
+      );
+    if (!positive(this.form.totalFloors) || !Number.isInteger(this.form.totalFloors))
+      add(
+        'totalFloors',
+        2,
+        'Enter the total number of building floors (at least 1).',
+        'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).',
+        'Укажите количество этажей в здании (не менее 1).',
+      );
+    if (this.form.floor == null || !Number.isInteger(this.form.floor) || this.form.floor < 0)
+      add(
+        'floor',
+        2,
+        'Enter the property floor (0 for ground floor).',
+        'მიუთითეთ ბინის სართული (მიწის დონე — 0).',
+        'Укажите этаж объекта (0 — уровень земли).',
+      );
+    if (this.floorExceedsTotalFloors)
+      add(
+        'floor',
+        2,
+        'The property floor cannot exceed the building floors.',
+        'ბინის სართული არ უნდა აღემატებოდეს შენობის სართულების რაოდენობას.',
+        'Этаж объекта не может превышать этажность здания.',
+      );
+    if (!positive(this.form.totalPrice))
+      add(
+        'totalPrice',
+        3,
+        'Enter a price greater than zero.',
+        'მიუთითეთ ნულზე მეტი ფასი.',
+        'Укажите цену больше нуля.',
+      );
+    if (!this.form.contactName.trim())
+      add(
+        'contactName',
+        5,
+        'Enter the owner’s name.',
+        'მიუთითეთ მესაკუთრის სახელი.',
+        'Укажите имя собственника.',
+      );
+    if (!this.form.contactPhone.trim())
+      add(
+        'contactPhone',
+        5,
+        'Enter the owner’s phone number.',
+        'მიუთითეთ მესაკუთრის ტელეფონის ნომერი.',
+        'Укажите телефон собственника.',
+      );
+    else if (!isValidPhone(this.form.contactPhone))
+      add(
+        'contactPhone',
+        5,
+        'Enter a valid owner phone number, e.g. 555 12 34 56.',
+        'მიუთითეთ მესაკუთრის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.',
+        'Укажите корректный телефон собственника, например 555 12 34 56.',
+      );
+    if (!this.form.agentName.trim())
+      add(
+        'agentName',
+        5,
+        'Enter the agent’s name.',
+        'მიუთითეთ აგენტის სახელი.',
+        'Укажите имя агента.',
+      );
+    if (!this.form.agentPhone.trim())
+      add(
+        'agentPhone',
+        5,
+        'Enter the agent’s phone number.',
+        'მიუთითეთ აგენტის ტელეფონის ნომერი.',
+        'Укажите телефон агента.',
+      );
+    else if (!isValidPhone(this.form.agentPhone))
+      add(
+        'agentPhone',
+        5,
+        'Enter a valid agent phone number, e.g. 555 12 34 56.',
+        'მიუთითეთ აგენტის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.',
+        'Укажите корректный телефон агента, например 555 12 34 56.',
+      );
     return issues;
   }
 
@@ -1807,32 +2222,108 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   get localizedUploadError(): string {
-    if (/PHOTO_UPLOAD_UNAVAILABLE|Supabase upload failed|Photo uploads are temporarily unavailable/i.test(this.errorMessage)) return this.uploadLocationText('Photo uploads are temporarily unavailable. Your form is unchanged. Please try publishing again shortly.', 'ფოტოების ატვირთვა დროებით მიუწვდომელია. ფორმა შენარჩუნებულია. ცოტა ხანში ხელახლა სცადეთ გამოქვეყნება.', 'Загрузка фотографий временно недоступна. Форма сохранена. Попробуйте опубликовать снова чуть позже.');
-    if (/PHOTO_UPLOAD_FAILED/i.test(this.errorMessage)) return this.uploadLocationText('Photos could not be uploaded. Please try again or contact support.', 'ფოტოების ატვირთვა ვერ მოხერხდა. სცადეთ ხელახლა ან დაუკავშირდით მხარდაჭერას.', 'Не удалось загрузить фотографии. Попробуйте снова или обратитесь в поддержку.');
+    if (
+      /PHOTO_UPLOAD_UNAVAILABLE|Supabase upload failed|Photo uploads are temporarily unavailable/i.test(
+        this.errorMessage,
+      )
+    )
+      return this.uploadLocationText(
+        'Photo uploads are temporarily unavailable. Your form is unchanged. Please try publishing again shortly.',
+        'ფოტოების ატვირთვა დროებით მიუწვდომელია. ფორმა შენარჩუნებულია. ცოტა ხანში ხელახლა სცადეთ გამოქვეყნება.',
+        'Загрузка фотографий временно недоступна. Форма сохранена. Попробуйте опубликовать снова чуть позже.',
+      );
+    if (/PHOTO_UPLOAD_FAILED/i.test(this.errorMessage))
+      return this.uploadLocationText(
+        'Photos could not be uploaded. Please try again or contact support.',
+        'ფოტოების ატვირთვა ვერ მოხერხდა. სცადეთ ხელახლა ან დაუკავშირდით მხარდაჭერას.',
+        'Не удалось загрузить фотографии. Попробуйте снова или обратитесь в поддержку.',
+      );
     if (/Duplicate found/i.test(this.errorMessage)) {
       return /waiting for review/i.test(this.errorMessage)
         ? this.uploadLocationText(
-          'Duplicate found. This apartment was already submitted and is waiting for review.',
-          'ნაპოვნია დუბლიკატი. ეს ბინა უკვე გაგზავნილია და განხილვას ელოდება.',
-          'Найден дубликат. Эта квартира уже отправлена и ожидает проверки.',
-        )
+            'Duplicate found. This apartment was already submitted and is waiting for review.',
+            'ნაპოვნია დუბლიკატი. ეს ბინა უკვე გაგზავნილია და განხილვას ელოდება.',
+            'Найден дубликат. Эта квартира уже отправлена и ожидает проверки.',
+          )
         : this.duplicateErrorText;
     }
-    if (/TotalFloors/i.test(this.errorMessage)) return this.uploadLocationText('Enter a valid building floor count (at least 1).', 'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).', 'Укажите корректную этажность здания (не менее 1).');
-    if (/SizeSquareMeters/i.test(this.errorMessage)) return this.uploadLocationText('Enter the living area (at least 0.01 m²).', 'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).', 'Укажите площадь (не менее 0,01 м²).');
-    if (/session|401/i.test(this.errorMessage)) return this.uploadLocationText('Your session expired. Please sign in again.', 'სესია დასრულდა. გთხოვთ, ხელახლა შეხვიდეთ.', 'Сессия истекла. Войдите снова.');
-    if (/did not respond in time/i.test(this.errorMessage)) return this.uploadLocationText('The server did not respond in time. Check your connection and try again.', 'სერვერმა დროულად არ უპასუხა. შეამოწმეთ კავშირი და სცადეთ ხელახლა.', 'Сервер не ответил вовремя. Проверьте подключение и повторите попытку.');
-    if (/phone/i.test(this.errorMessage)) return this.uploadLocationText('Enter valid owner and agent phone numbers, e.g. 555 12 34 56.', 'მიუთითეთ მესაკუთრისა და აგენტის სწორი ტელეფონის ნომრები, მაგ. 555 12 34 56.', 'Укажите корректные телефоны собственника и агента, например 555 12 34 56.');
-    if (/Duplicate/i.test(this.errorMessage)) return this.uploadLocationText('This property already has a listing. Check the duplicate below.', 'ამ უძრავ ქონებაზე განცხადება უკვე არსებობს. შეამოწმეთ დუბლიკატი ქვემოთ.', 'Объявление об этом объекте уже существует. Проверьте дубликат ниже.');
-    return this.uploadLocationText('Could not save the listing. Check the fields and try again.', 'განცხადების შენახვა ვერ მოხერხდა. შეამოწმეთ ველები და სცადეთ ხელახლა.', 'Не удалось сохранить объявление. Проверьте поля и повторите попытку.');
+    if (/TotalFloors/i.test(this.errorMessage))
+      return this.uploadLocationText(
+        'Enter a valid building floor count (at least 1).',
+        'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).',
+        'Укажите корректную этажность здания (не менее 1).',
+      );
+    if (/SizeSquareMeters/i.test(this.errorMessage))
+      return this.uploadLocationText(
+        'Enter the living area (at least 0.01 m²).',
+        'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).',
+        'Укажите площадь (не менее 0,01 м²).',
+      );
+    if (/session|401/i.test(this.errorMessage))
+      return this.uploadLocationText(
+        'Your session expired. Please sign in again.',
+        'სესია დასრულდა. გთხოვთ, ხელახლა შეხვიდეთ.',
+        'Сессия истекла. Войдите снова.',
+      );
+    if (/did not respond in time/i.test(this.errorMessage))
+      return this.uploadLocationText(
+        'The server did not respond in time. Check your connection and try again.',
+        'სერვერმა დროულად არ უპასუხა. შეამოწმეთ კავშირი და სცადეთ ხელახლა.',
+        'Сервер не ответил вовремя. Проверьте подключение и повторите попытку.',
+      );
+    if (/phone/i.test(this.errorMessage))
+      return this.uploadLocationText(
+        'Enter valid owner and agent phone numbers, e.g. 555 12 34 56.',
+        'მიუთითეთ მესაკუთრისა და აგენტის სწორი ტელეფონის ნომრები, მაგ. 555 12 34 56.',
+        'Укажите корректные телефоны собственника и агента, например 555 12 34 56.',
+      );
+    if (/Duplicate/i.test(this.errorMessage))
+      return this.uploadLocationText(
+        'This property already has a listing. Check the duplicate below.',
+        'ამ უძრავ ქონებაზე განცხადება უკვე არსებობს. შეამოწმეთ დუბლიკატი ქვემოთ.',
+        'Объявление об этом объекте уже существует. Проверьте дубликат ниже.',
+      );
+    return this.uploadLocationText(
+      'Could not save the listing. Check the fields and try again.',
+      'განცხადების შენახვა ვერ მოხერხდა. შეამოწმეთ ველები და სცადეთ ხელახლა.',
+      'Не удалось сохранить объявление. Проверьте поля и повторите попытку.',
+    );
   }
 
   get successTitle(): string {
-    return this.successModalEdited ? this.uploadLocationText('Listing updated!', 'განცხადება განახლდა!', 'Объявление обновлено!') : this.successModalPending ? this.uploadLocationText('Listing submitted!', 'განცხადება გაიგზავნა!', 'Объявление отправлено!') : this.uploadLocationText('Listing published!', 'განცხადება გამოქვეყნდა!', 'Объявление опубликовано!');
+    return this.successModalEdited
+      ? this.uploadLocationText('Listing updated!', 'განცხადება განახლდა!', 'Объявление обновлено!')
+      : this.successModalPending
+        ? this.uploadLocationText(
+            'Listing submitted!',
+            'განცხადება გაიგზავნა!',
+            'Объявление отправлено!',
+          )
+        : this.uploadLocationText(
+            'Listing published!',
+            'განცხადება გამოქვეყნდა!',
+            'Объявление опубликовано!',
+          );
   }
 
   get successDescription(): string {
-    return this.successModalEdited ? this.uploadLocationText('Your changes have been saved.', 'თქვენი ცვლილებები წარმატებით შეინახა.', 'Ваши изменения сохранены.') : this.successModalPending ? this.uploadLocationText('Your listing is awaiting approval. It will appear after review.', 'თქვენი განცხადება ელოდება დამტკიცებას. განხილვის შემდეგ ის გამოქვეყნდება.', 'Объявление ожидает проверки и будет опубликовано после одобрения.') : this.uploadLocationText('Your property is now ready to be discovered.', 'თქვენი უძრავი ქონება უკვე ხელმისაწვდომია დაინტერესებული მომხმარებლებისთვის.', 'Ваш объект уже доступен заинтересованным клиентам.');
+    return this.successModalEdited
+      ? this.uploadLocationText(
+          'Your changes have been saved.',
+          'თქვენი ცვლილებები წარმატებით შეინახა.',
+          'Ваши изменения сохранены.',
+        )
+      : this.successModalPending
+        ? this.uploadLocationText(
+            'Your listing is awaiting approval. It will appear after review.',
+            'თქვენი განცხადება ელოდება დამტკიცებას. განხილვის შემდეგ ის გამოქვეყნდება.',
+            'Объявление ожидает проверки и будет опубликовано после одобрения.',
+          )
+        : this.uploadLocationText(
+            'Your property is now ready to be discovered.',
+            'თქვენი უძრავი ქონება უკვე ხელმისაწვდომია დაინტერესებული მომხმარებლებისთვის.',
+            'Ваш объект уже доступен заинтересованным клиентам.',
+          );
   }
 
   closeSuccessModal(): void {
@@ -1844,7 +2335,8 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   /** Nearby-place features come only from Google walking times (within 18 minutes), never manual ticks. */
   private applyNearbyFeatureFlags(times: NearbyWalkingTimes): void {
-    const within = (minutes?: number) => minutes != null && Number.isFinite(minutes) && minutes <= 18;
+    const within = (minutes?: number) =>
+      minutes != null && Number.isFinite(minutes) && minutes <= 18;
     this.form.hasCafeNearby = within(times.cafeDistanceMinutes);
     this.form.hasEverydayServicesNearby =
       within(times.groceryDistanceMinutes) || within(times.pharmacyDistanceMinutes);
@@ -1862,8 +2354,12 @@ export class UploadApartment implements OnInit, OnDestroy {
     const currentUser = this.authService.currentUser;
     const planLabel = this.isExclusivePlan ? 'Velven Exclusive' : 'Basic List';
     // When editing, the listing keeps its original owner, not whoever is editing it.
-    const ownerId = this.isEditMode ? this.metaTag(this.editOriginalMeta, 'Owner ID') : currentUser?.id;
-    const ownerEmail = this.isEditMode ? this.metaTag(this.editOriginalMeta, 'Owner Email') : currentUser?.email;
+    const ownerId = this.isEditMode
+      ? this.metaTag(this.editOriginalMeta, 'Owner ID')
+      : currentUser?.id;
+    const ownerEmail = this.isEditMode
+      ? this.metaTag(this.editOriginalMeta, 'Owner Email')
+      : currentUser?.email;
     const meta = [
       `Listing plan: ${planLabel}`,
       `Type: ${this.form.realEstateType}`,
@@ -1921,7 +2417,9 @@ export class UploadApartment implements OnInit, OnDestroy {
       title,
       description: `${this.form.description || 'Apartment listing'}\n\n${meta}`,
       price: this.form.totalPrice || 0,
-      address: this.form.hideAddress ? [street, district].filter(Boolean).join(', ') : addressParts.join(', '),
+      address: this.form.hideAddress
+        ? [street, district].filter(Boolean).join(', ')
+        : addressParts.join(', '),
       myHomeId: this.form.myHomeId.trim(),
       phoneNumber: this.form.agentPhone.trim(),
       ownerName: this.form.contactName.trim(),
@@ -1948,7 +2446,9 @@ export class UploadApartment implements OnInit, OnDestroy {
       hasElevator: this.form.hasElevator,
       hasParking: this.form.hasParking,
       parkingCondition: this.form.parkingCondition || undefined,
-      parkingPoints: this.form.parkingCondition ? this.parkingPointsFor(this.form.parkingCondition) : undefined,
+      parkingPoints: this.form.parkingCondition
+        ? this.parkingPointsFor(this.form.parkingCondition)
+        : undefined,
       isQuietStreet: this.form.isQuietStreet,
       hasBalcony: this.form.hasBalcony,
       hasBathtub: this.form.hasBathtub,

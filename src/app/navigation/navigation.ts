@@ -3,16 +3,16 @@ import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
-import {
-  AppLanguage,
-  TranslationService,
-} from '../services/translation.service';
+import { AppLanguage, TranslationService } from '../services/translation.service';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { NgIf } from '@angular/common';
+import { ProfileBurgerMenu } from '../profile-burger-menu/profile-burger-menu';
 
 @Component({
   selector: 'app-navigation',
-  standalone: false,
   templateUrl: './navigation.html',
   styleUrl: './navigation.css',
+  imports: [RouterLink, RouterLinkActive, NgIf, ProfileBurgerMenu],
 })
 export class Navigation implements OnInit, OnDestroy {
   isLoggedIn = false;

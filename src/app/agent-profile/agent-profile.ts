@@ -2,9 +2,10 @@ import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/cor
 import { Agent as ApiAgent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { whatsappDigits } from '../utils/phone';
 import { languageShortList } from '../utils/agent-languages';
+import { NgIf, NgFor, DecimalPipe } from '@angular/common';
 
 export interface AgentCard {
   id: string | number;
@@ -23,9 +24,9 @@ export interface AgentCard {
 
 @Component({
   selector: 'app-agent-profile',
-  standalone: false,
   templateUrl: './agent-profile.html',
   styleUrl: './agent-profile.css',
+  imports: [NgIf, NgFor, RouterLink, DecimalPipe],
 })
 export class AgentProfile implements OnInit {
   agents: AgentCard[] = [];
@@ -43,7 +44,7 @@ export class AgentProfile implements OnInit {
   constructor(
     private agentService: AgentService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -61,7 +62,11 @@ export class AgentProfile implements OnInit {
 
         // The site administrator account is an agent in the database but must not be listed publicly.
         this.allAgents = agents
-          .filter((agent) => !/^admin(istrator)?$/i.test((agent.userName || '').trim()) && !/^admin(istrator)?$/i.test((agent.fullName || agent.name || '').trim()))
+          .filter(
+            (agent) =>
+              !/^admin(istrator)?$/i.test((agent.userName || '').trim()) &&
+              !/^admin(istrator)?$/i.test((agent.fullName || agent.name || '').trim()),
+          )
           .map((agent) => this.toAgentCard(agent));
         this.onFilterChange();
 
@@ -149,8 +154,12 @@ export class AgentProfile implements OnInit {
       closedDeals: agent.closedDeals || 0,
       rating: agent.averageRating || agent.rating || 0,
       ratingCount: agent.ratingCount || 0,
-      avatarUrl: toMediaUrl(agent.profilePictureUrl || agent.profilePicture || agent.avatarUrl) || '/agent1.jpg',
-      bio: agent.bio || 'Verified real estate agent ready to help with apartments and property questions.',
+      avatarUrl:
+        toMediaUrl(agent.profilePictureUrl || agent.profilePicture || agent.avatarUrl) ||
+        '/agent1.jpg',
+      bio:
+        agent.bio ||
+        'Verified real estate agent ready to help with apartments and property questions.',
       phoneNumber: agent.phoneNumber?.trim() || '',
       languages: languageShortList(agent.languages),
     };

@@ -1,9 +1,22 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { finalize, timeout } from 'rxjs';
 import { HomeMatchResult } from '../models/home-match-result';
 import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
-import { applyPriorityScoring, everydayServicesMinutes, parkingScore, scorePriority } from '../services/priority-scoring';
+import {
+  applyPriorityScoring,
+  everydayServicesMinutes,
+  parkingScore,
+  scorePriority,
+} from '../services/priority-scoring';
 import { answerLabel } from '../services/answer-labels';
 import {
   budgetRangeUsd,
@@ -18,6 +31,12 @@ import { CurrencyService } from '../../services/currency.service';
 import { ApartmentService } from '../../services/apartment.service';
 import { parseParkingCost } from '../../utils/parking-cost';
 import { listedUniversityMinutes } from '../../utils/universities';
+import { NgIf, NgFor, NgClass, NgTemplateOutlet } from '@angular/common';
+import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
+import { RouterLink } from '@angular/router';
+import { CurrencyPrice } from '../../currency-price/currency-price';
+import { GooglePropertyMapComponent } from '../../maps/google-property-map/google-property-map.component';
+import { ListingTitlePipe } from '../../shared/listing-title.pipe';
 
 interface LifestyleInsight {
   title: string;
@@ -31,9 +50,19 @@ interface LifestyleInsight {
 const MATCH_WALK_LIMIT = 18;
 @Component({
   selector: 'app-home-match-results',
-  standalone: false,
   templateUrl: './home-match-results.component.html',
   styleUrl: './home-match-results.component.css',
+  imports: [
+    NgIf,
+    VelvenLifestyleAvatarComponent,
+    RouterLink,
+    NgFor,
+    NgClass,
+    CurrencyPrice,
+    GooglePropertyMapComponent,
+    NgTemplateOutlet,
+    ListingTitlePipe,
+  ],
 })
 export class HomeMatchResultsComponent implements OnChanges {
   @Input() matches: HomeMatchResult[] = [];
@@ -53,7 +82,11 @@ export class HomeMatchResultsComponent implements OnChanges {
     if (changes['matches']) {
       this.matches.forEach((result) => {
         Object.assign(result, applyPriorityScoring(result, this.profile));
-        result.requirement = evaluateMandatoryRequirements(result.apartment, this.profile, this.currency.rates);
+        result.requirement = evaluateMandatoryRequirements(
+          result.apartment,
+          this.profile,
+          this.currency.rates,
+        );
         if (!this.imageCandidates(result).length) this.enrichApartment(result);
       });
     }
@@ -66,7 +99,8 @@ export class HomeMatchResultsComponent implements OnChanges {
       .filter((result) => (result.requirement?.status ?? 'exact') === status)
       .sort(
         (a, b) =>
-          Number((a.requirement?.overBudgetUsd ?? 0) > 0) - Number((b.requirement?.overBudgetUsd ?? 0) > 0) ||
+          Number((a.requirement?.overBudgetUsd ?? 0) > 0) -
+            Number((b.requirement?.overBudgetUsd ?? 0) > 0) ||
           (b.rankingScore ?? b.matchScore) - (a.rankingScore ?? a.matchScore),
       );
   }
@@ -93,14 +127,22 @@ export class HomeMatchResultsComponent implements OnChanges {
     const ordered = [...(apartment.images || [])].sort(
       (a, b) => Number(b.isCover) - Number(a.isCover) || (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
     );
-    const clean = (sources: Array<string | undefined>) =>
-      [...new Set(sources.map((source) => toMediaUrl(source)).filter((source): source is string => !!source))];
+    const clean = (sources: Array<string | undefined>) => [
+      ...new Set(
+        sources.map((source) => toMediaUrl(source)).filter((source): source is string => !!source),
+      ),
+    ];
     const seen = new Set<string>();
     const slides = [
       ...ordered.map((item) => clean([item.url, item.storagePath])),
       ...(apartment.imageUrls || []).map((url) => clean([url])),
       clean([apartment.imageUrl]),
-    ].filter((sources) => sources.length && !sources.some((source) => seen.has(source)) && (sources.forEach((s) => seen.add(s)), true));
+    ].filter(
+      (sources) =>
+        sources.length &&
+        !sources.some((source) => seen.has(source)) &&
+        (sources.forEach((s) => seen.add(s)), true),
+    );
     if (!slides.length) {
       // The match list can arrive without photos; load the full listing once, then rebuild.
       queueMicrotask(() => this.enrichApartment(result));
@@ -128,7 +170,8 @@ export class HomeMatchResultsComponent implements OnChanges {
 
   onGalleryScroll(result: HomeMatchResult, track: HTMLElement): void {
     const index = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-    if (this.galleryIndex.get(result.apartment.id) !== index) this.galleryIndex.set(result.apartment.id, index);
+    if (this.galleryIndex.get(result.apartment.id) !== index)
+      this.galleryIndex.set(result.apartment.id, index);
   }
 
   moveGallery(result: HomeMatchResult, track: HTMLElement, step: number): void {
@@ -173,43 +216,50 @@ export class HomeMatchResultsComponent implements OnChanges {
 
   private enrichApartment(result: HomeMatchResult, image?: HTMLImageElement): void {
     const apartmentId = Number(result.apartment.id);
-    if (!Number.isFinite(apartmentId) || this.enrichingApartmentIds.has(apartmentId) || this.attemptedEnrichment.has(result)) {
+    if (
+      !Number.isFinite(apartmentId) ||
+      this.enrichingApartmentIds.has(apartmentId) ||
+      this.attemptedEnrichment.has(result)
+    ) {
       if (image) this.showPlaceholder(image);
       return;
     }
 
     this.attemptedEnrichment.add(result);
     this.enrichingApartmentIds.add(apartmentId);
-    this.apartmentService.getApartment(apartmentId).pipe(
-      timeout(15000),
-      finalize(() => {
-        this.enrichingApartmentIds.delete(apartmentId);
-        this.cdr.markForCheck();
-      }),
-    ).subscribe({
-      next: (apartment) => {
-        Object.assign(result.apartment, apartment);
-        this.galleryCache.delete(result.apartment);
-        this.homeDetailsCache.delete(result.apartment);
-        this.answerMatchCache.delete(result.apartment);
-        this.walkingCache.delete(result.apartment);
-        this.enrichingApartmentIds.delete(apartmentId);
-        if (image) {
-          const source = this.imageCandidates(result)[0];
-          if (source) {
-            this.failedImageIndexes.set(image, 0);
-            image.classList.remove('placeholder-image');
-            image.src = source;
-          } else {
-            this.showPlaceholder(image);
+    this.apartmentService
+      .getApartment(apartmentId)
+      .pipe(
+        timeout(15000),
+        finalize(() => {
+          this.enrichingApartmentIds.delete(apartmentId);
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (apartment) => {
+          Object.assign(result.apartment, apartment);
+          this.galleryCache.delete(result.apartment);
+          this.homeDetailsCache.delete(result.apartment);
+          this.answerMatchCache.delete(result.apartment);
+          this.walkingCache.delete(result.apartment);
+          this.enrichingApartmentIds.delete(apartmentId);
+          if (image) {
+            const source = this.imageCandidates(result)[0];
+            if (source) {
+              this.failedImageIndexes.set(image, 0);
+              image.classList.remove('placeholder-image');
+              image.src = source;
+            } else {
+              this.showPlaceholder(image);
+            }
           }
-        }
-      },
-      error: () => {
-        this.enrichingApartmentIds.delete(apartmentId);
-        if (image) this.showPlaceholder(image);
-      },
-    });
+        },
+        error: () => {
+          this.enrichingApartmentIds.delete(apartmentId);
+          if (image) this.showPlaceholder(image);
+        },
+      });
   }
 
   private showPlaceholder(image: HTMLImageElement): void {
@@ -272,7 +322,10 @@ export class HomeMatchResultsComponent implements OnChanges {
   }
 
   private readonly answerMatchCache = new Map<HomeMatchResult['apartment'], LifestyleInsight[]>();
-  private readonly walkingCache = new Map<HomeMatchResult['apartment'], Array<{ label: string; minutes: number; icon: string }>>();
+  private readonly walkingCache = new Map<
+    HomeMatchResult['apartment'],
+    Array<{ label: string; minutes: number; icon: string }>
+  >();
 
   /**
    * "Why this home fits you": each questionnaire answer this home satisfies, with the
@@ -294,36 +347,59 @@ export class HomeMatchResultsComponent implements OnChanges {
     if (cached) return cached;
     const p = this.profile;
     const rent = p.propertyGoal !== 'Buy';
-    const mismatch = (prefix: string) => (result.requirement?.mismatches || []).some((note) => note.startsWith(prefix));
+    const mismatch = (prefix: string) =>
+      (result.requirement?.mismatches || []).some((note) => note.startsWith(prefix));
     const items: LifestyleInsight[] = [];
-    const add = (title: string, reason: string, icon: string) => items.push({ title, reason, icon });
+    const add = (title: string, reason: string, icon: string) =>
+      items.push({ title, reason, icon });
 
     const districts = p.districts.filter((d) => d !== 'SelectOnMap');
-    const unverified = (prefix: string) => (result.requirement?.confirmations || []).some((note) => note.startsWith(prefix));
+    const unverified = (prefix: string) =>
+      (result.requirement?.confirmations || []).some((note) => note.startsWith(prefix));
     // Only claim a location match when the location was actually verified inside the selected area.
-    if ((districts.length || p.selectedMapArea) && !p.locationFlexible && !mismatch('Location') && !unverified('Location')) {
+    if (
+      (districts.length || p.selectedMapArea) &&
+      !p.locationFlexible &&
+      !mismatch('Location') &&
+      !unverified('Location')
+    ) {
       add('Location matches', apartment.district || apartment.address || '', 'fa-location-dot');
     }
     // Budget in the user's own currency, checked against both bounds.
     const budget = budgetRangeUsd(p, this.currency.rates);
     const price = Number(apartment.price);
     if (
-      budget.max !== null && price > 0 && price <= budget.max &&
+      budget.max !== null &&
+      price > 0 &&
+      price <= budget.max &&
       (budget.min === null || price >= budget.min)
     ) {
       const shown = formatBudgetAmount(fromUsd(price, p.currency, this.currency.rates), p.currency);
-      const range = budget.min !== null
-        ? `${formatBudgetAmount(p.budgetMin, p.currency)}–${formatBudgetAmount(p.budgetMax, p.currency)}`
-        : `≤ ${formatBudgetAmount(p.budgetMax, p.currency)}`;
+      const range =
+        budget.min !== null
+          ? `${formatBudgetAmount(p.budgetMin, p.currency)}–${formatBudgetAmount(p.budgetMax, p.currency)}`
+          : `≤ ${formatBudgetAmount(p.budgetMax, p.currency)}`;
       add('Within your budget', `${shown} · ${range}`, 'fa-wallet');
     }
     // Over-budget rentals (inside the tolerance) say how much more they cost each month.
     const overUsd = result.requirement?.overBudgetUsd ?? 0;
     if (overUsd > 0) {
-      const extra = formatBudgetAmount(fromUsd(overUsd, p.currency, this.currency.rates), p.currency);
-      add('Above your budget', `+${extra}/month over ${formatBudgetAmount(p.budgetMax, p.currency)}`, 'fa-arrow-trend-up');
+      const extra = formatBudgetAmount(
+        fromUsd(overUsd, p.currency, this.currency.rates),
+        p.currency,
+      );
+      add(
+        'Above your budget',
+        `+${extra}/month over ${formatBudgetAmount(p.budgetMax, p.currency)}`,
+        'fa-arrow-trend-up',
+      );
     }
-    if (p.bedrooms != null && p.bedrooms > 0 && apartment.bedrooms != null && apartment.bedrooms >= p.bedrooms) {
+    if (
+      p.bedrooms != null &&
+      p.bedrooms > 0 &&
+      apartment.bedrooms != null &&
+      apartment.bedrooms >= p.bedrooms
+    ) {
       add('Enough bedrooms', `${apartment.bedrooms} ≥ ${p.bedrooms}`, 'fa-bed');
     }
     if (rent && p.moveInTiming && !mismatch('Availability')) {
@@ -332,25 +408,49 @@ export class HomeMatchResultsComponent implements OnChanges {
     if (rent && p.rentalDuration && !mismatch('Lease')) {
       add('Fits your rental period', answerLabel(p.rentalDuration), 'fa-hourglass-half');
     }
-    if (rent && this.petsConfirmed(result)) add('Pet-friendly home', petListLabel(selectedPets(p)), 'fa-paw');
+    if (rent && this.petsConfirmed(result))
+      add('Pet-friendly home', petListLabel(selectedPets(p)), 'fa-paw');
     const priorities = new Set(p.topPriorities.slice(0, 5));
     // One parking card, whether parking came from driving or from the priority list.
-    if ((p.transportation.includes('Car') || priorities.has('Parking')) && (apartment.hasParking || parkingScore(apartment) > 0)) {
-      add('Parking for your car', parseParkingCost(apartment.description || '').cost === 'Paid' ? 'Paid parking' : 'Parking available', 'fa-square-parking');
+    if (
+      (p.transportation.includes('Car') || priorities.has('Parking')) &&
+      (apartment.hasParking || parkingScore(apartment) > 0)
+    ) {
+      add(
+        'Parking for your car',
+        parseParkingCost(apartment.description || '').cost === 'Paid'
+          ? 'Paid parking'
+          : 'Parking available',
+        'fa-square-parking',
+      );
     }
-    if ((priorities.has('QuietStreet') || p.lifestyles.includes('QuietLifestyle')) && apartment.isQuietStreet) {
+    if (
+      (priorities.has('QuietStreet') || p.lifestyles.includes('QuietLifestyle')) &&
+      apartment.isQuietStreet
+    ) {
       add('Quiet street', 'Matches your quiet lifestyle', 'fa-volume-xmark');
     }
-    if (priorities.has('SelectedLocationNearby') && scorePriority('SelectedLocationNearby', apartment, p) >= 2) {
+    if (
+      priorities.has('SelectedLocationNearby') &&
+      scorePriority('SelectedLocationNearby', apartment, p) >= 2
+    ) {
       add('Near the place you chose', 'Close to your chosen location', 'fa-location-crosshairs');
     }
 
     // Nearby places: shown here only when they answer something the user chose, with the
     // reason tied to that answer. Everything else nearby stays in "Walking times" only.
     for (const place of this.preferencePlaces(result)) {
-      const minutes = place.field === 'universityDistanceMinutes' ? listedUniversityMinutes(apartment) : apartment[place.field];
+      const minutes =
+        place.field === 'universityDistanceMinutes'
+          ? listedUniversityMinutes(apartment)
+          : apartment[place.field];
       if (typeof minutes !== 'number' || minutes < 0 || minutes > MATCH_WALK_LIMIT) continue;
-      items.push({ title: place.title, reason: place.reason, icon: place.icon, meta: `${Math.round(minutes)} min` });
+      items.push({
+        title: place.title,
+        reason: place.reason,
+        icon: place.icon,
+        meta: `${Math.round(minutes)} min`,
+      });
     }
     this.answerMatchCache.set(apartment, items);
     return items;
@@ -362,7 +462,10 @@ export class HomeMatchResultsComponent implements OnChanges {
    * matching reason wins, so a place is never listed twice.
    */
   private preferencePlaces(result: HomeMatchResult): Array<{
-    field: keyof HomeMatchResult['apartment']; title: string; reason: string; icon: string;
+    field: keyof HomeMatchResult['apartment'];
+    title: string;
+    reason: string;
+    icon: string;
   }> {
     const p = this.profile;
     const priorities = new Set(p.topPriorities.slice(0, 5));
@@ -372,9 +475,17 @@ export class HomeMatchResultsComponent implements OnChanges {
     // Dog-walking benefits only for homes that actually allow pets.
     const dog = selectedPets(p).includes('Dog') && this.petsConfirmed(result);
     const walks = p.transportation.includes('Walking');
-    const places: Array<{ field: keyof HomeMatchResult['apartment']; title: string; reason: string; icon: string }> = [];
+    const places: Array<{
+      field: keyof HomeMatchResult['apartment'];
+      title: string;
+      reason: string;
+      icon: string;
+    }> = [];
     const offer = (
-      field: keyof HomeMatchResult['apartment'], title: string, icon: string, reasons: Array<[boolean, string]>,
+      field: keyof HomeMatchResult['apartment'],
+      title: string,
+      icon: string,
+      reasons: Array<[boolean, string]>,
     ) => {
       const reason = reasons.find(([applies]) => applies)?.[1];
       if (reason) places.push({ field, title, icon, reason });
@@ -386,24 +497,39 @@ export class HomeMatchResultsComponent implements OnChanges {
     ]);
     offer('parkDistanceMinutes', 'Park', 'fa-tree', [
       [dog, 'Great for walking your dog'],
-      [hasKids && (priorities.has('PlaygroundNearby') || priorities.has('PlaygroundOrSportsFieldNearby')), 'Playground and outdoor space for your children'],
+      [
+        hasKids &&
+          (priorities.has('PlaygroundNearby') || priorities.has('PlaygroundOrSportsFieldNearby')),
+        'Playground and outdoor space for your children',
+      ],
       [lifestyles.has('Athlete'), 'Matches your outdoor lifestyle'],
       [priorities.has('ParkNearby'), 'One of your top priorities'],
       [lifestyles.has('QuietLifestyle'), 'Green space for a calm routine'],
     ]);
     offer('schoolDistanceMinutes', 'School', 'fa-school', [
-      [hasKids && (ages.has('Age7To12') || ages.has('Age13To17') || priorities.has('SchoolNearby')), 'Close for your children'],
+      [
+        hasKids &&
+          (ages.has('Age7To12') || ages.has('Age13To17') || priorities.has('SchoolNearby')),
+        'Close for your children',
+      ],
       [priorities.has('SchoolNearby'), 'One of your top priorities'],
     ]);
     offer('kindergartenDistanceMinutes', 'Kindergarten', 'fa-children', [
-      [hasKids && (ages.has('Age0To3') || ages.has('Age4To6') || priorities.has('KindergartenNearby')), 'Close for your little ones'],
+      [
+        hasKids &&
+          (ages.has('Age0To3') || ages.has('Age4To6') || priorities.has('KindergartenNearby')),
+        'Close for your little ones',
+      ],
       [priorities.has('KindergartenNearby'), 'One of your top priorities'],
     ]);
     offer('universityDistanceMinutes', 'University', 'fa-graduation-cap', [
       [lifestyles.has('Student'), 'Handy for your studies'],
       [priorities.has('UniversityNearby'), 'One of your top priorities'],
     ]);
-    const everyday = priorities.has('EverydayServicesNearby') || priorities.has('SupermarketNearby') || priorities.has('PharmacyNearby');
+    const everyday =
+      priorities.has('EverydayServicesNearby') ||
+      priorities.has('SupermarketNearby') ||
+      priorities.has('PharmacyNearby');
     offer('groceryDistanceMinutes', 'Supermarket', 'fa-basket-shopping', [
       [everyday, 'Everyday shopping on foot'],
       [walks, 'Everyday shopping on foot'],
@@ -413,12 +539,26 @@ export class HomeMatchResultsComponent implements OnChanges {
     ]);
     offer('metroDistanceMinutes', 'Metro', 'fa-train-subway', [
       [p.transportation.includes('Metro'), 'Metro is part of your routine'],
-      [priorities.has('MetroNearby') || priorities.has('PublicTransportNearby'), 'One of your top priorities'],
+      [
+        priorities.has('MetroNearby') || priorities.has('PublicTransportNearby'),
+        'One of your top priorities',
+      ],
     ]);
     offer('cafeDistanceMinutes', 'Café', 'fa-mug-hot', [
-      [lifestyles.has('RemoteWorker') || priorities.has('CafesOrCoworkingNearby'), 'Good for working remotely'],
-      [lifestyles.has('SocialLifestyle') || priorities.has('CafesAndRestaurantsNearby') || priorities.has('CafesNearby'), 'Matches your social lifestyle'],
-      [lifestyles.has('BusinessProfessional') || priorities.has('MeetingPlacesNearby'), 'Handy for meetings'],
+      [
+        lifestyles.has('RemoteWorker') || priorities.has('CafesOrCoworkingNearby'),
+        'Good for working remotely',
+      ],
+      [
+        lifestyles.has('SocialLifestyle') ||
+          priorities.has('CafesAndRestaurantsNearby') ||
+          priorities.has('CafesNearby'),
+        'Matches your social lifestyle',
+      ],
+      [
+        lifestyles.has('BusinessProfessional') || priorities.has('MeetingPlacesNearby'),
+        'Handy for meetings',
+      ],
       [lifestyles.has('Student') || priorities.has('StudySpacesNearby'), 'A place to study nearby'],
     ]);
     offer('evChargerDistanceMinutes', 'EV charger', 'fa-charging-station', [
@@ -426,8 +566,12 @@ export class HomeMatchResultsComponent implements OnChanges {
     ]);
     // Pet services for anyone living with pets (whatever the listing's pet policy says).
     const pets = selectedPets(p);
-    offer('petStoreDistanceMinutes', 'Pet shop', 'fa-paw', [[pets.length > 0, `Supplies for your ${petListLabel(pets)}`]]);
-    offer('veterinaryDistanceMinutes', 'Vet clinic', 'fa-stethoscope', [[pets.length > 0, `Care for your ${petListLabel(pets)}`]]);
+    offer('petStoreDistanceMinutes', 'Pet shop', 'fa-paw', [
+      [pets.length > 0, `Supplies for your ${petListLabel(pets)}`],
+    ]);
+    offer('veterinaryDistanceMinutes', 'Vet clinic', 'fa-stethoscope', [
+      [pets.length > 0, `Care for your ${petListLabel(pets)}`],
+    ]);
     return places;
   }
 
@@ -454,17 +598,27 @@ export class HomeMatchResultsComponent implements OnChanges {
     // pet shop and vet up to 20 minutes, and students the nearest university, since those
     // are fewer and farther apart.
     const hasPets = this.profile.propertyGoal === 'Rent' && selectedPets(this.profile).length > 0;
-    const student = this.profile.lifestyles.includes('Student') || this.profile.topPriorities.includes('UniversityNearby');
+    const student =
+      this.profile.lifestyles.includes('Student') ||
+      this.profile.topPriorities.includes('UniversityNearby');
     const hasKids = this.profile.children > 0;
     const limit = (label: string) =>
-      (hasPets && (label === 'Pet shop' || label === 'Vet clinic')) || (student && label === 'University') ? 20 : 10;
+      (hasPets && (label === 'Pet shop' || label === 'Vet clinic')) ||
+      (student && label === 'University')
+        ? 20
+        : 10;
     // Schools and kindergartens only matter to households with children.
     const relevant = (label: string) => hasKids || (label !== 'School' && label !== 'Kindergarten');
     // What this visitor asked for comes first, then everything else by distance.
     const first = (label: string) => (student && label === 'University' ? 0 : 1);
     const value = places
-      .filter((place): place is [string, number, string] =>
-        typeof place[1] === 'number' && place[1] >= 0 && place[1] <= limit(place[0]) && relevant(place[0]))
+      .filter(
+        (place): place is [string, number, string] =>
+          typeof place[1] === 'number' &&
+          place[1] >= 0 &&
+          place[1] <= limit(place[0]) &&
+          relevant(place[0]),
+      )
       .map(([label, minutes, icon]) => ({ label, minutes: Math.round(minutes), icon }))
       .sort((a, b) => first(a.label) - first(b.label) || a.minutes - b.minutes);
     if (!value.length) {
@@ -477,37 +631,72 @@ export class HomeMatchResultsComponent implements OnChanges {
   }
 
   /** Cached per apartment: a fresh array each change-detection pass would rebuild the DOM (and re-run translation). */
-  private readonly homeDetailsCache = new Map<HomeMatchResult['apartment'], Array<{ label: string; value: string; icon: string }>>();
+  private readonly homeDetailsCache = new Map<
+    HomeMatchResult['apartment'],
+    Array<{ label: string; value: string; icon: string }>
+  >();
 
   homeDetails(result: HomeMatchResult): Array<{ label: string; value: string; icon: string }> {
     const apartment = result.apartment;
     const cached = this.homeDetailsCache.get(apartment);
     if (cached) return cached;
     const details: Array<{ label: string; value: string; icon: string }> = [];
-    if (apartment.sizeSquareMeters) details.push({ label: 'Area', value: `${apartment.sizeSquareMeters} m²`, icon: 'fa-ruler-combined' });
+    if (apartment.sizeSquareMeters)
+      details.push({
+        label: 'Area',
+        value: `${apartment.sizeSquareMeters} m²`,
+        icon: 'fa-ruler-combined',
+      });
     if (apartment.floor != null) {
-      details.push({ label: 'Floor', value: apartment.totalFloors ? `${apartment.floor} / ${apartment.totalFloors}` : `${apartment.floor}`, icon: 'fa-stairs' });
+      details.push({
+        label: 'Floor',
+        value: apartment.totalFloors
+          ? `${apartment.floor} / ${apartment.totalFloors}`
+          : `${apartment.floor}`,
+        icon: 'fa-stairs',
+      });
     }
-    if (apartment.bathrooms) details.push({ label: 'Bathrooms', value: `${apartment.bathrooms}`, icon: 'fa-bath' });
+    if (apartment.bathrooms)
+      details.push({ label: 'Bathrooms', value: `${apartment.bathrooms}`, icon: 'fa-bath' });
     if (this.profile?.propertyGoal !== 'Buy') {
       const available = apartment.availableFrom?.slice(0, 10);
       details.push({
         label: 'Move-in',
-        value: available && available > new Date().toISOString().slice(0, 10) ? available : 'Available now',
+        value:
+          available && available > new Date().toISOString().slice(0, 10)
+            ? available
+            : 'Available now',
         icon: 'fa-calendar-check',
       });
       const minimum = /(\d+)\s*month/i.exec(apartment.minimumRentalPeriod || '')?.[1];
-      if (minimum) details.push({ label: 'Minimum stay', value: `${minimum} months`, icon: 'fa-hourglass-half' });
+      if (minimum)
+        details.push({
+          label: 'Minimum stay',
+          value: `${minimum} months`,
+          icon: 'fa-hourglass-half',
+        });
     }
     const parking = parseParkingCost(apartment.description || '');
     if (parking.cost === 'Paid') {
       // Kept as separate strings so the page translator can match "Paid parking" / "Paid".
-      const price = parking.price != null ? `+${parking.currency === 'GEL' ? '₾' : '$'}${parking.price.toLocaleString('en-US')}` : 'Paid';
+      const price =
+        parking.price != null
+          ? `+${parking.currency === 'GEL' ? '₾' : '$'}${parking.price.toLocaleString('en-US')}`
+          : 'Paid';
       details.push({ label: 'Paid parking', value: price, icon: 'fa-square-parking' });
     } else if (apartment.hasParking) {
-      details.push({ label: 'Parking', value: parking.cost === 'Free' ? 'Free' : 'Available', icon: 'fa-square-parking' });
+      details.push({
+        label: 'Parking',
+        value: parking.cost === 'Free' ? 'Free' : 'Available',
+        icon: 'fa-square-parking',
+      });
     }
-    if (apartment.isFurnished != null) details.push({ label: 'Furniture', value: apartment.isFurnished ? 'Furnished' : 'Unfurnished', icon: 'fa-couch' });
+    if (apartment.isFurnished != null)
+      details.push({
+        label: 'Furniture',
+        value: apartment.isFurnished ? 'Furnished' : 'Unfurnished',
+        icon: 'fa-couch',
+      });
     this.homeDetailsCache.set(apartment, details);
     return details;
   }
@@ -521,19 +710,13 @@ export class HomeMatchResultsComponent implements OnChanges {
       apartment.cafeDistanceMinutes,
     ];
     if (this.isFamilyProfile()) {
-      relevantTimes.push(
-        apartment.schoolDistanceMinutes,
-        apartment.kindergartenDistanceMinutes,
-      );
+      relevantTimes.push(apartment.schoolDistanceMinutes, apartment.kindergartenDistanceMinutes);
     }
     return relevantTimes.some((value) => value !== undefined && value !== null);
   }
 
   isFamilyProfile(): boolean {
-    return (
-      this.profile.children > 0 ||
-      this.profile.householdType === 'FamilyWithChildren'
-    );
+    return this.profile.children > 0 || this.profile.householdType === 'FamilyWithChildren';
   }
 
   lifestyleInsights(result: HomeMatchResult): LifestyleInsight[] {
@@ -575,7 +758,10 @@ export class HomeMatchResultsComponent implements OnChanges {
       );
     }
 
-    if (apartment.kindergartenDistanceMinutes != null && (childAges.has('Age0To3') || childAges.has('Age4To6'))) {
+    if (
+      apartment.kindergartenDistanceMinutes != null &&
+      (childAges.has('Age0To3') || childAges.has('Age4To6'))
+    ) {
       add(
         `Kindergarten ${apartment.kindergartenDistanceMinutes} min away`,
         childAges.has('Age4To6')
@@ -584,7 +770,10 @@ export class HomeMatchResultsComponent implements OnChanges {
         'fa-shapes',
       );
     }
-    if (apartment.schoolDistanceMinutes != null && (childAges.has('Age7To12') || childAges.has('Age13To17'))) {
+    if (
+      apartment.schoolDistanceMinutes != null &&
+      (childAges.has('Age7To12') || childAges.has('Age13To17'))
+    ) {
       add(
         `School ${apartment.schoolDistanceMinutes} min away`,
         'Because you have a school-age child',
@@ -601,43 +790,63 @@ export class HomeMatchResultsComponent implements OnChanges {
     const everyday = everydayServicesMinutes(apartment);
     if (
       everyday !== undefined &&
-      this.profile.topPriorities.some((p) => ['EverydayServicesNearby', 'SupermarketNearby', 'PharmacyNearby'].includes(p))
+      this.profile.topPriorities.some((p) =>
+        ['EverydayServicesNearby', 'SupermarketNearby', 'PharmacyNearby'].includes(p),
+      )
     ) {
       const round = (value: number) => Math.round(value * 10) / 10;
       const parts = [
-        apartment.groceryDistanceMinutes != null ? `Supermarket ${apartment.groceryDistanceMinutes} min` : '',
-        apartment.pharmacyDistanceMinutes != null ? `Pharmacy ${apartment.pharmacyDistanceMinutes} min` : '',
+        apartment.groceryDistanceMinutes != null
+          ? `Supermarket ${apartment.groceryDistanceMinutes} min`
+          : '',
+        apartment.pharmacyDistanceMinutes != null
+          ? `Pharmacy ${apartment.pharmacyDistanceMinutes} min`
+          : '',
       ].filter(Boolean);
-      add(`Everyday services ${round(everyday)} min on average`, parts.join(' · '), 'fa-basket-shopping');
+      add(
+        `Everyday services ${round(everyday)} min on average`,
+        parts.join(' · '),
+        'fa-basket-shopping',
+      );
     }
     const parkingCondition = apartment.parkingCondition?.trim().toLowerCase();
     if (
       drives &&
       (apartment.hasParking === true ||
-        (!!parkingCondition && !['no', 'none', 'not available', 'false'].includes(parkingCondition)))
+        (!!parkingCondition &&
+          !['no', 'none', 'not available', 'false'].includes(parkingCondition)))
     ) {
       // Paid parking must never read as "included".
       const parking = parseParkingCost(apartment.description || '');
       if (parking.cost === 'Paid') {
-        const price = parking.price != null
-          ? `${parking.currency === 'GEL' ? '₾' : '$'}${parking.price.toLocaleString('en-US')}`
-          : '';
-        add('Paid parking', price ? `+${price}` :'Parking is available for a fee', 'fa-square-parking');
+        const price =
+          parking.price != null
+            ? `${parking.currency === 'GEL' ? '₾' : '$'}${parking.price.toLocaleString('en-US')}`
+            : '';
+        add(
+          'Paid parking',
+          price ? `+${price}` : 'Parking is available for a fee',
+          'fa-square-parking',
+        );
       } else {
         add('Parking included', 'Because you travel by car', 'fa-square-parking');
       }
     }
-    if (
-      lifestyles.has('HostsGuests') &&
-      apartment.bedrooms != null &&
-      apartment.bedrooms >= 2
-    ) {
+    if (lifestyles.has('HostsGuests') && apartment.bedrooms != null && apartment.bedrooms >= 2) {
       add('Extra bedroom', 'Because you often host guests', 'fa-bed');
     }
     if (this.petsConfirmed(result)) {
-      add('Pet-friendly home', `Because you live with your ${petListLabel(selectedPets(this.profile))}`, 'fa-paw');
+      add(
+        'Pet-friendly home',
+        `Because you live with your ${petListLabel(selectedPets(this.profile))}`,
+        'fa-paw',
+      );
     }
-    if (apartment.metroDistanceMinutes != null && apartment.metroDistanceMinutes <= 20 && this.profile.transportation.includes('Metro')) {
+    if (
+      apartment.metroDistanceMinutes != null &&
+      apartment.metroDistanceMinutes <= 20 &&
+      this.profile.transportation.includes('Metro')
+    ) {
       add(
         `Metro ${apartment.metroDistanceMinutes} min away`,
         'Because metro is part of your routine',
@@ -651,7 +860,9 @@ export class HomeMatchResultsComponent implements OnChanges {
     ) {
       add(
         `Park ${apartment.parkDistanceMinutes} min away`,
-        lifestyles.has('Athlete') ? 'Because you enjoy an active lifestyle' : 'Because outdoor family time matters to you',
+        lifestyles.has('Athlete')
+          ? 'Because you enjoy an active lifestyle'
+          : 'Because outdoor family time matters to you',
         'fa-tree',
       );
     }

@@ -1,5 +1,12 @@
 import { cardNearbyPlaces, NearbyPlace } from '../utils/nearby-places';
-import { Component, DoCheck, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
+import {
+  Component,
+  DoCheck,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  HostListener,
+} from '@angular/core';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -7,19 +14,43 @@ import { Apartment } from '../models/apartment';
 import { Agent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  Location,
+  NgSwitch,
+  NgSwitchCase,
+  NgSwitchDefault,
+  NgIf,
+  NgFor,
+  AsyncPipe,
+} from '@angular/common';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { TranslationService } from '../services/translation.service';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
+import { FormsModule } from '@angular/forms';
+import { CurrencyPrice } from '../currency-price/currency-price';
+import { DrawAreaMapComponent } from '../maps/draw-area-map/draw-area-map.component';
+import { ListingTitlePipe } from '../shared/listing-title.pipe';
 
 @Component({
   selector: 'app-main',
-  standalone: false,
   templateUrl: './main.html',
   styleUrl: './main.css',
+  imports: [
+    NgSwitch,
+    NgSwitchCase,
+    NgSwitchDefault,
+    FormsModule,
+    NgIf,
+    NgFor,
+    RouterLink,
+    CurrencyPrice,
+    DrawAreaMapComponent,
+    AsyncPipe,
+    ListingTitlePipe,
+  ],
 })
 export class Main implements OnInit, OnDestroy, DoCheck {
   private pickerScrollLocked = false;
@@ -193,8 +224,8 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   appliedBudgetMax: number | null = null;
   selectedBudgetRange = '';
   readonly budgetHistogram = [
-    5, 7, 6, 8, 9, 10, 12, 14, 18, 24, 31, 38, 45, 52, 48, 55, 58, 62, 57, 54,
-    51, 56, 53, 61, 66, 100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
+    5, 7, 6, 8, 9, 10, 12, 14, 18, 24, 31, 38, 45, 52, 48, 55, 58, 62, 57, 54, 51, 56, 53, 61, 66,
+    100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
   ];
   readonly budgetRanges = [
     { label: 'Up to $800', min: 0, max: 800 },
@@ -221,9 +252,17 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   ];
   readonly featuredLocationAreas = [
     { name: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-tree.svg' },
-    { name: 'Saburtalo', description: 'Central & convenient', icon: '/icons/areas/saburtalo-buildings.svg' },
+    {
+      name: 'Saburtalo',
+      description: 'Central & convenient',
+      icon: '/icons/areas/saburtalo-buildings.svg',
+    },
     { name: 'Vera', description: 'Historic central', icon: '/icons/areas/vera-heritage-house.svg' },
-    { name: 'Mtatsminda', description: 'Old city & views', icon: '/icons/areas/mtatsminda-columns.svg' },
+    {
+      name: 'Mtatsminda',
+      description: 'Old city & views',
+      icon: '/icons/areas/mtatsminda-columns.svg',
+    },
   ];
   searchBedrooms = '';
   bedroomTouched = false;
@@ -326,11 +365,17 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   }
 
   get budgetMinPercent(): number {
-    return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? this.budgetCap));
+    return Math.min(
+      this.normalizedSliderValue(this.budgetMin ?? 0),
+      this.normalizedSliderValue(this.budgetMax ?? this.budgetCap),
+    );
   }
 
   get budgetMaxPercent(): number {
-    return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? this.budgetCap));
+    return Math.max(
+      this.normalizedSliderValue(this.budgetMin ?? 0),
+      this.normalizedSliderValue(this.budgetMax ?? this.budgetCap),
+    );
   }
 
   setBudgetMin(value: number | null): void {
@@ -341,7 +386,8 @@ export class Main implements OnInit, OnDestroy, DoCheck {
 
   setBudgetMax(value: number | null): void {
     const minimum = Number(this.budgetMin ?? 0);
-    this.budgetMax = value == null ? null : Math.max(minimum, Math.min(this.budgetCap, Number(value)));
+    this.budgetMax =
+      value == null ? null : Math.max(minimum, Math.min(this.budgetCap, Number(value)));
     this.selectedBudgetRange = '';
   }
 
@@ -364,7 +410,12 @@ export class Main implements OnInit, OnDestroy, DoCheck {
    */
   finishBudgetTyping(): void {
     const tidy = (value: number | null): number | null =>
-      value == null ? null : Math.min(this.budgetCap, Math.max(0, Math.round(value / this.budgetStep) * this.budgetStep));
+      value == null
+        ? null
+        : Math.min(
+            this.budgetCap,
+            Math.max(0, Math.round(value / this.budgetStep) * this.budgetStep),
+          );
     let min = tidy(this.budgetMin);
     let max = tidy(this.budgetMax);
     if (min != null && max != null && min > max) [min, max] = [max, min];
@@ -391,7 +442,10 @@ export class Main implements OnInit, OnDestroy, DoCheck {
   @HostListener('document:keydown.escape', ['$event'])
   onEscapeKey(event: Event): void {
     if (escapeAlreadyHandled(event)) return;
-    const close = (fn: () => void) => { claimEscape(event); fn(); };
+    const close = (fn: () => void) => {
+      claimEscape(event);
+      fn();
+    };
     if (this.drawAreaOpen) return close(() => this.closeDrawArea());
     if (this.locationOpen) return close(() => this.cancelLocationPicker());
     if (this.budgetOpen || this.bedroomOpen || this.propertyTypeOpen)
@@ -428,17 +482,21 @@ export class Main implements OnInit, OnDestroy, DoCheck {
    */
   private revealSearchPopover(): void {
     if (typeof window === 'undefined' || window.innerWidth <= 650) return;
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      const popover = document.querySelector<HTMLElement>('.property-type-menu, .main-budget-popover, .bedroom-popover');
-      if (!popover) return;
-      const rect = popover.getBoundingClientRect();
-      const margin = 16;
-      const overflow = rect.bottom + margin - window.innerHeight;
-      if (overflow <= 0) return;
-      // Never scroll the popover's own top (and the field above it) off the screen.
-      const room = Math.max(0, rect.top - 90);
-      window.scrollBy({ top: Math.min(overflow, room), behavior: 'smooth' });
-    }));
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const popover = document.querySelector<HTMLElement>(
+          '.property-type-menu, .main-budget-popover, .bedroom-popover',
+        );
+        if (!popover) return;
+        const rect = popover.getBoundingClientRect();
+        const margin = 16;
+        const overflow = rect.bottom + margin - window.innerHeight;
+        if (overflow <= 0) return;
+        // Never scroll the popover's own top (and the field above it) off the screen.
+        const room = Math.max(0, rect.top - 90);
+        window.scrollBy({ top: Math.min(overflow, room), behavior: 'smooth' });
+      }),
+    );
   }
 
   private searchMenuOpen(menu: 'location' | 'propertyType' | 'budget' | 'bedroom'): boolean {
@@ -742,9 +800,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
       const district = street.district?.trim() || '';
       if (
         district &&
-        !this.selectedLocationAreas.some(
-          (area) => area.toLowerCase() === district.toLowerCase(),
-        )
+        !this.selectedLocationAreas.some((area) => area.toLowerCase() === district.toLowerCase())
       ) {
         this.selectedLocationAreas = [...this.selectedLocationAreas, district];
       }
@@ -915,11 +971,26 @@ export class Main implements OnInit, OnDestroy, DoCheck {
 
   private locationAreaRank(district: string): number {
     const popularAreas = [
-      'Vake', 'Saburtalo', 'Vera', 'Mtatsminda',
-      'Didi Digomi', 'Digomi', 'Didube', 'Avlabari',
-      'Isani', 'Gldani', 'Chugureti', 'Bagebi',
-      'Ortachala', 'Nadzaladevi', 'Krtsanisi', 'Vashlijvari',
-      'Sololaki', 'Samgori', 'Avchala', 'Abanotubani',
+      'Vake',
+      'Saburtalo',
+      'Vera',
+      'Mtatsminda',
+      'Didi Digomi',
+      'Digomi',
+      'Didube',
+      'Avlabari',
+      'Isani',
+      'Gldani',
+      'Chugureti',
+      'Bagebi',
+      'Ortachala',
+      'Nadzaladevi',
+      'Krtsanisi',
+      'Vashlijvari',
+      'Sololaki',
+      'Samgori',
+      'Avchala',
+      'Abanotubani',
     ];
     const index = popularAreas.findIndex(
       (area) => area.toLowerCase() === district.trim().toLowerCase(),
@@ -941,7 +1012,12 @@ export class Main implements OnInit, OnDestroy, DoCheck {
         this.apartments = data.map((apartment) => {
           const current = this.apartments.find((item) => item.id === apartment.id);
           return current && this.getApartmentGallery(current).length > 1
-            ? { ...apartment, images: current.images, imageUrls: current.imageUrls, imageUrl: current.imageUrl }
+            ? {
+                ...apartment,
+                images: current.images,
+                imageUrls: current.imageUrls,
+                imageUrl: current.imageUrl,
+              }
             : apartment;
         });
         this.updateApartmentsForSelectedMode();
@@ -982,7 +1058,11 @@ export class Main implements OnInit, OnDestroy, DoCheck {
       }
     };
 
-    const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+    const idle = (
+      window as Window & {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      }
+    ).requestIdleCallback;
     if (typeof idle === 'function') {
       idle.call(window, run, { timeout: 2500 });
     } else {
@@ -1162,9 +1242,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
       queryParams: {
         mode: this.searchMode,
         area: useDrawnArea ? 'drawn' : null,
-        location: useDrawnArea
-          ? null
-          : this.selectedLocationValue || this.searchLocation || null,
+        location: useDrawnArea ? null : this.selectedLocationValue || this.searchLocation || null,
         street_id: this.selectedStreetId || null,
         locationLanguage: this.locationService.languageForQuery(this.searchLocation),
         propertyType: this.searchPropertyType || null,

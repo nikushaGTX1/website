@@ -1,10 +1,19 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AiConciergeService } from '../services/ai-concierge.service';
 import { ApartmentMatchResult } from '../models/apartment-match-result';
 import { ConciergeOption, ConciergeQuestion } from '../models/concierge-question';
 import { HomePreferenceRequest } from '../models/home-preference-request';
+import { NgIf, NgFor, DecimalPipe } from '@angular/common';
+import { LifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
+import { ConciergeResultsComponent } from '../concierge-results/concierge-results.component';
 
 type PreferenceKey =
   | 'districts'
@@ -17,9 +26,17 @@ type PreferenceKey =
   | 'preferredStyle';
 @Component({
   selector: 'app-ai-concierge-page',
-  standalone: false,
   templateUrl: './ai-concierge-page.component.html',
   styleUrl: './ai-concierge-page.component.css',
+  imports: [
+    NgIf,
+    LifestyleAvatarComponent,
+    NgFor,
+    FormsModule,
+    ReactiveFormsModule,
+    ConciergeResultsComponent,
+    DecimalPipe,
+  ],
 })
 export class AiConciergePageComponent {
   readonly questions: ConciergeQuestion[] = [

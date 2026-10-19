@@ -14,8 +14,11 @@ import {
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { ParkLayer } from '../services/park-layer';
+import { NgIf, NgFor } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
-type PlaceCategory = 'school' | 'preschool' | 'supermarket' | 'hospital' | 'transit_station' | 'gym' | 'park';
+type PlaceCategory =
+  'school' | 'preschool' | 'supermarket' | 'hospital' | 'transit_station' | 'gym' | 'park';
 type CategoryFilter = PlaceCategory | 'all';
 type TravelModeName = 'WALKING' | 'DRIVING' | 'TRANSIT';
 export interface NearbyPlace {
@@ -30,9 +33,9 @@ export interface NearbyPlace {
 
 @Component({
   selector: 'app-google-property-map',
-  standalone: false,
   templateUrl: './google-property-map.component.html',
   styleUrl: './google-property-map.component.css',
+  imports: [NgIf, FormsModule, NgFor],
 })
 export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input({ required: true }) address = '';
@@ -99,10 +102,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
     void this.initialize();
   }
   ngOnChanges(changes: SimpleChanges): void {
-    if (
-      this.viewReady &&
-      (changes['address'] || changes['latitude'] || changes['longitude'])
-    ) {
+    if (this.viewReady && (changes['address'] || changes['latitude'] || changes['longitude'])) {
       void this.initialize();
     }
   }
@@ -202,7 +202,9 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       .querySelector<HTMLMetaElement>('meta[name="google-maps-map-id"]')
       ?.content.trim();
     if (!apiKey) {
-      console.error('Google Maps: add a browser-restricted API key to the google-maps-api-key meta tag.');
+      console.error(
+        'Google Maps: add a browser-restricted API key to the google-maps-api-key meta tag.',
+      );
       this.loading = false;
       this.errorMessage = GooglePropertyMapComponent.unavailableText;
       this.refreshView();
@@ -212,7 +214,9 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
     GooglePropertyMapComponent.instances.add(this);
     const authWindow = window as Window & { gm_authFailure?: () => void };
     authWindow.gm_authFailure ??= () => {
-      console.error(`Google Maps rejected the API key on ${location.host}: add this domain to the key's HTTP referrer allowlist.`);
+      console.error(
+        `Google Maps rejected the API key on ${location.host}: add this domain to the key's HTTP referrer allowlist.`,
+      );
       GooglePropertyMapComponent.instances.forEach((map) => {
         map.loading = false;
         map.errorMessage = GooglePropertyMapComponent.unavailableText;
@@ -244,8 +248,8 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         this.longitude! <= 46.8;
       const location = hasCoordinates
         ? new google.maps.LatLng(this.latitude!, this.longitude!)
-        : (await new Geocoder().geocode({ address: `${this.address}, Georgia` }))
-            .results[0]?.geometry.location;
+        : (await new Geocoder().geocode({ address: `${this.address}, Georgia` })).results[0]
+            ?.geometry.location;
       if (!location) throw new Error('Address not found');
       this.apartmentLocation = location;
       this.map = new Map(this.mapContainer.nativeElement, {
@@ -294,7 +298,10 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       this.refreshView();
       if (this.loadNearby) await this.findNearby();
     } catch (error) {
-      console.error('Google Maps could not show this property (address or API key configuration):', error);
+      console.error(
+        'Google Maps could not show this property (address or API key configuration):',
+        error,
+      );
       this.errorMessage = GooglePropertyMapComponent.unavailableText;
     } finally {
       window.clearTimeout(loadTimeout);

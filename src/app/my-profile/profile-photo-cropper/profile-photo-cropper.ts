@@ -11,6 +11,7 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
+import { NgIf } from '@angular/common';
 
 const OUTPUT_SIZE = 512;
 const MIN_ZOOM = 1;
@@ -18,9 +19,9 @@ const MAX_ZOOM = 4;
 
 @Component({
   selector: 'app-profile-photo-cropper',
-  standalone: false,
   templateUrl: './profile-photo-cropper.html',
   styleUrl: './profile-photo-cropper.css',
+  imports: [NgIf],
 })
 export class ProfilePhotoCropperComponent implements OnInit, OnChanges, OnDestroy {
   @Input() imageSrc = '';
@@ -157,7 +158,17 @@ export class ProfilePhotoCropperComponent implements OnInit, OnChanges, OnDestro
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    context.drawImage(this.image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+    context.drawImage(
+      this.image,
+      sourceX,
+      sourceY,
+      sourceSize,
+      sourceSize,
+      0,
+      0,
+      OUTPUT_SIZE,
+      OUTPUT_SIZE,
+    );
     this.confirming = true;
     canvas.toBlob(
       (blob) => {

@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { Apartment } from '../models/apartment';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
-import { ActivatedRoute, ParamMap, Params, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Params, Router, RouterLink } from '@angular/router';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -21,13 +21,31 @@ import { LocationService } from '../services/location.service';
 import { AppLanguage, TranslationService } from '../services/translation.service';
 import { parkingCostLabel } from '../utils/parking-cost';
 import { rememberResultsUrl } from '../utils/results-return';
-import { PropertyMapPreviewAnchor } from '../maps/explore-property-map/explore-property-map.component';
+import {
+  PropertyMapPreviewAnchor,
+  ExplorePropertyMapComponent,
+} from '../maps/explore-property-map/explore-property-map.component';
+import { NgIf, NgFor, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CurrencyPrice } from '../currency-price/currency-price';
+import { DatePickerComponent } from '../shared/date-picker/date-picker.component';
+import { ListingTitlePipe } from '../shared/listing-title.pipe';
 
 @Component({
   selector: 'app-explore-property',
-  standalone: false,
   templateUrl: './explore-property.html',
   styleUrl: './explore-property.css',
+  imports: [
+    NgIf,
+    FormsModule,
+    NgFor,
+    RouterLink,
+    CurrencyPrice,
+    ExplorePropertyMapComponent,
+    DatePickerComponent,
+    DecimalPipe,
+    ListingTitlePipe,
+  ],
 })
 export class ExploreProperty implements OnInit, OnDestroy {
   @ViewChild('resultsPane') private resultsPane?: ElementRef<HTMLElement>;
@@ -68,7 +86,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
   /** Real price distribution of the listings for the current deal type (30 bars from $0 to the cap). */
   get budgetHistogram(): number[] {
     const cached = this.budgetHistogramCache;
-    if (cached && cached.apartments === this.apartments && cached.type === this.selectedType) return cached.bars;
+    if (cached && cached.apartments === this.apartments && cached.type === this.selectedType)
+      return cached.bars;
     const bins = 30;
     const counts = new Array<number>(bins).fill(0);
     for (const apartment of this.apartments) {
@@ -77,19 +96,31 @@ export class ExploreProperty implements OnInit, OnDestroy {
       counts[Math.min(bins - 1, Math.floor((this.priceToPosition(price) / 100) * bins))]++;
     }
     const peak = Math.max(1, ...counts);
-    const bars = counts.map((count) => (count ? Math.max(10, Math.round((count / peak) * 100)) : 4));
+    const bars = counts.map((count) =>
+      count ? Math.max(10, Math.round((count / peak) * 100)) : 4,
+    );
     this.budgetHistogramCache = { apartments: this.apartments, type: this.selectedType, bars };
     return bars;
   }
 
-/**
+  /**
    * Slider scale: most homes cost far less than the cap, so the common range gets most of the
    * track. Rent: $0–1,000 = 0–40%, $1,000–2,500 = 40–80%, $2,500–5,000 = 80–100%.
    */
   get budgetScale(): Array<[number, number]> {
     return this.selectedType === 'For Sale'
-      ? [[0, 0], [200000, 40], [500000, 80], [1000000, 100]]
-      : [[0, 0], [1000, 40], [2500, 80], [5000, 100]];
+      ? [
+          [0, 0],
+          [200000, 40],
+          [500000, 80],
+          [1000000, 100],
+        ]
+      : [
+          [0, 0],
+          [1000, 40],
+          [2500, 80],
+          [5000, 100],
+        ];
   }
 
   /** Labels under the slider, at the scale's breakpoints. */
@@ -193,7 +224,12 @@ export class ExploreProperty implements OnInit, OnDestroy {
    */
   finishBudgetTyping(): void {
     const tidy = (value: number | null): number | null =>
-      value == null ? null : Math.min(this.budgetCap, Math.max(0, Math.round(value / this.budgetStep) * this.budgetStep));
+      value == null
+        ? null
+        : Math.min(
+            this.budgetCap,
+            Math.max(0, Math.round(value / this.budgetStep) * this.budgetStep),
+          );
     let min = tidy(this.budgetMin);
     let max = tidy(this.budgetMax);
     if (min != null && max != null && min > max) [min, max] = [max, min];
@@ -235,9 +271,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
   drawnStreetsLoading = false;
   readonly featuredLocationAreas = [
     { name: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-tree.svg' },
-    { name: 'Saburtalo', description: 'Central & convenient', icon: '/icons/areas/saburtalo-buildings.svg' },
+    {
+      name: 'Saburtalo',
+      description: 'Central & convenient',
+      icon: '/icons/areas/saburtalo-buildings.svg',
+    },
     { name: 'Vera', description: 'Historic central', icon: '/icons/areas/vera-heritage-house.svg' },
-    { name: 'Mtatsminda', description: 'Old city & views', icon: '/icons/areas/mtatsminda-columns.svg' },
+    {
+      name: 'Mtatsminda',
+      description: 'Old city & views',
+      icon: '/icons/areas/mtatsminda-columns.svg',
+    },
   ];
   readonly allLocationAreas = [
     'Didube',
@@ -291,16 +335,24 @@ export class ExploreProperty implements OnInit, OnDestroy {
   ];
 
   get sizeSummary(): string {
-    if (this.appliedSizePresets?.includes('compact') && this.appliedSizePresets.includes('large') && !this.appliedSizePresets.includes('medium')) return '≤ 50, > 100 m²';
-    if (this.selectedMinArea && this.selectedMaxArea != null) return `${this.selectedMinArea}–${this.selectedMaxArea} m²`;
+    if (
+      this.appliedSizePresets?.includes('compact') &&
+      this.appliedSizePresets.includes('large') &&
+      !this.appliedSizePresets.includes('medium')
+    )
+      return '≤ 50, > 100 m²';
+    if (this.selectedMinArea && this.selectedMaxArea != null)
+      return `${this.selectedMinArea}–${this.selectedMaxArea} m²`;
     if (this.selectedMaxArea != null) return `≤ ${this.selectedMaxArea} m²`;
     return this.selectedMinArea ? `${this.selectedMinArea}+ m²` : 'Area';
   }
 
   get sizeRangeInvalid(): boolean {
-    return (this.sizeMin != null && (!Number.isFinite(this.sizeMin) || this.sizeMin < 0)) ||
+    return (
+      (this.sizeMin != null && (!Number.isFinite(this.sizeMin) || this.sizeMin < 0)) ||
       (this.sizeMax != null && (!Number.isFinite(this.sizeMax) || this.sizeMax < 0)) ||
-      (this.sizeMin != null && this.sizeMax != null && this.sizeMin > this.sizeMax);
+      (this.sizeMin != null && this.sizeMax != null && this.sizeMin > this.sizeMax)
+    );
   }
 
   isSizePresetSelected(preset: { min: number | null; max: number | null; plan: string }): boolean {
@@ -314,10 +366,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   toggleSizePreset(preset: { plan: string }): void {
-    const selected = this.sizePresets.filter(option => this.isSizePresetSelected(option)).map(option => option.plan);
+    const selected = this.sizePresets
+      .filter((option) => this.isSizePresetSelected(option))
+      .map((option) => option.plan);
     this.draftSizePresets = selected.includes(preset.plan)
-      ? selected.filter(plan => plan !== preset.plan) : [...selected, preset.plan];
-    const ranges = this.sizePresets.filter(option => this.draftSizePresets!.includes(option.plan));
+      ? selected.filter((plan) => plan !== preset.plan)
+      : [...selected, preset.plan];
+    const ranges = this.sizePresets.filter((option) =>
+      this.draftSizePresets!.includes(option.plan),
+    );
     this.sizeMin = ranges.length ? ranges[0].min : null;
     this.sizeMax = ranges.length ? ranges[ranges.length - 1].max : null;
   }
@@ -359,11 +416,20 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   trapSizeFocus(event: KeyboardEvent): void {
     if (event.key !== 'Tab') return;
-    const controls = Array.from((event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button:not(:disabled), input, select'));
+    const controls = Array.from(
+      (event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input, select',
+      ),
+    );
     const first = controls[0];
     const last = controls[controls.length - 1];
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
   }
   selectedMinFloor = 0;
   selectedMaxFloor: number | null = null;
@@ -384,19 +450,34 @@ export class ExploreProperty implements OnInit, OnDestroy {
   ];
 
   get floorFilterActive(): boolean {
-    return this.selectedMinFloor > 0 || this.selectedMaxFloor != null || this.excludeFirstFloor || this.excludeLastFloor;
+    return (
+      this.selectedMinFloor > 0 ||
+      this.selectedMaxFloor != null ||
+      this.excludeFirstFloor ||
+      this.excludeLastFloor
+    );
   }
 
   get floorSummary(): string {
-    if (this.appliedFloorPresets?.includes(1) && this.appliedFloorPresets.includes(9) && !this.appliedFloorPresets.includes(4)) return '1–3, 9+';
-    if (this.selectedMinFloor && this.selectedMaxFloor != null) return `${this.selectedMinFloor}–${this.selectedMaxFloor}`;
+    if (
+      this.appliedFloorPresets?.includes(1) &&
+      this.appliedFloorPresets.includes(9) &&
+      !this.appliedFloorPresets.includes(4)
+    )
+      return '1–3, 9+';
+    if (this.selectedMinFloor && this.selectedMaxFloor != null)
+      return `${this.selectedMinFloor}–${this.selectedMaxFloor}`;
     if (this.selectedMaxFloor != null) return `≤ ${this.selectedMaxFloor}`;
     return this.selectedMinFloor ? `${this.selectedMinFloor}+` : 'Floor';
   }
 
   get floorRangeInvalid(): boolean {
-    return [this.floorMin, this.floorMax].some(value => value != null && (!Number.isInteger(value) || value < 1)) ||
-      (this.floorMin != null && this.floorMax != null && this.floorMin > this.floorMax);
+    return (
+      [this.floorMin, this.floorMax].some(
+        (value) => value != null && (!Number.isInteger(value) || value < 1),
+      ) ||
+      (this.floorMin != null && this.floorMax != null && this.floorMin > this.floorMax)
+    );
   }
 
   isFloorPresetSelected(preset: { min: number; max: number | null }): boolean {
@@ -407,10 +488,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   toggleFloorPreset(preset: { min: number; max: number | null }): void {
-    const selected = this.floorPresets.filter(option => this.isFloorPresetSelected(option)).map(option => option.min);
+    const selected = this.floorPresets
+      .filter((option) => this.isFloorPresetSelected(option))
+      .map((option) => option.min);
     this.draftFloorPresets = selected.includes(preset.min)
-      ? selected.filter(min => min !== preset.min) : [...selected, preset.min];
-    const ranges = this.floorPresets.filter(option => this.draftFloorPresets!.includes(option.min));
+      ? selected.filter((min) => min !== preset.min)
+      : [...selected, preset.min];
+    const ranges = this.floorPresets.filter((option) =>
+      this.draftFloorPresets!.includes(option.min),
+    );
     this.floorMin = ranges.length ? ranges[0].min : null;
     this.floorMax = ranges.length ? ranges[ranges.length - 1].max : null;
   }
@@ -472,7 +558,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
   private readonly galleryPrefetchCount = 6;
 
   private readonly cardImageIndexes = new Map<number, number>();
-  private cardGesture: { id: number; pointer: number; x: number; y: number; width: number; started: number; index: number; count: number; axis: 'x' | 'y' | null } | null = null;
+  private cardGesture: {
+    id: number;
+    pointer: number;
+    x: number;
+    y: number;
+    width: number;
+    started: number;
+    index: number;
+    count: number;
+    axis: 'x' | 'y' | null;
+  } | null = null;
   cardDraggingId: number | null = null;
   cardDragOffset = 0;
   private suppressCardClickUntil = 0;
@@ -543,7 +639,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   /** 1×1 transparent image for gallery slots that are not near the photo being shown. */
-  readonly blankPhoto = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  readonly blankPhoto =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
   /**
    * A card's swipe track holds every photo, and lazy loading still fetched them all because
@@ -584,17 +681,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
   cardDotIsSmall(apartment: Apartment, dot: number): boolean {
     const dots = this.cardDots(apartment);
     const count = this.cardImages(apartment).length;
-    return (
-      (dot === dots[0] && dots[0] > 0) ||
-      (dot === dots[dots.length - 1] && dot < count - 1)
-    );
+    return (dot === dots[0] && dots[0] > 0) || (dot === dots[dots.length - 1] && dot < count - 1);
   }
 
   changeCardPhoto(event: Event, apartment: Apartment, direction: number): void {
     event.preventDefault();
     event.stopPropagation();
     this.loadCardGallery(apartment);
-    const next = Math.max(0, Math.min(this.cardImages(apartment).length - 1, this.cardImageIndex(apartment) + direction));
+    const next = Math.max(
+      0,
+      Math.min(this.cardImages(apartment).length - 1, this.cardImageIndex(apartment) + direction),
+    );
     this.cardImageIndexes.set(apartment.id, next);
     this.preloadImage(this.cardImages(apartment)[next + direction]);
   }
@@ -602,7 +699,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
   private prefetchCardGalleries(): void {
     // Twenty cards per page: fetching every gallery at once would fire twenty detail requests
     // and preload hundreds of photos. The first cards get theirs now, the rest on hover.
-    this.pageApartments.slice(0, this.galleryPrefetchCount).forEach((apartment) => this.loadCardGallery(apartment));
+    this.pageApartments
+      .slice(0, this.galleryPrefetchCount)
+      .forEach((apartment) => this.loadCardGallery(apartment));
   }
 
   onCardHover(apartment: Apartment): void {
@@ -622,7 +721,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   cardImage(apartment: Apartment): string {
-    return this.cardImages(apartment)[this.cardImageIndex(apartment)] || '/property-placeholder.svg';
+    return (
+      this.cardImages(apartment)[this.cardImageIndex(apartment)] || '/property-placeholder.svg'
+    );
   }
 
   trackApartmentById(_index: number, apartment: Apartment): number {
@@ -630,13 +731,22 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   startCardSwipe(event: PointerEvent, apartment: Apartment): void {
-    if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
+    if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest('button'))
+      return;
     this.suppressCardClickUntil = 0;
     this.loadCardGallery(apartment);
     (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-    this.cardGesture = { id: apartment.id, pointer: event.pointerId, x: event.clientX, y: event.clientY,
-      width: (event.currentTarget as HTMLElement).clientWidth, started: performance.now(),
-      index: this.cardImageIndex(apartment), count: this.cardImages(apartment).length, axis: null };
+    this.cardGesture = {
+      id: apartment.id,
+      pointer: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      width: (event.currentTarget as HTMLElement).clientWidth,
+      started: performance.now(),
+      index: this.cardImageIndex(apartment),
+      count: this.cardImages(apartment).length,
+      axis: null,
+    };
   }
 
   moveCardSwipe(event: PointerEvent, apartment: Apartment): void {
@@ -652,7 +762,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
     event.preventDefault();
     this.cardDraggingId = gesture.id;
     // Past the first/last photo the strip resists instead of stopping dead.
-    const atEdge = (gesture.index === 0 && dx > 0) || (gesture.index >= gesture.count - 1 && dx < 0);
+    const atEdge =
+      (gesture.index === 0 && dx > 0) || (gesture.index >= gesture.count - 1 && dx < 0);
     this.cardDragOffset = atEdge ? dx * 0.3 : Math.max(-gesture.width, Math.min(gesture.width, dx));
     this.suppressCardClickUntil = Date.now() + 600;
   }
@@ -663,9 +774,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (gesture.axis === 'x') {
       const dx = this.cardDragOffset;
       const elapsed = Math.max(1, performance.now() - gesture.started);
-      if (!cancelled && (Math.abs(dx) > gesture.width * 0.2 || (Math.abs(dx) > 25 && Math.abs(dx) / elapsed > 0.45))) {
+      if (
+        !cancelled &&
+        (Math.abs(dx) > gesture.width * 0.2 || (Math.abs(dx) > 25 && Math.abs(dx) / elapsed > 0.45))
+      ) {
         const next = this.cardImageIndex(apartment) + (dx < 0 ? 1 : -1);
-        this.cardImageIndexes.set(apartment.id, Math.max(0, Math.min(this.cardImages(apartment).length - 1, next)));
+        this.cardImageIndexes.set(
+          apartment.id,
+          Math.max(0, Math.min(this.cardImages(apartment).length - 1, next)),
+        );
       }
       this.suppressCardClickUntil = Date.now() + 600;
     }
@@ -726,7 +843,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
   get budgetSelectionSummary(): string {
     const min = this.budgetMin;
     const max = this.budgetMax;
-    if (min != null && max != null) return `${min.toLocaleString()} - ${max.toLocaleString()} ${this.budgetCurrency}`;
+    if (min != null && max != null)
+      return `${min.toLocaleString()} - ${max.toLocaleString()} ${this.budgetCurrency}`;
     if (min != null) return `${min.toLocaleString()}+ ${this.budgetCurrency}`;
     return `Up to ${max!.toLocaleString()} ${this.budgetCurrency}`;
   }
@@ -775,11 +893,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   get budgetMinPercent(): number {
-    return Math.min(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? this.budgetCap));
+    return Math.min(
+      this.normalizedSliderValue(this.budgetMin ?? 0),
+      this.normalizedSliderValue(this.budgetMax ?? this.budgetCap),
+    );
   }
 
   get budgetMaxPercent(): number {
-    return Math.max(this.normalizedSliderValue(this.budgetMin ?? 0), this.normalizedSliderValue(this.budgetMax ?? this.budgetCap));
+    return Math.max(
+      this.normalizedSliderValue(this.budgetMin ?? 0),
+      this.normalizedSliderValue(this.budgetMax ?? this.budgetCap),
+    );
   }
 
   setBudgetMin(value: number | null): void {
@@ -790,7 +914,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   setBudgetMax(value: number | null): void {
     const minimum = Number(this.budgetMin ?? 0);
-    this.budgetMax = value == null ? null : Math.max(minimum, Math.min(this.budgetCap, Number(value)));
+    this.budgetMax =
+      value == null ? null : Math.max(minimum, Math.min(this.budgetCap, Number(value)));
     this.selectedBudgetRange = '';
   }
 
@@ -976,7 +1101,9 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   get sortLabel(): string {
-    return this.sortOptions.find((option) => option.value === this.currentSort)?.label || 'Recommended';
+    return (
+      this.sortOptions.find((option) => option.value === this.currentSort)?.label || 'Recommended'
+    );
   }
 
   chooseMinimumArea(value: number): void {
@@ -1019,7 +1146,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
   private fitPageSizeToGrid(): void {
     const grid = document.querySelector<HTMLElement>('.cards-grid');
     if (!grid) return;
-    const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').filter((part) => part && part !== 'none').length || 1;
+    const columns =
+      getComputedStyle(grid)
+        .gridTemplateColumns.split(' ')
+        .filter((part) => part && part !== 'none').length || 1;
     const size = Math.ceil(this.targetPageSize / columns) * columns;
     if (size === this.pageSize) return;
     const firstShown = (this.currentPage - 1) * this.pageSize;
@@ -1049,36 +1179,38 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const query = this.location.trim().toLowerCase();
     const language = this.locationService.languageForQuery(this.location);
     const seenAreas = new Set<string>();
-    return this.locationEntries
-      .filter((entry) => entry.city === 'Tbilisi')
-      .filter(
-        (entry) =>
-          !query ||
-          entry.district.toLowerCase().includes(query) ||
-          entry.region.toLowerCase().includes(query) ||
-          this.locationService.districtName(entry, language).toLowerCase().includes(query) ||
-          this.locationService.regionName(entry, language).toLowerCase().includes(query),
-      )
-      .sort(
-        (left, right) =>
-          this.locationAreaRank(left.district) - this.locationAreaRank(right.district),
-      )
-      .map((entry) => ({
-        id: entry.id,
-        label: this.locationService.districtName(entry, language),
-        value: entry.district,
-        type: 'Area' as const,
-        city: this.locationService.cityName(entry, language),
-      }))
-      // The catalog can carry more than one API record for the same neighborhood
-      // (e.g. two "Vake" districts with different ids). Keep only the first.
-      .filter((suggestion) => {
-        const key = suggestion.label.trim().toLowerCase();
-        if (seenAreas.has(key)) return false;
-        seenAreas.add(key);
-        return true;
-      })
-      .slice(0, 8);
+    return (
+      this.locationEntries
+        .filter((entry) => entry.city === 'Tbilisi')
+        .filter(
+          (entry) =>
+            !query ||
+            entry.district.toLowerCase().includes(query) ||
+            entry.region.toLowerCase().includes(query) ||
+            this.locationService.districtName(entry, language).toLowerCase().includes(query) ||
+            this.locationService.regionName(entry, language).toLowerCase().includes(query),
+        )
+        .sort(
+          (left, right) =>
+            this.locationAreaRank(left.district) - this.locationAreaRank(right.district),
+        )
+        .map((entry) => ({
+          id: entry.id,
+          label: this.locationService.districtName(entry, language),
+          value: entry.district,
+          type: 'Area' as const,
+          city: this.locationService.cityName(entry, language),
+        }))
+        // The catalog can carry more than one API record for the same neighborhood
+        // (e.g. two "Vake" districts with different ids). Keep only the first.
+        .filter((suggestion) => {
+          const key = suggestion.label.trim().toLowerCase();
+          if (seenAreas.has(key)) return false;
+          seenAreas.add(key);
+          return true;
+        })
+        .slice(0, 8)
+    );
   }
 
   private isActualStreet(street: { label: string; value: string }): boolean {
@@ -1380,7 +1512,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   /** Picking a district or street from the sheet search applies it right away. */
   pickSheetSuggestion(suggestion: LocationSuggestion): void {
-    this.selectedLocationAreas = suggestion.type === 'Area' ? [suggestion.value || suggestion.label] : [];
+    this.selectedLocationAreas =
+      suggestion.type === 'Area' ? [suggestion.value || suggestion.label] : [];
     this.selectLocation(suggestion);
     this.closeAreaSheet();
   }
@@ -1418,7 +1551,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
   @HostListener('document:keydown.escape', ['$event'])
   onEscapeKey(event: Event): void {
     if (escapeAlreadyHandled(event)) return;
-    const close = (fn: () => void) => { claimEscape(event); fn(); };
+    const close = (fn: () => void) => {
+      claimEscape(event);
+      fn();
+    };
     if (this.filterMenu) return close(() => (this.filterMenu = null));
     if (this.budgetOpen || this.bedroomOpen || this.propertyTypeOpen || this.conditionOpen)
       return close(() => {
@@ -1430,7 +1566,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (this.drawAreaOpen) return close(() => this.closeDrawArea());
     if (this.locationOpen) return close(() => this.cancelLocationPicker());
     if (this.areaSheetOpen && !this.areaSheetClosing) return close(() => this.cancelAreaSheet());
-    if (this.mapPreviewApartment || this.mapGroupApartments) return close(() => this.closeMapPreview());
+    if (this.mapPreviewApartment || this.mapGroupApartments)
+      return close(() => this.closeMapPreview());
   }
 
   /** The bottom action shows only while nothing else is docked to the bottom of the map. */
@@ -1552,11 +1689,26 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   private locationAreaRank(district: string): number {
     const popularAreas = [
-      'Vake', 'Saburtalo', 'Vera', 'Mtatsminda',
-      'Didi Digomi', 'Digomi', 'Didube', 'Avlabari',
-      'Isani', 'Gldani', 'Chugureti', 'Bagebi',
-      'Ortachala', 'Nadzaladevi', 'Krtsanisi', 'Vashlijvari',
-      'Sololaki', 'Samgori', 'Avchala', 'Abanotubani',
+      'Vake',
+      'Saburtalo',
+      'Vera',
+      'Mtatsminda',
+      'Didi Digomi',
+      'Digomi',
+      'Didube',
+      'Avlabari',
+      'Isani',
+      'Gldani',
+      'Chugureti',
+      'Bagebi',
+      'Ortachala',
+      'Nadzaladevi',
+      'Krtsanisi',
+      'Vashlijvari',
+      'Sololaki',
+      'Samgori',
+      'Avchala',
+      'Abanotubani',
     ];
     const index = popularAreas.findIndex(
       (area) => area.toLowerCase() === district.trim().toLowerCase(),
@@ -1657,10 +1809,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.restoreFiltersFromUrl(params);
     // Homepage "Explore by lifestyle" tiles that have a filter chip here turn that chip on,
     // so the visitor sees (and can switch off) the filter instead of a hidden one.
-    const chipForFeature: Record<string, string> = { pets: 'Pet friendly', parking: 'Parking', new: 'New building' };
+    const chipForFeature: Record<string, string> = {
+      pets: 'Pet friendly',
+      parking: 'Parking',
+      new: 'New building',
+    };
     const chip = chipForFeature[this.featureFilter];
     if (chip) {
-      if (!this.selectedAmenities.includes(chip)) this.selectedAmenities = [...this.selectedAmenities, chip];
+      if (!this.selectedAmenities.includes(chip))
+        this.selectedAmenities = [...this.selectedAmenities, chip];
       this.featureFilter = '';
     }
     this.loadApartments();
@@ -1693,7 +1850,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
    */
   private readonly guardWheel = (event: WheelEvent): void => {
     if (!this.areaSheetOpen) return;
-    const inSheetList = event.target instanceof Element && !!event.target.closest('.area-sheet-scroll');
+    const inSheetList =
+      event.target instanceof Element && !!event.target.closest('.area-sheet-scroll');
     if (!inSheetList) event.preventDefault();
   };
 
@@ -1890,17 +2048,34 @@ export class ExploreProperty implements OnInit, OnDestroy {
       const matchesAmenities = this.matchesAmenitiesFilter(apartment);
       const matchesCondition = this.matchesConditionFilter(apartment);
       const matchesFeature = this.matchesQuickFeature(apartment);
-      const matchesArea = (!this.selectedMinArea || Number(apartment.sizeSquareMeters) >= this.selectedMinArea) &&
-        (this.appliedSizePresets == null || (apartment.sizeSquareMeters != null && this.sizePresets.some(preset =>
-          this.appliedSizePresets!.includes(preset.plan) && Number(apartment.sizeSquareMeters) >= (preset.min ?? 0) &&
-          (preset.plan !== 'large' || Number(apartment.sizeSquareMeters) > 100) && Number(apartment.sizeSquareMeters) <= (preset.max ?? Infinity)))) &&
-        (this.selectedMaxArea == null || Number(apartment.sizeSquareMeters) <= this.selectedMaxArea);
+      const matchesArea =
+        (!this.selectedMinArea || Number(apartment.sizeSquareMeters) >= this.selectedMinArea) &&
+        (this.appliedSizePresets == null ||
+          (apartment.sizeSquareMeters != null &&
+            this.sizePresets.some(
+              (preset) =>
+                this.appliedSizePresets!.includes(preset.plan) &&
+                Number(apartment.sizeSquareMeters) >= (preset.min ?? 0) &&
+                (preset.plan !== 'large' || Number(apartment.sizeSquareMeters) > 100) &&
+                Number(apartment.sizeSquareMeters) <= (preset.max ?? Infinity),
+            ))) &&
+        (this.selectedMaxArea == null ||
+          Number(apartment.sizeSquareMeters) <= this.selectedMaxArea);
       const floor = Number(apartment.floor);
-      const matchesFloor = (!this.selectedMinFloor || floor >= this.selectedMinFloor) &&
-        (this.appliedFloorPresets == null || this.floorPresets.some(preset => this.appliedFloorPresets!.includes(preset.min) && floor >= preset.min && floor <= (preset.max ?? Infinity))) &&
-        (this.selectedMaxFloor == null || (apartment.floor != null && floor <= this.selectedMaxFloor)) &&
+      const matchesFloor =
+        (!this.selectedMinFloor || floor >= this.selectedMinFloor) &&
+        (this.appliedFloorPresets == null ||
+          this.floorPresets.some(
+            (preset) =>
+              this.appliedFloorPresets!.includes(preset.min) &&
+              floor >= preset.min &&
+              floor <= (preset.max ?? Infinity),
+          )) &&
+        (this.selectedMaxFloor == null ||
+          (apartment.floor != null && floor <= this.selectedMaxFloor)) &&
         (!this.excludeFirstFloor || (apartment.floor != null && floor > 1)) &&
-        (!this.excludeLastFloor || (apartment.floor != null && Number(apartment.totalFloors) > floor));
+        (!this.excludeLastFloor ||
+          (apartment.floor != null && Number(apartment.totalFloors) > floor));
       const matchesMore = this.matchesMoreFilters(apartment);
 
       return (
@@ -2004,9 +2179,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
   private locationQuery(): Params {
     if (this.drawnAreaActive) return {};
     const streets = this.selectedModalStreetDetails;
-    const streetMode = streets.length > 0 && this.selectedLocationValue === this.selectedModalStreets.join(',');
+    const streetMode =
+      streets.length > 0 && this.selectedLocationValue === this.selectedModalStreets.join(',');
     return {
-      location: (streetMode ? this.selectedLocationAreas.join(',') : this.selectedLocationValue) || null,
+      location:
+        (streetMode ? this.selectedLocationAreas.join(',') : this.selectedLocationValue) || null,
       streets: streetMode
         ? streets.map((item) => `${item.streetId}~${item.district}~${item.street}`).join('|')
         : null,
@@ -2015,29 +2192,31 @@ export class ExploreProperty implements OnInit, OnDestroy {
   }
 
   private syncFiltersToUrl(): void {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        budget: this.appliedBudgetMax,
-        budgetMin: this.appliedBudgetMin,
-        minArea: this.selectedMinArea || null,
-        maxArea: this.selectedMaxArea,
-        minFloor: this.selectedMinFloor || null,
-        maxFloor: this.selectedMaxFloor,
-        noFirstFloor: this.excludeFirstFloor ? 1 : null,
-        noLastFloor: this.excludeLastFloor ? 1 : null,
-        amenities: this.selectedAmenities.join(',') || null,
-        conditions: this.selectedConditions.join(',') || null,
-        propertyType: this.homeType || null,
-        bedrooms: this.headerBedrooms || null,
-        rooms: this.headerRooms || null,
-        sort: this.currentSort !== 'newest' ? this.currentSort : null,
-        ...this.moreFiltersQuery(),
-        ...this.locationQuery(),
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    }).then(() => rememberResultsUrl(this.router.url));
+    void this.router
+      .navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          budget: this.appliedBudgetMax,
+          budgetMin: this.appliedBudgetMin,
+          minArea: this.selectedMinArea || null,
+          maxArea: this.selectedMaxArea,
+          minFloor: this.selectedMinFloor || null,
+          maxFloor: this.selectedMaxFloor,
+          noFirstFloor: this.excludeFirstFloor ? 1 : null,
+          noLastFloor: this.excludeLastFloor ? 1 : null,
+          amenities: this.selectedAmenities.join(',') || null,
+          conditions: this.selectedConditions.join(',') || null,
+          propertyType: this.homeType || null,
+          bedrooms: this.headerBedrooms || null,
+          rooms: this.headerRooms || null,
+          sort: this.currentSort !== 'newest' ? this.currentSort : null,
+          ...this.moreFiltersQuery(),
+          ...this.locationQuery(),
+        },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      })
+      .then(() => rememberResultsUrl(this.router.url));
   }
 
   toggleFilterItem(list: string[], item: string): void {
@@ -2193,7 +2372,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (apartmentChanged) this.mapPreviewImageIndex = 0;
     this.cdr.detectChanges();
 
-    if (this.getMapPreviewImages(apartment).length <= 1 && !this.mapGalleryRequests.has(apartment.id)) {
+    if (
+      this.getMapPreviewImages(apartment).length <= 1 &&
+      !this.mapGalleryRequests.has(apartment.id)
+    ) {
       this.mapGalleryRequests.add(apartment.id);
       this.apartmentService.getApartment(apartment.id).subscribe({
         next: (detailedApartment) => {
@@ -2343,10 +2525,14 @@ export class ExploreProperty implements OnInit, OnDestroy {
     const lastTwoDigits = floor % 100;
     if (lastTwoDigits >= 11 && lastTwoDigits <= 13) return 'th';
     switch (floor % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
-      default: return 'th';
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
     }
   }
 
@@ -2533,7 +2719,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
   ];
   readonly moreFilterHeating = [
     { key: 'centralHeating', label: 'Central heating', icon: 'fa-solid fa-temperature-half' },
-    { key: 'underfloorHeating', label: 'Underfloor heating', icon: 'fa-solid fa-fire-flame-simple' },
+    {
+      key: 'underfloorHeating',
+      label: 'Underfloor heating',
+      icon: 'fa-solid fa-fire-flame-simple',
+    },
     { key: 'otherHeating', label: 'Other', icon: 'fa-solid fa-ellipsis' },
   ];
   readonly moreFilterBuilding = [
@@ -2626,14 +2816,17 @@ export class ExploreProperty implements OnInit, OnDestroy {
     // At the top/bottom edge of the dialog list, stop the wheel from chaining to the page.
     if (event instanceof WheelEvent) {
       const atTop = scroller.scrollTop <= 0 && event.deltaY < 0;
-      const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1 && event.deltaY > 0;
+      const atBottom =
+        scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1 && event.deltaY > 0;
       if (atTop || atBottom) event.preventDefault();
     }
   }
 
   toggleMoreFeature(key: string): void {
     const list = this.moreFiltersDraft.features;
-    this.moreFiltersDraft.features = list.includes(key) ? list.filter((item) => item !== key) : [...list, key];
+    this.moreFiltersDraft.features = list.includes(key)
+      ? list.filter((item) => item !== key)
+      : [...list, key];
   }
 
   toggleMoreCondition(condition: string): void {
@@ -2680,14 +2873,22 @@ export class ExploreProperty implements OnInit, OnDestroy {
     for (const key of f.features) {
       const ok = (() => {
         switch (key) {
-          case 'balcony': return !!apartment.hasBalcony || /balcon|აივან/i.test(text);
-          case 'furnished': return apartment.isFurnished === true;
-          case 'unfurnished': return apartment.isFurnished === false && !said('partFurnished');
-          case 'airConditioning': return !!apartment.hasAirConditioning;
-          case 'dishwasher': return !!apartment.hasDishwasher;
-          case 'elevator': return !!apartment.hasElevator;
-          case 'olderBuilding': return !said('newBuilding');
-          default: return said(key);
+          case 'balcony':
+            return !!apartment.hasBalcony || /balcon|აივან/i.test(text);
+          case 'furnished':
+            return apartment.isFurnished === true;
+          case 'unfurnished':
+            return apartment.isFurnished === false && !said('partFurnished');
+          case 'airConditioning':
+            return !!apartment.hasAirConditioning;
+          case 'dishwasher':
+            return !!apartment.hasDishwasher;
+          case 'elevator':
+            return !!apartment.hasElevator;
+          case 'olderBuilding':
+            return !said('newBuilding');
+          default:
+            return said(key);
         }
       })();
       if (!ok) return false;
@@ -2712,7 +2913,12 @@ export class ExploreProperty implements OnInit, OnDestroy {
         if (months && months > f.leaseMonths) return false;
       }
       if (f.noDeposit && !said('noDeposit')) return false;
-      if (f.moveInDate && apartment.availableFrom && apartment.availableFrom.slice(0, 10) > f.moveInDate) return false;
+      if (
+        f.moveInDate &&
+        apartment.availableFrom &&
+        apartment.availableFrom.slice(0, 10) > f.moveInDate
+      )
+        return false;
     }
     if (f.conditions.length && this.selectedType === 'For Sale') {
       const value = (apartment.condition || '').trim().toLowerCase();
@@ -2735,10 +2941,14 @@ export class ExploreProperty implements OnInit, OnDestroy {
       if (normalized === 'near park') {
         const minutes = Number(apartment.parkDistanceMinutes);
         const withinDistance =
-          apartment.parkDistanceMinutes != null && Number.isFinite(minutes) && minutes >= 0 && minutes <= 15;
+          apartment.parkDistanceMinutes != null &&
+          Number.isFinite(minutes) &&
+          minutes >= 0 &&
+          minutes <= 15;
         // Measured distance decides. Text is only a fallback for listings without one,
         // and must be a real park mention: plain 'park' also matched every 'parking'.
-        if (apartment.parkDistanceMinutes != null && Number.isFinite(minutes)) return withinDistance;
+        if (apartment.parkDistanceMinutes != null && Number.isFinite(minutes))
+          return withinDistance;
         return /\bparks?\b|პარკ(?!ინგ)/i.test(text);
       }
       if (normalized === 'new building') {

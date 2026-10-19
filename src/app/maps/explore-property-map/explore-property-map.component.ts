@@ -16,6 +16,7 @@ import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { ParkLayer } from '../services/park-layer';
 import Supercluster from 'supercluster';
 import { Apartment } from '../../models/apartment';
+import { NgIf } from '@angular/common';
 
 interface MapPoint {
   apartment: Apartment;
@@ -51,9 +52,9 @@ export interface PropertyMapPreviewAnchor {
 
 @Component({
   selector: 'app-explore-property-map',
-  standalone: false,
   templateUrl: './explore-property-map.component.html',
   styleUrl: './explore-property-map.component.css',
+  imports: [NgIf],
 })
 export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   private static readonly defaultCenter: google.maps.LatLngLiteral = {
@@ -270,7 +271,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     for (let start = 0; start < this.apartments.length; start += batchSize) {
       const batch = this.apartments.slice(start, start + batchSize);
       const resolved = await Promise.all(
-        batch.map(async (apartment) => ({ apartment, position: await this.resolvePosition(apartment) })),
+        batch.map(async (apartment) => ({
+          apartment,
+          position: await this.resolvePosition(apartment),
+        })),
       );
       if (revision !== this.pointsRevision) return; // a newer filter/result set replaced this one
       for (const { apartment, position } of resolved) {
@@ -327,7 +331,12 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       Math.min(85, north + latPad),
     ];
     const clusterZoom = Math.min(24, Math.max(0, Math.floor(zoom)));
-    const key = [bbox.map((v) => v.toFixed(5)).join(','), clusterZoom, this.points.length, this.pointsRevision].join('|');
+    const key = [
+      bbox.map((v) => v.toFixed(5)).join(','),
+      clusterZoom,
+      this.points.length,
+      this.pointsRevision,
+    ].join('|');
     if (key === this.lastViewportKey) return;
     this.lastViewportKey = key;
 
@@ -336,13 +345,20 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
     for (const feature of features) {
       const [lng, lat] = feature.geometry.coordinates;
-      const props = feature.properties as { cluster?: boolean; cluster_id?: number; point_count?: number; id?: number };
+      const props = feature.properties as {
+        cluster?: boolean;
+        cluster_id?: number;
+        point_count?: number;
+        id?: number;
+      };
       if (props.cluster && props.cluster_id !== undefined) {
         const clusterId = props.cluster_id;
         const count = props.point_count || 0;
         const isBuilding = this.isSameBuilding(clusterId);
         const markerKey = (isBuilding ? 'g:' : 'c:') + clusterId + ':' + count;
-        wanted.set(markerKey, () => this.createClusterMarker(markerKey, clusterId, count, isBuilding, { lat, lng }));
+        wanted.set(markerKey, () =>
+          this.createClusterMarker(markerKey, clusterId, count, isBuilding, { lat, lng }),
+        );
       } else if (props.id !== undefined) {
         const point = this.pointById(props.id);
         if (!point) continue;
@@ -392,7 +408,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     const rad = Math.PI / 180;
     const dLat = (lat2 - lat1) * rad;
     const dLng = (lng2 - lng1) * rad;
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
     return 2 * 6371000 * Math.asin(Math.sqrt(a));
   }
 
@@ -518,10 +536,16 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     return { key, kind: isBuilding ? 'group' : 'cluster', marker, wrapper, button };
   }
 
-  private onClusterClicked(clusterId: number, isBuilding: boolean, position: google.maps.LatLngLiteral): void {
+  private onClusterClicked(
+    clusterId: number,
+    isBuilding: boolean,
+    position: google.maps.LatLngLiteral,
+  ): void {
     if (!this.index || !this.map) return;
     if (isBuilding) {
-      const ids = this.index.getLeaves(clusterId, Infinity).map((leaf) => (leaf.properties as { id: number }).id);
+      const ids = this.index
+        .getLeaves(clusterId, Infinity)
+        .map((leaf) => (leaf.properties as { id: number }).id);
       const apartments = ids
         .map((id) => this.pointById(id)?.apartment)
         .filter((apartment): apartment is Apartment => !!apartment)
@@ -530,10 +554,16 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       return;
     }
     const target = Math.min(this.index.getClusterExpansionZoom(clusterId), 20);
-    this.map.moveCamera({ center: position, zoom: Math.max(target, (this.map.getZoom() || 0) + 1) });
+    this.map.moveCamera({
+      center: position,
+      zoom: Math.max(target, (this.map.getZoom() || 0) + 1),
+    });
   }
 
-  private createPricePin(apartment: Apartment, offsetX = 0): {
+  private createPricePin(
+    apartment: Apartment,
+    offsetX = 0,
+  ): {
     wrapper: HTMLDivElement;
     button: HTMLButtonElement;
     tail: HTMLSpanElement;
@@ -716,9 +746,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       if (!longestLine?.length) return null;
       const point = longestLine[Math.floor(longestLine.length / 2)];
       const [lng, lat] = point || [];
-      return Number.isFinite(lat) &&
-        Number.isFinite(lng) &&
-        this.isInsideGeorgia(lat, lng)
+      return Number.isFinite(lat) && Number.isFinite(lng) && this.isInsideGeorgia(lat, lng)
         ? { lat, lng }
         : null;
     } catch {
@@ -761,16 +789,21 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       : selected
         ? 'translateY(-9px) scale(1.1)'
         : 'translateY(-9px)';
-    item.button.style.boxShadow = hovered || selected
-      ? '0 9px 22px rgba(69, 26, 143, .32)'
-      : '0 5px 14px rgba(25, 16, 31, .22)';
+    item.button.style.boxShadow =
+      hovered || selected
+        ? '0 9px 22px rgba(69, 26, 143, .32)'
+        : '0 5px 14px rgba(25, 16, 31, .22)';
     item.tail.style.background = selected ? '#451a8f' : '#fff';
     item.marker.zIndex = hovered ? 101 : selected ? 100 : 1;
   }
 
   private emitSelectedPreviewAnchor(): void {
-    const selected = this.selectedApartmentId === null ? undefined : this.markers.get('a:' + this.selectedApartmentId);
-    if (selected?.apartment) requestAnimationFrame(() => this.emitPreviewAnchor(selected.apartment!, selected.button));
+    const selected =
+      this.selectedApartmentId === null
+        ? undefined
+        : this.markers.get('a:' + this.selectedApartmentId);
+    if (selected?.apartment)
+      requestAnimationFrame(() => this.emitPreviewAnchor(selected.apartment!, selected.button));
   }
 
   private emitPreviewAnchor(

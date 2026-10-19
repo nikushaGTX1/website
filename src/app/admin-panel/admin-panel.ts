@@ -6,21 +6,43 @@ import { Apartment } from '../models/apartment';
 import { BlogPost, CreateBlogPost } from '../models/blog-post';
 import { User } from '../models/user';
 import { AdminService } from '../services/admin.service';
-import { ApartmentService, ApartmentUploader, PendingApartmentEntry } from '../services/apartment.service';
+import {
+  ApartmentService,
+  ApartmentUploader,
+  PendingApartmentEntry,
+} from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { BlogService } from '../services/blog.service';
 import { CrmVacancyPosition } from '../models/crm';
 import { CrmService } from '../services/crm.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
-import { GoogleNearbyTimeService, NearbyTimeKey } from '../maps/services/google-nearby-time.service';
+import {
+  GoogleNearbyTimeService,
+  NearbyTimeKey,
+} from '../maps/services/google-nearby-time.service';
 import { encodeNearbyPlaceNames, splitNearbyPlaceNames } from '../utils/nearby-places';
 import { isListedUniversity } from '../utils/universities';
+import { RouterLink } from '@angular/router';
+import { NgIf, NgFor, DecimalPipe } from '@angular/common';
+import { MyHomeVerification } from '../myhome-verification/myhome-verification';
+import { FormsModule } from '@angular/forms';
+import { CurrencyPrice } from '../currency-price/currency-price';
+import { StreetValidationMapComponent } from './street-validation-map.component';
 
 @Component({
   selector: 'app-admin-panel',
-  standalone: false,
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.css',
+  imports: [
+    RouterLink,
+    NgIf,
+    MyHomeVerification,
+    FormsModule,
+    NgFor,
+    CurrencyPrice,
+    StreetValidationMapComponent,
+    DecimalPipe,
+  ],
 })
 export class AdminPanel implements OnInit, OnDestroy {
   users: User[] = [];
@@ -34,7 +56,8 @@ export class AdminPanel implements OnInit, OnDestroy {
   newVacancyPosition = '';
   userIds: string[] = [];
 
-  activeTab: 'pending' | 'users' | 'agents' | 'apartments' | 'blog' | 'streets' | 'vacancies' = 'pending';
+  activeTab: 'pending' | 'users' | 'agents' | 'apartments' | 'blog' | 'streets' | 'vacancies' =
+    'pending';
 
   blogForm: CreateBlogPost = {
     title: '',
@@ -123,8 +146,8 @@ export class AdminPanel implements OnInit, OnDestroy {
             item.submittedByEmail,
             item.status,
           ],
-          query
-        )
+          query,
+        ),
       )
       .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
   }
@@ -133,7 +156,7 @@ export class AdminPanel implements OnInit, OnDestroy {
     const query = this.normalizedSearch;
 
     return this.users.filter((user) =>
-      this.matchesQuery([user.fullName, user.userName, user.email, user.id], query)
+      this.matchesQuery([user.fullName, user.userName, user.email, user.id], query),
     );
   }
 
@@ -143,8 +166,8 @@ export class AdminPanel implements OnInit, OnDestroy {
     return this.agents.filter((agent) =>
       this.matchesQuery(
         [agent.fullName, agent.userName, agent.email, agent.id, agent.userId],
-        query
-      )
+        query,
+      ),
     );
   }
 
@@ -165,7 +188,7 @@ export class AdminPanel implements OnInit, OnDestroy {
           uploader?.email,
           uploader?.phone,
         ],
-        query
+        query,
       );
     });
   }
@@ -174,14 +197,14 @@ export class AdminPanel implements OnInit, OnDestroy {
     const query = this.normalizedSearch;
 
     return this.blogPosts.filter((post) =>
-      this.matchesQuery([post.title, post.description, post.imageUrl], query)
+      this.matchesQuery([post.title, post.description, post.imageUrl], query),
     );
   }
 
   get filteredVacancyPositions(): CrmVacancyPosition[] {
     const query = this.normalizedSearch;
-    return this.vacancyPositions.filter((position) =>
-      !query || position.title.toLowerCase().includes(query),
+    return this.vacancyPositions.filter(
+      (position) => !query || position.title.toLowerCase().includes(query),
     );
   }
 
@@ -216,10 +239,16 @@ export class AdminPanel implements OnInit, OnDestroy {
         ? this.adminService.getUserIds().pipe(catchError(() => of([] as string[])))
         : of([] as string[]),
       agents: this.adminService.getAgents().pipe(catchError(() => of([] as Agent[]))),
-      apartments: this.apartmentService.getApartmentsFresh().pipe(catchError(() => of([] as Apartment[]))),
-      uploaders: this.apartmentService.getApartmentUploaders().pipe(catchError(() => of([] as ApartmentUploader[]))),
+      apartments: this.apartmentService
+        .getApartmentsFresh()
+        .pipe(catchError(() => of([] as Apartment[]))),
+      uploaders: this.apartmentService
+        .getApartmentUploaders()
+        .pipe(catchError(() => of([] as ApartmentUploader[]))),
       vacancyPositions: this.isAdmin
-        ? this.crmService.getVacancyPositions(true).pipe(catchError(() => of([] as CrmVacancyPosition[])))
+        ? this.crmService
+            .getVacancyPositions(true)
+            .pipe(catchError(() => of([] as CrmVacancyPosition[])))
         : of([] as CrmVacancyPosition[]),
     }).subscribe({
       next: (data) => {
@@ -237,10 +266,13 @@ export class AdminPanel implements OnInit, OnDestroy {
           return ratings;
         }, {});
         this.apartments = data.apartments;
-        this.apartmentUploaders = data.uploaders.reduce<Record<number, ApartmentUploader>>((map, row) => {
-          map[row.apartmentId] = row;
-          return map;
-        }, {});
+        this.apartmentUploaders = data.uploaders.reduce<Record<number, ApartmentUploader>>(
+          (map, row) => {
+            map[row.apartmentId] = row;
+            return map;
+          },
+          {},
+        );
         this.vacancyPositions = data.vacancyPositions;
 
         this.loading = false;
@@ -262,8 +294,9 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.actionId = 'vacancy:new';
     this.crmService.createVacancyPosition(title).subscribe({
       next: (position) => {
-        this.vacancyPositions = [...this.vacancyPositions, position]
-          .sort((a, b) => a.title.localeCompare(b.title));
+        this.vacancyPositions = [...this.vacancyPositions, position].sort((a, b) =>
+          a.title.localeCompare(b.title),
+        );
         this.newVacancyPosition = '';
         this.actionId = '';
         this.successMessage = `${position.title} was added to the careers form.`;
@@ -278,7 +311,12 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   deleteVacancyPosition(position: CrmVacancyPosition): void {
-    if (!this.isAdmin || this.actionId || !window.confirm(`Delete the “${position.title}” position?`)) return;
+    if (
+      !this.isAdmin ||
+      this.actionId ||
+      !window.confirm(`Delete the “${position.title}” position?`)
+    )
+      return;
     this.actionId = `vacancy:${position.id}`;
     this.crmService.deleteVacancyPosition(position.id).subscribe({
       next: () => {
@@ -452,10 +490,14 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   crmRole(user: User): string {
-    const roles = [user.role, user.crmRole, ...(user.roles || [])]
-      .filter((role): role is string => !!role);
-    return ['Manager', 'Agent', 'Uploader']
-      .find((expected) => roles.some((role) => role.toLowerCase() === expected.toLowerCase())) || '';
+    const roles = [user.role, user.crmRole, ...(user.roles || [])].filter(
+      (role): role is string => !!role,
+    );
+    return (
+      ['Manager', 'Agent', 'Uploader'].find((expected) =>
+        roles.some((role) => role.toLowerCase() === expected.toLowerCase()),
+      ) || ''
+    );
   }
 
   openUserEditor(user: User): void {
@@ -496,9 +538,11 @@ export class AdminPanel implements OnInit, OnDestroy {
     const userId = this.editingUser?.id;
     if (!this.isAdmin || !userId || this.savingUser) return;
 
-    if (!this.editUserForm.fullName.trim() ||
-        !this.editUserForm.userName.trim() ||
-        !this.editUserForm.email.trim()) {
+    if (
+      !this.editUserForm.fullName.trim() ||
+      !this.editUserForm.userName.trim() ||
+      !this.editUserForm.email.trim()
+    ) {
       this.errorMessage = 'Full name, username, and email are required.';
       return;
     }
@@ -506,28 +550,30 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.savingUser = true;
     this.errorMessage = '';
     this.successMessage = '';
-    this.adminService.updateUser(userId, {
-      ...this.editUserForm,
-      fullName: this.editUserForm.fullName.trim(),
-      userName: this.editUserForm.userName.trim(),
-      email: this.editUserForm.email.trim(),
-      phoneNumber: this.editUserForm.phoneNumber.trim(),
-      bio: this.editUserForm.bio.trim(),
-      profilePicture: this.editUserPicture,
-    }).subscribe({
-      next: () => {
-        this.savingUser = false;
-        this.successMessage = 'User account updated.';
-        this.closeUserEditor();
-        this.loadDashboard();
-      },
-      error: (error) => {
-        console.error('Update user error:', error);
-        this.savingUser = false;
-        this.errorMessage = error?.error?.message || 'Could not update this user.';
-        this.cdr.detectChanges();
-      },
-    });
+    this.adminService
+      .updateUser(userId, {
+        ...this.editUserForm,
+        fullName: this.editUserForm.fullName.trim(),
+        userName: this.editUserForm.userName.trim(),
+        email: this.editUserForm.email.trim(),
+        phoneNumber: this.editUserForm.phoneNumber.trim(),
+        bio: this.editUserForm.bio.trim(),
+        profilePicture: this.editUserPicture,
+      })
+      .subscribe({
+        next: () => {
+          this.savingUser = false;
+          this.successMessage = 'User account updated.';
+          this.closeUserEditor();
+          this.loadDashboard();
+        },
+        error: (error) => {
+          console.error('Update user error:', error);
+          this.savingUser = false;
+          this.errorMessage = error?.error?.message || 'Could not update this user.';
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   resetUserPassword(): void {
@@ -609,8 +655,10 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   get adminUserPicture(): string {
-    return this.editUserPicturePreview ||
-      toMediaUrl(this.editingUser?.profilePictureUrl || this.editingUser?.profilePicture);
+    return (
+      this.editUserPicturePreview ||
+      toMediaUrl(this.editingUser?.profilePictureUrl || this.editingUser?.profilePicture)
+    );
   }
 
   fixAdminUserPicture(event: Event): void {
@@ -977,7 +1025,8 @@ export class AdminPanel implements OnInit, OnDestroy {
         if (!pin && !apartment.address) continue;
         try {
           const times = await this.nearbyTimes.getWalkingTimes(apartment.address || '', pin);
-          const changes: Partial<Record<NearbyTimeKey, number>> & { nearbyPlaceNames?: string } = {};
+          const changes: Partial<Record<NearbyTimeKey, number>> & { nearbyPlaceNames?: string } =
+            {};
           const saved = splitNearbyPlaceNames(apartment.nearbyPlaceNames);
           const names: Record<string, string> = saved.names;
           const driving: Record<string, number | undefined> = saved.driveMinutes;
@@ -986,7 +1035,8 @@ export class AdminPanel implements OnInit, OnDestroy {
             const next = times[key];
             const current = apartment[key as keyof Apartment] as number | undefined | null;
             // A saved "university" that is not on the approved list (e.g. a training centre) is replaced.
-            const unlistedUniversity = key === 'universityDistanceMinutes' && !isListedUniversity(names[key]);
+            const unlistedUniversity =
+              key === 'universityDistanceMinutes' && !isListedUniversity(names[key]);
             if (next != null && (current == null || next < current || unlistedUniversity)) {
               changes[key] = next;
               const name = times.placeNames?.[key];
@@ -1012,7 +1062,8 @@ export class AdminPanel implements OnInit, OnDestroy {
           failed++;
         }
       }
-      this.successMessage = `Nearby walking/drive times improved for ${improved} listing(s).` +
+      this.successMessage =
+        `Nearby walking/drive times improved for ${improved} listing(s).` +
         (failed ? ` ${failed} could not be saved.` : '');
     } finally {
       this.actionId = '';
@@ -1055,7 +1106,12 @@ export class AdminPanel implements OnInit, OnDestroy {
 
   initials(name?: string | null): string {
     const parts = (name || '?').trim().split(/\s+/).filter(Boolean);
-    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || '?';
+    return (
+      parts
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('') || '?'
+    );
   }
 
   hideBrokenImage(event: Event): void {
@@ -1075,13 +1131,16 @@ export class AdminPanel implements OnInit, OnDestroy {
 
   apartmentFacts(apartment: Apartment): Array<{ icon: string; label: string }> {
     const facts: Array<{ icon: string; label: string }> = [];
-    if (apartment.sizeSquareMeters) facts.push({ icon: 'fa-ruler-combined', label: `${apartment.sizeSquareMeters} m²` });
+    if (apartment.sizeSquareMeters)
+      facts.push({ icon: 'fa-ruler-combined', label: `${apartment.sizeSquareMeters} m²` });
     if (apartment.bedrooms) facts.push({ icon: 'fa-bed', label: `${apartment.bedrooms} bd` });
     if (apartment.bathrooms) facts.push({ icon: 'fa-bath', label: `${apartment.bathrooms} ba` });
     if (apartment.floor) {
       facts.push({
         icon: 'fa-building',
-        label: apartment.totalFloors ? `Floor ${apartment.floor}/${apartment.totalFloors}` : `Floor ${apartment.floor}`,
+        label: apartment.totalFloors
+          ? `Floor ${apartment.floor}/${apartment.totalFloors}`
+          : `Floor ${apartment.floor}`,
       });
     }
     return facts;
@@ -1102,7 +1161,9 @@ export class AdminPanel implements OnInit, OnDestroy {
   }
 
   dealLabel(apartment: Apartment): 'Sale' | 'Rent' {
-    const deal = /(?:^|[|\r\n])\s*(?:Deal|Listing type):\s*([^|\r\n]+)/i.exec(apartment.description || '')?.[1];
+    const deal = /(?:^|[|\r\n])\s*(?:Deal|Listing type):\s*([^|\r\n]+)/i.exec(
+      apartment.description || '',
+    )?.[1];
     if (deal) return /sale|buy|იყიდება|продаж/i.test(deal) ? 'Sale' : 'Rent';
     return /for\s+sale|buy|იყიდება|продаж/i.test(apartment.title || '') ? 'Sale' : 'Rent';
   }

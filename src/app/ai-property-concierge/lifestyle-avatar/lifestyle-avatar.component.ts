@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { HomePreferenceRequest } from '../models/home-preference-request';
+import { NgFor } from '@angular/common';
 
 interface AvatarItem {
   icon: string;
@@ -8,9 +9,9 @@ interface AvatarItem {
 
 @Component({
   selector: 'app-lifestyle-avatar',
-  standalone: false,
   templateUrl: './lifestyle-avatar.component.html',
   styleUrl: './lifestyle-avatar.component.css',
+  imports: [NgFor],
 })
 export class LifestyleAvatarComponent {
   @Input({ required: true }) preferences!: HomePreferenceRequest;

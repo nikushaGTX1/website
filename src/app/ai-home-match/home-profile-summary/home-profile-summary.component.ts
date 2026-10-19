@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { answerLabel, answerList } from '../services/answer-labels';
+import { NgFor, NgClass } from '@angular/common';
+import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
 
 interface AnswerRow {
   step: number;
@@ -20,9 +22,9 @@ interface ProfileAttribute {
 
 @Component({
   selector: 'app-home-profile-summary',
-  standalone: false,
   templateUrl: './home-profile-summary.component.html',
   styleUrl: './home-profile-summary.component.css',
+  imports: [NgFor, NgClass, VelvenLifestyleAvatarComponent],
 })
 export class HomeProfileSummaryComponent {
   @Input({ required: true }) profile!: HomeMatchProfile;
@@ -47,9 +49,20 @@ export class HomeProfileSummaryComponent {
     const p = this.profile;
     const rent = p.propertyGoal !== 'Buy';
     const rows: Array<AnswerRow | null> = [
-      p.gender ? { step: 0, label: 'Gender', value: this.label(p.gender), icon: 'fa-venus-mars' } : null,
-      p.propertyGoal ? { step: 1, label: 'Looking for', value: this.label(p.propertyGoal), icon: 'fa-house' } : null,
-      p.apartmentStyle ? { step: 12, label: 'Apartment style', value: p.apartmentStyle === 'Other' ? 'Something else' : p.apartmentStyle, icon: 'fa-couch' } : null,
+      p.gender
+        ? { step: 0, label: 'Gender', value: this.label(p.gender), icon: 'fa-venus-mars' }
+        : null,
+      p.propertyGoal
+        ? { step: 1, label: 'Looking for', value: this.label(p.propertyGoal), icon: 'fa-house' }
+        : null,
+      p.apartmentStyle
+        ? {
+            step: 12,
+            label: 'Apartment style',
+            value: p.apartmentStyle === 'Other' ? 'Something else' : p.apartmentStyle,
+            icon: 'fa-couch',
+          }
+        : null,
       {
         step: 2,
         label: 'Location',
@@ -96,15 +109,39 @@ export class HomeProfileSummaryComponent {
                 : this.label(p.moveInTiming),
             icon: 'fa-calendar-days',
           }
-        : { step: 7, label: 'Purchase timing', value: this.label(p.purchaseTiming), icon: 'fa-calendar-days' },
-      rent ? { step: 7, label: 'Rental period', value: this.label(p.rentalDuration), icon: 'fa-hourglass-half' } : null,
+        : {
+            step: 7,
+            label: 'Purchase timing',
+            value: this.label(p.purchaseTiming),
+            icon: 'fa-calendar-days',
+          },
+      rent
+        ? {
+            step: 7,
+            label: 'Rental period',
+            value: this.label(p.rentalDuration),
+            icon: 'fa-hourglass-half',
+          }
+        : null,
       { step: 8, label: 'Transport', value: this.list(p.transportation), icon: 'fa-route' },
       p.transportation.includes('Car') && p.carFuelType
-        ? { step: 8, label: 'Car', value: this.label(p.carFuelType), icon: p.carFuelType === 'Electric' ? 'fa-charging-station' : 'fa-gas-pump' }
+        ? {
+            step: 8,
+            label: 'Car',
+            value: this.label(p.carFuelType),
+            icon: p.carFuelType === 'Electric' ? 'fa-charging-station' : 'fa-gas-pump',
+          }
         : null,
       { step: 9, label: 'Lifestyle', value: this.list(p.lifestyles), icon: 'fa-heart' },
-      rent && p.hasPet !== null ? { step: 10, label: 'Pet', value: this.petValue, icon: 'fa-paw' } : null,
-      { step: 11, label: 'Top 5 priorities', value: this.list(p.topPriorities), icon: 'fa-list-ol' },
+      rent && p.hasPet !== null
+        ? { step: 10, label: 'Pet', value: this.petValue, icon: 'fa-paw' }
+        : null,
+      {
+        step: 11,
+        label: 'Top 5 priorities',
+        value: this.list(p.topPriorities),
+        icon: 'fa-list-ol',
+      },
     ];
     return rows.filter((row): row is AnswerRow => !!row);
   }
@@ -116,7 +153,12 @@ export class HomeProfileSummaryComponent {
   get profileAttributes(): ProfileAttribute[] {
     const attributes = [
       this.profile.propertyGoal
-        ? { step: 1, label: 'Looking for', value: this.label(this.profile.propertyGoal), icon: 'fa-house' }
+        ? {
+            step: 1,
+            label: 'Looking for',
+            value: this.label(this.profile.propertyGoal),
+            icon: 'fa-house',
+          }
         : null,
       this.profile.locationFlexible || this.profile.districts.length || this.profile.selectedMapArea
         ? {
@@ -149,11 +191,12 @@ export class HomeProfileSummaryComponent {
         ? {
             step: 6,
             label: 'Bedrooms',
-            value: this.profile.bedrooms === null
-              ? 'Let AI decide'
-              : this.profile.bedrooms === 0
-                ? 'Studio'
-                : String(this.profile.bedrooms),
+            value:
+              this.profile.bedrooms === null
+                ? 'Let AI decide'
+                : this.profile.bedrooms === 0
+                  ? 'Studio'
+                  : String(this.profile.bedrooms),
             icon: 'fa-bed',
           }
         : null,
@@ -161,13 +204,28 @@ export class HomeProfileSummaryComponent {
         ? { step: 7, label: 'Timing', value: this.timingValue, icon: 'fa-calendar' }
         : null,
       this.profile.lifestyles.length
-        ? { step: 9, label: 'Lifestyle', value: this.list(this.profile.lifestyles), icon: 'fa-heart' }
+        ? {
+            step: 9,
+            label: 'Lifestyle',
+            value: this.list(this.profile.lifestyles),
+            icon: 'fa-heart',
+          }
         : null,
       this.profile.transportation.length
-        ? { step: 8, label: 'Transport', value: this.list(this.profile.transportation), icon: 'fa-route' }
+        ? {
+            step: 8,
+            label: 'Transport',
+            value: this.list(this.profile.transportation),
+            icon: 'fa-route',
+          }
         : null,
       this.profile.parkingAutomaticallyPrioritized
-        ? { step: 8, label: 'Parking', value: 'Automatically prioritized', icon: 'fa-square-parking' }
+        ? {
+            step: 8,
+            label: 'Parking',
+            value: 'Automatically prioritized',
+            icon: 'fa-square-parking',
+          }
         : null,
       this.profile.propertyGoal !== 'Buy' && this.profile.hasPet !== null
         ? { step: 10, label: 'Pet', value: this.petValue, icon: 'fa-paw' }
@@ -188,9 +246,19 @@ export class HomeProfileSummaryComponent {
   get mobileExtraAttributes(): Array<Omit<ProfileAttribute, 'left' | 'top'>> {
     return [
       this.profile.gender
-        ? { step: 0, label: 'Gender', value: this.label(this.profile.gender), icon: 'fa-venus-mars' }
+        ? {
+            step: 0,
+            label: 'Gender',
+            value: this.label(this.profile.gender),
+            icon: 'fa-venus-mars',
+          }
         : null,
-      { step: 11, label: 'Top 5 priorities', value: this.list(this.profile.topPriorities), icon: 'fa-list-ol' },
+      {
+        step: 11,
+        label: 'Top 5 priorities',
+        value: this.list(this.profile.topPriorities),
+        icon: 'fa-list-ol',
+      },
     ].filter((attribute): attribute is Omit<ProfileAttribute, 'left' | 'top'> => !!attribute);
   }
 

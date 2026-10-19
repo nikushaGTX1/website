@@ -1,89 +1,22 @@
-import { DatePickerComponent } from './shared/date-picker/date-picker.component';
-import { CodeDialogComponent } from './shared/code-dialog/code-dialog.component';
-import { PhotoCarouselComponent } from './shared/photo-carousel/photo-carousel.component';
-import { MyHomeVerification } from './myhome-verification/myhome-verification';
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
-import { ListingTitlePipe } from './shared/listing-title.pipe';
-import { Main } from './main/main';
 import { Navigation } from './navigation/navigation';
 import { Footer } from './footer/footer';
-import { ExploreProperty } from './explore-property/explore-property';
-import { AgentProfile } from './agent-profile/agent-profile';
-import { Login } from './login/login';
-import { Blog } from './blog/blog';
-import { ProfileBurgerMenu } from './profile-burger-menu/profile-burger-menu';
-import { MyProfile } from './my-profile/my-profile';
-import { ProfilePhotoCropperComponent } from './my-profile/profile-photo-cropper/profile-photo-cropper';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { apiPerformanceInterceptor } from './interceptors/api-performance.interceptor';
-import { UploadApartment } from './upload-apartment/upload-apartament';
-import { AdminPanel } from './admin-panel/admin-panel';
-import { MyListings } from './my-listings/my-listings';
-import { ApartmentDetail } from './apartment-detail/apartment-detail';
-import { AiConciergePageComponent } from './ai-property-concierge/ai-concierge-page/ai-concierge-page.component';
-import { ConciergeResultsComponent } from './ai-property-concierge/concierge-results/concierge-results.component';
-import { LifestyleAvatarComponent } from './ai-property-concierge/lifestyle-avatar/lifestyle-avatar.component';
-import { GooglePropertyMapComponent } from './maps/google-property-map/google-property-map.component';
-import { DrawAreaMapComponent } from './maps/draw-area-map/draw-area-map.component';
-import { ExplorePropertyMapComponent } from './maps/explore-property-map/explore-property-map.component';
-import { AiHomeMatchPageComponent } from './ai-home-match/ai-home-match-page/ai-home-match-page.component';
-import { HomeMatchResultsComponent } from './ai-home-match/home-match-results/home-match-results.component';
-import { HomeProfileSummaryComponent } from './ai-home-match/home-profile-summary/home-profile-summary.component';
-import { VelvenLifestyleAvatarComponent } from './ai-home-match/lifestyle-avatar/lifestyle-avatar.component';
-import { AboutUs } from './about-us/about-us';
-import { Services } from './services/services';
-import { CurrencyPrice } from './currency-price/currency-price';
-import { SavedListings } from './saved-listings/saved-listings';
-import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile';
-import { PropertyPointPickerComponent } from './maps/property-point-picker/property-point-picker.component';
-import { StreetValidationMapComponent } from './admin-panel/street-validation-map.component';
-import { CrmQuestioner } from './crm/crm-questioner/crm-questioner';
-import { CrmLink } from './crm/crm-link/crm-link';
 
+/**
+ * Only the shell (navigation, footer) loads up front. Every page is its own file loaded
+ * by its route (see app-routing-module), so opening the home page no longer downloads the
+ * upload form, admin panel, CRM, Velven Match and the rest.
+ */
 @NgModule({
-  declarations: [
-    ListingTitlePipe,
-    App,
-    Main,
-    Navigation,
-    Footer,
-    ExploreProperty,
-    AgentProfile,
-    Login,
-    Blog,
-    ProfileBurgerMenu,
-    MyProfile,
-    ProfilePhotoCropperComponent,
-    UploadApartment,
-    AdminPanel,
-    MyListings,
-    ApartmentDetail,
-    AiConciergePageComponent,
-    ConciergeResultsComponent,
-    LifestyleAvatarComponent,
-    GooglePropertyMapComponent,
-    DrawAreaMapComponent,
-    ExplorePropertyMapComponent,
-    AiHomeMatchPageComponent,
-    HomeMatchResultsComponent,
-    HomeProfileSummaryComponent,
-    VelvenLifestyleAvatarComponent,
-    AboutUs,
-    Services,
-    CurrencyPrice,
-    SavedListings,
-    AgentDetailProfile,
-    StreetValidationMapComponent,
-    CrmQuestioner,
-    CrmLink,
-  ],
-  imports: [MyHomeVerification, BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule, PropertyPointPickerComponent, DatePickerComponent, CodeDialogComponent, PhotoCarouselComponent],
+  declarations: [App],
+  imports: [BrowserModule, AppRoutingModule, Navigation, Footer],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor, apiPerformanceInterceptor])),

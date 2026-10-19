@@ -2,12 +2,13 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { BlogPost } from '../models/blog-post';
 import { BlogService } from '../services/blog.service';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-blog',
-  standalone: false,
   templateUrl: './blog.html',
   styleUrl: './blog.css',
+  imports: [NgIf, NgFor],
 })
 export class Blog implements OnInit, OnDestroy {
   blogPosts: BlogPost[] = [];

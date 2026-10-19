@@ -25,6 +25,8 @@ import { Router } from '@angular/router';
 import { AppLanguage, TranslationService } from '../../services/translation.service';
 import { localizeListingTitle } from '../../utils/listing-title';
 import Supercluster from 'supercluster';
+import { NgIf, NgFor } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 type DistrictBoundaryState = {
   id: number | null;
@@ -34,9 +36,9 @@ type DistrictBoundaryState = {
 
 @Component({
   selector: 'app-draw-area-map',
-  standalone: false,
   templateUrl: './draw-area-map.component.html',
   styleUrl: './draw-area-map.component.css',
+  imports: [NgIf, FormsModule, NgFor],
 })
 export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy {
   private static readonly tbilisiMapBounds: google.maps.LatLngBoundsLiteral = {
@@ -604,7 +606,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.hasPolygon = true;
       // Frame the whole selection: adding Vake to Saburtalo must keep both
       // districts in view instead of zooming into only the last clicked one.
-      this.focusDistricts(drawableAreas.flatMap(({ polygons }) => polygons), geocodedBounds);
+      this.focusDistricts(
+        drawableAreas.flatMap(({ polygons }) => polygons),
+        geocodedBounds,
+      );
       // The compact home-page map uses a clean listing-map presentation.
       // Keep the district geometry for searching, but do not paint its polygon.
       if (!this.compact) this.renderSelectedBoundaryOverlay(drawableAreas);
@@ -630,12 +635,18 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       const match = response.results[0];
       if (!match) return null;
       const position = match.geometry.location;
-      if (position.lat() < 41.55 || position.lat() > 41.95 || position.lng() < 44.55 || position.lng() > 45.15) {
+      if (
+        position.lat() < 41.55 ||
+        position.lat() > 41.95 ||
+        position.lng() < 44.55 ||
+        position.lng() > 45.15
+      ) {
         return null;
       }
       const viewport = match.geometry.viewport;
       // A city-wide match means the neighbourhood itself was not found.
-      if (viewport && viewport.getNorthEast().lat() - viewport.getSouthWest().lat() > 0.15) return null;
+      if (viewport && viewport.getNorthEast().lat() - viewport.getSouthWest().lat() > 0.15)
+        return null;
       if (viewport) return viewport;
       const padding = 0.008;
       return new google.maps.LatLngBounds(
@@ -647,7 +658,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
-  private focusDistricts(polygons: number[][][][], extraBounds: google.maps.LatLngBounds[] = []): void {
+  private focusDistricts(
+    polygons: number[][][][],
+    extraBounds: google.maps.LatLngBounds[] = [],
+  ): void {
     if (!this.map) return;
     const bounds = new google.maps.LatLngBounds();
     polygons.forEach((rings) =>
@@ -698,16 +712,17 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     }
   }
 
-  private animateDistrictCamera(target: {
-    center: google.maps.LatLngLiteral;
-    zoom: number;
-  }): void {
+  private animateDistrictCamera(target: { center: google.maps.LatLngLiteral; zoom: number }): void {
     this.cancelCameraAnimation();
     const map = this.map;
     if (!map) return;
     const origin = map.getCenter()?.toJSON();
     const originZoom = map.getZoom();
-    if (!origin || originZoom === undefined || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (
+      !origin ||
+      originZoom === undefined ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       map.moveCamera({ ...target, heading: 0, tilt: 0 });
       return;
     }
@@ -946,7 +961,12 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
       const position = match.geometry.location;
       // Ignore results outside Tbilisi so a stray address never pans the map elsewhere.
-      if (position.lat() < 41.55 || position.lat() > 41.95 || position.lng() < 44.55 || position.lng() > 45.15) {
+      if (
+        position.lat() < 41.55 ||
+        position.lat() > 41.95 ||
+        position.lng() < 44.55 ||
+        position.lng() > 45.15
+      ) {
         return false;
       }
       this.map.setCenter(position);
@@ -1020,7 +1040,6 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     for (const path of paths) {
       path.forEach(([lng, lat]) => bounds.extend({ lat, lng }));
     }
-
 
     if (fitToStreets && !bounds.isEmpty()) this.map.fitBounds(bounds, 90);
   }
@@ -1148,27 +1167,30 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       };
       window.setTimeout(reveal, 3000);
       // Outside Angular: map frames/gestures must not run page-wide change detection.
-      this.map = this.zone.runOutsideAngular(() => new Map(mapElement.nativeElement, {
-        center: { lat: 41.7151, lng: 44.8271 },
-        zoom: 12,
-        isFractionalZoomEnabled: true,
-        ...(mapId ? { mapId } : {}),
-        minZoom: 11,
-        maxZoom: 20,
-        restriction: {
-          latLngBounds: DrawAreaMapComponent.tbilisiMapBounds,
-          strictBounds: true,
-        },
-        gestureHandling: 'greedy',
-        scrollwheel: true,
-        zoomControl: false,
-        disableDoubleClickZoom: true,
-        keyboardShortcuts: true,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        clickableIcons: false,
-      }));
+      this.map = this.zone.runOutsideAngular(
+        () =>
+          new Map(mapElement.nativeElement, {
+            center: { lat: 41.7151, lng: 44.8271 },
+            zoom: 12,
+            isFractionalZoomEnabled: true,
+            ...(mapId ? { mapId } : {}),
+            minZoom: 11,
+            maxZoom: 20,
+            restriction: {
+              latLngBounds: DrawAreaMapComponent.tbilisiMapBounds,
+              strictBounds: true,
+            },
+            gestureHandling: 'greedy',
+            scrollwheel: true,
+            zoomControl: false,
+            disableDoubleClickZoom: true,
+            keyboardShortcuts: true,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            clickableIcons: false,
+          }),
+      );
       google.maps.event.addListenerOnce(this.map, 'tilesloaded', () => {
         window.setTimeout(reveal, 350);
       });
@@ -1176,7 +1198,11 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.parks = new ParkLayer(this.map);
       // The wheel zooms the map only: once Google Maps has handled it, stop it from also
       // scrolling the page or panel behind the map.
-      mapElement.nativeElement.addEventListener('wheel', (event: WheelEvent) => event.preventDefault(), { passive: false });
+      mapElement.nativeElement.addEventListener(
+        'wheel',
+        (event: WheelEvent) => event.preventDefault(),
+        { passive: false },
+      );
       // Pinch zoom is fractional and fires every frame. Only react when the whole
       // zoom level changes (at most once per frame); 'idle' does the full sync after.
       this.zoomListener = this.map.addListener('zoom_changed', () => {
@@ -1190,7 +1216,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         });
       });
       this.map.addListener('dragstart', () => this.cancelCameraAnimation());
-      mapElement.nativeElement.addEventListener('wheel', () => this.cancelCameraAnimation(), { passive: true });
+      mapElement.nativeElement.addEventListener('wheel', () => this.cancelCameraAnimation(), {
+        passive: true,
+      });
       // Desktop: Google's map "click" can be swallowed by the drawing layer, so also close the
       // property card on a plain DOM click on empty map (pins stop propagation; drags are ignored).
       let pressX = 0;
@@ -1207,17 +1235,21 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       });
       // Panning changes which clusters/prices are in view; 'idle' fires once the move settles.
       this.priceIdleListener = this.map.addListener('idle', () => {
-        if (this.cameraAnimationFrame === undefined) this.zone.run(() => this.syncApartmentOverlayVisibility());
+        if (this.cameraAnimationFrame === undefined)
+          this.zone.run(() => this.syncApartmentOverlayVisibility());
       });
       // Tapping empty map folds an opened building back into its "N units" pill.
-      this.priceClickListener = this.map.addListener('click', () => this.zone.run(() => {
-        // Tapping empty map also dismisses the open property card (pin taps can bubble here too).
-        if (this.propertyPreviewOverlay && Date.now() - this.previewOpenedAt > 350) this.clearPropertyPreview();
-        if (!this.expandedBuilding) return;
-        this.expandedBuilding = null;
-        this.lastPriceKey = '';
-        this.syncPriceClusters();
-      }));
+      this.priceClickListener = this.map.addListener('click', () =>
+        this.zone.run(() => {
+          // Tapping empty map also dismisses the open property card (pin taps can bubble here too).
+          if (this.propertyPreviewOverlay && Date.now() - this.previewOpenedAt > 350)
+            this.clearPropertyPreview();
+          if (!this.expandedBuilding) return;
+          this.expandedBuilding = null;
+          this.lastPriceKey = '';
+          this.syncPriceClusters();
+        }),
+      );
 
       // The Google adapter binds to controls created inside `.gm-style`.
       // Those elements do not exist immediately after `new Map()`, so wait
@@ -1227,122 +1259,130 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       });
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-      this.draw = this.zone.runOutsideAngular(() => new TerraDraw({
-        adapter: new TerraDrawGoogleMapsAdapter({ lib: google.maps, map: this.map! }),
-        modes: [
-          new TerraDrawPolygonMode({
-            styles: {
-              // Approved district features are displayed by the dedicated
-              // Google overlay, which supports the dotted place-boundary look.
-              fillColor: '#d93025',
-              fillOpacity: 0,
-              outlineColor: '#d93025',
-              outlineWidth: 0,
-            },
-          }),
-          new TerraDrawPolyLineMode({
-            validation: (feature, context) => {
-              const distinctPoints = this.distinctPolygonPointCount(feature);
-              return {
-                // Only accept a finish once the path has actually been
-                // closed back into a loop (geometry becomes a Polygon).
-                // An open path finishing as a LineString is not an area.
-                valid:
-                  context.updateType !== 'finish' ||
-                  (feature.geometry.type === 'Polygon' && distinctPoints >= 4),
-                reason:
-                  feature.geometry.type === 'Polygon'
-                    ? 'Choose at least four points to draw an area.'
-                    : 'Click the starting point again to close the shape.',
-              };
-            },
-            styles: {
-              // Dash the in-progress path so it reads as an unfinished
-              // guideline, not a shape, until the last point closes the loop.
-              lineStringColor: '#451a8f',
-              lineStringWidth: 2,
-              lineStringDash: [6, 6],
-              polygonFillColor: '#451a8f',
-              polygonFillOpacity: 0.1,
-              polygonOutlineColor: '#451a8f',
-              polygonOutlineWidth: 3,
-              closingPointColor: '#ffffff',
-              closingPointWidth: 8,
-              closingPointOutlineColor: '#451a8f',
-              closingPointOutlineWidth: 2,
-            },
-          }),
-          new TerraDrawSelectMode({
-            styles: {
-              selectedPolygonColor: '#451a8f',
-              selectedPolygonFillOpacity: 0.1,
-              selectedPolygonOutlineColor: '#451a8f',
-              selectedPolygonOutlineWidth: 3,
-            },
-            flags: {
-              polygon: {
-                feature: {
-                  draggable: true,
-                  coordinates: { midpoints: true, draggable: true, deletable: true },
+      this.draw = this.zone.runOutsideAngular(
+        () =>
+          new TerraDraw({
+            adapter: new TerraDrawGoogleMapsAdapter({ lib: google.maps, map: this.map! }),
+            modes: [
+              new TerraDrawPolygonMode({
+                styles: {
+                  // Approved district features are displayed by the dedicated
+                  // Google overlay, which supports the dotted place-boundary look.
+                  fillColor: '#d93025',
+                  fillOpacity: 0,
+                  outlineColor: '#d93025',
+                  outlineWidth: 0,
                 },
-              },
-              polyline: {
-                feature: {
-                  draggable: true,
-                  coordinates: { midpoints: true, draggable: true, deletable: true },
+              }),
+              new TerraDrawPolyLineMode({
+                validation: (feature, context) => {
+                  const distinctPoints = this.distinctPolygonPointCount(feature);
+                  return {
+                    // Only accept a finish once the path has actually been
+                    // closed back into a loop (geometry becomes a Polygon).
+                    // An open path finishing as a LineString is not an area.
+                    valid:
+                      context.updateType !== 'finish' ||
+                      (feature.geometry.type === 'Polygon' && distinctPoints >= 4),
+                    reason:
+                      feature.geometry.type === 'Polygon'
+                        ? 'Choose at least four points to draw an area.'
+                        : 'Click the starting point again to close the shape.',
+                  };
                 },
-              },
-            },
+                styles: {
+                  // Dash the in-progress path so it reads as an unfinished
+                  // guideline, not a shape, until the last point closes the loop.
+                  lineStringColor: '#451a8f',
+                  lineStringWidth: 2,
+                  lineStringDash: [6, 6],
+                  polygonFillColor: '#451a8f',
+                  polygonFillOpacity: 0.1,
+                  polygonOutlineColor: '#451a8f',
+                  polygonOutlineWidth: 3,
+                  closingPointColor: '#ffffff',
+                  closingPointWidth: 8,
+                  closingPointOutlineColor: '#451a8f',
+                  closingPointOutlineWidth: 2,
+                },
+              }),
+              new TerraDrawSelectMode({
+                styles: {
+                  selectedPolygonColor: '#451a8f',
+                  selectedPolygonFillOpacity: 0.1,
+                  selectedPolygonOutlineColor: '#451a8f',
+                  selectedPolygonOutlineWidth: 3,
+                },
+                flags: {
+                  polygon: {
+                    feature: {
+                      draggable: true,
+                      coordinates: { midpoints: true, draggable: true, deletable: true },
+                    },
+                  },
+                  polyline: {
+                    feature: {
+                      draggable: true,
+                      coordinates: { midpoints: true, draggable: true, deletable: true },
+                    },
+                  },
+                },
+              }),
+              new TerraDrawRenderMode({ modeName: 'render', styles: {} }),
+            ],
           }),
-          new TerraDrawRenderMode({ modeName: 'render', styles: {} }),
-        ],
-      }));
+      );
       this.zone.runOutsideAngular(() => this.draw!.start());
       this.setDrawingEnabled(false);
-      this.draw.on('finish', () => this.zone.run(() => {
-        const polygons =
-          this.draw?.getSnapshot().filter((feature) => feature.geometry?.type === 'Polygon') || [];
-        if (polygons.length > 1)
-          this.draw?.removeFeatures(polygons.slice(0, -1).map((feature) => feature.id!));
-        const latest = this.draw
-          ?.getSnapshot()
-          .find((feature) => feature.geometry?.type === 'Polygon');
-        if (latest && this.distinctPolygonPointCount(latest) < 4) {
-          this.draw?.removeFeatures([latest.id!]);
-          this.draw?.setMode('polyline');
-          this.hasPolygon = false;
-          this.polygonChange.emit(null);
+      this.draw.on('finish', () =>
+        this.zone.run(() => {
+          const polygons =
+            this.draw?.getSnapshot().filter((feature) => feature.geometry?.type === 'Polygon') ||
+            [];
+          if (polygons.length > 1)
+            this.draw?.removeFeatures(polygons.slice(0, -1).map((feature) => feature.id!));
+          const latest = this.draw
+            ?.getSnapshot()
+            .find((feature) => feature.geometry?.type === 'Polygon');
+          if (latest && this.distinctPolygonPointCount(latest) < 4) {
+            this.draw?.removeFeatures([latest.id!]);
+            this.draw?.setMode('polyline');
+            this.hasPolygon = false;
+            this.polygonChange.emit(null);
+            this.cdr.detectChanges();
+            return;
+          }
+          this.hasPolygon = !!latest;
+          const polygon = this.currentPolygon();
+          this.polygonChange.emit(polygon);
+          if (polygon) void this.emitDrawnAreaStreets(polygon);
+          if (polygon) {
+            this.isCustomDrawing = true;
+            this.renderDrawDeleteControl(polygon);
+            this.clearApartmentCountOverlays();
+            this.renderApartmentPriceOverlays([], polygon);
+            this.setDrawingEnabled(false);
+          }
           this.cdr.detectChanges();
-          return;
-        }
-        this.hasPolygon = !!latest;
-        const polygon = this.currentPolygon();
-        this.polygonChange.emit(polygon);
-        if (polygon) void this.emitDrawnAreaStreets(polygon);
-        if (polygon) {
-          this.isCustomDrawing = true;
-          this.renderDrawDeleteControl(polygon);
-          this.clearApartmentCountOverlays();
-          this.renderApartmentPriceOverlays([], polygon);
-          this.setDrawingEnabled(false);
-        }
-        this.cdr.detectChanges();
-      }));
-      this.draw.on('change', () => this.zone.run(() => {
-        this.hasPolygon = !!this.currentPolygon();
-        if (!this.hasPolygon) this.selectedArea = '';
-        const polygon = this.currentPolygon();
-        this.polygonChange.emit(polygon);
-        if (this.isCustomDrawing && polygon) {
-          this.renderDrawDeleteControl(polygon);
-          this.renderApartmentPriceOverlays([], polygon);
-        } else if (!polygon) {
-          this.clearDrawDeleteControl();
-          this.clearApartmentPriceOverlays();
-          this.clearPropertyPreview();
-        }
-        this.cdr.detectChanges();
-      }));
+        }),
+      );
+      this.draw.on('change', () =>
+        this.zone.run(() => {
+          this.hasPolygon = !!this.currentPolygon();
+          if (!this.hasPolygon) this.selectedArea = '';
+          const polygon = this.currentPolygon();
+          this.polygonChange.emit(polygon);
+          if (this.isCustomDrawing && polygon) {
+            this.renderDrawDeleteControl(polygon);
+            this.renderApartmentPriceOverlays([], polygon);
+          } else if (!polygon) {
+            this.clearDrawDeleteControl();
+            this.clearApartmentPriceOverlays();
+            this.clearPropertyPreview();
+          }
+          this.cdr.detectChanges();
+        }),
+      );
       this.loading = false;
       this.errorMessage = '';
       this.cdr.detectChanges();
@@ -1561,7 +1601,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const rounded = Math.round(price);
     if (rounded >= 1000) {
       const thousands = rounded / 1000;
-      const text = thousands >= 100 ? Math.round(thousands).toString() : thousands.toFixed(1).replace(/\.0$/, '');
+      const text =
+        thousands >= 100
+          ? Math.round(thousands).toString()
+          : thousands.toFixed(1).replace(/\.0$/, '');
       return `${text}K`;
     }
     return rounded.toLocaleString('en-US');
@@ -1640,23 +1683,35 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const wanted = new Map<string, () => google.maps.OverlayView>();
     for (const feature of this.priceIndex.getClusters(bbox, clusterZoom)) {
       const [lng, lat] = feature.geometry.coordinates;
-      const props = feature.properties as { cluster?: boolean; cluster_id?: number; point_count?: number; id?: number };
+      const props = feature.properties as {
+        cluster?: boolean;
+        cluster_id?: number;
+        point_count?: number;
+        id?: number;
+      };
       if (props.cluster && props.cluster_id !== undefined) {
         const clusterId = props.cluster_id;
         const leaves = this.priceIndex
           .getLeaves(clusterId, Infinity)
           .map((leaf) => byId.get((leaf.properties as { id: number }).id))
-          .filter((item): item is { apartment: Apartment; position: google.maps.LatLngLiteral } => !!item);
+          .filter(
+            (item): item is { apartment: Apartment; position: google.maps.LatLngLiteral } => !!item,
+          );
         const count = leaves.length;
         const sameBuilding = leaves.every(
           (item) => this.distanceMeters(leaves[0].position, item.position) <= 25,
         );
         if (sameBuilding) {
-          const buildingKey = 'b:' + Math.min(...leaves.map((item) => item.apartment.id)) + ':' + count;
+          const buildingKey =
+            'b:' + Math.min(...leaves.map((item) => item.apartment.id)) + ':' + count;
           if (this.expandedBuilding === buildingKey) {
             leaves.forEach((item, i) => {
               wanted.set('a:' + item.apartment.id, () =>
-                this.createPricePinOverlay(item.apartment, item.position, this.spreadOffset(i, count)),
+                this.createPricePinOverlay(
+                  item.apartment,
+                  item.position,
+                  this.spreadOffset(i, count),
+                ),
               );
             });
           } else {
@@ -1687,7 +1742,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       } else if (props.id !== undefined) {
         const item = byId.get(props.id);
         if (item) {
-          wanted.set('a:' + item.apartment.id, () => this.createPricePinOverlay(item.apartment, item.position));
+          wanted.set('a:' + item.apartment.id, () =>
+            this.createPricePinOverlay(item.apartment, item.position),
+          );
         }
       }
     }
@@ -1714,7 +1771,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     const rad = Math.PI / 180;
     const dLat = (b.lat - a.lat) * rad;
     const dLng = (b.lng - a.lng) * rad;
-    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+    const h =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
     return 2 * 6371000 * Math.asin(Math.sqrt(h));
   }
 
@@ -1739,7 +1798,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         badge.innerHTML =
           '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="flex:none">' +
           '<path d="M6 2h12a1 1 0 0 1 1 1v18h-5v-4h-4v4H5V3a1 1 0 0 1 1-1Zm2.5 3.5v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Z"/></svg><span></span>';
-        (badge.querySelector('span') as HTMLElement).textContent = count + (count === 1 ? ' unit' : ' units');
+        (badge.querySelector('span') as HTMLElement).textContent =
+          count + (count === 1 ? ' unit' : ' units');
       } else {
         badge.textContent = count > 999 ? '999+' : String(count);
       }
@@ -1827,7 +1887,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         pointerEvents: 'auto',
         cursor: 'pointer',
         zIndex: '9',
-        transition: 'transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease',
+        transition:
+          'transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease',
       });
       const tail = document.createElement('i');
       Object.assign(tail.style, {
@@ -1904,7 +1965,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       lat <= DrawAreaMapComponent.tbilisiMapBounds.north &&
       lng >= DrawAreaMapComponent.tbilisiMapBounds.west &&
       lng <= DrawAreaMapComponent.tbilisiMapBounds.east
-    ) return { lat, lng };
+    )
+      return { lat, lng };
 
     const districtCenters: Record<string, google.maps.LatLngLiteral> = {
       vake: { lat: 41.7085, lng: 44.7565 },
@@ -1937,7 +1999,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private syncApartmentOverlayVisibility(): void {
     if (!this.map) return;
-    const showPrices = this.compact || !!this.activeStreetPaths.length || (this.map.getZoom() || 0) >= 15;
+    const showPrices =
+      this.compact || !!this.activeStreetPaths.length || (this.map.getZoom() || 0) >= 15;
     this.countOverlays.forEach((overlay) => overlay.setMap(showPrices ? null : this.map!));
     if (showPrices) {
       this.syncPriceClusters();
@@ -1968,7 +2031,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       if (
         yi > latitude !== yj > latitude &&
         longitude < ((xj - xi) * (latitude - yi)) / (yj - yi || Number.EPSILON) + xi
-      ) inside = !inside;
+      )
+        inside = !inside;
     }
     return inside;
   }
@@ -2036,7 +2100,10 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       google.maps.OverlayView.preventMapHitsAndGesturesFrom(previewCard);
     };
     overlay.draw = () => undefined;
-    overlay.onRemove = () => { card?.remove(); card = undefined; };
+    overlay.onRemove = () => {
+      card?.remove();
+      card = undefined;
+    };
     overlay.setMap(this.map);
     this.propertyPreviewOverlay = overlay;
   }
@@ -2055,7 +2122,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       en: location.district,
       ka: this.locationService.districtName(location, 'ka'),
     }));
-    const title = localizeListingTitle(apartment.title, language, districts) || apartment.title || '';
+    const title =
+      localizeListingTitle(apartment.title, language, districts) || apartment.title || '';
     const facts = [
       apartment.bedrooms
         ? `<span style="display:flex;align-items:center;gap:5px">${icon('M3 18v-8M21 18v-5a2 2 0 0 0-2-2H7a4 4 0 0 0-4 4v3M3 16h18M7 11V7h5a2 2 0 0 1 2 2v2')}<span>${apartment.bedrooms}</span> <span>${apartment.bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}</span></span>`
@@ -2087,10 +2155,19 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         <div data-price><strong>${price}</strong>${this.saleMode ? '' : ' <span>/ month</span>'}</div>
       </div>`;
     Object.assign(card.style, {
-      position: 'absolute', left: '50%', bottom: '14px', zIndex: '40',
-      width: 'min(360px, calc(100% - 24px))', overflow: 'hidden', borderRadius: '18px',
-      background: '#fff', color: '#17131c', boxShadow: '0 18px 44px rgba(28,17,36,.3)',
-      transform: 'translateX(-50%)', fontFamily: 'Inter,system-ui,sans-serif', cursor: 'pointer',
+      position: 'absolute',
+      left: '50%',
+      bottom: '14px',
+      zIndex: '40',
+      width: 'min(360px, calc(100% - 24px))',
+      overflow: 'hidden',
+      borderRadius: '18px',
+      background: '#fff',
+      color: '#17131c',
+      boxShadow: '0 18px 44px rgba(28,17,36,.3)',
+      transform: 'translateX(-50%)',
+      fontFamily: 'Inter,system-ui,sans-serif',
+      cursor: 'pointer',
     });
 
     const gallery = card.querySelector('[data-gallery]') as HTMLDivElement;
@@ -2135,14 +2212,16 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       slides.forEach((slide, i) => (slide.style.opacity = i === imageIndex ? '1' : '0'));
       previous.style.display = imageIndex > 0 ? 'flex' : 'none';
       next.style.display = imageIndex < images.length - 1 ? 'flex' : 'none';
-      dots.innerHTML = images.length > 1
-        ? images
-            .slice(0, 5)
-            .map((_, i) =>
-              `<span style="width:6px;height:6px;border-radius:50%;background:${i === Math.min(imageIndex, 4) ? '#fff' : 'rgba(255,255,255,.55)'};box-shadow:0 1px 3px rgba(0,0,0,.3)"></span>`,
-            )
-            .join('')
-        : '';
+      dots.innerHTML =
+        images.length > 1
+          ? images
+              .slice(0, 5)
+              .map(
+                (_, i) =>
+                  `<span style="width:6px;height:6px;border-radius:50%;background:${i === Math.min(imageIndex, 4) ? '#fff' : 'rgba(255,255,255,.55)'};box-shadow:0 1px 3px rgba(0,0,0,.3)"></span>`,
+              )
+              .join('')
+          : '';
     };
     const renderImages = (urls: string[]) => {
       slides.forEach((slide) => slide.remove());
@@ -2158,7 +2237,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         slide.style.cssText =
           'position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;pointer-events:none;transition:opacity .2s ease';
         slide.addEventListener('error', () => {
-          if (slide.getAttribute('src') !== '/property-placeholder.svg') slide.src = '/property-placeholder.svg';
+          if (slide.getAttribute('src') !== '/property-placeholder.svg')
+            slide.src = '/property-placeholder.svg';
         });
         slide.src = url;
         gallery.insertBefore(slide, close);
@@ -2177,11 +2257,15 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       event.stopPropagation();
       this.zone.run(() => this.clearPropertyPreview());
     });
-    card.addEventListener('click', () => this.zone.run(() => void this.router.navigate(['/apartments', apartment.id])));
+    card.addEventListener('click', () =>
+      this.zone.run(() => void this.router.navigate(['/apartments', apartment.id])),
+    );
 
-    renderImages((apartment.imageUrls || []).filter(Boolean).length
-      ? (apartment.imageUrls || []).filter(Boolean)
-      : [apartment.imageUrl || '/property-placeholder.svg']);
+    renderImages(
+      (apartment.imageUrls || []).filter(Boolean).length
+        ? (apartment.imageUrls || []).filter(Boolean)
+        : [apartment.imageUrl || '/property-placeholder.svg'],
+    );
     return { card, renderImages };
   }
 

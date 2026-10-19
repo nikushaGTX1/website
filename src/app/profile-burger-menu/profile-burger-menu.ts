@@ -1,9 +1,10 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models/user';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
+import { NgIf, NgFor } from '@angular/common';
 
 interface MenuItem {
   label: string;
@@ -13,9 +14,9 @@ interface MenuItem {
 
 @Component({
   selector: 'app-profile-burger-menu',
-  standalone: false,
   templateUrl: './profile-burger-menu.html',
   styleUrl: './profile-burger-menu.css',
+  imports: [NgIf, NgFor, RouterLink],
 })
 export class ProfileBurgerMenu implements OnInit, OnDestroy {
   isOpen = false;
@@ -51,7 +52,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   constructor(
     private elementRef: ElementRef,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {

@@ -1,5 +1,11 @@
 import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { finalize } from 'rxjs';
 import { HomeMatchResult } from '../models/home-match-result';
 import { HomeMatchOption, HomeMatchQuestion } from '../models/home-match-question';
@@ -10,16 +16,39 @@ import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { applyPriorityScoring } from '../services/priority-scoring';
 import { answerLabel, answerList, isPastDate, todayIso } from '../services/answer-labels';
-import { petsExplicitlyProhibited, selectedPets, withinBudgetCeiling } from '../services/mandatory-requirements';
+import {
+  petsExplicitlyProhibited,
+  selectedPets,
+  withinBudgetCeiling,
+} from '../services/mandatory-requirements';
 import { DogSize, PetKind } from '../models/home-match-profile';
 import { CurrencyService } from '../../services/currency.service';
+import { NgIf, NgFor, NgSwitch, NgSwitchCase, DecimalPipe } from '@angular/common';
+import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
+import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
+import { HomeProfileSummaryComponent } from '../home-profile-summary/home-profile-summary.component';
+import { HomeMatchResultsComponent } from '../home-match-results/home-match-results.component';
+import { DrawAreaMapComponent } from '../../maps/draw-area-map/draw-area-map.component';
 
 type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
 @Component({
   selector: 'app-ai-home-match-page',
-  standalone: false,
   templateUrl: './ai-home-match-page.component.html',
   styleUrl: './ai-home-match-page.component.css',
+  imports: [
+    NgIf,
+    NgFor,
+    NgSwitch,
+    NgSwitchCase,
+    FormsModule,
+    ReactiveFormsModule,
+    DatePickerComponent,
+    VelvenLifestyleAvatarComponent,
+    HomeProfileSummaryComponent,
+    HomeMatchResultsComponent,
+    DrawAreaMapComponent,
+    DecimalPipe,
+  ],
 })
 export class AiHomeMatchPageComponent implements OnDestroy {
   readonly phaseLabels = [
@@ -170,22 +199,30 @@ export class AiHomeMatchPageComponent implements OnDestroy {
 
   // Same price-distribution chart and dual slider as the Explore price filter.
   readonly budgetHistogram = [
-    5, 7, 6, 8, 9, 10, 12, 14, 18, 24, 31, 38, 45, 52, 48, 55, 58, 62, 57, 54,
-    51, 56, 53, 61, 66, 100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
+    5, 7, 6, 8, 9, 10, 12, 14, 18, 24, 31, 38, 45, 52, 48, 55, 58, 62, 57, 54, 51, 56, 53, 61, 66,
+    100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
   ];
-  get budgetSliderMax(): number { return this.budgetForm.controls.currency.value === 'GEL' ? 13500 : 5000; }
-  get budgetSliderStep(): number { return this.budgetForm.controls.currency.value === 'GEL' ? 100 : 50; }
+  get budgetSliderMax(): number {
+    return this.budgetForm.controls.currency.value === 'GEL' ? 13500 : 5000;
+  }
+  get budgetSliderStep(): number {
+    return this.budgetForm.controls.currency.value === 'GEL' ? 100 : 50;
+  }
   get budgetSymbol(): string {
     const currency = this.budgetForm.controls.currency.value;
     return currency === 'GEL' ? '₾' : currency === 'EUR' ? '€' : '$';
   }
   private budgetPercent(value: number): number {
-    return Math.min(100, Math.max(0, (Number(value) || 0) / this.budgetSliderMax * 100));
+    return Math.min(100, Math.max(0, ((Number(value) || 0) / this.budgetSliderMax) * 100));
   }
-  get budgetMinPercent(): number { return this.budgetPercent(this.budgetForm.controls.min.value); }
-  get budgetMaxPercent(): number { return this.budgetPercent(this.budgetForm.controls.max.value); }
+  get budgetMinPercent(): number {
+    return this.budgetPercent(this.budgetForm.controls.min.value);
+  }
+  get budgetMaxPercent(): number {
+    return this.budgetPercent(this.budgetForm.controls.max.value);
+  }
   barInBudget(index: number): boolean {
-    const position = index / (this.budgetHistogram.length - 1) * 100;
+    const position = (index / (this.budgetHistogram.length - 1)) * 100;
     return position >= this.budgetMinPercent && position <= this.budgetMaxPercent;
   }
   setBudgetMin(value: number | string): void {
@@ -194,7 +231,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   setBudgetMax(value: number | string): void {
     const min = Number(this.budgetForm.controls.min.value);
-    this.budgetForm.controls.max.setValue(Math.max(min, Math.min(this.budgetSliderMax, Number(value) || 0)));
+    this.budgetForm.controls.max.setValue(
+      Math.max(min, Math.min(this.budgetSliderMax, Number(value) || 0)),
+    );
   }
 
   constructor(
@@ -261,9 +300,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get visibleSteps(): number[] {
     // Question 12 (apartment style) is asked right after Rent / Buy.
-    return [1, 12, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter((step) =>
-      !(this.profile.propertyGoal === 'Buy' && [3, 4, 5, 10].includes(step)) &&
-      !(step === 5 && this.fixedHousehold),
+    return [1, 12, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter(
+      (step) =>
+        !(this.profile.propertyGoal === 'Buy' && [3, 4, 5, 10].includes(step)) &&
+        !(step === 5 && this.fixedHousehold),
     );
   }
   get stepNumber(): number {
@@ -462,7 +502,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return (this.profile.proximityAddress || '').trim().toLocaleLowerCase().replace(/\s+/g, ' ');
   }
 
-  get proximitySuggestions(): Array<{ id: number; label: string; value: string; district: string }> {
+  get proximitySuggestions(): Array<{
+    id: number;
+    label: string;
+    value: string;
+    district: string;
+  }> {
     if (this.proximityQuery.length < 2 || !this.locationEntries.length) return [];
     const seen = new Set<number>();
     const suggestions: Array<{ id: number; label: string; value: string; district: string }> = [];
@@ -641,7 +686,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   ];
 
   isPetSelected(value: 'None' | PetKind): boolean {
-    return value === 'None' ? this.profile.petType === 'None' : (this.profile.petTypes || []).includes(value);
+    return value === 'None'
+      ? this.profile.petType === 'None'
+      : (this.profile.petTypes || []).includes(value);
   }
 
   /** Pets are multi-select: "No" clears every pet, and choosing a pet clears "No". */
@@ -813,14 +860,26 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   private clearStep(step: number): void {
     const fields: (keyof HomeMatchProfile)[][] = [
-      ['gender'], ['propertyGoal'],
-      ['districts', 'locationFlexible', 'selectedMapArea', 'proximityTarget', 'proximityAddress', 'proximityLatitude', 'proximityLongitude'],
+      ['gender'],
+      ['propertyGoal'],
+      [
+        'districts',
+        'locationFlexible',
+        'selectedMapArea',
+        'proximityTarget',
+        'proximityAddress',
+        'proximityLatitude',
+        'proximityLongitude',
+      ],
       ['budgetMin', 'budgetMax', 'currency'],
       ['householdType', 'adults', 'children', 'childrenAgeGroups'],
-      ['adults', 'children', 'childrenAgeGroups'], ['bedrooms'],
+      ['adults', 'children', 'childrenAgeGroups'],
+      ['bedrooms'],
       ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
       ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized', 'carFuelType'],
-      ['lifestyles'], ['hasPet', 'petType', 'petTypes', 'dogSize', 'petOtherType', 'petCount'], ['topPriorities'],
+      ['lifestyles'],
+      ['hasPet', 'petType', 'petTypes', 'dogSize', 'petOtherType', 'petCount'],
+      ['topPriorities'],
       ['apartmentStyle'],
     ];
     for (const key of fields[step]) {
@@ -831,9 +890,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.mapVisible = false;
       this.pendingMapArea = '';
     }
-    if (step === 3) this.budgetForm.reset({
-      min: this.profile.budgetMin, max: this.profile.budgetMax, currency: this.profile.currency,
-    });
+    if (step === 3)
+      this.budgetForm.reset({
+        min: this.profile.budgetMin,
+        max: this.profile.budgetMax,
+        currency: this.profile.currency,
+      });
   }
   edit(): void {
     this.view = 'questions';
@@ -918,7 +980,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   // Prices are stored in USD; the budget is converted from GEL/EUR before comparing.
   // Homes below the minimum stay in the list and are classified as alternatives.
   private withinBudget(match: HomeMatchResult): boolean {
-    return withinBudgetCeiling(Number(match.apartment.price), this.profile, this.currencyService.rates);
+    return withinBudgetCeiling(
+      Number(match.apartment.price),
+      this.profile,
+      this.currencyService.rates,
+    );
   }
 
   private matchesPropertyGoal(match: HomeMatchResult): boolean {

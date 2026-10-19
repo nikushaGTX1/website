@@ -1,39 +1,16 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
-import { ExploreProperty } from './explore-property/explore-property';
-import { Main } from './main/main';
-import { AgentProfile } from './agent-profile/agent-profile';
-import { Login } from './login/login';
-import { Blog } from './blog/blog';
-import { MyProfile } from './my-profile/my-profile';
 
 import { authGuard } from './guards/auth.guard';
 import { agentGuard, crmGuard } from './guards/agent.guard';
 import { questionnaireLinkGuard } from './guards/questionnaire-link.guard';
 import { guestGuard } from './guards/guest.guard';
 
-import { UploadApartment } from './upload-apartment/upload-apartament';
-import { AdminPanel } from './admin-panel/admin-panel';
-import { AboutUs } from './about-us/about-us';
-import { MyListings } from './my-listings/my-listings';
-import { ApartmentDetail } from './apartment-detail/apartment-detail';
 
-import {
-  AiConciergePageComponent
-} from './ai-property-concierge/ai-concierge-page/ai-concierge-page.component';
 
-import {
-  AiHomeMatchPageComponent
-} from './ai-home-match/ai-home-match-page/ai-home-match-page.component';
 
-import { Services } from './services/services';
-import { SavedListings } from './saved-listings/saved-listings';
-import { AgentDetailProfile } from './agent-detail-profile/agent-detail-profile';
 
-import {
-  CrmQuestioner
-} from './crm/crm-questioner/crm-questioner';
 
 
 const routes: Routes = [
@@ -46,43 +23,43 @@ const routes: Routes = [
 
   {
     path: 'main',
-    component: Main,
+    loadComponent: () => import('./main/main').then((m) => m.Main),
     title: 'Velven | Apartments for Rent & Sale in Tbilisi'
   },
 
   {
     path: 'ExploreProperty',
-    component: ExploreProperty,
+    loadComponent: () => import('./explore-property/explore-property').then((m) => m.ExploreProperty),
     title: 'Explore Apartments in Tbilisi | Velven'
   },
 
   {
     path: 'apartments/:id',
-    component: ApartmentDetail,
+    loadComponent: () => import('./apartment-detail/apartment-detail').then((m) => m.ApartmentDetail),
     title: 'Apartment Details | Velven'
   },
 
   {
     path: 'property',
-    component: ApartmentDetail,
+    loadComponent: () => import('./apartment-detail/apartment-detail').then((m) => m.ApartmentDetail),
     title: 'Apartment Details | Velven'
   },
 
   {
     path: 'find-my-home',
-    component: AiConciergePageComponent,
+    loadComponent: () => import('./ai-property-concierge/ai-concierge-page/ai-concierge-page.component').then((m) => m.AiConciergePageComponent),
     title: 'Find My Home | Velven'
   },
 
   {
     path: 'ai-home-match',
-    component: AiHomeMatchPageComponent,
+    loadComponent: () => import('./ai-home-match/ai-home-match-page/ai-home-match-page.component').then((m) => m.AiHomeMatchPageComponent),
     title: 'Velven Match | Velven'
   },
 
   {
     path: 'about',
-    component: AboutUs,
+    loadComponent: () => import('./about-us/about-us').then((m) => m.AboutUs),
     title: 'About Us | Velven'
   },
 
@@ -94,58 +71,58 @@ const routes: Routes = [
 
   {
     path: 'services',
-    component: Services,
+    loadComponent: () => import('./services/services').then((m) => m.Services),
     title: 'Real Estate Services | Velven'
   },
 
   {
     path: 'apartment-detail',
-    component: ApartmentDetail,
+    loadComponent: () => import('./apartment-detail/apartment-detail').then((m) => m.ApartmentDetail),
     title: 'Apartment Details | Velven'
   },
 
   {
     path: 'agent-profile',
-    component: AgentProfile,
+    loadComponent: () => import('./agent-profile/agent-profile').then((m) => m.AgentProfile),
     title: 'Real Estate Agents in Tbilisi | Velven'
   },
 
   {
     path: 'agent-profile/:id',
-    component: AgentDetailProfile,
+    loadComponent: () => import('./agent-detail-profile/agent-detail-profile').then((m) => m.AgentDetailProfile),
     title: 'Agent Profile | Velven'
   },
 
   {
     path: 'agent-profile/:id/listings',
-    component: AgentDetailProfile,
+    loadComponent: () => import('./agent-detail-profile/agent-detail-profile').then((m) => m.AgentDetailProfile),
     data: { listingsPage: true },
     title: 'Agent Properties | Velven'
   },
 
   {
     path: 'login',
-    component: Login,
+    loadComponent: () => import('./login/login').then((m) => m.Login),
     title: 'Sign In | Velven',
     canActivate: [guestGuard]
   },
 
   {
     path: 'blog',
-    component: Blog,
+    loadComponent: () => import('./blog/blog').then((m) => m.Blog),
     title: 'Tbilisi Property Blog | Velven'
   },
 
   {
     path: 'upload-apartment',
-    component: UploadApartment,
+    loadComponent: () => import('./upload-apartment/upload-apartament').then((m) => m.UploadApartment),
     title: 'List Your Property | Velven',
     canActivate: [authGuard]
   },
 
   {
     path: 'admin',
-    component: AdminPanel,
+    loadComponent: () => import('./admin-panel/admin-panel').then((m) => m.AdminPanel),
     title: 'Dashboard | Velven',
     canActivate: [authGuard, agentGuard]
   },
@@ -206,14 +183,14 @@ const routes: Routes = [
 
   {
     path: 'my-profile',
-    component: MyProfile,
+    loadComponent: () => import('./my-profile/my-profile').then((m) => m.MyProfile),
     title: 'My Profile | Velven',
     canActivate: [authGuard]
   },
 
   {
     path: 'my-listings',
-    component: MyListings,
+    loadComponent: () => import('./my-listings/my-listings').then((m) => m.MyListings),
     title: 'My Listings | Velven',
     canActivate: [authGuard]
   },
@@ -226,38 +203,38 @@ const routes: Routes = [
   },
   {
     path: 'saved-listings',
-    component: SavedListings,
+    loadComponent: () => import('./saved-listings/saved-listings').then((m) => m.SavedListings),
     title: 'Saved Listings | Velven',
     canActivate: [authGuard]
   },
 
   {
     path: 'premium',
-    component: MyProfile,
+    loadComponent: () => import('./my-profile/my-profile').then((m) => m.MyProfile),
     canActivate: [authGuard]
   },
 
   {
     path: 'balance',
-    component: MyProfile,
+    loadComponent: () => import('./my-profile/my-profile').then((m) => m.MyProfile),
     canActivate: [authGuard]
   },
 
   {
     path: 'payment-methods',
-    component: MyProfile,
+    loadComponent: () => import('./my-profile/my-profile').then((m) => m.MyProfile),
     canActivate: [authGuard]
   },
 
   {
     path: 'my-business',
-    component: MyProfile,
+    loadComponent: () => import('./my-profile/my-profile').then((m) => m.MyProfile),
     canActivate: [authGuard]
   },
 
   {
     path: 'crm/questions',
-    component: CrmQuestioner,
+    loadComponent: () => import('./crm/crm-questioner/crm-questioner').then((m) => m.CrmQuestioner),
     title: 'CRM Questions | Velven',
     canActivate: [
       authGuard,
@@ -267,19 +244,19 @@ const routes: Routes = [
 
   {
     path: 'crm-questioner',
-    component: CrmQuestioner,
+    loadComponent: () => import('./crm/crm-questioner/crm-questioner').then((m) => m.CrmQuestioner),
     title: 'Apartment Questionnaire | Velven'
   },
 
   {
     path: 'crm-questioner/:agentToken',
-    component: CrmQuestioner,
+    loadComponent: () => import('./crm/crm-questioner/crm-questioner').then((m) => m.CrmQuestioner),
     title: 'Apartment Questionnaire | Velven'
   },
 
   {
     path: 'questions/:agentToken',
-    component: CrmQuestioner,
+    loadComponent: () => import('./crm/crm-questioner/crm-questioner').then((m) => m.CrmQuestioner),
     title: 'Apartment Questionnaire | Velven'
   },
 
@@ -304,7 +281,7 @@ const routes: Routes = [
 
   {
     path: ':agentToken',
-    component: CrmQuestioner,
+    loadComponent: () => import('./crm/crm-questioner/crm-questioner').then((m) => m.CrmQuestioner),
     title: 'Apartment Questionnaire | Velven',
     canMatch: [questionnaireLinkGuard]
   },
@@ -321,6 +298,9 @@ const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, {
+      // After the first page shows, fetch the other pages in the background so later
+      // clicks open instantly.
+      preloadingStrategy: PreloadAllModules,
       scrollPositionRestoration: 'top',
     })
   ],

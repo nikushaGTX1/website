@@ -1,13 +1,16 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { safeReturnUrl } from '../utils/return-url';
 import { AuthService } from '../services/auth.service';
+import { NgIf, NgTemplateOutlet } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CodeDialogComponent } from '../shared/code-dialog/code-dialog.component';
 
 @Component({
   selector: 'app-login',
-  standalone: false,
   templateUrl: './login.html',
   styleUrl: './login.css',
+  imports: [NgIf, RouterLink, NgTemplateOutlet, FormsModule, CodeDialogComponent],
 })
 export class Login {
   isRegisterMode = false;
@@ -17,12 +20,12 @@ export class Login {
     userName: '',
     fullName: '',
     email: '',
-    password: ''
+    password: '',
   };
 
   loginData = {
     email: '',
-    password: ''
+    password: '',
   };
 
   errorMessage = '';
@@ -31,7 +34,7 @@ export class Login {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {}
 
   /** Where to continue after signing in (set by the auth guard or a "save" action). */
@@ -59,40 +62,46 @@ export class Login {
     this.successMessage = '';
     this.isSubmitting = true;
 
-    this.authService.register({
-      userName: this.registerData.userName,
-      fullName: this.registerData.fullName,
-      email: this.registerData.email,
-      password: this.registerData.password
-    }).subscribe({
-      next: (response) => {
-        this.isSubmitting = false;
-        this.isRegisterMode = false;
-        this.loginData.email = this.registerData.email;
-        this.openVerify(response.email || this.registerData.email.trim(), response.emailSent === false
-          ? ''
-          : 'We sent a 6-digit code to your email. Enter it to activate your account.');
-        if (response.emailSent === false) {
-          this.errorMessage = 'Your account was created, but we could not send the verification email. Please try Resend code.';
-        }
-      },
-      error: (err) => {
-        console.error(err);
-        this.isSubmitting = false;
+    this.authService
+      .register({
+        userName: this.registerData.userName,
+        fullName: this.registerData.fullName,
+        email: this.registerData.email,
+        password: this.registerData.password,
+      })
+      .subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          this.isRegisterMode = false;
+          this.loginData.email = this.registerData.email;
+          this.openVerify(
+            response.email || this.registerData.email.trim(),
+            response.emailSent === false
+              ? ''
+              : 'We sent a 6-digit code to your email. Enter it to activate your account.',
+          );
+          if (response.emailSent === false) {
+            this.errorMessage =
+              'Your account was created, but we could not send the verification email. Please try Resend code.';
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.isSubmitting = false;
 
-        if (err.error?.errors) {
-          this.errorMessage = Object.values(err.error.errors).flat().join(' ');
-        } else if (Array.isArray(err.error)) {
-          this.errorMessage = err.error.map((x: any) => x.description).join(' ');
-        } else if (err.error?.message) {
-          this.errorMessage = err.error.message;
-        } else if (typeof err.error === 'string') {
-          this.errorMessage = err.error;
-        } else {
-          this.errorMessage = 'Registration failed.';
-        }
-      }
-    });
+          if (err.error?.errors) {
+            this.errorMessage = Object.values(err.error.errors).flat().join(' ');
+          } else if (Array.isArray(err.error)) {
+            this.errorMessage = err.error.map((x: any) => x.description).join(' ');
+          } else if (err.error?.message) {
+            this.errorMessage = err.error.message;
+          } else if (typeof err.error === 'string') {
+            this.errorMessage = err.error;
+          } else {
+            this.errorMessage = 'Registration failed.';
+          }
+        },
+      });
   }
 
   login(): void {
@@ -112,11 +121,14 @@ export class Login {
       error: (err) => {
         this.isSubmitting = false;
         if (err?.status === 403 && err.error?.needsVerification) {
-          this.openVerify(err.error.email || this.loginData.email, 'Please verify your email first. Enter the code we sent you.');
+          this.openVerify(
+            err.error.email || this.loginData.email,
+            'Please verify your email first. Enter the code we sent you.',
+          );
           return;
         }
         this.errorMessage = 'Invalid email or password.';
-      }
+      },
     });
   }
 
@@ -170,9 +182,10 @@ export class Login {
 
   resendCode(): void {
     if (this.isSubmitting) return;
-    const request = this.step === 'verify'
-      ? this.authService.resendVerification(this.codeEmail)
-      : this.authService.forgotPassword(this.codeEmail);
+    const request =
+      this.step === 'verify'
+        ? this.authService.resendVerification(this.codeEmail)
+        : this.authService.forgotPassword(this.codeEmail);
     this.isSubmitting = true;
     request.subscribe({
       next: () => {
@@ -210,7 +223,8 @@ export class Login {
     this.code = code;
     this.newPassword = password;
     if (this.isSubmitting || !this.code.trim() || this.newPassword.length < 6) {
-      if (this.newPassword && this.newPassword.length < 6) this.errorMessage = 'Password must be at least 6 characters.';
+      if (this.newPassword && this.newPassword.length < 6)
+        this.errorMessage = 'Password must be at least 6 characters.';
       return;
     }
     this.isSubmitting = true;

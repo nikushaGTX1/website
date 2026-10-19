@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { Agent, AgentPublicReview } from '../models/agent';
 import { Apartment } from '../models/apartment';
@@ -14,12 +14,25 @@ import { AGENT_LANGUAGES, languageNameList } from '../utils/agent-languages';
 import { AuthService } from '../services/auth.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { whatsappDigits } from '../utils/phone';
+import { NgIf, NgTemplateOutlet, NgFor, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CurrencyPrice } from '../currency-price/currency-price';
+import { ListingTitlePipe } from '../shared/listing-title.pipe';
 
 @Component({
   selector: 'app-agent-detail-profile',
-  standalone: false,
   templateUrl: './agent-detail-profile.html',
   styleUrl: './agent-detail-profile.css',
+  imports: [
+    RouterLink,
+    NgIf,
+    NgTemplateOutlet,
+    NgFor,
+    FormsModule,
+    CurrencyPrice,
+    DecimalPipe,
+    ListingTitlePipe,
+  ],
 })
 export class AgentDetailProfile implements OnInit {
   agent: Agent | null = null;
@@ -36,7 +49,11 @@ export class AgentDetailProfile implements OnInit {
   get visibleListings(): Apartment[] {
     if (!this.listingsPage) return this.listings.slice(0, 3);
     const filtered = this.listings.filter((apartment) =>
-      this.listingFilter === 'all' ? true : this.listingFilter === 'sale' ? this.isForSale(apartment) : !this.isForSale(apartment),
+      this.listingFilter === 'all'
+        ? true
+        : this.listingFilter === 'sale'
+          ? this.isForSale(apartment)
+          : !this.isForSale(apartment),
     );
     if (this.listingSort === 'newest') return filtered;
     const direction = this.listingSort === 'price-asc' ? 1 : -1;
@@ -45,7 +62,8 @@ export class AgentDetailProfile implements OnInit {
 
   listingCount(filter: 'all' | 'sale' | 'rent'): number {
     if (filter === 'all') return this.listings.length;
-    return this.listings.filter((apartment) => (filter === 'sale') === this.isForSale(apartment)).length;
+    return this.listings.filter((apartment) => (filter === 'sale') === this.isForSale(apartment))
+      .length;
   }
 
   /** True on /agent-profile/:id/listings (the dedicated all-properties page). */
@@ -107,28 +125,32 @@ export class AgentDetailProfile implements OnInit {
         }),
       )
       .subscribe({
-      next: ({ agent, apartments, wonLeads }) => {
-        this.agent = agent;
-        this.seoService.updateAgent(agent);
-        // The by-agent endpoint already filters by uploader; only the public fallback needs matching.
-        this.listings = apartments.list
-          .filter((apartment) => apartments.fromAgentEndpoint || this.belongsToAgent(apartment, agent, agentId))
-          .sort(
-            (left, right) => Date.parse(right.createdAt || '') - Date.parse(left.createdAt || ''),
-          );
-        this.crmWonDeals = wonLeads === null
-          ? null
-          : wonLeads.filter((lead) => this.belongsToAgentCrm(lead, agent, agentId)).length;
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Agent profile API error:', error);
-        this.errorMessage = 'Could not load this agent profile.';
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-    });
+        next: ({ agent, apartments, wonLeads }) => {
+          this.agent = agent;
+          this.seoService.updateAgent(agent);
+          // The by-agent endpoint already filters by uploader; only the public fallback needs matching.
+          this.listings = apartments.list
+            .filter(
+              (apartment) =>
+                apartments.fromAgentEndpoint || this.belongsToAgent(apartment, agent, agentId),
+            )
+            .sort(
+              (left, right) => Date.parse(right.createdAt || '') - Date.parse(left.createdAt || ''),
+            );
+          this.crmWonDeals =
+            wonLeads === null
+              ? null
+              : wonLeads.filter((lead) => this.belongsToAgentCrm(lead, agent, agentId)).length;
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Agent profile API error:', error);
+          this.errorMessage = 'Could not load this agent profile.';
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   get name(): string {
@@ -159,7 +181,10 @@ export class AgentDetailProfile implements OnInit {
   /** Real client reviews, newest first: those with a comment come first. */
   get reviews(): AgentPublicReview[] {
     const all = this.agent?.ratings ?? [];
-    return [...all.filter((review) => review.comment?.trim()), ...all.filter((review) => !review.comment?.trim())];
+    return [
+      ...all.filter((review) => review.comment?.trim()),
+      ...all.filter((review) => !review.comment?.trim()),
+    ];
   }
 
   get visibleReviews(): AgentPublicReview[] {
@@ -172,7 +197,10 @@ export class AgentDetailProfile implements OnInit {
   }
 
   get reviewCountText(): string {
-    return reviewsText(this.translationService.language$.value, this.agent?.ratingCount || this.reviews.length);
+    return reviewsText(
+      this.translationService.language$.value,
+      this.agent?.ratingCount || this.reviews.length,
+    );
   }
 
   readonly allLanguages = AGENT_LANGUAGES;
@@ -196,7 +224,9 @@ export class AgentDetailProfile implements OnInit {
   }
 
   openLanguageEditor(): void {
-    this.languageDraft = new Set(this.agent?.languages?.length ? this.agent.languages : ['ka', 'en', 'ru']);
+    this.languageDraft = new Set(
+      this.agent?.languages?.length ? this.agent.languages : ['ka', 'en', 'ru'],
+    );
     this.languageError = '';
     this.languageEditorOpen = true;
   }
@@ -219,7 +249,9 @@ export class AgentDetailProfile implements OnInit {
     this.languageSaving = true;
     this.languageError = '';
     // Send in display order; the API stores them in the same order.
-    const codes = AGENT_LANGUAGES.map((language) => language.code).filter((code) => this.languageDraft.has(code));
+    const codes = AGENT_LANGUAGES.map((language) => language.code).filter((code) =>
+      this.languageDraft.has(code),
+    );
     this.agentService.setLanguages(agentId, codes).subscribe({
       next: ({ languages }) => {
         if (this.agent) this.agent = { ...this.agent, languages };
@@ -231,15 +263,26 @@ export class AgentDetailProfile implements OnInit {
         this.languageSaving = false;
         this.languageError =
           error.status === 403 || error.status === 401
-            ? this.rt('Only admins and managers can change languages.', 'ენების შეცვლა მხოლოდ ადმინისტრატორს და მენეჯერს შეუძლია.', 'Менять языки могут только администраторы и менеджеры.')
-            : this.rt('Languages could not be saved. Please try again.', 'ენების შენახვა ვერ მოხერხდა. სცადეთ ხელახლა.', 'Не удалось сохранить языки. Попробуйте снова.');
+            ? this.rt(
+                'Only admins and managers can change languages.',
+                'ენების შეცვლა მხოლოდ ადმინისტრატორს და მენეჯერს შეუძლია.',
+                'Менять языки могут только администраторы и менеджеры.',
+              )
+            : this.rt(
+                'Languages could not be saved. Please try again.',
+                'ენების შენახვა ვერ მოხერხდა. სცადეთ ხელახლა.',
+                'Не удалось сохранить языки. Попробуйте снова.',
+              );
         this.cdr.detectChanges();
       },
     });
   }
 
   reviewMonth(review: AgentPublicReview): string {
-    return formatReviewDate(this.translationService.language$.value, review.createdAt, { year: 'numeric', month: 'short' });
+    return formatReviewDate(this.translationService.language$.value, review.createdAt, {
+      year: 'numeric',
+      month: 'short',
+    });
   }
 
   get location(): string {
@@ -362,8 +405,8 @@ export class AgentDetailProfile implements OnInit {
 
     return (
       lead.status === 'won' &&
-      (!!assignedId && agentIds.includes(assignedId) ||
-        !!assignedName && agentNames.includes(assignedName))
+      ((!!assignedId && agentIds.includes(assignedId)) ||
+        (!!assignedName && agentNames.includes(assignedName)))
     );
   }
 
