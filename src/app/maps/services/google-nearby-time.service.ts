@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { geocodeCached } from './geocode-cache';
 import { isListedUniversity } from '../../utils/universities';
 
 export interface NearbyWalkingTimes {
@@ -234,20 +235,19 @@ export class GoogleNearbyTimeService {
   ): Promise<NearbyWalkingTimes> {
     this.configure();
 
-    const [{ Geocoder }, { Place, SearchNearbyRankPreference, SearchByTextRankPreference }, routes] = await Promise.all([
-      importLibrary('geocoding') as Promise<google.maps.GeocodingLibrary>,
+    const [{ Place, SearchNearbyRankPreference, SearchByTextRankPreference }, routes] = await Promise.all([
       importLibrary('places') as Promise<google.maps.PlacesLibrary>,
       importLibrary('routes') as Promise<google.maps.RoutesLibrary>,
     ]);
 
     let origin = pin ? new google.maps.LatLng(pin.lat, pin.lng) : undefined;
     if (!origin) {
-      const geocoding = await new Geocoder().geocode({
+      const geocoded = await geocodeCached({
         address: `${address}, Georgia`,
         region: 'GE',
         bounds: { south: 41.6, west: 44.6, north: 41.9, east: 45.05 },
       });
-      origin = geocoding.results[0]?.geometry.location;
+      origin = geocoded ? new google.maps.LatLng(geocoded.lat, geocoded.lng) : undefined;
     }
     if (!origin) return {};
 

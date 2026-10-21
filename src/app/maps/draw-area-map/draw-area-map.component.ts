@@ -14,6 +14,7 @@
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { geocodeCached } from '../services/geocode-cache';
 import { ParkLayer } from '../services/park-layer';
 import { ApartmentService, GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
@@ -625,33 +626,26 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private async geocodeAreaBounds(area: string): Promise<google.maps.LatLngBounds | null> {
     try {
-      const { Geocoder } = (await importLibrary('geocoding')) as google.maps.GeocodingLibrary;
-      const response = await new Geocoder().geocode({
+      // Shared cache: re-selecting a district (or adding a second one) no longer geocodes
+      // every already-selected district again.
+      const match = await geocodeCached({
         address: `${area}, Tbilisi, Georgia`,
         componentRestrictions: { country: 'GE' },
         region: 'GE',
         bounds: { south: 41.6, west: 44.6, north: 41.9, east: 45.05 },
       });
-      const match = response.results[0];
       if (!match) return null;
-      const position = match.geometry.location;
-      if (
-        position.lat() < 41.55 ||
-        position.lat() > 41.95 ||
-        position.lng() < 44.55 ||
-        position.lng() > 45.15
-      ) {
+      if (match.lat < 41.55 || match.lat > 41.95 || match.lng < 44.55 || match.lng > 45.15) {
         return null;
       }
-      const viewport = match.geometry.viewport;
+      const viewport = match.viewport;
       // A city-wide match means the neighbourhood itself was not found.
-      if (viewport && viewport.getNorthEast().lat() - viewport.getSouthWest().lat() > 0.15)
-        return null;
-      if (viewport) return viewport;
+      if (viewport && viewport.north - viewport.south > 0.15) return null;
+      if (viewport) return new google.maps.LatLngBounds(viewport);
       const padding = 0.008;
       return new google.maps.LatLngBounds(
-        { lat: position.lat() - padding, lng: position.lng() - padding },
-        { lat: position.lat() + padding, lng: position.lng() + padding },
+        { lat: match.lat - padding, lng: match.lng - padding },
+        { lat: match.lat + padding, lng: match.lng + padding },
       );
     } catch {
       return null;
@@ -949,17 +943,15 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     if (!streetName) return false;
 
     try {
-      const { Geocoder } = (await importLibrary('geocoding')) as google.maps.GeocodingLibrary;
-      const response = await new Geocoder().geocode({
+      const match = await geocodeCached({
         address: [streetName, street.district, 'Tbilisi, Georgia'].filter(Boolean).join(', '),
         componentRestrictions: { country: 'GE' },
         region: 'GE',
         bounds: { south: 41.6, west: 44.6, north: 41.9, east: 45.05 },
       });
-      const match = response.results[0];
       if (!match) return false;
 
-      const position = match.geometry.location;
+      const position = new google.maps.LatLng(match.lat, match.lng);
       // Ignore results outside Tbilisi so a stray address never pans the map elsewhere.
       if (
         position.lat() < 41.55 ||

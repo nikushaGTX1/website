@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { geocodeCached } from '../services/geocode-cache';
 import { ParkLayer } from '../services/park-layer';
 
 @Component({
@@ -19,7 +20,6 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
   @ViewChild('map') mapElement?: ElementRef<HTMLDivElement>;
   private map?: google.maps.Map;
   private marker?: google.maps.Marker;
-  private geocoder?: google.maps.Geocoder;
   private geocodeRevision = 0;
   /** Only the first address shown (an existing listing opening) may keep its saved pin. */
   private initialAddressShown = false;
@@ -77,8 +77,6 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
     try {
       setOptions({ key: apiKey, v: 'weekly', ...(mapId ? { mapIds: [mapId] } : {}) });
       const { Map } = await importLibrary('maps') as google.maps.MapsLibrary;
-      const { Geocoder } = await importLibrary('geocoding') as google.maps.GeocodingLibrary;
-      this.geocoder = new Geocoder();
       this.map = new Map(this.mapElement.nativeElement, {
         center: this.hasPoint
           ? { lat: this.latitude!, lng: this.longitude! }
@@ -129,7 +127,7 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
   }
 
   private async showAddress(): Promise<void> {
-    if (!this.map || !this.geocoder) return;
+    if (!this.map) return;
     const address = this.address.trim();
     const revision = ++this.geocodeRevision;
     if (!address || address === 'Tbilisi') {
@@ -140,15 +138,15 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
       return;
     }
     try {
-      const result = await this.geocoder.geocode({
+      // Shared cache: retyping the same street + number (or reopening the form) reuses it.
+      const match = await geocodeCached({
         address,
         region: 'GE',
         bounds: { south: 41.6, west: 44.6, north: 41.9, east: 45.05 },
       });
       if (revision !== this.geocodeRevision) return;
-      const match = result.results[0];
       if (!match) return;
-      const point = match.geometry.location;
+      const point = new google.maps.LatLng(match.lat, match.lng);
       const keepSavedPoint = this.hasPoint && !this.initialAddressShown;
       this.initialAddressShown = true;
       if (keepSavedPoint) {
@@ -163,9 +161,9 @@ export class PropertyPointPickerComponent implements AfterViewInit, OnChanges, O
       this.pointConfirmed = true;
       this.setPoint(point.lat(), point.lng(), true);
       this.approximate =
-        match.geometry.location_type !== google.maps.GeocoderLocationType.ROOFTOP &&
-        match.geometry.location_type !== google.maps.GeocoderLocationType.RANGE_INTERPOLATED;
-      if (match.geometry.viewport) this.map.fitBounds(match.geometry.viewport);
+        match.locationType !== google.maps.GeocoderLocationType.ROOFTOP &&
+        match.locationType !== google.maps.GeocoderLocationType.RANGE_INTERPOLATED;
+      if (match.viewport) this.map.fitBounds(match.viewport);
       this.map.setZoom(Math.min(this.map.getZoom() || 15, 16));
       this.errorMessage = '';
     } catch {

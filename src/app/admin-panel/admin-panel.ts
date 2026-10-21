@@ -22,6 +22,10 @@ import {
 } from '../maps/services/google-nearby-time.service';
 import { encodeNearbyPlaceNames, splitNearbyPlaceNames } from '../utils/nearby-places';
 import { isListedUniversity } from '../utils/universities';
+
+/** Saved in nearbyPlaceNames when the admin refresh last measured a listing. */
+const NEARBY_CHECKED_KEY = 'nearbyCheckedAt';
+const NEARBY_RECHECK_MS = 30 * 24 * 60 * 60 * 1000;
 import { RouterLink } from '@angular/router';
 import { NgIf, NgFor, DecimalPipe } from '@angular/common';
 import { MyHomeVerification } from '../myhome-verification/myhome-verification';
@@ -1015,6 +1019,7 @@ export class AdminPanel implements OnInit, OnDestroy {
     const listings = [...this.apartments, ...this.pendingApartments.map((item) => item.apartment)];
     let improved = 0;
     let failed = 0;
+    let skipped = 0;
     try {
       for (const [index, apartment] of listings.entries()) {
         this.nearbyRefreshProgress = `${index + 1} / ${listings.length}`;
@@ -1023,12 +1028,20 @@ export class AdminPanel implements OnInit, OnDestroy {
         const lng = apartment.propertyLongitude ?? apartment.longitude;
         const pin = lat != null && lng != null ? { lat: Number(lat), lng: Number(lng) } : null;
         if (!pin && !apartment.address) continue;
+        // Each listing costs ~25 Places/Directions calls. Re-measure a listing at most once
+        // every 30 days; nearby shops and parks rarely change faster than that.
+        const checkedAt = Date.parse(splitNearbyPlaceNames(apartment.nearbyPlaceNames).names[NEARBY_CHECKED_KEY] || '');
+        if (Number.isFinite(checkedAt) && Date.now() - checkedAt < NEARBY_RECHECK_MS) {
+          skipped++;
+          continue;
+        }
         try {
           const times = await this.nearbyTimes.getWalkingTimes(apartment.address || '', pin);
           const changes: Partial<Record<NearbyTimeKey, number>> & { nearbyPlaceNames?: string } =
             {};
           const saved = splitNearbyPlaceNames(apartment.nearbyPlaceNames);
           const names: Record<string, string> = saved.names;
+          names[NEARBY_CHECKED_KEY] = new Date().toISOString().slice(0, 10);
           const driving: Record<string, number | undefined> = saved.driveMinutes;
           let drivingChanged = false;
           for (const key of keys) {
@@ -1051,12 +1064,13 @@ export class AdminPanel implements OnInit, OnDestroy {
               if (name && !names[key]) names[key] = name;
             }
           }
-          if (!Object.keys(changes).length && !drivingChanged) continue;
+          const improvedTimes = Object.keys(changes).length > 0 || drivingChanged;
+          // Always saved, even without better times, so the 30-day check date is stored.
           const encodedNames = encodeNearbyPlaceNames(names, driving);
           if (encodedNames) changes.nearbyPlaceNames = encodedNames;
           await firstValueFrom(this.apartmentService.updateApartment(apartment.id, changes));
           Object.assign(apartment, changes);
-          improved++;
+          if (improvedTimes) improved++;
         } catch (error) {
           console.error('Nearby refresh failed for apartment', apartment.id, error);
           failed++;
@@ -1064,7 +1078,8 @@ export class AdminPanel implements OnInit, OnDestroy {
       }
       this.successMessage =
         `Nearby walking/drive times improved for ${improved} listing(s).` +
-        (failed ? ` ${failed} could not be saved.` : '');
+        (failed ? ` ${failed} could not be saved.` : '') +
+        (skipped ? ` ${skipped} checked in the last 30 days were skipped.` : '');
     } finally {
       this.actionId = '';
       this.nearbyRefreshProgress = '';

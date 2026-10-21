@@ -560,6 +560,7 @@
       <app-explore-property-map
         [apartments]="filteredApartments"
         [fitRevision]="mapFitRevision"
+        [shown]="mapShown"
         [selectedApartmentId]="hoveredApartmentId ?? (mapPreviewApartment ? mapPreviewApartment.id : null)"
         (apartmentSelected)="selectMapApartment($event)"
         (mapClicked)="closeMapPreview()"

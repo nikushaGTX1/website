@@ -195,7 +195,9 @@ class PlaceMarkerLayer {
   private async search(lat: number, lng: number, radius: number): Promise<MapPlace[]> {
     const { Place, SearchNearbyRankPreference } = (await importLibrary('places')) as google.maps.PlacesLibrary;
     const response = await Place.searchNearby({
-      fields: ['id', 'displayName', 'formattedAddress', 'location', 'rating', 'userRatingCount', 'googleMapsURI'],
+      // rating/userRatingCount are Enterprise-tier fields: asking for them here billed every
+      // area search at the top Places rate. They are fetched only when a park is opened.
+      fields: ['id', 'displayName', 'formattedAddress', 'location', 'googleMapsURI'],
       locationRestriction: { center: { lat, lng }, radius },
       includedPrimaryTypes: [this.config.placeType],
       maxResultCount: 20,
@@ -210,8 +212,6 @@ class PlaceMarkerLayer {
         address: cleanPlaceAddress(place.formattedAddress || ''),
         lat: place.location!.lat(),
         lng: place.location!.lng(),
-        rating: place.rating ?? undefined,
-        ratingCount: place.userRatingCount ?? undefined,
         mapsUrl: place.googleMapsURI ?? undefined,
       }));
   }
@@ -243,10 +243,11 @@ class PlaceMarkerLayer {
     try {
       const { Place } = (await importLibrary('places')) as google.maps.PlacesLibrary;
       const details = new Place({ id: place.id });
-      await details.fetchFields({ fields: ['photos'] });
+      await details.fetchFields({ fields: ['photos', 'rating', 'userRatingCount'] });
       const photo = details.photos?.[0]?.getURI({ maxWidth: 480, maxHeight: 260 });
-      if (photo && this.infoWindow.get('anchor') === marker) {
-        this.infoWindow.setContent(this.infoHtml(place, photo));
+      const rated = { ...place, rating: details.rating ?? undefined, ratingCount: details.userRatingCount ?? undefined };
+      if ((photo || rated.rating !== undefined) && this.infoWindow.get('anchor') === marker) {
+        this.infoWindow.setContent(this.infoHtml(rated, photo || undefined));
       }
     } catch {
       // The card is still useful without a photo.

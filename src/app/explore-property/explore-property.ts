@@ -638,6 +638,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
     image.src = url;
   }
 
+  /** Map is on screen: always on desktop, on phones only after "Show map" (it is not loaded before). */
+  get mapShown(): boolean {
+    return this.mapVisible || window.innerWidth > 780;
+  }
+
   /** 1×1 transparent image for gallery slots that are not near the photo being shown. */
   readonly blankPhoto =
     'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';

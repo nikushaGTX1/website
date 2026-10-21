@@ -13,6 +13,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { geocodeCached } from '../services/geocode-cache';
 import { ParkLayer } from '../services/park-layer';
 import Supercluster from 'supercluster';
 import { Apartment } from '../../models/apartment';
@@ -79,6 +80,11 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   @Input() selectedApartmentId: number | null = null;
   /** Bump to re-fit the camera to the next loaded result set (e.g. after a new area is applied). */
   @Input() fitRevision = 0;
+  /**
+   * False while the map is hidden (phones before "Show map"). Every map created is a billed
+   * map load and starts its marker lookups, so a hidden map waits until it is shown.
+   */
+  @Input() shown = true;
   private pendingFit = false;
   @Output() apartmentSelected = new EventEmitter<Apartment>();
   @Output() mapClicked = new EventEmitter<void>();
@@ -95,7 +101,6 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   mappedApartmentCount = 0;
 
   private map?: google.maps.Map;
-  private geocoder?: google.maps.Geocoder;
   private markers = new Map<string, PropertyMarker>();
   private points: MapPoint[] = [];
   private index?: Supercluster<{ id: number }, { id: number }>;
@@ -109,7 +114,13 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   private boundsListener?: google.maps.MapsEventListener;
   private mapResizeObserver?: ResizeObserver;
   private previewFrame?: number;
-  private readonly geocodeCache = new Map<string, google.maps.LatLngLiteral | null>();
+  /**
+   * One lookup per address for the life of the map. It stores the promise, not the result:
+   * the marker list is rebuilt several times while the page starts (each filter update), and
+   * caching only finished results re-geocoded the same addresses on every rebuild.
+   */
+  private readonly positionLookups = new Map<string, Promise<google.maps.LatLngLiteral | null>>();
+  private initializeStarted = false;
   private initialPropertyFocused = false;
 
   constructor(
@@ -119,11 +130,18 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
   ngAfterViewInit(): void {
     this.viewReady = true;
+    if (this.shown) this.initializeOnce();
+  }
+
+  private initializeOnce(): void {
+    if (this.initializeStarted) return;
+    this.initializeStarted = true;
     void this.initialize();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.viewReady) return;
+    if (changes['shown'] && this.shown) this.initializeOnce();
     // Filtering should update the pins without unexpectedly moving or zooming
     // the map. The initial load and the recenter control still fit all homes.
     if (changes['fitRevision'] && !changes['fitRevision'].firstChange) this.pendingFit = true;
@@ -174,10 +192,9 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
     try {
       setOptions({ key: apiKey, v: 'weekly', ...(mapId ? { mapIds: [mapId] } : {}) });
-      const [{ Map }, { AdvancedMarkerElement }, { Geocoder }] = await Promise.all([
+      const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([
         importLibrary('maps') as Promise<google.maps.MapsLibrary>,
         importLibrary('marker') as Promise<google.maps.MarkerLibrary>,
-        importLibrary('geocoding') as Promise<google.maps.GeocodingLibrary>,
       ]);
 
       this.map = new Map(this.mapCanvas.nativeElement, {
@@ -246,7 +263,6 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
 
       // Keep the constructor available without loading the marker library again.
       this.advancedMarkerConstructor = AdvancedMarkerElement;
-      this.geocoder = new Geocoder();
       await this.rebuildPoints(true);
     } catch (error) {
       console.error('Explore map failed to load:', error);
@@ -658,38 +674,38 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       ]
         .filter(Boolean)
         .join(', '),
-      [normalizedAddress, apartment.city || 'Tbilisi', 'Georgia'].filter(Boolean).join(', '),
+      // Without a saved address this would just be "Tbilisi, Georgia" (the city centre),
+      // which is no better than the district and still cost a Geocoding request.
+      normalizedAddress ? [normalizedAddress, apartment.city || 'Tbilisi', 'Georgia'].join(', ') : '',
     ].filter((value, index, values) => value && values.indexOf(value) === index);
     const cacheKey = addresses.join('|');
     if (!cacheKey) return null;
-    if (this.geocodeCache.has(cacheKey)) return this.geocodeCache.get(cacheKey) ?? null;
-
-    if (this.geocoder) {
-      for (const address of addresses) {
-        try {
-          const result = await this.geocoder.geocode({
-            address,
-            bounds: ExplorePropertyMapComponent.georgiaBounds,
-            componentRestrictions: { country: 'GE' },
-            region: 'GE',
-          });
-          const location = result.results[0]?.geometry.location;
-          if (location && this.isInsideGeorgia(location.lat(), location.lng())) {
-            const position = { lat: location.lat(), lng: location.lng() };
-            this.geocodeCache.set(cacheKey, position);
-            return position;
-          }
-        } catch {
-          // The hosted Maps key may disallow client-side geocoding. The
-          // same-origin street geometry fallback below still places the home.
-        }
-      }
+    let lookup = this.positionLookups.get(cacheKey);
+    if (!lookup) {
+      lookup = this.lookUpAddress(addresses, normalizedStreet, districtFallback);
+      this.positionLookups.set(cacheKey, lookup);
     }
+    return lookup;
+  }
 
+  private async lookUpAddress(
+    addresses: string[],
+    normalizedStreet: string,
+    districtFallback: google.maps.LatLngLiteral | null,
+  ): Promise<google.maps.LatLngLiteral | null> {
+    for (const address of addresses) {
+      // Shared cache: each address is geocoded at most once per browser per 30 days.
+      const hit = await geocodeCached({
+        address,
+        bounds: ExplorePropertyMapComponent.georgiaBounds,
+        componentRestrictions: { country: 'GE' },
+        region: 'GE',
+      });
+      if (hit && this.isInsideGeorgia(hit.lat, hit.lng)) return { lat: hit.lat, lng: hit.lng };
+    }
+    // The same-origin street geometry still places the home when geocoding has no answer.
     const streetPosition = await this.resolveStreetPosition(normalizedStreet);
-    const fallbackPosition = streetPosition || districtFallback;
-    this.geocodeCache.set(cacheKey, fallbackPosition);
-    return fallbackPosition;
+    return streetPosition || districtFallback;
   }
 
   private resolveDistrictPosition(apartment: Apartment): google.maps.LatLngLiteral | null {

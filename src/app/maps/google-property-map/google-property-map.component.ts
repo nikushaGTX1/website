@@ -13,6 +13,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { geocodeCached } from '../services/geocode-cache';
 import { ParkLayer } from '../services/park-layer';
 import { NgIf, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -97,18 +98,43 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
       });
   }
 
+  /** True once the map is on (or near) the screen; maps further down are not created yet. */
+  private inView = false;
+  private viewObserver?: IntersectionObserver;
+  /** Location the current map was built for, so an unchanged input never builds a new map. */
+  private initializedFor = '';
+
   ngAfterViewInit(): void {
     this.viewReady = true;
-    void this.initialize();
+    // Every map created is a billed map load. The listing page map sits far down the page and
+    // Velven Match shows one map per result card, so create each map only as it nears the screen.
+    const element = this.mapContainer?.nativeElement;
+    if (!element || typeof IntersectionObserver === 'undefined') {
+      this.inView = true;
+      void this.initialize();
+      return;
+    }
+    this.viewObserver = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        this.viewObserver?.disconnect();
+        this.viewObserver = undefined;
+        this.inView = true;
+        void this.initialize();
+      },
+      { rootMargin: '400px 0px' },
+    );
+    this.viewObserver.observe(element);
   }
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.viewReady && (changes['address'] || changes['latitude'] || changes['longitude'])) {
+    if (this.viewReady && this.inView && (changes['address'] || changes['latitude'] || changes['longitude'])) {
       void this.initialize();
     }
   }
   private parks?: ParkLayer;
 
   ngOnDestroy(): void {
+    this.viewObserver?.disconnect();
     GooglePropertyMapComponent.instances.delete(this);
     this.parks?.destroy();
     this.mapResizeObserver?.disconnect();
@@ -190,6 +216,9 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
 
   private async initialize(): Promise<void> {
     if (!this.mapContainer || !this.address.trim()) return;
+    const target = `${this.latitude ?? ''},${this.longitude ?? ''},${this.address.trim()}`;
+    if (this.map && target === this.initializedFor) return;
+    this.initializedFor = target;
     this.mapResizeObserver?.disconnect();
     this.loading = true;
     this.mapReady = false;
@@ -235,10 +264,7 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         v: 'weekly',
         ...(mapId ? { mapIds: [mapId] } : {}),
       });
-      const [{ Map }, { Geocoder }] = await Promise.all([
-        importLibrary('maps') as Promise<google.maps.MapsLibrary>,
-        importLibrary('geocoding') as Promise<google.maps.GeocodingLibrary>,
-      ]);
+      const { Map } = (await importLibrary('maps')) as google.maps.MapsLibrary;
       const hasCoordinates =
         Number.isFinite(this.latitude) &&
         Number.isFinite(this.longitude) &&
@@ -246,10 +272,13 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         this.latitude! <= 43.7 &&
         this.longitude! >= 39.8 &&
         this.longitude! <= 46.8;
+      // Listings without a saved point fall back to their address, geocoded once per browser.
+      const geocoded = hasCoordinates ? null : await geocodeCached({ address: `${this.address}, Georgia` });
       const location = hasCoordinates
         ? new google.maps.LatLng(this.latitude!, this.longitude!)
-        : (await new Geocoder().geocode({ address: `${this.address}, Georgia` })).results[0]
-            ?.geometry.location;
+        : geocoded
+          ? new google.maps.LatLng(geocoded.lat, geocoded.lng)
+          : undefined;
       if (!location) throw new Error('Address not found');
       this.apartmentLocation = location;
       this.map = new Map(this.mapContainer.nativeElement, {
