@@ -959,6 +959,16 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Up to $100,000', 'До $100,000'],
   ['No min', 'Любая'],
   ['No max', 'Любая'],
+  ['Choose one or more areas', 'Выберите один или несколько районов'],
+  ['Choose up to 3 options. With one choice we show homes with that many bedrooms or more.', 'Выберите до 3 вариантов. При одном выборе показываем жильё с таким или большим числом спален.'],
+  ['We show homes with any of the selected numbers of bedrooms.', 'Показываем жильё с любым из выбранных количеств спален.'],
+  ['Update my results', 'Обновить результаты'],
+  ['Your answers', 'Ваши ответы'],
+  ['Tap one to change it', 'Нажмите, чтобы изменить'],
+  ['See all answers', 'Все ответы'],
+  ['Top 5 priorities', 'Топ-5 приоритетов'],
+  ['Flexible', 'Гибко'],
+  ['Selected map area', 'Выбранная область на карте'],
 ]);
 
 /** "dog and cat" (Velven Match pet list) in this language. */
@@ -971,6 +981,10 @@ function ruPets(list: string): string {
 }
 
 const RUSSIAN_RULES: RussianRule[] = [
+  {
+    pattern: /^(\d+) min drive$/i,
+    translate: (match) => `${match[1]} мин на машине`,
+  },
   // Velven Match budget tolerance and multi-pet notes.
   {
     pattern: /^Budget: (.+)\/month above your maximum of (.+)$/i,

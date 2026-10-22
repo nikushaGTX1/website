@@ -411,9 +411,9 @@
         </div>
         <article
           class="property-card"
-          *ngFor="let apartment of paginatedApartments; trackBy: trackApartmentById"
+          *ngFor="let apartment of paginatedApartments; let cardIndex = index; trackBy: trackApartmentById"
           [class.active]="selectedApartment?.id === apartment.id"
-          (mouseenter)="hoveredApartmentId = apartment.id; selectApartment(apartment)"
+          (mouseenter)="hoveredApartmentId = apartment.id; selectApartment(apartment); onCardHover(apartment)"
           (mouseleave)="hoveredApartmentId = null"
           (focusin)="hoveredApartmentId = apartment.id; selectApartment(apartment)"
           (focusout)="hoveredApartmentId = null"
@@ -442,7 +442,9 @@
                 [src]="isNearPhoto(apartment, photoIndex) ? image : blankPhoto" [alt]="photoIndex === cardImageIndex(apartment) ? ((apartment.title | listingTitle) || 'Property in Tbilisi') : ''"
                 width="640" height="400"
                 [attr.aria-hidden]="photoIndex !== cardImageIndex(apartment) ? true : null"
-                loading="lazy" decoding="async" draggable="false" (error)="onApartmentImageError($event)" />
+                [attr.loading]="cardIndex < 6 && photoIndex === 0 ? 'eager' : 'lazy'"
+                [attr.fetchpriority]="cardIndex < 3 && photoIndex === 0 ? 'high' : null"
+                decoding="async" draggable="false" (error)="onApartmentImageError($event)" />
             </div>
             <button class="card-photo-arrow previous" type="button" aria-label="Previous photo"
               *ngIf="cardImageIndex(apartment) > 0" (click)="changeCardPhoto($event, apartment, -1)">

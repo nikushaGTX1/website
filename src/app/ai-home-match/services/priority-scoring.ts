@@ -151,8 +151,6 @@ export function scorePriority(priority: string, apartment: HomeMatchApartment, p
       return yes(apartment.hasHomeOfficeSpace || hasTag(apartment, 'Home office'));
     case 'BalconyOrTerrace':
       return yes(apartment.hasBalcony);
-    case 'LargeLivingRoom':
-      return yes(hasTag(apartment, 'Large living room') || (apartment.sizeSquareMeters ?? 0) >= 90);
     case 'MultipleBathrooms':
       return yes((apartment.bathrooms ?? 0) >= 2);
     case 'SecurityOrConcierge':

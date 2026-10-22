@@ -189,28 +189,47 @@
             <i class="style-check fa-solid fa-check" aria-hidden="true"></i>
           </button>
         </div>
-        <div *ngSwitchCase="2">
-          <div class="options compact">
+        <div *ngSwitchCase="2" class="district-step">
+          <h3 class="district-heading">Popular areas</h3>
+          <div class="featured-district-grid">
             <button
               type="button"
-              *ngFor="let option of districts"
-              [class.selected]="
-                option.value === 'SelectOnMap'
-                  ? !!profile.selectedMapArea
-                  : selected('districts', option.value)
-              "
-              [attr.aria-pressed]="
-                option.value === 'SelectOnMap'
-                  ? !!profile.selectedMapArea
-                  : selected('districts', option.value)
-              "
+              *ngFor="let area of featuredDistricts"
+              [class.selected]="selected('districts', area.value)"
+              [attr.aria-pressed]="selected('districts', area.value)"
+              (click)="selectDistrict(area.value)"
+            >
+              <img class="featured-district-icon" [src]="area.icon" alt="" aria-hidden="true" />
+              <span
+                ><b>{{ answerLabel(area.value) }}</b><small>{{ area.description }}</small></span
+              >
+              <i class="fa-solid fa-circle-check district-check" aria-hidden="true"></i>
+            </button>
+          </div>
+          <h3 class="district-heading">All areas</h3>
+          <p class="district-subtitle">Choose one or more areas</p>
+          <div class="all-district-grid">
+            <button
+              type="button"
+              *ngFor="let option of otherDistricts"
+              [class.selected]="selected('districts', option.value)"
+              [attr.aria-pressed]="selected('districts', option.value)"
               (click)="selectDistrict(option.value)"
             >
+              <span>{{ option.label }}</span>
+              <em class="district-radio" aria-hidden="true"></em>
+            </button>
+          </div>
+          <div class="options compact district-extra-options">
+            <button
+              type="button"
+              [class.selected]="!!profile.selectedMapArea"
+              [attr.aria-pressed]="!!profile.selectedMapArea"
+              (click)="selectDistrict('SelectOnMap')"
+            >
               <svg class="option-icon" aria-hidden="true">
-                <use
-                  [attr.href]="'/ai-match-icons.svg#' + optionIcon(option.value, option.label)"
-                ></use></svg
-              >{{ option.label }}</button
+                <use href="/ai-match-icons.svg#location"></use></svg
+              >Select on map</button
             ><button
               type="button"
               [class.selected]="profile.locationFlexible"
@@ -395,17 +414,14 @@
           <div class="options">
             <button
               type="button"
-              *ngFor="
-                let option of [
-                  { label: 'Studio', value: 0 },
-                  { label: '1 bedroom', value: 1 },
-                  { label: '2 bedrooms', value: 2 },
-                  { label: '3 bedrooms', value: 3 },
-                  { label: '4 or more', value: 4 },
-                  { label: 'Let AI decide', value: null },
-                ]
+              *ngFor="let option of bedroomOptions"
+              [class.selected]="bedroomSelected(option.value)"
+              [attr.aria-pressed]="bedroomSelected(option.value)"
+              [disabled]="
+                option.value !== null &&
+                !bedroomSelected(option.value) &&
+                (profile.bedroomChoices?.length || 0) >= maxBedroomChoices
               "
-              [class.selected]="profile.bedrooms === option.value"
               (click)="setBedrooms(option.value)"
             >
               <svg class="option-icon" aria-hidden="true">
@@ -415,8 +431,11 @@
               >{{ option.label }}
             </button>
           </div>
-          <p class="step-hint">
-            We show homes with the selected number of bedrooms or more.
+          <p class="step-hint" *ngIf="(profile.bedroomChoices?.length || 0) < 2">
+            Choose up to 3 options. With one choice we show homes with that many bedrooms or more.
+          </p>
+          <p class="step-hint" *ngIf="(profile.bedroomChoices?.length || 0) >= 2">
+            We show homes with any of the selected numbers of bedrooms.
           </p>
         </div>
         <div *ngSwitchCase="7">
@@ -643,7 +662,7 @@
       <div class="actions">
         <button type="button" class="back" (click)="back()" [disabled]="stepNumber === 1">← Back</button
         ><button type="button" class="continue" (click)="next()" [disabled]="!canContinue()">
-          {{ step === visibleSteps[visibleSteps.length - 1] ? 'Review My Profile' : 'Continue →' }}
+          {{ returnToResultsAfterStep ? 'Update my results' : step === visibleSteps[visibleSteps.length - 1] ? 'Review My Profile' : 'Continue →' }}
         </button>
       </div>
     </section>
@@ -760,6 +779,7 @@
   [matches]="matches"
   [profile]="profile"
   (edit)="showReview()"
+  (changeAnswer)="changeFromResults($event)"
 ></app-home-match-results>
 
 <app-draw-area-map

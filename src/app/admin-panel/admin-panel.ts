@@ -20,7 +20,7 @@ import {
   GoogleNearbyTimeService,
   NearbyTimeKey,
 } from '../maps/services/google-nearby-time.service';
-import { encodeNearbyPlaceNames, splitNearbyPlaceNames } from '../utils/nearby-places';
+import { encodeNearbyPlaceNames, isHouseListing, splitNearbyPlaceNames } from '../utils/nearby-places';
 import { isListedUniversity } from '../utils/universities';
 
 /** Saved in nearbyPlaceNames when the admin refresh last measured a listing. */
@@ -1030,13 +1030,18 @@ export class AdminPanel implements OnInit, OnDestroy {
         if (!pin && !apartment.address) continue;
         // Each listing costs ~25 Places/Directions calls. Re-measure a listing at most once
         // every 30 days; nearby shops and parks rarely change faster than that.
-        const checkedAt = Date.parse(splitNearbyPlaceNames(apartment.nearbyPlaceNames).names[NEARBY_CHECKED_KEY] || '');
-        if (Number.isFinite(checkedAt) && Date.now() - checkedAt < NEARBY_RECHECK_MS) {
+        const savedNearby = splitNearbyPlaceNames(apartment.nearbyPlaceNames);
+        const checkedAt = Date.parse(savedNearby.names[NEARBY_CHECKED_KEY] || '');
+        // Houses show drive times; one checked before those were measured is not skipped.
+        const house = isHouseListing(apartment);
+        const houseMissingDrives =
+          house && keys.some((key) => apartment[key as keyof Apartment] != null && savedNearby.driveMinutes[key] == null);
+        if (Number.isFinite(checkedAt) && Date.now() - checkedAt < NEARBY_RECHECK_MS && !houseMissingDrives) {
           skipped++;
           continue;
         }
         try {
-          const times = await this.nearbyTimes.getWalkingTimes(apartment.address || '', pin);
+          const times = await this.nearbyTimes.getWalkingTimes(apartment.address || '', pin, { driveAll: house });
           const changes: Partial<Record<NearbyTimeKey, number>> & { nearbyPlaceNames?: string } =
             {};
           const saved = splitNearbyPlaceNames(apartment.nearbyPlaceNames);

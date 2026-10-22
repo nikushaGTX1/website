@@ -17,7 +17,7 @@ import {
   parkingScore,
   scorePriority,
 } from '../services/priority-scoring';
-import { answerLabel } from '../services/answer-labels';
+import { answerLabel, answerList, bedroomsLabel } from '../services/answer-labels';
 import {
   budgetRangeUsd,
   evaluateMandatoryRequirements,
@@ -68,6 +68,51 @@ export class HomeMatchResultsComponent implements OnChanges {
   @Input() matches: HomeMatchResult[] = [];
   @Input({ required: true }) profile!: HomeMatchProfile;
   @Output() edit = new EventEmitter<void>();
+  /** Emits the question step whose answer the user wants to change from the results. */
+  @Output() changeAnswer = new EventEmitter<number>();
+
+  /** The main answers, shown above the results so each can be changed in one tap. */
+  get answerChips(): Array<{ step: number; label: string; value: string; icon: string }> {
+    const p = this.profile;
+    const rent = p.propertyGoal !== 'Buy';
+    const location = p.locationFlexible
+      ? 'Flexible'
+      : p.districts.length
+        ? answerList(p.districts)
+        : p.selectedMapArea
+          ? 'Selected map area'
+          : '';
+    const chips = [
+      location ? { step: 2, label: 'Location', value: location, icon: 'fa-location-dot' } : null,
+      rent
+        ? {
+            step: 3,
+            label: 'Budget',
+            value: `${p.currency} ${p.budgetMin.toLocaleString()}–${p.budgetMax.toLocaleString()}`,
+            icon: 'fa-wallet',
+          }
+        : null,
+      p.bedrooms !== undefined
+        ? { step: 6, label: 'Bedrooms', value: bedroomsLabel(p), icon: 'fa-bed' }
+        : null,
+      p.lifestyles.length
+        ? { step: 9, label: 'Lifestyle', value: answerList(p.lifestyles), icon: 'fa-heart' }
+        : null,
+      p.transportation.length
+        ? { step: 8, label: 'Transport', value: answerList(p.transportation), icon: 'fa-route' }
+        : null,
+      p.topPriorities.length
+        ? {
+            step: 11,
+            label: 'Top 5 priorities',
+            // " · ", not ", ": one priority itself contains a comma, which kept the list untranslated.
+            value: p.topPriorities.map(answerLabel).join(' · '),
+            icon: 'fa-list-ol',
+          }
+        : null,
+    ];
+    return chips.filter((chip): chip is NonNullable<typeof chip> => !!chip);
+  }
   readonly enrichingApartmentIds = new Set<number>();
   private readonly failedImageIndexes = new WeakMap<HTMLImageElement, number>();
   private readonly attemptedEnrichment = new WeakSet<HomeMatchResult>();

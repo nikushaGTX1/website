@@ -21,7 +21,10 @@ export interface HomeMatchProfile {
   adults: number;
   children: number;
   childrenAgeGroups: string[];
+  /** Smallest chosen bedroom count (null = "Let AI decide"); kept for the API and older code. */
   bedrooms?: number | null;
+  /** Every chosen bedroom count, up to 3 (4 = "4 or more"). Empty with "Let AI decide". */
+  bedroomChoices?: number[];
   rentalDuration?: string;
   moveInTiming?: string;
   moveInDate?: string;
@@ -59,6 +62,7 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   children: 0,
   childrenAgeGroups: [],
   bedrooms: undefined,
+  bedroomChoices: [],
   transportation: [],
   parkingAutomaticallyPrioritized: false,
   lifestyles: [],

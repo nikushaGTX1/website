@@ -147,17 +147,25 @@ export class VelvenLifestyleAvatarComponent {
     if (figure.role !== 'adult' || !figure.primary || figure.gender !== this.profile.gender)
       return figure.src;
 
-    const isWoman = figure.gender === 'Female';
-    const lifestyles = new Set(this.profile.lifestyles);
+    const variant = this.lifestyleVariant;
+    return variant ? this.variantAsset(variant, figure.gender === 'Female') : figure.src;
+  }
 
-    if (this.wearsGymOutfit) return this.variantAsset('athlete', isWoman);
-    if (lifestyles.has('Student')) return this.variantAsset('student', isWoman);
-    if (lifestyles.has('BusinessProfessional')) return this.variantAsset('business', isWoman);
-    if (lifestyles.has('HostsGuests')) return this.variantAsset('host', isWoman);
-    if (lifestyles.has('RemoteWorker')) return this.variantAsset('remote', isWoman);
-    if (lifestyles.has('QuietLifestyle')) return this.variantAsset('quiet', isWoman);
-
-    return figure.src;
+  /**
+   * The outfit comes from the first lifestyle the user picked that has one, so picking a
+   * second or third option later never swaps the character they started with.
+   */
+  private get lifestyleVariant(): string | undefined {
+    const variants: Record<string, string> = {
+      Athlete: 'athlete',
+      Student: 'student',
+      BusinessProfessional: 'business',
+      HostsGuests: 'host',
+      RemoteWorker: 'remote',
+      QuietLifestyle: 'quiet',
+    };
+    const first = this.profile.lifestyles.find((lifestyle) => variants[lifestyle]);
+    return first ? variants[first] : undefined;
   }
 
   private variantAsset(variant: string, isWoman: boolean): string {
@@ -174,7 +182,7 @@ export class VelvenLifestyleAvatarComponent {
   }
 
   get wearsGymOutfit(): boolean {
-    return this.profile.lifestyles.includes('Athlete');
+    return this.lifestyleVariant === 'athlete';
   }
 
   get adults(): unknown[] {

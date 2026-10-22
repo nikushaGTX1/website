@@ -245,3 +245,9 @@
   padding: 0 2%;
   box-sizing: border-box;
 }
+
+/* A dog and a cat stand a little apart instead of overlapping each other. */
+.character-stage.character-group .pet-figure + .pet-figure,
+.character-stage.character-group.crowded-group .pet-figure + .pet-figure {
+  margin-left: 4%;
+}

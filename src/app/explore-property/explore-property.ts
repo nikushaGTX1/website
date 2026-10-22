@@ -575,6 +575,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   private readonly cardGalleries = new Map<number, string[]>();
   private readonly cardGalleryRequests = new Set<number>();
+  /** Cards swiped forward while their gallery was still loading. */
+  private readonly pendingCardSwipes = new Set<number>();
 
   // The list endpoint only returns the cover photo; fetch the full gallery
   // once per card so swiping has more than one image to move through.
@@ -587,11 +589,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
         const images = (detailed.imageUrls || []).filter(Boolean);
         if (images.length > 1) {
           this.cardGalleries.set(apartment.id, images);
+          // A swipe made before the photos arrived still moves on to the next photo.
+          if (this.pendingCardSwipes.delete(apartment.id) && !this.cardImageIndexes.get(apartment.id))
+            this.cardImageIndexes.set(apartment.id, 1);
           // Only the next photo: whole galleries for every card meant ~90 photos (11 MB)
           // downloading in the background and slowing the photos actually on screen.
           this.queuePreload(images.slice(1, 2));
           this.cdr.detectChanges();
         }
+        this.pendingCardSwipes.delete(apartment.id);
       },
       error: () => this.cardGalleryRequests.delete(apartment.id),
     });
@@ -701,12 +707,21 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.preloadImage(this.cardImages(apartment)[next + direction]);
   }
 
+  private galleryPrefetchTimer?: number;
+
   private prefetchCardGalleries(): void {
     // Twenty cards per page: fetching every gallery at once would fire twenty detail requests
-    // and preload hundreds of photos. The first cards get theirs now, the rest on hover.
-    this.pageApartments
-      .slice(0, this.galleryPrefetchCount)
-      .forEach((apartment) => this.loadCardGallery(apartment));
+    // next to the photos on screen. The first cards get theirs now; the rest follow shortly,
+    // three at a time. (Only the first six used to load, so cards 7+ could not be swiped.)
+    window.clearTimeout(this.galleryPrefetchTimer);
+    const page = this.pageApartments;
+    page.slice(0, this.galleryPrefetchCount).forEach((apartment) => this.loadCardGallery(apartment));
+    const rest = page.slice(this.galleryPrefetchCount);
+    const next = (): void => {
+      rest.splice(0, 3).forEach((apartment) => this.loadCardGallery(apartment));
+      if (rest.length) this.galleryPrefetchTimer = window.setTimeout(next, 350);
+    };
+    if (rest.length) this.galleryPrefetchTimer = window.setTimeout(next, 700);
   }
 
   onCardHover(apartment: Apartment): void {
@@ -784,6 +799,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
         (Math.abs(dx) > gesture.width * 0.2 || (Math.abs(dx) > 25 && Math.abs(dx) / elapsed > 0.45))
       ) {
         const next = this.cardImageIndex(apartment) + (dx < 0 ? 1 : -1);
+        if (dx < 0 && this.cardImages(apartment).length <= 1 && this.cardGalleryRequests.has(apartment.id))
+          this.pendingCardSwipes.add(apartment.id);
         this.cardImageIndexes.set(
           apartment.id,
           Math.max(0, Math.min(this.cardImages(apartment).length - 1, next)),
@@ -1845,6 +1862,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (this.sizeOpen) unlockPageScroll();
     window.removeEventListener('wheel', this.guardWheel, true);
     window.clearTimeout(this.areaSheetTimer);
+    window.clearTimeout(this.galleryPrefetchTimer);
     if (this.areaSheetOpen) unlockPageScroll();
   }
 

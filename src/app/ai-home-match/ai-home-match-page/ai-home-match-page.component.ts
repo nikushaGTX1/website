@@ -15,7 +15,13 @@ import { GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { applyPriorityScoring } from '../services/priority-scoring';
-import { answerLabel, answerList, isPastDate, todayIso } from '../services/answer-labels';
+import {
+  answerLabel,
+  answerList,
+  isPastDate,
+  selectedBedrooms,
+  todayIso,
+} from '../services/answer-labels';
 import {
   petsExplicitlyProhibited,
   selectedPets,
@@ -80,28 +86,51 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     },
     { title: 'What style of apartment do you like?' },
   ];
-  readonly districts = this.opts(
+  /** Same popular-area cards as the location picker on the main page. */
+  readonly featuredDistricts = [
+    { value: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-tree.svg' },
+    {
+      value: 'Saburtalo',
+      description: 'Central & convenient',
+      icon: '/icons/areas/saburtalo-buildings.svg',
+    },
+    { value: 'Vera', description: 'Historic central', icon: '/icons/areas/vera-heritage-house.svg' },
+    {
+      value: 'Mtatsminda',
+      description: 'Old city & views',
+      icon: '/icons/areas/mtatsminda-columns.svg',
+    },
+  ];
+  readonly otherDistricts = this.opts(
     [
-      'Vake',
-      'Saburtalo',
-      'Vera',
-      'Mtatsminda',
       'Dighomi',
       'Didi Dighomi',
+      'Didube',
+      'Avlabari',
       'Isani',
+      'Gldani',
+      'Chugureti',
       'Ortachala',
-      'Select on map',
+      'Nadzaladevi',
+      'Krtsanisi',
+      'Vashlijvari',
+      'Sololaki',
+      'Samgori',
     ],
     [
-      'Vake',
-      'Saburtalo',
-      'Vera',
-      'Mtatsminda',
       'Dighomi',
       'DidiDighomi',
+      'Didube',
+      'Avlabari',
       'Isani',
+      'Gldani',
+      'Chugureti',
       'Ortachala',
-      'SelectOnMap',
+      'Nadzaladevi',
+      'Krtsanisi',
+      'Vashlijvari',
+      'Sololaki',
+      'Samgori',
     ],
   );
   readonly household = this.opts(
@@ -442,7 +471,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       balcony: 'balcony',
       naturallight: 'light',
       quietstreet: 'quiet',
-      largelivingroom: 'home',
       largekitchen: 'kitchen',
       separateworkspace: 'office',
       goodview: 'view',
@@ -675,8 +703,37 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       );
     this.persist();
   }
+  readonly bedroomOptions: Array<{ label: string; value: number | null }> = [
+    { label: 'Studio', value: 0 },
+    { label: '1 bedroom', value: 1 },
+    { label: '2 bedrooms', value: 2 },
+    { label: '3 bedrooms', value: 3 },
+    { label: '4 or more', value: 4 },
+    { label: 'Let AI decide', value: null },
+  ];
+  readonly maxBedroomChoices = 3;
+
+  bedroomSelected(value: number | null): boolean {
+    return value === null
+      ? this.profile.bedrooms === null
+      : selectedBedrooms(this.profile).includes(value);
+  }
+
+  /** Up to three bedroom counts; "Let AI decide" clears them and is cleared by any count. */
   setBedrooms(value: number | null): void {
-    this.profile.bedrooms = value;
+    if (value === null) {
+      this.profile.bedroomChoices = [];
+      this.profile.bedrooms = null;
+    } else {
+      const current = this.profile.bedrooms === null ? [] : selectedBedrooms(this.profile);
+      const choices = current.includes(value)
+        ? current.filter((item) => item !== value)
+        : current.length < this.maxBedroomChoices
+          ? [...current, value].sort((a, b) => a - b)
+          : current;
+      this.profile.bedroomChoices = choices;
+      this.profile.bedrooms = choices.length ? choices[0] : undefined;
+    }
     this.persist();
   }
   readonly dogSizes: Array<{ value: DogSize; label: string; hint: string; iconSize: number }> = [
@@ -835,6 +892,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return;
       }
       this.returnToReviewAfterStep = false;
+      if (this.returnToResultsAfterStep) {
+        // Changed from the results page: recalculate right away instead of showing the summary.
+        this.returnToResultsAfterStep = false;
+        this.submit();
+        return;
+      }
       this.showReview();
       return;
     }
@@ -874,7 +937,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['budgetMin', 'budgetMax', 'currency'],
       ['householdType', 'adults', 'children', 'childrenAgeGroups'],
       ['adults', 'children', 'childrenAgeGroups'],
-      ['bedrooms'],
+      ['bedrooms', 'bedroomChoices'],
       ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
       ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized', 'carFuelType'],
       ['lifestyles'],
@@ -924,14 +987,23 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   /** Walks through every step again with all saved answers pre-selected; ends on the profile page. */
   editProfile(): void {
     this.returnToReviewAfterStep = false;
+    this.returnToResultsAfterStep = false;
     this.step = this.visibleSteps[0] ?? 0;
     this.view = 'questions';
     this.quizStarted = true;
     this.scrollToStepTop();
   }
   private returnToReviewAfterStep = false;
+  /** True while one answer is being changed from the results page. */
+  returnToResultsAfterStep = false;
+  /** "Change" on the results page: edit that answer, then go straight back to updated results. */
+  changeFromResults(step: number): void {
+    this.goToStep(step);
+    this.returnToResultsAfterStep = this.visibleSteps.includes(step);
+  }
   goToStep(step: number): void {
     if (!this.visibleSteps.includes(step)) return;
+    this.returnToResultsAfterStep = false;
     this.returnToReviewAfterStep = true;
     this.step = step;
     this.view = 'questions';
@@ -1008,8 +1080,19 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   private generateSuggestedPriorities(): HomeMatchOption[] {
     const suggestions = new Map<string, HomeMatchOption>();
+    // These all say "near cafés" in slightly different words; offering two of them looked
+    // like the same option twice, so only the first one that applies is kept.
+    const cafeOptions = new Set([
+      'CafesNearby',
+      'CafesOrCoworkingNearby',
+      'CafesAndRestaurantsNearby',
+      'MeetingPlacesNearby',
+      'StudySpacesNearby',
+    ]);
     const add = (label: string, value: string, strongest = false): void => {
       if (suggestions.has(value)) return;
+      if (cafeOptions.has(value) && [...suggestions.keys()].some((key) => cafeOptions.has(key)))
+        return;
       const option = { label, value };
       if (!strongest) {
         suggestions.set(value, option);
@@ -1026,6 +1109,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       (!!this.profile.proximityTarget && this.profile.proximityTarget !== 'No') ||
       !!this.profile.proximityAddress?.trim();
     if (hasLocation) add('Proximity to selected location', 'SelectedLocationNearby');
+    // "Proximity to office" only makes sense once the office address was given on the location step.
+    const officeAddressGiven =
+      this.profile.proximityTarget === 'Workplace' && !!this.profile.proximityAddress?.trim();
 
     const familyHousehold =
       this.profile.children > 0 ||
@@ -1069,10 +1155,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     if (['Friends', 'Roommates'].includes(this.profile.householdType)) {
       add('Proximity to metro', 'MetroNearby');
       add('Proximity to selected location', 'SelectedLocationNearby');
-      add('Large living room', 'LargeLivingRoom');
     }
     if (this.profile.householdType === 'CorporateHousing') {
-      add('Proximity to office', 'OfficeNearby');
+      if (officeAddressGiven) add('Proximity to office', 'OfficeNearby');
       add('Proximity to metro', 'MetroNearby');
       add('Parking', 'Parking');
       add('Isolated bedrooms', 'IsolatedBedrooms');
@@ -1099,7 +1184,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       add('Everyday services (supermarket, pharmacy)', 'EverydayServicesNearby');
     }
     if (lifestyle.has('BusinessProfessional')) {
-      add('Proximity to office', 'OfficeNearby', true);
+      if (officeAddressGiven) add('Proximity to office', 'OfficeNearby', true);
       if (this.profile.transportation.includes('Car')) add('Parking', 'Parking');
       add('Proximity to cafés and restaurants for meetings', 'MeetingPlacesNearby');
       add('Security or concierge', 'SecurityOrConcierge');
@@ -1128,7 +1213,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       add('Proximity to cafés and restaurants', 'CafesAndRestaurantsNearby');
       add('Proximity to city center', 'CityCenterNearby');
       add('Proximity to bars and entertainment districts', 'EntertainmentNearby');
-      add('Large living room', 'LargeLivingRoom');
       add('Balcony or terrace', 'BalconyOrTerrace');
     }
 

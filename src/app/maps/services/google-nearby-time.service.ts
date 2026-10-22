@@ -54,15 +54,21 @@ export class GoogleNearbyTimeService {
    * address is only a fallback, because geocoding a side street (e.g. "Chavchavadze
    * 1st Dead End") can snap to the main avenue and measure from the wrong place.
    */
-  getWalkingTimes(address: string, point?: google.maps.LatLngLiteral | null): Promise<NearbyWalkingTimes> {
+  getWalkingTimes(
+    address: string,
+    point?: google.maps.LatLngLiteral | null,
+    options: { driveAll?: boolean } = {},
+  ): Promise<NearbyWalkingTimes> {
     const pin = point && Number.isFinite(point.lat) && Number.isFinite(point.lng) ? point : null;
-    const key = pin ? `${pin.lat.toFixed(6)},${pin.lng.toFixed(6)}` : address.trim().toLowerCase();
-    if (!key) return Promise.resolve({});
+    const location = pin ? `${pin.lat.toFixed(6)},${pin.lng.toFixed(6)}` : address.trim().toLowerCase();
+    if (!location) return Promise.resolve({});
+    const driveAll = !!options.driveAll;
+    const key = driveAll ? `${location}|drive` : location;
 
     const cached = this.cache.get(key);
     if (cached) return cached;
 
-    const request = this.loadWalkingTimes(address, pin);
+    const request = this.loadWalkingTimes(address, pin, driveAll);
     this.cache.set(key, request);
     return request;
   }
@@ -229,9 +235,11 @@ export class GoogleNearbyTimeService {
     };
   }
 
+  /** With driveAll (houses), every place also gets a drive time, not only those too far to walk. */
   private async loadWalkingTimes(
     address: string,
     pin: google.maps.LatLngLiteral | null,
+    driveAll = false,
   ): Promise<NearbyWalkingTimes> {
     this.configure();
 
@@ -327,7 +335,8 @@ export class GoogleNearbyTimeService {
             if (routeMeters > Math.max(400, straight * 2.5)) {
               walkMinutes = Math.min(walkMinutes ?? straightMinutes, straightMinutes);
             }
-            if (walkMinutes != null && walkMinutes <= MAX_WALK_MINUTES) return [key, walkMinutes, name, undefined] as const;
+            if (walkMinutes != null && walkMinutes <= MAX_WALK_MINUTES && !driveAll)
+              return [key, walkMinutes, name, undefined] as const;
 
             const drive = await new routes.DirectionsService()
               .route({ origin, destination, travelMode: routes.TravelMode.DRIVING })

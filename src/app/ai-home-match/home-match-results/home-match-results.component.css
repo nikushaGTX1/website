@@ -808,3 +808,94 @@ h1 {
   background: url('/property-placeholder.svg') center / 38% no-repeat;
 }
 .mc-track img.placeholder-image { object-fit: contain; padding: 12%; box-sizing: border-box; }
+
+/* "Your answers" — every main answer can be changed straight from the results. */
+.answer-chips {
+  margin-top: 22px;
+}
+.answer-chips-title {
+  margin: 0 0 10px !important;
+  color: #211d35 !important;
+  font-size: 14px;
+  font-weight: 800;
+}
+.answer-chips-title small {
+  margin-left: 6px;
+  color: #8a8496;
+  font-size: 12px;
+  font-weight: 600;
+}
+.answer-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.answer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid #e3ddf0;
+  border-radius: 12px;
+  background: #fff;
+  color: #211d35;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.answer-chip:hover,
+.answer-chip:focus-visible {
+  border-color: #451a8f;
+  background: #f8f5ff;
+}
+.answer-chip > .fa-solid:first-child {
+  color: #451a8f;
+  font-size: 14px;
+}
+.answer-chip span {
+  display: grid;
+  min-width: 0;
+}
+.answer-chip small {
+  color: #8a8496;
+  font-size: 11px;
+  font-weight: 700;
+}
+.answer-chip b {
+  overflow: hidden;
+  max-width: 260px;
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.answer-chip-edit {
+  color: #9b8fc0;
+  font-size: 11px;
+}
+.answer-chips-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #451a8f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .answer-chip-list {
+    justify-content: center;
+  }
+  .answer-chip b {
+    max-width: 200px;
+  }
+}

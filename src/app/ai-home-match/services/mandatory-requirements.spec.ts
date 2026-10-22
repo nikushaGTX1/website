@@ -157,3 +157,18 @@ test('older profiles with a single petType still work', () => {
   assert.deepEqual(selectedPets(profile({ hasPet: true, petType: 'Dog' })), ['Dog']);
   assert.equal(petListLabel(['Dog', 'Cat']), 'dog and cat');
 });
+
+test('one bedroom choice means that many or more; several choices mean one of those counts', () => {
+  const single = profile({ bedrooms: 2, bedroomChoices: [2] });
+  assert.equal(evaluateMandatoryRequirements(apartment({ bedrooms: 3 }), single, rates).mismatches.length, 0);
+  assert.equal(evaluateMandatoryRequirements(apartment({ bedrooms: 1 }), single, rates).status, 'alternative');
+
+  const several = profile({ bedrooms: 1, bedroomChoices: [1, 2, 4] });
+  for (const bedrooms of [1, 2, 5])
+    assert.equal(evaluateMandatoryRequirements(apartment({ bedrooms }), several, rates).mismatches.length, 0, String(bedrooms));
+  const three = evaluateMandatoryRequirements(apartment({ bedrooms: 3 }), several, rates);
+  assert.deepEqual(three.mismatches, ['Bedrooms: 3, you need 1/2/4+']);
+
+  // Older saved profiles only had `bedrooms`.
+  assert.equal(evaluateMandatoryRequirements(apartment({ bedrooms: 1 }), profile({ bedrooms: 2 }), rates).status, 'alternative');
+});

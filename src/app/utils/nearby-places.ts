@@ -21,6 +21,7 @@ export function cardNearbyPlaces(
   count = 3,
   parkingDetail?: string,
 ): NearbyPlace[] {
+  if (isHouseListing(apartment)) return houseNearbyPlaces(apartment, count, parkingDetail);
   const walk = (minutes: number | null | undefined): string | null =>
     minutes != null && Number.isFinite(Number(minutes)) && Number(minutes) <= MAX_WALK_MINUTES
       ? `${Number(minutes)} min walk`
@@ -67,6 +68,63 @@ export function cardNearbyPlaces(
 
 /** Drives longer than this are not "nearby". */
 const MAX_DRIVE_MINUTES = 30;
+
+/** Private and country houses: people living there usually drive, so cards show drive times. */
+export function isHouseListing(apartment: Partial<Pick<Apartment, 'title' | 'description'>>): boolean {
+  // The listing meta is "Type: Private house | Deal: For rent | ...". Match only a part that
+  // starts with "Type:", never "Parking type:" or "View type:".
+  const type = (apartment.description || '')
+    .split(/[|\n]/)
+    .map((part) => part.trim())
+    .find((part) => /^type:/i.test(part))
+    ?.slice(5)
+    .trim()
+    .toLowerCase();
+  if (type) return /\bhouse\b|cottage|villa/.test(type);
+  return /private house|country house|კერძო სახლი|აგარაკი|частный дом|загородный дом/i.test(
+    apartment.title || '',
+  );
+}
+
+/**
+ * Drive minutes for a house card. A measured drive time is used when saved; otherwise it is
+ * worked out from the measured walking route (about 80 m per walking minute, ~400 m per
+ * minute by car in town, plus a minute to get going).
+ */
+function houseDriveMinutes(apartment: Apartment, key: string, driving: Record<string, number>): number | null {
+  const measured = driving[key];
+  if (measured != null) return measured;
+  const walked = Number(
+    key === 'universityDistanceMinutes'
+      ? listedUniversityMinutes(apartment)
+      : apartment[key as keyof Apartment],
+  );
+  return walked > 0 && Number.isFinite(walked) ? Math.round(walked / 5) + 1 : null;
+}
+
+function houseNearbyPlaces(apartment: Apartment, count: number, parkingDetail?: string): NearbyPlace[] {
+  const driving = nearbyDriveMinutes(apartment);
+  const drive = (key: string): string | null => {
+    const minutes = houseDriveMinutes(apartment, key, driving);
+    return minutes != null && minutes <= MAX_DRIVE_MINUTES ? `${minutes} min drive` : null;
+  };
+  const candidates: Array<NearbyPlace | null> = [
+    detailOrNull('Metro', 'fa-solid fa-train-subway', drive('metroDistanceMinutes')),
+    detailOrNull('Park', 'fa-solid fa-tree', drive('parkDistanceMinutes')),
+    detailOrNull('Fitness', 'fa-solid fa-dumbbell', drive('gymDistanceMinutes')),
+    detailOrNull('Grocery', 'fa-solid fa-basket-shopping', drive('groceryDistanceMinutes')),
+    detailOrNull('Pharmacy', 'fa-solid fa-prescription-bottle-medical', drive('pharmacyDistanceMinutes')),
+    detailOrNull('Café', 'fa-solid fa-mug-hot', drive('cafeDistanceMinutes')),
+    detailOrNull('School', 'fa-solid fa-graduation-cap', drive('schoolDistanceMinutes')),
+    detailOrNull('Kindergarten', 'fa-solid fa-children', drive('kindergartenDistanceMinutes')),
+    detailOrNull('University', 'fa-solid fa-building-columns', drive('universityDistanceMinutes')),
+  ];
+  const places = candidates.filter((place): place is NearbyPlace => !!place);
+  const parking = apartment.hasParking
+    ? { label: 'Parking', icon: 'fa-solid fa-car', detail: parkingDetail || 'Available' }
+    : null;
+  return [...places, ...(parking ? [parking] : [])].slice(0, count);
+}
 
 /** Key prefix for driving minutes inside the nearbyPlaceNames JSON. */
 const DRIVE_PREFIX = 'drive:';

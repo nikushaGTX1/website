@@ -24,7 +24,7 @@ import {
 } from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
 import { parseParkingCost } from '../utils/parking-cost';
-import { encodeNearbyPlaceNames, splitNearbyPlaceNames } from '../utils/nearby-places';
+import { encodeNearbyPlaceNames, isHouseListing, splitNearbyPlaceNames } from '../utils/nearby-places';
 
 /** Publishing never waits longer than this before showing an error. */
 const SAVE_TIMEOUT_MS = 45000;
@@ -1966,6 +1966,8 @@ export class UploadApartment implements OnInit, OnDestroy {
                   lng: Number(this.form.propertyLongitude),
                 }
               : null,
+            // House cards show drive times, so measure a drive to every nearby place.
+            { driveAll: isHouseListing({ description: `Type: ${this.form.realEstateType}` }) },
           ),
           // Out-of-town homes also need drive routes, so allow a little longer.
           new Promise<NearbyWalkingTimes>((resolve) => setTimeout(() => resolve({}), 12000)),

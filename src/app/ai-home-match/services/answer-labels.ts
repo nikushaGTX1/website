@@ -1,3 +1,5 @@
+import type { HomeMatchProfile } from '../models/home-match-profile';
+
 /** Human-readable English labels for stored answer codes, so codes like "RemoteWorker" never reach the UI. */
 const ANSWER_LABELS: Record<string, string> = {
   // Goal / gender
@@ -81,7 +83,6 @@ const ANSWER_LABELS: Record<string, string> = {
   Parking: 'Parking',
   QuietStreet: 'Quiet street',
   AwayFromNightlife: 'Away from busy city center and nightlife',
-  LargeLivingRoom: 'Large living room',
   BalconyOrTerrace: 'Balcony or terrace',
   MultipleBathrooms: 'Two or more bathrooms',
   SecurityOrConcierge: 'Security or concierge',
@@ -97,6 +98,23 @@ export function answerLabel(value: string | undefined | null): string {
 
 export function answerList(values: string[] | undefined | null): string {
   return (values || []).map(answerLabel).join(', ');
+}
+
+/** Chosen bedroom counts, smallest first. Older saved profiles only had the single `bedrooms`. */
+export function selectedBedrooms(profile: Pick<HomeMatchProfile, 'bedrooms' | 'bedroomChoices'>): number[] {
+  if (profile.bedroomChoices?.length) return [...profile.bedroomChoices].sort((a, b) => a - b);
+  return profile.bedrooms != null ? [profile.bedrooms] : [];
+}
+
+/** "Studio, 2 bedrooms, 4 or more"; "Let AI decide" when no count was chosen. */
+export function bedroomsLabel(profile: Pick<HomeMatchProfile, 'bedrooms' | 'bedroomChoices'>): string {
+  const choices = selectedBedrooms(profile);
+  if (!choices.length) return 'Let AI decide';
+  return choices
+    .map((count) =>
+      count === 0 ? 'Studio' : count >= 4 ? '4 or more' : `${count} bedroom${count === 1 ? '' : 's'}`,
+    )
+    .join(', ');
 }
 
 /** Today as yyyy-mm-dd in the user's local time zone (the earliest allowed specific move-in date). */

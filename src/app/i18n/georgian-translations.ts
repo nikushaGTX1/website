@@ -2029,6 +2029,13 @@ GEORGIAN_TRANSLATIONS.set("Rental period", "ქირავნობის ვ�
 GEORGIAN_TRANSLATIONS.set("Purchase timing", "შეძენის დრო");
 GEORGIAN_TRANSLATIONS.set("No pet", "შინაური ცხოველის გარეშე");
 GEORGIAN_TRANSLATIONS.set("4 or more", "4 ან მეტი");
+GEORGIAN_TRANSLATIONS.set("Choose up to 3 options. With one choice we show homes with that many bedrooms or more.", "აირჩიეთ მაქსიმუმ 3 ვარიანტი. ერთი არჩევანის შემთხვევაში ვაჩვენებთ ბინებს ამდენი ან მეტი საძინებლით.");
+GEORGIAN_TRANSLATIONS.set("We show homes with any of the selected numbers of bedrooms.", "ვაჩვენებთ ბინებს არჩეული რაოდენობის საძინებლებით.");
+GEORGIAN_TRANSLATIONS.set("Update my results", "შედეგების განახლება");
+GEORGIAN_TRANSLATIONS.set("Your answers", "თქვენი პასუხები");
+GEORGIAN_TRANSLATIONS.set("Tap one to change it", "შესაცვლელად დააჭირეთ");
+GEORGIAN_TRANSLATIONS.set("See all answers", "ყველა პასუხის ნახვა");
+GEORGIAN_TRANSLATIONS.set("min drive", "წუთი მანქანით");
 
 const GEORGIAN_TRANSLATIONS_CASE_INSENSITIVE = new Map(
   [...GEORGIAN_TRANSLATIONS].map(([source, translation]) => [source.toLocaleLowerCase('en'), translation]),
@@ -2332,7 +2339,7 @@ const GEORGIAN_RULES: GeorgianRule[] = [
     translate: (match) => `მობინადრეები: დასაშვებია მაქსიმუმ ${match[1]}, თქვენ ხართ ${match[2]}`,
   },
   {
-    pattern: /^Bedrooms: (\d+), you need (\d+\+?)$/i,
+    pattern: /^Bedrooms: (\d+), you need ([\d+/]+)$/i,
     translate: (match) => `საძინებლები: ${match[1]}, გჭირდებათ ${match[2]}`,
   },
   {

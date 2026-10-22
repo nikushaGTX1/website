@@ -74,3 +74,21 @@ test('agent languages default to Georgian, English, Russian and keep display ord
   assert.equal(languageNameList(['en', 'uk'], 'ka'), 'ინგლისური, უკრაინული');
   assert.equal(languageNameList([], 'ru'), 'Грузинский, Английский, Русский');
 });
+
+test('house cards show drive times: measured when saved, else worked out from the walk', () => {
+  const house = apartment({
+    description: 'Listing plan: Basic List | Type: Private house | Deal: For rent | Parking type: Garage',
+    parkDistanceMinutes: 17,
+    gymDistanceMinutes: 8,
+    groceryDistanceMinutes: 2,
+    nearbyPlaceNames: JSON.stringify({ 'drive:gymDistanceMinutes': '5' }),
+  });
+  assert.deepEqual(cardNearbyPlaces(house).map((place) => `${place.label}: ${place.detail}`), [
+    'Park: 4 min drive',
+    'Fitness: 5 min drive',
+    'Grocery: 1 min drive',
+  ]);
+  // "Parking type:" or "View type:" never makes a flat look like a house.
+  const flat = apartment({ description: 'Type: Apartment | Parking type: Private house garage', parkDistanceMinutes: 4 });
+  assert.deepEqual(cardNearbyPlaces(flat).map((place) => place.detail), ['4 min walk']);
+});

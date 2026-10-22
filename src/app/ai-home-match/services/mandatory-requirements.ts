@@ -1,6 +1,6 @@
 import { DogSize, HomeMatchProfile, PetKind } from '../models/home-match-profile';
 import { HomeMatchApartment } from '../models/home-match-result';
-import { answerLabel } from './answer-labels';
+import { answerLabel, selectedBedrooms } from './answer-labels';
 
 /**
  * Velven Match pipeline:
@@ -37,6 +37,7 @@ const GEORGIAN_DISTRICTS: Record<string, string> = {
   'კრწანისი': 'krtsanisi',
   'ავლაბარი': 'avlabari',
   'სოლოლაკი': 'sololaki',
+  'ვაშლიჯვარი': 'vashlijvari',
 };
 
 function normalizeDistrict(value: string | undefined | null): string {
@@ -105,11 +106,21 @@ function checkLocation(apartment: HomeMatchApartment, profile: HomeMatchProfile)
 }
 
 function checkBedrooms(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
-  const wanted = profile.bedrooms;
-  // null = "Let AI decide", undefined = not asked (purchase flow may skip it).
-  if (wanted === null || wanted === undefined || wanted <= 0) return 'pass';
+  const wanted = selectedBedrooms(profile);
+  // Empty = "Let AI decide" or not asked (purchase flow may skip it).
+  if (!wanted.length) return 'pass';
   if (apartment.bedrooms === null || apartment.bedrooms === undefined) return 'unknown';
-  return Number(apartment.bedrooms) >= wanted ? 'pass' : 'fail';
+  const count = Number(apartment.bedrooms);
+  // One choice keeps the old "this many or more"; several choices mean one of those counts.
+  if (wanted.length === 1) return wanted[0] <= 0 || count >= wanted[0] ? 'pass' : 'fail';
+  return wanted.some((choice) => (choice >= 4 ? count >= 4 : count === choice)) ? 'pass' : 'fail';
+}
+
+/** "2", "4+", or "1/2/4+" for mismatch messages. */
+function wantedBedroomsText(profile: HomeMatchProfile): string {
+  const wanted = selectedBedrooms(profile);
+  if (wanted.length === 1) return `${wanted[0]}${wanted[0] >= 4 ? '+' : ''}`;
+  return wanted.map((choice) => (choice >= 4 ? '4+' : String(choice))).join('/');
 }
 
 /** Roughly how many months the user intends to stay, for comparing against a listing's minimum lease. */
@@ -319,7 +330,7 @@ export function evaluateMandatoryRequirements(
 
   const bedrooms = checkBedrooms(apartment, profile);
   if (bedrooms === 'fail') {
-    mismatches.push(`Bedrooms: ${apartment.bedrooms}, you need ${profile.bedrooms}${profile.bedrooms! >= 4 ? '+' : ''}`);
+    mismatches.push(`Bedrooms: ${apartment.bedrooms}, you need ${wantedBedroomsText(profile)}`);
   } else if (bedrooms === 'unknown') {
     confirmations.push('Number of bedrooms is not specified in the listing');
   }

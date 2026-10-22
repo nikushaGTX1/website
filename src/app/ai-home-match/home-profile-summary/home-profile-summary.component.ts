@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { HomeMatchProfile } from '../models/home-match-profile';
-import { answerLabel, answerList } from '../services/answer-labels';
+import { answerLabel, answerList, bedroomsLabel } from '../services/answer-labels';
 import { NgFor, NgClass } from '@angular/common';
 import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
 
@@ -89,14 +89,7 @@ export class HomeProfileSummaryComponent {
       {
         step: 6,
         label: 'Bedrooms',
-        value:
-          p.bedrooms === null || p.bedrooms === undefined
-            ? 'Let AI decide'
-            : p.bedrooms === 0
-              ? 'Studio'
-              : p.bedrooms >= 4
-                ? '4 or more'
-                : `${p.bedrooms} or more`,
+        value: bedroomsLabel(p),
         icon: 'fa-bed',
       },
       rent
@@ -139,11 +132,17 @@ export class HomeProfileSummaryComponent {
       {
         step: 11,
         label: 'Top 5 priorities',
-        value: this.list(p.topPriorities),
+        value: this.priorityList,
         icon: 'fa-list-ol',
       },
     ];
     return rows.filter((row): row is AnswerRow => !!row);
+  }
+
+  /** Joined with " · ": one priority contains a comma, and ", " kept the whole list untranslated. */
+  private get priorityList(): string {
+    const priorities = this.profile.topPriorities;
+    return priorities.length ? priorities.map((value) => answerLabel(value)).join(' · ') : 'No preference';
   }
 
   get budget(): string {
@@ -191,12 +190,7 @@ export class HomeProfileSummaryComponent {
         ? {
             step: 6,
             label: 'Bedrooms',
-            value:
-              this.profile.bedrooms === null
-                ? 'Let AI decide'
-                : this.profile.bedrooms === 0
-                  ? 'Studio'
-                  : String(this.profile.bedrooms),
+            value: bedroomsLabel(this.profile),
             icon: 'fa-bed',
           }
         : null,
@@ -256,7 +250,7 @@ export class HomeProfileSummaryComponent {
       {
         step: 11,
         label: 'Top 5 priorities',
-        value: this.list(this.profile.topPriorities),
+        value: this.priorityList,
         icon: 'fa-list-ol',
       },
     ].filter((attribute): attribute is Omit<ProfileAttribute, 'left' | 'top'> => !!attribute);
