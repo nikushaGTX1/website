@@ -2126,9 +2126,11 @@ fieldset {
   grid-template-columns: 1fr 1fr;
 }
 .district-extra-options button {
+  min-width: 0;
   min-height: 64px;
   flex-direction: row;
   gap: 10px;
+  overflow-wrap: anywhere;
 }
 .district-extra-options .option-icon {
   width: 26px;
@@ -2139,9 +2141,19 @@ fieldset {
   .featured-district-grid {
     grid-template-columns: 1fr;
   }
-  .all-district-grid,
-  .options.compact.district-extra-options {
+  .all-district-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* "I am flexible about location" is one long Georgian word per line: give each option a full row. */
+  .options.compact.district-extra-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .options.compact.district-extra-options button {
+    min-height: 60px;
+    height: auto;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    text-align: left;
   }
   .all-district-grid button {
     font-size: 14px;
