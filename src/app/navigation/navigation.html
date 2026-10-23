@@ -7,6 +7,9 @@
       <span class="brand-name" aria-hidden="true">VELVEN</span>
     </a>
 
+    <!-- Phones and tablets: the bell stays visible beside the menu button. -->
+    <app-notification-bell class="bell-mobile" *ngIf="isClient"></app-notification-bell>
+
     <button
       class="menu-toggle"
       type="button"
@@ -63,6 +66,8 @@
           </svg>
           Sign in
         </a>
+
+        <app-notification-bell class="bell-desktop" *ngIf="isClient"></app-notification-bell>
 
         <app-profile-burger-menu *ngIf="isLoggedIn"></app-profile-burger-menu>
 

@@ -1,0 +1,255 @@
+<main class="discover-page">
+  <div class="state-card" *ngIf="hasPendingSearch" role="status">
+    <p>Your search is waiting to be saved. Your answers are kept.</p>
+    <button type="button" class="primary-btn" [disabled]="pendingSaveBusy" (click)="retryPendingSearch()">Save search</button>
+  </div>
+  <!-- Welcome -->
+  <section class="discover-hero">
+    <div class="hero-copy">
+      <span class="eyebrow"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Velven Discover</span>
+      <h1>Your next home is closer than you think.</h1>
+      <p>Discover apartments selected around your preferences.</p>
+      <div class="hero-actions">
+        <a class="primary-btn" routerLink="/ai-home-match" [queryParams]="{ new: 1 }">
+          <i class="fa-solid fa-house-circle-check" aria-hidden="true"></i> Find My Perfect Home
+        </a>
+      </div>
+    </div>
+    <dl class="hero-stats" *ngIf="!loading && searches.length">
+      <div>
+        <dt>Saved searches</dt>
+        <dd>{{ searches.length }}</dd>
+      </div>
+      <div>
+        <dt>New matches</dt>
+        <dd>{{ matchesLoading ? '…' : unseenCount }}</dd>
+      </div>
+      <div>
+        <dt>Saved apartments</dt>
+        <dd>{{ savedApartments.length }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <p class="toast success" *ngIf="justSaved" role="status">
+    <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Your search was saved. We'll let you know when new homes match.
+  </p>
+  <p class="toast error" *ngIf="actionError" role="alert">{{ actionError }}</p>
+
+  <!-- Loading -->
+  <section class="skeleton-row" *ngIf="loading" aria-hidden="true">
+    <div class="skeleton-card" *ngFor="let _ of [1, 2, 3]"></div>
+  </section>
+
+  <section class="state-card error" *ngIf="!loading && errorMessage">
+    <i class="fa-solid fa-wifi" aria-hidden="true"></i>
+    <h2>Something went wrong</h2>
+    <p>{{ errorMessage }}</p>
+    <button type="button" class="primary-btn" (click)="load()">Try again</button>
+  </section>
+
+  <!-- No saved search yet -->
+  <section class="state-card empty-first" *ngIf="!loading && !errorMessage && !searches.length">
+    <img src="/ojaxi.png" alt="" aria-hidden="true" loading="lazy" />
+    <div>
+      <h2>Your perfect home is waiting.</h2>
+      <p>Tell Velven what you're looking for and we'll keep an eye out for you.</p>
+      <a class="primary-btn" routerLink="/ai-home-match" [queryParams]="{ new: 1 }">Create My First Match</a>
+    </div>
+  </section>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <!-- Your searches -->
+    <section class="searches" aria-labelledby="searches-title" *ngIf="searches.length">
+      <div class="section-head">
+        <h2 id="searches-title">Your Searches</h2>
+        <button type="button" class="link-btn" *ngIf="selectedSearchId" (click)="selectSearch(null)">Show all searches</button>
+      </div>
+      <div class="search-list">
+        <article
+          class="search-card"
+          *ngFor="let view of searches; trackBy: trackSearch"
+          [class.selected]="selectedSearchId === view.search.id"
+        >
+          <button
+            type="button"
+            class="search-select"
+            [attr.aria-pressed]="selectedSearchId === view.search.id"
+            (click)="selectSearch(selectedSearchId === view.search.id ? null : view.search.id)"
+          >
+            <span class="search-goal" [class.buy]="view.search.profile.propertyGoal === 'Buy'">{{ goalLabel(view.search.profile) }}</span>
+            <span class="search-counts" *ngIf="!matchesLoading && !view.failed">
+              <b>{{ matchCount(view) }}</b> matches
+              <em *ngIf="newCount(view)">{{ newCount(view) }} new</em>
+            </span>
+            <span class="search-counts muted" *ngIf="matchesLoading">…</span>
+          </button>
+
+          <div class="search-title" *ngIf="renamingId !== view.search.id">
+            <h3>{{ view.search.name }}</h3>
+            <button type="button" class="icon-btn" aria-label="Rename search" title="Rename" (click)="startRename(view.search)">
+              <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </button>
+          </div>
+          <form class="rename-form" *ngIf="renamingId === view.search.id" (ngSubmit)="saveRename(view.search)">
+            <input
+              [id]="'rename-' + view.search.id"
+              name="rename"
+              maxlength="80"
+              [(ngModel)]="renameValue"
+              (keydown.escape)="renamingId = null"
+              aria-label="Search name"
+            />
+            <button type="submit" class="icon-btn solid" aria-label="Save name" [disabled]="busySearchId === view.search.id">
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+            </button>
+          </form>
+
+          <ul class="search-facts">
+            <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ locationText(view.search.profile) }}</span></li>
+            <li><i class="fa-solid fa-wallet" aria-hidden="true"></i><span>{{ budgetText(view.search.profile) }}</span></li>
+            <li><i class="fa-solid fa-bed" aria-hidden="true"></i><span>{{ bedroomsText(view.search.profile) }}</span></li>
+          </ul>
+          <div class="search-chips" *ngIf="preferenceChips(view.search.profile).length">
+            <span *ngFor="let chip of preferenceChips(view.search.profile)">{{ chip }}</span>
+          </div>
+          <p class="search-updated">Last updated <span data-no-translate>{{ relativeTime(view.search.updatedAt) }}</span></p>
+          <p *ngIf="view.failed" role="alert">Could not load matches. <button type="button" class="text-btn" (click)="load()">Try again</button></p>
+
+          <div class="search-actions" *ngIf="confirmDeleteId !== view.search.id">
+            <button type="button" class="text-btn" (click)="editPreferences(view.search)">
+              <i class="fa-solid fa-sliders" aria-hidden="true"></i> Edit preferences
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              [class.on]="view.search.notificationsEnabled"
+              [attr.aria-pressed]="view.search.notificationsEnabled"
+              [attr.aria-label]="view.search.notificationsEnabled ? 'Turn off alerts for this search' : 'Turn on alerts for this search'"
+              [title]="view.search.notificationsEnabled ? 'Alerts on' : 'Alerts off'"
+              (click)="toggleNotifications(view.search)"
+            >
+              <i [class]="view.search.notificationsEnabled ? 'fa-solid fa-bell' : 'fa-regular fa-bell-slash'" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="icon-btn danger" aria-label="Delete search" title="Delete" (click)="confirmDeleteId = view.search.id; renamingId = null">
+              <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="delete-confirm" *ngIf="confirmDeleteId === view.search.id" role="alertdialog" aria-label="Delete this search?">
+            <span>Delete this search?</span>
+            <button type="button" class="text-btn" (click)="confirmDeleteId = null">Cancel</button>
+            <button type="button" class="danger-btn" [disabled]="busySearchId === view.search.id" (click)="deleteSearch(view.search)">Delete</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="results" aria-label="Matching homes">
+      <div class="results-head">
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" [attr.aria-selected]="tab === 'new'" [class.active]="tab === 'new'" (click)="setTab('new')">
+            New For You <span class="count" [class.hot]="unseenCount > 0" *ngIf="!matchesLoading">{{ newItems.length }}</span>
+          </button>
+          <button type="button" role="tab" [attr.aria-selected]="tab === 'all'" [class.active]="tab === 'all'" (click)="setTab('all')">
+            All Matches <span class="count" *ngIf="!matchesLoading">{{ allItems.length }}</span>
+          </button>
+          <button type="button" role="tab" [attr.aria-selected]="tab === 'saved'" [class.active]="tab === 'saved'" (click)="setTab('saved')">
+            Saved Apartments <span class="count">{{ savedApartments.length }}</span>
+          </button>
+        </div>
+        <div class="toolbar" *ngIf="tab !== 'saved'">
+          <label class="sort">
+            <span>Sort by:</span>
+            <select [(ngModel)]="sort" name="sort">
+              <option value="best">Best match</option>
+              <option value="newest">Newest</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+            </select>
+          </label>
+          <button type="button" class="link-btn" *ngIf="tab === 'new' && unseenCount" (click)="markAllSeen()">Mark all as seen</button>
+        </div>
+      </div>
+
+      <p class="selected-note" *ngIf="selectedSearch && tab !== 'saved'">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        Showing homes for <b>{{ selectedSearch.name }}</b>
+      </p>
+
+      <div class="refine" *ngIf="tab === 'all'" role="group" aria-label="Refine results">
+        <button type="button" [class.on]="refine.parking" [attr.aria-pressed]="refine.parking" (click)="refine.parking = !refine.parking">
+          <i class="fa-solid fa-square-parking" aria-hidden="true"></i> Parking
+        </button>
+        <button type="button" [class.on]="refine.petFriendly" [attr.aria-pressed]="refine.petFriendly" (click)="refine.petFriendly = !refine.petFriendly">
+          <i class="fa-solid fa-paw" aria-hidden="true"></i> Pet friendly
+        </button>
+        <button type="button" [class.on]="refine.furnished" [attr.aria-pressed]="refine.furnished" (click)="refine.furnished = !refine.furnished">
+          <i class="fa-solid fa-couch" aria-hidden="true"></i> Furnished
+        </button>
+      </div>
+
+      <div class="card-grid" *ngIf="matchesLoading && tab !== 'saved'" aria-hidden="true">
+        <div class="skeleton-card tall" *ngFor="let _ of [1, 2, 3]"></div>
+      </div>
+
+      <ng-container *ngIf="!matchesLoading || tab === 'saved'">
+        <!-- New for you -->
+        <ng-container *ngIf="tab === 'new'">
+          <div class="card-grid" *ngIf="newItems.length">
+            <app-discover-card
+              *ngFor="let item of newItems; trackBy: trackItem"
+              [apartment]="item.apartment"
+              [isNew]="item.isNew"
+              [needsCheck]="item.needsCheck"
+              [highlighted]="highlightedApartmentId === item.apartment.id"
+              [searchName]="searchName(item)"
+              (opened)="onOpened($event)"
+            ></app-discover-card>
+          </div>
+          <div class="state-card soft" *ngIf="!newItems.length && !hasFailedSearch">
+            <i class="fa-regular fa-bell" aria-hidden="true"></i>
+            <h2>No perfect matches just yet.</h2>
+            <p>We'll let you know when something new appears.</p>
+            <button type="button" class="text-btn" *ngIf="allItems.length" (click)="setTab('all')">
+              See all current matches <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- All matches -->
+        <ng-container *ngIf="tab === 'all'">
+          <div class="card-grid" *ngIf="allItems.length">
+            <app-discover-card
+              *ngFor="let item of allItems; trackBy: trackItem"
+              [apartment]="item.apartment"
+              [isNew]="item.isNew"
+              [needsCheck]="item.needsCheck"
+              [highlighted]="highlightedApartmentId === item.apartment.id"
+              [searchName]="searchName(item)"
+              (opened)="onOpened($event)"
+            ></app-discover-card>
+          </div>
+          <div class="state-card soft" *ngIf="!allItems.length && !hasFailedSearch">
+            <i class="fa-regular fa-compass" aria-hidden="true"></i>
+            <h2>No perfect matches just yet.</h2>
+            <p>We'll let you know when something new appears.</p>
+            <a class="text-btn" routerLink="/ExploreProperty">Explore all apartments <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+        </ng-container>
+
+        <!-- Saved apartments -->
+        <ng-container *ngIf="tab === 'saved'">
+          <div class="card-grid" *ngIf="savedApartments.length">
+            <app-discover-card *ngFor="let apartment of savedApartments; trackBy: trackApartment" [apartment]="apartment"></app-discover-card>
+          </div>
+          <div class="state-card soft" *ngIf="!savedApartments.length">
+            <i class="fa-regular fa-heart" aria-hidden="true"></i>
+            <h2>No saved properties yet</h2>
+            <p>Tap the heart on any property to keep it here.</p>
+          </div>
+        </ng-container>
+      </ng-container>
+    </section>
+  </ng-container>
+</main>

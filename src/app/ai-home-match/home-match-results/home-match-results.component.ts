@@ -46,6 +46,9 @@ interface LifestyleInsight {
   meta?: string;
 }
 
+/** Whether the finished search was kept in the client's Velven Discover. */
+export type SearchSaveState = 'saving' | 'saved' | 'updated' | 'duplicate' | 'failed' | 'guest' | null;
+
 /** A nearby place counts as a match only within this walk (the 'nearby' edge of priority scoring). */
 const MATCH_WALK_LIMIT = 18;
 @Component({
@@ -70,6 +73,19 @@ export class HomeMatchResultsComponent implements OnChanges {
   @Output() edit = new EventEmitter<void>();
   /** Emits the question step whose answer the user wants to change from the results. */
   @Output() changeAnswer = new EventEmitter<number>();
+  @Input() saveState: SearchSaveState = null;
+  @Input() savedSearchName = '';
+  @Input() savedSearchId: number | null = null;
+  /** Visitor wants to save the search: true = create an account, false = sign in. */
+  @Output() saveAsGuest = new EventEmitter<boolean>();
+  @Output() retrySave = new EventEmitter<void>();
+
+  get saveIcon(): string {
+    if (this.saveState === 'guest') return 'fa-bell';
+    if (this.saveState === 'saving') return 'fa-spinner fa-spin';
+    if (this.saveState === 'failed') return 'fa-triangle-exclamation';
+    return 'fa-circle-check';
+  }
 
   /** The main answers, shown above the results so each can be changed in one tap. */
   get answerChips(): Array<{ step: number; label: string; value: string; icon: string }> {

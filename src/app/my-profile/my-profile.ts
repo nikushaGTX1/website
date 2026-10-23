@@ -1,5 +1,7 @@
+import { DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models/user';
@@ -8,6 +10,10 @@ import { NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodeDialogComponent } from '../shared/code-dialog/code-dialog.component';
 import { ProfilePhotoCropperComponent } from './profile-photo-cropper/profile-photo-cropper';
+import { ClientService } from '../services/client.service';
+import { ClientPreferences } from '../models/client';
+import { FavoriteService } from '../services/favorite.service';
+import { AppLanguage, TranslationService } from '../services/translation.service';
 
 @Component({
   selector: 'app-my-profile',
@@ -16,6 +22,7 @@ import { ProfilePhotoCropperComponent } from './profile-photo-cropper/profile-ph
   imports: [RouterLink, NgIf, FormsModule, CodeDialogComponent, ProfilePhotoCropperComponent],
 })
 export class MyProfile implements OnInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   user: User | null = null;
 
   fullName = '';
@@ -53,7 +60,7 @@ export class MyProfile implements OnInit, OnDestroy {
     if (this.passwordBusy) return;
     this.passwordBusy = true;
     this.passwordMessage = '';
-    this.authService.requestChangePasswordCode().subscribe({
+    this.authService.requestChangePasswordCode().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.passwordBusy = false;
         this.passwordCodeSent = true;
@@ -76,7 +83,7 @@ export class MyProfile implements OnInit, OnDestroy {
       return;
     }
     this.passwordBusy = true;
-    this.authService.changePassword(this.passwordCode, this.newPassword).subscribe({
+    this.authService.changePassword(this.passwordCode, this.newPassword).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.passwordBusy = false;
         this.passwordCodeSent = false;
@@ -95,20 +102,84 @@ export class MyProfile implements OnInit, OnDestroy {
     });
   }
 
+  // ---------- Velven Discover (client accounts) ----------
+
+  isClient = false;
+  preferences: ClientPreferences | null = null;
+  preferencesBusy = false;
+  preferencesMessage = '';
+  preferencesError = false;
+  activity = { searches: 0, newMatches: 0, savedHomes: 0 };
+
+  private loadClientSettings(): void {
+    this.clientService.getPreferences().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (preferences) => (this.preferences = preferences),
+      error: () => {
+        this.preferencesError = true;
+        this.preferencesMessage = 'Could not load your notification settings.';
+      },
+    });
+    this.clientService.getSearches().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (searches) => {
+        this.activity.searches = searches.length;
+        this.activity.newMatches = searches.reduce((sum, search) => sum + search.newMatches, 0);
+      },
+      error: () => undefined,
+    });
+    this.favoriteService.loadFavorites(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (ids) => (this.activity.savedHomes = ids.size),
+      error: () => undefined,
+    });
+    // Opened from the bell's "Settings" link.
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(query => {
+      if (query.get('section') === 'notifications')
+        window.setTimeout(() => document.getElementById('notifications')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    });
+  }
+
+  updatePreference(changes: Partial<Omit<ClientPreferences, 'emailConfirmed'>>): void {
+    if (!this.preferences || this.preferencesBusy) return;
+    const previous = { ...this.preferences };
+    this.preferences = { ...this.preferences, ...changes };
+    this.preferencesBusy = true;
+    this.preferencesMessage = '';
+    this.clientService.updatePreferences(changes).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (saved) => {
+        this.preferences = saved;
+        this.preferencesBusy = false;
+        this.preferencesError = false;
+        this.preferencesMessage = 'Notification settings saved.';
+        if (changes.preferredLanguage) this.translation.setLanguage(changes.preferredLanguage as AppLanguage);
+      },
+      error: () => {
+        this.preferences = previous;
+        this.preferencesBusy = false;
+        this.preferencesError = true;
+        this.preferencesMessage = 'Could not save your notification settings. Please try again.';
+      },
+    });
+  }
+
   constructor(
     private authService: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
+    private clientService: ClientService,
+    private favoriteService: FavoriteService,
+    private translation: TranslationService,
   ) {}
 
   ngOnInit(): void {
-    this.subscription = this.authService.currentUser$.subscribe((user) => {
+    this.isClient = this.authService.isClient;
+    if (this.isClient) this.loadClientSettings();
+    this.subscription = this.authService.currentUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
       this.user = user;
       this.syncFormWithUser();
     });
 
     this.loading = true;
 
-    this.authService.getProfile().subscribe({
+    this.authService.getProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loading = false;
       },
@@ -320,7 +391,7 @@ export class MyProfile implements OnInit, OnDestroy {
         phoneNumber: this.phoneNumber.trim(),
         profilePicture: this.profilePicture,
       })
-      .subscribe({
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.saving = false;
           this.profilePicture = null;

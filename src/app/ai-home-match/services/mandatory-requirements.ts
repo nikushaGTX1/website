@@ -238,6 +238,9 @@ export function budgetRangeUsd(
   profile: HomeMatchProfile,
   rates: BudgetRates = DEFAULT_BUDGET_RATES,
 ): { min: number | null; max: number | null } {
+  const conversion = profile.budgetConversion;
+  if (conversion && conversion.currency === profile.currency && conversion.min === profile.budgetMin &&
+      conversion.max === profile.budgetMax && conversion.usdGel > 0 && conversion.usdEur > 0) rates = conversion;
   const min = Number(profile.budgetMin) > 0 ? toUsd(Number(profile.budgetMin), profile.currency, rates) : null;
   const max = Number(profile.budgetMax) > 0 ? toUsd(Number(profile.budgetMax), profile.currency, rates) : null;
   return { min, max };
@@ -290,6 +293,18 @@ export function petPermission(apartment: HomeMatchApartment, pets: PetKind[], do
   }
   if (pets.includes('Cat') && NO_CATS.test(text)) return 'prohibited';
   return apartment.isPetFriendly === true || PETS_ALLOWED.test(text) ? 'allowed' : 'unconfirmed';
+}
+
+/** Hard filter: the listing's deal type ("Deal: For Rent" tag, else its text) must fit Rent / Buy. */
+export function matchesPropertyGoal(
+  apartment: Pick<HomeMatchApartment, 'title' | 'description'>,
+  profile: Pick<HomeMatchProfile, 'propertyGoal'>,
+): boolean {
+  const deal = (apartment.description || '').match(/(?:^|[|\r\n])\s*(?:Deal|Listing type):\s*([^|\r\n]+)/i)?.[1];
+  const text = deal || apartment.title || '';
+  return profile.propertyGoal === 'Buy'
+    ? /sale|buy|იყიდება|продаж/i.test(text)
+    : /rent|lease|ქირავდება|аренд/i.test(text);
 }
 
 /** Hard filter: a rental that says the user's pets are not allowed is never recommended. */

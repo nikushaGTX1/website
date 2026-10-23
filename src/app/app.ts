@@ -127,6 +127,7 @@ export class App implements AfterViewInit {
       'about', 'services', 'apartment-detail', 'agent-profile', 'login', 'blog',
       'upload-apartment', 'admin', 'crm', 'my-profile', 'my-listings',
       'saved-listings', 'premium', 'balance', 'payment-methods', 'my-business',
+      'register', 'discover',
     ]);
     const segments = path.split('/').filter(Boolean);
     const isShortQuestionnaireUrl =

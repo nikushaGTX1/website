@@ -5,10 +5,13 @@ import { AuthResponse, User } from '../models/user';
 import { API_URL } from '../utils/api-config';
 
 export interface RegisterRequest {
-  userName: string;
+  /** Optional: when empty the API uses the email address. */
+  userName?: string;
   fullName: string;
   email: string;
   password: string;
+  confirmPassword?: string;
+  phoneNumber?: string;
 }
 
 export interface LoginRequest {
@@ -69,6 +72,20 @@ export class AuthService {
 
   get isCrmUploader(): boolean {
     return this.hasAnyRole(['uploader']);
+  }
+
+  /** Any staff role: such accounts never get client features (Velven Discover, match alerts). */
+  get isStaff(): boolean {
+    return this.isAgent || this.isCrmManager || this.isCrmUploader;
+  }
+
+  /**
+   * Client account (Velven Discover). New sign-ups get the Client role; accounts from before it
+   * existed are clients too unless they are staff, which is the rule the API applies.
+   */
+  get isClient(): boolean {
+    if (!this.isLoggedIn) return false;
+    return !this.isStaff;
   }
 
   get canOpenCrm(): boolean {

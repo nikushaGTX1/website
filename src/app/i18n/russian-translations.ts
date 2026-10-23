@@ -1,3 +1,4 @@
+import { discoverTranslation } from './discover-translations';
 type RussianRule = {
   pattern: RegExp;
   translate: (match: RegExpMatchArray) => string;
@@ -1131,6 +1132,8 @@ const RUSSIAN_RULES: RussianRule[] = [
 ];
 
 export function russianTranslation(value: string): string | undefined {
+  const discover = discoverTranslation(value, 'ru');
+  if (discover) return discover;
   const exact = RUSSIAN_TRANSLATIONS.get(value);
   if (exact) return exact;
 

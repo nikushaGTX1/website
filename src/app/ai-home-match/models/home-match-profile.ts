@@ -5,6 +5,8 @@ export type Gender = 'Male' | 'Female' | '';
 export type PetKind = 'Dog' | 'Cat' | 'Other';
 export type DogSize = 'Small' | 'Medium' | 'Large';
 export interface HomeMatchProfile {
+  /** Conversion used when saving; changing budget or currency invalidates this snapshot. */
+  budgetConversion?: { currency: Currency; min: number; max: number; usdGel: number; usdEur: number };
   propertyGoal: PropertyGoal | '';
   districts: string[];
   locationFlexible: boolean;

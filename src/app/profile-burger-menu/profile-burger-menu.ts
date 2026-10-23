@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { ClientService } from '../services/client.service';
 import { User } from '../models/user';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { NgIf, NgFor } from '@angular/common';
@@ -10,6 +11,9 @@ interface MenuItem {
   label: string;
   route: string;
   icon: string;
+  /** Count badge (Velven Discover: new matches). */
+  badge?: number;
+  featured?: boolean;
 }
 
 @Component({
@@ -22,6 +26,8 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   isOpen = false;
   user: User | null = null;
   canOpenCrm = false;
+  isClient = false;
+  newMatches = 0;
 
   readonly accountMenuItems: MenuItem[] = [
     { label: 'My Profile', route: '/my-profile', icon: 'fa-regular fa-user' },
@@ -31,6 +37,18 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   ];
 
   get menuItems(): MenuItem[] {
+    // Clients: Velven Discover first, with the number of new matches.
+    if (this.isClient)
+      return [
+        {
+          label: 'Velven Discover',
+          route: '/discover',
+          icon: 'fa-solid fa-wand-magic-sparkles',
+          badge: this.newMatches,
+          featured: true,
+        },
+        ...this.accountMenuItems,
+      ];
     const items = this.canOpenCrm
       ? [
           { label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-address-book' },
@@ -53,13 +71,18 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
     private elementRef: ElementRef,
     private authService: AuthService,
     private router: Router,
+    private clientService: ClientService,
   ) {}
 
   ngOnInit(): void {
     this.subscription = this.authService.currentUser$.subscribe((user) => {
       this.user = user;
       this.canOpenCrm = this.authService.canOpenCrm;
+      this.isClient = this.authService.isClient;
     });
+    this.subscription.add(
+      this.clientService.summary$.subscribe((summary) => (this.newMatches = summary.newMatches)),
+    );
   }
 
   ngOnDestroy(): void {

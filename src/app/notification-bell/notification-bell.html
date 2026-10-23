@@ -1,0 +1,63 @@
+<div class="bell-wrapper">
+  <button
+    type="button"
+    class="bell-button"
+    [class.has-unread]="unread > 0"
+    [attr.aria-expanded]="open"
+    aria-haspopup="true"
+    aria-label="Notifications"
+    (click)="toggle()"
+  >
+    <i class="fa-regular fa-bell" aria-hidden="true"></i>
+    <span class="bell-badge" *ngIf="unread > 0" aria-hidden="true">{{ unread > 99 ? '99+' : unread }}</span>
+  </button>
+
+  <div class="bell-panel" *ngIf="open" role="dialog" aria-label="Notifications">
+    <header class="panel-head">
+      <h2>Notifications</h2>
+      <button type="button" class="panel-link" *ngIf="unread > 0" (click)="markAllRead()">Mark all as read</button>
+    </header>
+
+    <div class="panel-body">
+      <p class="panel-state" *ngIf="loading && !items.length">
+        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Loading…
+      </p>
+      <p class="panel-state error" *ngIf="failed">Could not load notifications. Please try again.</p>
+
+      <div class="panel-empty" *ngIf="!loading && !failed && !items.length">
+        <i class="fa-regular fa-bell" aria-hidden="true"></i>
+        <strong>You're all caught up</strong>
+        <span>We'll let you know here when new homes match your saved searches.</span>
+      </div>
+
+      <ul class="panel-list" *ngIf="items.length">
+        <li *ngFor="let item of items">
+          <button type="button" class="notice" [class.unread]="!item.readAt" (click)="openNotification(item)">
+            <img [src]="image(item)" alt="" loading="lazy" />
+            <span class="notice-copy">
+              <strong>New apartment matched!</strong>
+              <span class="notice-text">{{ summary(item) }}</span>
+              <span class="notice-meta">
+                <app-currency-price *ngIf="item.apartment" [usdPrice]="item.apartment.price" [suffix]="isSale(item) ? '' : '/ month'" [showApproximate]="false"></app-currency-price>
+                <time data-no-translate>{{ relativeTime(item.createdAt) }}</time>
+              </span>
+              <span class="notice-action">View Match <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+            </span>
+            <span class="unread-dot" *ngIf="!item.readAt" aria-label="Unread"></span>
+          </button>
+        </li>
+      </ul>
+
+      <button type="button" class="panel-more" *ngIf="hasMore" [disabled]="loading" (click)="load(page + 1)">
+        {{ loading ? 'Loading…' : 'Show older notifications' }}
+      </button>
+    </div>
+
+    <footer class="panel-foot">
+      <a routerLink="/discover" (click)="open = false">Open Velven Discover</a>
+      <a routerLink="/my-profile" [queryParams]="{ section: 'notifications' }" (click)="open = false" aria-label="Notification settings">
+        <i class="fa-solid fa-gear" aria-hidden="true"></i> Settings
+      </a>
+    </footer>
+  </div>
+</div>

@@ -138,7 +138,7 @@ export class SeoService {
   private update(rawUrl: string): void {
     const path = rawUrl.split('?')[0].replace(/\/+$/, '') || '/main';
     const isApartment = /^\/apartments\/[^/]+$/.test(path);
-    const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|about|services|apartment-detail|agent-profile|login|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(path);
+    const reservedShortPath = /^\/(?:register|discover|main|ExploreProperty|property|find-my-home|ai-home-match|about|services|apartment-detail|agent-profile|login|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(path);
     const isShortQuestionnaire =
       /^\/(?:agent-)?[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(path) && !reservedShortPath;
     const isQuestionnaire =

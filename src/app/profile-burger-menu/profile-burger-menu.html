@@ -6,6 +6,7 @@
       <i *ngIf="!profileImage" class="fa-regular fa-user" aria-hidden="true"></i>
     </span>
     <span class="account-label">Account</span>
+    <span class="account-dot" *ngIf="isClient && newMatches > 0" aria-hidden="true"></span>
     <i class="menu-chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
   </button>
 
@@ -22,9 +23,10 @@
 
     <ul class="menu-list">
       <li *ngFor="let item of menuItems">
-        <a [routerLink]="item.route" (click)="closeMenu()">
+        <a [routerLink]="item.route" [class.featured]="item.featured" (click)="closeMenu()">
           <i [class]="item.icon" aria-hidden="true"></i>
-          {{ item.label }}
+          <span class="item-label">{{ item.label }}</span>
+          <span class="item-badge" *ngIf="item.badge">{{ item.badge > 99 ? '99+' : item.badge }}</span>
         </a>
       </li>
       <li class="sep" aria-hidden="true"></li>

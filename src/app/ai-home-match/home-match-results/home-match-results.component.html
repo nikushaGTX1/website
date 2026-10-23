@@ -28,6 +28,38 @@
         <i class="fa-solid fa-sliders" aria-hidden="true"></i> See all answers
       </button>
     </div>
+    <div class="discover-save" *ngIf="saveState" [class.guest]="saveState === 'guest'" role="status" aria-live="polite">
+      <span class="discover-save-icon" aria-hidden="true">
+        <i class="fa-solid" [ngClass]="saveIcon"></i>
+      </span>
+      <div class="discover-save-copy">
+        <ng-container *ngIf="saveState === 'guest'">
+          <strong>Save your search and get notified when new homes match.</strong>
+          <span>Create a free account. Your answers are kept, so there is no need to start again.</span>
+        </ng-container>
+        <strong *ngIf="saveState === 'saving'">Saving your search to Velven Discover…</strong>
+        <ng-container *ngIf="saveState === 'saved'">
+          <strong>Saved to Velven Discover</strong>
+          <span>We'll let you know when new homes match this search: <b>{{ savedSearchName }}</b></span>
+        </ng-container>
+        <ng-container *ngIf="saveState === 'updated'">
+          <strong>Your saved search was updated</strong>
+          <span>New homes that match it will appear in Velven Discover: <b>{{ savedSearchName }}</b></span>
+        </ng-container>
+        <strong *ngIf="saveState === 'duplicate'">You already have a saved search with these preferences.</strong>
+        <ng-container *ngIf="saveState === 'failed'">
+          <strong>We couldn't save this search right now.</strong>
+          <span>Your results are below. Please try again in a moment.</span>
+          <button type="button" (click)="retrySave.emit()">Try again</button>
+        </ng-container>
+      </div>
+      <div class="discover-save-actions" *ngIf="saveState === 'guest'">
+        <button type="button" class="primary" (click)="saveAsGuest.emit(true)">Create account</button>
+        <button type="button" (click)="saveAsGuest.emit(false)">Sign in</button>
+      </div>
+      <a class="discover-save-link" *ngIf="saveState === 'saved' || saveState === 'updated' || saveState === 'duplicate'"
+        routerLink="/discover" [queryParams]="savedSearchId ? { search: savedSearchId } : {}">Open Velven Discover <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
     </div>
   <div class="results-avatar" *ngIf="profile.gender">
     <app-velven-lifestyle-avatar [profile]="profile"></app-velven-lifestyle-avatar>

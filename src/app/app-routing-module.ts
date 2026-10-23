@@ -18,6 +18,7 @@ import { authGuard } from './guards/auth.guard';
 import { agentGuard, crmGuard } from './guards/agent.guard';
 import { questionnaireLinkGuard } from './guards/questionnaire-link.guard';
 import { guestGuard } from './guards/guest.guard';
+import { clientGuard } from './guards/client.guard';
 
 
 
@@ -117,6 +118,21 @@ const routes: Routes = [
     loadComponent: () => import('./login/login').then((m) => m.Login),
     title: 'Sign In | Velven',
     canActivate: [guestGuard]
+  },
+
+  {
+    path: 'register',
+    loadComponent: () => import('./login/login').then((m) => m.Login),
+    title: 'Create Your Account | Velven',
+    data: { register: true },
+    canActivate: [guestGuard]
+  },
+
+  {
+    path: 'discover',
+    loadComponent: () => import('./discover/discover').then((m) => m.Discover),
+    title: 'Velven Discover | Velven',
+    canActivate: [clientGuard]
   },
 
   {

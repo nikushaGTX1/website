@@ -103,12 +103,12 @@ const routeSeo = new Map([
     description: 'Explore professional property search, listing and real estate support services for renters, buyers and owners in Tbilisi.',
   }],
 ]);
-const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|owner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|premium|balance|payment-methods|my-business)/;
+const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|owner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|register|discover|premium|balance|payment-methods|my-business)/;
 let sitemapCache;
 
 function crmQuestionnaireSeo(pathname) {
   const isLegacyPath = /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname);
-  const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|about|careers|services|apartment-detail|agent-profile|login|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(pathname);
+  const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|about|careers|services|apartment-detail|agent-profile|login|register|discover|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(pathname);
   const isShortPath = /^\/(?:agent-)?[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(pathname)
     && !reservedShortPath;
   if (!isLegacyPath && !isShortPath) return undefined;

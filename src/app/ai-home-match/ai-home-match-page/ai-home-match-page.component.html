@@ -780,6 +780,11 @@
   [profile]="profile"
   (edit)="showReview()"
   (changeAnswer)="changeFromResults($event)"
+  [saveState]="saveState"
+  [savedSearchName]="savedSearchName"
+  [savedSearchId]="savedSearchId"
+  (saveAsGuest)="saveAsGuest($event)"
+  (retrySave)="saveSearchToAccount()"
 ></app-home-match-results>
 
 <app-draw-area-map

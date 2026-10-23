@@ -1,0 +1,207 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.discover-card {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dfe5ed;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(27, 46, 77, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .discover-card:hover {
+    box-shadow: 0 14px 34px rgba(37, 20, 74, 0.12);
+    transform: translateY(-2px);
+  }
+  .discover-card:hover .card-image img {
+    transform: scale(1.03);
+  }
+  .view-details:hover {
+    background: #451a8f;
+    color: #fff;
+  }
+}
+
+/* Opened from an alert: outlined and gently pulsing a few times. */
+.discover-card.highlighted {
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.18), 0 14px 34px rgba(37, 20, 74, 0.14);
+  animation: highlight-pulse 1.4s ease-in-out 3;
+}
+
+@keyframes highlight-pulse {
+  50% {
+    box-shadow: 0 0 0 7px rgba(69, 26, 143, 0.12), 0 14px 34px rgba(37, 20, 74, 0.14);
+  }
+}
+
+.card-image {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #eef1f5;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.card-badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 60px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: #451a8f;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(16, 32, 58, 0.14);
+}
+
+.badge.new {
+  background: linear-gradient(135deg, #451a8f, #7435d3);
+  color: #fff;
+}
+
+.badge.check {
+  color: #8a5a12;
+}
+
+.card-heart {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #dce2ea;
+  border-radius: 50%;
+  background: #fff;
+  color: #5d667a;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 32, 58, 0.12);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.card-heart.active {
+  color: #e63957;
+}
+
+.card-heart:active {
+  transform: scale(0.92);
+}
+
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.card-body app-currency-price {
+  font-size: 21px;
+}
+
+.card-body h3 {
+  margin: 12px 0 6px;
+  overflow: hidden;
+  color: #15213a;
+  font-size: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.location,
+.search-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  color: #69758a;
+  font-size: 12px;
+}
+
+.location span,
+.search-name span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.location i,
+.search-name i {
+  color: #451a8f;
+}
+
+.search-name {
+  margin-top: 8px;
+}
+
+.specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 14px 0;
+  color: #536077;
+  font-size: 12px;
+}
+
+.specs span {
+  white-space: nowrap;
+}
+
+.specs i {
+  margin-right: 5px;
+}
+
+.view-details {
+  min-height: 42px;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #451a8f;
+  border-radius: 10px;
+  color: #451a8f;
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discover-card,
+  .card-image img {
+    transition: none;
+  }
+  .discover-card.highlighted {
+    animation: none;
+  }
+}

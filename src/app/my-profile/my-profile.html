@@ -56,6 +56,13 @@
               <small>Manage your published properties</small>
             </span>
           </a>
+          <a class="account-link" routerLink="/discover" *ngIf="isClient">
+            <span class="link-mark">04</span>
+            <span>
+              <strong>Velven Discover</strong>
+              <small>Your saved searches and new matches</small>
+            </span>
+          </a>
         </nav>
 
         <button type="button" class="logout-button" (click)="logout()">
@@ -237,6 +244,56 @@
             </div>
           </div>
         </form>
+
+        <section class="discover-zone" id="notifications" *ngIf="isClient" aria-labelledby="discover-settings-title">
+          <div class="discover-zone-head">
+            <div>
+              <p class="section-kicker">Velven Discover</p>
+              <h2 id="discover-settings-title">My activity and notifications</h2>
+              <p>Choose how we tell you about new homes that match your saved searches.</p>
+            </div>
+            <a class="password-code-button discover-open" routerLink="/discover">Open Velven Discover</a>
+          </div>
+
+          <div class="activity-row">
+            <a routerLink="/discover"><strong>{{ activity.searches }}</strong><span>Saved searches</span></a>
+            <a routerLink="/discover"><strong>{{ activity.newMatches }}</strong><span>New matches</span></a>
+            <a routerLink="/discover" [queryParams]="{ tab: 'saved' }"><strong>{{ activity.savedHomes }}</strong><span>Saved apartments</span></a>
+          </div>
+
+          <div class="preference-list" *ngIf="preferences">
+            <label class="preference">
+              <span>
+                <strong>Website notifications</strong>
+                <small>Show new matches under the bell at the top of the page.</small>
+              </span>
+              <input type="checkbox" role="switch" [checked]="preferences.matchAlertsInApp" [disabled]="preferencesBusy"
+                (change)="updatePreference({ matchAlertsInApp: $any($event.target).checked })" />
+            </label>
+            <label class="preference">
+              <span>
+                <strong>Email notifications</strong>
+                <small>One email groups homes published close together, never one email per home.</small>
+              </span>
+              <input type="checkbox" role="switch" [checked]="preferences.matchAlertsEmail" [disabled]="preferencesBusy"
+                (change)="updatePreference({ matchAlertsEmail: $any($event.target).checked })" />
+            </label>
+            <label class="preference">
+              <span>
+                <strong>Preferred language</strong>
+                <small>Used for the website and for alert emails.</small>
+              </span>
+              <select [ngModel]="preferences.preferredLanguage || ''" [disabled]="preferencesBusy"
+                (ngModelChange)="$event && updatePreference({ preferredLanguage: $event })" data-no-translate>
+                <option value="" disabled>—</option>
+                <option value="ka">ქართული</option>
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+              </select>
+            </label>
+          </div>
+          <p class="password-message" *ngIf="preferencesMessage" [class.error]="preferencesError">{{ preferencesMessage }}</p>
+        </section>
 
         <section class="password-zone" aria-labelledby="change-password-title">
           <div class="password-zone-head">

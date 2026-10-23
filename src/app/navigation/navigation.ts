@@ -7,16 +7,19 @@ import { AppLanguage, TranslationService } from '../services/translation.service
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIf } from '@angular/common';
 import { ProfileBurgerMenu } from '../profile-burger-menu/profile-burger-menu';
+import { NotificationBell } from '../notification-bell/notification-bell';
 
 @Component({
   selector: 'app-navigation',
   templateUrl: './navigation.html',
   styleUrl: './navigation.css',
-  imports: [RouterLink, RouterLinkActive, NgIf, ProfileBurgerMenu],
+  imports: [RouterLink, RouterLinkActive, NgIf, ProfileBurgerMenu, NotificationBell],
 })
 export class Navigation implements OnInit, OnDestroy {
   isLoggedIn = false;
   canOpenAdmin = false;
+  /** Client accounts get the match-alert bell (Velven Discover). */
+  isClient = false;
   private menuIsOpen = false;
   get menuOpen(): boolean {
     return this.menuIsOpen;
@@ -72,9 +75,11 @@ export class Navigation implements OnInit, OnDestroy {
     );
     this.isLoggedIn = this.authService.isLoggedIn;
     this.canOpenAdmin = this.authService.isAgent || this.authService.isCrmManager;
+    this.isClient = this.authService.isClient;
     this.subscription = this.authService.currentUser$.subscribe(() => {
       this.isLoggedIn = this.authService.isLoggedIn;
       this.canOpenAdmin = this.authService.isAgent || this.authService.isCrmManager;
+      this.isClient = this.authService.isClient;
     });
   }
 

@@ -759,3 +759,21 @@
   .nav-actions { gap: 8px; }
   .list-property { max-width: 140px; padding-inline: 12px; white-space: normal; line-height: 1.2; text-align: center; }
 }
+
+/* Match-alert bell (client accounts): in the action bar on desktop, beside the menu button on
+   phones and tablets so it never hides inside the collapsed menu. */
+.bell-mobile {
+  display: none;
+}
+
+@media (max-width: 1020px) {
+  .bell-mobile {
+    display: block;
+    margin-left: auto;
+    margin-right: -20px;
+  }
+
+  .bell-desktop {
+    display: none;
+  }
+}

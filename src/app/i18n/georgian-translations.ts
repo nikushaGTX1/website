@@ -1,3 +1,4 @@
+import { discoverTranslation } from './discover-translations';
 type GeorgianRule = {
   pattern: RegExp;
   translate: (match: RegExpMatchArray) => string;
@@ -2394,6 +2395,8 @@ const GEORGIAN_RULES: GeorgianRule[] = [
 ];
 
 export function georgianTranslation(value: string): string | undefined {
+  const discover = discoverTranslation(value, 'ka');
+  if (discover) return discover;
   const exact = GEORGIAN_TRANSLATIONS.get(value);
   if (exact) return exact;
 

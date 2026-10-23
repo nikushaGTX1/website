@@ -14,7 +14,6 @@ import { HomeMatchService } from '../services/home-match.service';
 import { GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
-import { applyPriorityScoring } from '../services/priority-scoring';
 import {
   answerLabel,
   answerList,
@@ -22,19 +21,18 @@ import {
   selectedBedrooms,
   todayIso,
 } from '../services/answer-labels';
-import {
-  petsExplicitlyProhibited,
-  selectedPets,
-  withinBudgetCeiling,
-} from '../services/mandatory-requirements';
+import { selectedPets } from '../services/mandatory-requirements';
 import { DogSize, PetKind } from '../models/home-match-profile';
-import { CurrencyService } from '../../services/currency.service';
 import { NgIf, NgFor, NgSwitch, NgSwitchCase, DecimalPipe } from '@angular/common';
 import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
 import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
 import { HomeProfileSummaryComponent } from '../home-profile-summary/home-profile-summary.component';
 import { HomeMatchResultsComponent } from '../home-match-results/home-match-results.component';
 import { DrawAreaMapComponent } from '../../maps/draw-area-map/draw-area-map.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { ClientService } from '../../services/client.service';
+import { SearchSaveState } from '../home-match-results/home-match-results.component';
 
 type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
 @Component({
@@ -269,8 +267,16 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     private service: HomeMatchService,
     private cdr: ChangeDetectorRef,
     private locationService: LocationService,
-    private currencyService: CurrencyService,
+    route: ActivatedRoute,
+    private router: Router,
+    private auth: AuthService,
+    private clientService: ClientService,
   ) {
+    const query = route.snapshot.queryParamMap;
+    // "Find My Perfect Home" in Velven Discover starts a new search from the first question.
+    if (query.get('new')) service.clearSession();
+    // "Edit preferences" in Velven Discover: the saved answers are already in this tab.
+    this.editSearchId = Number(query.get('editSearch')) || null;
     const restored = service.restoreFromSession();
     if (!restored) service.reset();
     this.profile = {
@@ -1029,17 +1035,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       )
       .subscribe({
         next: (response) => {
-          this.matches = (Array.isArray(response) ? response : response.matches)
-            // Hard filters: deal type, budget ceiling, and pets the listing prohibits.
-            .filter(
-              (match) =>
-                this.matchesPropertyGoal(match) &&
-                this.withinBudget(match) &&
-                !petsExplicitlyProhibited(match.apartment, this.profile),
-            )
-            .map((match) => applyPriorityScoring(match, this.profile))
-            .sort((a, b) => (b.rankingScore || 0) - (a.rankingScore || 0));
+          this.matches = this.service.rankMatches(response, this.profile);
           this.view = 'results';
+          this.saveSearchToAccount();
           window.scrollTo({ top: 0, behavior: 'smooth' });
         },
         error: () => {
@@ -1049,24 +1047,64 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       });
   }
 
-  // Prices are stored in USD; the budget is converted from GEL/EUR before comparing.
-  // Homes below the minimum stay in the list and are classified as alternatives.
-  private withinBudget(match: HomeMatchResult): boolean {
-    return withinBudgetCeiling(
-      Number(match.apartment.price),
-      this.profile,
-      this.currencyService.rates,
-    );
+  /** Saved search being edited (opened from Velven Discover); results update it instead of adding one. */
+  private editSearchId: number | null = null;
+  saveState: SearchSaveState = null;
+  savedSearchName = '';
+  savedSearchId: number | null = null;
+
+  /** Default name for a saved search, e.g. "Vake, Saburtalo · Rent". */
+  private defaultSearchName(): string {
+    const places = this.profile.locationFlexible
+      ? 'Flexible'
+      : this.profile.districts.length
+        ? answerList(this.profile.districts.slice(0, 2))
+        : this.profile.selectedMapArea
+          ? 'Selected map area'
+          : 'Tbilisi';
+    return `${places} · ${answerLabel(this.profile.propertyGoal)}`;
   }
 
-  private matchesPropertyGoal(match: HomeMatchResult): boolean {
-    const apartment = match.apartment;
-    const text = `${apartment.title || ''} ${apartment.description || ''}`.toLowerCase();
-    const deal = text.match(/deal:\s*([^|\n]+)/i)?.[1]?.trim() || '';
-    return this.profile.propertyGoal === 'Buy'
-      ? deal === 'for sale' || (!deal && text.includes('for sale'))
-      : ['for rent', 'daily rent', 'lease'].includes(deal) ||
-          (!deal && (text.includes('for rent') || text.includes('daily rent')));
+  /**
+   * Clients: every finished search is kept in Velven Discover (the same answers are saved once).
+   * Visitors: offered to save it after signing in. Staff accounts are not offered saving.
+   */
+  saveSearchToAccount(): void {
+    this.savedSearchId = null;
+    if (!this.auth.isLoggedIn) {
+      this.saveState = 'guest';
+      return;
+    }
+    if (!this.auth.isClient) {
+      this.saveState = null;
+      return;
+    }
+    this.saveState = 'saving';
+    const profile = { ...this.profile };
+    const request: import('rxjs').Observable<{ id: number; name: string }> = this.editSearchId
+      ? this.clientService.updateSearch(this.editSearchId, { profile })
+      : this.clientService.saveSearch(profile, this.defaultSearchName());
+    request.subscribe({
+      next: (saved) => {
+        this.savedSearchId = saved.id;
+        this.savedSearchName = saved.name;
+        this.saveState = this.editSearchId ? 'updated' : 'saved';
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        // Another saved search already has these answers: that one is kept.
+        this.saveState = error?.status === 409 ? 'duplicate' : 'failed';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  /** Visitor chose to save: keep the answers, then sign in or register. */
+  saveAsGuest(register: boolean): void {
+    this.clientService.keepPendingSearch({ ...this.profile }, this.defaultSearchName());
+    void this.router.navigate([register ? '/register' : '/login'], {
+      queryParams: { returnUrl: '/discover' },
+    });
   }
 
   save(): void {

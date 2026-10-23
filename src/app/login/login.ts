@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { NgIf, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodeDialogComponent } from '../shared/code-dialog/code-dialog.component';
+import { ClientService } from '../services/client.service';
 
 @Component({
   selector: 'app-login',
@@ -17,11 +18,15 @@ export class Login {
   isSubmitting = false;
 
   registerData = {
-    userName: '',
     fullName: '',
     email: '',
+    phoneNumber: '',
     password: '',
+    confirmPassword: '',
   };
+
+  /** Set right after sign-up so verifying the email can sign the new client straight in. */
+  private justRegistered: { email: string; password: string } | null = null;
 
   loginData = {
     email: '',
@@ -35,7 +40,16 @@ export class Login {
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-  ) {}
+    private clientService: ClientService,
+  ) {
+    // /register opens the sign-up form directly.
+    this.isRegisterMode = !!this.route.snapshot.data['register'];
+  }
+
+  /** A visitor finished Velven Match and asked to save the search. */
+  get hasPendingSearch(): boolean {
+    return this.clientService.hasPendingSearch();
+  }
 
   /** Where to continue after signing in (set by the auth guard or a "save" action). */
   get returnUrl(): string | null {
@@ -60,18 +74,31 @@ export class Login {
 
     this.errorMessage = '';
     this.successMessage = '';
+    if (this.registerData.password.length < 6) {
+      this.errorMessage = 'Password must be at least 6 characters.';
+      return;
+    }
+    if (this.registerData.password !== this.registerData.confirmPassword) {
+      this.errorMessage = 'Passwords do not match.';
+      return;
+    }
     this.isSubmitting = true;
 
     this.authService
       .register({
-        userName: this.registerData.userName,
-        fullName: this.registerData.fullName,
-        email: this.registerData.email,
+        fullName: this.registerData.fullName.trim(),
+        email: this.registerData.email.trim(),
         password: this.registerData.password,
+        confirmPassword: this.registerData.confirmPassword,
+        phoneNumber: this.registerData.phoneNumber.trim() || undefined,
       })
       .subscribe({
         next: (response) => {
           this.isSubmitting = false;
+          this.justRegistered = {
+            email: response.email || this.registerData.email.trim(),
+            password: this.registerData.password,
+          };
           this.isRegisterMode = false;
           this.loginData.email = this.registerData.email;
           this.openVerify(
@@ -116,7 +143,7 @@ export class Login {
     this.authService.login(this.loginData).subscribe({
       next: () => {
         this.isSubmitting = false;
-        void this.router.navigateByUrl(this.returnUrl ?? '/main');
+        this.continueAfterSignIn();
       },
       error: (err) => {
         this.isSubmitting = false;
@@ -130,6 +157,24 @@ export class Login {
         this.errorMessage = 'Invalid email or password.';
       },
     });
+  }
+
+  /**
+   * After signing in: save a Velven Match search the visitor finished before, then continue
+   * to where they were going. New clients (and anyone who just saved a search) land on
+   * Velven Discover.
+   */
+  private continueAfterSignIn(newAccount = false): void {
+    if (this.authService.isClient && this.clientService.hasPendingSearch()) {
+      this.clientService.savePendingSearch().subscribe((searchId) => {
+        void this.router.navigate(['/discover'], {
+          queryParams: searchId ? { search: searchId, saved: 1 } : {},
+        });
+      });
+      return;
+    }
+    const fallback = newAccount && this.authService.isClient ? '/discover' : '/main';
+    void this.router.navigateByUrl(this.returnUrl ?? fallback);
   }
 
   // ---------- Email code steps (verify / forgot password) ----------
@@ -170,6 +215,23 @@ export class Login {
     this.errorMessage = '';
     this.authService.verifyEmail(this.codeEmail, this.code).subscribe({
       next: () => {
+        const fresh = this.justRegistered;
+        if (fresh && fresh.email.toLowerCase() === this.codeEmail.trim().toLowerCase()) {
+          // Just signed up in this tab: sign straight in instead of asking for the password again.
+          this.justRegistered = null;
+          this.authService.login({ email: fresh.email, password: fresh.password }).subscribe({
+            next: () => {
+              this.isSubmitting = false;
+              this.continueAfterSignIn(true);
+            },
+            error: () => {
+              this.isSubmitting = false;
+              this.loginData.email = fresh.email;
+              this.backToLogin('Email verified! You can sign in now.');
+            },
+          });
+          return;
+        }
         this.isSubmitting = false;
         this.backToLogin('Email verified! You can sign in now.');
       },

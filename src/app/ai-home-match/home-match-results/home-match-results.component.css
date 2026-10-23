@@ -899,3 +899,87 @@ h1 {
     max-width: 200px;
   }
 }
+
+/* Velven Discover: the search was saved (clients), or an offer to save it (visitors). */
+.discover-save {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid #e3ddf0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fbfaff, #f3effd);
+  text-align: left;
+}
+.discover-save-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  background: #fff;
+  color: #451a8f;
+  font-size: 18px;
+  box-shadow: 0 6px 16px rgba(69, 26, 143, 0.12);
+}
+.discover-save-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.discover-save-copy strong {
+  color: #211d35;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.discover-save-copy span {
+  color: #6b6480;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.discover-save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.discover-save-actions button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #451a8f;
+  border-radius: 11px;
+  background: #fff;
+  color: #451a8f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.discover-save-actions button.primary {
+  background: #451a8f;
+  color: #fff;
+}
+.discover-save-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #451a8f;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .discover-save {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .discover-save-actions,
+  .discover-save-link {
+    grid-column: 1 / -1;
+  }
+  .discover-save-actions button {
+    flex: 1;
+  }
+}

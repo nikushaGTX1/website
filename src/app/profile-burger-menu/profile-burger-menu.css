@@ -196,3 +196,46 @@
     .menu-list a,.menu-list button{min-height:48px;padding:12px}
     .logout button{border:1px solid #fecaca;background:#fff7f7;font-weight:700}
 }
+
+/* Velven Discover (client accounts): highlighted, with the number of new matches. */
+.menu-list a.featured {
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #f6f1ff, #efe8ff);
+    color: #451a8f;
+    font-weight: 700;
+}
+
+.menu-list a.featured > i {
+    color: #451a8f;
+}
+
+.item-label {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-badge {
+    min-width: 22px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #e63957;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.profile-burger {
+    position: relative;
+}
+
+.account-dot {
+    position: absolute;
+    top: 6px;
+    left: 30px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #e63957;
+}

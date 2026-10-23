@@ -997,3 +997,53 @@
   .password-zone-head { flex-direction: column; align-items: stretch; }
   .password-form { grid-template-columns: 1fr; }
 }
+
+/* Velven Discover: activity and match-alert settings (client accounts). */
+.discover-zone {
+  margin-top: 28px;
+  padding: 22px;
+  border: 1px solid #e4dcf0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff, #f8f5ff);
+  scroll-margin-top: 96px;
+}
+.discover-zone-head { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.discover-zone h2 { margin: 0 0 5px; color: #1b1626; font-size: 18px; }
+.discover-zone-head p { margin: 0; }
+.discover-zone-head > div > p:last-child { color: #5b6478; font-size: 13px; }
+.discover-open { display: inline-flex; align-items: center; text-decoration: none; }
+.activity-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.activity-row a {
+  display: grid; gap: 2px; padding: 14px; border: 1px solid #ebe5f5; border-radius: 12px;
+  background: #fff; color: #5b6478; font-size: 12px; text-decoration: none;
+}
+.activity-row strong { color: #451a8f; font-size: 22px; }
+.preference-list { display: grid; gap: 4px; margin-top: 18px; }
+.preference {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  padding: 14px 0; border-top: 1px solid #eee9f6; cursor: pointer;
+}
+.preference span { display: grid; gap: 3px; min-width: 0; }
+.preference strong { color: #1b1626; font-size: 14px; }
+.preference small { color: #6b7488; font-size: 12px; line-height: 1.5; }
+.preference input[type='checkbox'] {
+  position: relative; flex: 0 0 auto; width: 46px; height: 26px; margin: 0; appearance: none;
+  border-radius: 999px; background: #d7d2e2; cursor: pointer; transition: background .2s;
+}
+.preference input[type='checkbox']::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .2); transition: transform .2s;
+}
+.preference input[type='checkbox']:checked { background: #451a8f; }
+.preference input[type='checkbox']:checked::after { transform: translateX(20px); }
+.preference input[type='checkbox']:focus-visible { outline: 3px solid rgba(69, 26, 143, .3); outline-offset: 2px; }
+.preference select {
+  flex: 0 0 auto; height: 40px; padding: 0 10px; border: 1px solid #ddd6ea; border-radius: 8px;
+  background: #fff; font: inherit; font-size: 14px;
+}
+@media (max-width: 620px) {
+  .discover-zone-head { flex-direction: column; align-items: stretch; }
+  .discover-open { justify-content: center; }
+  .activity-row a { padding: 12px 10px; }
+  .activity-row strong { font-size: 19px; }
+}
