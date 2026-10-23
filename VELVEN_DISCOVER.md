@@ -6,6 +6,16 @@ changes were retained. Both repositories must ship together.
 
 ## Implemented
 
+Registration now offers Client / Property owner buttons. The choice changes the
+registration guidance and benefits, persists as an existing Identity role, and
+directs new clients to Discover and new owners to the property submission form.
+Owners have listing-focused account navigation and do not receive client alerts.
+`Owner` is seeded with the other Identity roles; no schema migration is needed.
+Existing accounts retain their roles, and the Client backfill excludes Owners.
+`scripts/test-registration-choice.mjs` verifies both choices in three languages
+at 320, 390 and 1440 px, including the submitted account type and verification
+continuation. Public registration accepts only Client or Owner, never staff roles.
+
 - Client registration, existing email verification/password flows, Client role,
   private Discover route, account-menu entry and desktop/mobile notification bell.
 - Persistent saved criteria, automatic save/update after Velven Match, rename,

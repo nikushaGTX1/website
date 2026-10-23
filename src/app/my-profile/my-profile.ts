@@ -418,6 +418,8 @@ export class MyProfile implements OnInit, OnDestroy {
   get accountType(): string {
     if (this.user?.isAdmin || this.user?.roles?.includes('Admin')) return 'Admin';
     if (this.user?.isAgent || this.user?.roles?.includes('Agent')) return 'Agent';
+    if (this.authService.isOwner) return 'Property owner';
+    if (this.authService.isClient) return 'Client';
     return 'Member';
   }
 

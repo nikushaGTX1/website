@@ -172,3 +172,15 @@ test('one bedroom choice means that many or more; several choices mean one of th
   // Older saved profiles only had `bedrooms`.
   assert.equal(evaluateMandatoryRequirements(apartment({ bedrooms: 1 }), profile({ bedrooms: 2 }), rates).status, 'alternative');
 });
+
+test('"Immediately" accepts a home that is free within the next week, not later', () => {
+  const inDays = (days: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString().slice(0, 10);
+  };
+  const p = profile({ moveInTiming: 'Immediately' });
+  assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: inDays(1) }), p, rates).status, 'exact');
+  assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: inDays(6) }), p, rates).status, 'exact');
+  assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: inDays(20) }), p, rates).status, 'alternative');
+});

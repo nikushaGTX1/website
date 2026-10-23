@@ -5,6 +5,7 @@ import { AuthResponse, User } from '../models/user';
 import { API_URL } from '../utils/api-config';
 
 export interface RegisterRequest {
+  accountType?: 'Client' | 'Owner';
   /** Optional: when empty the API uses the email address. */
   userName?: string;
   fullName: string;
@@ -85,7 +86,11 @@ export class AuthService {
    */
   get isClient(): boolean {
     if (!this.isLoggedIn) return false;
-    return !this.isStaff;
+    return !this.isStaff && !this.isOwner;
+  }
+
+  get isOwner(): boolean {
+    return this.isLoggedIn && !this.isStaff && this.hasAnyRole(['owner']);
   }
 
   get canOpenCrm(): boolean {

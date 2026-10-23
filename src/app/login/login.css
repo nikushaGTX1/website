@@ -581,3 +581,11 @@
 }
 
 .optional-label { color: #8a8496; font-weight: 500; }
+
+.account-choice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 20px 0 16px; }
+.account-choice button { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; min-width: 0; padding: 12px 10px; border: 1px solid #e4def1; border-radius: 14px; background: #faf9fd; color: #6b627d; font: inherit; font-weight: 700; line-height: 1.35; cursor: pointer; transition: background .15s, border-color .15s; }
+.account-choice button.selected { border-color: #6840cc; background: #f0e9ff; color: #451a8f; box-shadow: 0 0 0 2px #6840cc12; }
+.account-choice button:focus-visible { outline: 3px solid #a58ae0; outline-offset: 3px; }
+.account-choice button:disabled { opacity: .65; cursor: wait; }
+.account-intro { min-height: 3em; }
+@media (max-width: 380px) { .account-choice { gap: 8px; } .account-choice button { gap: 6px; font-size: 13px; } }

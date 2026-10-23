@@ -162,11 +162,15 @@ function addDaysIso(days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+/** Days a home may still be occupied and count as available "immediately". Same in the API. */
+export const IMMEDIATE_MOVE_IN_GRACE_DAYS = 7;
+
 /** The date the user wants to move in by, or null when they have no fixed timing (Flexible/unanswered). */
 function requestedMoveInDate(profile: HomeMatchProfile): string | null {
   switch (profile.moveInTiming) {
     case 'Immediately':
-      return todayIso();
+      // "Immediately" still fits a home that is free within the next week.
+      return addDaysIso(IMMEDIATE_MOVE_IN_GRACE_DAYS);
     case 'WithinOneWeek':
       return addDaysIso(7);
     case 'WithinOneMonth':
