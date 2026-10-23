@@ -69,6 +69,10 @@ const defaultSeo = {
   type: 'website',
 };
 const routeSeo = new Map([
+  ['/clients', {
+    title: 'Find Tenants for Your Apartment | Velven Clients',
+    description: 'Browse anonymised Velven Match client requirements and contact their assigned agent to suggest your apartment.',
+  }],
   ['/main', defaultSeo],
   ['/ExploreProperty', {
     title: 'Apartments for Rent and Sale in Tbilisi | Velven',
@@ -108,7 +112,7 @@ let sitemapCache;
 
 function crmQuestionnaireSeo(pathname) {
   const isLegacyPath = /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname);
-  const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|about|careers|services|apartment-detail|agent-profile|login|register|discover|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(pathname);
+  const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|clients|about|careers|services|apartment-detail|agent-profile|login|register|discover|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business)$/i.test(pathname);
   const isShortPath = /^\/(?:agent-)?[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(pathname)
     && !reservedShortPath;
   if (!isLegacyPath && !isShortPath) return undefined;
@@ -1325,6 +1329,7 @@ async function dynamicSitemap() {
     ['/agent-profile', 'weekly', '0.8'],
     ['/blog', 'weekly', '0.7'],
     ['/ai-home-match', 'monthly', '0.6'],
+    ['/clients', 'daily', '0.7'],
     ['/about', 'monthly', '0.7'],
     ['/careers', 'monthly', '0.6'],
     ['/services', 'monthly', '0.8'],

@@ -1,0 +1,240 @@
+<main class="clients-page">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">For owners</p>
+      <h1><span>Find the</span>&ngsp;<em>right client</em>&ngsp;<span>for your apartment</span></h1>
+      <p class="subtitle">Verified profiles. Real requirements. Your agent's support.</p>
+      <div class="trust">
+        <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Identity verified</span
+        ><span
+          ><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Velven Match completed</span
+        >
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="arch"></div>
+      <app-velven-lifestyle-avatar [profile]="hero" /><span class="art-label">Velven Match ✓</span>
+    </div>
+  </section>
+  <form class="filters" (ngSubmit)="search()">
+    <label
+      ><span>District</span
+      ><select name="district" [(ngModel)]="district">
+        <option value="">All districts</option>
+        @for (d of districts; track d) {
+          <option [value]="d">{{ label(d) }}</option>
+        }
+      </select></label
+    >
+    <label
+      ><span>Budget</span
+      ><select name="budget" [(ngModel)]="budget">
+        <option value="">USD / month</option>
+        <option value="0-500">$0 – $500</option>
+        <option value="500-1000">$500 – $1,000</option>
+        <option value="1000-1500">$1,000 – $1,500</option>
+        <option value="1500-">$1,500+</option>
+      </select></label
+    >
+    <label
+      ><span>Move-in date</span
+      ><select name="timing" [(ngModel)]="timing">
+        <option value="">Any date</option>
+        <option value="7">Within one week</option>
+        <option value="30">Within one month</option>
+        <option value="90">Within 3 months</option>
+      </select></label
+    >
+    <label
+      ><span>Residents</span
+      ><select name="residents" [(ngModel)]="residents">
+        <option value="">Any household</option>
+        @for (n of [1, 2, 3, 4, 5, 6, 7]; track n) {
+          <option [value]="n">{{ n }}</option>
+        }
+      </select></label
+    >
+    <label
+      ><span>Pets</span
+      ><select name="pets" [(ngModel)]="pets">
+        <option value="">Any</option>
+        <option value="true">With pets</option>
+        <option value="false">No pets</option>
+      </select></label
+    >
+    <button type="submit">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search
+    </button>
+  </form>
+  <section class="active-section" aria-live="polite" [attr.aria-busy]="loading">
+    <div class="section-heading">
+      <h2>Active clients</h2>
+      <span *ngIf="!loading && !error">{{ result.total }}</span>
+    </div>
+    @if (loading) {
+      <div class="client-grid skeleton-grid" aria-label="Loading clients">
+        @for (n of [1, 2, 3]; track n) {
+          <div class="skeleton">
+            <div></div>
+            <p></p>
+            <p></p>
+            <p></p>
+          </div>
+        }
+      </div>
+    } @else if (error) {
+      <div class="state" role="alert">
+        <h3>Clients could not be loaded.</h3>
+        <p>Please try again in a moment.</p>
+        <button (click)="search()">Retry</button>
+      </div>
+    } @else if (!result.items.length) {
+      <div class="state">
+        <i class="fa-solid fa-house" aria-hidden="true"></i>
+        <h3>No clients match these filters yet.</h3>
+        <p>Try another district or a wider budget.</p>
+      </div>
+    } @else {
+      <div class="client-grid">
+        @for (client of result.items; track client.id) {
+          <article class="client-card">
+            <div class="avatar">
+              <span class="active-badge"><i aria-hidden="true"></i> Actively looking</span
+              ><app-velven-lifestyle-avatar [profile]="client.profile" /><span class="match-badge"
+                >Velven Match ✓</span
+              >
+            </div>
+            <div class="card-body">
+              <div class="card-title">
+                <h3><span>Client</span> #{{ client.id }}</h3>
+                <span class="kyc" *ngIf="client.identityVerified"
+                  ><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> KYC Verified</span
+                >
+              </div>
+              <p class="price">
+                <strong
+                  >{{ client.profile.currency }} {{ client.profile.budgetMin | number }} –
+                  {{ client.profile.budgetMax | number }}</strong
+                >
+                <span>/ month</span>
+              </p>
+              <p class="districts">
+                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                @for (district of client.profile.districts; track district; let last = $last) {
+                  <span>{{ label(district) }}</span
+                  ><span *ngIf="!last">, </span>
+                }
+                <span *ngIf="!client.profile.districts.length">{{
+                  client.profile.locationFlexible ? 'Flexible location' : 'Selected map area'
+                }}</span>
+              </p>
+              <dl class="facts">
+                <div>
+                  <dt><i class="fa-solid fa-users" aria-hidden="true"></i> Adults</dt>
+                  <dd>
+                    {{ client.profile.adults
+                    }}<span *ngIf="client.profile.children">
+                      · {{ client.profile.children }} <span>Children</span></span
+                    >
+                  </dd>
+                </div>
+                <div>
+                  <dt><i class="fa-solid fa-paw" aria-hidden="true"></i> Pets</dt>
+                  <dd>
+                    @if (client.profile.hasPet) {
+                      @for (pet of client.profile.petTypes; track pet; let last = $last) {
+                        <span>{{ label(pet) }}</span
+                        ><span *ngIf="!last">, </span>
+                      }
+                      <span *ngIf="!client.profile.petTypes?.length">{{
+                        label(client.profile.petType || 'Other')
+                      }}</span>
+                    } @else {
+                      <span>No pets</span>
+                    }
+                  </dd>
+                </div>
+                <div>
+                  <dt><i class="fa-regular fa-calendar" aria-hidden="true"></i> Move-in date</dt>
+                  <dd>
+                    {{
+                      client.profile.moveInDate ||
+                        label(client.profile.moveInTiming) ||
+                        'Not specified'
+                    }}
+                  </dd>
+                </div>
+                <div>
+                  <dt><i class="fa-regular fa-clock" aria-hidden="true"></i> Stay length</dt>
+                  <dd>{{ label(client.profile.rentalDuration) || 'Not specified' }}</dd>
+                </div>
+                <div>
+                  <dt><i class="fa-solid fa-bed" aria-hidden="true"></i> Bedrooms</dt>
+                  <dd>
+                    {{ client.profile.bedrooms ?? 'No preference' }} · <span>Min size</span>:
+                    {{ client.profile.minSize ?? 'Not specified'
+                    }}<span *ngIf="client.profile.minSize"> m²</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt><i class="fa-regular fa-flag" aria-hidden="true"></i> Nationality</dt>
+                  <dd>{{ client.nationality || 'Not specified' }}</dd>
+                </div>
+              </dl>
+              <p class="priority-heading">Priorities</p>
+              <div class="priorities">
+                @for (priority of client.profile.topPriorities.slice(0, 3); track priority) {
+                  <div>
+                    <i [class]="'fa-solid fa-' + priorityIcon(priority)" aria-hidden="true"></i
+                    ><span>{{ label(priority) }}</span>
+                  </div>
+                }
+                <span *ngIf="!client.profile.topPriorities.length">No preference</span>
+              </div>
+              <div class="agent">
+                <img
+                  *ngIf="client.agent.photo"
+                  [src]="client.agent.photo"
+                  alt=""
+                  loading="lazy"
+                /><span class="agent-placeholder" *ngIf="!client.agent.photo" aria-hidden="true"
+                  ><i class="fa-solid fa-user-tie"></i
+                ></span>
+                <div>
+                  <strong>{{ client.agent.name }}</strong
+                  ><small>Velven agent</small>
+                </div>
+                <a *ngIf="client.agent.phone" [href]="'tel:' + client.agent.phone">{{
+                  client.agent.phone
+                }}</a>
+              </div>
+              <a
+                class="contact"
+                *ngIf="client.agent.phone; else noPhone"
+                [href]="'tel:' + client.agent.phone"
+                >Contact agent</a
+              ><ng-template #noPhone
+                ><a class="contact" routerLink="/agent-profile">Contact agent</a></ng-template
+              >
+              <a class="suggest" routerLink="/upload-apartment" [queryParams]="suggest(client)"
+                ><span>Suggest apartment</span> →</a
+              >
+            </div>
+          </article>
+        }
+      </div>
+      <nav class="pagination" aria-label="Client pages" *ngIf="pages > 1">
+        <button (click)="search(result.page - 1)" [disabled]="result.page <= 1">Previous</button
+        ><span>{{ result.page }} / {{ pages }}</span
+        ><button (click)="search(result.page + 1)" [disabled]="result.page >= pages">Next</button>
+      </nav>
+    }
+  </section>
+  <section class="bottom-banner">
+    <div>
+      <h2>Does your apartment match their requirements?</h2>
+      <p>Our agent will check compatibility and contact you.</p>
+    </div>
+    <a routerLink="/upload-apartment">Suggest apartment <span aria-hidden="true">→</span></a>
+  </section>
+</main>

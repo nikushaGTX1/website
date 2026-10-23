@@ -1,0 +1,160 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.intake-card {
+  background: #fff;
+  border: 1px solid #e8e1ef;
+  border-radius: 18px;
+  padding: 24px;
+  margin: 24px 0;
+  color: #392d46;
+  box-sizing: border-box;
+  min-width: 0;
+}
+.intake-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.intake-card h2 {
+  font:
+    24px Georgia,
+    serif;
+  margin: 0 0 10px;
+}
+.intake-card h3 {
+  font-size: 15px;
+  margin: 25px 0 16px;
+}
+.intake-card p {
+  font-size: 13px;
+  color: #82738f;
+  line-height: 1.7;
+}
+.intake-card button,
+.actions a {
+  background: #451a8f;
+  color: white;
+  border: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.intake-card button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 15px 0;
+  border-bottom: 1px solid #eee8f5;
+  min-width: 0;
+}
+.link-row input {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  width: 250px;
+  background: #f9f7fc;
+  border: 1px solid #e4dbea;
+  padding: 10px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #564564;
+  font-size: 12px;
+}
+.actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.actions a {
+  background: #f2edf8;
+  color: #451a8f;
+}
+.actions .revoke {
+  background: #fff0f0;
+  color: #a64444;
+}
+.submission {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee8f5;
+  padding: 15px 0;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.submission > div {
+  display: grid;
+  gap: 5px;
+}
+.submission a {
+  color: #451a8f;
+}
+.submission small {
+  color: #8b7d96;
+}
+.submission label {
+  display: grid;
+  gap: 6px;
+}
+.submission select {
+  border: 1px solid #ded3e8;
+  border-radius: 6px;
+  padding: 8px;
+  font: inherit;
+  background: white;
+}
+.intake-card nav {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #ab8bd1;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .intake-card {
+    padding: 18px 14px;
+  }
+  .intake-card header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .link-row {
+    display: block;
+  }
+  .link-row input {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .submission {
+    gap: 12px;
+  }
+  .submission > div {
+    width: 100%;
+  }
+  .actions {
+    gap: 6px;
+  }
+  .actions a,
+  .actions button {
+    padding: 9px 11px;
+  }
+}

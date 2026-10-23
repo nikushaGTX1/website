@@ -27,6 +27,7 @@ import { clientGuard } from './guards/client.guard';
 
 
 const routes: Routes = [
+  { path: 'clients', loadComponent: () => import('./clients/clients').then(m => m.Clients), title: 'Clients | Velven' },
 
   {
     path: '',

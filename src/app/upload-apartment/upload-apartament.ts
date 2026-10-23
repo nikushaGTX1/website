@@ -655,6 +655,15 @@ export class UploadApartment implements OnInit, OnDestroy {
   /** Editing reuses this exact form: /upload-apartment?edit=ID or ?pending=ID. */
   private startEditFromRoute(): void {
     const params = this.route.snapshot.queryParamMap;
+    if (!params.has('edit') && !params.has('pending') && !params.has('owner')) {
+      const district = params.get('district');
+      if (district && /^[A-Za-z ]{1,80}$/.test(district)) {
+        this.selectedDistrictValue = district;
+        this.form.location = district;
+      }
+      const bedrooms = Number(params.get('bedrooms'));
+      if (params.has('bedrooms') && Number.isInteger(bedrooms) && bedrooms >= 0 && bedrooms <= 4) this.form.bedrooms = bedrooms;
+    }
     const ownerId = Number(params.get('owner'));
     if (Number.isFinite(ownerId) && ownerId > 0) {
       this.ownerSubmissionId = ownerId;

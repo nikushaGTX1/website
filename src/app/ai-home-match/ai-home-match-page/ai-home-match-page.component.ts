@@ -6,7 +6,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import { HomeMatchResult } from '../models/home-match-result';
 import { HomeMatchOption, HomeMatchQuestion } from '../models/home-match-question';
 import { EMPTY_HOME_MATCH_PROFILE, HomeMatchProfile } from '../models/home-match-profile';
@@ -33,8 +33,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ClientService } from '../../services/client.service';
 import { SearchSaveState } from '../home-match-results/home-match-results.component';
+import { ClientBoardService, IntakeContact } from '../../services/client-board.service';
+import { isValidPhone } from '../../utils/phone';
 
-type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
+type ViewState = 'questions' | 'review' | 'intake' | 'loading' | 'results' | 'error';
 @Component({
   selector: 'app-ai-home-match-page',
   templateUrl: './ai-home-match-page.component.html',
@@ -55,6 +57,14 @@ type ViewState = 'questions' | 'review' | 'loading' | 'results' | 'error';
   ],
 })
 export class AiHomeMatchPageComponent implements OnDestroy {
+  private intakeToken: string | null = null;
+  private intakeSavedProfile = '';
+  private intakeRequest?: Subscription;
+  intakeContact: IntakeContact = {
+    firstName: '', phone: '', nationality: '', consent: false, publishConsent: false,
+  };
+  intakeBusy = false;
+  intakeError = '';
   readonly phaseLabels = [
     'Lifestyle',
     'Location',
@@ -271,8 +281,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     private router: Router,
     private auth: AuthService,
     private clientService: ClientService,
+    private boardService: ClientBoardService,
   ) {
     const query = route.snapshot.queryParamMap;
+    this.intakeToken = query.get('intake');
     // "Find My Perfect Home" in Velven Discover starts a new search from the first question.
     if (query.get('new')) service.clearSession();
     // "Edit preferences" in Velven Discover: the saved answers are already in this tab.
@@ -325,6 +337,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     });
   }
   ngOnDestroy(): void {
+    this.intakeRequest?.unsubscribe();
     if (this.loadingTimer) window.clearInterval(this.loadingTimer);
   }
   get question(): HomeMatchQuestion {
@@ -1017,9 +1030,16 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.scrollToStepTop();
   }
   submit(): void {
+    if (this.intakeBusy) return;
     // Never calculate with an incomplete profile (it used to end in a calculation error).
     if (this.firstIncompleteStep() !== undefined) {
       this.showReview();
+      return;
+    }
+    if (this.intakeToken !== null && this.intakeSavedProfile !== JSON.stringify(this.profile)) {
+      this.view = 'intake';
+      this.intakeError = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     this.view = 'loading';
@@ -1045,6 +1065,33 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           this.view = 'error';
         },
       });
+  }
+
+  submitIntake(): void {
+    if (this.intakeBusy) return;
+    const contact = this.intakeContact;
+    if (!contact.firstName.trim() || !isValidPhone(contact.phone) || !contact.consent) {
+      this.intakeError = 'Enter your first name, a valid phone number and consent to contact.';
+      return;
+    }
+    this.intakeBusy = true;
+    this.intakeError = '';
+    const submittedProfile = JSON.stringify(this.profile);
+    this.intakeRequest = this.boardService.submit(this.intakeToken || '', this.profile, contact).subscribe({
+      next: () => {
+        this.intakeSavedProfile = submittedProfile;
+        this.intakeBusy = false;
+        this.submit();
+        this.cdr.markForCheck();
+      },
+      error: error => {
+        this.intakeBusy = false;
+        this.intakeError = error.status === 404
+          ? 'This intake link is no longer available. Please ask your agent for a new link.'
+          : 'Your profile could not be submitted. Please retry.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   /** Saved search being edited (opened from Velven Discover); results update it instead of adding one. */

@@ -11,7 +11,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:unit": "tsx --tsconfig tsconfig.app.json --test \"src/**/*.spec.ts\"",
-    "test:myhome:ui": "node scripts/test-myhome-ui.mjs"
+    "test:myhome:ui": "node scripts/test-myhome-ui.mjs",
+    "test:clients:ui": "node scripts/test-clients-ui.mjs"
   },
   "dependencies": {
     "@angular/common": "^21.2.0",

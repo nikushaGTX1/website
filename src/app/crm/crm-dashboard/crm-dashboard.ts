@@ -1,4 +1,5 @@
 import { MyHomeVerification } from '../../myhome-verification/myhome-verification';
+import { ClientIntakeCard } from '../../admin-panel/client-intake-card';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import {
@@ -44,7 +45,7 @@ interface ManualLeadForm extends CreateCrmLeadRequest {
 @Component({
   selector: 'app-crm-dashboard',
   standalone: true,
-  imports: [MyHomeVerification, CommonModule, FormsModule, RouterModule],
+  imports: [ClientIntakeCard, MyHomeVerification, CommonModule, FormsModule, RouterModule],
   templateUrl: './crm-dashboard.html',
   styleUrl: './crm-dashboard.css',
 })
@@ -168,6 +169,7 @@ export class CrmDashboard implements OnInit {
   get isAdmin(): boolean {
     return this.authService.isAdmin;
   }
+  get canManageClientIntake(): boolean { return this.authService.isAgent || this.authService.isCrmManager; }
 
   get isManager(): boolean {
     return this.authService.isCrmManager;

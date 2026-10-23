@@ -763,6 +763,21 @@
   (save)="save()"
   (submitProfile)="submit()"
 ></app-home-profile-summary>
+<section class="intake-contact" *ngIf="view === 'intake'">
+  <p class="intake-eyebrow">Velven Match</p><h1>Connect with your agent</h1>
+  <p>Your name and phone are shared only with Velven staff. Owners see only your requirements and your agent's contact.</p>
+  <form (ngSubmit)="submitIntake()">
+    <label for="intake-name">First name</label><input id="intake-name" name="firstName" [(ngModel)]="intakeContact.firstName" autocomplete="given-name" required maxlength="80"/>
+    <label for="intake-phone">Phone number</label><input id="intake-phone" name="phone" [(ngModel)]="intakeContact.phone" type="tel" autocomplete="tel" required maxlength="40"/>
+    <label for="intake-nationality">Nationality (optional)</label><input id="intake-nationality" name="nationality" [(ngModel)]="intakeContact.nationality" maxlength="80"/>
+    <label class="intake-check"><input type="checkbox" name="consent" [(ngModel)]="intakeContact.consent" required/><span>I consent to Velven storing my requirements and contact details and contacting me about my search.</span></label>
+    <label class="intake-check"><input type="checkbox" name="publishConsent" [(ngModel)]="intakeContact.publishConsent"/><span>Show my anonymised profile to property owners</span></label>
+    <p class="intake-note">Publication is optional. You can ask your agent to pause or close your profile at any time.</p>
+    <p *ngIf="intakeError" role="alert">{{ intakeError }}</p>
+    <button type="submit" [disabled]="intakeBusy">{{ intakeBusy ? 'Submitting profile…' : 'Continue to my matches' }}</button>
+    <button class="intake-back" type="button" (click)="showReview()" [disabled]="intakeBusy">Back to review</button>
+  </form>
+</section>
 <section class="loading-screen" *ngIf="view === 'loading'" aria-live="polite">
   <div class="loader"></div>
   <h1>Finding your Velven matches</h1>

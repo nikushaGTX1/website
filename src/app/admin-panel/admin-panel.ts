@@ -32,12 +32,14 @@ import { MyHomeVerification } from '../myhome-verification/myhome-verification';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPrice } from '../currency-price/currency-price';
 import { StreetValidationMapComponent } from './street-validation-map.component';
+import { ClientIntakeCard } from './client-intake-card';
 
 @Component({
   selector: 'app-admin-panel',
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.css',
   imports: [
+    ClientIntakeCard,
     RouterLink,
     NgIf,
     MyHomeVerification,

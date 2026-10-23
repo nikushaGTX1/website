@@ -1,0 +1,54 @@
+<section class="intake-card" aria-labelledby="intake-heading">
+  <header>
+    <div>
+      <h2 id="intake-heading">Client intake link</h2>
+      <p>Invite a client to Velven Match and receive their requirements in your CRM.</p>
+    </div>
+    <button (click)="create()" [disabled]="busy || loading">Create intake link</button>
+  </header>
+  <p *ngIf="loading" aria-live="polite">Loading intake information…</p>
+  <div *ngIf="error" role="alert">
+    <p>{{ error }}</p>
+    <button (click)="load()" [disabled]="loading || busy">Retry</button>
+  </div>
+  <div class="link-row" *ngFor="let link of links">
+    <input
+      [value]="url(link)"
+      readonly
+      aria-label="Client intake URL"
+      (focus)="$any($event.target).select()"
+    />
+    <div class="actions" *ngIf="link.isActive; else revoked">
+      <button (click)="copy(link)">{{ copied === link.id ? 'Copied' : 'Copy' }}</button
+      ><a [href]="url(link)" target="_blank" rel="noopener">Open</a>
+      <a [href]="share(link, 'whatsapp')" target="_blank" rel="noopener noreferrer">WhatsApp</a
+      ><a [href]="share(link, 'telegram')" target="_blank" rel="noopener noreferrer">Telegram</a
+      ><button class="revoke" (click)="revoke(link)" [disabled]="busy">Revoke</button>
+    </div>
+    <ng-template #revoked><span>Revoked</span></ng-template>
+  </div>
+  <p *ngIf="!loading && !links.length">No intake links yet.</p>
+  <h3>Recent intake submissions</h3>
+  <p *ngIf="!loading && !submissions.length">No intake submissions yet.</p>
+  <div class="submission" *ngFor="let item of submissions">
+    <div>
+      <strong>{{ item.firstName }}</strong
+      ><a [href]="'tel:' + item.phone">{{ item.phone }}</a
+      ><small>{{ item.createdAt | date: 'yyyy-MM-dd HH:mm' }}</small>
+    </div>
+    <span><span>Client</span> #{{ item.id }}</span
+    ><label
+      ><span>Profile status</span
+      ><select [ngModel]="item.status" (ngModelChange)="setStatus(item, $event)" [disabled]="busy">
+        <option value="Active">Active</option>
+        <option value="Paused">Paused</option>
+        <option value="Closed">Closed</option>
+      </select></label
+    ><small>{{ item.published ? 'Publication consent given' : 'Private profile' }}</small>
+  </div>
+  <nav *ngIf="total > 20" aria-label="Submission pages">
+    <button (click)="load(page - 1)" [disabled]="page === 1 || loading">Previous</button
+    ><span>{{ page }}</span
+    ><button (click)="load(page + 1)" [disabled]="page * 20 >= total || loading">Next</button>
+  </nav>
+</section>
