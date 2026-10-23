@@ -1,54 +1,84 @@
 <section class="intake-card" aria-labelledby="intake-heading">
-  <header>
-    <div>
+  <header class="intake-head">
+    <span class="intake-icon" aria-hidden="true"><i class="fa-solid fa-link"></i></span>
+    <div class="intake-title">
       <h2 id="intake-heading">Client intake link</h2>
       <p>Invite a client to Velven Match and receive their requirements in your CRM.</p>
     </div>
-    <button (click)="create()" [disabled]="busy || loading">Create intake link</button>
+    <button type="button" class="primary-btn" (click)="create()" [disabled]="busy || loading">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i> Create intake link
+    </button>
   </header>
-  <p *ngIf="loading" aria-live="polite">Loading intake information…</p>
-  <div *ngIf="error" role="alert">
-    <p>{{ error }}</p>
-    <button (click)="load()" [disabled]="loading || busy">Retry</button>
+
+  <p class="state" *ngIf="loading" aria-live="polite">
+    <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Loading intake information…
+  </p>
+  <div class="state error" *ngIf="error" role="alert">
+    <p><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> {{ error }}</p>
+    <button type="button" class="ghost-btn" (click)="load()" [disabled]="loading || busy">Retry</button>
   </div>
-  <div class="link-row" *ngFor="let link of links">
-    <input
-      [value]="url(link)"
-      readonly
-      aria-label="Client intake URL"
-      (focus)="$any($event.target).select()"
-    />
+
+  <div class="link-row" *ngFor="let link of links" [class.inactive]="!link.isActive">
+    <div class="link-field">
+      <i class="fa-solid fa-globe" aria-hidden="true"></i>
+      <input [value]="url(link)" readonly aria-label="Client intake URL" (focus)="$any($event.target).select()" />
+    </div>
     <div class="actions" *ngIf="link.isActive; else revoked">
-      <button (click)="copy(link)">{{ copied === link.id ? 'Copied' : 'Copy' }}</button
-      ><a [href]="url(link)" target="_blank" rel="noopener">Open</a>
-      <a [href]="share(link, 'whatsapp')" target="_blank" rel="noopener noreferrer">WhatsApp</a
-      ><a [href]="share(link, 'telegram')" target="_blank" rel="noopener noreferrer">Telegram</a
-      ><button class="revoke" (click)="revoke(link)" [disabled]="busy">Revoke</button>
+      <button type="button" class="action copy" [class.done]="copied === link.id" (click)="copy(link)">
+        <i [class]="copied === link.id ? 'fa-solid fa-check' : 'fa-regular fa-copy'" aria-hidden="true"></i>
+        {{ copied === link.id ? 'Copied' : 'Copy' }}
+      </button>
+      <a class="action" [href]="url(link)" target="_blank" rel="noopener">
+        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open
+      </a>
+      <a class="action whatsapp" [href]="share(link, 'whatsapp')" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp
+      </a>
+      <a class="action telegram" [href]="share(link, 'telegram')" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-telegram" aria-hidden="true"></i> Telegram
+      </a>
+      <button type="button" class="action revoke" (click)="revoke(link)" [disabled]="busy">
+        <i class="fa-solid fa-ban" aria-hidden="true"></i> Revoke
+      </button>
     </div>
-    <ng-template #revoked><span>Revoked</span></ng-template>
+    <ng-template #revoked><span class="revoked-tag">Revoked</span></ng-template>
   </div>
-  <p *ngIf="!loading && !links.length">No intake links yet.</p>
-  <h3>Recent intake submissions</h3>
-  <p *ngIf="!loading && !submissions.length">No intake submissions yet.</p>
+  <p class="empty" *ngIf="!loading && !links.length">No intake links yet.</p>
+
+  <div class="submissions-head">
+    <h3>Recent intake submissions</h3>
+    <span class="count" *ngIf="total">{{ total }}</span>
+  </div>
+  <div class="empty-box" *ngIf="!loading && !submissions.length">
+    <i class="fa-regular fa-inbox" aria-hidden="true"></i>
+    <p>No intake submissions yet.</p>
+  </div>
   <div class="submission" *ngFor="let item of submissions">
-    <div>
-      <strong>{{ item.firstName }}</strong
-      ><a [href]="'tel:' + item.phone">{{ item.phone }}</a
-      ><small>{{ item.createdAt | date: 'yyyy-MM-dd HH:mm' }}</small>
+    <div class="who">
+      <span class="avatar" aria-hidden="true">{{ (item.firstName || '?').charAt(0) }}</span>
+      <div>
+        <strong>{{ item.firstName }}</strong>
+        <a [href]="'tel:' + item.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> {{ item.phone }}</a>
+        <small>{{ item.createdAt | date: 'yyyy-MM-dd HH:mm' }}</small>
+      </div>
     </div>
-    <span><span>Client</span> #{{ item.id }}</span
-    ><label
+    <span class="client-id"><span>Client</span> #{{ item.id }}</span>
+    <label class="status"
       ><span>Profile status</span
-      ><select [ngModel]="item.status" (ngModelChange)="setStatus(item, $event)" [disabled]="busy">
+      ><select [ngModel]="item.status" (ngModelChange)="setStatus(item, $event)" [disabled]="busy" [attr.data-status]="item.status">
         <option value="Active">Active</option>
         <option value="Paused">Paused</option>
         <option value="Closed">Closed</option>
       </select></label
-    ><small>{{ item.published ? 'Publication consent given' : 'Private profile' }}</small>
+    >
+    <small class="consent" [class.ok]="item.published">
+      <i [class]="item.published ? 'fa-solid fa-circle-check' : 'fa-solid fa-lock'" aria-hidden="true"></i>
+      {{ item.published ? 'Publication consent given' : 'Private profile' }}
+    </small>
   </div>
-  <nav *ngIf="total > 20" aria-label="Submission pages">
-    <button (click)="load(page - 1)" [disabled]="page === 1 || loading">Previous</button
+  <nav class="pager" *ngIf="total > 20" aria-label="Submission pages">
+    <button type="button" class="ghost-btn" (click)="load(page - 1)" [disabled]="page === 1 || loading">Previous</button
     ><span>{{ page }}</span
-    ><button (click)="load(page + 1)" [disabled]="page * 20 >= total || loading">Next</button>
+    ><button type="button" class="ghost-btn" (click)="load(page + 1)" [disabled]="page * 20 >= total || loading">Next</button>
   </nav>
 </section>

@@ -1,5 +1,8 @@
 /** Copy shared by the existing DOM translators; saved criteria remain language independent. */
 const COPY: Array<[string, string, string]> = [
+  ['Search for an area', 'მოძებნეთ უბანი', 'Поиск района'],
+  ['Choose an area', 'აირჩიეთ უბანი', 'Выберите район'],
+  ['No matching area found.', 'უბანი ვერ მოიძებნა.', 'Район не найден.'],
   ['Client', 'კლიენტი', 'Клиент'],
   ['Property owner', 'მეპატრონე', 'Собственник'],
   ['Sign in or create a free account to submit your property. You can track and edit your listing from My listings.', 'ქონების განსათავსებლად შედით ან შექმენით უფასო ანგარიში. განცხადების ნახვა და შეცვლა შეგიძლიათ განყოფილებაში „ჩემი განცხადებები“.', 'Войдите или создайте бесплатный аккаунт, чтобы разместить объект. Просматривать и редактировать его можно в разделе «Мои объявления».'],

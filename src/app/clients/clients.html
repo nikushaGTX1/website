@@ -17,51 +17,43 @@
     </div>
   </section>
   <form class="filters" (ngSubmit)="search()">
-    <label
-      ><span>District</span
-      ><select name="district" [(ngModel)]="district">
-        <option value="">All districts</option>
-        @for (d of districts; track d) {
-          <option [value]="d">{{ label(d) }}</option>
+    @for (filter of filters; track filter.key) {
+      <div class="filter" [class.open]="openFilter === filter.key">
+        <span class="filter-label" [id]="'filter-' + filter.key">{{ filter.label }}</span>
+        <button
+          type="button"
+          class="filter-trigger"
+          aria-haspopup="listbox"
+          [attr.aria-expanded]="openFilter === filter.key"
+          [attr.aria-labelledby]="'filter-' + filter.key"
+          (click)="toggleFilter(filter.key)"
+        >
+          <i [class]="filter.icon" aria-hidden="true"></i>
+          <span class="filter-value">{{ selectedLabel(filter) }}</span>
+          <i class="fa-solid fa-chevron-down filter-chevron" aria-hidden="true"></i>
+        </button>
+        @if (openFilter === filter.key && !filterSheet) {
+          <ul class="filter-options" role="listbox" [attr.aria-labelledby]="'filter-' + filter.key">
+            @for (option of filter.options; track option.value) {
+              <li>
+                <button
+                  type="button"
+                  role="option"
+                  [class.active]="filterValue(filter.key) === option.value"
+                  [attr.aria-selected]="filterValue(filter.key) === option.value"
+                  (click)="chooseFilter(filter.key, option.value)"
+                >
+                  <span>{{ option.label }}</span>
+                  @if (filterValue(filter.key) === option.value) {
+                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
         }
-      </select></label
-    >
-    <label
-      ><span>Budget</span
-      ><select name="budget" [(ngModel)]="budget">
-        <option value="">USD / month</option>
-        <option value="0-500">$0 – $500</option>
-        <option value="500-1000">$500 – $1,000</option>
-        <option value="1000-1500">$1,000 – $1,500</option>
-        <option value="1500-">$1,500+</option>
-      </select></label
-    >
-    <label
-      ><span>Move-in date</span
-      ><select name="timing" [(ngModel)]="timing">
-        <option value="">Any date</option>
-        <option value="7">Within one week</option>
-        <option value="30">Within one month</option>
-        <option value="90">Within 3 months</option>
-      </select></label
-    >
-    <label
-      ><span>Residents</span
-      ><select name="residents" [(ngModel)]="residents">
-        <option value="">Any household</option>
-        @for (n of [1, 2, 3, 4, 5, 6, 7]; track n) {
-          <option [value]="n">{{ n }}</option>
-        }
-      </select></label
-    >
-    <label
-      ><span>Pets</span
-      ><select name="pets" [(ngModel)]="pets">
-        <option value="">Any</option>
-        <option value="true">With pets</option>
-        <option value="false">No pets</option>
-      </select></label
-    >
+      </div>
+    }
     <button type="submit">
       <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search
     </button>
@@ -237,4 +229,89 @@
     </div>
     <a routerLink="/upload-apartment">Suggest apartment <span aria-hidden="true">→</span></a>
   </section>
+
+  @if (openFilter && filterSheet && openFilterDef; as sheet) {
+    <div class="sheet-backdrop" #sheetPortal (click)="openFilter = null">
+      <div class="filter-sheet" role="dialog" aria-modal="true" [attr.aria-label]="sheet.label" (click)="$event.stopPropagation()">
+        <span class="sheet-handle" aria-hidden="true"></span>
+        <header class="sheet-head">
+          <h2><i [class]="sheet.icon" aria-hidden="true"></i> {{ sheet.label }}</h2>
+          <button type="button" class="sheet-close" aria-label="Close" (click)="openFilter = null">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </header>
+        <ul class="sheet-options" role="listbox" [attr.aria-label]="sheet.label">
+          @for (option of sheet.options; track option.value) {
+            <li>
+              <button
+                type="button"
+                role="option"
+                [class.active]="filterValue(sheet.key) === option.value"
+                [attr.aria-selected]="filterValue(sheet.key) === option.value"
+                (click)="chooseFilter(sheet.key, option.value)"
+              >
+                <span>{{ option.label }}</span>
+                <em class="area-radio" aria-hidden="true"></em>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  }
+
+  @if (districtPickerOpen) {
+    <div class="area-backdrop" #areaPortal (click)="closeDistrictPicker()">
+      <div class="area-dialog" role="dialog" aria-modal="true" aria-labelledby="area-title" (click)="$event.stopPropagation()">
+        <header class="area-head">
+          <h2 id="area-title">Choose your location</h2>
+          <button type="button" class="area-close" aria-label="Close" (click)="closeDistrictPicker()">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </header>
+        <label class="area-search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input name="districtQuery" [(ngModel)]="districtQuery" placeholder="Search for an area" autocomplete="off" />
+        </label>
+        <div class="area-body">
+          <button type="button" class="area-any" [class.selected]="pendingDistrict === ''" (click)="pendingDistrict = ''">
+            <i class="fa-solid fa-earth-europe" aria-hidden="true"></i>
+            <span>All districts</span>
+            <em class="area-radio" aria-hidden="true"></em>
+          </button>
+          @if (visiblePopular.length) {
+            <h3>Popular areas</h3>
+            <div class="area-popular">
+              @for (area of visiblePopular; track area.value) {
+                <button type="button" [class.selected]="pendingDistrict === area.value" [attr.aria-pressed]="pendingDistrict === area.value" (click)="pendingDistrict = area.value">
+                  <img [src]="area.icon" alt="" aria-hidden="true" />
+                  <span><b [attr.data-district]="area.value">{{ label(area.value) }}</b><small>{{ area.description }}</small></span>
+                  <i class="fa-solid fa-circle-check area-check" aria-hidden="true"></i>
+                </button>
+              }
+            </div>
+          }
+          @if (otherDistricts.length) {
+            <h3>All areas</h3>
+            <p class="area-sub">Choose an area</p>
+            <div class="area-grid">
+              @for (d of otherDistricts; track d) {
+                <button type="button" [class.selected]="pendingDistrict === d" [attr.aria-pressed]="pendingDistrict === d" (click)="pendingDistrict = d">
+                  <span [attr.data-district]="d">{{ label(d) }}</span>
+                  <em class="area-radio" aria-hidden="true"></em>
+                </button>
+              }
+            </div>
+          }
+          @if (!visiblePopular.length && !otherDistricts.length) {
+            <p class="area-empty">No matching area found.</p>
+          }
+        </div>
+        <footer class="area-foot">
+          <button type="button" class="area-cancel" (click)="closeDistrictPicker()">Cancel</button>
+          <button type="button" class="area-apply" (click)="applyDistrict()">Apply changes</button>
+        </footer>
+      </div>
+    </div>
+  }
 </main>
