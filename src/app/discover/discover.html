@@ -159,15 +159,37 @@
           </button>
         </div>
         <div class="toolbar" *ngIf="tab !== 'saved'">
-          <label class="sort">
-            <span>Sort by:</span>
-            <select [(ngModel)]="sort" name="sort">
-              <option value="best">Best match</option>
-              <option value="newest">Newest</option>
-              <option value="price-low">Price: low to high</option>
-              <option value="price-high">Price: high to low</option>
-            </select>
-          </label>
+          <div class="sort-menu" [class.open]="sortOpen">
+            <button
+              type="button"
+              class="sort-trigger"
+              aria-haspopup="listbox"
+              [attr.aria-expanded]="sortOpen"
+              (click)="sortOpen = !sortOpen"
+            >
+              <i class="fa-solid fa-arrow-down-wide-short sort-icon" aria-hidden="true"></i>
+              <span class="sort-text">
+                <small>Sort by</small>
+                <b>{{ sortLabel }}</b>
+              </span>
+              <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
+            </button>
+            <ul class="sort-options" role="listbox" aria-label="Sort by" *ngIf="sortOpen">
+              <li *ngFor="let option of sortOptions">
+                <button
+                  type="button"
+                  role="option"
+                  [class.active]="sort === option.value"
+                  [attr.aria-selected]="sort === option.value"
+                  (click)="chooseSort(option.value)"
+                >
+                  <i [class]="option.icon" aria-hidden="true"></i>
+                  <span>{{ option.label }}</span>
+                  <i class="fa-solid fa-check sort-check" *ngIf="sort === option.value" aria-hidden="true"></i>
+                </button>
+              </li>
+            </ul>
+          </div>
           <button type="button" class="link-btn" *ngIf="tab === 'new' && unseenCount" (click)="markAllSeen()">Mark all as seen</button>
         </div>
       </div>

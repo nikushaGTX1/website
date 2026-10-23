@@ -774,3 +774,167 @@
     animation: none;
   }
 }
+
+/* ---------- Sort menu (custom, replaces the browser's plain dropdown) ---------- */
+
+.sort-menu {
+  position: relative;
+}
+
+.sort-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+  height: 50px;
+  padding: 0 14px;
+  border: 1px solid #dfe5ed;
+  border-radius: 14px;
+  background: #fff;
+  color: #15213a;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sort-menu.open .sort-trigger,
+.sort-trigger:focus-visible {
+  border-color: #451a8f;
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.12);
+  outline: none;
+}
+
+@media (hover: hover) {
+  .sort-trigger:hover {
+    border-color: #c9bdea;
+  }
+  .sort-options button:not(.active):hover {
+    background: #f6f3fd;
+  }
+}
+
+.sort-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 9px;
+  background: #f1ecfc;
+  color: #451a8f;
+  font-size: 13px;
+}
+
+.sort-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.sort-text small {
+  color: #8a93a6;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sort-text b {
+  overflow: hidden;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sort-chevron {
+  color: #69758a;
+  font-size: 11px;
+  transition: transform 0.2s ease;
+}
+
+.sort-menu.open .sort-chevron {
+  transform: rotate(180deg);
+}
+
+.sort-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  min-width: 100%;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid #e6e2f0;
+  border-radius: 14px;
+  background: #fff;
+  list-style: none;
+  box-shadow: 0 18px 40px rgba(29, 16, 64, 0.16);
+  animation: sort-in 0.14s ease-out;
+}
+
+@keyframes sort-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.sort-options button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: #2f3a52;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sort-options button > i:first-child {
+  width: 16px;
+  color: #8a93a6;
+  text-align: center;
+}
+
+.sort-options button span {
+  flex: 1;
+}
+
+.sort-options button.active {
+  background: #f5f1ff;
+  color: #451a8f;
+}
+
+.sort-options button.active > i:first-child,
+.sort-check {
+  color: #451a8f;
+}
+
+@media (max-width: 640px) {
+  .sort-menu {
+    flex: 1;
+    min-width: 0;
+  }
+  .sort-trigger {
+    width: 100%;
+    min-width: 0;
+  }
+  .sort-options {
+    left: 0;
+    right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sort-options {
+    animation: none;
+  }
+}

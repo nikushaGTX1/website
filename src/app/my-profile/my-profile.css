@@ -1047,3 +1047,53 @@
   .activity-row a { padding: 12px 10px; }
   .activity-row strong { font-size: 19px; }
 }
+
+/* Preferred language: three buttons instead of a select (the select stretched and squeezed the label). */
+.language-preference {
+  flex-wrap: wrap;
+  cursor: default;
+}
+.language-preference > span {
+  flex: 1 1 220px;
+}
+.language-choice {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #e4dcf0;
+  border-radius: 12px;
+  background: #fff;
+}
+.language-choice button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #4b4560;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.language-choice button.active {
+  background: #451a8f;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(69, 26, 143, .25);
+}
+.language-choice button:disabled { cursor: default; }
+@media (hover: hover) {
+  .language-choice button:not(.active):hover { background: #f5f1ff; color: #451a8f; }
+}
+@media (max-width: 620px) {
+  .language-choice { width: 100%; }
+  .language-choice button { flex: 1; padding: 0 8px; }
+}
+/* Stat labels wrap between words only (Georgian words were split mid-word on phones). */
+.activity-row span { overflow-wrap: normal; word-break: normal; line-height: 1.35; }
+@media (max-width: 620px) {
+  .activity-row span { font-size: 11px; }
+}

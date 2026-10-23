@@ -6,7 +6,7 @@ import { firstValueFrom, Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models/user';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
-import { NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodeDialogComponent } from '../shared/code-dialog/code-dialog.component';
 import { ProfilePhotoCropperComponent } from './profile-photo-cropper/profile-photo-cropper';
@@ -19,7 +19,7 @@ import { AppLanguage, TranslationService } from '../services/translation.service
   selector: 'app-my-profile',
   templateUrl: './my-profile.html',
   styleUrl: './my-profile.css',
-  imports: [RouterLink, NgIf, FormsModule, CodeDialogComponent, ProfilePhotoCropperComponent],
+  imports: [RouterLink, NgIf, NgFor, FormsModule, CodeDialogComponent, ProfilePhotoCropperComponent],
 })
 export class MyProfile implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
@@ -135,6 +135,18 @@ export class MyProfile implements OnInit, OnDestroy {
       if (query.get('section') === 'notifications')
         window.setTimeout(() => document.getElementById('notifications')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
     });
+  }
+
+  /** Each language in its own name, so it is recognisable whatever the page language. */
+  readonly languageOptions: Array<{ value: 'ka' | 'en' | 'ru'; label: string }> = [
+    { value: 'ka', label: 'ქართული' },
+    { value: 'en', label: 'English' },
+    { value: 'ru', label: 'Русский' },
+  ];
+
+  /** Shown as selected until the client picks a language explicitly. */
+  get currentLanguage(): AppLanguage {
+    return this.translation.language$.value;
   }
 
   updatePreference(changes: Partial<Omit<ClientPreferences, 'emailConfirmed'>>): void {

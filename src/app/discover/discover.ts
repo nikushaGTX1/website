@@ -1,7 +1,8 @@
 import { DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { clientRelativeTime } from '../utils/client-relative-time';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -64,6 +65,36 @@ export class Discover implements OnInit, OnDestroy {
   selectedSearchId: number | null = null;
   tab: DiscoverTab = 'new';
   sort: SortOrder = 'best';
+  sortOpen = false;
+  readonly sortOptions: Array<{ value: SortOrder; label: string; icon: string }> = [
+    { value: 'best', label: 'Best match', icon: 'fa-solid fa-wand-magic-sparkles' },
+    { value: 'newest', label: 'Newest', icon: 'fa-regular fa-clock' },
+    { value: 'price-low', label: 'Price: low to high', icon: 'fa-solid fa-arrow-up-wide-short' },
+    { value: 'price-high', label: 'Price: high to low', icon: 'fa-solid fa-arrow-down-wide-short' },
+  ];
+
+  get sortLabel(): string {
+    return this.sortOptions.find((option) => option.value === this.sort)?.label ?? 'Best match';
+  }
+
+  chooseSort(value: SortOrder): void {
+    this.sort = value;
+    this.sortOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeSortOnOutsideClick(event: MouseEvent): void {
+    if (!this.sortOpen) return;
+    const menu = this.host?.nativeElement.querySelector('.sort-menu');
+    if (menu && !menu.contains(event.target as Node)) this.sortOpen = false;
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  closeSortOnEscape(event: Event): void {
+    if (!this.sortOpen || escapeAlreadyHandled(event)) return;
+    claimEscape(event);
+    this.sortOpen = false;
+  }
   /** Quick refinements on top of the saved criteria (the saved search itself never changes). */
   refine = { parking: false, petFriendly: false, furnished: false };
   highlightedApartmentId: number | null = null;
@@ -105,6 +136,8 @@ export class Discover implements OnInit, OnDestroy {
     private router: Router,
     private cdr: ChangeDetectorRef,
     readonly translation: TranslationService,
+    // Optional so tests can build the page without a DOM element.
+    private host?: ElementRef<HTMLElement>,
   ) {}
 
   ngOnInit(): void {

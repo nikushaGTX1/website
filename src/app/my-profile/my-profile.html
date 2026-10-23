@@ -278,19 +278,25 @@
               <input type="checkbox" role="switch" [checked]="preferences.matchAlertsEmail" [disabled]="preferencesBusy"
                 (change)="updatePreference({ matchAlertsEmail: $any($event.target).checked })" />
             </label>
-            <label class="preference">
+            <div class="preference language-preference">
               <span>
                 <strong>Preferred language</strong>
                 <small>Used for the website and for alert emails.</small>
               </span>
-              <select [ngModel]="preferences.preferredLanguage || ''" [disabled]="preferencesBusy"
-                (ngModelChange)="$event && updatePreference({ preferredLanguage: $event })" data-no-translate>
-                <option value="" disabled>—</option>
-                <option value="ka">ქართული</option>
-                <option value="en">English</option>
-                <option value="ru">Русский</option>
-              </select>
-            </label>
+              <div class="language-choice" role="radiogroup" aria-label="Preferred language" data-no-translate>
+                <button
+                  type="button"
+                  role="radio"
+                  *ngFor="let option of languageOptions"
+                  [class.active]="(preferences.preferredLanguage || currentLanguage) === option.value"
+                  [attr.aria-checked]="(preferences.preferredLanguage || currentLanguage) === option.value"
+                  [disabled]="preferencesBusy"
+                  (click)="updatePreference({ preferredLanguage: option.value })"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
           </div>
           <p class="password-message" *ngIf="preferencesMessage" [class.error]="preferencesError">{{ preferencesMessage }}</p>
         </section>

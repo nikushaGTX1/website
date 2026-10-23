@@ -52,6 +52,14 @@ try {
       await page.waitForTimeout(600);
       await page.screenshot({path:`tmp/discover-ui/${language}-${width}.png`,fullPage:true,animations:'disabled'});
     }
+    // Custom sort menu: opens, changes the order, closes; never wider than the screen.
+    await page.locator('.sort-trigger').click();
+    await page.locator('.sort-options').waitFor();
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`${language} ${width}: sort menu overflow`);
+    if(width===390 || width===1440) { await page.locator('.sort-trigger').scrollIntoViewIfNeeded(); await page.screenshot({path:`tmp/discover-ui/${language}-${width}-sort.png`,animations:'disabled'}); }
+    await page.locator('.sort-options button').nth(2).click();
+    await page.locator('.sort-options').waitFor({state:'detached'});
+    assert.equal(await page.locator('.sort-text b').innerText(),language==='ka'?'ფასი: ზრდადობით':language==='ru'?'Цена: по возрастанию':'Price: low to high');
     empty=true;
     await page.goto(base+'/discover?tab=saved');
     await page.locator('.card-grid app-discover-card').waitFor();
@@ -59,6 +67,10 @@ try {
     await page.goto(base+'/my-profile?section=notifications');
     await page.locator('.preference-list').waitFor();
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`profile ${language} ${width}`);
+    // The language label must keep a readable width (it used to collapse to one letter per line).
+    const labelWidth = await page.locator('.language-preference > span').evaluate(el=>el.getBoundingClientRect().width);
+    assert.ok(labelWidth > 150, `profile ${language} ${width}: language label squeezed to ${labelWidth}px`);
+    if(width===390 || width===1440) await page.locator('.discover-zone').screenshot({path:`tmp/discover-ui/${language}-${width}-profile.png`,animations:'disabled'});
     await page.evaluate(()=>{sessionStorage.setItem('guest','1');localStorage.removeItem('token');localStorage.removeItem('user');});
     await page.goto(base+'/register');
     await page.locator('#reg-name').fill('Test Client');
