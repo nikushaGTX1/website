@@ -1,4 +1,9 @@
 export const CLIENT_BOARD_COPY: readonly (readonly [string, string, string])[] = [
+  ['Tenant', 'მოიჯარე', 'Арендатор'],
+  ['Resident', 'მცხოვრები', 'Жилец'],
+  ['Actively searching', 'აქტიურად ეძებს', 'Активно ищет'],
+  ['ID verified', 'პირადობა დადასტურებულია', 'Личность подтверждена'],
+  ['Preferences', 'პრეფერენციები', 'Предпочтения'],
   ['District', 'უბანი', 'Район'],
   ['Budget', 'ბიუჯეტი', 'Бюджет'],
   ['Move-in date', 'გადასვლის თარიღი', 'Дата заселения'],

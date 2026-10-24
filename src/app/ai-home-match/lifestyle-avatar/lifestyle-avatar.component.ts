@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { NgIf, NgFor } from '@angular/common';
+import { findPortraitScene } from './portrait-catalog';
 
 interface AvatarFigure {
   src: string;
@@ -37,10 +38,22 @@ export class VelvenLifestyleAvatarComponent {
   }
   private _profile!: HomeMatchProfile;
   @Input() showSummary = false;
+  @Input() portrait = false;
+  private failedPortraits = new Set<string>();
+
+  get portraitScene(): string | null {
+    if (!this.portrait) return null;
+    const scene = findPortraitScene(this.profile);
+    return scene && !this.failedPortraits.has(scene) ? scene : null;
+  }
+  onPortraitError(): void {
+    const scene = this.portraitScene;
+    if (scene) this.failedPortraits.add(scene);
+  }
 
   get characterSrc(): string {
-    if (this.profile.gender === 'Male') return '/Characters/mtavari kaci.png';
-    if (this.profile.gender === 'Female') return '/Characters/მთავარი ქალი.png';
+    if (this.profile.gender === 'Male') return '/images/ai-match/adult-man.webp';
+    if (this.profile.gender === 'Female') return '/images/ai-match/adult-woman.webp';
     return '';
   }
 
@@ -55,15 +68,15 @@ export class VelvenLifestyleAvatarComponent {
   get characterFigures(): AvatarFigure[] {
     if (!this.characterSrc) return [];
 
-    const man = '/Characters/mtavari kaci.png';
-    const manTwo = '/Characters/მეორე კაცი.png';
-    const woman = '/Characters/მთავარი ქალი.png';
-    const womanTwo = '/Characters/მეორე ქალი.png';
+    const man = '/images/ai-match/adult-man.webp';
+    const manTwo = '/images/ai-match/adult-man-two.webp';
+    const woman = '/images/ai-match/adult-woman.webp';
+    const womanTwo = '/images/ai-match/adult-woman-two.webp';
     const childByAge: Record<string, string> = {
-      Age0To3: '/Characters/kid2.png',
-      Age4To6: '/Characters/kid1.png',
-      Age7To12: '/Characters/Firefly_RemoveBackground.png',
-      Age13To17: '/Characters/Firefly.png',
+      Age0To3: '/images/ai-match/child-toddler.webp',
+      Age4To6: '/images/ai-match/child-preschool.webp',
+      Age7To12: '/images/ai-match/child-school.webp',
+      Age13To17: '/images/ai-match/child-teen.webp',
     };
     const adult = (src: string, gender: 'Male' | 'Female', primary = false): AvatarFigure => ({
       src,
@@ -96,31 +109,31 @@ export class VelvenLifestyleAvatarComponent {
         return { src, role: 'child', ageGroup: sizeGroup };
       },
     );
-    // One figure per pet kind (a dog and a cat can both appear); "Other" is drawn as a dog.
+    // Preserve every selected pet kind and the chosen dog size.
     const pets = this.profile.petTypes?.length
       ? this.profile.petTypes
       : this.profile.hasPet
-        ? [this.profile.petType === 'Cat' ? 'Cat' : 'Dog']
+        ? [this.profile.petType ?? 'Dog']
         : [];
-    const selectedPet: AvatarFigure[] = [
-      ...new Set(pets.map((pet) => (pet === 'Cat' ? 'Cat' : 'Dog'))),
-    ].map((pet) => ({
-      src: pet === 'Cat' ? '/Characters/კატა.png' : '/Characters/ძაღლი.png',
-      role: 'pet' as const,
-    }));
+    const selectedPet: AvatarFigure[] = [...new Set(pets)]
+      .filter((pet) => pet !== 'None')
+      .map((pet) => ({
+        src: `/images/ai-match/${pet === 'Cat' ? 'cat' : pet === 'Other' ? 'pet-other' : `dog-${(this.profile.dogSize ?? 'Medium').toLowerCase()}`}.webp`,
+        role: 'pet',
+      }));
     const primaryWoman = this.profile.gender === 'Female';
     const selectedGenderAdults = primaryWoman
       ? [
           adult(woman, 'Female', true),
           adult(womanTwo, 'Female'),
-          adult('/Characters/ბიზნესმენი ქალი.png', 'Female'),
-          adult('/Characters/მშვიდი ცხოვრება ქალი.png', 'Female'),
+          adult('/images/ai-match/business-woman.webp', 'Female'),
+          adult('/images/ai-match/quiet-woman.webp', 'Female'),
         ]
       : [
           adult(man, 'Male', true),
           adult(manTwo, 'Male'),
-          adult('/Characters/ბიზნესმენი კაცი.png', 'Male'),
-          adult('/Characters/მშვიდი ცხოვრება კაცი.png', 'Male'),
+          adult('/images/ai-match/business-man.webp', 'Male'),
+          adult('/images/ai-match/quiet-man.webp', 'Male'),
         ];
     const mixedAdults = primaryWoman
       ? [
@@ -181,22 +194,15 @@ export class VelvenLifestyleAvatarComponent {
       HostsGuests: 'host',
       RemoteWorker: 'remote',
       QuietLifestyle: 'quiet',
+      SocialLifestyle: 'social',
+      FrequentTraveler: 'traveler',
     };
     const first = this.profile.lifestyles.find((lifestyle) => variants[lifestyle]);
     return first ? variants[first] : undefined;
   }
 
   private variantAsset(variant: string, isWoman: boolean): string {
-    const variants: Record<string, [string, string]> = {
-      athlete: ['სპორცმენი კაცი.png', 'სპორცმენი ქალი.png'],
-      student: ['სტუდენტი ბიჭი.png', 'სტუდენტი გოგო.png'],
-      business: ['ბიზნესმენი კაცი.png', 'ბიზნესმენი ქალი.png'],
-      host: ['სტუმართ მოყვარე კაცი.png', 'სტუმართ მოყვარე ქალი.png'],
-      remote: ['სახლიდან მომუშავე კაცი.png', 'სახლიდან მომუშავე ქალი.png'],
-      quiet: ['მშვიდი ცხოვრება კაცი.png', 'მშვიდი ცხოვრება ქალი.png'],
-    };
-    const asset = variants[variant] || variants['quiet'];
-    return `/Characters/${asset[isWoman ? 1 : 0]}`;
+    return `/images/ai-match/${variant}-${isWoman ? 'woman' : 'man'}.webp`;
   }
 
   get wearsGymOutfit(): boolean {

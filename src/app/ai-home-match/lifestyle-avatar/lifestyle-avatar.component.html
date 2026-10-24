@@ -1,9 +1,12 @@
-<div class="avatar" [class.gym-active]="wearsGymOutfit">
+<div class="avatar" [class.gym-active]="wearsGymOutfit" [class.portrait]="portrait">
+  <img *ngIf="portraitScene; else characterLayers" class="portrait-scene" [src]="portraitScene" (error)="onPortraitError()" alt="Illustrated household portrait" />
+  <ng-template #characterLayers>
   <div
     class="character-stage"
     [class.character-group]="characterFigures.length > 1"
     [class.crowded-group]="characterFigures.length > 4"
     [class.has-extra-people]="extraPeople > 0"
+    [class.has-children]="profile.children > 0"
   >
     <ng-container *ngIf="characterFigures.length; else chooseGender">
       <span
@@ -36,5 +39,6 @@
       ><span class="avatar-placeholder">Choose Male or Female</span></ng-template
     >
   </div>
+  </ng-template>
   <p *ngIf="showSummary">{{ summary }}</p>
 </div>

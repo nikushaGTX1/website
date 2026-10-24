@@ -273,6 +273,21 @@ export class Clients implements OnInit, OnDestroy {
   get pages() {
     return Math.ceil(this.result.total / this.result.pageSize);
   }
+  currencySymbol(currency: string): string {
+    return ({ USD: '$', EUR: '€', GEL: '₾' } as Record<string, string>)[currency] ?? currency + ' ';
+  }
+  /** One label per pet, each its own text so the page translator can translate it. */
+  petNames(client: BoardClient): string[] {
+    const profile = client.profile;
+    const pets = profile.petTypes?.length ? profile.petTypes : [profile.petType || 'Other'];
+    return pets.map((pet) => pet === 'Other' && profile.petOtherType?.trim() ? profile.petOtherType.trim() : this.label(pet));
+  }
+  petSummary(client: BoardClient): string {
+    const profile = client.profile;
+    const pets = profile.petTypes?.length ? profile.petTypes : [profile.petType || 'Other'];
+    return pets.map((pet) => pet === 'Other' && profile.petOtherType?.trim()
+      ? profile.petOtherType.trim() : this.label(pet)).join(', ');
+  }
   suggest(client: BoardClient) {
     return {
       client: client.id,

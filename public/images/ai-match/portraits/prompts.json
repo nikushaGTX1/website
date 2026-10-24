@@ -1,0 +1,45 @@
+{
+  "generator": "Built-in image_gen",
+  "assets": [
+    {
+      "file": "couple-dog.webp",
+      "prompt": "Close chest-up portrait of a wavy dark-haired man in a muted plum knit sweater and a long-haired brunette woman in an ivory knit cardigan, leaning heads together and holding a small caramel cockapoo; softly furnished lavender apartment with plant left and lamp right; premium polished 3D animated illustration; no text, badges or logos."
+    },
+    {
+      "file": "room.webp",
+      "prompt": "Softly blurred sunlit lavender apartment background, cream sofa along bottom, plant left and cream lamp right, empty central space for portrait cutouts, premium 3D illustration, no people, animals or text."
+    },
+    {
+      "file": "couple.webp",
+      "prompt": "Remove only the dog from couple-dog. Reconstruct relaxed arms and knitwear, preserve both adults, leaning pose, faces and room."
+    },
+    {
+      "file": "couple-cat.webp",
+      "prompt": "Replace only the dog in couple-dog with one fluffy white and silver cat held naturally. Preserve both adults, leaning pose, faces and room."
+    },
+    {
+      "file": "man.webp",
+      "prompt": "Complete chest-up tenant portrait matching couple-dog character identity, knitwear and furnished lavender room. Subject: one adult man ONLY, wavy dark brown hair, muted plum knit sweater, no woman, no children, NO pets. No extra people, animals, text, badges or borders."
+    },
+    {
+      "file": "man-dog.webp",
+      "prompt": "Complete chest-up tenant portrait matching couple-dog character identity, knitwear and furnished lavender room. Subject: one adult man ONLY, wavy dark brown hair, muted plum knit sweater, holding one small caramel cockapoo centrally against chest, no woman, no children. No extra people, animals, text, badges or borders."
+    },
+    {
+      "file": "man-cat.webp",
+      "prompt": "Complete chest-up tenant portrait matching couple-dog character identity, knitwear and furnished lavender room. Subject: one adult man ONLY, wavy dark brown hair, muted plum knit sweater, holding one fluffy white and silver cat centrally against chest, no woman, no children. No extra people, animals, text, badges or borders."
+    },
+    {
+      "file": "woman.webp",
+      "prompt": "Complete chest-up tenant portrait matching couple-dog character identity, knitwear and furnished lavender room. Subject: one adult woman ONLY, long wavy brown hair, ivory knit cardigan, no man, no children, NO pets. No extra people, animals, text, badges or borders."
+    },
+    {
+      "file": "woman-dog.webp",
+      "prompt": "Complete chest-up tenant portrait matching couple-dog character identity, knitwear and furnished lavender room. Subject: one adult woman ONLY, long wavy brown hair, ivory knit cardigan, holding one small caramel cockapoo centrally against chest, no man, no children. No extra people, animals, text, badges or borders."
+    },
+    {
+      "file": "woman-cat.webp",
+      "prompt": "Complete chest-up tenant portrait matching couple-dog character identity, knitwear and furnished lavender room. Subject: one adult woman ONLY, long wavy brown hair, ivory knit cardigan, holding one fluffy white and silver cat centrally against chest, no man, no children. No extra people, animals, text, badges or borders."
+    }
+  ]
+}
