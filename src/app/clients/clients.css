@@ -1095,8 +1095,7 @@ select:focus-visible {
 .client-card .card-body { padding: 9px 14px 10px; }
 .client-card .card-title { gap: 5px; flex-wrap: nowrap; }
 .client-card .card-title h3 {
-  --font-site: Georgia, 'Times New Roman', serif;
-  font: 600 15px/1.25 Georgia, 'Times New Roman', serif;
+  font: 800 15px/1.25 var(--font-site);
   color: #38213d;
   white-space: nowrap;
 }
@@ -1114,7 +1113,7 @@ select:focus-visible {
 }
 .client-card .match-badge i { color: #80618f; font-size: 12px; }
 .client-card .price { display: flex; align-items: baseline; gap: 3px; margin: 4px 0 10px; color: #45354b; }
-.client-card .price strong { --font-site: Georgia, 'Times New Roman', serif; font: 600 clamp(22px, 2.1vw, 29px)/1.1 Georgia, 'Times New Roman', serif; color: #38203e; letter-spacing: -1px; }
+.client-card .price strong { font: 800 clamp(22px, 2.1vw, 29px)/1.1 var(--font-site); color: #38203e; letter-spacing: -0.5px; }
 .client-card .price > span { font-size: 10px; white-space: nowrap; }
 .card-details { display: grid; grid-template-columns: 1.08fr 1fr; gap: 10px; }
 .requirements, .preferences { min-width: 0; }
@@ -1160,4 +1159,223 @@ select:focus-visible {
   .client-card .card-body { padding-left: 10px; padding-right: 10px; }
   .card-details { gap: 7px; }
   .client-card .match-badge { font-size: 7px; }
+}
+
+/* ===================== Client card — Velven brand redesign ===================== */
+.client-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e6def4;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 14px 38px rgba(45, 15, 99, 0.08);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+@media (hover: hover) {
+  .client-card:hover {
+    transform: translateY(-2px);
+    border-color: #d8cbf2;
+    box-shadow: 0 18px 40px rgba(45, 15, 99, 0.11);
+  }
+  .client-card .contact:hover { box-shadow: 0 14px 28px rgba(69, 26, 143, 0.38); transform: translateY(-1px); }
+  .client-card .suggest:hover { background: #f5f1ff; border-color: #451a8f; }
+}
+/* Photo: full-bleed with a purple fade, badges on top. */
+.client-card .avatar {
+  position: relative;
+  margin: 0;
+  border-radius: 0;
+  overflow: hidden;
+}
+.client-card .avatar img { transition: transform 0.4s ease; }
+.client-card .avatar::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 45%;
+  background: linear-gradient(180deg, transparent, rgba(44, 15, 99, 0.55));
+  pointer-events: none;
+}
+.client-card .active-badge,
+.client-card .kyc {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1d6b43;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgba(16, 6, 40, 0.18);
+  backdrop-filter: blur(6px);
+}
+.client-card .kyc { color: #451a8f; }
+/* Title row */
+.client-card .card-body { padding: 18px 20px 20px; }
+.client-card .card-title { gap: 10px; }
+.client-card .card-title h3 { color: #1b1230; font-size: 18px; font-weight: 800; }
+.client-card .match-badge {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #451a8f, #7435d3);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  box-shadow: 0 6px 14px rgba(69, 26, 143, 0.25);
+}
+.client-card .match-badge i { color: #fff; }
+/* Budget band */
+.client-card .price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 14px 0 16px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f6f1ff, #ece3ff);
+  border: 1px solid #e3d7fa;
+}
+.client-card .price strong {
+  color: #451a8f;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.client-card .price span { color: #6b5a8f; font-size: 13px; font-weight: 600; }
+/* Districts as chips */
+.client-card .districts { display: flex; align-items: center; gap: 8px; }
+.client-card .districts > i { color: #451a8f; }
+.client-card .districts > span { display: flex; flex-wrap: wrap; gap: 6px; }
+.client-card .district-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #451a8f;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+/* Facts with icon squares */
+.client-card .facts > div { display: flex; align-items: center; gap: 10px; }
+.client-card .facts dt i,
+.client-card .nationality > i {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  background: #f1ecfc;
+  color: #451a8f;
+  font-size: 12px;
+}
+.client-card .facts dd,
+.client-card .nationality { color: #2e2440; font-size: 13px; font-weight: 600; }
+.client-card .nationality { display: flex; align-items: center; gap: 10px; }
+.client-card .priority-heading {
+  color: #451a8f;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+/* Priority tiles */
+.client-card .priorities > div {
+  border: 1px solid #e6dcf8;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #faf7ff, #f2ecfd);
+  color: #3a2b5c;
+  font-weight: 700;
+}
+.client-card .priorities i {
+  background: #451a8f;
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(69, 26, 143, 0.25);
+}
+/* Agent box */
+.client-card .agent {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid #ece5f8;
+  border-radius: 16px;
+  background: #fbf9ff;
+}
+.client-card .agent img,
+.client-card .agent-placeholder {
+  width: 42px;
+  height: 42px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px #d9ccf3;
+}
+.client-card .agent-placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #451a8f, #7435d3);
+  color: #fff;
+}
+.client-card .agent a { color: #451a8f; font-weight: 700; }
+/* Actions */
+.client-card .contact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  min-height: 50px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3a1479, #451a8f 45%, #6a3fd0);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(69, 26, 143, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.client-card .suggest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  min-height: 44px;
+  border: 1px solid #ddd0f5;
+  border-radius: 14px;
+  color: #451a8f;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .client-card, .client-card .avatar img, .client-card .contact { transition: none; }
+}
+/* One column: Georgian labels were squeezed into two narrow columns. */
+.client-card .card-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+.client-card .facts { display: grid; gap: 10px; margin: 12px 0 0; }
+.client-card .facts dt i,
+.client-card .nationality > i { flex: 0 0 28px; }
+.client-card .district-chip { display: inline-flex; }
+.client-card .preferences { padding-top: 14px; border-top: 1px dashed #e6dcf8; }
+.client-card .priorities {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-height: 0;
+}
+.client-card .priorities > div {
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.client-card .priorities i { flex: 0 0 30px; width: 30px; height: 30px; display: grid; place-items: center; }
+.client-card .suggest span + * { margin-left: 6px; }
+@media (hover: hover) {
+  .client-card .contact:hover { background: linear-gradient(135deg, #3a1479, #451a8f 45%, #6a3fd0); }
 }

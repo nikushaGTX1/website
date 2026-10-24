@@ -104,7 +104,7 @@
               <div class="card-details">
                 <div class="requirements">
                   <p class="districts"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>
-                    @for (district of client.profile.districts; track district; let last = $last) {<span>{{ label(district) }}</span><span *ngIf="!last"> · </span>}
+                    @for (district of client.profile.districts; track district) {<span class="district-chip">{{ label(district) }}</span>}
                     <span *ngIf="!client.profile.districts.length">{{ client.profile.locationFlexible ? 'Flexible location' : 'Selected map area' }}</span>
                   </span></p>
                   <dl class="facts">
@@ -123,7 +123,7 @@
                 </div>
               </div>
               <div class="agent">
-                <img *ngIf="client.agent.photo" [src]="client.agent.photo" alt="" loading="lazy" />
+                <img *ngIf="client.agent.photo" [src]="client.agent.photo" alt="" loading="lazy" (error)="client.agent.photo = ''" />
                 <span class="agent-placeholder" *ngIf="!client.agent.photo" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>
                 <div><div class="agent-name"><strong>{{ client.agent.name }}</strong><span> · </span><small>Velven agent</small></div><a *ngIf="client.agent.phone" [href]="'tel:' + client.agent.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> {{ client.agent.phone }}</a></div>
               </div>
