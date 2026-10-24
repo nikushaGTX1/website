@@ -186,7 +186,7 @@ try {
       );
       assert.match(
         await page.locator('h1').evaluate((el) => getComputedStyle(el).fontFamily),
-        /Georgia/,
+        /Manrope|Noto Sans Georgian/, // the site font, not a serif
       );
       assert.equal(
         await page.locator('.section-heading h2').innerText(),
@@ -255,6 +255,7 @@ try {
       await page.locator('.state button').click();
       await page.locator('.client-card').first().waitFor();
       await page.goto(base + '/admin');
+      await page.locator('.admin-tabs button, nav button', { hasText: /Client intake|კლიენტების მიღება|Приём клиентов/ }).first().click();
       await page.locator('.intake-card').waitFor();
       await page.locator('.intake-card header button').click();
       await page.locator('.link-row input').waitFor();

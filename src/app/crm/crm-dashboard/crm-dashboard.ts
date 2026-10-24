@@ -169,6 +169,12 @@ export class CrmDashboard implements OnInit {
   get isAdmin(): boolean {
     return this.authService.isAdmin;
   }
+  /** MyHome checks / client intake link: hidden until opened from the header. */
+  openTool: 'myhome' | 'intake' | null = null;
+  toggleTool(tool: 'myhome' | 'intake'): void {
+    this.openTool = this.openTool === tool ? null : tool;
+  }
+
   get canManageClientIntake(): boolean { return this.authService.isAgent || this.authService.isCrmManager; }
 
   get isManager(): boolean {

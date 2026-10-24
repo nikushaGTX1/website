@@ -6,8 +6,6 @@
   >
     <!-- ===================================================== -->
     <!-- HEADER -->
-    <app-myhome-verification *ngIf="isManager"></app-myhome-verification>
-    <app-client-intake-card *ngIf="canManageClientIntake"></app-client-intake-card>
     <!-- ===================================================== -->
 
     <header class="crm-header">
@@ -36,6 +34,15 @@
       <!-- HEADER ACTIONS -->
 
       <div class="header-actions">
+        <!-- Tools stay hidden until opened, so the pipeline is the first thing on the page. -->
+        <button type="button" class="admin-shortcut" *ngIf="isManager" [class.active]="openTool === 'myhome'" [attr.aria-expanded]="openTool === 'myhome'" (click)="toggleTool('myhome')">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          MyHome verification
+        </button>
+        <button type="button" class="admin-shortcut" *ngIf="canManageClientIntake" [class.active]="openTool === 'intake'" [attr.aria-expanded]="openTool === 'intake'" (click)="toggleTool('intake')">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          Client intake link
+        </button>
         <a class="admin-shortcut" routerLink="/crm" *ngIf="dedicatedStatus || dedicatedAgentId">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
           All pipeline stages
@@ -111,6 +118,9 @@
         </button>
       </div>
     </header>
+
+    <app-myhome-verification *ngIf="isManager && openTool === 'myhome'"></app-myhome-verification>
+    <app-client-intake-card *ngIf="canManageClientIntake && openTool === 'intake'"></app-client-intake-card>
 
     <!-- ===================================================== -->
     <!-- MESSAGES -->

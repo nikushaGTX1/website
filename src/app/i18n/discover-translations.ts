@@ -1,5 +1,8 @@
 /** Copy shared by the existing DOM translators; saved criteria remain language independent. */
 const COPY: Array<[string, string, string]> = [
+  ['Generate Link', 'ბმულის შექმნა', 'Создать ссылку'],
+  ['MyHome verification', 'MyHome შემოწმება', 'Проверка MyHome'],
+  ['Client intake', 'კლიენტების მიღება', 'Приём клиентов'],
   ['Search for an area', 'მოძებნეთ უბანი', 'Поиск района'],
   ['Choose an area', 'აირჩიეთ უბანი', 'Выберите район'],
   ['No matching area found.', 'უბანი ვერ მოიძებნა.', 'Район не найден.'],

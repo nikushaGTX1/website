@@ -2107,3 +2107,47 @@ button:disabled {
   .best-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .best-empty strong { color: #4b3f63; font-size: 20px; }
+
+/* Header tool buttons (MyHome verification, Client intake link): highlighted while open. */
+button.admin-shortcut {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.admin-shortcut.active {
+  border-color: #451a8f;
+  background: #451a8f;
+  color: #fff;
+}
+.admin-shortcut.active i {
+  color: #fff;
+}
+
+/* Header buttons keep each label on one line; when space runs out whole buttons move to
+   the next row instead of words breaking mid-way. */
+.crm-header {
+  flex-wrap: wrap;
+}
+.header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+.header-actions > a,
+.header-actions > button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+@media (max-width: 620px) {
+  .header-actions {
+    justify-content: stretch;
+  }
+  .header-actions > a,
+  .header-actions > button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}

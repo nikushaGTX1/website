@@ -287,6 +287,15 @@ export class Clients implements OnInit, OnDestroy {
     if (/Metro|Transport/.test(code)) return 'train-subway';
     if (/School|University|Study|Kindergarten/.test(code)) return 'graduation-cap';
     if (/Workspace|Office|Company/.test(code)) return 'briefcase';
-    return 'check';
+    if (/Gym/.test(code)) return 'dumbbell';
+    if (/Everyday|Supermarket|Pharmacy/.test(code)) return 'basket-shopping';
+    if (/Cafe|Restaurant|Meeting|Entertainment/.test(code)) return 'mug-hot';
+    if (/Clinic/.test(code)) return 'house-medical';
+    if (/Balcony/.test(code)) return 'sun';
+    if (/Security/.test(code)) return 'shield-halved';
+    if (/Bathroom|Bedroom/.test(code)) return 'bed';
+    if (/CityCenter|Location/.test(code)) return 'location-dot';
+    if (/Modern|Building/.test(code)) return 'building';
+    return 'star';
   }
 }

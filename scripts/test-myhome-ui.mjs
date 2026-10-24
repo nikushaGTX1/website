@@ -98,6 +98,8 @@ try {
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(base + path);
     const panel = page.locator('app-myhome-verification');
+    // The panel is hidden until opened (admin: MyHome tab; CRM: header button).
+    if (role !== 'Agent') await page.getByRole('button', { name: /MyHome/ }).first().click();
     if (role === 'Agent') {
       await page.waitForTimeout(700);
       assert.equal(await panel.count(), 0, 'Agents must not see verification controls');
@@ -106,7 +108,7 @@ try {
       continue;
     }
     await panel.getByRole('heading', { name: 'MyHome verification' }).waitFor();
-    await panel.getByText('50%', { exact: true }).waitFor();
+    await panel.getByText(/50%/).first().waitFor();
     await panel.getByRole('button', { name: 'Resume verification', exact: true }).click();
     await panel
       .getByText('Extension connected. Checking listings in your browser.', { exact: true })

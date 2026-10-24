@@ -17,8 +17,6 @@
     </div>
   </header>
 
-  <app-myhome-verification *ngIf="canOperateDashboard"></app-myhome-verification>
-  <app-client-intake-card *ngIf="canOperateDashboard || canManageBlog"></app-client-intake-card>
   <div class="kpi-grid">
     <button type="button" class="kpi kpi-pending" [class.has-work]="waitingCount > 0" (click)="activeTab = 'pending'">
       <span class="kpi-icon"><i class="fa-regular fa-clock" aria-hidden="true"></i></span>
@@ -64,7 +62,17 @@
     <button type="button" *ngIf="isAdmin" [class.active]="activeTab === 'vacancies'" (click)="activeTab = 'vacancies'">
       <i class="fa-solid fa-briefcase" aria-hidden="true"></i> Job positions <em class="tab-count">{{ vacancyPositions.length }}</em>
     </button>
+    <button type="button" *ngIf="canOperateDashboard" [class.active]="activeTab === 'myhome'" (click)="activeTab = 'myhome'">
+      <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> MyHome
+    </button>
+    <button type="button" *ngIf="canOperateDashboard || canManageBlog" [class.active]="activeTab === 'intake'" (click)="activeTab = 'intake'">
+      <i class="fa-solid fa-link" aria-hidden="true"></i> Client intake
+    </button>
   </nav>
+
+  <!-- MyHome checks and the client intake link: only shown when their tab is opened. -->
+  <app-myhome-verification *ngIf="activeTab === 'myhome' && canOperateDashboard"></app-myhome-verification>
+  <app-client-intake-card *ngIf="activeTab === 'intake' && (canOperateDashboard || canManageBlog)"></app-client-intake-card>
 
   <div class="admin-alerts" aria-live="polite">
     <p *ngIf="errorMessage" class="message error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>{{ errorMessage }}</span><button type="button" aria-label="Dismiss" (click)="errorMessage = ''"><i class="fa-solid fa-xmark"></i></button></p>

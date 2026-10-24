@@ -62,7 +62,7 @@ export class AdminPanel implements OnInit, OnDestroy {
   newVacancyPosition = '';
   userIds: string[] = [];
 
-  activeTab: 'pending' | 'users' | 'agents' | 'apartments' | 'blog' | 'streets' | 'vacancies' =
+  activeTab: 'pending' | 'users' | 'agents' | 'apartments' | 'blog' | 'streets' | 'vacancies' | 'intake' | 'myhome' =
     'pending';
 
   blogForm: CreateBlogPost = {

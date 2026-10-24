@@ -1,6 +1,9 @@
 :host {
   display: block;
   min-width: 0;
+  /* Same column width as the MyHome card and dashboard cards. */
+  max-width: 1240px;
+  margin: 0 auto;
 }
 
 .intake-card {

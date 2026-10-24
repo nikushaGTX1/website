@@ -25,14 +25,16 @@
   color: #451a8f;
   margin: 0 0 20px;
 }
+/* Headings use the site font (bold), like the rest of Velven. */
 h1,
 h2,
 h3 {
-  font-family: Georgia, serif;
+  font-family: inherit;
+  font-weight: 800;
 }
 h1 {
-  font-size: clamp(32px, 3.6vw, 52px);
-  font-weight: 400;
+  font-size: clamp(30px, 3.4vw, 48px);
+  font-weight: 800;
   line-height: 1.18;
   margin: 0;
   max-width: 640px;
@@ -161,7 +163,7 @@ button,
 }
 .section-heading h2 {
   font-size: 28px;
-  font-weight: 400;
+  font-weight: 800;
   margin: 0;
 }
 .section-heading > span {
@@ -238,8 +240,8 @@ button,
   flex-wrap: wrap;
 }
 .card-title h3 {
-  font-size: 22px;
-  font-weight: 400;
+  font-size: 19px;
+  font-weight: 800;
   margin: 0;
 }
 .kyc {
@@ -389,7 +391,7 @@ button,
   margin-top: 48px;
 }
 .bottom-banner h2 {
-  font-weight: 400;
+  font-weight: 800;
   font-size: 24px;
   margin: 0 0 10px;
 }
@@ -422,7 +424,7 @@ button:disabled {
 }
 .state h3 {
   font-size: 24px;
-  font-weight: 400;
+  font-weight: 800;
 }
 .state p {
   color: #877b90;
@@ -661,13 +663,6 @@ select:focus-visible {
   }
 }
 
-/* Headings opt into serif typography through the existing global font variables. */
-h1,
-h2,
-h3 {
-  --font-site: Georgia, serif;
-  --font-site-georgian: Georgia, 'Sylfaen', serif;
-}
 
 /* Filter menus: Velven-styled (same look as the Discover sort menu), not the browser's selects. */
 .filter {
@@ -1040,4 +1035,25 @@ h3 {
 }
 @media (prefers-reduced-motion: reduce) {
   .sheet-backdrop, .filter-sheet { animation: none; }
+}
+
+/* Priority tiles: icon and label centred in equal-height tiles. */
+.priorities > div {
+  justify-content: center;
+  min-height: 78px;
+  padding: 10px 6px;
+  border-radius: 12px;
+}
+.priorities i {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 9px;
+  background: #ece5f8;
+  color: #451a8f;
+  font-size: 14px;
+}
+.priorities span {
+  line-height: 1.3;
 }

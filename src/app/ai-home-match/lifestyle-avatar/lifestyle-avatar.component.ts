@@ -17,7 +17,25 @@ interface AvatarFigure {
   imports: [NgIf, NgFor],
 })
 export class VelvenLifestyleAvatarComponent {
-  @Input({ required: true }) profile!: HomeMatchProfile;
+  /**
+   * Profiles from other places (e.g. anonymised Clients board profiles) may leave out lists;
+   * missing ones are treated as empty instead of crashing the page.
+   */
+  @Input({ required: true }) set profile(value: HomeMatchProfile) {
+    this._profile = {
+      ...value,
+      lifestyles: value?.lifestyles ?? [],
+      transportation: value?.transportation ?? [],
+      childrenAgeGroups: value?.childrenAgeGroups ?? [],
+      petTypes: value?.petTypes ?? [],
+      adults: value?.adults ?? 1,
+      children: value?.children ?? 0,
+    };
+  }
+  get profile(): HomeMatchProfile {
+    return this._profile;
+  }
+  private _profile!: HomeMatchProfile;
   @Input() showSummary = false;
 
   get characterSrc(): string {
