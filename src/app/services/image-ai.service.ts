@@ -61,11 +61,32 @@ export interface ImageAiEnqueueRequest {
   permissionReference?: string;
 }
 
+export interface PhotoCheckResult {
+  classification: 'none' | 'own_brand' | 'third_party';
+  watermarkText: string | null;
+  action: string;
+  cleanedImage?: string | null;
+  contentType?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ImageAiService {
   private readonly baseUrl = `${API_URL}/image-processing`;
 
   constructor(private http: HttpClient) {}
+
+  availability(): Observable<{ enabled: boolean }> {
+    return this.http.get<{ enabled: boolean }>(`${this.baseUrl}/availability`);
+  }
+
+  // Upload-form check: scans one photo, or removes our own watermark when allowed.
+  check(image: File, mode: 'detect' | 'clean', rightsConfirmed = false): Observable<PhotoCheckResult> {
+    const body = new FormData();
+    body.append('image', image);
+    body.append('mode', mode);
+    body.append('rightsConfirmed', String(rightsConfirmed));
+    return this.http.post<PhotoCheckResult>(`${this.baseUrl}/check`, body);
+  }
 
   status(): Observable<ImageAiStatus> {
     return this.http.get<ImageAiStatus>(`${this.baseUrl}/status`);

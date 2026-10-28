@@ -23,6 +23,7 @@ import {
   NearbyWalkingTimes,
 } from '../maps/services/google-nearby-time.service';
 import { TranslationService } from '../services/translation.service';
+import { ImageAiService } from '../services/image-ai.service';
 import { parseParkingCost } from '../utils/parking-cost';
 import { encodeNearbyPlaceNames, isHouseListing, splitNearbyPlaceNames } from '../utils/nearby-places';
 
@@ -49,7 +50,7 @@ import {
   OwnerSubmission,
   OwnerSubmissionStatus,
 } from '../services/owner-listing.service';
-import { NgIf, NgFor } from '@angular/common';
+import { NgIf, NgFor, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PropertyPointPickerComponent } from '../maps/property-point-picker/property-point-picker.component';
 
@@ -157,6 +158,8 @@ interface ListingPlanOption {
   benefits: string[];
 }
 
+type PhotoCheckState = 'checking' | 'clean' | 'own' | 'third' | 'cleaning' | 'cleaned' | 'error';
+
 interface PreparedImage {
   previewUrl: string;
   file: File;
@@ -168,7 +171,7 @@ type FolderListingData = Record<string, unknown>;
   selector: 'app-upload-apartment',
   templateUrl: './upload-apartaments.html',
   styleUrl: './upload-apartment.css',
-  imports: [NgIf, NgFor, RouterLink, FormsModule, PropertyPointPickerComponent],
+  imports: [NgIf, NgFor, NgSwitch, NgSwitchCase, NgSwitchDefault, RouterLink, FormsModule, PropertyPointPickerComponent],
 })
 export class UploadApartment implements OnInit, OnDestroy {
   /**
@@ -459,6 +462,12 @@ export class UploadApartment implements OnInit, OnDestroy {
   folderImportError = '';
   importingFolder = false;
   selectedImages: File[] = [];
+  // Watermark checks run in the background and never block the upload.
+  photoChecksEnabled = false;
+  photoRightsConfirmed = false;
+  photoChecks = new Map<File, { state: PhotoCheckState; text?: string | null }>();
+  private photoCheckQueue: File[] = [];
+  private photoCheckRunning = false;
   draggedImageIndex: number | null = null;
   imageDropIndex: number | null = null;
 
@@ -616,6 +625,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     private zone: NgZone,
     private route: ActivatedRoute,
     private router: Router,
+    private imageAiService: ImageAiService,
   ) {
     this.dismissedNotificationIds = this.readDismissedNotificationIds();
     this.subscriptions.add(
@@ -629,6 +639,16 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.subscriptions.add(
+      this.imageAiService.availability().subscribe({
+        next: ({ enabled }) => {
+          this.photoChecksEnabled = enabled;
+          if (enabled) this.queuePhotoChecks(this.selectedImages);
+          this.cdr.markForCheck();
+        },
+        error: () => (this.photoChecksEnabled = false),
+      }),
+    );
     const currentUser = this.authService.currentUser;
     this.form.agentName = currentUser?.fullName || currentUser?.userName || '';
     this.form.agentPhone = currentUser?.phoneNumber || '';
@@ -708,6 +728,7 @@ export class UploadApartment implements OnInit, OnDestroy {
           this.form.imageUrls = images.map((item) => item.previewUrl);
           this.form.imageUrl = this.form.imageUrls[0] || '';
           this.selectedImages = images.map((item) => item.file);
+          this.queuePhotoChecks(this.selectedImages);
           this.editLoading = false;
           this.cdr.detectChanges();
         },
@@ -1621,6 +1642,82 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     this.form.imageUrl = this.form.imageUrls[0] || '';
     input.value = '';
+    this.queuePhotoChecks(successfulImages.map((image) => image.file));
+  }
+
+  photoCheck(index: number) {
+    const file = this.selectedImages[index];
+    return file ? this.photoChecks.get(file) : undefined;
+  }
+
+  get thirdPartyPhotoCount(): number {
+    return this.selectedImages.filter((file) => this.photoChecks.get(file)?.state === 'third').length;
+  }
+
+  private queuePhotoChecks(files: File[]): void {
+    if (!this.photoChecksEnabled) return;
+    for (const file of files) {
+      if (this.photoChecks.has(file)) continue;
+      this.photoChecks.set(file, { state: 'checking' });
+      this.photoCheckQueue.push(file);
+    }
+    void this.runPhotoChecks();
+  }
+
+  // One photo at a time: the GPU service runs a single worker.
+  private async runPhotoChecks(): Promise<void> {
+    if (this.photoCheckRunning) return;
+    this.photoCheckRunning = true;
+    try {
+      while (this.photoCheckQueue.length) {
+        const file = this.photoCheckQueue.shift()!;
+        if (!this.selectedImages.includes(file)) {
+          this.photoChecks.delete(file);
+          continue;
+        }
+        try {
+          const result = await firstValueFrom(this.imageAiService.check(file, 'detect'));
+          const state: PhotoCheckState =
+            result.classification === 'third_party' ? 'third' : result.classification === 'own_brand' ? 'own' : 'clean';
+          this.photoChecks.set(file, { state, text: result.watermarkText });
+        } catch {
+          this.photoChecks.set(file, { state: 'error' });
+        }
+        this.cdr.markForCheck();
+      }
+    } finally {
+      this.photoCheckRunning = false;
+    }
+  }
+
+  async removeOwnWatermark(index: number): Promise<void> {
+    const file = this.selectedImages[index];
+    if (!file || !this.photoRightsConfirmed || this.photoChecks.get(file)?.state !== 'own') return;
+    this.photoChecks.set(file, { state: 'cleaning' });
+    try {
+      const result = await firstValueFrom(this.imageAiService.check(file, 'clean', true));
+      if (!result.cleanedImage) throw new Error(result.action);
+      const type = result.contentType || 'image/jpeg';
+      const bytes = Uint8Array.from(atob(result.cleanedImage), (char) => char.charCodeAt(0));
+      const cleaned = new File([bytes], file.name, { type, lastModified: Date.now() });
+      const position = this.selectedImages.indexOf(file);
+      if (position === -1) return;
+      this.selectedImages = this.selectedImages.map((item, i) => (i === position ? cleaned : item));
+      this.form.imageUrls = this.form.imageUrls.map((url, i) =>
+        i === position ? `data:${type};base64,${result.cleanedImage}` : url,
+      );
+      this.form.imageUrl = this.form.imageUrls[0] || '';
+      this.photoChecks.delete(file);
+      this.photoChecks.set(cleaned, { state: 'cleaned' });
+    } catch {
+      this.photoChecks.set(file, { state: 'own' });
+      this.imageUploadMessage = this.uploadLocationText(
+        'The watermark could not be removed. You can still upload the photo.',
+        'წყლის ნიშანი ვერ წაიშალა. ფოტოს ატვირთვა მაინც შეგიძლიათ.',
+        'Не удалось удалить водяной знак. Фото всё равно можно загрузить.',
+      );
+    }
+    this.cdr.markForCheck();
   }
 
   removeImage(index: number): void {
@@ -1725,6 +1822,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.imageUrls = images.map((item) => item.previewUrl);
       this.selectedImages = images.map((item) => item.file);
       this.form.imageUrl = this.form.imageUrls[0] || '';
+      this.queuePhotoChecks(this.selectedImages);
       const skipped = imageFiles.length - images.length;
       this.folderImportMessage = `Imported data.json and ${images.length} photo${images.length === 1 ? '' : 's'}.${skipped ? ` ${skipped} could not be processed.` : ''}`;
       this.activeStep = 0;
