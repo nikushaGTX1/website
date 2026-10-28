@@ -32,6 +32,7 @@ import { MyHomeVerification } from '../myhome-verification/myhome-verification';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPrice } from '../currency-price/currency-price';
 import { StreetValidationMapComponent } from './street-validation-map.component';
+import { ImageAiCard } from './image-ai-card';
 import { ClientIntakeCard } from './client-intake-card';
 
 @Component({
@@ -40,6 +41,7 @@ import { ClientIntakeCard } from './client-intake-card';
   styleUrl: './admin-panel.css',
   imports: [
     ClientIntakeCard,
+    ImageAiCard,
     RouterLink,
     NgIf,
     MyHomeVerification,
@@ -62,7 +64,7 @@ export class AdminPanel implements OnInit, OnDestroy {
   newVacancyPosition = '';
   userIds: string[] = [];
 
-  activeTab: 'pending' | 'users' | 'agents' | 'apartments' | 'blog' | 'streets' | 'vacancies' | 'intake' | 'myhome' =
+  activeTab: 'pending' | 'users' | 'agents' | 'apartments' | 'blog' | 'streets' | 'vacancies' | 'intake' | 'myhome' | 'photoai' =
     'pending';
 
   blogForm: CreateBlogPost = {

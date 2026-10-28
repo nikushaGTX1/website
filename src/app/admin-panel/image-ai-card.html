@@ -1,0 +1,99 @@
+<section class="ai-card">
+  <header class="ai-head">
+    <span class="ai-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+    <div>
+      <h2>Photo AI</h2>
+      <p>Finds watermarks on listing photos. Only our own or licensed watermarks are removed. Other watermarks are flagged so you can ask the owner for a clean photo.</p>
+    </div>
+    <button type="button" class="ghost-btn refresh" (click)="load()" [disabled]="loading">
+      <i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh
+    </button>
+  </header>
+
+  <p class="message warn" *ngIf="status && !status.budget.enabled">
+    <i class="fa-solid fa-power-off" aria-hidden="true"></i> <span>Photo AI is turned off on the server.</span>
+  </p>
+  <p class="message warn" *ngIf="status?.budget?.exhausted">
+    <i class="fa-solid fa-gauge-high" aria-hidden="true"></i> <span>Monthly budget or quota reached. Processing is paused.</span>
+  </p>
+  <p class="message error" *ngIf="error"><span>{{ error }}</span></p>
+  <p class="message ok" *ngIf="notice">
+    <strong *ngIf="queuedCount">{{ queuedCount }}</strong> <span>{{ notice }}</span>
+  </p>
+
+  <div class="stats" *ngIf="status">
+    <div><span>This month</span><strong>{{ status.budget.imagesProcessed }} / {{ status.budget.monthlyImageQuota }}</strong></div>
+    <div><span>Spent</span><strong>${{ status.budget.spentUsd | number: '1.2-2' }}</strong></div>
+    <div><span>Projected</span><strong>${{ status.budget.projectedUsd | number: '1.2-2' }}</strong></div>
+    <div><span>Cutoff</span><strong>${{ status.budget.budgetCutoffUsd | number: '1.0-0' }}</strong></div>
+    <div><span>Queued</span><strong>{{ count('Pending') + count('Running') }}</strong></div>
+  </div>
+
+  <form class="enqueue" (ngSubmit)="submit()">
+    <label><span>Apartment ID</span><input type="number" min="1" name="apartmentId" [(ngModel)]="apartmentId" required /></label>
+    <label><span>Action</span>
+      <select name="mode" [(ngModel)]="mode">
+        <option value="detect">Scan only</option>
+        <option value="process">Remove allowed watermarks</option>
+      </select>
+    </label>
+    <label><span>Photo rights</span>
+      <select name="basis" [(ngModel)]="basis">
+        <option value="Unknown">Unknown</option>
+        <option value="Owned">We own these photos</option>
+        <option value="Licensed">Licensed by the owner</option>
+      </select>
+    </label>
+    <label class="wide" *ngIf="basis === 'Licensed'"><span>Permission reference</span>
+      <input name="permissionReference" [(ngModel)]="permissionReference" maxlength="500" placeholder="Licence number or written consent" />
+    </label>
+    <button type="submit" class="primary-btn" [disabled]="!canSubmit">
+      <i class="fa-solid fa-play" aria-hidden="true"></i> Queue photos
+    </button>
+  </form>
+  <small class="hint" *ngIf="mode === 'process' && basis === 'Unknown'">Choose the photo rights before removing watermarks.</small>
+
+  <nav class="filters" aria-label="Job filter">
+    <button type="button" *ngFor="let item of filters" [class.active]="filter === item.value" (click)="setFilter(item.value)">
+      {{ item.label }} <em *ngIf="item.value && count(item.value)">{{ count(item.value) }}</em>
+    </button>
+  </nav>
+
+  <div class="empty-box" *ngIf="!loading && !jobs.length">
+    <i class="fa-regular fa-images" aria-hidden="true"></i>
+    <p>No photo jobs yet.</p>
+  </div>
+
+  <article class="job" *ngFor="let job of jobs">
+    <div class="thumbs">
+      <a *ngIf="job.originalUrl" [href]="job.originalUrl" target="_blank" rel="noopener"><img [src]="job.originalUrl" alt="Original photo" loading="lazy" /><span>Original</span></a>
+      <a *ngIf="job.processedUrl" [href]="job.processedUrl" target="_blank" rel="noopener"><img [src]="job.processedUrl" alt="Processed photo" loading="lazy" /><span>Processed</span></a>
+    </div>
+    <div class="info">
+      <div class="line">
+        <span class="badge" [attr.data-status]="job.status">{{ statusLabel(job.status) }}</span>
+        <small>#{{ job.id }} · <span>Apartment</span> {{ job.apartmentId }}</small>
+      </div>
+      <p *ngIf="job.watermarkText"><span>Watermark text</span>: <q>{{ job.watermarkText }}</q></p>
+      <p *ngIf="job.duplicateOfJobId"><span>Same photo as job</span> #{{ job.duplicateOfJobId }}</p>
+      <p class="err" *ngIf="job.lastError">{{ job.lastError }}</p>
+      <p *ngIf="job.cleanOriginalRequestedAt" class="muted"><span>Clean original requested</span> {{ job.cleanOriginalRequestedAt | date: 'yyyy-MM-dd' }}</p>
+      <small class="muted">{{ job.createdAt | date: 'yyyy-MM-dd HH:mm' }} · {{ job.gpuSeconds | number: '1.1-1' }}s GPU</small>
+    </div>
+    <div class="actions">
+      <ng-container *ngIf="job.status === 'AwaitingApproval'">
+        <button type="button" class="primary-btn" (click)="run(job, 'approve')" [disabled]="busyId === job.id">Approve</button>
+        <button type="button" class="ghost-btn" (click)="run(job, 'reject')" [disabled]="busyId === job.id">Reject</button>
+      </ng-container>
+      <button type="button" class="ghost-btn" *ngIf="job.status === 'Approved'" (click)="run(job, 'revert')" [disabled]="busyId === job.id">Restore original</button>
+      <button type="button" class="ghost-btn" *ngIf="job.status === 'Failed'" (click)="run(job, 'retry')" [disabled]="busyId === job.id">Retry</button>
+      <button type="button" class="ghost-btn" *ngIf="job.status === 'NeedsCleanOriginal' && !job.cleanOriginalRequestedAt" (click)="run(job, 'clean-original-requested')" [disabled]="busyId === job.id">Mark as requested</button>
+    </div>
+  </article>
+
+  <nav class="pager" *ngIf="page > 1 || jobs.length === 25" aria-label="Job pages">
+    <button type="button" class="ghost-btn" (click)="load(page - 1)" [disabled]="page === 1 || loading">Previous</button
+    ><span>{{ page }}</span
+    ><button type="button" class="ghost-btn" (click)="load(page + 1)" [disabled]="jobs.length < 25 || loading">Next</button>
+  </nav>
+</section>

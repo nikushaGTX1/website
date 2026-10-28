@@ -68,11 +68,15 @@
     <button type="button" *ngIf="canOperateDashboard || canManageBlog" [class.active]="activeTab === 'intake'" (click)="activeTab = 'intake'">
       <i class="fa-solid fa-link" aria-hidden="true"></i> Client intake
     </button>
+    <button type="button" *ngIf="isAdmin" [class.active]="activeTab === 'photoai'" (click)="activeTab = 'photoai'">
+      <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Photo AI
+    </button>
   </nav>
 
   <!-- MyHome checks and the client intake link: only shown when their tab is opened. -->
   <app-myhome-verification *ngIf="activeTab === 'myhome' && canOperateDashboard"></app-myhome-verification>
   <app-client-intake-card *ngIf="activeTab === 'intake' && (canOperateDashboard || canManageBlog)"></app-client-intake-card>
+  <app-image-ai-card *ngIf="activeTab === 'photoai' && isAdmin"></app-image-ai-card>
 
   <div class="admin-alerts" aria-live="polite">
     <p *ngIf="errorMessage" class="message error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>{{ errorMessage }}</span><button type="button" aria-label="Dismiss" (click)="errorMessage = ''"><i class="fa-solid fa-xmark"></i></button></p>

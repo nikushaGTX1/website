@@ -982,9 +982,17 @@ app.use('/api', async (request, response) => {
     const headers = new Headers();
 
     for (const [name, value] of Object.entries(request.headers)) {
-      if (value && !['host', 'connection', 'content-length'].includes(name)) {
+      if (value && !['host', 'connection', 'content-length'].includes(name) && !name.startsWith('x-velven-')) {
         headers.set(name, Array.isArray(value) ? value.join(', ') : value);
       }
+    }
+
+    // Prove this proxy to the API so it can trust the visitor IP for rate limits.
+    // Railway's edge appends the real peer last; earlier entries are client-controlled.
+    if (process.env.VELVEN_PROXY_KEY) {
+      const forwarded = String(request.headers['x-forwarded-for'] || '').split(',').pop().trim();
+      headers.set('x-velven-proxy-key', process.env.VELVEN_PROXY_KEY);
+      headers.set('x-velven-client-ip', forwarded || request.socket.remoteAddress || '');
     }
 
     const hasBody = !['GET', 'HEAD'].includes(request.method);
