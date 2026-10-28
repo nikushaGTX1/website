@@ -62,7 +62,8 @@ export interface ImageAiEnqueueRequest {
 }
 
 export interface PhotoCheckResult {
-  classification: 'none' | 'own_brand' | 'third_party';
+  /** partner_brand: a licensed partner's mark (e.g. myhome.ge) that Velven may remove. */
+  classification: 'none' | 'own_brand' | 'partner_brand' | 'third_party';
   watermarkText: string | null;
   action: string;
   cleanedImage?: string | null;

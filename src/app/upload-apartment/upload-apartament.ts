@@ -158,7 +158,7 @@ interface ListingPlanOption {
   benefits: string[];
 }
 
-type PhotoCheckState = 'checking' | 'clean' | 'own' | 'third' | 'cleaning' | 'cleaned' | 'error';
+type PhotoCheckState = 'checking' | 'clean' | 'own' | 'partner' | 'third' | 'cleaning' | 'cleaned' | 'error';
 
 interface PreparedImage {
   previewUrl: string;
@@ -1652,6 +1652,66 @@ export class UploadApartment implements OnInit, OnDestroy {
     return file ? this.photoChecks.get(file) : undefined;
   }
 
+  /** Velven's own mark or a licensed partner's (myhome.ge): staff may remove these. */
+  isRemovableState(state: PhotoCheckState | undefined): boolean {
+    return state === 'own' || state === 'partner';
+  }
+
+  private photoCount(state: PhotoCheckState): number {
+    return this.selectedImages.filter((file) => this.photoChecks.get(file)?.state === state).length;
+  }
+
+  get removablePhotoCount(): number {
+    return this.photoCount('own') + this.photoCount('partner');
+  }
+
+  get checkingPhotoCount(): number {
+    return this.photoCount('checking') + this.photoCount('cleaning');
+  }
+
+  get cleanPhotoCount(): number {
+    return this.photoCount('clean') + this.photoCount('cleaned');
+  }
+
+  /** Removes every removable watermark, one photo at a time (single GPU worker). */
+  async removeAllWatermarks(): Promise<void> {
+    if (!this.photoRightsConfirmed) return;
+    const indexes = this.selectedImages
+      .map((file, index) => (this.isRemovableState(this.photoChecks.get(file)?.state) ? index : -1))
+      .filter((index) => index >= 0);
+    for (const index of indexes) await this.removeOwnWatermark(index);
+  }
+
+  // Copy for the photo check panel (kept here: apostrophes break template string literals).
+  get photoAiTexts() {
+    const t = (en: string, ka: string, ru: string) => this.uploadLocationText(en, ka, ru);
+    return {
+      title: t('Photo check', 'ფოტოების შემოწმება', 'Проверка фото'),
+      subtitle: t(
+        'Watermarks are detected automatically while you fill in the form.',
+        'წყლის ნიშნები ავტომატურად მოწმდება, სანამ ფორმას ავსებთ.',
+        'Водяные знаки проверяются автоматически, пока вы заполняете форму.',
+      ),
+      checking: t('checking', 'მოწმდება', 'проверяется'),
+      clean: t('clean', 'სუფთა', 'без знака'),
+      removable: t('removable watermark', 'წასაშლელი ნიშანი', 'можно удалить'),
+      other: t('other watermark', 'სხვა ნიშანი', 'чужой знак'),
+      rights: t(
+        'I confirm Velven may edit these photos (own photos or a partner such as myhome.ge).',
+        'ვადასტურებ, რომ Velven-ს შეუძლია ამ ფოტოების რედაქტირება (საკუთარი ან პარტნიორის, მაგ. myhome.ge).',
+        'Подтверждаю, что Velven может редактировать эти фото (свои или партнёра, например myhome.ge).',
+      ),
+      removeAll: t('Remove watermarks', 'ნიშნების წაშლა', 'Удалить знаки'),
+      confirmFirst: t('Confirm the photo rights first', 'ჯერ დაადასტურეთ ფოტოს უფლებები', 'Сначала подтвердите права на фото'),
+      thirdParty: t(
+        'Some photos carry another company’s watermark. Those are not removed. Please ask the owner for clean originals.',
+        'ზოგ ფოტოზე სხვა კომპანიის წყლის ნიშანია. მათ არ ვშლით. სთხოვეთ მფლობელს სუფთა ორიგინალები.',
+        'На некоторых фото водяной знак другой компании. Его мы не удаляем. Попросите у владельца чистые оригиналы.',
+      ),
+      partnerBadge: t('Partner watermark', 'პარტნიორის ნიშანი', 'Знак партнёра'),
+    };
+  }
+
   get thirdPartyPhotoCount(): number {
     return this.selectedImages.filter((file) => this.photoChecks.get(file)?.state === 'third').length;
   }
@@ -1680,7 +1740,13 @@ export class UploadApartment implements OnInit, OnDestroy {
         try {
           const result = await firstValueFrom(this.imageAiService.check(file, 'detect'));
           const state: PhotoCheckState =
-            result.classification === 'third_party' ? 'third' : result.classification === 'own_brand' ? 'own' : 'clean';
+            result.classification === 'third_party'
+              ? 'third'
+              : result.classification === 'partner_brand'
+                ? 'partner'
+                : result.classification === 'own_brand'
+                  ? 'own'
+                  : 'clean';
           this.photoChecks.set(file, { state, text: result.watermarkText });
         } catch {
           this.photoChecks.set(file, { state: 'error' });
@@ -1694,7 +1760,8 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   async removeOwnWatermark(index: number): Promise<void> {
     const file = this.selectedImages[index];
-    if (!file || !this.canRemoveWatermarks || !this.photoRightsConfirmed || this.photoChecks.get(file)?.state !== 'own') return;
+    const before = file ? this.photoChecks.get(file) : undefined;
+    if (!file || !this.canRemoveWatermarks || !this.photoRightsConfirmed || !this.isRemovableState(before?.state)) return;
     this.photoChecks.set(file, { state: 'cleaning' });
     try {
       const result = await firstValueFrom(this.imageAiService.check(file, 'clean', true));
@@ -1712,7 +1779,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.photoChecks.delete(file);
       this.photoChecks.set(cleaned, { state: 'cleaned' });
     } catch {
-      this.photoChecks.set(file, { state: 'own' });
+      this.photoChecks.set(file, { state: before!.state, text: before!.text });
       this.imageUploadMessage = this.uploadLocationText(
         'The watermark could not be removed. You can still upload the photo.',
         'წყლის ნიშანი ვერ წაიშალა. ფოტოს ატვირთვა მაინც შეგიძლიათ.',

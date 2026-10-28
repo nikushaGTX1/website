@@ -2224,3 +2224,160 @@ select:focus {
 .myhome-field label { font-weight: 700; }
 .myhome-field small { color: #655b75; font-weight: 400; }
 .myhome-field input { max-width: 320px; padding: 12px; border: 1px solid #bcb2cc; border-radius: 9px; font: inherit; }
+
+/* ===================== Photo check panel ===================== */
+.photo-ai-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid #e6def4;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff, #faf7ff);
+  box-shadow: 0 8px 24px rgba(45, 15, 99, 0.05);
+}
+.photo-ai-head { display: flex; align-items: center; gap: 12px; }
+.photo-ai-icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #451a8f, #7435d3);
+  color: #fff;
+  font-size: 16px;
+  box-shadow: 0 8px 18px rgba(69, 26, 143, 0.25);
+}
+.photo-ai-title { display: grid; gap: 2px; min-width: 0; }
+.photo-ai-title strong { color: #1b1230; font-size: 15px; font-weight: 800; }
+.photo-ai-title small { color: #6f6480; font-size: 12.5px; line-height: 1.45; }
+.photo-ai-stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.photo-ai-stats .stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f3f0f8;
+  color: #4b3d5c;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.photo-ai-stats .stat b { font-weight: 800; }
+.photo-ai-stats .stat.clean { background: #eaf7ef; color: #1e6b3a; }
+.photo-ai-stats .stat.removable { background: #f1ecfc; color: #451a8f; }
+.photo-ai-stats .stat.third { background: #fff3e2; color: #9a5300; }
+.photo-ai-stats .stat.checking { background: #f3f0f8; color: #6e31bc; }
+.photo-ai-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 14px;
+  border: 1px solid #ece5f8;
+  border-radius: 14px;
+  background: #fff;
+}
+.photo-ai-consent {
+  position: relative;
+  display: flex;
+  flex: 1 1 320px;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: #3a2b5c;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  cursor: pointer;
+}
+/* Native checkbox hidden behind a switch (the global form styles made it a huge box). */
+.photo-ai-consent input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.photo-ai-consent .switch {
+  position: relative;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: #d7d2e2;
+  transition: background 0.2s ease;
+}
+.photo-ai-consent .switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+.photo-ai-consent input:checked + .switch { background: #451a8f; }
+.photo-ai-consent input:checked + .switch::after { transform: translateX(18px); }
+.photo-ai-consent input:focus-visible + .switch { outline: 3px solid rgba(69, 26, 143, 0.3); outline-offset: 2px; }
+.photo-ai-remove-all {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3a1479, #451a8f 45%, #6a3fd0);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(69, 26, 143, 0.25);
+}
+.photo-ai-remove-all em {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  font-style: normal;
+  text-align: center;
+}
+.photo-ai-remove-all:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.photo-ai-panel .photo-ai-warning {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #f6dfb8;
+  border-radius: 12px;
+  background: #fff8ec;
+  color: #8a5a00;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.photo-ai-panel .photo-ai-warning i { margin-top: 3px; }
+/* Photo badges */
+.photo-ai-badge {
+  padding: 4px 10px;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(16, 6, 40, 0.15);
+  backdrop-filter: blur(4px);
+}
+.photo-ai-badge[data-state='partner'],
+.photo-ai-badge[data-state='own'] { background: #451a8f; color: #fff; }
+@media (max-width: 620px) {
+  .photo-ai-panel { padding: 14px; }
+  .photo-ai-remove-all { width: 100%; justify-content: center; }
+}
+.photo-ai-badge { left: auto; right: 8px; }
+/* Check badge sits under the photo number so it never covers the "Cover" badge. */
+.photo-ai-badge { top: 48px; bottom: auto; left: 8px; right: auto; }

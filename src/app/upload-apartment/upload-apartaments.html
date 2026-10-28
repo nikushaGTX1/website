@@ -529,11 +529,33 @@
 
           <p *ngIf="imageUploadMessage" class="image-upload-message">{{ imageUploadMessage }}</p>
 
-          <div class="photo-ai-panel" *ngIf="photoChecksEnabled && uploadedImageCount">
-            <p class="photo-ai-note"><i class="fa-solid fa-wand-magic-sparkles"></i><span>{{ uploadLocationText('Photos are checked for watermarks automatically. You can keep filling in the form.', 'ფოტოები ავტომატურად მოწმდება წყლის ნიშნებზე. შეგიძლიათ ფორმის შევსება გააგრძელოთ.', 'Фото автоматически проверяются на водяные знаки. Можно продолжать заполнять форму.') }}</span></p>
-            <p class="photo-ai-warning" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ uploadLocationText('Some photos carry another company's watermark. We do not remove those. Ask the owner for clean originals.', 'ზოგ ფოტოზე სხვა კომპანიის წყლის ნიშანია. მათ არ ვშლით. სთხოვეთ მფლობელს სუფთა ორიგინალები.', 'На некоторых фото водяной знак другой компании. Мы его не удаляем. Попросите у владельца чистые оригиналы.') }}</span></p>
-            <label class="photo-ai-rights" *ngIf="canRemoveWatermarks"><input type="checkbox" name="photoRightsConfirmed" [(ngModel)]="photoRightsConfirmed" /><span>{{ uploadLocationText('I own these photos or have the owner's permission to edit them.', 'ეს ფოტოები ჩემია ან მაქვს მფლობელის ნებართვა მათ რედაქტირებაზე.', 'Эти фото мои, или у меня есть разрешение владельца на их редактирование.') }}</span></label>
-          </div>
+          <section class="photo-ai-panel" *ngIf="photoChecksEnabled && uploadedImageCount" aria-live="polite">
+            <header class="photo-ai-head">
+              <span class="photo-ai-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+              <div class="photo-ai-title">
+                <strong>{{ photoAiTexts.title }}</strong>
+                <small>{{ photoAiTexts.subtitle }}</small>
+              </div>
+            </header>
+            <div class="photo-ai-stats">
+              <span class="stat checking" *ngIf="checkingPhotoCount"><i class="fa-solid fa-spinner fa-spin"></i><b>{{ checkingPhotoCount }}</b> {{ photoAiTexts.checking }}</span>
+              <span class="stat clean"><i class="fa-solid fa-circle-check"></i><b>{{ cleanPhotoCount }}</b> {{ photoAiTexts.clean }}</span>
+              <span class="stat removable" *ngIf="removablePhotoCount"><i class="fa-solid fa-droplet"></i><b>{{ removablePhotoCount }}</b> {{ photoAiTexts.removable }}</span>
+              <span class="stat third" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><b>{{ thirdPartyPhotoCount }}</b> {{ photoAiTexts.other }}</span>
+            </div>
+            <div class="photo-ai-action" *ngIf="canRemoveWatermarks && removablePhotoCount">
+              <label class="photo-ai-consent">
+                <input type="checkbox" name="photoRightsConfirmed" [(ngModel)]="photoRightsConfirmed" />
+                <span class="switch" aria-hidden="true"></span>
+                <span>{{ photoAiTexts.rights }}</span>
+              </label>
+              <button type="button" class="photo-ai-remove-all" [disabled]="!photoRightsConfirmed || checkingPhotoCount > 0" (click)="removeAllWatermarks()"
+                [title]="photoRightsConfirmed ? '' : photoAiTexts.confirmFirst">
+                <i class="fa-solid fa-eraser"></i> {{ photoAiTexts.removeAll }} <em>{{ removablePhotoCount }}</em>
+              </button>
+            </div>
+            <p class="photo-ai-warning" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ photoAiTexts.thirdParty }}</span></p>
+          </section>
 
           <div class="gallery-tip" *ngIf="uploadedImageCount > 1"><i class="fa-solid fa-hand-pointer"></i><span>Drag photos to reorder them. The first photo is your listing cover.</span></div>
           <div class="uploaded-image-grid" *ngIf="uploadedImageCount" (dragend)="finishImageDrag()">
@@ -553,6 +575,7 @@
                   <ng-container *ngSwitchCase="'clean'"><i class="fa-solid fa-check"></i> {{ uploadLocationText('No watermark', 'წყლის ნიშანი არ არის', 'Без знака') }}</ng-container>
                   <ng-container *ngSwitchCase="'cleaned'"><i class="fa-solid fa-check"></i> {{ uploadLocationText('Watermark removed', 'წყლის ნიშანი წაიშალა', 'Знак удалён') }}</ng-container>
                   <ng-container *ngSwitchCase="'own'"><i class="fa-solid fa-droplet"></i> {{ uploadLocationText('Velven watermark', 'Velven-ის წყლის ნიშანი', 'Знак Velven') }}</ng-container>
+                  <ng-container *ngSwitchCase="'partner'"><i class="fa-solid fa-handshake"></i> {{ photoAiTexts.partnerBadge }}</ng-container>
                   <ng-container *ngSwitchCase="'third'"><i class="fa-solid fa-triangle-exclamation"></i> {{ uploadLocationText('Other watermark', 'სხვა წყლის ნიშანი', 'Чужой знак') }}</ng-container>
                   <ng-container *ngSwitchDefault><i class="fa-solid fa-circle-question"></i> {{ uploadLocationText('Not checked', 'არ შემოწმდა', 'Не проверено') }}</ng-container>
                 </ng-container>
@@ -562,7 +585,7 @@
                 <button type="button" *ngIf="index !== 0" class="make-cover" (click)="makeCoverImage(index)" aria-label="Make cover photo"><i class="fa-solid fa-star"></i><span>Make cover</span></button>
                 <button type="button" *ngIf="index > 0" (click)="moveImage(index, index - 1)" aria-label="Move photo left"><i class="fa-solid fa-arrow-left"></i></button>
                 <button type="button" *ngIf="index < uploadedImageCount - 1" (click)="moveImage(index, index + 1)" aria-label="Move photo right"><i class="fa-solid fa-arrow-right"></i></button>
-                <button type="button" *ngIf="canRemoveWatermarks && photoCheck(index)?.state === 'own'" class="remove-watermark" [disabled]="!photoRightsConfirmed" (click)="removeOwnWatermark(index)" [title]="photoRightsConfirmed ? '' : uploadLocationText('Confirm the photo rights first', 'ჯერ დაადასტურეთ ფოტოს უფლებები', 'Сначала подтвердите права на фото')"><i class="fa-solid fa-eraser"></i><span>{{ uploadLocationText('Remove watermark', 'წაშლა', 'Удалить знак') }}</span></button>
+                <button type="button" *ngIf="canRemoveWatermarks && isRemovableState(photoCheck(index)?.state)" class="remove-watermark" [disabled]="!photoRightsConfirmed" (click)="removeOwnWatermark(index)" [title]="photoRightsConfirmed ? '' : photoAiTexts.confirmFirst"><i class="fa-solid fa-eraser"></i><span>{{ uploadLocationText('Remove watermark', 'წაშლა', 'Удалить знак') }}</span></button>
               </div>
             </article>
           </div>
