@@ -75,8 +75,8 @@ export class ImageAiService {
 
   constructor(private http: HttpClient) {}
 
-  availability(): Observable<{ enabled: boolean }> {
-    return this.http.get<{ enabled: boolean }>(`${this.baseUrl}/availability`);
+  availability(): Observable<{ enabled: boolean; canRemove: boolean }> {
+    return this.http.get<{ enabled: boolean; canRemove: boolean }>(`${this.baseUrl}/availability`);
   }
 
   // Upload-form check: scans one photo, or removes our own watermark when allowed.

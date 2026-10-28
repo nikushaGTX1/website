@@ -464,6 +464,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   selectedImages: File[] = [];
   // Watermark checks run in the background and never block the upload.
   photoChecksEnabled = false;
+  canRemoveWatermarks = false;
   photoRightsConfirmed = false;
   photoChecks = new Map<File, { state: PhotoCheckState; text?: string | null }>();
   private photoCheckQueue: File[] = [];
@@ -641,8 +642,9 @@ export class UploadApartment implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscriptions.add(
       this.imageAiService.availability().subscribe({
-        next: ({ enabled }) => {
+        next: ({ enabled, canRemove }) => {
           this.photoChecksEnabled = enabled;
+          this.canRemoveWatermarks = canRemove;
           if (enabled) this.queuePhotoChecks(this.selectedImages);
           this.cdr.markForCheck();
         },
@@ -1692,7 +1694,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   async removeOwnWatermark(index: number): Promise<void> {
     const file = this.selectedImages[index];
-    if (!file || !this.photoRightsConfirmed || this.photoChecks.get(file)?.state !== 'own') return;
+    if (!file || !this.canRemoveWatermarks || !this.photoRightsConfirmed || this.photoChecks.get(file)?.state !== 'own') return;
     this.photoChecks.set(file, { state: 'cleaning' });
     try {
       const result = await firstValueFrom(this.imageAiService.check(file, 'clean', true));
