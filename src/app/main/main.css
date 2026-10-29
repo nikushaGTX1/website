@@ -5367,3 +5367,12 @@
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Search button shows the hand cursor like every other button. */
+.search-submit { cursor: pointer; }
+
+/* Hero text sits further left so it never touches the building in the photo (desktop). */
+@media (min-width: 1021px) {
+  .hero-copy { margin-left: -3vw; }
+  :host-context(html:lang(ka)) .hero h1 { font-size: clamp(28px, 3.3vw, 44px); }
+}

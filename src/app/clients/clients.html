@@ -5,7 +5,7 @@
       <h1><span>Find the</span>&ngsp;<em>right client</em>&ngsp;<span>for your apartment</span></h1>
       <p class="subtitle">Verified profiles. Real requirements. Your agent's support.</p>
       <div class="trust">
-        <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Identity verified</span
+        <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Checked by Velven agents</span
         ><span
           ><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Velven Match completed</span
         >
@@ -16,6 +16,10 @@
       <app-velven-lifestyle-avatar [profile]="hero" /><span class="art-label">Velven Match ✓</span>
     </div>
   </section>
+  <div class="goal-tabs" role="tablist" aria-label="Client type">
+    <button type="button" role="tab" [class.active]="goal === 'Rent'" [attr.aria-selected]="goal === 'Rent'" (click)="setGoal('Rent')"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Rent</span></button>
+    <button type="button" role="tab" [class.active]="goal === 'Buy'" [attr.aria-selected]="goal === 'Buy'" (click)="setGoal('Buy')"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Buy</span></button>
+  </div>
   <form class="filters" (ngSubmit)="search()">
     @for (filter of filters; track filter.key) {
       <div class="filter" [class.open]="openFilter === filter.key">
@@ -97,10 +101,10 @@
             </div>
             <div class="card-body">
               <div class="card-title">
-                <h3><span>Tenant</span> #{{ client.id }}</h3>
+                <h3><span>{{ goal === 'Buy' ? 'Buyer' : 'Tenant' }}</span> #{{ client.id }}</h3>
                 <span class="match-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Velven Match completed</span>
               </div>
-              <p class="price"><strong>{{ currencySymbol(client.profile.currency) }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span>/ month</span></p>
+              <p class="price"><strong>{{ currencySymbol(client.profile.currency) }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></p>
               <div class="card-details">
                 <div class="requirements">
                   <p class="districts"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>

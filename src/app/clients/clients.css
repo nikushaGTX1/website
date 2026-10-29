@@ -1379,3 +1379,41 @@ select:focus-visible {
 @media (hover: hover) {
   .client-card .contact:hover { background: linear-gradient(135deg, #3a1479, #451a8f 45%, #6a3fd0); }
 }
+
+/* Rent / Buy tabs above the filters (same look as the home page search tabs). */
+.goal-tabs {
+  display: inline-flex;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 5px;
+  border: 1px solid #e7e3ed;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(41, 20, 69, 0.04);
+}
+.goal-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  margin: 0;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #4b5568;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.goal-tabs button i { font-size: 15px; }
+.goal-tabs button.active {
+  border-color: #ddd0f5;
+  background: #f1ecfc;
+  color: #451a8f;
+}
+@media (hover: hover) {
+  .goal-tabs button:not(.active):hover { color: #451a8f; }
+}

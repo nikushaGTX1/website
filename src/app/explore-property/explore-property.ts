@@ -125,9 +125,16 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   /** Labels under the slider, at the scale's breakpoints. */
   get budgetScaleLabels(): Array<{ position: number; label: string }> {
+    // Purchase prices are shortened ($500K, $1M+): full numbers overlapped near the end of the scale.
+    const short = (price: number): string =>
+      price >= 1_000_000
+        ? `${+(price / 1_000_000).toFixed(1)}M`
+        : price >= 10_000
+          ? `${Math.round(price / 1000)}K`
+          : price.toLocaleString('en-US');
     return this.budgetScale.map(([price, position]) => ({
       position,
-      label: `$${price.toLocaleString('en-US')}${price === this.budgetCap ? '+' : ''}`,
+      label: `$${short(price)}${price === this.budgetCap ? '+' : ''}`,
     }));
   }
 

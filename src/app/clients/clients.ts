@@ -73,13 +73,22 @@ export class Clients implements OnInit, OnDestroy {
         key: 'budget',
         label: 'Budget',
         icon: 'fa-solid fa-wallet',
-        options: [
-          { value: '', label: 'USD / month' },
-          { value: '0-500', label: '$0 – $500' },
-          { value: '500-1000', label: '$500 – $1,000' },
-          { value: '1000-1500', label: '$1,000 – $1,500' },
-          { value: '1500-', label: '$1,500+' },
-        ],
+        // Renters give a monthly budget, buyers a purchase price.
+        options: this.goal === 'Buy'
+          ? [
+              { value: '', label: 'USD total' },
+              { value: '0-100000', label: 'Up to $100,000' },
+              { value: '100000-200000', label: '$100,000 – $200,000' },
+              { value: '200000-400000', label: '$200,000 – $400,000' },
+              { value: '400000-', label: '$400,000+' },
+            ]
+          : [
+              { value: '', label: 'USD / month' },
+              { value: '0-500', label: '$0 – $500' },
+              { value: '500-1000', label: '$500 – $1,000' },
+              { value: '1000-1500', label: '$1,000 – $1,500' },
+              { value: '1500-', label: '$1,500+' },
+            ],
       },
       {
         key: 'timing',
@@ -236,12 +245,24 @@ export class Clients implements OnInit, OnDestroy {
     this.closeDistrictPicker();
     this.request?.unsubscribe();
   }
+  /** Renters or buyers (one at a time, so purchase budgets never mix with rents). */
+  goal: 'Rent' | 'Buy' = 'Rent';
+
+  setGoal(goal: 'Rent' | 'Buy'): void {
+    if (goal === this.goal) return;
+    this.goal = goal;
+    this.budget = '';
+    this.timing = '';
+    this.search();
+  }
+
   search(page = 1) {
     this.request?.unsubscribe();
     this.loading = true;
     this.error = false;
     const filters: Record<string, string | number | boolean> = {
       page,
+      goal: this.goal,
       district: this.district,
       residents: this.residents,
       pets: this.pets,

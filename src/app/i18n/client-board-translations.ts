@@ -1,4 +1,8 @@
 export const CLIENT_BOARD_COPY: readonly (readonly [string, string, string])[] = [
+  ['Checked by Velven agents', 'Velven-ის აგენტების მიერ შემოწმებული', 'Проверено агентами Velven'],
+  ['Buyer', 'მყიდველი', 'Покупатель'],
+  ['USD total', 'USD სრული ფასი', 'USD, полная цена'],
+  ['Client type', 'კლიენტის ტიპი', 'Тип клиента'],
   ['Tenant', 'მოიჯარე', 'Арендатор'],
   ['Resident', 'მცხოვრები', 'Жилец'],
   ['Actively searching', 'აქტიურად ეძებს', 'Активно ищет'],
