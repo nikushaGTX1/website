@@ -1703,9 +1703,9 @@ export class UploadApartment implements OnInit, OnDestroy {
         ? t('watermark removed', 'ნიშანი წაიშალა', 'знак удалён')
         : t('watermarks removed', 'ნიშანი წაიშალა', 'знаков удалено'),
       auto: t(
-        'Velven and partner watermarks (myhome.ge, ss.ge) are removed automatically.',
-        'Velven-ის და პარტნიორების (myhome.ge, ss.ge) წყლის ნიშნები ავტომატურად იშლება.',
-        'Водяные знаки Velven и партнёров (myhome.ge, ss.ge) удаляются автоматически.',
+        '',
+        '',
+        '',
       ),
       other: t('other watermark', 'სხვა ნიშანი', 'чужой знак'),
       rights: t(

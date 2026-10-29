@@ -544,7 +544,6 @@
               <span class="stat removable" *ngIf="removablePhotoCount && !canRemoveWatermarks"><i class="fa-solid fa-droplet"></i><b>{{ removablePhotoCount }}</b> {{ photoAiTexts.removable }}</span>
               <span class="stat third" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><b>{{ thirdPartyPhotoCount }}</b> {{ photoAiTexts.other }}</span>
             </div>
-            <p class="photo-ai-auto" *ngIf="canRemoveWatermarks"><i class="fa-solid fa-handshake"></i><span>{{ photoAiTexts.auto }}</span></p>
             <p class="photo-ai-warning" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ photoAiTexts.thirdParty }}</span></p>
           </section>
 
