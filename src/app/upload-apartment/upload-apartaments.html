@@ -540,20 +540,11 @@
             <div class="photo-ai-stats">
               <span class="stat checking" *ngIf="checkingPhotoCount"><i class="fa-solid fa-spinner fa-spin"></i><b>{{ checkingPhotoCount }}</b> {{ photoAiTexts.checking }}</span>
               <span class="stat clean"><i class="fa-solid fa-circle-check"></i><b>{{ cleanPhotoCount }}</b> {{ photoAiTexts.clean }}</span>
-              <span class="stat removable" *ngIf="removablePhotoCount"><i class="fa-solid fa-droplet"></i><b>{{ removablePhotoCount }}</b> {{ photoAiTexts.removable }}</span>
+              <span class="stat removed" *ngIf="removedPhotoCount"><i class="fa-solid fa-eraser"></i><b>{{ removedPhotoCount }}</b> {{ photoAiTexts.removed }}</span>
+              <span class="stat removable" *ngIf="removablePhotoCount && !canRemoveWatermarks"><i class="fa-solid fa-droplet"></i><b>{{ removablePhotoCount }}</b> {{ photoAiTexts.removable }}</span>
               <span class="stat third" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><b>{{ thirdPartyPhotoCount }}</b> {{ photoAiTexts.other }}</span>
             </div>
-            <div class="photo-ai-action" *ngIf="canRemoveWatermarks && removablePhotoCount">
-              <label class="photo-ai-consent">
-                <input type="checkbox" name="photoRightsConfirmed" [(ngModel)]="photoRightsConfirmed" />
-                <span class="switch" aria-hidden="true"></span>
-                <span>{{ photoAiTexts.rights }}</span>
-              </label>
-              <button type="button" class="photo-ai-remove-all" [disabled]="!photoRightsConfirmed || checkingPhotoCount > 0" (click)="removeAllWatermarks()"
-                [title]="photoRightsConfirmed ? '' : photoAiTexts.confirmFirst">
-                <i class="fa-solid fa-eraser"></i> {{ photoAiTexts.removeAll }} <em>{{ removablePhotoCount }}</em>
-              </button>
-            </div>
+            <p class="photo-ai-auto" *ngIf="canRemoveWatermarks"><i class="fa-solid fa-handshake"></i><span>{{ photoAiTexts.auto }}</span></p>
             <p class="photo-ai-warning" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ photoAiTexts.thirdParty }}</span></p>
           </section>
 
@@ -585,7 +576,6 @@
                 <button type="button" *ngIf="index !== 0" class="make-cover" (click)="makeCoverImage(index)" aria-label="Make cover photo"><i class="fa-solid fa-star"></i><span>Make cover</span></button>
                 <button type="button" *ngIf="index > 0" (click)="moveImage(index, index - 1)" aria-label="Move photo left"><i class="fa-solid fa-arrow-left"></i></button>
                 <button type="button" *ngIf="index < uploadedImageCount - 1" (click)="moveImage(index, index + 1)" aria-label="Move photo right"><i class="fa-solid fa-arrow-right"></i></button>
-                <button type="button" *ngIf="canRemoveWatermarks && isRemovableState(photoCheck(index)?.state)" class="remove-watermark" [disabled]="!photoRightsConfirmed" (click)="removeOwnWatermark(index)" [title]="photoRightsConfirmed ? '' : photoAiTexts.confirmFirst"><i class="fa-solid fa-eraser"></i><span>{{ uploadLocationText('Remove watermark', 'წაშლა', 'Удалить знак') }}</span></button>
               </div>
             </article>
           </div>

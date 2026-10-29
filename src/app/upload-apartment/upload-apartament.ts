@@ -1670,7 +1670,11 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   get cleanPhotoCount(): number {
-    return this.photoCount('clean') + this.photoCount('cleaned');
+    return this.photoCount('clean');
+  }
+
+  get removedPhotoCount(): number {
+    return this.photoCount('cleaned');
   }
 
   /** Removes every removable watermark, one photo at a time (single GPU worker). */
@@ -1695,6 +1699,14 @@ export class UploadApartment implements OnInit, OnDestroy {
       checking: t('checking', 'მოწმდება', 'проверяется'),
       clean: t('clean', 'სუფთა', 'без знака'),
       removable: t('removable watermark', 'წასაშლელი ნიშანი', 'можно удалить'),
+      removed: this.removedPhotoCount === 1
+        ? t('watermark removed', 'ნიშანი წაიშალა', 'знак удалён')
+        : t('watermarks removed', 'ნიშანი წაიშალა', 'знаков удалено'),
+      auto: t(
+        'Velven and partner watermarks (myhome.ge, ss.ge) are removed automatically.',
+        'Velven-ის და პარტნიორების (myhome.ge, ss.ge) წყლის ნიშნები ავტომატურად იშლება.',
+        'Водяные знаки Velven и партнёров (myhome.ge, ss.ge) удаляются автоматически.',
+      ),
       other: t('other watermark', 'სხვა ნიშანი', 'чужой знак'),
       rights: t(
         'I confirm Velven may edit these photos (own photos or a partner such as myhome.ge).',
@@ -1748,6 +1760,11 @@ export class UploadApartment implements OnInit, OnDestroy {
                   ? 'own'
                   : 'clean';
           this.photoChecks.set(file, { state, text: result.watermarkText });
+          // Our own and partner marks (myhome.ge, ss.ge) are removed straight away for staff.
+          if (this.canRemoveWatermarks && this.isRemovableState(state)) {
+            this.cdr.markForCheck();
+            await this.removeOwnWatermark(this.selectedImages.indexOf(file), true);
+          }
         } catch {
           this.photoChecks.set(file, { state: 'error' });
         }
@@ -1758,10 +1775,11 @@ export class UploadApartment implements OnInit, OnDestroy {
     }
   }
 
-  async removeOwnWatermark(index: number): Promise<void> {
+  /** auto: removal right after detection (partner agreements cover the permission). */
+  async removeOwnWatermark(index: number, auto = false): Promise<void> {
     const file = this.selectedImages[index];
     const before = file ? this.photoChecks.get(file) : undefined;
-    if (!file || !this.canRemoveWatermarks || !this.photoRightsConfirmed || !this.isRemovableState(before?.state)) return;
+    if (!file || !this.canRemoveWatermarks || (!auto && !this.photoRightsConfirmed) || !this.isRemovableState(before?.state)) return;
     this.photoChecks.set(file, { state: 'cleaning' });
     try {
       const result = await firstValueFrom(this.imageAiService.check(file, 'clean', true));

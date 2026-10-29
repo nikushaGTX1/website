@@ -2381,3 +2381,18 @@ select:focus {
 .photo-ai-badge { left: auto; right: 8px; }
 /* Check badge sits under the photo number so it never covers the "Cover" badge. */
 .photo-ai-badge { top: 48px; bottom: auto; left: 8px; right: auto; }
+.photo-ai-stats .stat.removed { background: #f1ecfc; color: #451a8f; }
+.photo-ai-panel .photo-ai-auto {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid #ece5f8;
+  border-radius: 12px;
+  background: #fff;
+  color: #3a2b5c;
+  font-size: 13px;
+  font-weight: 600;
+}
+.photo-ai-panel .photo-ai-auto i { color: #451a8f; }
