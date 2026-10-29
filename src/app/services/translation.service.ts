@@ -102,6 +102,12 @@ export class TranslationService {
   }
 
   private savedLanguage(): AppLanguage {
+    // ?lang= links (hreflang alternates) open in that language and remember it.
+    const requested = new URLSearchParams(location.search).get('lang');
+    if (requested === 'ka' || requested === 'ru' || requested === 'en') {
+      localStorage.setItem('velven-language', requested);
+      return requested;
+    }
     const saved = localStorage.getItem('velven-language');
     return saved === 'ka' || saved === 'ru' || saved === 'en' ? saved : 'ka';
   }

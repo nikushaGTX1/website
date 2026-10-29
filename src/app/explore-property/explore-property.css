@@ -1867,6 +1867,10 @@ svg {
 .facts span:not(:last-child)::after {
   content: none;
 }
+.facts i {
+  color: var(--purple);
+  font-size: 13px;
+}
 .facts svg {
   display: block;
   width: 15px;

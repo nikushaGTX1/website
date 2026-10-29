@@ -1,8 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { LocationService } from '../services/location.service';
 import { TranslationService } from '../services/translation.service';
-import { localizeListingTitle, TitleDistrict } from '../utils/listing-title';
+import { ListingTitleSource, localizeListingTitle, TitleDistrict } from '../utils/listing-title';
 
+/** Pass the listing itself (`apartment | listingTitle`) so its saved translations are used. */
 @Pipe({
   name: 'listingTitle',
   pure: false,
@@ -25,12 +26,15 @@ export class ListingTitlePipe implements PipeTransform {
     });
   }
 
-  transform(title: string | null | undefined): string {
+  transform(listing: string | ListingTitleSource | null | undefined): string {
     const language = this.translation.language$.value;
-    const key = `${language}|${this.districts.length}|${title ?? ''}`;
+    const item = typeof listing === 'string' ? { title: listing } : (listing ?? {});
+    const key = [language, this.districts.length, item.title, item.titleEn, item.titleKa, item.titleRu, item.district]
+      .map((part) => part ?? '')
+      .join('|');
     if (key !== this.lastKey) {
       this.lastKey = key;
-      this.lastValue = localizeListingTitle(title, language, this.districts);
+      this.lastValue = localizeListingTitle(item, language, this.districts);
     }
     return this.lastValue;
   }

@@ -29,6 +29,7 @@ const COPY: Array<[string, string, string]> = [
   ['No saved properties yet', 'შენახული ბინები ჯერ არ გაქვთ', 'Сохранённых квартир пока нет'],
   ['Tap the heart on any property to keep it here.', 'ბინის შესანახად დააჭირეთ გულის ნიშანს.', 'Нажмите на сердечко, чтобы сохранить квартиру.'],
   ['Beds', 'საძინებელი', 'спален'],
+  ['rooms', 'ოთახი', 'комн.'],
   ['Loading…', 'იტვირთება…', 'Загрузка…'],
   ['Create your account', 'შექმენით ანგარიში', 'Создайте аккаунт'],
   ["Join Velven and find a place you'll love coming home to.", 'შეუერთდით Velven-ს და იპოვეთ საყვარელი სახლი.', 'Присоединяйтесь к Velven и найдите дом, куда приятно возвращаться.'],

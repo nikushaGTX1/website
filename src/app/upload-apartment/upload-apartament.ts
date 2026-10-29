@@ -826,6 +826,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     const f = this.form;
     f.description = hasMeta ? description.slice(0, splitAt) : description;
     f.title = source.title || f.title;
+    if (source.titleEn) this.listingCopy.en.title = source.titleEn;
+    if (source.titleRu) this.listingCopy.ru.title = source.titleRu;
     f.totalPrice = num(source.price);
     f.sqPrice = num(tag('Sq. price'));
     f.currency = tag('Currency').toUpperCase() === 'GEL' ? 'GEL' : '$';
@@ -2611,6 +2613,10 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     const apartment: CreateApartment = {
       title,
+      // The form already writes the title in all three languages; blank ones are not sent.
+      titleEn: this.listingCopy.en.title.trim() || undefined,
+      titleKa: this.listingCopy.ka.title.trim() || undefined,
+      titleRu: this.listingCopy.ru.title.trim() || undefined,
       description: `${this.form.description || 'Apartment listing'}\n\n${meta}`,
       price: this.form.totalPrice || 0,
       address: this.form.hideAddress

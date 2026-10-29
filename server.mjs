@@ -109,6 +109,41 @@ const routeSeo = new Map([
 ]);
 const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|owner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|register|discover|premium|balance|payment-methods|my-business)/;
 let sitemapCache;
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://cdnjs.cloudflare.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+  "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+  `img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://${supabaseHost}`,
+  `connect-src 'self' https://*.googleapis.com https://api.frankfurter.dev ${apiOrigin} https://${supabaseHost}`,
+  "frame-src https://www.google.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+// The language switch also works by URL (?lang=en|ka|ru) so search engines can index each language.
+const siteLanguages = ['en', 'ka', 'ru'];
+
+/**
+ * A short path (velven.ge/{slug}) is a questionnaire link only while the API says it is live,
+ * so mistyped URLs get a real 404 instead of a 200 "Page not found" page.
+ * If the check itself fails, the link is treated as live so real links never break.
+ */
+async function questionnaireLinkIsLive(pathname) {
+  const token = pathname.slice(1).toLowerCase();
+  try {
+    const upstream = await fetch(
+      new URL(`/api/Crm/questionnaire-links/${encodeURIComponent(token)}/status`, apiOrigin),
+      { signal: AbortSignal.timeout(4000) },
+    );
+    if (upstream.status === 404 || upstream.status === 400) return false;
+    if (!upstream.ok) return true;
+    const status = await upstream.json();
+    return status?.active !== false;
+  } catch {
+    return true;
+  }
+}
 
 function crmQuestionnaireSeo(pathname) {
   const isLegacyPath = /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname);
@@ -152,6 +187,12 @@ app.use((_request, response, next) => {
   response.setHeader('X-Content-Type-Options', 'nosniff');
   response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+  // Also turn on HSTS in Cloudflare (SSL/TLS > Edge Certificates): it covers the http:// redirect too.
+  response.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  response.setHeader('X-Frame-Options', 'DENY');
+  // Report-only for now: violations show in the browser console, nothing is blocked.
+  // Rename the header to Content-Security-Policy once the console stays clean.
+  response.setHeader('Content-Security-Policy-Report-Only', contentSecurityPolicy);
   next();
 });
 
@@ -1078,7 +1119,7 @@ function injectSeo(document, seo) {
   document = replaceMeta(document, 'name', 'robots', robots);
   document = replaceMeta(document, 'property', 'og:type', seo.type || 'website');
   document = replaceMeta(document, 'property', 'og:site_name', 'Velven');
-  document = replaceMeta(document, 'property', 'og:locale', 'en_US');
+  document = replaceMeta(document, 'property', 'og:locale', { ka: 'ka_GE', ru: 'ru_RU' }[seo.language] || 'en_US');
   document = replaceMeta(document, 'property', 'og:title', title);
   document = replaceMeta(document, 'property', 'og:description', description);
   document = replaceMeta(document, 'property', 'og:url', openGraphUrl);
@@ -1092,10 +1133,18 @@ function injectSeo(document, seo) {
   document = replaceMeta(document, 'name', 'twitter:description', description);
   document = replaceMeta(document, 'name', 'twitter:image', image);
   document = replaceMeta(document, 'name', 'twitter:image:alt', seo.imageAlt || 'Velven');
+  const alternateLinks = seo.languageUrls
+    ? [
+      ...Object.entries(seo.languageUrls).map(([code, url]) =>
+        `<link rel="alternate" hreflang="${code}" href="${escapeHtml(url)}" />`),
+      `<link rel="alternate" hreflang="x-default" href="${escapeHtml(seo.xDefaultUrl || canonicalUrl)}" />`,
+    ].map((tag) => `\n    ${tag}`).join('')
+    : '';
   document = document.replace(
     /<link\s+rel=["']canonical["'][^>]*>/i,
-    `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
+    `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />${alternateLinks}`,
   );
+  if (seo.language) document = document.replace(/<html lang="[a-z]+"/i, `<html lang="${seo.language}"`);
   document = document.replace(
     /<script\s+type=["']application\/ld\+json["']>[\s\S]*?<\/script>/i,
     `<script type="application/ld+json">${structuredData}</script>`,
@@ -1161,6 +1210,13 @@ function staticFallback(title, description) {
   return `<main id="main-content"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p><nav aria-label="Related pages"><a href="/ExploreProperty">Browse properties</a> <a href="/agent-profile">Meet our agents</a> <a href="/about">About Velven</a></nav></main>`;
 }
 
+function isSaleApartment(apartment) {
+  const description = apartment.description || '';
+  const deal = /(?:^|[|\r\n])\s*(?:Deal|Listing type):\s*([^|\r\n]+)/i.exec(description)?.[1]?.trim();
+  if (deal) return /sale|buy|იყიდება|продаж/i.test(deal);
+  return /for\s+sale|buy|იყიდება|продаж/i.test(apartment.title || '');
+}
+
 async function apartmentSeo(pathname) {
   const match = /^\/apartments\/(\d+)$/.exec(pathname);
   if (!match) return undefined;
@@ -1200,6 +1256,7 @@ async function apartmentSeo(pathname) {
       floorSize: apartment.sizeSquareMeters
         ? { '@type': 'QuantitativeValue', value: apartment.sizeSquareMeters, unitCode: 'MTK' }
         : undefined,
+      numberOfRooms: apartment.rooms || undefined,
       numberOfBedrooms: apartment.bedrooms || undefined,
       numberOfBathroomsTotal: apartment.bathrooms || undefined,
       address: {
@@ -1209,8 +1266,24 @@ async function apartmentSeo(pathname) {
         addressRegion: apartment.district || apartment.region || undefined,
         addressCountry: 'GE',
       },
+      geo: apartment.latitude && apartment.longitude
+        ? { '@type': 'GeoCoordinates', latitude: apartment.latitude, longitude: apartment.longitude }
+        : undefined,
+    }, {
+      '@type': 'RealEstateListing',
+      '@id': `${canonicalUrl}#listing`,
+      name: title,
+      description,
+      url: canonicalUrl,
+      image: image === defaultSeo.image ? undefined : [image],
+      datePosted: apartment.publishedAt || apartment.createdAt || undefined,
+      about: { '@id': `${canonicalUrl}#property` },
       offers: {
         '@type': 'Offer',
+        // Rent or sale, read the same way as the listing page (isSaleListing in the app).
+        businessFunction: isSaleApartment(apartment)
+          ? 'http://purl.org/goodrelations/v1#Sell'
+          : 'http://purl.org/goodrelations/v1#LeaseOut',
         price: apartment.price,
         priceCurrency: 'USD',
         availability: 'https://schema.org/InStock',
@@ -1489,7 +1562,10 @@ app.use(async (request, response) => {
     const apartmentMetadata = await apartmentSeo(pathname);
     const agentMetadata = apartmentMetadata === undefined ? await agentSeo(pathname) : undefined;
     const reviewMetadata = await reviewSeo(pathname);
-    const questionnaireMetadata = crmQuestionnaireSeo(pathname);
+    const questionnaireCandidate = crmQuestionnaireSeo(pathname);
+    const questionnaireMetadata = questionnaireCandidate && await questionnaireLinkIsLive(pathname)
+      ? questionnaireCandidate
+      : undefined;
     const missingResource = apartmentMetadata === null || agentMetadata === null || reviewMetadata === null;
     const dynamicMetadata = apartmentMetadata || agentMetadata || reviewMetadata || questionnaireMetadata;
     const staticMetadata = routeSeo.get(pathname);
@@ -1508,8 +1584,17 @@ app.use(async (request, response) => {
     const shareVersion = questionnaireMetadata && typeof request.query.v === 'string'
       ? request.query.v.replace(/[^a-z0-9_-]/gi, '').slice(0, 32)
       : '';
+    const baseCanonicalUrl = pageMetadata.canonicalUrl || `${canonicalOrigin}${canonicalPath}`;
+    const language = siteLanguages.includes(request.query.lang) ? request.query.lang : undefined;
+    // hreflang only on indexable pages; each language version is its own canonical URL.
+    const languageUrls = robots
+      ? undefined
+      : Object.fromEntries(siteLanguages.map((code) => [code, `${baseCanonicalUrl}?lang=${code}`]));
     const document = injectSeo(template, {
       ...pageMetadata,
+      language,
+      languageUrls,
+      xDefaultUrl: baseCanonicalUrl,
       structuredData: pageMetadata.structuredData
         || pageGraph(canonicalPath, pageMetadata.title, pageMetadata.description),
       fallbackHtml: pageMetadata.fallbackHtml
@@ -1521,7 +1606,7 @@ app.use(async (request, response) => {
               ? 'This page is no longer available. Browse current verified properties and agents on Velven.'
               : pageMetadata.description,
           )),
-      canonicalUrl: pageMetadata.canonicalUrl || `${canonicalOrigin}${canonicalPath}`,
+      canonicalUrl: language && languageUrls ? languageUrls[language] : baseCanonicalUrl,
       openGraphUrl: shareVersion
         ? `${canonicalOrigin}${pathname}?v=${encodeURIComponent(shareVersion)}`
         : undefined,

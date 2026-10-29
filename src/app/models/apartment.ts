@@ -11,6 +11,10 @@ export interface ApartmentImage {
 export interface Apartment {
   id: number;
   title: string;
+  /** Optional translations of title; null means show the original title. */
+  titleEn?: string | null;
+  titleKa?: string | null;
+  titleRu?: string | null;
   description: string;
   price: number;
   address?: string;
@@ -107,6 +111,9 @@ export interface CreateApartment {
   /** Owner-link submission this listing was verified from; the API publishes it directly. */
   ownerSubmissionId?: number;
   title: string;
+  titleEn?: string | null;
+  titleKa?: string | null;
+  titleRu?: string | null;
   description: string;
   price: number;
   address?: string;

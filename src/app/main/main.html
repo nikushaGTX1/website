@@ -378,7 +378,7 @@
           >
           <img
             [src]="getApartmentCardImage(apartment)"
-            [alt]="getApartmentTitle(apartment) | listingTitle"
+            [alt]="(apartment | listingTitle) || getApartmentTitle(apartment)"
             width="640"
             height="400"
             [attr.loading]="index === 0 ? 'eager' : 'lazy'"
@@ -411,11 +411,12 @@
           <h3>
             <app-currency-price [usdPrice]="apartment.price" [suffix]="searchMode === 'buy' ? '' : '/ month'"></app-currency-price>
           </h3>
-          <strong class="property-title">{{ getApartmentTitle(apartment) | listingTitle }}</strong>
+          <strong class="property-title">{{ (apartment | listingTitle) || getApartmentTitle(apartment) }}</strong>
           <p class="property-address">
             <i class="fa-solid fa-location-dot"></i> {{ getApartmentLocationLabel(apartment) }}
           </p>
           <div class="property-meta">
+            <span *ngIf="apartment.rooms"><i class="fa-solid fa-door-open"></i>{{ apartment.rooms }} <span>rooms</span></span>
             <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
             <span *ngIf="apartment.floor != null"><i class="fa-solid fa-stairs"></i>{{ apartment.floor }} <span>Floor</span></span>
             <span
@@ -490,8 +491,10 @@
       class="ai-sportsman"
       src="/ojaxi.png"
       alt="A family with two children and their golden retriever"
+      loading="lazy"
+      decoding="async"
     />
-    <img class="ai-lifestyle-flow" src="/ai-match-lifestyle.png" alt="" aria-hidden="true" />
+    <img class="ai-lifestyle-flow" src="/ai-match-lifestyle.png" alt="" aria-hidden="true" loading="lazy" decoding="async" />
     <div class="ai-match-card">
       <h3>Matched to your lifestyle</h3>
       <ul>
@@ -697,7 +700,7 @@
             [class.selected]="isAreaSelected(area.name)"
             (click)="chooseAreaForModal(area.name)"
           >
-            <img class="featured-area-icon" [src]="area.icon" alt="" aria-hidden="true" />
+            <img class="featured-area-icon" [src]="area.icon" alt="" aria-hidden="true" loading="lazy" decoding="async" />
             <span
               ><b data-no-translate>{{ translationService.translate(area.name, translationService.language$ | async) }}</b
               ><small>{{ area.description }}</small></span

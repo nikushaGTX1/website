@@ -130,7 +130,7 @@
   align-items: flex-start;
 }
 
-.footer-column h2 {
+.footer-column h3 {
   margin: 4px 0 17px;
   color: #111b31;
   font-size: 11px;
@@ -231,7 +231,7 @@
     min-width: 0;
   }
 
-  .footer-column h2 {
+  .footer-column h3 {
     margin-bottom: 11px;
   }
 
@@ -245,4 +245,14 @@
   }
 
   .contact-column { grid-column: 1 / -1; }
+}
+
+/* Touch screens: 44px tap height per link (QA audit), spacing moved into the link itself. */
+@media (max-width: 768px) {
+  .footer-column a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-bottom: 0;
+  }
 }

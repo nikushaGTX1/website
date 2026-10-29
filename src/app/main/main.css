@@ -700,7 +700,7 @@
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: #8a94a6;
+  color: #5f6b7d; /* 5.4:1 on white (WCAG AA); #8a94a6 was 3.1:1 */
   font-size: inherit;
   font-weight: inherit;
   text-overflow: ellipsis;
@@ -5299,6 +5299,8 @@
 .home-page .search-fields label > span,
 .home-page .search-fields .location-field > span {
   color: #3b3450;
+  /* QA audit: at least 14px for readability. */
+  font-size: 14px;
   letter-spacing: 0.02em;
 }
 .home-page .property-search.property-search :is(.field-control, .property-type-trigger, .main-budget-trigger, .main-bedroom-trigger) {
@@ -5375,4 +5377,13 @@
 @media (min-width: 1021px) {
   .hero-copy { margin-left: -3vw; }
   :host-context(html:lang(ka)) .hero h1 { font-size: clamp(28px, 3.3vw, 44px); }
+}
+
+/* Touch screens: "View all properties" gets a 44px tap height (QA audit) without moving the text. */
+@media (max-width: 768px) {
+  .section-heading a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }

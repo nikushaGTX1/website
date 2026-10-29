@@ -5,11 +5,24 @@ export interface TitleDistrict {
   ka: string;
 }
 
+type PropertyType = 'apartment' | 'house' | 'commercial';
+
 interface TitleParts {
   deal?: 'rent' | 'sale';
-  type?: 'apartment' | 'house';
+  type?: PropertyType;
+  rooms?: number;
   bedrooms?: number;
   district?: TitleDistrict;
+}
+
+/** A listing, or the parts of it the title needs. */
+export interface ListingTitleSource {
+  title?: string | null;
+  titleEn?: string | null;
+  titleKa?: string | null;
+  titleRu?: string | null;
+  /** Used when the district in the title text cannot be read. */
+  district?: string | null;
 }
 
 const GEORGIAN = /[Ⴀ-ჿ]/;
@@ -21,14 +34,16 @@ const DEAL_KA: Record<string, 'rent' | 'sale'> = {
   'გაიყიდება': 'sale',
 };
 
-const TYPE_KA: Record<string, 'apartment' | 'house'> = {
+const TYPE_KA: Record<string, PropertyType> = {
   'ბინა': 'apartment',
   'სახლი': 'house',
+  'კერძო სახლი': 'house',
   'კოტეჯი': 'house',
   'ვილა': 'house',
+  'კომერციული ფართი': 'commercial',
 };
 
-const TYPE_WORDS: Record<string, 'apartment' | 'house'> = {
+const TYPE_WORDS: Record<string, PropertyType> = {
   apartment: 'apartment',
   apartament: 'apartment',
   flat: 'apartment',
@@ -52,16 +67,33 @@ function findDistrict(text: string, districts: TitleDistrict[]): TitleDistrict |
     .find((d) => value.startsWith(d.ka.toLocaleLowerCase('ka')) && value.length - d.ka.length <= 3);
 }
 
-function parseSentence(title: string, districts: TitleDistrict[]): TitleParts | null {
+/** "კრწანისი, თბილისში — $4,000/თვე" -> "კრწანისი"; "ვაკეში." -> "ვაკეში". */
+function georgianPlace(text: string): string {
+  return text
+    .replace(/\s+—.*$/, '')
+    .replace(/,\s*თბილის\S*$/, '')
+    .replace(/[.\s]+$/, '')
+    .trim();
+}
+
+function parseSentence(
+  title: string,
+  districts: TitleDistrict[],
+  fallbackDistrict?: string | null,
+): TitleParts | null {
+  // "ქირავდება 3-ოთახიანი ბინა ვაკეში.", "ქირავდება 7 ოთახიანი კერძო სახლი დიღომი 1-9-ში",
+  // "იყიდება 2 საძინებლიანი ბინა საბურთალოზე", "ქირავდება მყუდრო ბინა საბურთალოზე."
   const ka = title.match(
-    /^(ქირავდება|გაქირავდება|იყიდება|გაიყიდება)\s+(?:(\d+)\s+საძინებლიანი\s+)?(ბინა|სახლი|კოტეჯი|ვილა)\s+(.+)$/,
+    /^(ქირავდება|გაქირავდება|იყიდება|გაიყიდება)\s+(?:(\d+)[-\s]ოთახიანი\s+|(\d+)\s+საძინებლიანი\s+)?(?:მყუდრო\s+|ახალი\s+|ლამაზი\s+)?(კერძო სახლი|კომერციული ფართი|ბინა|სახლი|კოტეჯი|ვილა)\s+(.+)$/,
   );
   if (ka) {
     return {
       deal: DEAL_KA[ka[1]],
-      bedrooms: ka[2] ? Number(ka[2]) : undefined,
-      type: TYPE_KA[ka[3]],
-      district: findDistrict(ka[4], districts),
+      rooms: ka[2] ? Number(ka[2]) : undefined,
+      bedrooms: ka[3] ? Number(ka[3]) : undefined,
+      type: TYPE_KA[ka[4]],
+      district: findDistrict(georgianPlace(ka[5]), districts)
+        ?? (fallbackDistrict ? findDistrict(fallbackDistrict, districts) : undefined),
     };
   }
 
@@ -81,21 +113,31 @@ function parseSentence(title: string, districts: TitleDistrict[]): TitleParts | 
 
 function renderSentence(parts: TitleParts, language: AppLanguage): string {
   const rent = parts.deal !== 'sale';
-  const house = parts.type === 'house';
+  const type = parts.type ?? 'apartment';
   const place = (d?: TitleDistrict) => (d ? (language === 'ka' ? d.ka : d.en) : '');
 
   if (language === 'ka') {
-    const bedrooms = parts.bedrooms ? `${parts.bedrooms} საძინებლიანი ` : '';
+    const size = parts.rooms
+      ? `${parts.rooms}-ოთახიანი `
+      : parts.bedrooms ? `${parts.bedrooms} საძინებლიანი ` : '';
+    const noun = type === 'house' ? 'სახლი' : type === 'commercial' ? 'კომერციული ფართი' : 'ბინა';
     const place_ = place(parts.district);
-    return `${rent ? 'ქირავდება' : 'იყიდება'} ${bedrooms}${house ? 'სახლი' : 'ბინა'}${place_ ? ` ${place_}ში` : ''}`;
+    return `${rent ? 'ქირავდება' : 'იყიდება'} ${size}${noun}${place_ ? ` ${place_}ში` : ''}`;
   }
   if (language === 'ru') {
-    return `${house ? 'Дом' : 'Квартира'} ${rent ? 'в аренду' : 'на продажу'}${
+    const noun = type === 'house' ? 'Дом' : type === 'commercial' ? 'Коммерческое помещение' : 'Квартира';
+    const size = parts.rooms
+      ? `, ${parts.rooms} комн.`
+      : parts.bedrooms ? `, спален: ${parts.bedrooms}` : '';
+    return `${noun}${size} ${rent ? 'в аренду' : 'на продажу'}${
       parts.district ? ` — ${parts.district.en}` : ''
     }`;
   }
-  const bedrooms = parts.bedrooms ? `${parts.bedrooms}-bedroom ` : '';
-  return `${bedrooms}${house ? 'house' : 'apartment'} for ${rent ? 'rent' : 'sale'}${
+  const size = parts.rooms
+    ? `${parts.rooms}-room `
+    : parts.bedrooms ? `${parts.bedrooms}-bedroom ` : '';
+  const noun = type === 'commercial' ? 'commercial space' : type;
+  return `${size}${noun} for ${rent ? 'rent' : 'sale'}${
     parts.district ? ` in ${parts.district.en}` : ''
   }`.replace(/^./, (char) => char.toUpperCase());
 }
@@ -113,9 +155,9 @@ function localizeSegment(segment: string, language: AppLanguage, districts: Titl
 
   const type = TYPE_WORDS[lower] ?? TYPE_KA[value];
   if (type) {
-    if (language === 'ka') return type === 'house' ? 'სახლი' : 'ბინა';
-    if (language === 'ru') return type === 'house' ? 'Дом' : 'Квартира';
-    return type === 'house' ? 'House' : 'Apartment';
+    if (language === 'ka') return type === 'house' ? 'სახლი' : type === 'commercial' ? 'კომერციული ფართი' : 'ბინა';
+    if (language === 'ru') return type === 'house' ? 'Дом' : type === 'commercial' ? 'Коммерческое помещение' : 'Квартира';
+    return type === 'house' ? 'House' : type === 'commercial' ? 'Commercial space' : 'Apartment';
   }
 
   const district = findDistrict(value, districts);
@@ -125,16 +167,27 @@ function localizeSegment(segment: string, language: AppLanguage, districts: Titl
   return value;
 }
 
-/** Re-renders a listing title in the visible site language. Unknown text is left untouched. */
+/**
+ * The listing title in the visible site language:
+ * 1. the saved translation for that language (titleEn / titleKa / titleRu),
+ * 2. else the original title, re-written from its parts when it follows a known pattern,
+ * 3. else the original title unchanged.
+ */
 export function localizeListingTitle(
-  title: string | undefined | null,
+  listing: string | ListingTitleSource | undefined | null,
   language: AppLanguage,
   districts: TitleDistrict[],
 ): string {
-  const source = title?.trim() ?? '';
-  if (!source) return '';
+  const item: ListingTitleSource = typeof listing === 'string' ? { title: listing } : (listing ?? {});
+  const saved = language === 'ka' ? item.titleKa : language === 'ru' ? item.titleRu : item.titleEn;
+  if (saved?.trim()) return saved.trim();
 
-  const sentence = parseSentence(source, districts);
+  const source = item.title?.trim() ?? '';
+  if (!source) return '';
+  // A Georgian title is already right for Georgian readers: keep the owner's wording.
+  if (language === 'ka' && GEORGIAN.test(source)) return source;
+
+  const sentence = parseSentence(source, districts, item.district);
   if (sentence) return renderSentence(sentence, language);
 
   if (/\s[·|]\s/.test(source)) {

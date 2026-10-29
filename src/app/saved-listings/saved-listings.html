@@ -49,9 +49,10 @@
           </div>
           <div class="card-body">
             <app-currency-price [usdPrice]="apartment.price" [suffix]="isSaleListing(apartment) ? '' : '/ month'"></app-currency-price>
-            <h2>{{ (apartment.title | listingTitle) || 'Apartment in Tbilisi' }}</h2>
+            <h2>{{ (apartment | listingTitle) || 'Apartment in Tbilisi' }}</h2>
             <p class="location"><i class="fa-solid fa-location-dot"></i>{{ getLocation(apartment) }}</p>
             <div class="specs">
+              <span *ngIf="apartment.rooms"><i class="fa-solid fa-door-open"></i>{{ apartment.rooms }} <span>rooms</span></span>
               <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
               <span *ngIf="apartment.floor != null"><i class="fa-solid fa-stairs"></i>{{ apartment.floor }} <span>Floor</span></span>
               <span><span class="measurement-svg" aria-hidden="true"></span>{{ apartment.sizeSquareMeters || '—' }} m²</span>

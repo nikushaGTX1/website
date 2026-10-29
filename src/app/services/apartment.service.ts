@@ -363,6 +363,11 @@ export class ApartmentService {
       formData.append('Title', data.title);
     }
 
+    // Per-language titles; a missing one keeps what the listing already has.
+    if (data.titleEn != null) formData.append('TitleEn', data.titleEn);
+    if (data.titleKa != null) formData.append('TitleKa', data.titleKa);
+    if (data.titleRu != null) formData.append('TitleRu', data.titleRu);
+
     if (data.description !== undefined) {
       formData.append('Description', data.description);
     }

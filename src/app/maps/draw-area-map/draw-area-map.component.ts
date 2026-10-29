@@ -2115,7 +2115,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       ka: this.locationService.districtName(location, 'ka'),
     }));
     const title =
-      localizeListingTitle(apartment.title, language, districts) || apartment.title || '';
+      localizeListingTitle(apartment, language, districts) || apartment.title || '';
     const facts = [
       apartment.bedrooms
         ? `<span style="display:flex;align-items:center;gap:5px">${icon('M3 18v-8M21 18v-5a2 2 0 0 0-2-2H7a4 4 0 0 0-4 4v3M3 16h18M7 11V7h5a2 2 0 0 1 2 2v2')}<span>${apartment.bedrooms}</span> <span>${apartment.bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}</span></span>`

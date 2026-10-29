@@ -238,6 +238,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   get title(): string {
     const sourceTitle = this.apartment?.title?.trim() || '';
     const language = this.translation.language$.value;
+    const saved = language === 'ka'
+      ? this.apartment?.titleKa
+      : language === 'ru' ? this.apartment?.titleRu : this.apartment?.titleEn;
+    if (saved?.trim()) return saved.trim();
     if (language === 'ka' || (language === 'en' && !this.hasGeorgianText(sourceTitle))) {
       return sourceTitle || 'Apartment details unavailable';
     }

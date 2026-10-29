@@ -4,7 +4,7 @@
       <div class="brand-column">
         <a class="brand" routerLink="/main" aria-label="Velven home">
           <span class="brand-mark" aria-hidden="true">
-            <img src="/logosh2-mark-v2.png" width="644" height="790" alt="" />
+            <img src="/logosh2-mark-v2.png" width="644" height="790" alt="" loading="lazy" decoding="async" />
           </span>
           <span class="brand-name" aria-hidden="true">VELVEN</span>
         </a>
@@ -15,7 +15,7 @@
       </div>
 
       <div class="footer-column">
-        <h2>Explore</h2>
+        <h3>Explore</h3>
         <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'buy' }">Buy</a>
         <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }">Rent</a>
         <a routerLink="/ai-home-match">Velven Match</a>
@@ -25,14 +25,14 @@
       </div>
 
       <div class="footer-column">
-        <h2>Company</h2>
+        <h3>Company</h3>
         <a routerLink="/about">About Us</a>
         <a routerLink="/careers">Careers</a>
         <a href="mailto:hello@velven.ge">Contact Us</a>
       </div>
 
       <div class="footer-column">
-        <h2>Resources</h2>
+        <h3>Resources</h3>
         <a routerLink="/upload-apartment">List your property</a>
         <a href="/sitemap.xml">Sitemap</a>
       </div>
@@ -40,9 +40,11 @@
       <!-- Legal column (Terms of Use / Privacy Policy / Cookie Policy) returns once those pages exist. -->
 
       <div class="footer-column contact-column">
-        <h2>Contact</h2>
+        <h3>Contact</h3>
         <a href="mailto:hello@velven.ge"><span aria-hidden="true">✉</span> hello&#64;velven.ge</a>
-        <a href="tel:+995555123456"><span aria-hidden="true">⌕</span> +995 555 123 456</a>
+        @if (phone) {
+          <a [href]="phoneHref"><span aria-hidden="true">⌕</span> {{ phone }}</a>
+        }
         <p><span aria-hidden="true">⌖</span> Tbilisi, Georgia</p>
       </div>
     </div>
