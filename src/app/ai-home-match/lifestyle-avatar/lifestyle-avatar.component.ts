@@ -21,17 +21,18 @@ export class VelvenLifestyleAvatarComponent {
   /**
    * Profiles from other places (e.g. anonymised Clients board profiles) may leave out lists;
    * missing ones are treated as empty instead of crashing the page.
+   * The defaults are filled in on the same object, not a copy: Velven Match edits its profile
+   * in place (gender, pets, ...), and a copy never saw those changes.
    */
   @Input({ required: true }) set profile(value: HomeMatchProfile) {
-    this._profile = {
-      ...value,
-      lifestyles: value?.lifestyles ?? [],
-      transportation: value?.transportation ?? [],
-      childrenAgeGroups: value?.childrenAgeGroups ?? [],
-      petTypes: value?.petTypes ?? [],
-      adults: value?.adults ?? 1,
-      children: value?.children ?? 0,
-    };
+    const profile = value ?? ({} as HomeMatchProfile);
+    profile.lifestyles ??= [];
+    profile.transportation ??= [];
+    profile.childrenAgeGroups ??= [];
+    profile.petTypes ??= [];
+    profile.adults ??= 1;
+    profile.children ??= 0;
+    this._profile = profile;
   }
   get profile(): HomeMatchProfile {
     return this._profile;
