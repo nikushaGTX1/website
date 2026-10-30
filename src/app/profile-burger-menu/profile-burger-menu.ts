@@ -56,6 +56,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
     const items = this.canOpenCrm
       ? [
           { label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-address-book' },
+          { label: 'Watermark remover', route: '/crm/photo-cleaner', icon: 'fa-solid fa-wand-magic-sparkles' },
           ...this.accountMenuItems,
         ]
       : this.accountMenuItems;

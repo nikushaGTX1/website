@@ -1,0 +1,75 @@
+<main class="page">
+  <header class="top">
+    <div>
+      <a class="back" routerLink="/crm"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> CRM</a>
+      <h1>Watermark remover</h1>
+      <p>Removes Velven, myhome.ge and ss.ge watermarks. Download the clean photos when they are ready.</p>
+    </div>
+    <div class="top-actions" *ngIf="items.length">
+      <button type="button" class="ghost" (click)="clear()" [disabled]="running">Clear</button>
+      <button type="button" class="primary" (click)="downloadAll()" [disabled]="!downloadableCount">
+        <i class="fa-solid fa-download" aria-hidden="true"></i> Download all <em>{{ downloadableCount }}</em>
+      </button>
+    </div>
+  </header>
+
+  <label
+    class="drop"
+    [class.dragging]="dragging"
+    (dragover)="$event.preventDefault(); dragging = true"
+    (dragleave)="dragging = false"
+    (drop)="onDrop($event)"
+  >
+    <input #picker type="file" accept="image/jpeg,image/png,image/webp" multiple (change)="onPick(picker)" />
+    <span class="drop-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+    <strong>Drop photos here or click to choose</strong>
+    <small>JPG, PNG or WebP, up to 8 MB each</small>
+  </label>
+  <p class="notice" *ngIf="notice">{{ notice }}</p>
+
+  <div class="stats" *ngIf="items.length" aria-live="polite">
+    <span *ngIf="count('waiting') + count('working')"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i><b>{{ count('waiting') + count('working') }}</b> in progress</span>
+    <span class="ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><b>{{ count('cleaned') }}</b> removed</span>
+    <span><i class="fa-regular fa-image" aria-hidden="true"></i><b>{{ count('clean') }}</b> no watermark</span>
+    <span class="warn" *ngIf="count('other')"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><b>{{ count('other') }}</b> other company</span>
+    <span class="bad" *ngIf="count('error')"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i><b>{{ count('error') }}</b> failed</span>
+  </div>
+
+  <ul class="grid" *ngIf="items.length">
+    <li *ngFor="let item of items" [attr.data-state]="item.state">
+      <div class="photo">
+        <img [src]="item.cleaned && !item.showOriginal ? item.cleaned : item.original" [alt]="item.file.name" />
+        <span class="badge" [ngSwitch]="item.state">
+          <ng-container *ngSwitchCase="'waiting'"><i class="fa-regular fa-clock"></i> Waiting</ng-container>
+          <ng-container *ngSwitchCase="'working'"><i class="fa-solid fa-spinner fa-spin"></i> Removing…</ng-container>
+          <ng-container *ngSwitchCase="'cleaned'"><i class="fa-solid fa-circle-check"></i> Removed</ng-container>
+          <ng-container *ngSwitchCase="'clean'"><i class="fa-regular fa-image"></i> No watermark</ng-container>
+          <ng-container *ngSwitchCase="'other'"><i class="fa-solid fa-triangle-exclamation"></i> Other company</ng-container>
+          <ng-container *ngSwitchCase="'error'"><i class="fa-solid fa-circle-xmark"></i> Failed</ng-container>
+        </span>
+        <button
+          type="button"
+          class="compare"
+          *ngIf="item.cleaned"
+          (pointerdown)="item.showOriginal = true"
+          (pointerup)="item.showOriginal = false"
+          (pointerleave)="item.showOriginal = false"
+          aria-label="Hold to see the original"
+        >Hold: original</button>
+      </div>
+      <div class="meta">
+        <strong [title]="item.file.name">{{ item.file.name }}</strong>
+        <small *ngIf="item.message">{{ item.message }}</small>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" *ngIf="item.state === 'cleaned' || item.state === 'clean'" (click)="download(item)">
+          <i class="fa-solid fa-download" aria-hidden="true"></i> Download
+        </button>
+        <button type="button" class="ghost" *ngIf="item.state === 'error'" (click)="retry(item)">Try again</button>
+        <button type="button" class="icon" (click)="remove(item)" [disabled]="item.state === 'working'" aria-label="Remove photo">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+    </li>
+  </ul>
+</main>

@@ -262,6 +262,13 @@ const routes: Routes = [
   },
 
   {
+    path: 'crm/photo-cleaner',
+    loadComponent: () => import('./crm/photo-cleaner/photo-cleaner').then((m) => m.PhotoCleaner),
+    title: 'Watermark Remover | Velven',
+    canActivate: [authGuard, crmGuard]
+  },
+
+  {
     path: 'crm/questions',
     loadComponent: () => import('./crm/crm-questioner/crm-questioner').then((m) => m.CrmQuestioner),
     title: 'CRM Questions | Velven',
