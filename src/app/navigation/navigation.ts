@@ -20,6 +20,8 @@ export class Navigation implements OnInit, OnDestroy {
   canOpenAdmin = false;
   /** Client accounts get the match-alert bell (Velven Discover). */
   isClient = false;
+  /** Bell: clients get match alerts, owners and agents get interested-client alerts. */
+  showBell = false;
   private menuIsOpen = false;
   get menuOpen(): boolean {
     return this.menuIsOpen;
@@ -76,10 +78,12 @@ export class Navigation implements OnInit, OnDestroy {
     this.isLoggedIn = this.authService.isLoggedIn;
     this.canOpenAdmin = this.authService.isAgent || this.authService.isCrmManager;
     this.isClient = this.authService.isClient;
+    this.showBell = this.authService.isLoggedIn && (this.authService.isClient || this.authService.isOwner || this.authService.isStaff);
     this.subscription = this.authService.currentUser$.subscribe(() => {
       this.isLoggedIn = this.authService.isLoggedIn;
       this.canOpenAdmin = this.authService.isAgent || this.authService.isCrmManager;
       this.isClient = this.authService.isClient;
+      this.showBell = this.authService.isLoggedIn && (this.authService.isClient || this.authService.isOwner || this.authService.isStaff);
     });
   }
 

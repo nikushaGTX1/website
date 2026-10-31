@@ -6,6 +6,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ClientService } from '../services/client.service';
+import { ListingInterestService } from '../services/listing-interest.service';
 import { ClientNotification } from '../models/client';
 import { TranslationService } from '../services/translation.service';
 import { toMediaUrl } from '../utils/api-media';
@@ -13,7 +14,10 @@ import { isSaleListing } from '../utils/listing-deal';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { CurrencyPrice } from '../currency-price/currency-price';
 
-/** Header bell for client accounts: new-match alerts from saved Velven Match searches. */
+/**
+ * Header bell. Clients: new homes matching their saved Velven Match searches.
+ * Owners and agents: clients whose saved search matches one of their listings.
+ */
 @Component({
   selector: 'app-notification-bell',
   templateUrl: './notification-bell.html',
@@ -34,6 +38,7 @@ export class NotificationBell implements OnInit, OnDestroy {
 
   constructor(
     private client: ClientService,
+    private interests: ListingInterestService,
     private router: Router,
     private host: ElementRef<HTMLElement>,
     private cdr: ChangeDetectorRef,
@@ -42,14 +47,25 @@ export class NotificationBell implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscription = this.client.summary$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((summary) => {
+      if (this.forOwners) return;
       this.unread = summary.unread;
       this.cdr.markForCheck();
     });
+    this.subscription.add(this.interests.unread$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((unread) => {
+      if (!this.forOwners) return;
+      this.unread = unread;
+      this.cdr.markForCheck();
+    }));
   }
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
     this.requests.unsubscribe();
+  }
+
+  /** Owner/agent alerts instead of client alerts. */
+  get forOwners(): boolean {
+    return this.interests.enabled;
   }
 
   toggle(): void {
@@ -60,7 +76,7 @@ export class NotificationBell implements OnInit, OnDestroy {
   load(page: number): void {
     this.loading = true;
     this.failed = false;
-    this.requests.add(this.client.getNotifications(page, 10).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.requests.add((this.forOwners ? this.interests.getNotifications(page, 10) : this.client.getNotifications(page, 10)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.items = page === 1 ? result.items : [...this.items, ...result.items];
         this.total = result.total;
@@ -84,12 +100,16 @@ export class NotificationBell implements OnInit, OnDestroy {
   openNotification(item: ClientNotification): void {
     if (!item.readAt) {
       item.readAt = new Date().toISOString();
-      this.requests.add(this.client.markRead(item.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {
+      this.requests.add((this.forOwners ? this.interests.markRead(item.id) : this.client.markRead(item.id)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {
         item.readAt = null;
         this.cdr.markForCheck();
       } }));
     }
     this.open = false;
+    if (item.type === 'interest') {
+      void this.router.navigate(['/interested-clients'], { queryParams: { apartment: item.apartment?.id ?? undefined } });
+      return;
+    }
     void this.router.navigate(['/discover'], {
       queryParams: {
         search: item.savedSearchId ?? undefined,
@@ -102,7 +122,7 @@ export class NotificationBell implements OnInit, OnDestroy {
     const previous = this.items.map(item => item.readAt);
     const now = new Date().toISOString();
     this.items.forEach((item) => (item.readAt ??= now));
-    this.requests.add(this.client.markAllRead().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {
+    this.requests.add((this.forOwners ? this.interests.markAllRead() : this.client.markAllRead()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {
       this.items.forEach((item, index) => item.readAt = previous[index]);
       this.client.refreshSummary();
       this.cdr.markForCheck();
@@ -120,6 +140,10 @@ export class NotificationBell implements OnInit, OnDestroy {
   /** "A new 3-bedroom apartment in Vake matches your preferences." */
   summary(item: ClientNotification): string {
     const apartment = item.apartment;
+    if (item.type === 'interest') {
+      const place = apartment?.district || 'Tbilisi';
+      return `A client is looking for a home like your listing in ${place}.`;
+    }
     if (!apartment) return 'A new home matches your preferences.';
     const place = apartment.district || apartment.city || 'Tbilisi';
     return apartment.bedrooms

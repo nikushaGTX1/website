@@ -14,7 +14,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BoardClient, BoardPage, ClientBoardService } from '../services/client-board.service';
-import { VelvenLifestyleAvatarComponent } from '../ai-home-match/lifestyle-avatar/lifestyle-avatar.component';
 import { EMPTY_HOME_MATCH_PROFILE } from '../ai-home-match/models/home-match-profile';
 import { answerLabel } from '../ai-home-match/services/answer-labels';
 import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
@@ -44,7 +43,7 @@ function countryFlag(name: string | null | undefined): string {
 
 @Component({
   selector: 'app-clients',
-  imports: [CommonModule, FormsModule, RouterLink, VelvenLifestyleAvatarComponent],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './clients.html',
   styleUrl: './clients.css',
 })

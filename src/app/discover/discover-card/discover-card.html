@@ -1,10 +1,9 @@
 <article class="discover-card" [class.highlighted]="highlighted" [attr.id]="'match-' + apartment.id">
   <a class="card-image" [routerLink]="['/apartments', apartment.id]" (click)="opened.emit(apartment)" data-protected-image>
     <img [src]="image" [alt]="(apartment | listingTitle) || 'Property in Tbilisi'" loading="lazy" decoding="async" (error)="onImageError($event)" />
-    <span class="card-badges">
-      <span class="badge new" *ngIf="isNew"><i class="fa-solid fa-star" aria-hidden="true"></i> New match</span>
-      <span class="badge check" *ngIf="needsCheck"><i class="fa-regular fa-circle-question" aria-hidden="true"></i> Confirm details</span>
-    </span>
+    <span class="badge new" *ngIf="isNew">New</span>
+    <span class="badge reviewed" *ngIf="matched && !needsCheck"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Matches your search</span>
+    <span class="badge check" *ngIf="needsCheck"><i class="fa-regular fa-circle-question" aria-hidden="true"></i> Confirm details</span>
   </a>
   <button
     type="button"
@@ -17,16 +16,42 @@
     <i [class]="favorites.isFavorite(apartment.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" aria-hidden="true"></i>
   </button>
   <div class="card-body">
+    <p class="location">{{ location }}</p>
     <app-currency-price [usdPrice]="apartment.price" [suffix]="isSale ? '' : '/ month'"></app-currency-price>
     <h3>{{ (apartment | listingTitle) || 'Apartment in Tbilisi' }}</h3>
-    <p class="location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ location }}</span></p>
     <div class="specs">
       <span *ngIf="apartment.rooms"><i class="fa-solid fa-door-open" aria-hidden="true"></i>{{ apartment.rooms }} <span>rooms</span></span>
-      <span><i class="fa-solid fa-bed" aria-hidden="true"></i>{{ apartment.bedrooms || '—' }} Beds</span>
-      <span *ngIf="apartment.floor != null"><i class="fa-solid fa-stairs" aria-hidden="true"></i>{{ apartment.floor }} <span>Floor</span></span>
+      <span><i class="fa-solid fa-bed" aria-hidden="true"></i>{{ apartment.bedrooms || '—' }} <span>beds</span></span>
       <span *ngIf="apartment.sizeSquareMeters"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>{{ apartment.sizeSquareMeters }} m²</span>
+      <span *ngIf="apartment.floor != null"><i class="fa-regular fa-building" aria-hidden="true"></i><span>Floor</span>&nbsp;{{ apartment.floor }}</span>
+    </div>
+
+    <p class="must-haves" *ngIf="matched && !needsCheck"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Matches your must-haves</p>
+    <p class="must-haves check" *ngIf="needsCheck"><i class="fa-regular fa-circle-question" aria-hidden="true"></i> One detail to confirm with the agent</p>
+
+    <div class="why" *ngIf="whyItFits.length">
+      <p class="why-title">Why it fits</p>
+      <ul>
+        <li *ngFor="let line of whyItFits"><i class="fa-solid fa-check" aria-hidden="true"></i><span><span *ngIf="line.lead" data-no-translate>{{ line.lead }}&nbsp;</span><span>{{ line.text }}</span><span *ngIf="line.tail" data-no-translate>&nbsp;{{ line.tail }}</span></span></li>
+      </ul>
+    </div>
+
+    <p class="parking"><i class="fa-solid fa-car" aria-hidden="true"></i><span><span>Parking</span>: <b>{{ parkingText }}</b></span></p>
+
+    <div class="agent-row" *ngIf="agentName">
+      <img *ngIf="agentPhoto; else initials" [src]="agentPhoto" alt="" loading="lazy" (error)="agentPhoto = ''" />
+      <ng-template #initials><span class="agent-initials" aria-hidden="true">{{ agentInitials }}</span></ng-template>
+      <span class="agent-name"><b data-no-translate>{{ agentFirstName }}</b> · <span>Velven agent</span></span>
+      <span class="posted" *ngIf="postedLabel">{{ postedLabel }}</span>
     </div>
     <p class="search-name" *ngIf="searchName"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span>{{ searchName }}</span></p>
-    <a class="view-details" [routerLink]="['/apartments', apartment.id]" (click)="opened.emit(apartment)">View details</a>
+
+    <a class="request-viewing" [routerLink]="['/apartments', apartment.id]" [queryParams]="{ viewing: 1 }" (click)="opened.emit(apartment)">
+      Request a viewing
+    </a>
+    <div class="card-foot">
+      <a class="view-details" [routerLink]="['/apartments', apartment.id]" (click)="opened.emit(apartment)">View details <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      <button type="button" class="not-for-me" *ngIf="matched" (click)="dismissed.emit(apartment)">Not for me</button>
+    </div>
   </div>
 </article>

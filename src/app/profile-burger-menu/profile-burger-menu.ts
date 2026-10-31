@@ -39,6 +39,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   get menuItems(): MenuItem[] {
     if (this.authService.isOwner) return [
       { label: 'List your property', route: '/upload-apartment', icon: 'fa-solid fa-house-circle-check', featured: true },
+      { label: 'Interested clients', route: '/interested-clients', icon: 'fa-solid fa-user-check' },
       ...this.accountMenuItems.filter(item => ['/my-profile', '/my-listings'].includes(item.route)),
     ];
     // Clients: Velven Discover first, with the number of new matches.
@@ -57,6 +58,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
       ? [
           { label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-address-book' },
           { label: 'Watermark remover', route: '/crm/photo-cleaner', icon: 'fa-solid fa-wand-magic-sparkles' },
+          { label: 'Interested clients', route: '/interested-clients', icon: 'fa-solid fa-user-check' },
           ...this.accountMenuItems,
         ]
       : this.accountMenuItems;

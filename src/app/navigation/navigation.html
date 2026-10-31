@@ -8,7 +8,7 @@
     </a>
 
     <!-- Phones and tablets: the bell stays visible beside the menu button. -->
-    <app-notification-bell class="bell-mobile" *ngIf="isClient"></app-notification-bell>
+    <app-notification-bell class="bell-mobile" *ngIf="showBell"></app-notification-bell>
 
     <button
       class="menu-toggle"
@@ -68,7 +68,7 @@
           Sign in
         </a>
 
-        <app-notification-bell class="bell-desktop" *ngIf="isClient"></app-notification-bell>
+        <app-notification-bell class="bell-desktop" *ngIf="showBell"></app-notification-bell>
 
         <app-profile-burger-menu *ngIf="isLoggedIn"></app-profile-burger-menu>
 

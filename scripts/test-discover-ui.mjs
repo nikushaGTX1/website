@@ -41,7 +41,7 @@ try {
     await page.waitForFunction(language=>document.documentElement.lang===language,language);
     await page.waitForTimeout(250);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`${language} ${width}: overflow`);
-    assert.equal(await page.locator('h1').innerText(),language==='ka'?'თქვენი მომავალი სახლი უფრო ახლოსაა, ვიდრე ფიქრობთ.':language==='ru'?'Ваш будущий дом ближе, чем вы думаете.':'Your next home is closer than you think.');
+    assert.equal(await page.locator('h1').innerText(),language==='ka'?'თქვენთვის შერჩეული ბინები.':language==='ru'?'Квартиры, подобранные для вас.':'Homes picked for you.');
     // Query-only routing must select another search while retaining the same component.
     await page.locator('.bell-button:visible').click();
     await page.locator('.bell-panel:visible .notice').nth(1).click();

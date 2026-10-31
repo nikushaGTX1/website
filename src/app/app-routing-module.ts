@@ -225,6 +225,13 @@ const routes: Routes = [
   },
 
   {
+    path: 'interested-clients',
+    loadComponent: () => import('./interested-clients/interested-clients').then((m) => m.InterestedClients),
+    title: 'Interested Clients | Velven',
+    canActivate: [authGuard]
+  },
+
+  {
     path: 'my-viewings',
     loadComponent: () => import('./my-viewings/my-viewings').then((module) => module.MyViewings),
     title: 'My viewings | Velven',

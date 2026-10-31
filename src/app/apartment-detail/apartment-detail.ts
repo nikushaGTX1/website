@@ -198,6 +198,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     this.apartmentService.getApartment(id).subscribe({
       next: (apartment) => {
         this.applyApartment(apartment);
+        // "Request a viewing" on Velven Discover opens the booking form straight away.
+        if (this.route.snapshot.queryParamMap.get('viewing') === '1' && !this.viewingDialogOpen) {
+          setTimeout(() => this.scheduleViewing());
+        }
         this.seoService.updateApartment(apartment);
         this.favorite = this.favoriteService.isFavorite(apartment.id);
         this.loadApartmentAgent(apartment);

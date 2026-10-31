@@ -25,6 +25,16 @@ import { DiscoverCard } from './discover-card/discover-card';
 type DiscoverTab = 'new' | 'all' | 'saved';
 type SortOrder = 'best' | 'newest' | 'price-low' | 'price-high';
 
+const HIDDEN_KEY = 'velven-discover-hidden';
+function readHiddenIds(): number[] {
+  try {
+    const value = JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]');
+    return Array.isArray(value) ? value.filter((id) => typeof id === 'number') : [];
+  } catch {
+    return [];
+  }
+}
+
 /** One home in a Discover list. */
 interface DiscoverItem {
   apartment: Apartment;
@@ -34,6 +44,8 @@ interface DiscoverItem {
   needsCheck: boolean;
   isNew: boolean;
   matchedAt?: string;
+  /** Velven Match's reasons this home fits ("Why it fits" on the card). */
+  reasons: string[];
 }
 
 /** What the page shows for each saved search. */
@@ -252,6 +264,7 @@ export class Discover implements OnInit, OnDestroy {
           needsCheck: status === 'confirm',
           isNew: !!record && !record.seenAt,
           matchedAt: record?.matchedAt,
+          reasons: (result.reasons ?? []).map((reason) => reason.title).filter(Boolean).slice(0, 3),
         };
       })
       .filter((item): item is DiscoverItem => !!item);
@@ -311,10 +324,24 @@ export class Discover implements OnInit, OnDestroy {
     );
   }
 
+  /** Homes the client marked "Not for me" (kept in this browser only). */
+  hiddenIds = new Set<number>(readHiddenIds());
+
+  hideApartment(apartment: Apartment): void {
+    this.hiddenIds.add(apartment.id);
+    try {
+      localStorage.setItem(HIDDEN_KEY, JSON.stringify([...this.hiddenIds].slice(-500)));
+    } catch {
+      // Private mode: hidden for this visit only.
+    }
+    this.cdr.markForCheck();
+  }
+
   /** The same home can match several searches: show it once (unseen wins). */
   private unique(items: DiscoverItem[]): DiscoverItem[] {
     const byId = new Map<number, DiscoverItem>();
     for (const item of items) {
+      if (this.hiddenIds.has(item.apartment.id)) continue;
       const current = byId.get(item.apartment.id);
       if (!current || (item.isNew && !current.isNew) || (item.isNew === current.isNew && item.score > current.score)) byId.set(item.apartment.id, item);
     }
@@ -492,6 +519,25 @@ export class Discover implements OnInit, OnDestroy {
   }
 
   // ---------- Search card text ----------
+
+  /** The search summarised in the "Your search" bar: the selected one, else the first. */
+  get summarySearch(): SavedSearch | null {
+    return this.selectedSearch ?? this.searches[0]?.search ?? null;
+  }
+
+  summaryPets(profile: HomeMatchProfile): string {
+    const pets = profile.propertyGoal === 'Rent' ? selectedPets(profile) : [];
+    return pets.length ? answerList(pets) : '';
+  }
+
+  moveInText(profile: HomeMatchProfile): string {
+    return profile.moveInDate || (profile.moveInTiming ? answerLabel(profile.moveInTiming) : '');
+  }
+
+  /** "My preferences" in the side menu: scroll to the saved searches. */
+  scrollToSearches(): void {
+    document.getElementById('searches-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   goalLabel(profile: HomeMatchProfile): string {
     return profile.propertyGoal === 'Buy' ? 'Buy' : 'Rent';

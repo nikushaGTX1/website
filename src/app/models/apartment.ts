@@ -10,6 +10,8 @@ export interface ApartmentImage {
 
 export interface Apartment {
   id: number;
+  /** When the listing went live (API field). */
+  publishedAt?: string | null;
   title: string;
   /** Optional translations of title; null means show the original title. */
   titleEn?: string | null;

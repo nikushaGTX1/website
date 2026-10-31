@@ -1,0 +1,80 @@
+<main class="interest-page">
+  <header class="page-head">
+    <p class="eyebrow">For owners and agents</p>
+    <h1>Clients looking for your homes.</h1>
+    <p class="subtitle">When a client's saved Velven Match search fits one of your listings, they appear here and you get a notification.</p>
+    <div class="stats" *ngIf="!loading && !error && listings.length">
+      <span><b>{{ totalClients }}</b>&ngsp;<span>interested clients</span></span>
+      <span><b>{{ listingsWithClients }} / {{ listings.length }}</b>&ngsp;<span>listings matched</span></span>
+    </div>
+  </header>
+
+  @if (loading) {
+    @for (n of [1, 2]; track n) {<div class="skeleton" aria-hidden="true"></div>}
+  } @else if (error) {
+    <div class="state" role="alert">
+      <h2>Could not load your listings.</h2>
+      <button type="button" class="primary" (click)="load()">Try again</button>
+    </div>
+  } @else if (!listings.length) {
+    <div class="state">
+      <i class="fa-solid fa-house" aria-hidden="true"></i>
+      <h2>No published listings yet.</h2>
+      <p>Once your apartment is live, clients who are looking for a home like it will appear here.</p>
+      <a class="primary" routerLink="/upload-apartment">List your property</a>
+    </div>
+  } @else {
+    @for (listing of listings; track listing.apartmentId) {
+      <section class="listing" [id]="'listing-' + listing.apartmentId" [class.focused]="listing.apartmentId === focusId">
+        <header class="listing-head">
+          <a class="listing-photo" [routerLink]="['/apartments', listing.apartmentId]"><img [src]="image(listing)" alt="" loading="lazy" /></a>
+          <div class="listing-copy">
+            <p class="listing-place">{{ listing.district }}<span *ngIf="listing.street"> · {{ listing.street }}</span></p>
+            <h2><a [routerLink]="['/apartments', listing.apartmentId]">{{ titleSource(listing) | listingTitle }}</a></h2>
+            <app-currency-price [usdPrice]="listing.price" [suffix]="isSale(listing) ? '' : '/ month'" [showApproximate]="false"></app-currency-price>
+          </div>
+          <span class="count" [class.zero]="!listing.clients.length">
+            <b>{{ listing.clients.length }}</b>
+            @if (listing.clients.length === 1) {<span>interested client</span>} @else {<span>interested clients</span>}
+          </span>
+        </header>
+
+        @if (listing.clients.length) {
+          <div class="client-grid">
+            @for (client of listing.clients; track client.searchId) {
+              <article class="client-card">
+                <div class="cc-top">
+                  <span class="cc-id"><span>Client</span> #{{ client.searchId }}</span>
+                  <span class="cc-new" *ngIf="client.isNew">New</span>
+                </div>
+                <p class="cc-price"><strong>{{ currencySymbol(client.profile['currency']) }}{{ (client.profile['budgetMin'] || 0) | number }}–{{ (client.profile['budgetMax'] || 0) | number }}</strong><span *ngIf="client.profile['propertyGoal'] !== 'Buy'">/ month</span></p>
+                <dl class="cc-rows">
+                  <div><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Preferred area</span></dt><dd>
+                    @for (district of districts(client); track district) {@if ($index) {<span> · </span>}<span>{{ label(district) }}</span>}
+                    <span *ngIf="!districts(client).length">Flexible location</span>
+                  </dd></div>
+                  <div><dt><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>Residents</span></dt><dd>{{ residents(client) }} @if (residents(client) === 1) {<span>person</span>} @else {<span>people</span>}</dd></div>
+                  <div><dt><i class="fa-solid fa-paw" aria-hidden="true"></i><span>Pets</span></dt><dd>@if (pets(client).length) {@for (pet of pets(client); track $index) {@if ($index) {<span>, </span>}<span>{{ label(pet) }}</span>}} @else {<span>No pets</span>}</dd></div>
+                  <div><dt><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>Move-in</span></dt><dd>{{ client.profile['moveInDate'] || label(client.profile['moveInTiming']) || 'Not specified' }}</dd></div>
+                  <div *ngIf="client.profile['propertyGoal'] !== 'Buy'"><dt><i class="fa-regular fa-file-lines" aria-hidden="true"></i><span>Lease term</span></dt><dd>{{ label(client.profile['rentalDuration']) || 'Not specified' }}</dd></div>
+                  <div><dt><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home size</span></dt><dd>@if (client.profile['bedrooms'] != null) {{{ client.profile['bedrooms'] }} @if (client.profile['bedrooms'] === 1) {<span>bedroom</span>} @else {<span>bedrooms</span>}} @else {<span>No preference</span>}</dd></div>
+                </dl>
+                <div class="cc-chips" *ngIf="priorities(client).length">
+                  @for (priority of priorities(client); track priority) {<span>{{ label(priority) }}</span>}
+                </div>
+                @if (isStaff) {
+                  <a class="cc-action" routerLink="/crm"><i class="fa-solid fa-address-book" aria-hidden="true"></i> Open CRM</a>
+                } @else {
+                  <a class="cc-action" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact a Velven agent</a>
+                }
+              </article>
+            }
+          </div>
+        } @else {
+          <p class="no-clients">No client is looking for a home like this right now. We'll notify you as soon as one is.</p>
+        }
+      </section>
+    }
+    <p class="privacy-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Clients stay anonymous. Velven agents arrange every contact and viewing.</p>
+  }
+</main>
