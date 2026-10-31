@@ -182,7 +182,7 @@ try {
       assert.equal(await page.locator('app-footer').count(), 1);
       assert.match(
         await page.locator('h1').innerText(),
-        language === 'en' ? /Find the right client for your apartment/ : /\s/,
+        language === 'en' ? /Meet your next tenant./ : /\s/,
       );
       assert.match(
         await page.locator('h1').evaluate((el) => getComputedStyle(el).fontFamily),
@@ -196,7 +196,7 @@ try {
             ? 'Активные клиенты'
             : 'Active clients',
       );
-      assert.equal(await page.locator('.kyc').count(), 1);
+      assert.equal(await page.locator('.cc-kyc').count(), 1);
       assert.equal(await page.locator('.client-card app-velven-lifestyle-avatar').count(), 3);
       assert.ok(!(await page.locator('.clients-page').innerText()).includes('PRIVATE CLIENT'));
       await noOverflow('clients');
@@ -228,7 +228,7 @@ try {
       await page.locator('.pagination button').last().click();
       await page.waitForTimeout(100);
       assert.equal(lastQuery.get('page'), '2');
-      const suggest = await page.locator('.suggest').first().getAttribute('href');
+      const suggest = await page.locator('.cc-offer').first().getAttribute('href');
       assert.ok(
         suggest.includes('district=Vake') &&
           suggest.includes('bedrooms=2') &&

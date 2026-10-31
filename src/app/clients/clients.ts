@@ -17,6 +17,30 @@ import { BoardClient, BoardPage, ClientBoardService } from '../services/client-b
 import { VelvenLifestyleAvatarComponent } from '../ai-home-match/lifestyle-avatar/lifestyle-avatar.component';
 import { EMPTY_HOME_MATCH_PROFILE } from '../ai-home-match/models/home-match-profile';
 import { answerLabel } from '../ai-home-match/services/answer-labels';
+import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
+
+// Windows has no flag emoji; this loads a small flag font instead.
+polyfillCountryFlagEmojis();
+
+/** English country name -> flag emoji ("Georgia" -> 🇬🇪), built once from the browser's country names. */
+let flagsByCountry: Map<string, string> | undefined;
+function countryFlag(name: string | null | undefined): string {
+  const key = name?.trim().toLowerCase();
+  if (!key) return '';
+  if (!flagsByCountry) {
+    flagsByCountry = new Map();
+    const names = new Intl.DisplayNames(['en'], { type: 'region' });
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (const a of letters) for (const b of letters) {
+      const code = a + b;
+      const country = names.of(code);
+      if (country && country !== code && !flagsByCountry.has(country.toLowerCase())) {
+        flagsByCountry.set(country.toLowerCase(), String.fromCodePoint(...[...code].map((c) => 127397 + c.charCodeAt(0))));
+      }
+    }
+  }
+  return flagsByCountry.get(key) ?? '';
+}
 
 @Component({
   selector: 'app-clients',
@@ -291,8 +315,65 @@ export class Clients implements OnInit, OnDestroy {
       },
     });
   }
+  /**
+   * Example cards shown only while the board has no real clients and no filter is set,
+   * clearly labelled as examples so owners see what a client profile looks like.
+   */
+  readonly examples: BoardClient[] = [
+    this.example(1042, 'Georgia', 900, 1200, ['Vake', 'Saburtalo'], 2, 'Dog', 'Small', 2, 65, ['ParkNearby', 'BalconyOrTerrace', 'Workspace']),
+    this.example(1086, 'France', 700, 900, ['Saburtalo'], 1, 'Cat', undefined, 1, 45, ['MetroNearby', 'Workspace', 'QuietStreet']),
+    this.example(1103, 'Poland', 1200, 1500, ['Vake'], 2, undefined, undefined, 2, 75, ['Parking', 'QuietStreet', 'BalconyOrTerrace']),
+  ];
+
+  private example(id: number, nationality: string, budgetMin: number, budgetMax: number, districts: string[],
+    adults: number, pet: 'Dog' | 'Cat' | undefined, dogSize: 'Small' | undefined, bedrooms: number, minSize: number,
+    topPriorities: string[]): BoardClient {
+    return {
+      id,
+      identityVerified: false,
+      nationality,
+      agent: { name: 'Velven team', phone: null, photo: null },
+      profile: {
+        ...EMPTY_HOME_MATCH_PROFILE,
+        gender: id === 1086 ? 'Male' : 'Female',
+        householdType: adults > 1 ? 'Couple' : 'Single',
+        adults,
+        currency: 'USD',
+        budgetMin,
+        budgetMax,
+        districts,
+        hasPet: !!pet,
+        petType: pet ?? 'None',
+        petTypes: pet ? [pet] : [],
+        petCount: pet ? 1 : 0,
+        dogSize,
+        bedrooms,
+        minSize,
+        rentalDuration: 'TwelveMonths',
+        moveInTiming: 'WithinOneMonth',
+        topPriorities,
+      } as BoardClient['profile'],
+    };
+  }
+
+  get hasFilters(): boolean {
+    return !!(this.district || this.budget || this.timing || this.residents || this.pets);
+  }
+
+  /** Examples stand in for an empty Rent board with no filters set. */
+  get showingExamples(): boolean {
+    return !this.loading && !this.error && !this.result.items.length && !this.hasFilters && this.goal === 'Rent';
+  }
+
+  get cards(): BoardClient[] {
+    return this.showingExamples ? this.examples : this.result.items;
+  }
+
   get pages() {
     return Math.ceil(this.result.total / this.result.pageSize);
+  }
+  flag(nationality: string | null | undefined): string {
+    return countryFlag(nationality);
   }
   currencySymbol(currency: string): string {
     return ({ USD: '$', EUR: '€', GEL: '₾' } as Record<string, string>)[currency] ?? currency + ' ';
@@ -311,7 +392,7 @@ export class Clients implements OnInit, OnDestroy {
   }
   suggest(client: BoardClient) {
     return {
-      client: client.id,
+      client: this.showingExamples ? undefined : client.id,
       district: client.profile.districts[0] ? answerLabel(client.profile.districts[0]) : undefined,
       bedrooms: client.profile.bedrooms ?? undefined,
     };

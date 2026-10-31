@@ -1,9 +1,9 @@
 <main class="clients-page">
   <section class="hero">
     <div class="hero-copy">
-      <p class="eyebrow">For owners</p>
-      <h1><span>Find the</span>&ngsp;<em>right client</em>&ngsp;<span>for your apartment</span></h1>
-      <p class="subtitle">Verified profiles. Real requirements. Your agent's support.</p>
+      <p class="eyebrow">For property owners</p>
+      <h1>@if (goal === 'Buy') {<span>Meet your next buyer.</span>} @else {<span>Meet your next tenant.</span>}</h1>
+      <p class="subtitle">Clear requirements. Real budgets. Supported by Velven.</p>
       <div class="trust">
         <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Checked by Velven agents</span
         ><span
@@ -33,7 +33,7 @@
           (click)="toggleFilter(filter.key)"
         >
           <i [class]="filter.icon" aria-hidden="true"></i>
-          <span class="filter-value">{{ selectedLabel(filter) }}</span>
+          <span class="filter-value">{{ filterValue(filter.key) ? selectedLabel(filter) : filter.label }}</span>
           <i class="fa-solid fa-chevron-down filter-chevron" aria-hidden="true"></i>
         </button>
         @if (openFilter === filter.key && !filterSheet) {
@@ -65,7 +65,7 @@
   <section class="active-section" aria-live="polite" [attr.aria-busy]="loading">
     <div class="section-heading">
       <h2>Active clients</h2>
-      <span *ngIf="!loading && !error">{{ result.total }}</span>
+      <span *ngIf="!loading && !error && !showingExamples">{{ result.total }}</span>
     </div>
     @if (loading) {
       <div class="client-grid skeleton-grid" aria-label="Loading clients">
@@ -84,7 +84,7 @@
         <p>Please try again in a moment.</p>
         <button (click)="search()">Retry</button>
       </div>
-    } @else if (!result.items.length) {
+    } @else if (!cards.length) {
       <div class="state">
         <i class="fa-solid fa-house" aria-hidden="true"></i>
         <h3>No clients match these filters yet.</h3>
@@ -92,52 +92,57 @@
       </div>
     } @else {
       <div class="client-grid">
-        @for (client of result.items; track client.id) {
+        @for (client of cards; track client.id) {
           <article class="client-card">
-            <div class="avatar">
+            <div class="cc-portrait">
               <app-velven-lifestyle-avatar [profile]="client.profile" [portrait]="true" />
-              <span class="active-badge"><i aria-hidden="true"></i> Actively searching</span>
-              <span class="kyc" *ngIf="client.identityVerified"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> ID verified</span>
             </div>
-            <div class="card-body">
-              <div class="card-title">
-                <h3><span>{{ goal === 'Buy' ? 'Buyer' : 'Tenant' }}</span> #{{ client.id }}</h3>
-                <span class="match-badge"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Velven Match completed</span>
+            <div class="cc-body">
+              <header class="cc-top">
+                <h3><span>{{ goal === 'Buy' ? 'Buyer' : 'Client' }}</span> #{{ client.id }}</h3>
+                @if (showingExamples) {<span class="cc-example">Example profile</span>} @else {<span class="cc-status"><i aria-hidden="true"></i> Searching</span>}
+              </header>
+              <div class="cc-badges">
+                <span class="cc-kyc" *ngIf="client.identityVerified"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> ID verified</span>
+                <span class="cc-match">Velven Match <i class="fa-solid fa-check" aria-hidden="true"></i></span>
               </div>
-              <p class="price"><strong>{{ currencySymbol(client.profile.currency) }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></p>
-              <div class="card-details">
-                <div class="requirements">
-                  <p class="districts"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>
-                    @for (district of client.profile.districts; track district) {<span class="district-chip">{{ label(district) }}</span>}
-                    <span *ngIf="!client.profile.districts.length">{{ client.profile.locationFlexible ? 'Flexible location' : 'Selected map area' }}</span>
-                  </span></p>
-                  <dl class="facts">
-                    <div><dt><i class="fa-solid fa-user-group" aria-hidden="true"></i><span class="sr-only">Residents</span></dt><dd>{{ client.profile.adults + client.profile.children }} @if (client.profile.adults + client.profile.children === 1) {<span>Resident</span>} @else {<span>Residents</span>}<span *ngIf="client.profile.hasPet"> · {{ client.profile.petCount || client.profile.petTypes?.length || 1 }}&ngsp;<span *ngIf="(client.profile.petTypes?.length === 1 && client.profile.petTypes?.[0] === 'Dog') || (!client.profile.petTypes?.length && client.profile.petType === 'Dog')">{{ label(client.profile.dogSize) }}&ngsp;</span>@for (pet of petNames(client); track $index) {@if ($index) {<span>, </span>}<span>{{ pet }}</span>}</span></dd></div>
-                    <div><dt><i class="fa-regular fa-calendar" aria-hidden="true"></i><span class="sr-only">Move-in date</span></dt><dd>{{ client.profile.moveInDate || label(client.profile.moveInTiming) || 'Not specified' }} · {{ label(client.profile.rentalDuration) || 'Not specified' }}</dd></div>
-                    <div><dt><i class="fa-solid fa-bed" aria-hidden="true"></i><span class="sr-only">Bedrooms</span></dt><dd>{{ client.profile.bedrooms ?? 'No preference' }} <span>Bedrooms</span><span *ngIf="client.profile.minSize"> · {{ client.profile.minSize }} m²</span></dd></div>
-                  </dl>
+              <p class="cc-price"><strong>{{ currencySymbol(client.profile.currency) }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></p>
+              <div class="cc-nationality">
+                <span>Nationality</span>
+                <b><em class="cc-flag" *ngIf="flag(client.nationality) as f" aria-hidden="true">{{ f }}</em>{{ client.nationality || 'Not specified' }}</b>
+              </div>
+              <dl class="cc-rows">
+                <div><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Preferred area</span></dt><dd>
+                  @for (district of client.profile.districts; track district) {@if ($index) {<span> · </span>}<span>{{ label(district) }}</span>}
+                  <span *ngIf="!client.profile.districts.length">{{ client.profile.locationFlexible ? 'Flexible location' : 'Selected map area' }}</span>
+                </dd></div>
+                <div><dt><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>Residents</span></dt><dd>{{ client.profile.adults + client.profile.children }} @if (client.profile.adults + client.profile.children === 1) {<span>person</span>} @else {<span>people</span>}</dd></div>
+                <div><dt><i class="fa-solid fa-paw" aria-hidden="true"></i><span>Pets</span></dt><dd>
+                  @if (client.profile.hasPet) {{{ client.profile.petCount || client.profile.petTypes?.length || 1 }}&ngsp;<span *ngIf="(client.profile.petTypes?.length === 1 && client.profile.petTypes?.[0] === 'Dog') || (!client.profile.petTypes?.length && client.profile.petType === 'Dog')">{{ label(client.profile.dogSize) }}&ngsp;</span>@for (pet of petNames(client); track $index) {@if ($index) {<span>, </span>}<span>{{ pet }}</span>}} @else {<span>No pets</span>}
+                </dd></div>
+                <div><dt><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>Move-in</span></dt><dd>{{ client.profile.moveInDate || label(client.profile.moveInTiming) || 'Not specified' }}</dd></div>
+                <div *ngIf="goal !== 'Buy'"><dt><i class="fa-regular fa-file-lines" aria-hidden="true"></i><span>Lease term</span></dt><dd>{{ label(client.profile.rentalDuration) || 'Not specified' }}</dd></div>
+                <div><dt><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home size</span></dt><dd>@if (client.profile.bedrooms != null) {{{ client.profile.bedrooms }} @if (client.profile.bedrooms === 1) {<span>bedroom</span>} @else {<span>bedrooms</span>}} @else {<span>No preference</span>}<span *ngIf="client.profile.minSize"> · {{ client.profile.minSize }}+ m²</span></dd></div>
+              </dl>
+              <div class="cc-chips" *ngIf="client.profile.topPriorities.length">
+                @for (priority of client.profile.topPriorities.slice(0, 3); track priority) {<span><i [class]="'fa-solid fa-' + priorityIcon(priority)" aria-hidden="true"></i>{{ label(priority) }}</span>}
+              </div>
+              <div class="cc-agent">
+                <p class="cc-agent-title">Your Velven agent</p>
+                <div class="cc-agent-row">
+                  <img *ngIf="client.agent.photo" [src]="client.agent.photo" alt="" loading="lazy" (error)="client.agent.photo = ''" />
+                  <span class="cc-agent-placeholder" *ngIf="!client.agent.photo" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>
+                  <div><strong>{{ client.agent.name }}</strong><a *ngIf="client.agent.phone" [href]="'tel:' + client.agent.phone">{{ client.agent.phone }}</a></div>
                 </div>
-                <div class="preferences">
-                  <p class="nationality"><i class="fa-regular fa-id-card" aria-hidden="true"></i><span><span>Nationality</span>: {{ client.nationality || 'Not specified' }}</span></p>
-                  <p class="priority-heading">Preferences</p>
-                  <div class="priorities">
-                    @for (priority of client.profile.topPriorities.slice(0, 2); track priority) {<div><i [class]="'fa-solid fa-' + priorityIcon(priority)" aria-hidden="true"></i><span>{{ label(priority) }}</span></div>}
-                    <span *ngIf="!client.profile.topPriorities.length">No preference</span>
-                  </div>
-                </div>
               </div>
-              <div class="agent">
-                <img *ngIf="client.agent.photo" [src]="client.agent.photo" alt="" loading="lazy" (error)="client.agent.photo = ''" />
-                <span class="agent-placeholder" *ngIf="!client.agent.photo" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>
-                <div><div class="agent-name"><strong>{{ client.agent.name }}</strong><span> · </span><small>Velven agent</small></div><a *ngIf="client.agent.phone" [href]="'tel:' + client.agent.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> {{ client.agent.phone }}</a></div>
-              </div>
-              <a class="contact" *ngIf="client.agent.phone; else noPhone" [href]="'tel:' + client.agent.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a>
-              <ng-template #noPhone><a class="contact" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a></ng-template>
-              <a class="suggest" routerLink="/upload-apartment" [queryParams]="suggest(client)"><span>Suggest apartment</span> →</a>
+              <a class="cc-contact" *ngIf="client.agent.phone; else noPhone" [href]="'tel:' + client.agent.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a>
+              <ng-template #noPhone><a class="cc-contact" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a></ng-template>
+              <a class="cc-offer" routerLink="/upload-apartment" [queryParams]="suggest(client)"><span>Offer your apartment</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
             </div>
           </article>
         }
       </div>
+      <p class="examples-note" *ngIf="showingExamples">Example profiles. Real clients appear here once they complete Velven Match.</p>
       <nav class="pagination" aria-label="Client pages" *ngIf="pages > 1">
         <button (click)="search(result.page - 1)" [disabled]="result.page <= 1">Previous</button
         ><span>{{ result.page }} / {{ pages }}</span
@@ -150,7 +155,7 @@
       <h2>Does your apartment match their requirements?</h2>
       <p>Our agent will check compatibility and contact you.</p>
     </div>
-    <a routerLink="/upload-apartment">Suggest apartment <span aria-hidden="true">→</span></a>
+    <a routerLink="/upload-apartment">Offer your apartment <span aria-hidden="true">→</span></a>
   </section>
 
   @if (openFilter && filterSheet && openFilterDef; as sheet) {
