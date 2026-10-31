@@ -197,7 +197,7 @@ try {
             : 'Active clients',
       );
       assert.equal(await page.locator('.cc-kyc').count(), 1);
-      assert.equal(await page.locator('.client-card app-velven-lifestyle-avatar').count(), 3);
+      assert.equal(await page.locator('.client-card app-velven-lifestyle-avatar').count(), 0, 'cards have no portraits');
       assert.ok(!(await page.locator('.clients-page').innerText()).includes('PRIVATE CLIENT'));
       await noOverflow('clients');
       await page.locator('.filter').nth(0).locator('.filter-trigger').click();

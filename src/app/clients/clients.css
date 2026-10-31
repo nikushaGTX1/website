@@ -463,7 +463,7 @@ select:focus-visible {
 /* Hero */
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 32px;
   padding: 0 0 28px;

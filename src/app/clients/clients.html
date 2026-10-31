@@ -11,10 +11,6 @@
         >
       </div>
     </div>
-    <div class="hero-art" aria-hidden="true">
-      <div class="arch"></div>
-      <app-velven-lifestyle-avatar [profile]="hero" /><span class="art-label">Velven Match ✓</span>
-    </div>
   </section>
   <div class="goal-tabs" role="tablist" aria-label="Client type">
     <button type="button" role="tab" [class.active]="goal === 'Rent'" [attr.aria-selected]="goal === 'Rent'" (click)="setGoal('Rent')"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Rent</span></button>
@@ -94,9 +90,6 @@
       <div class="client-grid">
         @for (client of cards; track client.id) {
           <article class="client-card">
-            <div class="cc-portrait">
-              <app-velven-lifestyle-avatar [profile]="client.profile" [portrait]="true" />
-            </div>
             <div class="cc-body">
               <header class="cc-top">
                 <h3><span>{{ goal === 'Buy' ? 'Buyer' : 'Client' }}</span> #{{ client.id }}</h3>
