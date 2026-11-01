@@ -18,7 +18,9 @@
   color: #1d2438;
   font-size: 17px;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 @media (hover: hover) {
@@ -37,10 +39,18 @@
 }
 
 @keyframes ring {
-  20% { transform: rotate(14deg); }
-  40% { transform: rotate(-12deg); }
-  60% { transform: rotate(8deg); }
-  80% { transform: rotate(-4deg); }
+  20% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-12deg);
+  }
+  60% {
+    transform: rotate(8deg);
+  }
+  80% {
+    transform: rotate(-4deg);
+  }
 }
 
 .bell-badge {
@@ -296,4 +306,14 @@
   .bell-panel {
     animation: none;
   }
+}
+.crm-notice-icon {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #eee6fb;
+  color: #5b24a6;
+  font-size: 23px;
 }

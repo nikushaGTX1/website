@@ -38,6 +38,11 @@ export interface ClientNotificationApartment {
 export interface ClientNotification {
   id: number;
   type: 'match' | string;
+  leadId?: number | null;
+  leadName?: string | null;
+  actorName?: string | null;
+  fromStatus?: string | null;
+  toStatus?: string | null;
   createdAt: string;
   readAt: string | null;
   savedSearchId: number | null;

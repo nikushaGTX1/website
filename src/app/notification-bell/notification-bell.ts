@@ -1,7 +1,14 @@
 import { DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { clientRelativeTime } from '../utils/client-relative-time';
-import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -17,7 +24,7 @@ import { CurrencyPrice } from '../currency-price/currency-price';
 
 /**
  * Header bell. Clients: new homes matching their saved Velven Match searches.
- * Owners and agents: clients whose saved search matches one of their listings.
+ * Owners: clients whose search matches a listing. Staff: CRM changes and client reviews.
  */
 @Component({
   selector: 'app-notification-bell',
@@ -48,16 +55,22 @@ export class NotificationBell implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subscription = this.client.summary$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((summary) => {
-      if (this.forOwners) return;
-      this.unread = summary.unread;
-      this.cdr.markForCheck();
-    });
-    this.subscription.add(this.interests.unread$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((unread) => {
-      if (!this.forOwners) return;
-      this.unread = unread;
-      this.cdr.markForCheck();
-    }));
+    this.subscription = this.client.summary$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((summary) => {
+        if (this.forOwners) return;
+        this.unread = summary.unread;
+        this.cdr.markForCheck();
+      });
+    this.subscription.add(
+      this.interests.unread$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((unread) => {
+        if (!this.forOwners) return;
+        const refreshOpenFeed = this.open && !this.loading && this.unread !== unread;
+        this.unread = unread;
+        if (refreshOpenFeed) this.load(1);
+        this.cdr.markForCheck();
+      }),
+    );
   }
 
   ngOnDestroy(): void {
@@ -82,20 +95,27 @@ export class NotificationBell implements OnInit, OnDestroy {
   load(page: number): void {
     this.loading = true;
     this.failed = false;
-    this.requests.add((this.forOwners ? this.interests.getNotifications(page, 10) : this.client.getNotifications(page, 10)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.items = page === 1 ? result.items : [...this.items, ...result.items];
-        this.total = result.total;
-        this.page = page;
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.loading = false;
-        this.failed = true;
-        this.cdr.detectChanges();
-      },
-    }));
+    this.requests.add(
+      (this.forOwners
+        ? this.interests.getNotifications(page, 10)
+        : this.client.getNotifications(page, 10)
+      )
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (result) => {
+            this.items = page === 1 ? result.items : [...this.items, ...result.items];
+            this.total = result.total;
+            this.page = page;
+            this.loading = false;
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            this.loading = false;
+            this.failed = true;
+            this.cdr.detectChanges();
+          },
+        }),
+    );
   }
 
   get hasMore(): boolean {
@@ -106,18 +126,33 @@ export class NotificationBell implements OnInit, OnDestroy {
   openNotification(item: ClientNotification): void {
     if (!item.readAt) {
       item.readAt = new Date().toISOString();
-      this.requests.add((this.forOwners ? this.interests.markRead(item.id) : this.client.markRead(item.id)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {
-        item.readAt = null;
-        this.cdr.markForCheck();
-      } }));
+      this.requests.add(
+        (this.forOwners
+          ? this.interests.markRead(item.id, item.type)
+          : this.client.markRead(item.id)
+        )
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            error: () => {
+              item.readAt = null;
+              this.cdr.markForCheck();
+            },
+          }),
+      );
     }
     this.open = false;
+    if (item.type === 'crm-status' && item.leadId) {
+      void this.router.navigate(['/crm/leads', item.leadId]);
+      return;
+    }
     if (item.type === 'interest-review') {
       void this.router.navigate(['/crm/interested-clients']);
       return;
     }
     if (item.type === 'interest') {
-      void this.router.navigate(['/interested-clients'], { queryParams: { apartment: item.apartment?.id ?? undefined } });
+      void this.router.navigate(['/interested-clients'], {
+        queryParams: { apartment: item.apartment?.id ?? undefined },
+      });
       return;
     }
     void this.router.navigate(['/discover'], {
@@ -129,14 +164,21 @@ export class NotificationBell implements OnInit, OnDestroy {
   }
 
   markAllRead(): void {
-    const previous = this.items.map(item => item.readAt);
+    const previous = this.items.map((item) => item.readAt);
     const now = new Date().toISOString();
     this.items.forEach((item) => (item.readAt ??= now));
-    this.requests.add((this.forOwners ? this.interests.markAllRead() : this.client.markAllRead()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {
-      this.items.forEach((item, index) => item.readAt = previous[index]);
-      this.client.refreshSummary();
-      this.cdr.markForCheck();
-    } }));
+    this.requests.add(
+      (this.forOwners ? this.interests.markAllRead() : this.client.markAllRead())
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          error: () => {
+            this.items.forEach((item, index) => (item.readAt = previous[index]));
+            if (this.forOwners) this.interests.refreshSummary();
+            else this.client.refreshSummary();
+            this.cdr.markForCheck();
+          },
+        }),
+    );
   }
 
   image(item: ClientNotification): string {
@@ -149,6 +191,9 @@ export class NotificationBell implements OnInit, OnDestroy {
 
   /** "A new 3-bedroom apartment in Vake matches your preferences." */
   summary(item: ClientNotification): string {
+    if (item.type === 'crm-status') {
+      return `${item.actorName || 'A team member'} changed ${item.leadName || 'Lead #' + item.leadId} from ${this.statusLabel(item.fromStatus)} to ${this.statusLabel(item.toStatus)}.`;
+    }
     const apartment = item.apartment;
     if (item.type === 'interest-review') {
       return `A client's search matches your listing in ${apartment?.district || 'Tbilisi'}. Check the client before the owner is told.`;
@@ -162,6 +207,10 @@ export class NotificationBell implements OnInit, OnDestroy {
     return apartment.bedrooms
       ? `A new ${apartment.bedrooms}-bedroom apartment in ${place} matches your preferences.`
       : `A new apartment in ${place} matches your preferences.`;
+  }
+
+  statusLabel(value?: string | null): string {
+    return value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Unknown';
   }
 
   relativeTime(value: string): string {

@@ -9,56 +9,117 @@
     (click)="toggle()"
   >
     <i class="fa-regular fa-bell" aria-hidden="true"></i>
-    <span class="bell-badge" *ngIf="unread > 0" aria-hidden="true">{{ unread > 99 ? '99+' : unread }}</span>
+    <span class="bell-badge" *ngIf="unread > 0" aria-hidden="true">{{
+      unread > 99 ? '99+' : unread
+    }}</span>
   </button>
 
   <div class="bell-panel" *ngIf="open" role="dialog" aria-label="Notifications">
     <header class="panel-head">
       <h2>Notifications</h2>
-      <button type="button" class="panel-link" *ngIf="unread > 0" (click)="markAllRead()">Mark all as read</button>
+      <button type="button" class="panel-link" *ngIf="unread > 0" (click)="markAllRead()">
+        Mark all as read
+      </button>
     </header>
 
     <div class="panel-body">
       <p class="panel-state" *ngIf="loading && !items.length">
         <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Loading…
       </p>
-      <p class="panel-state error" *ngIf="failed">Could not load notifications. Please try again.</p>
+      <p class="panel-state error" *ngIf="failed">
+        Could not load notifications. Please try again.
+      </p>
 
       <div class="panel-empty" *ngIf="!loading && !failed && !items.length">
         <i class="fa-regular fa-bell" aria-hidden="true"></i>
         <strong>You're all caught up</strong>
-        <span *ngIf="!forOwners">We'll let you know here when new homes match your saved searches.</span>
-        <span *ngIf="forOwners">We'll let you know here when a client is looking for a home like yours.</span>
+        <span *ngIf="isStaff">Lead status changes and client matches will appear here.</span>
+        <span *ngIf="!forOwners && !isStaff"
+          >We'll let you know here when new homes match your saved searches.</span
+        >
+        <span *ngIf="forOwners && !isStaff"
+          >We'll let you know here when a client is looking for a home like yours.</span
+        >
       </div>
 
       <ul class="panel-list" *ngIf="items.length">
         <li *ngFor="let item of items">
-          <button type="button" class="notice" [class.unread]="!item.readAt" (click)="openNotification(item)">
-            <img [src]="image(item)" alt="" loading="lazy" />
+          <button
+            type="button"
+            class="notice"
+            [class.unread]="!item.readAt"
+            (click)="openNotification(item)"
+          >
+            <span class="crm-notice-icon" *ngIf="item.type === 'crm-status'"
+              ><i
+                class="fa-solid"
+                [class.fa-trophy]="item.toStatus === 'won'"
+                [class.fa-arrows-rotate]="item.toStatus !== 'won'"
+                aria-hidden="true"
+              ></i
+            ></span>
+            <img *ngIf="item.type !== 'crm-status'" [src]="image(item)" alt="" loading="lazy" />
             <span class="notice-copy">
-              <strong>{{ item.type === 'interest-review' ? 'Client match to review' : item.type === 'interest' ? 'New interested client!' : 'New apartment matched!' }}</strong>
+              <strong>{{
+                item.type === 'crm-status'
+                  ? 'Lead status changed'
+                  : item.type === 'interest-review'
+                    ? 'Client match to review'
+                    : item.type === 'interest'
+                      ? 'New interested client!'
+                      : 'New apartment matched!'
+              }}</strong>
               <span class="notice-text">{{ summary(item) }}</span>
               <span class="notice-meta">
-                <app-currency-price *ngIf="item.apartment" [usdPrice]="item.apartment.price" [suffix]="isSale(item) ? '' : '/ month'" [showApproximate]="false"></app-currency-price>
+                <app-currency-price
+                  *ngIf="item.apartment"
+                  [usdPrice]="item.apartment.price"
+                  [suffix]="isSale(item) ? '' : '/ month'"
+                  [showApproximate]="false"
+                ></app-currency-price>
                 <time data-no-translate>{{ relativeTime(item.createdAt) }}</time>
               </span>
-              <span class="notice-action">{{ item.type === 'interest-review' ? 'Review' : item.type === 'interest' ? 'See client' : 'View Match' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+              <span class="notice-action"
+                >{{
+                  item.type === 'crm-status'
+                    ? 'View lead'
+                    : item.type === 'interest-review'
+                      ? 'Review'
+                      : item.type === 'interest'
+                        ? 'See client'
+                        : 'View Match'
+                }}
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i
+              ></span>
             </span>
             <span class="unread-dot" *ngIf="!item.readAt" aria-label="Unread"></span>
           </button>
         </li>
       </ul>
 
-      <button type="button" class="panel-more" *ngIf="hasMore" [disabled]="loading" (click)="load(page + 1)">
+      <button
+        type="button"
+        class="panel-more"
+        *ngIf="hasMore"
+        [disabled]="loading"
+        (click)="load(page + 1)"
+      >
         {{ loading ? 'Loading…' : 'Show older notifications' }}
       </button>
     </div>
 
     <footer class="panel-foot">
       <a *ngIf="!forOwners" routerLink="/discover" (click)="open = false">Open Velven Discover</a>
-      <a *ngIf="forOwners && !isStaff" routerLink="/interested-clients" (click)="open = false">Interested clients</a>
-      <a *ngIf="forOwners && isStaff" routerLink="/crm/interested-clients" (click)="open = false">Client matches</a>
-      <a routerLink="/my-profile" [queryParams]="{ section: 'notifications' }" (click)="open = false" aria-label="Notification settings">
+      <a *ngIf="forOwners && !isStaff" routerLink="/interested-clients" (click)="open = false"
+        >Interested clients</a
+      >
+      <a *ngIf="isStaff" routerLink="/crm" (click)="open = false">Open CRM workspace</a>
+      <a
+        routerLink="/my-profile"
+        [queryParams]="{ section: 'notifications' }"
+        (click)="open = false"
+        aria-label="Notification settings"
+      >
         <i class="fa-solid fa-gear" aria-hidden="true"></i> Settings
       </a>
     </footer>

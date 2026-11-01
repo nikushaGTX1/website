@@ -74,7 +74,8 @@ export interface ListingInterest {
 
 /**
  * Owners and agents: clients looking for homes like the ones they listed, and the bell alerts
- * when a client's saved search matches one of their listings. Badge refreshes every two minutes.
+ * when a client's saved search matches one of their listings. Staff also receive CRM status
+ * updates, refreshed every 30 seconds; owner badges refresh every two minutes.
  */
 @Injectable({ providedIn: 'root' })
 export class ListingInterestService {
@@ -83,7 +84,11 @@ export class ListingInterestService {
   readonly unread$ = this.unreadSubject.asObservable();
   private pollTimer?: number;
 
-  constructor(private http: HttpClient, private auth: AuthService, private zone: NgZone) {
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService,
+    private zone: NgZone,
+  ) {
     this.auth.currentUser$.subscribe(() => {
       if (this.enabled) {
         this.refreshSummary();
@@ -91,6 +96,8 @@ export class ListingInterestService {
       } else {
         window.clearInterval(this.pollTimer);
         this.pollTimer = undefined;
+        document.removeEventListener('visibilitychange', this.onVisible);
+        window.removeEventListener('focus', this.onVisible);
         this.unreadSubject.next(0);
       }
     });
@@ -101,9 +108,14 @@ export class ListingInterestService {
     return this.auth.isLoggedIn && !this.auth.isClient && (this.auth.isOwner || this.auth.isStaff);
   }
 
+  private get notificationsUrl(): string {
+    return this.auth.isStaff ? `${API_URL}/Crm/notifications` : `${this.apiUrl}/notifications`;
+  }
+
   refreshSummary(): void {
     if (!this.enabled) return;
-    this.http.get<{ unread: number }>(`${this.apiUrl}/notifications/summary`)
+    this.http
+      .get<{ unread: number }>(`${this.notificationsUrl}/summary`)
       .pipe(catchError(() => of(null)))
       .subscribe((summary) => summary && this.unreadSubject.next(summary.unread));
   }
@@ -111,18 +123,28 @@ export class ListingInterestService {
   private startPolling(): void {
     if (this.pollTimer) return;
     this.zone.runOutsideAngular(() => {
-      this.pollTimer = window.setInterval(() => {
-        if (document.visibilityState === 'visible') this.zone.run(() => this.refreshSummary());
-      }, 2 * 60_000);
+      this.pollTimer = window.setInterval(
+        () => {
+          if (document.visibilityState === 'visible') this.zone.run(() => this.refreshSummary());
+        },
+        this.auth.isStaff ? 30_000 : 2 * 60_000,
+      );
+      document.addEventListener('visibilitychange', this.onVisible);
+      window.addEventListener('focus', this.onVisible);
     });
   }
+
+  private readonly onVisible = (): void => {
+    if (document.visibilityState === 'visible') this.zone.run(() => this.refreshSummary());
+  };
 
   getInterests(): Observable<ListingInterest[]> {
     return this.http.get<ListingInterest[]>(this.apiUrl);
   }
 
   getNotifications(page = 1, pageSize = 10): Observable<ClientNotificationPage> {
-    return this.http.get<ClientNotificationPage>(`${this.apiUrl}/notifications`, { params: { page, pageSize } })
+    return this.http
+      .get<ClientNotificationPage>(this.notificationsUrl, { params: { page, pageSize } })
       .pipe(tap((result) => this.unreadSubject.next(result.unread)));
   }
 
@@ -132,19 +154,27 @@ export class ListingInterestService {
 
   /** The agent checked the client: the owner is told, with the agent's phone. */
   markReady(id: number): Observable<ReviewResult> {
-    return this.http.post<ReviewResult>(`${this.apiUrl}/reviews/${id}/ready`, {}).pipe(tap(() => this.refreshSummary()));
+    return this.http
+      .post<ReviewResult>(`${this.apiUrl}/reviews/${id}/ready`, {})
+      .pipe(tap(() => this.refreshSummary()));
   }
 
   dismiss(id: number): Observable<ReviewResult> {
-    return this.http.post<ReviewResult>(`${this.apiUrl}/reviews/${id}/dismiss`, {}).pipe(tap(() => this.refreshSummary()));
+    return this.http
+      .post<ReviewResult>(`${this.apiUrl}/reviews/${id}/dismiss`, {})
+      .pipe(tap(() => this.refreshSummary()));
   }
 
-  markRead(id: number): Observable<unknown> {
-    return this.http.post(`${this.apiUrl}/notifications/${id}/read`, {}).pipe(tap(() => this.refreshSummary()));
+  markRead(id: number, type = 'interest-review'): Observable<unknown> {
+    const path = this.auth.isStaff
+      ? `${this.notificationsUrl}/${encodeURIComponent(type)}/${id}/read`
+      : `${this.notificationsUrl}/${id}/read`;
+    return this.http.post(path, {}).pipe(tap(() => this.refreshSummary()));
   }
 
   markAllRead(): Observable<unknown> {
-    this.unreadSubject.next(0);
-    return this.http.post(`${this.apiUrl}/notifications/read-all`, {}).pipe(tap(() => this.refreshSummary()));
+    return this.http
+      .post(`${this.notificationsUrl}/read-all`, {})
+      .pipe(tap(() => this.refreshSummary()));
   }
 }
