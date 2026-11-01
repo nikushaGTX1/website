@@ -2,7 +2,8 @@
   <header class="page-head">
     <p class="eyebrow">For owners and agents</p>
     <h1>Clients looking for your homes.</h1>
-    <p class="subtitle">When a client's saved Velven Match search fits one of your listings, they appear here and you get a notification.</p>
+    <p class="subtitle">When a client's Velven Match search fits one of your listings, a Velven agent checks the client first. Once they confirm, the client appears here and you get a notification.</p>
+    <a class="staff-link" *ngIf="isStaff" routerLink="/crm/interested-clients"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Review client matches in the CRM</a>
     <div class="stats" *ngIf="!loading && !error && listings.length">
       <span><b>{{ totalClients }}</b>&ngsp;<span>interested clients</span></span>
       <span><b>{{ listingsWithClients }} / {{ listings.length }}</b>&ngsp;<span>listings matched</span></span>
@@ -62,8 +63,13 @@
                 <div class="cc-chips" *ngIf="priorities(client).length">
                   @for (priority of priorities(client); track priority) {<span>{{ label(priority) }}</span>}
                 </div>
-                @if (isStaff) {
-                  <a class="cc-action" routerLink="/crm"><i class="fa-solid fa-address-book" aria-hidden="true"></i> Open CRM</a>
+                <div class="cc-agent">
+                  <span class="cc-agent-title">Your Velven agent</span>
+                  <strong data-no-translate>{{ client.agentName || 'Velven' }}</strong>
+                  <a *ngIf="client.agentPhone" [href]="'tel:' + client.agentPhone" data-no-translate>{{ client.agentPhone }}</a>
+                </div>
+                @if (client.agentPhone) {
+                  <a class="cc-action" [href]="'tel:' + client.agentPhone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Call your agent</a>
                 } @else {
                   <a class="cc-action" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact a Velven agent</a>
                 }
@@ -71,7 +77,7 @@
             }
           </div>
         } @else {
-          <p class="no-clients">No client is looking for a home like this right now. We'll notify you as soon as one is.</p>
+          <p class="no-clients">No confirmed client for this home yet. We'll notify you as soon as a Velven agent confirms one.</p>
         }
       </section>
     }

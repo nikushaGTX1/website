@@ -11,6 +11,49 @@ export interface InterestedClient {
   profile: Record<string, any>;
   searchingSince: string;
   isNew: boolean;
+  /** The Velven agent who checked the client; the owner calls them. */
+  agentName?: string | null;
+  agentPhone?: string | null;
+}
+
+export type ReviewStatus = 'pending' | 'ready' | 'dismissed';
+
+/** A client match an agent reviews in the CRM before the owner is told. */
+export interface ClientMatchReview {
+  id: number;
+  status: ReviewStatus;
+  createdAt: string;
+  reviewedAt: string | null;
+  isNew: boolean;
+  reviewerName: string | null;
+  searchId: number;
+  searchName: string;
+  searchingSince: string;
+  profile: Record<string, any>;
+  clientName: string | null;
+  clientEmail: string | null;
+  clientPhone: string | null;
+  apartmentId: number;
+  title: string;
+  titleEn?: string | null;
+  titleKa?: string | null;
+  titleRu?: string | null;
+  district: string;
+  street: string;
+  price: number;
+  bedrooms: number;
+  imageUrl?: string | null;
+  description: string;
+  ownerName: string | null;
+  ownerPhone: string | null;
+  ownerEmail: string | null;
+  ownerHasAccount: boolean;
+}
+
+export interface ReviewResult {
+  status: ReviewStatus;
+  ownerHasAccount: boolean;
+  ownerEmailed: boolean;
 }
 
 export interface ListingInterest {
@@ -81,6 +124,19 @@ export class ListingInterestService {
   getNotifications(page = 1, pageSize = 10): Observable<ClientNotificationPage> {
     return this.http.get<ClientNotificationPage>(`${this.apiUrl}/notifications`, { params: { page, pageSize } })
       .pipe(tap((result) => this.unreadSubject.next(result.unread)));
+  }
+
+  getReviews(status: ReviewStatus): Observable<ClientMatchReview[]> {
+    return this.http.get<ClientMatchReview[]>(`${this.apiUrl}/reviews`, { params: { status } });
+  }
+
+  /** The agent checked the client: the owner is told, with the agent's phone. */
+  markReady(id: number): Observable<ReviewResult> {
+    return this.http.post<ReviewResult>(`${this.apiUrl}/reviews/${id}/ready`, {}).pipe(tap(() => this.refreshSummary()));
+  }
+
+  dismiss(id: number): Observable<ReviewResult> {
+    return this.http.post<ReviewResult>(`${this.apiUrl}/reviews/${id}/dismiss`, {}).pipe(tap(() => this.refreshSummary()));
   }
 
   markRead(id: number): Observable<unknown> {

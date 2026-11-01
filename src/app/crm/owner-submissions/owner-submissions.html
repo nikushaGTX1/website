@@ -1,48 +1,408 @@
-<main class="page">
-  <header class="top">
+﻿<main class="page">
+  <header class="page-heading">
     <div>
-      <a class="back" routerLink="/my-listings"><i class="fa-solid fa-arrow-left"></i> My listings</a>
       <h1>Owner submissions</h1>
-      <p>Properties owners sent through your links. Call, visit, verify, then publish.</p>
+      <p>Review incoming homes before sharing them with clients.</p>
     </div>
-    <button type="button" class="icon-btn" (click)="load()" [disabled]="loading" aria-label="Refresh"><i class="fa-solid fa-rotate-right" [class.fa-spin]="loading"></i></button>
-  </header>
-
-  <div class="toolbar">
-    <div class="tabs">
-      <button type="button" [class.active]="filter === 'all'" (click)="filter = 'all'">All <b>{{ count('all') }}</b></button>
-      <button type="button" *ngFor="let s of statuses" [class.active]="filter === s.value" [attr.data-status]="s.value" (click)="filter = s.value">{{ s.label }} <b>{{ count(s.value) }}</b></button>
-    </div>
-    <label class="search"><i class="fa-solid fa-magnifying-glass"></i><input [(ngModel)]="search" placeholder="Search name, phone, district"></label>
-  </div>
-
-  <p class="banner error" *ngIf="error"><i class="fa-solid fa-circle-exclamation"></i>{{ error }}</p>
-
-  <div class="state" *ngIf="loading && !submissions.length"><span class="spinner"></span>Loading submissions…</div>
-  <div class="state empty" *ngIf="!loading && !submissions.length">
-    <i class="fa-regular fa-folder-open"></i><h2>No submissions yet</h2><p>Send an owner link from the CRM. Their answers appear here.</p>
-  </div>
-
-  <section class="layout" *ngIf="submissions.length">
-    <div class="list">
-      <p class="none" *ngIf="!visible.length">Nothing matches this filter.</p>
-      <button type="button" class="row" *ngFor="let item of visible" (click)="open(item)">
-        <div class="thumb">
-          <img *ngIf="item.photos.length; else noPhoto" [src]="item.photos[0]" alt="" loading="lazy">
-          <ng-template #noPhoto><i class="fa-regular fa-image"></i></ng-template>
-          <span class="count" *ngIf="item.photos.length > 1"><i class="fa-solid fa-camera"></i>{{ item.photos.length }}</span>
-        </div>
-        <div class="row-body">
-          <div class="row-top">
-            <span class="status" [attr.data-status]="item.status">{{ statusLabel(item.status) }}</span>
-            <span class="deal">{{ item.dealType === 'Rent' ? 'Rent' : 'Sale' }}</span>
-          </div>
-          <strong class="row-price">{{ price(item) }}</strong>
-          <span class="row-address"><i class="fa-solid fa-location-dot"></i>{{ address(item) }}</span>
-          <span class="row-owner"><i class="fa-solid fa-user"></i>{{ item.ownerName }} · {{ item.createdAt | date:'MMM d, HH:mm' }}</span>
-        </div>
+    <div class="heading-actions">
+      <button
+        type="button"
+        class="outline"
+        [class.active]="filter === 'history'"
+        (click)="setFilter('history')"
+      >
+        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>Submission history<span>{{
+          count('history')
+        }}</span></button
+      ><button
+        type="button"
+        class="outline refresh"
+        (click)="load()"
+        [disabled]="loading || saving"
+        aria-label="Refresh submissions"
+      >
+        <i class="fa-solid fa-rotate" [class.fa-spin]="loading" aria-hidden="true"></i>
       </button>
     </div>
-
-  </section>
+  </header>
+  <nav class="review-tabs" aria-label="Submission status">
+    <button
+      type="button"
+      [class.active]="filter === 'review'"
+      [attr.aria-pressed]="filter === 'review'"
+      (click)="setFilter('review')"
+    >
+      Needs review <b>{{ count('review') }}</b>
+    </button>
+    <button
+      type="button"
+      [class.active]="filter === 'ready'"
+      [attr.aria-pressed]="filter === 'ready'"
+      (click)="setFilter('ready')"
+    >
+      Ready <b>{{ count('ready') }}</b>
+    </button>
+    <button
+      type="button"
+      [class.active]="filter === 'progress'"
+      [attr.aria-pressed]="filter === 'progress'"
+      (click)="setFilter('progress')"
+    >
+      In progress <b>{{ count('progress') }}</b>
+    </button>
+  </nav>
+  <p class="message error" role="alert" *ngIf="error">{{ error }}</p>
+  <p class="message success" role="status" *ngIf="success">{{ success }}</p>
+  <div class="state" *ngIf="loading && !submissions.length">
+    <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>Loading submissions…
+  </div>
+  <div class="review-layout" *ngIf="!loading || submissions.length">
+    <section class="submission-list" aria-label="Owner submissions">
+      <label class="search"
+        ><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i
+        ><input
+          [(ngModel)]="search"
+          (ngModelChange)="searchChanged()"
+          aria-label="Search submissions"
+          placeholder="Search submissions"
+      /></label>
+      <div class="list-items">
+        <button
+          type="button"
+          class="submission-row"
+          *ngFor="let item of visible"
+          [class.selected]="selectedId === item.id"
+          [attr.aria-pressed]="selectedId === item.id"
+          (click)="select(item)"
+        >
+          <span class="thumbnail"
+            ><img
+              *ngIf="item.photos.length; else placeholder"
+              [src]="item.photos[0]"
+              alt=""
+              loading="lazy" /><ng-template #placeholder
+              ><i class="fa-regular fa-image" aria-hidden="true"></i></ng-template
+          ></span>
+          <span class="row-copy"
+            ><strong>{{ price(item) }}</strong
+            ><span class="row-address">{{ address(item) }}</span
+            ><span class="row-owner"
+              >{{ item.ownerName }} · {{ item.createdAt | date: 'MMM d, HH:mm' }}</span
+            ><span class="status" [attr.data-status]="statusLabel(item)">{{
+              statusLabel(item)
+            }}</span></span
+          ><i class="row-arrow fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="list-empty" *ngIf="!visible.length">
+        <i class="fa-regular fa-folder-open" aria-hidden="true"></i
+        ><strong>{{ search ? 'No matching submissions' : 'Nothing here yet' }}</strong>
+        <p>
+          {{
+            search
+              ? 'Try another name or address.'
+              : filter === 'review'
+                ? 'Homes sent through your owner links will appear here.'
+                : 'Choose another status to see more submissions.'
+          }}
+        </p>
+      </div>
+    </section>
+    <ng-container *ngIf="selected as item; else chooseSubmission">
+      <section class="property-panel" aria-label="Property review">
+        <div class="submission-meta">
+          <span>SUBMISSION #OWN-{{ item.id.toString().padStart(4, '0') }}</span
+          ><span class="status" [attr.data-status]="statusLabel(item)">{{
+            statusLabel(item)
+          }}</span>
+        </div>
+        <h2>{{ title(item) }}</h2>
+        <div
+          class="photo-grid"
+          *ngIf="item.photos.length; else noPhotos"
+          [class.single]="item.photos.length === 1"
+        >
+          <button
+            type="button"
+            class="main-photo"
+            (click)="openGallery(0)"
+            aria-label="Open property photos"
+          >
+            <img [src]="item.photos[0]" [alt]="title(item)" />
+          </button>
+          <div class="side-photos" *ngIf="item.photos.length > 1">
+            <button
+              type="button"
+              *ngFor="let photo of item.photos.slice(1, 3); let i = index"
+              (click)="openGallery(i + 1)"
+              aria-label="Open property photo"
+            >
+              <img [src]="photo" alt="Property interior" />
+            </button>
+          </div>
+          <button type="button" class="photo-count" (click)="openGallery(0)">
+            <i class="fa-regular fa-images" aria-hidden="true"></i>{{ item.photos.length }} photos
+          </button>
+        </div>
+        <ng-template #noPhotos
+          ><div class="no-photos">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>No photos submitted
+          </div></ng-template
+        >
+        <h3 class="property-price">{{ price(item) }}</h3>
+        <p class="property-address">
+          <i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ address(item) }}
+        </p>
+        <div class="property-facts">
+          <span
+            ><i class="fa-solid fa-bed" aria-hidden="true"></i
+            >{{ item.data['bedrooms'] ?? '—' }} bedrooms</span
+          ><span
+            ><i class="fa-solid fa-expand" aria-hidden="true"></i
+            >{{ item.data['area'] ?? '—' }} m²</span
+          ><span
+            ><i class="fa-regular fa-building" aria-hidden="true"></i>Floor
+            {{ item.data['floor'] ?? '—' }} / {{ item.data['totalFloors'] ?? '—' }}</span
+          >
+        </div>
+        <div class="property-terms">
+          <span
+            ><i class="fa-regular fa-calendar" aria-hidden="true"></i
+            >{{
+              item.data['availableFrom']
+                ? 'Available ' + (item.data['availableFrom'] | date: 'd MMM')
+                : 'Availability to confirm'
+            }}</span
+          ><span
+            ><i class="fa-regular fa-file-lines" aria-hidden="true"></i
+            >{{
+              item.data['minimumRentalPeriod'] ||
+                (item.dealType === 'Sale' ? 'For sale' : 'Lease to confirm')
+            }}</span
+          ><span
+            ><i class="fa-solid fa-paw" aria-hidden="true"></i
+            >{{
+              item.data['isPetFriendly'] === true
+                ? 'Pets allowed'
+                : item.data['isPetFriendly'] === false
+                  ? 'No pets'
+                  : 'Pet policy to confirm'
+            }}</span
+          ><span
+            ><i class="fa-solid fa-square-parking" aria-hidden="true"></i
+            >{{ item.data['hasParking'] ? 'Parking available' : 'Parking not included' }}</span
+          >
+        </div>
+        <div class="owner-card">
+          <span class="owner-avatar">{{ initials(item.ownerName) }}</span>
+          <div>
+            <strong>{{ item.ownerName }}</strong
+            ><span> · Property owner</span><small>{{ item.ownerPhone }}</small>
+          </div>
+          <a class="outline" *ngIf="item.ownerPhone" [href]="phoneHref(item.ownerPhone)"
+            ><i class="fa-solid fa-phone" aria-hidden="true"></i>Call owner</a
+          >
+        </div>
+        <div class="source-card">
+          <strong>Source information</strong
+          ><span
+            ><i class="fa-regular fa-file-lines" aria-hidden="true"></i>Submitted through an owner
+            link</span
+          ><span
+            ><i class="fa-regular fa-clock" aria-hidden="true"></i
+            >{{ item.createdAt | date: 'd MMM yyyy, HH:mm' }}</span
+          >
+        </div>
+        <section class="checklist">
+          <header>
+            <h3>Review checklist</h3>
+            <span>{{ completedChecks }} of {{ checks.length }} completed</span>
+          </header>
+          <label *ngFor="let check of checks"
+            ><input
+              type="checkbox"
+              [(ngModel)]="verification[check.key]"
+              (ngModelChange)="dirty = true"
+              [disabled]="saving || archived"
+            /><span>{{ check.label }}</span></label
+          >
+        </section>
+        <label class="note-label" for="review-note">Internal note</label
+        ><textarea
+          id="review-note"
+          [(ngModel)]="notes"
+          (ngModelChange)="dirty = true"
+          [disabled]="saving || archived"
+          rows="2"
+          placeholder="Add context for your team…"
+        ></textarea>
+        <div class="save-row" *ngIf="!archived">
+          <span>{{ dirty ? 'You have unsaved changes' : 'Review up to date' }}</span
+          ><button type="button" class="outline" [disabled]="saving || !dirty" (click)="save()">
+            {{ saving ? 'Saving…' : 'Save review' }}
+          </button>
+        </div>
+      </section>
+      <aside class="review-sidebar" aria-label="Matching clients and actions">
+        <section class="matches-card">
+          <header>
+            <h2>Matching clients</h2>
+            <span class="eligible">{{ matchingClients.length }} potential</span>
+          </header>
+          <p>Preview based on budget, district and bedrooms.</p>
+          <p class="match-state" *ngIf="clientsLoading">Loading clients…</p>
+          <p class="match-state" *ngIf="clientsError">
+            Client matches could not be loaded. Refresh the page to try again.
+          </p>
+          <div class="client-list" *ngIf="!clientsLoading && !clientsError">
+            <a
+              class="client-row"
+              *ngFor="let client of matchingClients.slice(0, 4)"
+              [routerLink]="['/crm/leads', client.id]"
+              ><strong>Client #{{ client.id }}</strong
+              ><span>{{ clientBudget(client) }} · {{ item.data['location'] }}</span
+              ><small>{{
+                client.bedrooms != null
+                  ? client.bedrooms + ' bedrooms'
+                  : 'Bedroom preference not specified'
+              }}</small
+              ><span class="criteria"
+                ><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Budget and location
+                match</span
+              ><i class="fa-solid fa-chevron-right" aria-hidden="true"></i
+            ></a>
+            <div class="match-state" *ngIf="!matchingClients.length">
+              <i class="fa-regular fa-user" aria-hidden="true"></i>No clients match these criteria
+              yet.
+            </div>
+          </div>
+          <details class="match-criteria">
+            <summary>View matching criteria</summary>
+            <p>
+              Same transaction type and currency, price within the client's budget, requested
+              district, and bedrooms when specified. Confirm pets, timing and other requirements
+              before sharing.
+            </p>
+          </details>
+        </section>
+        <section class="ready-card" *ngIf="!archived">
+          <h2>
+            {{
+              completedChecks === checks.length ? 'Ready for the next step' : 'Prepare to publish'
+            }}
+          </h2>
+          <div class="review-progress">
+            <i
+              class="fa-solid"
+              [class.fa-circle-check]="completedChecks === checks.length"
+              [class.fa-list-check]="completedChecks !== checks.length"
+              aria-hidden="true"
+            ></i
+            ><strong>{{
+              completedChecks === checks.length
+                ? 'All 4 review checks completed.'
+                : completedChecks + ' of 4 review checks completed.'
+            }}</strong>
+          </div>
+          <p>Confirm the owner's details, then finish the listing to publish this home.</p>
+          <button
+            type="button"
+            class="primary"
+            [disabled]="saving || completedChecks !== checks.length || !dirty"
+            (click)="save('visited')"
+          >
+            <i class="fa-solid fa-check" aria-hidden="true"></i
+            >{{ saving ? 'Saving…' : 'Mark as ready' }}
+          </button>
+          <button type="button" class="outline publish" [disabled]="saving" (click)="open(item)">
+            <i class="fa-regular fa-file-lines" aria-hidden="true"></i>Review listing & publish</button
+          ><small
+            >Publishing continues in the property form. Nothing has been sent to clients.</small
+          >
+          <div class="workflow-actions">
+            <button type="button" (click)="save('contacted')" [disabled]="saving">
+              Mark owner contacted</button
+            ><button type="button" class="decline" (click)="save('rejected')" [disabled]="saving">
+              Decline submission
+            </button>
+          </div>
+        </section>
+        <section class="ready-card" *ngIf="archived">
+          <h2>{{ item.status === 'published' ? 'Published property' : 'Submission declined' }}</h2>
+          <p>
+            {{
+              item.status === 'published'
+                ? 'This home has been published. Open the listing to view its details.'
+                : 'This submission is kept in your history.'
+            }}
+          </p>
+          <button
+            class="primary"
+            type="button"
+            *ngIf="item.publishedApartmentId"
+            (click)="open(item)"
+          >
+            View published listing<i
+              class="fa-solid fa-arrow-up-right-from-square"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </section>
+        <p class="privacy-note">
+          <i class="fa-solid fa-lock" aria-hidden="true"></i>Internal agent workspace
+        </p>
+      </aside>
+    </ng-container>
+    <ng-template #chooseSubmission
+      ><section class="selection-empty">
+        <span class="empty-icon"><i class="fa-regular fa-file-lines" aria-hidden="true"></i></span>
+        <h2>
+          {{
+            submissions.length ? 'Select a submission to review' : 'Your next property starts here'
+          }}
+        </h2>
+        <p>
+          {{
+            submissions.length
+              ? 'Choose a home from the list to see its details and review checklist.'
+              : 'Create an owner link in CRM. Submitted homes will appear here, ready for your review.'
+          }}
+        </p>
+        <a class="outline" routerLink="/crm"
+          >Go to CRM overview<i class="fa-solid fa-arrow-right" aria-hidden="true"></i
+        ></a></section
+    ></ng-template>
+  </div>
+  <dialog
+    #photoDialog
+    class="gallery"
+    *ngIf="selected as item"
+    aria-label="Property photos"
+    (click)="$event.target === $event.currentTarget && photoDialog.close()"
+  >
+    <button
+      type="button"
+      class="gallery-close"
+      (click)="photoDialog.close()"
+      aria-label="Close photos"
+    >
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i></button
+    ><img [src]="item.photos[photoIndex]" alt="Property photo" (click)="$event.stopPropagation()" />
+    <div class="gallery-controls" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        (click)="photoIndex = (photoIndex - 1 + item.photos.length) % item.photos.length"
+        aria-label="Previous photo"
+      >
+        <i class="fa-solid fa-chevron-left"></i></button
+      ><span>{{ photoIndex + 1 }} / {{ item.photos.length }}</span
+      ><button
+        type="button"
+        (click)="photoIndex = (photoIndex + 1) % item.photos.length"
+        aria-label="Next photo"
+      >
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </dialog>
 </main>

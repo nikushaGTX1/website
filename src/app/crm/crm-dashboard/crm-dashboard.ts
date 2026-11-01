@@ -152,6 +152,10 @@ export class CrmDashboard implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const tool = params.get('tool');
+      this.openTool = tool === 'myhome' || tool === 'intake' ? tool : null;
+    });
     this.loadBestAgent();
     const requestedStatus = this.route.snapshot.paramMap.get('status');
     if (this.isDisplayedStatus(requestedStatus)) {

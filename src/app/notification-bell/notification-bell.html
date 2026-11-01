@@ -36,13 +36,13 @@
           <button type="button" class="notice" [class.unread]="!item.readAt" (click)="openNotification(item)">
             <img [src]="image(item)" alt="" loading="lazy" />
             <span class="notice-copy">
-              <strong>{{ item.type === 'interest' ? 'New interested client!' : 'New apartment matched!' }}</strong>
+              <strong>{{ item.type === 'interest-review' ? 'Client match to review' : item.type === 'interest' ? 'New interested client!' : 'New apartment matched!' }}</strong>
               <span class="notice-text">{{ summary(item) }}</span>
               <span class="notice-meta">
                 <app-currency-price *ngIf="item.apartment" [usdPrice]="item.apartment.price" [suffix]="isSale(item) ? '' : '/ month'" [showApproximate]="false"></app-currency-price>
                 <time data-no-translate>{{ relativeTime(item.createdAt) }}</time>
               </span>
-              <span class="notice-action">{{ item.type === 'interest' ? 'See client' : 'View Match' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+              <span class="notice-action">{{ item.type === 'interest-review' ? 'Review' : item.type === 'interest' ? 'See client' : 'View Match' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
             </span>
             <span class="unread-dot" *ngIf="!item.readAt" aria-label="Unread"></span>
           </button>
@@ -56,7 +56,8 @@
 
     <footer class="panel-foot">
       <a *ngIf="!forOwners" routerLink="/discover" (click)="open = false">Open Velven Discover</a>
-      <a *ngIf="forOwners" routerLink="/interested-clients" (click)="open = false">Interested clients</a>
+      <a *ngIf="forOwners && !isStaff" routerLink="/interested-clients" (click)="open = false">Interested clients</a>
+      <a *ngIf="forOwners && isStaff" routerLink="/crm/interested-clients" (click)="open = false">Client matches</a>
       <a routerLink="/my-profile" [queryParams]="{ section: 'notifications' }" (click)="open = false" aria-label="Notification settings">
         <i class="fa-solid fa-gear" aria-hidden="true"></i> Settings
       </a>

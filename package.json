@@ -12,7 +12,9 @@
     "test": "ng test",
     "test:unit": "tsx --tsconfig tsconfig.app.json --test \"src/**/*.spec.ts\"",
     "test:myhome:ui": "node scripts/test-myhome-ui.mjs",
-    "test:clients:ui": "node scripts/test-clients-ui.mjs"
+    "test:clients:ui": "node scripts/test-clients-ui.mjs",
+    "test:crm:ui": "node scripts/test-crm-workspace-ui.mjs",
+    "test:owner-submissions:ui": "node scripts/test-owner-submissions-ui.mjs"
   },
   "dependencies": {
     "@angular/common": "^21.2.0",

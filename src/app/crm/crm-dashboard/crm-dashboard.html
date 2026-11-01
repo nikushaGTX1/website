@@ -34,31 +34,9 @@
       <!-- HEADER ACTIONS -->
 
       <div class="header-actions">
-        <!-- Tools stay hidden until opened, so the pipeline is the first thing on the page. -->
-        <button type="button" class="admin-shortcut" *ngIf="isManager" [class.active]="openTool === 'myhome'" [attr.aria-expanded]="openTool === 'myhome'" (click)="toggleTool('myhome')">
-          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-          MyHome verification
-        </button>
-        <button type="button" class="admin-shortcut" *ngIf="canManageClientIntake" [class.active]="openTool === 'intake'" [attr.aria-expanded]="openTool === 'intake'" (click)="toggleTool('intake')">
-          <i class="fa-solid fa-link" aria-hidden="true"></i>
-          Client intake link
-        </button>
-        <a class="admin-shortcut" routerLink="/crm/photo-cleaner">
-          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
-          Watermark remover
-        </a>
-        <a class="admin-shortcut" routerLink="/crm" *ngIf="dedicatedStatus || dedicatedAgentId">
-          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-          All pipeline stages
-        </a>
-        <!-- SYSTEM DASHBOARD -->
-
-        <a class="admin-shortcut" routerLink="/admin" *ngIf="isManager">
-          <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-
-          System dashboard
-        </a>
-
+        <a class="admin-shortcut" routerLink="/crm" *ngIf="dedicatedStatus || dedicatedAgentId"
+          >All pipeline stages</a
+        >
         <!-- GENERATE QUESTIONNAIRE LINK -->
 
         <button
@@ -89,7 +67,12 @@
         </button>
 
         <div class="owner-link-control" *ngIf="canGenerateQuestionnaireLink">
-          <button type="button" class="generate-link-button" (click)="ownerLinkMenuOpen=!ownerLinkMenuOpen" [disabled]="generatingOwnerLink">
+          <button
+            type="button"
+            class="generate-link-button"
+            (click)="ownerLinkMenuOpen = !ownerLinkMenuOpen"
+            [disabled]="generatingOwnerLink"
+          >
             <i class="fa-solid fa-house-circle-check" aria-hidden="true"></i>
             {{ generatingOwnerLink ? 'Generating…' : 'Owner link' }}
           </button>
@@ -98,7 +81,6 @@
             <button type="button" (click)="generateOwnerLink('Sale')">Sale</button>
           </div>
         </div>
-
 
         <!-- REFRESH -->
 
@@ -124,7 +106,9 @@
     </header>
 
     <app-myhome-verification *ngIf="isManager && openTool === 'myhome'"></app-myhome-verification>
-    <app-client-intake-card *ngIf="canManageClientIntake && openTool === 'intake'"></app-client-intake-card>
+    <app-client-intake-card
+      *ngIf="canManageClientIntake && openTool === 'intake'"
+    ></app-client-intake-card>
 
     <!-- ===================================================== -->
     <!-- MESSAGES -->
@@ -202,9 +186,16 @@
       </div>
 
       <div class="vacancy-list" *ngIf="vacancyApplications.length > 0">
-        <article class="vacancy-card" [class.confirmed]="applicant.isConfirmed" *ngFor="let applicant of vacancyApplications; trackBy: identifyApplication">
+        <article
+          class="vacancy-card"
+          [class.confirmed]="applicant.isConfirmed"
+          *ngFor="let applicant of vacancyApplications; trackBy: identifyApplication"
+        >
           <span class="application-status" [class.confirmed]="applicant.isConfirmed">
-            <i [class]="applicant.isConfirmed ? 'fa-solid fa-circle-check' : 'fa-regular fa-clock'" aria-hidden="true"></i>
+            <i
+              [class]="applicant.isConfirmed ? 'fa-solid fa-circle-check' : 'fa-regular fa-clock'"
+              aria-hidden="true"
+            ></i>
             {{ applicant.isConfirmed ? 'Confirmed' : 'New application' }}
           </span>
           <div class="vacancy-applicant">
@@ -212,7 +203,9 @@
             <div>
               <h3>{{ applicant.fullName }}</h3>
               <p>{{ applicant.position }}</p>
-              <time [attr.datetime]="applicant.createdAt">Applied {{ formatDate(applicant.createdAt) }}</time>
+              <time [attr.datetime]="applicant.createdAt"
+                >Applied {{ formatDate(applicant.createdAt) }}</time
+              >
             </div>
           </div>
 
@@ -220,7 +213,11 @@
             <div>
               <dt>Phone</dt>
               <dd>
-                <a *ngIf="applicant.phoneNumber; else missingPhone" [href]="'tel:' + applicant.phoneNumber">{{ applicant.phoneNumber }}</a>
+                <a
+                  *ngIf="applicant.phoneNumber; else missingPhone"
+                  [href]="'tel:' + applicant.phoneNumber"
+                  >{{ applicant.phoneNumber }}</a
+                >
                 <ng-template #missingPhone>Not provided</ng-template>
               </dd>
             </div>
@@ -246,14 +243,27 @@
               <i class="fa-solid fa-download" aria-hidden="true"></i>
             </button>
             <ng-template #noCv>
-              <span class="cv-missing"><i class="fa-regular fa-file" aria-hidden="true"></i> No CV attached</span>
+              <span class="cv-missing"
+                ><i class="fa-regular fa-file" aria-hidden="true"></i> No CV attached</span
+              >
             </ng-template>
             <span class="vacancy-action-spacer"></span>
-            <button class="confirm-application" type="button" (click)="confirmApplication(applicant)" [disabled]="applicant.isConfirmed || vacancyActionId === applicant.id">
+            <button
+              class="confirm-application"
+              type="button"
+              (click)="confirmApplication(applicant)"
+              [disabled]="applicant.isConfirmed || vacancyActionId === applicant.id"
+            >
               <i class="fa-solid fa-check" aria-hidden="true"></i>
               {{ applicant.isConfirmed ? 'Confirmed' : 'Confirm' }}
             </button>
-            <button class="delete-application" type="button" (click)="deleteApplication(applicant)" [disabled]="vacancyActionId === applicant.id" aria-label="Delete application">
+            <button
+              class="delete-application"
+              type="button"
+              (click)="deleteApplication(applicant)"
+              [disabled]="vacancyActionId === applicant.id"
+              aria-label="Delete application"
+            >
               <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
               Delete
             </button>
@@ -281,7 +291,9 @@
         <span class="best-trophy"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
         <div class="best-photo">
           <img *ngIf="bestAgentPhoto; else bestInitials" [src]="bestAgentPhoto" alt="" />
-          <ng-template #bestInitials><span>{{ bestAgentInitials }}</span></ng-template>
+          <ng-template #bestInitials
+            ><span>{{ bestAgentInitials }}</span></ng-template
+          >
           <i class="fa-solid fa-star" aria-hidden="true"></i>
         </div>
         <div class="best-text">
@@ -290,8 +302,15 @@
           <span>Real Estate Agent</span>
         </div>
         <div class="best-stats">
-          <div><i class="fa-solid fa-handshake" aria-hidden="true"></i><b>{{ top.won }}</b><small>Deals won</small></div>
-          <div class="money"><i class="fa-solid fa-wallet" aria-hidden="true"></i><b>{{ top.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</b><small>Earned</small></div>
+          <div>
+            <i class="fa-solid fa-handshake" aria-hidden="true"></i><b>{{ top.won }}</b
+            ><small>Deals won</small>
+          </div>
+          <div class="money">
+            <i class="fa-solid fa-wallet" aria-hidden="true"></i
+            ><b>{{ top.earned | currency: 'USD' : 'symbol' : '1.0-0' }}</b
+            ><small>Earned</small>
+          </div>
         </div>
       </div>
     </section>
@@ -429,7 +448,11 @@
       <!-- PIPELINE BOARD -->
 
       <div class="pipeline-scroll" *ngIf="!loading && filteredLeads.length > 0">
-        <div class="pipeline-board" [class.filtered]="statusFilter !== 'all'" [style.--crm-columns]="visibleStatuses.length">
+        <div
+          class="pipeline-board"
+          [class.filtered]="statusFilter !== 'all'"
+          [style.--crm-columns]="visibleStatuses.length"
+        >
           <section
             class="pipeline-column"
             *ngFor="let status of visibleStatuses; trackBy: identifyStatus"
@@ -855,9 +878,7 @@
               </span>
               <i
                 [class]="
-                  manualLeadForm.fromUploader
-                    ? 'fa-solid fa-circle-check'
-                    : 'fa-regular fa-circle'
+                  manualLeadForm.fromUploader ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'
                 "
                 aria-hidden="true"
               ></i>

@@ -777,3 +777,7 @@
     display: none;
   }
 }
+/* Match the CRM sidebar offset while retaining the shared site navigation. */
+@media (max-width: 780px) {
+  :host(.workspace-navigation) .navigation { min-height: 67px; }
+}

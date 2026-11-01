@@ -7,6 +7,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ClientService } from '../services/client.service';
 import { ListingInterestService } from '../services/listing-interest.service';
+import { AuthService } from '../services/auth.service';
 import { ClientNotification } from '../models/client';
 import { TranslationService } from '../services/translation.service';
 import { toMediaUrl } from '../utils/api-media';
@@ -39,6 +40,7 @@ export class NotificationBell implements OnInit, OnDestroy {
   constructor(
     private client: ClientService,
     private interests: ListingInterestService,
+    private auth: AuthService,
     private router: Router,
     private host: ElementRef<HTMLElement>,
     private cdr: ChangeDetectorRef,
@@ -61,6 +63,10 @@ export class NotificationBell implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
     this.requests.unsubscribe();
+  }
+
+  get isStaff(): boolean {
+    return this.auth.isStaff;
   }
 
   /** Owner/agent alerts instead of client alerts. */
@@ -106,6 +112,10 @@ export class NotificationBell implements OnInit, OnDestroy {
       } }));
     }
     this.open = false;
+    if (item.type === 'interest-review') {
+      void this.router.navigate(['/crm/interested-clients']);
+      return;
+    }
     if (item.type === 'interest') {
       void this.router.navigate(['/interested-clients'], { queryParams: { apartment: item.apartment?.id ?? undefined } });
       return;
@@ -140,6 +150,9 @@ export class NotificationBell implements OnInit, OnDestroy {
   /** "A new 3-bedroom apartment in Vake matches your preferences." */
   summary(item: ClientNotification): string {
     const apartment = item.apartment;
+    if (item.type === 'interest-review') {
+      return `A client's search matches your listing in ${apartment?.district || 'Tbilisi'}. Check the client before the owner is told.`;
+    }
     if (item.type === 'interest') {
       const place = apartment?.district || 'Tbilisi';
       return `A client is looking for a home like your listing in ${place}.`;

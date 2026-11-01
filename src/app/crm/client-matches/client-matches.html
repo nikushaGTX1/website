@@ -1,0 +1,93 @@
+<main class="page">
+  <header class="top">
+    <div>
+      <a class="back" routerLink="/crm"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> CRM</a>
+      <h1>Client matches</h1>
+      <p>A client's Velven Match search fits one of your listings. Check the client, then send the match to the owner with your phone number.</p>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Match status">
+    @for (tab of tabs; track tab.value) {
+      <button type="button" role="tab" [class.active]="status === tab.value" [attr.aria-selected]="status === tab.value" (click)="setStatus(tab.value)">
+        <i [class]="tab.icon" aria-hidden="true"></i><span>{{ tab.label }}</span>
+      </button>
+    }
+  </div>
+
+  <p class="notice" *ngIf="notice" role="status"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> {{ notice }}</p>
+
+  @if (loading) {
+    <div class="skeleton" aria-hidden="true"></div>
+  } @else if (error) {
+    <div class="state" role="alert"><h2>{{ error }}</h2><button type="button" class="primary" (click)="load()">Try again</button></div>
+  } @else if (!items.length) {
+    <div class="state">
+      <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+      @if (status === 'pending') {<h2>No client matches to review.</h2><p>New matches for your listings appear here and in your notifications.</p>}
+      @else if (status === 'ready') {<h2>Nothing sent to owners yet.</h2>}
+      @else {<h2>No dismissed matches.</h2>}
+    </div>
+  } @else {
+    <ul class="list">
+      @for (item of items; track item.id) {
+        <li class="match">
+          <section class="client">
+            <div class="row-head">
+              <span class="label">Client</span>
+              <span class="badge-new" *ngIf="item.isNew && status === 'pending'">New</span>
+            </div>
+            <h2 data-no-translate>{{ item.clientName || 'Velven client' }}</h2>
+            <div class="contacts">
+              <a *ngIf="item.clientPhone" [href]="'tel:' + item.clientPhone"><i class="fa-solid fa-phone" aria-hidden="true"></i><span data-no-translate>{{ item.clientPhone }}</span></a>
+              <a *ngIf="item.clientPhone" [href]="whatsapp(item.clientPhone)" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+              <a *ngIf="item.clientEmail" [href]="'mailto:' + item.clientEmail"><i class="fa-regular fa-envelope" aria-hidden="true"></i><span data-no-translate>{{ item.clientEmail }}</span></a>
+            </div>
+            <p class="budget"><strong>{{ currencySymbol(item.profile['currency']) }}{{ (item.profile['budgetMin'] || 0) | number }}–{{ (item.profile['budgetMax'] || 0) | number }}</strong><span *ngIf="item.profile['propertyGoal'] !== 'Buy'">/ month</span></p>
+            <dl class="facts">
+              <div><dt>Preferred area</dt><dd>@for (d of districts(item); track d) {@if ($index) {<span> · </span>}<span>{{ label(d) }}</span>} <span *ngIf="!districts(item).length">Flexible location</span></dd></div>
+              <div><dt>Residents</dt><dd>{{ residents(item) }}</dd></div>
+              <div><dt>Pets</dt><dd>@if (pets(item).length) {@for (pet of pets(item); track $index) {@if ($index) {<span>, </span>}<span>{{ label(pet) }}</span>}} @else {<span>No pets</span>}</dd></div>
+              <div><dt>Move-in</dt><dd>{{ item.profile['moveInDate'] || label(item.profile['moveInTiming']) || 'Not specified' }}</dd></div>
+              <div *ngIf="item.profile['propertyGoal'] !== 'Buy'"><dt>Lease term</dt><dd>{{ label(item.profile['rentalDuration']) || 'Not specified' }}</dd></div>
+            </dl>
+          </section>
+
+          <section class="listing">
+            <span class="label">Matches your listing</span>
+            <a class="listing-card" [routerLink]="['/apartments', item.apartmentId]" target="_blank">
+              <img [src]="image(item)" alt="" loading="lazy" />
+              <span>
+                <b>{{ titleSource(item) | listingTitle }}</b>
+                <small>{{ item.district }}<span *ngIf="item.street"> · {{ item.street }}</span></small>
+                <app-currency-price [usdPrice]="item.price" [suffix]="isSale(item) ? '' : '/ month'" [showApproximate]="false"></app-currency-price>
+              </span>
+            </a>
+            <div class="owner">
+              <span class="label">Owner</span>
+              <strong data-no-translate>{{ item.ownerName || 'Owner' }}</strong>
+              <a *ngIf="item.ownerPhone" [href]="'tel:' + item.ownerPhone" data-no-translate>{{ item.ownerPhone }}</a>
+              <small>
+                @if (item.ownerHasAccount && item.ownerEmail) {<span>Gets a notification and an email</span>}
+                @else if (item.ownerHasAccount) {<span>Gets a notification on Velven</span>}
+                @else if (item.ownerEmail) {<span>Gets an email</span>}
+                @else {<span>No account or email: call the owner yourself</span>}
+              </small>
+            </div>
+            <p class="reviewed" *ngIf="status !== 'pending' && item.reviewedAt">
+              <span>Reviewed</span> {{ item.reviewedAt | date: 'd MMM, HH:mm' }}<span *ngIf="item.reviewerName"> · <span data-no-translate>{{ item.reviewerName }}</span></span>
+            </p>
+          </section>
+
+          <div class="actions" *ngIf="status === 'pending'">
+            <button type="button" class="primary" [disabled]="busyId === item.id" (click)="markReady(item)">
+              <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Mark as ready · send to owner
+            </button>
+            <button type="button" class="ghost" [disabled]="busyId === item.id" (click)="dismiss(item)">Not a fit</button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+  <p class="privacy"><i class="fa-solid fa-lock" aria-hidden="true"></i> The owner gets the client's requirements and your name and phone. Never the client's contact details.</p>
+</main>

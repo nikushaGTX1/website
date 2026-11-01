@@ -70,3 +70,10 @@ h1 { margin: 0; font-size: clamp(32px, 4.4vw, 56px); font-weight: 800; line-heig
   .client-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+.staff-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--brand); font-weight: 700; text-decoration: none; }
+.cc-agent { display: grid; gap: 2px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.cc-agent-title { color: #7c7490; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.cc-agent strong { font-size: 15px; }
+.cc-agent a { color: var(--brand); font-size: 14px; font-weight: 600; text-decoration: none; }
+.cc-agent + .cc-action { margin-top: 12px; }
