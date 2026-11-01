@@ -88,10 +88,6 @@ export class CrmDashboard implements OnInit {
   dragOverStatus: CrmLeadStatus | null = null;
   readonly statusUpdatingLeadIds = new Set<number>();
 
-  generatingQuestionnaireLink = false;
-  linkCopied = false;
-  ownerLinkMenuOpen = false;
-  generatingOwnerLink = false;
 
   searchQuery = '';
   statusFilter: StatusFilter = 'all';
@@ -199,10 +195,6 @@ export class CrmDashboard implements OnInit {
 
   get canDragLeads(): boolean {
     return this.isManager;
-  }
-
-  get canGenerateQuestionnaireLink(): boolean {
-    return this.authService.canOpenCrm;
   }
 
   get allowedLeadSources(): Array<{ value: string; label: string }> {
@@ -1114,75 +1106,5 @@ export class CrmDashboard implements OnInit {
     const message =
       typeof error.error === 'string' ? error.error : error.error?.message || error.error?.title;
     return message || fallback;
-  }
-
-  generateQuestionnaireLink(): void {
-    if (!this.canGenerateQuestionnaireLink || this.generatingQuestionnaireLink) {
-      return;
-    }
-
-    this.generatingQuestionnaireLink = true;
-    this.linkCopied = false;
-    this.errorMessage = '';
-
-    this.crmService.generateQuestionnaireLink().subscribe({
-      next: async (response) => {
-        this.generatingQuestionnaireLink = false;
-
-        const cleanPath = `/${encodeURIComponent(response.slug)}`;
-        const shareUrl = new URL(cleanPath, window.location.origin);
-        const fullUrl = shareUrl.toString();
-
-        try {
-          await navigator.clipboard.writeText(fullUrl);
-
-          this.linkCopied = true;
-          this.successMessage = 'Questionnaire link copied to clipboard.';
-
-          setTimeout(() => {
-            this.linkCopied = false;
-            this.cdr.markForCheck();
-          }, 2500);
-        } catch (error) {
-          console.error('Could not copy questionnaire link:', error);
-
-          window.prompt('Copy questionnaire link:', fullUrl);
-        }
-
-        this.cdr.markForCheck();
-      },
-
-      error: (error: HttpErrorResponse) => {
-        this.generatingQuestionnaireLink = false;
-        this.errorMessage = this.apiError(error, 'Could not generate questionnaire link.');
-        this.cdr.markForCheck();
-      },
-    });
-  }
-
-  generateOwnerLink(dealType: OwnerDealType): void {
-    if (this.generatingOwnerLink) return;
-    this.generatingOwnerLink = true;
-    this.ownerLinkMenuOpen = false;
-    this.errorMessage = '';
-    this.ownerListingService.createLink(dealType).subscribe({
-      next: async response => {
-        this.generatingOwnerLink = false;
-        const fullUrl = new URL(response.path, window.location.origin).toString();
-        try {
-          await navigator.clipboard.writeText(fullUrl);
-          this.successMessage = 'Owner link copied to clipboard.';
-        } catch {
-          window.prompt('Copy owner link:', fullUrl);
-          this.successMessage = 'Owner link created.';
-        }
-        this.cdr.markForCheck();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.generatingOwnerLink = false;
-        this.errorMessage = this.apiError(error, 'Could not generate owner link.');
-        this.cdr.markForCheck();
-      },
-    });
   }
 }

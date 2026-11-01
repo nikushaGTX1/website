@@ -8,13 +8,13 @@ import {
   parsePhoneNumberFromString,
   validatePhoneNumberLength,
 } from 'libphonenumber-js/max';
-import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
+import { enableFlagEmojis } from '../../utils/flag-emoji';
 import { ApiLocation, LocationSuggestion } from '../../models/location';
 import { LocationService } from '../../services/location.service';
 import { TranslationService } from '../../services/translation.service';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-polyfillCountryFlagEmojis();
+enableFlagEmojis();
 
 type AppLanguage = 'ka' | 'en' | 'ru';
 
@@ -1281,7 +1281,7 @@ export class CrmQuestioner implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    polyfillCountryFlagEmojis();
+    enableFlagEmojis();
 
     const browserLanguage = (navigator.language || '').toLowerCase();
 

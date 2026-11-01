@@ -14,6 +14,8 @@ interface MenuItem {
   /** Count badge (Velven Discover: new matches). */
   badge?: number;
   featured?: boolean;
+  /** Opens in a new tab (the live website from the CRM). */
+  newTab?: boolean;
 }
 
 @Component({
@@ -69,6 +71,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
     const items = this.canOpenCrm
       ? [
           { label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-address-book' },
+          { label: 'Interested clients', route: '/crm/interested-clients', icon: 'fa-solid fa-user-check' },
           ...this.accountMenuItems.filter((item) => item.route !== '/my-listings'),
         ]
       : this.accountMenuItems;

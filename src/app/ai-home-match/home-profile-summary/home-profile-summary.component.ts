@@ -63,6 +63,14 @@ export class HomeProfileSummaryComponent {
             icon: 'fa-couch',
           }
         : null,
+      p.propertyGoal === 'Buy' && p.propertyConditions?.length
+        ? {
+            step: 13,
+            label: 'Condition',
+            value: p.propertyConditions.map((code) => this.label(code)).join(', '),
+            icon: 'fa-trowel-bricks',
+          }
+        : null,
       {
         step: 2,
         label: 'Location',

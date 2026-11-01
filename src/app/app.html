@@ -53,11 +53,13 @@
     >
 
     <p class="workspace-nav-label">TOOLS</p>
+    <app-crm-links-menu></app-crm-links-menu>
     <a
-      routerLink="/crm/upload"
-      routerLinkActive="selected"
-      [routerLinkActiveOptions]="{ exact: true }"
-      ><i class="fa-solid fa-plus" aria-hidden="true"></i>Add property</a
+      *ngIf="auth.isAgent || auth.isCrmManager"
+      href="https://gtxlivewebscraper-production.up.railway.app/"
+      target="_blank"
+      rel="noopener"
+      ><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i>Open Live</a
     >
     <a
       routerLink="/crm/photo-cleaner"
@@ -66,13 +68,6 @@
       ><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>Watermark remover</a
     >
     <a
-      *ngIf="auth.isAgent || auth.isCrmManager"
-      routerLink="/crm"
-      [queryParams]="{ tool: 'intake' }"
-      routerLinkActive="selected"
-      [routerLinkActiveOptions]="{ exact: true }"
-      ><i class="fa-solid fa-link"></i>Client intake link</a
-    ><a
       *ngIf="auth.isCrmManager"
       routerLink="/crm"
       [queryParams]="{ tool: 'myhome' }"

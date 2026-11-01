@@ -2,6 +2,14 @@ import type { HomeMatchProfile } from '../models/home-match-profile';
 
 /** Human-readable English labels for stored answer codes, so codes like "RemoteWorker" never reach the UI. */
 const ANSWER_LABELS: Record<string, string> = {
+  // Property condition (buyers)
+  Any: 'Any condition',
+  MoveInReady: 'Move-in ready',
+  Renovated: 'Renovated',
+  WhiteFrame: 'White frame',
+  BlackFrame: 'Black frame',
+  GreenFrame: 'Green frame',
+  NeedsRenovation: 'Needs renovation',
   // Goal / gender
   Rent: 'Rent',
   Buy: 'Buy',

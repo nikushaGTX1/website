@@ -35,7 +35,6 @@ const workspaceRedirect: CanActivateFn = (route) => {
     'my-viewings': 'viewings',
     'saved-listings': 'saved',
     'my-reviews': 'reviews',
-    'upload-apartment': 'upload',
     admin: 'system',
   };
   const destination = destinations[route.routeConfig?.path || ''];

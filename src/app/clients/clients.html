@@ -110,7 +110,8 @@
                   <span *ngIf="!client.profile.districts.length">{{ client.profile.locationFlexible ? 'Flexible location' : 'Selected map area' }}</span>
                 </dd></div>
                 <div><dt><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>Residents</span></dt><dd>{{ client.profile.adults + client.profile.children }} @if (client.profile.adults + client.profile.children === 1) {<span>person</span>} @else {<span>people</span>}</dd></div>
-                <div><dt><i class="fa-solid fa-paw" aria-hidden="true"></i><span>Pets</span></dt><dd>
+                <div *ngIf="goal === 'Buy'"><dt><i class="fa-solid fa-trowel-bricks" aria-hidden="true"></i><span>Condition</span></dt><dd>@if (client.profile.propertyConditions?.length) {@for (code of client.profile.propertyConditions; track code) {@if ($index) {<span>, </span>}<span>{{ label(code) }}</span>}} @else {<span>Any condition</span>}</dd></div>
+                <div *ngIf="goal !== 'Buy'"><dt><i class="fa-solid fa-paw" aria-hidden="true"></i><span>Pets</span></dt><dd>
                   @if (client.profile.hasPet) {{{ client.profile.petCount || client.profile.petTypes?.length || 1 }}&ngsp;<span *ngIf="(client.profile.petTypes?.length === 1 && client.profile.petTypes?.[0] === 'Dog') || (!client.profile.petTypes?.length && client.profile.petType === 'Dog')">{{ label(client.profile.dogSize) }}&ngsp;</span>@for (pet of petNames(client); track $index) {@if ($index) {<span>, </span>}<span>{{ pet }}</span>}} @else {<span>No pets</span>}
                 </dd></div>
                 <div><dt><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>Move-in</span></dt><dd>{{ client.profile.moveInDate || label(client.profile.moveInTiming) || 'Not specified' }}</dd></div>

@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnIn
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 
-type FilterKey = 'district' | 'budget' | 'timing' | 'residents' | 'pets';
+type FilterKey = 'district' | 'budget' | 'timing' | 'residents' | 'pets' | 'condition';
 interface FilterDef {
   key: FilterKey;
   label: string;
@@ -16,10 +16,10 @@ import { Subscription } from 'rxjs';
 import { BoardClient, BoardPage, ClientBoardService } from '../services/client-board.service';
 import { EMPTY_HOME_MATCH_PROFILE } from '../ai-home-match/models/home-match-profile';
 import { answerLabel } from '../ai-home-match/services/answer-labels';
-import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
+import { enableFlagEmojis } from '../utils/flag-emoji';
 
 // Windows has no flag emoji; this loads a small flag font instead.
-polyfillCountryFlagEmojis();
+enableFlagEmojis();
 
 /** English country name -> flag emoji ("Georgia" -> 🇬🇪), built once from the browser's country names. */
 let flagsByCountry: Map<string, string> | undefined;
@@ -81,6 +81,8 @@ export class Clients implements OnInit, OnDestroy {
   timing = '';
   residents = '';
   pets = '';
+  /** Buy tab: property condition the buyer accepts (replaces the pets filter). */
+  condition = '';
   /** Filter menu currently open (Velven-styled menus instead of the browser's selects). */
   openFilter: FilterKey | null = null;
 
@@ -130,16 +132,27 @@ export class Clients implements OnInit, OnDestroy {
         icon: 'fa-solid fa-user-group',
         options: [{ value: '', label: 'Any household' }, ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ value: String(n), label: String(n) }))],
       },
-      {
-        key: 'pets',
-        label: 'Pets',
-        icon: 'fa-solid fa-paw',
-        options: [
-          { value: '', label: 'Any' },
-          { value: 'true', label: 'With pets' },
-          { value: 'false', label: 'No pets' },
-        ],
-      },
+      this.goal === 'Buy'
+        ? {
+            key: 'condition',
+            label: 'Condition',
+            icon: 'fa-solid fa-trowel-bricks',
+            options: [
+              { value: '', label: 'Any condition' },
+              ...['MoveInReady', 'Renovated', 'WhiteFrame', 'BlackFrame', 'GreenFrame', 'NeedsRenovation']
+                .map((code) => ({ value: code, label: this.label(code) })),
+            ],
+          }
+        : {
+            key: 'pets',
+            label: 'Pets',
+            icon: 'fa-solid fa-paw',
+            options: [
+              { value: '', label: 'Any' },
+              { value: 'true', label: 'With pets' },
+              { value: 'false', label: 'No pets' },
+            ],
+          },
     ];
   }
 
@@ -276,6 +289,8 @@ export class Clients implements OnInit, OnDestroy {
     this.goal = goal;
     this.budget = '';
     this.timing = '';
+    this.pets = '';
+    this.condition = '';
     this.search();
   }
 
@@ -288,7 +303,8 @@ export class Clients implements OnInit, OnDestroy {
       goal: this.goal,
       district: this.district,
       residents: this.residents,
-      pets: this.pets,
+      pets: this.goal === 'Buy' ? '' : this.pets,
+      condition: this.goal === 'Buy' ? this.condition : '',
     };
     if (this.budget) {
       const [min, max] = this.budget.split('-');
@@ -356,7 +372,7 @@ export class Clients implements OnInit, OnDestroy {
   }
 
   get hasFilters(): boolean {
-    return !!(this.district || this.budget || this.timing || this.residents || this.pets);
+    return !!(this.district || this.budget || this.timing || this.residents || this.pets || this.condition);
   }
 
   /** Examples stand in for an empty Rent board with no filters set. */

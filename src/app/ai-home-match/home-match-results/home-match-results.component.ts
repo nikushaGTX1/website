@@ -34,6 +34,8 @@ import { listedUniversityMinutes } from '../../utils/universities';
 import { NgIf, NgFor, NgClass, NgTemplateOutlet } from '@angular/common';
 import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
 import { RouterLink } from '@angular/router';
+import { rememberResultsUrl } from '../../utils/results-return';
+import { HomeMatchService } from '../services/home-match.service';
 import { CurrencyPrice } from '../../currency-price/currency-price';
 import { GooglePropertyMapComponent } from '../../maps/google-property-map/google-property-map.component';
 import { ListingTitlePipe } from '../../shared/listing-title.pipe';
@@ -137,6 +139,7 @@ export class HomeMatchResultsComponent implements OnChanges {
     private readonly apartmentService: ApartmentService,
     private readonly cdr: ChangeDetectorRef,
     private readonly currency: CurrencyService,
+    private readonly homeMatch: HomeMatchService,
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -487,7 +490,8 @@ export class HomeMatchResultsComponent implements OnChanges {
     }
     if (
       (priorities.has('QuietStreet') || p.lifestyles.includes('QuietLifestyle')) &&
-      apartment.isQuietStreet
+      // The API has no quiet-street field; the upload form writes "Quiet street: Yes" in the details.
+      (apartment.isQuietStreet || /Quiet street:\s*yes/i.test(apartment.description || ''))
     ) {
       add('Quiet street', 'Matches your quiet lifestyle', 'fa-volume-xmark');
     }
@@ -929,5 +933,12 @@ export class HomeMatchResultsComponent implements OnChanges {
     }
 
     return insights.slice(0, 6);
+  }
+
+  /** The apartment page's "Back to results" then returns here, to the same Velven Match results. */
+  rememberMatchResults(): void {
+    rememberResultsUrl('/ai-home-match');
+    // Saved now: by the time this page is destroyed the router has already scrolled to the top.
+    this.homeMatch.saveResultsScroll(window.scrollY);
   }
 }

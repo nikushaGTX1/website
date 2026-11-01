@@ -4,8 +4,8 @@
     <ng-container *ngIf="apartment; else state">
       <div class="vp-toolbar">
         <a
-          routerLink="/ExploreProperty"
-          [queryParams]="backToResultsQuery"
+          [routerLink]="backToMatch ? '/ai-home-match' : '/ExploreProperty'"
+          [queryParams]="backToMatch ? null : backToResultsQuery"
           ><i class="fa-solid fa-chevron-left"></i> Back to results</a
         >
         <div class="vp-share-wrap">
@@ -324,7 +324,7 @@
         <button class="viewer-nav next" type="button" aria-label="Next photo" [disabled]="activePhotoIndex >= photoCount - 1" (click)="$event.stopPropagation(); stepViewer(1)"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
         <span class="viewer-count">{{ activePhotoIndex + 1 }} / {{ photoCount }}</span>
         <div class="viewer-thumbnails" role="group" aria-label="Choose photo" (click)="$event.stopPropagation()">
-          <button *ngFor="let image of galleryImages; let i = index" type="button"
+          <button *ngFor="let image of viewerThumbs; let i = index" type="button"
             [class.active]="i === activePhotoIndex" [attr.aria-pressed]="i === activePhotoIndex" [attr.data-viewer-thumbnail]="i"
             [attr.aria-label]="'Photo ' + (i + 1)" (click)="goToViewerPhoto(i)"><img [src]="image" alt="" loading="lazy" draggable="false" /></button>
         </div>

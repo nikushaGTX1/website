@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { API_URL } from '../utils/api-config';
+import { toMediaUrl } from '../utils/api-media';
+import { map } from 'rxjs';
 import { HomeMatchProfile } from '../ai-home-match/models/home-match-profile';
 import { CurrencyService } from './currency.service';
 
@@ -51,7 +53,11 @@ export class ClientBoardService {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(filters))
       if (value !== '') params = params.set(key, value);
-    return this.http.get<BoardPage>(`${API_URL}/client-board`, { params });
+    // Agent photos through the resizing image proxy (small, cached) instead of signed storage URLs.
+    return this.http.get<BoardPage>(`${API_URL}/client-board`, { params }).pipe(map((page) => ({
+      ...page,
+      items: page.items.map((item) => ({ ...item, agent: { ...item.agent, photo: item.agent.photo ? toMediaUrl(item.agent.photo) || item.agent.photo : null } })),
+    })));
   }
   submit(token: string, profile: HomeMatchProfile, contact: IntakeContact) {
     const snapshot = profile.budgetConversion;

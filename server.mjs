@@ -734,7 +734,8 @@ function warmApartmentDetails(body) {
 // kept in memory; Cloudflare then caches each size. Without sharp, the original is sent.
 const resizedImageCache = new Map();
 const resizedImageRequests = new Map();
-const allowedImageWidths = new Set([480, 640, 960]);
+// 160: viewer thumbnails, 320: agent photos, 1280: fullscreen viewer (WebP, half the JPEG size).
+const allowedImageWidths = new Set([160, 320, 480, 640, 960, 1280]);
 let sharpModule;
 async function loadSharp() {
   if (sharpModule === undefined) {
@@ -762,8 +763,8 @@ async function resizedApartmentImage(source, width) {
       .toBuffer();
     const image = { body, contentType: 'image/webp', etag: null };
     resizedImageCache.set(key, image);
-    // ~50 KB each: keep the most recent ~1500 sizes (about 75 MB at most).
-    if (resizedImageCache.size > 1500) resizedImageCache.delete(resizedImageCache.keys().next().value);
+    // Mostly 10-60 KB each: keep the most recent ~3000 sizes (well under 150 MB).
+    if (resizedImageCache.size > 3000) resizedImageCache.delete(resizedImageCache.keys().next().value);
     return image;
   })().finally(() => resizedImageRequests.delete(key));
   resizedImageRequests.set(key, request);
@@ -1665,6 +1666,9 @@ async function warmAllListingPhotos() {
         const url = queue.shift();
         try {
           await resizedApartmentImage(url, 960);
+          // Fullscreen viewer and its thumbnails, so they open instantly too.
+          await resizedApartmentImage(url, 1280);
+          await resizedApartmentImage(url, 160);
           count++;
         } catch {
           // A missing photo is skipped; the card shows its placeholder.

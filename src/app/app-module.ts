@@ -6,6 +6,7 @@ import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
 import { Navigation } from './navigation/navigation';
 import { Footer } from './footer/footer';
+import { CrmLinksMenu } from './crm/crm-links-menu/crm-links-menu';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { apiPerformanceInterceptor } from './interceptors/api-performance.interceptor';
 
@@ -16,7 +17,7 @@ import { apiPerformanceInterceptor } from './interceptors/api-performance.interc
  */
 @NgModule({
   declarations: [App],
-  imports: [BrowserModule, AppRoutingModule, Navigation, Footer],
+  imports: [BrowserModule, AppRoutingModule, Navigation, Footer, CrmLinksMenu],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor, apiPerformanceInterceptor])),

@@ -30,7 +30,8 @@ try {
   assert.equal(await page.locator('.workspace-count').textContent().then(text => text.trim()), '4');
   await page.locator('app-myhome-verification').waitFor();
   assert.equal(await sidebar.locator('a.selected').getAttribute('href'), '/crm?tool=myhome');
-  await sidebar.locator('a[href="/crm?tool=intake"]').click();
+  await sidebar.locator('.links-toggle').click();
+  await sidebar.locator('.link-item[data-kind="intake"]').click();
   await page.locator('app-client-intake-card').waitFor();
   await assertWorkspace();
   assert.equal(await page.locator('app-myhome-verification').count(), 0);
@@ -68,7 +69,8 @@ try {
   await page.locator('.workspace-menu-toggle').click();
   await page.waitForTimeout(250);
   assert.equal(await sidebar.evaluate(el => Math.abs(el.getBoundingClientRect().left) < 1), true);
-  await sidebar.locator('a[href="/crm?tool=intake"]').click();
+  await sidebar.locator('.links-toggle').click();
+  await sidebar.locator('.link-item[data-kind="intake"]').click();
   await page.locator('app-client-intake-card').waitFor();
   assert.equal(await sidebar.evaluate(el => el.classList.contains('mobile-open')), false);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);

@@ -204,7 +204,7 @@ export class OwnerSubmissions implements OnInit {
     if (!this.discardChanges()) return;
     if (item.status === 'published' && item.publishedApartmentId)
       this.router.navigate(['/apartments', item.publishedApartmentId]);
-    else this.router.navigate(['/crm/upload'], { queryParams: { owner: item.id } });
+    else this.router.navigate(['/upload-apartment'], { queryParams: { owner: item.id } });
   }
   title(item: OwnerSubmission): string {
     const d = item.data || {};

@@ -90,6 +90,7 @@ export class HomeMatchService {
   clearSession(): void {
     try {
       sessionStorage.removeItem(HomeMatchService.SESSION_KEY);
+      sessionStorage.removeItem(HomeMatchService.RESULTS_KEY);
     } catch {
       // Storage blocked: nothing was kept.
     }
@@ -108,6 +109,45 @@ export class HomeMatchService {
   }
 
   private static readonly SESSION_KEY = 'velven:home-match-profile';
+  private static readonly RESULTS_KEY = 'velven:home-match-results';
+  /** Kept results are shown again for this long (Back from an apartment); then Match runs again. */
+  private static readonly RESULTS_LIFETIME_MS = 60 * 60_000;
+
+  /**
+   * Keeps the last results for this tab, tied to the exact answers that produced them, so Back
+   * from an apartment shows the same list instead of running Velven Match again.
+   */
+  saveResults(profileKey: string, matches: HomeMatchResult[]): void {
+    try {
+      sessionStorage.setItem(HomeMatchService.RESULTS_KEY, JSON.stringify({ profileKey, matches, savedAt: Date.now(), scrollY: 0 }));
+    } catch {
+      // Storage full or blocked: Back will simply run the match again.
+    }
+  }
+
+  /** Results saved for these answers in this tab, or null (other answers, too old, none). */
+  restoreResults(profileKey: string): { matches: HomeMatchResult[]; scrollY: number } | null {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(HomeMatchService.RESULTS_KEY) || 'null');
+      if (!saved || saved.profileKey !== profileKey || !Array.isArray(saved.matches)) return null;
+      if (Date.now() - Number(saved.savedAt || 0) > HomeMatchService.RESULTS_LIFETIME_MS) return null;
+      return { matches: saved.matches, scrollY: Number(saved.scrollY) || 0 };
+    } catch {
+      return null;
+    }
+  }
+
+  /** Remembers where the user was on the results list when they left it. */
+  saveResultsScroll(scrollY: number): void {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(HomeMatchService.RESULTS_KEY) || 'null');
+      if (!saved) return;
+      saved.scrollY = Math.max(0, Math.round(scrollY));
+      sessionStorage.setItem(HomeMatchService.RESULTS_KEY, JSON.stringify(saved));
+    } catch {
+      // Ignore: the list still comes back, at the top.
+    }
+  }
   private cloneEmpty(): HomeMatchProfile {
     return {
       ...EMPTY_HOME_MATCH_PROFILE,

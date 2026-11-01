@@ -4,9 +4,27 @@ const apiOrigin = API_BASE_URL;
 const profileUploadsPath = 'uploads/profiles';
 const attemptedMediaFallbacks = new WeakMap<HTMLImageElement, number>();
 
-/** Original-resolution version of a listing photo URL (for the fullscreen viewer). */
+/**
+ * Fullscreen viewer size: a 1280px WebP (originals are 1280px JPEGs, so no detail is lost)
+ * at about half the bytes, resized once on the server and cached by Cloudflare.
+ */
 export function fullSizeImage(url: string): string {
-  return url.replace(/&w=\d+$/, '');
+  return url.replace(/&w=\d+$/, '&w=1280');
+}
+
+/** Small version of a proxied photo: thumbnails (160) and avatars (320). Other URLs unchanged. */
+export function smallImage(url: string, width: 160 | 320 = 160): string {
+  return /&w=\d+$/.test(url) ? url.replace(/&w=\d+$/, `&w=${width}`) : url;
+}
+
+/** Warms the browser cache so the next photo shows instantly. */
+export function preloadImages(urls: string[]): void {
+  for (const url of urls) {
+    if (!url) continue;
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = url;
+  }
 }
 
 export function toMediaUrl(value?: string | null): string {
@@ -37,7 +55,9 @@ export function toMediaUrl(value?: string | null): string {
         // same for days (the API signs them for a week), so repeat visits load from cache.
         // w=960: a resized WebP (~3x smaller than the 1280px original) — enough for cards,
         // the map preview and the listing page. fullSizeImage() drops it for the photo viewer.
-        return `/media/apartment-image.jpg?url=${encodeURIComponent(normalizedValue)}&w=960`;
+        // Profile photos are only shown as small avatars: 320px is plenty and ~10x smaller.
+        const width = mediaUrl.pathname.includes('/apartments/profiles/') ? 320 : 960;
+        return `/media/apartment-image.jpg?url=${encodeURIComponent(normalizedValue)}&w=${width}`;
       }
     } catch {
       return '';

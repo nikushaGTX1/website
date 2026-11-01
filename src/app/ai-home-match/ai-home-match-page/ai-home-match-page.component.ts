@@ -93,7 +93,30 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       subtitle: 'Choose them in order from most to least important.',
     },
     { title: 'What style of apartment do you like?' },
+    { title: 'What condition should the property be in?', subtitle: 'Choose one or more.' },
   ];
+  /** Buyers only (question 13). "Any" stands alone. */
+  readonly conditionOptions = [
+    { value: 'MoveInReady', label: 'Move-in ready', icon: 'fa-solid fa-couch' },
+    { value: 'Renovated', label: 'Renovated', icon: 'fa-solid fa-paint-roller' },
+    { value: 'WhiteFrame', label: 'White frame', icon: 'fa-regular fa-square' },
+    { value: 'BlackFrame', label: 'Black frame', icon: 'fa-solid fa-square' },
+    { value: 'GreenFrame', label: 'Green frame', icon: 'fa-solid fa-seedling' },
+    { value: 'NeedsRenovation', label: 'Needs renovation', icon: 'fa-solid fa-trowel-bricks' },
+    { value: 'Any', label: 'Any condition', icon: 'fa-solid fa-check-double' },
+  ];
+  toggleCondition(value: string): void {
+    const current = this.profile.propertyConditions ?? [];
+    this.profile.propertyConditions = value === 'Any'
+      ? (current.includes('Any') ? [] : ['Any'])
+      : current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current.filter((item) => item !== 'Any'), value];
+    this.persist();
+  }
+  conditionSelected(value: string): boolean {
+    return (this.profile.propertyConditions ?? []).includes(value);
+  }
   /** Same popular-area cards as the location picker on the main page. */
   readonly featuredDistricts = [
     { value: 'Vake', description: 'Premium central area', icon: '/icons/areas/vake-tree.svg' },
@@ -325,6 +348,21 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       const missing = this.firstIncompleteStep();
       if (missing === undefined) this.view = 'review';
       else this.step = missing;
+      // Back from an apartment: show the same results again instead of the summary.
+      const kept = missing === undefined && this.intakeToken === null
+        ? service.restoreResults(JSON.stringify(this.profile))
+        : null;
+      if (kept) {
+        this.matches = kept.matches;
+        this.view = 'results';
+        // The list renders over a few frames (photos, map): retry until the page is tall enough.
+        for (const delay of [60, 250, 600, 1200]) {
+          setTimeout(() => {
+            if (this.view === 'results' && Math.abs(window.scrollY - kept.scrollY) > 4)
+              window.scrollTo({ top: kept.scrollY, behavior: 'instant' as ScrollBehavior });
+          }, delay);
+        }
+      }
     }
     this.locationService.getLocations().subscribe({
       next: (locations) => {
@@ -348,9 +386,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get visibleSteps(): number[] {
     // Question 12 (apartment style) is asked right after Rent / Buy.
-    return [1, 12, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter(
+    // 13 (property condition) is for buyers only, right after bedrooms.
+    return [1, 12, 0, 2, 3, 4, 5, 6, 13, 7, 8, 9, 10, 11].filter(
       (step) =>
         !(this.profile.propertyGoal === 'Buy' && [3, 4, 5, 10].includes(step)) &&
+        !(step === 13 && this.profile.propertyGoal !== 'Buy') &&
         !(step === 5 && this.fixedHousehold),
     );
   }
@@ -361,7 +401,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     // Use the question ID as the source of truth so phase labels cannot drift.
     if (this.step === 1 || this.step === 12 || this.step === 0) return 0;
     if (this.step === 2) return 1;
-    if ([4, 5, 6, 7].includes(this.step)) return 2;
+    if ([4, 5, 6, 13, 7].includes(this.step)) return 2;
     if ([8, 9, 10].includes(this.step)) return 3;
     if (this.step === 3) return 4;
     if (this.step === 11) return 5;
@@ -883,6 +923,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return this.profile.topPriorities.length === 5;
       case 12:
         return !!this.profile.apartmentStyle;
+      case 13:
+        return (this.profile.propertyConditions?.length ?? 0) > 0;
       default:
         return false;
     }
@@ -963,6 +1005,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['hasPet', 'petType', 'petTypes', 'dogSize', 'petOtherType', 'petCount'],
       ['topPriorities'],
       ['apartmentStyle'],
+      ['propertyConditions'],
     ];
     for (const key of fields[step]) {
       const value = EMPTY_HOME_MATCH_PROFILE[key];
@@ -1057,6 +1100,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         next: (response) => {
           this.matches = this.service.rankMatches(response, this.profile);
           this.view = 'results';
+          this.service.saveResults(JSON.stringify(this.profile), this.matches);
           this.saveSearchToAccount();
           window.scrollTo({ top: 0, behavior: 'smooth' });
         },

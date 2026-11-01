@@ -174,7 +174,7 @@
           </div>
         </div>
       </section>
-      <a class="view mc-cta" [routerLink]="['/apartments', result.apartment.id]"><span>View apartment</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+      <a class="view mc-cta" [routerLink]="['/apartments', result.apartment.id]" (click)="rememberMatchResults()"><span>View apartment</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
       <section class="location-map" aria-label="Apartment location">
         <div class="map-caption">
           <div>

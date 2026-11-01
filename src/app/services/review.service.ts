@@ -1,4 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { map } from 'rxjs';
+import { toMediaUrl } from '../utils/api-media';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from '../utils/api-config';
@@ -52,7 +54,9 @@ export class ReviewService {
   constructor(private readonly http: HttpClient) {}
 
   getLink(slug: string): Observable<ReviewLink> {
-    return this.http.get<ReviewLink>(`${this.apiUrl}/link/${encodeURIComponent(slug)}`);
+    return this.http.get<ReviewLink>(`${this.apiUrl}/link/${encodeURIComponent(slug)}`).pipe(
+      map((link) => ({ ...link, profilePicture: link.profilePicture ? toMediaUrl(link.profilePicture) || link.profilePicture : link.profilePicture })),
+    );
   }
 
   submit(slug: string, review: SubmitReview): Observable<{ message: string }> {

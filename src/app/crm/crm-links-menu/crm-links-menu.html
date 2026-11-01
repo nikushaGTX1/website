@@ -1,0 +1,50 @@
+<div class="links" [class.open]="open">
+  <button
+    type="button"
+    class="links-toggle"
+    [attr.aria-expanded]="open"
+    aria-controls="crm-links-panel"
+    (click)="toggle($event)"
+  >
+    <span class="burger" aria-hidden="true"><span></span><span></span><span></span></span>
+    <span class="links-label">Links</span>
+    <span class="links-count" aria-hidden="true">{{ actions.length }}</span>
+    <i class="fa-solid fa-chevron-down chevron" aria-hidden="true"></i>
+  </button>
+
+  <div class="links-panel" id="crm-links-panel" *ngIf="open" role="group" aria-label="Shareable links">
+    <p class="panel-hint">Click a link to create it and copy it.</p>
+    <button
+      type="button"
+      class="link-item"
+      *ngFor="let action of actions"
+      [attr.data-kind]="action.kind"
+      [class.done]="copied === action.kind"
+      [disabled]="busy !== null"
+      (click)="run(action, $event)"
+    >
+      <span class="link-icon" aria-hidden="true"><i [class]="action.icon"></i></span>
+      <span class="link-copy">
+        <b>{{ action.title }}</b>
+        <small>{{ action.hint }}</small>
+      </span>
+      <span class="link-state" aria-live="polite">
+        @if (busy === action.kind) {
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+        } @else if (copied === action.kind) {
+          <span class="copied"><i class="fa-solid fa-check" aria-hidden="true"></i><span class="sr-only">Copied</span></span>
+        } @else if (action.opens) {
+          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        } @else {
+          <i class="fa-regular fa-copy" aria-hidden="true"></i>
+        }
+      </span>
+    </button>
+
+    <label class="manual" *ngIf="manualUrl" (click)="$event.stopPropagation()">
+      <span>Copy this link:</span>
+      <input #manual readonly [value]="manualUrl" (focus)="selectManual(manual)" data-no-translate />
+    </label>
+    <p class="panel-error" *ngIf="error" role="alert">{{ error }}</p>
+  </div>
+</div>

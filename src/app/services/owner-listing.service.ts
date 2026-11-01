@@ -1,7 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, Injectable, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { API_URL } from '../utils/api-config';
+import { toMediaUrl } from '../utils/api-media';
+
+/** Photos through the site's resizing, cached image proxy instead of slow signed storage URLs. */
+const fast = (url?: string | null) => (url ? toMediaUrl(url) || url : url);
+const withFastPhotos = (row: OwnerSubmission): OwnerSubmission => ({ ...row, photos: (row.photos ?? []).map((photo) => fast(photo)!) });
 
 export type OwnerDealType = 'Rent' | 'Sale';
 export type OwnerSubmissionStatus = 'new' | 'contacted' | 'visited' | 'published' | 'rejected';
@@ -43,7 +48,8 @@ export class OwnerListingService {
     return this.http.post<any>(`${this.apiUrl}/links`, { dealType });
   }
   getLink(token: string): Observable<OwnerLinkInfo> {
-    return this.http.get<OwnerLinkInfo>(`${this.apiUrl}/links/${token}`);
+    return this.http.get<OwnerLinkInfo>(`${this.apiUrl}/links/${token}`)
+      .pipe(map((info) => ({ ...info, agentPhoto: fast(info.agentPhoto) ?? undefined })));
   }
   submit(
     token: string,
@@ -64,10 +70,10 @@ export class OwnerListingService {
   getSubmissions(): Observable<OwnerSubmission[]> {
     return this.http
       .get<OwnerSubmission[]>(`${this.apiUrl}/submissions`)
-      .pipe(tap((rows) => this.submissions.set(rows)));
+      .pipe(map((rows) => rows.map(withFastPhotos)), tap((rows) => this.submissions.set(rows)));
   }
   getSubmission(id: number): Observable<OwnerSubmission> {
-    return this.http.get<OwnerSubmission>(`${this.apiUrl}/submissions/${id}`);
+    return this.http.get<OwnerSubmission>(`${this.apiUrl}/submissions/${id}`).pipe(map(withFastPhotos));
   }
   updateSubmission(
     id: number,

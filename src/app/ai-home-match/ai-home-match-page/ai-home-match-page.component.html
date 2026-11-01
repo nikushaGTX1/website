@@ -122,6 +122,19 @@
             >Buy an apartment
           </button>
         </div>
+        <div *ngSwitchCase="13">
+          <div class="options condition-options">
+            <button
+              type="button"
+              *ngFor="let option of conditionOptions"
+              [class.selected]="conditionSelected(option.value)"
+              [attr.aria-pressed]="conditionSelected(option.value)"
+              (click)="toggleCondition(option.value)"
+            >
+              <i class="condition-icon" [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
+            </button>
+          </div>
+        </div>
         <div class="style-options" *ngSwitchCase="12">
           <!-- Modern: big window, low sofa, floor lamp -->
           <button type="button" class="style-card" [class.selected]="profile.apartmentStyle === 'Modern'" [attr.aria-pressed]="profile.apartmentStyle === 'Modern'" (click)="choose('apartmentStyle', 'Modern')">

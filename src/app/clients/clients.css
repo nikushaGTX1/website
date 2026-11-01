@@ -552,7 +552,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(36px, 5vw, 68px); font-weigh
 .cc-price span { color: var(--muted); font-size: 16px; }
 .cc-nationality { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 6px; color: var(--ink); font-size: 16px; font-weight: 600; }
 .cc-nationality b { display: inline-flex; align-items: center; gap: 10px; min-width: 0; font-weight: 700; text-align: right; }
-.cc-flag { font-family: 'Twemoji Country Flags', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif; font-size: 24px; font-style: normal; line-height: 1; }
+.cc-flag { font-family: 'Twemoji Country Flags', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif !important; font-size: 24px; font-style: normal; line-height: 1; }
 .cc-rows { display: grid; gap: 11px; margin: 8px 0 0; padding: 0 0 16px; border-bottom: 1px solid var(--line); }
 .cc-rows > div { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 12px; align-items: start; }
 .cc-rows dt { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 15px; }

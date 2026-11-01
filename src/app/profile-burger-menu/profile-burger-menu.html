@@ -23,7 +23,7 @@
 
     <ul class="menu-list">
       <li *ngFor="let item of menuItems">
-        <a [routerLink]="item.route" [class.featured]="item.featured" (click)="closeMenu()">
+        <a [routerLink]="item.route" [class.featured]="item.featured" [attr.target]="item.newTab ? '_blank' : null" [attr.rel]="item.newTab ? 'noopener' : null" (click)="closeMenu()">
           <i [class]="item.icon" aria-hidden="true"></i>
           <span class="item-label">{{ item.label }}</span>
           <span class="item-badge" *ngIf="item.badge">{{ item.badge > 99 ? '99+' : item.badge }}</span>

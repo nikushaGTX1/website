@@ -49,6 +49,8 @@ export interface HomeMatchProfile {
   topPriorities: string[];
   /** Preferred apartment style; 'Other' = something else / no preference. */
   apartmentStyle?: 'Modern' | 'Vintage' | 'Other' | '';
+  /** Buyers: acceptable conditions (WhiteFrame = თეთრი კარკასი ...). ['Any'] = no preference. */
+  propertyConditions?: string[];
 }
 
 export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
@@ -75,4 +77,5 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   petOtherType: '',
   petCount: 1,
   topPriorities: [],
+  propertyConditions: [],
 };

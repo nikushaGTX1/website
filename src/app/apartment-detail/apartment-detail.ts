@@ -16,16 +16,16 @@ import { ApartmentService } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
 import { CrmService } from '../services/crm.service';
-import { fullSizeImage, toMediaUrl } from '../utils/api-media';
+import { fullSizeImage, preloadImages, smallImage, toMediaUrl } from '../utils/api-media';
 import {
   CountryCode,
   getCountries,
   getCountryCallingCode,
   parsePhoneNumberFromString,
 } from 'libphonenumber-js/min';
-import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
+import { enableFlagEmojis } from '../utils/flag-emoji';
 
-polyfillCountryFlagEmojis();
+enableFlagEmojis();
 
 interface PhoneCountryOption {
   code: CountryCode;
@@ -108,6 +108,17 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   private viewerImagesCache: string[] = [];
 
   /** Fullscreen viewer shows the original photos; the page itself uses the lighter versions. */
+  private viewerThumbsSource: string[] = [];
+  private viewerThumbsCache: string[] = [];
+  /** Viewer thumbnails at 160px instead of the 960px card photos. */
+  get viewerThumbs(): string[] {
+    if (this.viewerThumbsSource !== this.galleryImages) {
+      this.viewerThumbsSource = this.galleryImages;
+      this.viewerThumbsCache = this.galleryImages.map((image) => smallImage(image, 160));
+    }
+    return this.viewerThumbsCache;
+  }
+
   get viewerImages(): string[] {
     if (this.viewerImagesSource !== this.galleryImages) {
       this.viewerImagesSource = this.galleryImages;
@@ -151,6 +162,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   ];
 
   /** "Back to results" returns to the search the visitor came from (VELVEN-005). */
+  /** Opened from Velven Match results: "Back to results" returns there with the same matches. */
+  get backToMatch(): boolean {
+    return (lastResultsUrl() || '').startsWith('/ai-home-match');
+  }
+
   get backToResultsQuery(): Record<string, string> | null {
     return backToResultsQuery(lastResultsUrl(), this.isForSale);
   }
@@ -612,6 +628,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   openPhotoViewer(): void {
+    // Load the viewer photos now, nearest to the opened one first, so swiping never waits.
+    const images = this.viewerImages;
+    const order = images.map((_, i) => i).sort((a, b) =>
+      Math.abs(a - this.activePhotoIndex) - Math.abs(b - this.activePhotoIndex));
+    preloadImages(order.map((i) => images[i]));
     this.photoViewerOpen = true;
     this.cdr.detectChanges();
     this.photoViewer?.nativeElement.showModal();
