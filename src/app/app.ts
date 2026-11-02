@@ -1,6 +1,8 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { combineLatest, filter, of, startWith, switchMap, timer, catchError } from 'rxjs';
+import { isValidPhone } from './utils/phone';
+import { combineLatest, filter, forkJoin, of, startWith, switchMap, timer, catchError } from 'rxjs';
 import { OwnerListingService } from './services/owner-listing.service';
+import { ApartmentService } from './services/apartment.service';
 import { AfterViewInit, Component, DestroyRef, HostListener, signal } from '@angular/core';
 
 import { NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router';
@@ -24,6 +26,7 @@ export class App implements AfterViewInit {
     readonly router: Router,
     readonly auth: AuthService,
     readonly ownerListings: OwnerListingService,
+    private readonly apartments: ApartmentService,
     destroyRef: DestroyRef,
   ) {
     combineLatest([
@@ -38,14 +41,23 @@ export class App implements AfterViewInit {
           this.isCrmWorkspace
             ? timer(0, 60000).pipe(
                 switchMap(() =>
-                  this.ownerListings.getSubmissions().pipe(catchError(() => of(null))),
+                  forkJoin([
+                    this.ownerListings.getSubmissions().pipe(catchError(() => of(null))),
+                    // Managers: number of agents' listings waiting for approval (side menu badge).
+                    this.auth.isCrmManager
+                      ? this.apartments.getPendingApartments().pipe(catchError(() => of(null)))
+                      : of(null),
+                  ]),
                 ),
               )
             : of(null),
         ),
         takeUntilDestroyed(destroyRef),
       )
-      .subscribe();
+      .subscribe((result) => {
+        const pending = result?.[1];
+        if (pending) this.pendingApprovals.set(pending.filter((item) => item.status === 'pending').length);
+      });
     this.seo.start();
     this.watchForNewBuild();
     this.router.events.subscribe((event) => {
@@ -114,6 +126,84 @@ export class App implements AfterViewInit {
     this.translation.start();
   }
 
+  // ---------- Phone numbers, on every form of the site ----------
+
+  /** Letters and other symbols never get into a phone field (digits, +, spaces, -, brackets only). */
+  @HostListener('document:input', ['$event'])
+  cleanPhoneInput(event: Event): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || input.type !== 'tel' || (event as { phoneCleaned?: boolean }).phoneCleaned) return;
+    let cleaned = input.value.replace(/[^\d+\s()-]/g, '').replace(/(?!^)\+/g, '');
+    // Georgian numbers: +995 5XX XX XX XX is 12 digits, so nothing longer is accepted.
+    const maxDigits = 12;
+    let digits = 0;
+    cleaned = [...cleaned].filter((char) => !/\d/.test(char) || ++digits <= maxDigits).join('');
+    if (cleaned !== input.value) {
+      input.value = cleaned;
+      // Tell Angular forms about the cleaned value.
+      const again = Object.assign(new Event('input', { bubbles: true }), { phoneCleaned: true });
+      input.dispatchEvent(again);
+    }
+    if (input.classList.contains('phone-invalid')) this.markPhone(input);
+  }
+
+  /** Georgian numbers only: an empty phone field starts with "+995 " so only the number is typed. */
+  @HostListener('document:focusin', ['$event'])
+  prefillPhoneCode(event: FocusEvent): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || input.type !== 'tel' || input.hasAttribute('data-phone-country')) return;
+    if (input.value.trim() !== '' || input.readOnly || input.disabled) return;
+    this.setPhoneValue(input, '+995 ');
+  }
+
+  /** After leaving a phone field: a red hint when the number is not a real phone number. */
+  @HostListener('document:focusout', ['$event'])
+  checkPhoneInput(event: FocusEvent): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || input.type !== 'tel') return;
+    // Only the prefilled code was left: treat the field as empty again.
+    if (!input.hasAttribute('data-phone-country') && /^\+?995\s*$/.test(input.value.trim())) this.setPhoneValue(input, '');
+    this.markPhone(input);
+  }
+
+  private setPhoneValue(input: HTMLInputElement, value: string): void {
+    input.value = value;
+    input.dispatchEvent(Object.assign(new Event('input', { bubbles: true }), { phoneCleaned: true }));
+  }
+
+  private markPhone(input: HTMLInputElement): void {
+    // Fields with their own country picker check the number for that country themselves.
+    if (input.hasAttribute('data-phone-country')) return;
+    const value = input.value.trim();
+    const invalid = value !== '' && !isValidPhone(value);
+    input.classList.toggle('phone-invalid', invalid);
+    if (invalid) input.setAttribute('aria-invalid', 'true');
+    else input.removeAttribute('aria-invalid');
+    // The hint must sit right under this field. Inside a grid (two fields side by side) a loose
+    // element would take the next grid cell, so the field is wrapped together with its hint.
+    let anchor: Element = input.closest('.input-icon, .editor-input') ?? input;
+    if (invalid && anchor === input && !input.parentElement?.classList.contains('phone-field')) {
+      const wrapper = document.createElement('span');
+      wrapper.className = 'phone-field';
+      input.insertAdjacentElement('beforebegin', wrapper);
+      wrapper.appendChild(input);
+    }
+    if (anchor === input && input.parentElement?.classList.contains('phone-field')) anchor = input.parentElement;
+    const hint = anchor === input.parentElement && anchor.classList.contains('phone-field')
+      ? anchor.querySelector(':scope > .phone-hint')
+      : (anchor.nextElementSibling?.classList.contains('phone-hint') ? anchor.nextElementSibling : null);
+    if (invalid && !hint) {
+      const element = document.createElement('small');
+      element.className = 'phone-hint';
+      element.setAttribute('role', 'alert');
+      element.textContent = 'Enter a valid phone number, e.g. 555 12 34 56';
+      if (anchor.classList.contains('phone-field')) anchor.appendChild(element);
+      else anchor.insertAdjacentElement('afterend', element);
+    } else if (!invalid && hint) {
+      hint.remove();
+    }
+  }
+
   @HostListener('document:contextmenu', ['$event'])
   preventProtectedImageMenu(event: MouseEvent): void {
     const target = event.target as Element | null;
@@ -137,6 +227,8 @@ export class App implements AfterViewInit {
   }
 
   workspaceMenuOpen = false;
+  /** Agents' listings waiting for a manager's approval. */
+  readonly pendingApprovals = signal(0);
   /**
    * Closes the phone side menu. Returns nothing on purpose: a click handler that returns false
    * cancels the click in Angular, which blocked plain links in the menu (Open Live).

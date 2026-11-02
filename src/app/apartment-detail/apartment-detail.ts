@@ -445,6 +445,12 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return this.apartment?.sizeSquareMeters || 0;
   }
 
+  /** Land plot / yard area of a house or plot, saved as "Land area: N m2". */
+  get landArea(): number {
+    const match = (this.apartment?.description || '').match(/(?:^|[|\n])\s*Land area:\s*([\d.]+)/i);
+    return match ? Number(match[1]) || 0 : 0;
+  }
+
   get floorLabel(): string {
     const floor = this.apartment?.floor;
     return floor === undefined || floor === null

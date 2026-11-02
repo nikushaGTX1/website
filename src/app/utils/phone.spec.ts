@@ -7,7 +7,7 @@ test('accepts Georgian mobile numbers with or without the country code', () => {
   assert.equal(isValidPhone('555 12 34 56'), true);
   assert.equal(isValidPhone('555123456'), true);
   assert.equal(isValidPhone('+995 555 12 34 56'), true);
-  assert.equal(isValidPhone('+1 202 555 0143'), true);
+  assert.equal(isValidPhone('+1 202 555 0143'), false); // Georgian numbers only
 });
 
 test('rejects text, short numbers and empty values', () => {

@@ -6,6 +6,36 @@ import { API_URL } from '../utils/api-config';
 import { AppLanguage } from './translation.service';
 import { PersistentDataCache } from '../utils/persistent-data-cache';
 
+/** English names for catalog areas that only came with a Georgian name. */
+const CATALOG_ENGLISH_NAMES: Record<string, string> = {
+  'აეროპორტის დასახლება': 'Airport Settlement',
+  'აფრიკა': 'Africa',
+  'გიორგიწმინდას დასახლება': 'Giorgitsminda Settlement',
+  'დამპალოს დასახლება': 'Dampalo Settlement',
+  'დიდგორი': 'Didgori',
+  'დიღმის მასივი': 'Digomi Massive',
+  'დიღმის ჭალა': 'Digomi Meadow',
+  'დიღომი 1-9': 'Digomi 1-9',
+  'ვაშლი ჯვარი': 'Vashlijvari',
+  'თბილისის ზღვა': 'Tbilisi Sea',
+  'თხინვალი': 'Tkhinvali',
+  'კონიაკის დასახლება': 'Konyak Settlement',
+  'კრწანისი': 'Krtsanisi',
+  'ლისი': 'Lisi',
+  'ლისის მიმდებარედ': 'Lisi Surroundings',
+  'მოსკოვის გამზირი': 'Moscow Avenue',
+  'მუხიანი': 'Mukhiani',
+  'ნავთლუღი': 'Navtlughi',
+  'ნუცუბიძის ფერდობი': 'Nutsubidze Plateau',
+  'სვანეთის უბანი': 'Svaneti District',
+  'სოფ.გლდანი': 'Gldani Village',
+  'სოფ. დიღომი': 'Digomi Village',
+  'ქოშიგორა': 'Koshigora',
+};
+
+/** Suburbs that are searched like Tbilisi areas but are not in the catalog yet. */
+const EXTRA_SUBURBS = ['Tskneti'];
+
 @Injectable({ providedIn: 'root' })
 export class LocationService {
   private readonly catalogUrl = `${API_URL}/locations/catalog`;
@@ -66,7 +96,8 @@ export class LocationService {
   }
 
   private async loadLocations(): Promise<ApiLocation[]> {
-    const cached = await this.persistentCache.get<ApiLocation[]>('all');
+    // v2: English names for catalog areas that only had Georgian ones, and Tskneti.
+    const cached = await this.persistentCache.get<ApiLocation[]>('all-v2');
     if (cached?.length) return cached;
     const [areas, streets, legacyLocations] = await Promise.all([
       firstValueFrom(this.http.get<Array<{
@@ -116,6 +147,7 @@ export class LocationService {
         const englishName = /[A-Za-z]/.test(catalogEnglish)
           ? catalogEnglish
           : legacyEnglishByGeorgian.get(district.nameKa.trim().toLocaleLowerCase('ka')) ||
+            CATALOG_ENGLISH_NAMES[district.nameKa.trim()] ||
             catalogEnglish;
         return {
         id: district.id,
@@ -139,7 +171,22 @@ export class LocationService {
           })),
         };
       });
-    if (locations.length) await this.persistentCache.set('all', locations);
+    // Suburbs the catalog does not have yet (Tskneti), taken from the older location list.
+    for (const name of EXTRA_SUBURBS) {
+      const legacy = legacyLocations.find((location) => location.district?.trim() === name);
+      if (!legacy || locations.some((location) => location.district === name)) continue;
+      locations.push({
+        id: -(locations.length + 1),
+        city: city?.nameEn || 'Tbilisi',
+        cityKa: city?.nameKa || 'თბილისი',
+        district: name,
+        districtKa: legacy.districtGeorgian?.trim() || name,
+        region: city?.nameEn || 'Tbilisi',
+        streetNames: [],
+        streets: [],
+      } as ApiLocation);
+    }
+    if (locations.length) await this.persistentCache.set('all-v2', locations);
     return locations;
   }
 

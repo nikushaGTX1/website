@@ -133,6 +133,11 @@
     </aside>
 
     <form class="upload-main" (ngSubmit)="publish()" novalidate>
+      <p *ngIf="draftRestored" class="draft-restored" role="status">
+        <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
+        <span>Your saved draft was restored. Add the photos again.</span>
+        <button type="button" (click)="discardDraft()">Start fresh</button>
+      </p>
       <div class="myhome-field">
         <label for="myhome-id">MyHome ID <small>{{ uploadLocationText('Optional', 'არასავალდებულო', 'Необязательно') }}</small></label>
         <input id="myhome-id" name="myHomeId" [(ngModel)]="form.myHomeId" inputmode="numeric" maxlength="10" placeholder="12345678" aria-describedby="myhome-hint">
@@ -383,6 +388,7 @@
           <div class="feature-block-title"><div><span>Property specifications</span><small>The essentials buyers compare first</small></div><i class="fa-solid fa-ruler-combined"></i></div>
           <div class="metric-grid">
             <label class="metric-field"><span><i class="fa-solid fa-vector-square"></i> Living area</span><div><input type="number" name="area" min="1" max="5000" step="0.1" placeholder="0" [(ngModel)]="form.area" (ngModelChange)="clampNumericField('area', { min: 1, max: 5000, integer: false }); recalculateSqPrice(); clearDuplicateDismissal(); checkDuplicates()" /><b>m²</b></div></label>
+            <label class="metric-field" *ngIf="hasLandArea"><span><i class="fa-solid fa-tree"></i> Land / yard area</span><div><input type="number" name="landArea" min="1" max="1000000" step="1" placeholder="0" [(ngModel)]="form.landArea" (ngModelChange)="clampNumericField('landArea', { min: 1, max: 1000000, integer: false })" /><b>m²</b></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-door-open"></i> Rooms</span><div><input type="number" name="rooms" min="1" max="50" step="1" placeholder="0" [(ngModel)]="form.rooms" (ngModelChange)="clampNumericField('rooms', { min: 1, max: 50, integer: true }); clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-bed"></i> Bedrooms</span><div><input type="number" name="bedrooms" min="0" max="50" step="1" placeholder="0" [(ngModel)]="form.bedrooms" (ngModelChange)="clampNumericField('bedrooms', { min: 0, max: 50, integer: true }); clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-bath"></i> Bathrooms</span><div><input type="number" name="bathrooms" min="0" max="50" step="1" placeholder="0" [(ngModel)]="form.bathrooms" (ngModelChange)="clampNumericField('bathrooms', { min: 0, max: 50, integer: true })" /></div></label>
@@ -529,7 +535,7 @@
 
           <p *ngIf="imageUploadMessage" class="image-upload-message">{{ imageUploadMessage }}</p>
 
-          <section class="photo-ai-panel" *ngIf="photoChecksEnabled && uploadedImageCount" aria-live="polite">
+          <section class="photo-ai-panel" *ngIf="photoChecksEnabled && uploadedImageCount && (removedPhotoCount || removablePhotoCount || thirdPartyPhotoCount)" aria-live="polite">
             <header class="photo-ai-head">
               <span class="photo-ai-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
               <div class="photo-ai-title">
@@ -558,7 +564,7 @@
               <div class="image-position">{{ index + 1 }}</div>
               <span class="cover-badge" *ngIf="index === 0"><i class="fa-solid fa-star"></i> Cover</span>
               <button type="button" (click)="removeImage(index)" aria-label="Remove image">×</button>
-              <span class="photo-ai-badge" *ngIf="photoCheck(index) as check" [attr.data-state]="check.state" [title]="check.text || ''">
+              <span class="photo-ai-badge" *ngIf="visibleCheck(index) as check" [attr.data-state]="check.state" [title]="check.text || ''">
                 <ng-container [ngSwitch]="check.state">
                   <ng-container *ngSwitchCase="'checking'"><i class="fa-solid fa-spinner fa-spin"></i> {{ uploadLocationText('Checking', 'მოწმდება', 'Проверка') }}</ng-container>
                   <ng-container *ngSwitchCase="'cleaning'"><i class="fa-solid fa-spinner fa-spin"></i> {{ uploadLocationText('Removing', 'იშლება', 'Удаление') }}</ng-container>
@@ -590,7 +596,7 @@
             <input
               type="tel"
               name="contactPhone"
-              placeholder="Owner's phone number"
+              placeholder="+995 5XX XX XX XX"
               autocomplete="tel"
               inputmode="tel"
               required
@@ -602,7 +608,7 @@
           <label class="field-label"><i class="fa-solid fa-user-tie"></i> Agent information <span class="req">*</span> <small>Public — shown to everyone on the listing</small></label>
           <div class="input-row contact-fields">
             <input type="text" name="agentName" placeholder="Agent's full name" required [(ngModel)]="form.agentName" />
-            <input type="tel" name="agentPhone" placeholder="Agent's phone number" autocomplete="tel" inputmode="tel" required [(ngModel)]="form.agentPhone" />
+            <input type="tel" name="agentPhone" placeholder="+995 5XX XX XX XX" autocomplete="tel" inputmode="tel" required [(ngModel)]="form.agentPhone" />
           </div>
         </div>
       </section>

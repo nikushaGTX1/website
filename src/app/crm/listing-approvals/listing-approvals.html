@@ -1,0 +1,78 @@
+<main class="page">
+  <header class="top">
+    <div>
+      <a class="back" routerLink="/crm"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> CRM</a>
+      <h1>Listing approvals</h1>
+      <p>Listings agents uploaded. Check each one, then publish it or decline it.</p>
+    </div>
+    <span class="waiting" *ngIf="!loading && !error"><b>{{ items.length }}</b>&ngsp;<span>waiting</span></span>
+  </header>
+
+  <label class="search" *ngIf="items.length > 3">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="search" name="search" [value]="search" (input)="search = $any($event.target).value" placeholder="Search by title, area or agent" />
+  </label>
+
+  <p class="notice" *ngIf="notice" role="status"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> {{ notice }}</p>
+
+  @if (loading) {
+    @for (n of [1, 2]; track n) {<div class="skeleton" aria-hidden="true"></div>}
+  } @else if (error) {
+    <div class="state" role="alert"><h2>{{ error }}</h2><button type="button" class="primary" (click)="load()">Try again</button></div>
+  } @else if (!items.length) {
+    <div class="state">
+      <span class="state-icon" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+      <h2>All caught up</h2>
+      <p>New listings from agents appear here before they go live.</p>
+    </div>
+  } @else {
+    <ul class="list">
+      @for (item of visible; track item.id) {
+        <li class="row">
+          <a class="photo" [routerLink]="['/apartments', item.apartment.id]" target="_blank"><img [src]="image(item)" alt="" loading="lazy" /></a>
+
+          <div class="info">
+            <p class="place">{{ item.apartment.district }}<span *ngIf="item.apartment.street"> · {{ item.apartment.street }}</span></p>
+            <h2>{{ item.apartment | listingTitle }}</h2>
+            <app-currency-price [usdPrice]="item.apartment.price" [suffix]="isSale(item) ? '' : '/ month'" [showApproximate]="false"></app-currency-price>
+            <p class="specs">
+              <span *ngIf="item.apartment.rooms">{{ item.apartment.rooms }} <span>rooms</span></span>
+              <span>{{ item.apartment.bedrooms || '—' }} <span>beds</span></span>
+              <span *ngIf="item.apartment.sizeSquareMeters">{{ item.apartment.sizeSquareMeters }} m²</span>
+              <span *ngIf="item.apartment.floor != null"><span>Floor</span> {{ item.apartment.floor }}</span>
+            </p>
+          </div>
+
+          <div class="uploader">
+            <span class="label">Uploaded by</span>
+            <div class="person">
+              <img *ngIf="photo(item); else noPhoto" [src]="photo(item)" alt="" loading="lazy" />
+              <ng-template #noPhoto><span class="initials" aria-hidden="true">{{ initials(item) }}</span></ng-template>
+              <div>
+                <strong data-no-translate>{{ item.submittedByName || item.submittedByEmail || 'Unknown' }}</strong>
+                <small><span *ngIf="item.submittedByIsAgent">Agent · </span><span data-no-translate>{{ submitted(item) }}</span></small>
+              </div>
+            </div>
+            <a *ngIf="item.submittedByPhone" [href]="'tel:' + item.submittedByPhone" data-no-translate>{{ item.submittedByPhone }}</a>
+            <a *ngIf="item.submittedByEmail" [href]="'mailto:' + item.submittedByEmail" data-no-translate>{{ item.submittedByEmail }}</a>
+          </div>
+
+          <div class="actions">
+            @if (confirmDeclineId === item.id) {
+              <p class="confirm">Decline and delete this listing?</p>
+              <button type="button" class="danger" [disabled]="busyId === item.id" (click)="decline(item)">Yes, decline</button>
+              <button type="button" class="ghost" [disabled]="busyId === item.id" (click)="confirmDeclineId = null">Cancel</button>
+            } @else {
+              <button type="button" class="primary" [disabled]="busyId === item.id" (click)="approve(item)">
+                <i [class]="busyId === item.id ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-check'" aria-hidden="true"></i> Approve &amp; publish
+              </button>
+              <a class="ghost" routerLink="/upload-apartment" [queryParams]="{ pending: item.apartment.id }"><i class="fa-solid fa-pen" aria-hidden="true"></i> Edit</a>
+              <button type="button" class="ghost danger-text" [disabled]="busyId === item.id" (click)="askDecline(item)">Decline</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+    <p class="empty-search" *ngIf="!visible.length">No listing matches "{{ search }}".</p>
+  }
+</main>

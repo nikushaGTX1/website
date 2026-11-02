@@ -121,6 +121,10 @@
                   ><strong>{{ area || '—' }} m²</strong> total area</span
                 >
               </div>
+              <div *ngIf="landArea">
+                <i class="fa-solid fa-tree"></i
+                ><span><strong>{{ landArea }} m²</strong> land / yard</span>
+              </div>
               <div>
                 <i class="fa-regular fa-building"></i
                 ><span
@@ -424,7 +428,7 @@
                 <span class="vd-code" data-no-translate>{{ selectedPhoneCountry?.callingCode }}</span>
                 <i class="fa-solid fa-chevron-down"></i>
               </button>
-              <input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="5XX XX XX XX" [(ngModel)]="inquiryForm.phone" data-no-translate />
+              <input name="phone" type="tel" data-phone-country inputmode="tel" autocomplete="tel" placeholder="5XX XX XX XX" [(ngModel)]="inquiryForm.phone" data-no-translate />
             </span>
             <div class="vd-country-menu" *ngIf="phoneDropdownOpen" role="listbox">
               <label class="vd-country-search">

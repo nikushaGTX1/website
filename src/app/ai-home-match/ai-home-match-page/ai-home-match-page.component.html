@@ -781,7 +781,7 @@
   <p>Your name and phone are shared only with Velven staff. Owners see only your requirements and your agent's contact.</p>
   <form (ngSubmit)="submitIntake()">
     <label for="intake-name">First name</label><input id="intake-name" name="firstName" [(ngModel)]="intakeContact.firstName" autocomplete="given-name" required maxlength="80"/>
-    <label for="intake-phone">Phone number</label><input id="intake-phone" name="phone" [(ngModel)]="intakeContact.phone" type="tel" autocomplete="tel" required maxlength="40"/>
+    <label for="intake-phone">Phone number</label><input id="intake-phone" name="phone" [(ngModel)]="intakeContact.phone" type="tel" placeholder="+995 5XX XX XX XX" autocomplete="tel" required maxlength="40"/>
     <label for="intake-nationality">Nationality (optional)</label><input id="intake-nationality" name="nationality" [(ngModel)]="intakeContact.nationality" maxlength="80"/>
     <label class="intake-check"><input type="checkbox" name="consent" [(ngModel)]="intakeContact.consent" required/><span>I consent to Velven storing my requirements and contact details and contacting me about my search.</span></label>
     <label class="intake-check"><input type="checkbox" name="publishConsent" [(ngModel)]="intakeContact.publishConsent"/><span>Show my anonymised profile to property owners</span></label>

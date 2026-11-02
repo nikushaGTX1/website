@@ -1497,7 +1497,14 @@ export class ExploreProperty implements OnInit, OnDestroy {
   mapFitRevision = 0;
 
   areaLabel(area: string): string {
-    return this.translationService.translate(area, this.translationService.language$.value);
+    const language = this.translationService.language$.value;
+    const translated = this.translationService.translate(area, language);
+    if (language !== 'ka' || translated !== area) return translated;
+    // Areas from the location list carry their own Georgian name.
+    const entry = this.locationEntries.find(
+      (item) => this.locationService.districtName(item, 'en').toLowerCase() === area.toLowerCase(),
+    );
+    return entry ? this.locationService.districtName(entry, 'ka') || area : area;
   }
 
   openAreaSheet(): void {

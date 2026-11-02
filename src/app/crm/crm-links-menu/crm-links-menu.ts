@@ -3,12 +3,11 @@ import { NgFor, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-import { CrmService } from '../../services/crm.service';
 import { OwnerListingService } from '../../services/owner-listing.service';
 import { ReviewService, reviewLinkUrl } from '../../services/review.service';
 import { claimEscape, escapeAlreadyHandled } from '../../utils/escape-layer';
 
-type LinkKind = 'questionnaire' | 'owner-rent' | 'owner-sale' | 'review' | 'intake';
+type LinkKind = 'owner-rent' | 'owner-sale' | 'review' | 'intake';
 
 interface LinkAction {
   kind: LinkKind;
@@ -20,7 +19,7 @@ interface LinkAction {
 }
 
 /**
- * CRM side menu "Links": one button that opens every shareable link (questionnaire, owner
+ * CRM side menu "Links": one button that opens the shareable links (owner
  * Rent/Sale, review, client intake). Each one is created and copied in one click.
  */
 @Component({
@@ -39,7 +38,6 @@ export class CrmLinksMenu {
 
   constructor(
     private auth: AuthService,
-    private crm: CrmService,
     private ownerListings: OwnerListingService,
     private reviews: ReviewService,
     private router: Router,
@@ -49,7 +47,6 @@ export class CrmLinksMenu {
 
   get actions(): LinkAction[] {
     const list: LinkAction[] = [
-      { kind: 'questionnaire', icon: 'fa-solid fa-clipboard-question', title: 'Questionnaire link', hint: 'Client fills in what they are looking for' },
       { kind: 'owner-rent', icon: 'fa-solid fa-key', title: 'Owner link · Rent', hint: 'Owner submits an apartment for rent' },
       { kind: 'owner-sale', icon: 'fa-solid fa-tag', title: 'Owner link · Sale', hint: 'Owner submits an apartment for sale' },
     ];
@@ -104,10 +101,6 @@ export class CrmLinksMenu {
 
   private async createUrl(kind: LinkKind): Promise<string> {
     const origin = window.location.origin;
-    if (kind === 'questionnaire') {
-      const response = await firstValueFrom(this.crm.generateQuestionnaireLink());
-      return new URL(`/${encodeURIComponent(response.slug)}`, origin).toString();
-    }
     if (kind === 'owner-rent' || kind === 'owner-sale') {
       const response = await firstValueFrom(this.ownerListings.createLink(kind === 'owner-rent' ? 'Rent' : 'Sale'));
       return new URL(response.path, origin).toString();

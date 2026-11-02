@@ -341,6 +341,13 @@ const routes: Routes = [
   },
 
   {
+    // Managers and admins: agents' listings waiting to be published.
+    path: 'crm/approvals',
+    loadComponent: () => import('./crm/listing-approvals/listing-approvals').then((m) => m.ListingApprovals),
+    title: 'Listing Approvals | Velven',
+    canActivate: [authGuard, crmGuard, () => inject(AuthService).isCrmManager || inject(Router).createUrlTree(['/crm'])],
+  },
+  {
     path: 'crm/client-matches',
     redirectTo: 'crm/interested-clients',
     pathMatch: 'full'

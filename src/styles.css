@@ -563,3 +563,9 @@ body.draw-map-open app-navigation {
   src: url('/fonts/TwemojiCountryFlags.woff2') format('woff2');
   font-display: swap;
 }
+
+/* Phone fields everywhere: red outline and a hint when the number is not valid (see App.markPhone). */
+input[type='tel'].phone-invalid { border-color: #c4284a !important; box-shadow: 0 0 0 3px rgba(196, 40, 74, 0.12) !important; }
+.phone-hint { display: block; margin: 6px 2px 0; color: #c4284a; font-size: 12.5px; font-weight: 600; line-height: 1.35; }
+.phone-field { display: block; min-width: 0; }
+.phone-field > input[type='tel'] { width: 100%; }

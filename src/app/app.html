@@ -72,7 +72,22 @@
       routerLinkActive="selected"
       [routerLinkActiveOptions]="{ exact: true }"
       ><i class="fa-solid fa-shield-halved"></i>MyHome verification</a
-    ><a *ngIf="auth.isCrmManager" routerLink="/crm/system" routerLinkActive="selected"
+    ><a
+      *ngIf="auth.isCrmManager"
+      routerLink="/crm/approvals"
+      routerLinkActive="selected"
+      ><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Listing approvals<span
+        class="workspace-count"
+        *ngIf="pendingApprovals() > 0"
+        [attr.aria-label]="pendingApprovals() + ' listings waiting for approval'"
+        data-no-translate
+        >{{ pendingApprovals() > 99 ? '99+' : pendingApprovals() }}</span
+      ></a
+    ><a
+      *ngIf="auth.isCrmManager"
+      routerLink="/crm/system"
+      routerLinkActive="selected"
+      [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'exact', matrixParams: 'ignored', fragment: 'ignored' }"
       ><i class="fa-solid fa-sliders"></i>System dashboard</a
     >
   </nav>

@@ -182,7 +182,7 @@
         </label>
         <label class="field" [class.invalid]="showError('ownerPhone')">
           <span>Phone<i class="req">*</i></span>
-          <div class="input-icon"><i class="fa-solid fa-phone"></i><input type="tel" name="ownerPhone" autocomplete="tel" inputmode="tel" placeholder="5XX XX XX XX" [(ngModel)]="ownerPhone"></div>
+          <div class="input-icon"><i class="fa-solid fa-phone"></i><input type="tel" name="ownerPhone" autocomplete="tel" inputmode="tel" placeholder="+995 5XX XX XX XX" [(ngModel)]="ownerPhone"></div>
           <small class="err" *ngIf="showError('ownerPhone')">{{ showError('ownerPhone') }}</small>
         </label>
         <label class="field" [class.invalid]="showError('ownerEmail')">

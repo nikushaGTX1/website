@@ -78,6 +78,8 @@ type UploadForm = {
   title: string;
   description: string;
   area: number | null;
+  /** Land plot / yard area for houses and plots. */
+  landArea: number | null;
   rooms: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
@@ -364,6 +366,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     title: '',
     description: '',
     area: null,
+    landArea: null,
     rooms: null,
     bedrooms: null,
     bathrooms: null,
@@ -653,7 +656,15 @@ export class UploadApartment implements OnInit, OnDestroy {
     );
     const currentUser = this.authService.currentUser;
     this.form.agentName = currentUser?.fullName || currentUser?.userName || '';
-    this.form.agentPhone = currentUser?.phoneNumber || '';
+    let rememberedPhone = '';
+    try {
+      rememberedPhone = localStorage.getItem(UploadApartment.agentPhoneKey(currentUser?.id)) || '';
+    } catch {
+      // Storage blocked.
+    }
+    this.form.agentPhone = currentUser?.phoneNumber || rememberedPhone;
+    const query = this.route.snapshot.queryParamMap;
+    if (!query.has('edit') && !query.has('pending') && !query.has('owner')) this.restoreDraft();
     this.pendingService.refresh();
     this.startEditFromRoute();
     this.locationLoading = true;
@@ -830,6 +841,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (source.titleRu) this.listingCopy.ru.title = source.titleRu;
     f.totalPrice = num(source.price);
     f.sqPrice = num(tag('Sq. price'));
+    f.landArea = num(tag('Land area').replace(/\s*m2$/i, ''));
     f.currency = tag('Currency').toUpperCase() === 'GEL' ? 'GEL' : '$';
     f.exchangePossible = /Exchange possible/i.test(meta);
     f.realEstateType = tag('Type') || f.realEstateType;
@@ -1231,14 +1243,84 @@ export class UploadApartment implements OnInit, OnDestroy {
     );
   }
 
+  /** True when a saved draft was put back into the form when it opened. */
+  draftRestored = false;
+  private static readonly DRAFT_KEY = 'velvenListingDraft';
+
+  /** Saves the answers in this browser (photos cannot be kept there; they are added again). */
   saveDraft(): void {
     try {
-      const draft = { ...this.form, imageUrl: '', imageUrls: [] };
-      localStorage.setItem('velvenListingDraft', JSON.stringify(draft));
+      const draft = {
+        form: { ...this.form, imageUrl: '', imageUrls: [] },
+        listingCopy: this.listingCopy,
+        listingPlan: this.selectedListingPlan,
+        district: this.selectedDistrictValue,
+        street: this.selectedStreetValue,
+        streetId: this.selectedStreetId,
+        savedAt: Date.now(),
+      };
+      localStorage.setItem(UploadApartment.DRAFT_KEY, JSON.stringify(draft));
       this.draftSaved = true;
       window.setTimeout(() => (this.draftSaved = false), 2200);
     } catch {
       this.errorMessage = 'This browser could not save the draft locally.';
+    }
+  }
+
+  /** Puts the saved draft back (a new listing only, never when editing one). */
+  private restoreDraft(): void {
+    try {
+      const raw = localStorage.getItem(UploadApartment.DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      // Older drafts stored the form itself.
+      const form = draft?.form ?? draft;
+      if (!form || typeof form !== 'object') return;
+      const agentName = this.form.agentName;
+      const agentPhone = this.form.agentPhone;
+      for (const key of Object.keys(this.form))
+        if (Object.prototype.hasOwnProperty.call(form, key) && !['imageUrl', 'imageUrls'].includes(key))
+          (this.form as any)[key] = form[key];
+      this.form.agentName = this.form.agentName || agentName;
+      this.form.agentPhone = this.form.agentPhone || agentPhone;
+      if (draft.listingCopy) this.listingCopy = draft.listingCopy;
+      if (draft.listingPlan !== undefined) this.selectedListingPlan = draft.listingPlan;
+      if (draft.district) this.selectedDistrictValue = draft.district;
+      if (draft.street) this.selectedStreetValue = draft.street;
+      if (draft.streetId) this.selectedStreetId = draft.streetId;
+      this.draftRestored = true;
+    } catch {
+      // Unreadable draft: start with an empty form.
+    }
+  }
+
+  /** "Start fresh": forget the draft and reload the empty form. */
+  discardDraft(): void {
+    this.clearDraft();
+    window.location.reload();
+  }
+
+  private clearDraft(): void {
+    try {
+      localStorage.removeItem(UploadApartment.DRAFT_KEY);
+    } catch {
+      // Nothing saved.
+    }
+    this.draftRestored = false;
+  }
+
+  /** The agent's own number, remembered on this device after they type it once. */
+  private static agentPhoneKey(userId: string | undefined): string {
+    return `velvenAgentPhone:${userId || 'me'}`;
+  }
+
+  private rememberAgentContact(): void {
+    try {
+      const userId = this.authService.currentUser?.id;
+      if (isValidPhone(this.form.agentPhone))
+        localStorage.setItem(UploadApartment.agentPhoneKey(userId), this.form.agentPhone.trim());
+    } catch {
+      // Storage blocked: the field is simply empty next time.
     }
   }
 
@@ -1312,8 +1394,13 @@ export class UploadApartment implements OnInit, OnDestroy {
    * or pasted in) can never be saved, without capping the range so low
    * that a legitimate large/luxury property gets rejected.
    */
+  /** Houses and plots have a land plot / yard; apartments do not. */
+  get hasLandArea(): boolean {
+    return ['Private house', 'Country house', 'Plot', 'Hotel'].includes(this.form.realEstateType);
+  }
+
   clampNumericField(
-    field: 'area' | 'rooms' | 'bedrooms' | 'bathrooms' | 'floor' | 'totalFloors',
+    field: 'area' | 'landArea' | 'rooms' | 'bedrooms' | 'bathrooms' | 'floor' | 'totalFloors',
     options: { min: number; max: number; integer: boolean },
   ): void {
     const raw = this.form[field];
@@ -1724,6 +1811,15 @@ export class UploadApartment implements OnInit, OnDestroy {
       ),
       partnerBadge: t('Partner watermark', 'პარტნიორის ნიშანი', 'Знак партнёра'),
     };
+  }
+
+  /**
+   * Badge shown on a photo. Photos without a watermark (and checks still running or failed)
+   * show nothing: the check only speaks up when a watermark was found or removed.
+   */
+  visibleCheck(index: number) {
+    const check = this.photoCheck(index);
+    return check && !['clean', 'checking', 'error'].includes(check.state) ? check : null;
   }
 
   get thirdPartyPhotoCount(): number {
@@ -2231,6 +2327,8 @@ export class UploadApartment implements OnInit, OnDestroy {
           this.successMessage = published
             ? 'Apartment listing published successfully.'
             : 'Your apartment was sent for admin confirmation. It will be published after approval.';
+          this.rememberAgentContact();
+          this.clearDraft();
           this.openSuccessModal(!published);
           // The API marks the owner submission published and links the apartment itself.
         },
@@ -2569,6 +2667,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.selectedStreetId ? `Street ID: ${this.selectedStreetId}` : '',
       this.form.streetNumber ? `Building: ${this.form.streetNumber}` : '',
       this.form.area ? `Area: ${this.form.area} m2` : '',
+      this.form.landArea && this.hasLandArea ? `Land area: ${this.form.landArea} m2` : '',
       this.form.rooms ? `Rooms: ${this.form.rooms}` : '',
       this.form.bedrooms ? `Bedrooms: ${this.form.bedrooms}` : '',
       this.form.bathrooms ? `Bathrooms: ${this.form.bathrooms}` : '',

@@ -26,7 +26,7 @@ import { isListedUniversity } from '../utils/universities';
 /** Saved in nearbyPlaceNames when the admin refresh last measured a listing. */
 const NEARBY_CHECKED_KEY = 'nearbyCheckedAt';
 const NEARBY_RECHECK_MS = 30 * 24 * 60 * 60 * 1000;
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { NgIf, NgFor, DecimalPipe } from '@angular/common';
 import { MyHomeVerification } from '../myhome-verification/myhome-verification';
 import { FormsModule } from '@angular/forms';
@@ -103,9 +103,15 @@ export class AdminPanel implements OnInit, OnDestroy {
     private crmService: CrmService,
     private cdr: ChangeDetectorRef,
     private nearbyTimes: GoogleNearbyTimeService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
+    // "Listing approvals" in the CRM side menu opens straight on the pending tab.
+    this.subscriptions.add(this.route.queryParamMap.subscribe((query) => {
+      if (query.get('tab') === 'pending') this.activeTab = 'pending';
+      this.cdr.markForCheck();
+    }));
     this.loadDashboard();
     this.loadBlogPosts();
   }
