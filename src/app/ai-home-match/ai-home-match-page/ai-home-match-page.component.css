@@ -2271,3 +2271,16 @@ fieldset {
 
 /* Price chart: the whole area can be clicked to place a handle. */
 .budget-picker .budget-click-area { cursor: pointer; touch-action: pan-y; user-select: none; }
+
+/* Phones: Find My Match and How It Works sit centred under the text. */
+@media (max-width: 720px) {
+  .hero-actions {
+    justify-items: center;
+  }
+  .hero-actions > button:not(.how-link) {
+    width: min(100%, 360px);
+  }
+  .hero-actions .how-link {
+    justify-self: center;
+  }
+}

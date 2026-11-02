@@ -24,7 +24,7 @@
   } @else {
     <ul class="list">
       @for (coupon of coupons; track coupon.id) {
-        <li class="coupon" [class.used]="coupon.status === 'redeemed'">
+        <li class="coupon" [class.used]="coupon.status !== 'active'">
           <div class="amount">
             <strong data-no-translate>${{ coupon.amountUsd }}</strong>
             <span>cashback</span>
@@ -43,7 +43,7 @@
             </div>
           </div>
           <span class="status" [class.active]="coupon.status === 'active'">
-            {{ coupon.status === 'active' ? 'Ready to use' : 'Used' }}
+            {{ coupon.status === 'active' ? 'Ready to use' : coupon.status === 'void' ? 'Cancelled' : 'Used' }}
           </span>
         </li>
       }

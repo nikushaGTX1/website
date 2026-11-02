@@ -41,6 +41,7 @@ import { GooglePropertyMapComponent } from '../../maps/google-property-map/googl
 import { ListingTitlePipe } from '../../shared/listing-title.pipe';
 import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
 import { districtIcon } from '../../utils/district-icons';
+import { PhotoDotsComponent } from '../../shared/photo-dots/photo-dots.component';
 
 interface LifestyleInsight {
   title: string;
@@ -59,7 +60,7 @@ const MATCH_WALK_LIMIT = 18;
   selector: 'app-home-match-results',
   templateUrl: './home-match-results.component.html',
   styleUrl: './home-match-results.component.css',
-  imports: [PhotoUrlPipe, 
+  imports: [PhotoDotsComponent, PhotoUrlPipe, 
     NgIf,
     VelvenLifestyleAvatarComponent,
     RouterLink,

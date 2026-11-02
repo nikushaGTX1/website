@@ -119,9 +119,7 @@
         <button type="button" class="mc-nav prev" (click)="moveGallery(result, track, -1)" aria-label="Previous photo"><i class="fa-solid fa-chevron-left"></i></button>
         <button type="button" class="mc-nav next" (click)="moveGallery(result, track, 1)" aria-label="Next photo"><i class="fa-solid fa-chevron-right"></i></button>
         <span class="mc-count"><i class="fa-solid fa-camera" aria-hidden="true"></i> {{ (galleryIndex.get(result.apartment.id) ?? 0) + 1 }} / {{ gallery(result).length }}</span>
-        <div class="mc-dots" aria-hidden="true">
-          <i *ngFor="let src of gallery(result).slice(0, 8); let i = index" [class.on]="(galleryIndex.get(result.apartment.id) ?? 0) === i"></i>
-        </div>
+        <app-photo-dots class="mc-dots" [count]="gallery(result).length" [index]="galleryIndex.get(result.apartment.id) ?? 0"></app-photo-dots>
       </ng-container>
     </div>
 

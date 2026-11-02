@@ -13,6 +13,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PhotoDotsComponent } from '../photo-dots/photo-dots.component';
 
 /**
  * Swipeable photo strip (Airbnb-style): the track follows the finger or mouse, resists
@@ -22,7 +23,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-photo-carousel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [PhotoDotsComponent, CommonModule],
   templateUrl: './photo-carousel.component.html',
   styleUrl: './photo-carousel.component.css',
 })
@@ -156,21 +157,6 @@ export class PhotoCarouselComponent implements OnChanges, AfterViewInit, OnDestr
 
   shouldRender(slide: number): boolean {
     return this.rendered.has(slide);
-  }
-
-  /** Up to five dots around the active photo; edge dots shrink when more photos follow. */
-  get dots(): Array<{ index: number; small: boolean }> {
-    const total = this.count;
-    if (total <= 1) return [];
-    const visible = Math.min(5, total);
-    const start = Math.min(Math.max(0, this.index - 2), total - visible);
-    return Array.from({ length: visible }, (_, offset) => {
-      const index = start + offset;
-      return {
-        index,
-        small: (offset === 0 && start > 0) || (offset === visible - 1 && index < total - 1),
-      };
-    });
   }
 
   readonly trackByIndex = (index: number): number => index;

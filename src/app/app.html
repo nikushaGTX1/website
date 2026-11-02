@@ -94,6 +94,11 @@
       ></a
     ><a
       *ngIf="auth.isCrmManager"
+      routerLink="/crm/coupons"
+      routerLinkActive="selected"
+      ><i class="fa-solid fa-ticket" aria-hidden="true"></i>Coupons</a
+    ><a
+      *ngIf="auth.isCrmManager"
       routerLink="/crm/system"
       routerLinkActive="selected"
       [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'exact', matrixParams: 'ignored', fragment: 'ignored' }"

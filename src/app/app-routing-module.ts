@@ -359,6 +359,12 @@ const routes: Routes = [
     canActivate: [authGuard, crmGuard, () => inject(AuthService).isCrmManager || inject(Router).createUrlTree(['/crm'])],
   },
   {
+    path: 'crm/coupons',
+    loadComponent: () => import('./crm/coupons/coupons').then((m) => m.CrmCoupons),
+    title: 'Coupons | Velven',
+    canActivate: [authGuard, crmGuard, () => inject(AuthService).isCrmManager || inject(Router).createUrlTree(['/crm'])],
+  },
+  {
     path: 'crm/client-matches',
     redirectTo: 'crm/interested-clients',
     pathMatch: 'full'

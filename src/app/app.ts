@@ -250,6 +250,7 @@ export class App implements AfterViewInit {
       'interested-clients': 'Interested clients',
       'photo-cleaner': 'Watermark remover',
       approvals: 'Listing approvals',
+      coupons: 'Coupons',
       system: 'System dashboard',
       viewings: 'Viewings',
       reviews: 'Reviews',

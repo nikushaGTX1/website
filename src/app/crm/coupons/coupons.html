@@ -1,0 +1,145 @@
+<main class="page">
+  <header class="top">
+    <div>
+      <a class="back" routerLink="/crm"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> CRM</a>
+      <h1>Coupons</h1>
+      <p>Check a code a client shows you. A coupon can be used on one deal only.</p>
+    </div>
+  </header>
+
+  <section class="checker" aria-labelledby="check-title">
+    <h2 id="check-title">Check a coupon code</h2>
+    <form class="check-row" (ngSubmit)="check()">
+      <label class="code-input">
+        <i class="fa-solid fa-ticket" aria-hidden="true"></i>
+        <input name="code" [(ngModel)]="code" placeholder="VLV-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Coupon code" data-no-translate />
+      </label>
+      <button type="submit" class="primary" [disabled]="!code.trim() || checking">
+        <i class="fa-solid" [class.fa-magnifying-glass]="!checking" [class.fa-circle-notch]="checking" [class.fa-spin]="checking" aria-hidden="true"></i> Check
+      </button>
+    </form>
+    @if (checkError) {
+      <p class="result bad" role="alert"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> {{ checkError }}</p>
+    }
+
+    @if (checked; as item) {
+      <article class="result-card" [class]="'result-card ' + item.coupon.status" aria-live="polite">
+        <div class="verdict">
+          @switch (item.coupon.status) {
+            @case ('active') {
+              <span class="verdict-icon ok" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+              <div><strong>Valid — ready to use</strong><small>This coupon has not been used yet.</small></div>
+            }
+            @case ('redeemed') {
+              <span class="verdict-icon used" aria-hidden="true"><i class="fa-solid fa-ban"></i></span>
+              <div>
+                <strong>Already used</strong>
+                <small>Used {{ item.coupon.redeemedAt | date: 'd MMM y, HH:mm' }}@if (item.redeemedBy) {&ngsp;by {{ item.redeemedBy }}}. Do not apply it again.</small>
+              </div>
+            }
+            @case ('void') {
+              <span class="verdict-icon bad" aria-hidden="true"><i class="fa-solid fa-circle-xmark"></i></span>
+              <div>
+                <strong>Cancelled — not valid</strong>
+                <small>Cancelled {{ item.voidedAt | date: 'd MMM y, HH:mm' }}@if (item.voidedBy) {&ngsp;by {{ item.voidedBy }}}.</small>
+              </div>
+            }
+          }
+        </div>
+
+        <dl class="facts">
+          <div><dt>Code</dt><dd data-no-translate><code>{{ item.coupon.code }}</code></dd></div>
+          <div><dt>Amount</dt><dd data-no-translate>${{ item.coupon.amountUsd }}</dd></div>
+          <div><dt>Client</dt><dd>{{ item.clientName || '—' }}<small data-no-translate>{{ item.clientEmail }}@if (item.clientPhone) { · {{ item.clientPhone }}}</small></dd></div>
+          <div><dt>Won</dt><dd>{{ item.coupon.createdAt | date: 'd MMM y, HH:mm' }}</dd></div>
+          @if (item.redeemNote) {<div><dt>Used on</dt><dd>{{ item.redeemNote }}</dd></div>}
+          @if (item.voidReason) {<div><dt>Reason</dt><dd>{{ item.voidReason }}</dd></div>}
+        </dl>
+
+        @if (actionError) {
+          <p class="result bad" role="alert"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> {{ actionError }}</p>
+        }
+
+        @if (item.coupon.status === 'active') {
+          <div class="actions">
+            @if (confirming === 'redeem') {
+              <label class="field">Deal or listing it is used on <span>(optional)</span>
+                <input name="note" [(ngModel)]="note" maxlength="200" placeholder="e.g. Vake 2-room, contract 12 Nov" />
+              </label>
+              <p class="warn">Mark this coupon as used? This cannot be undone.</p>
+              <div class="buttons">
+                <button type="button" class="primary" [disabled]="acting" (click)="act()">Yes, mark as used</button>
+                <button type="button" class="ghost" [disabled]="acting" (click)="confirming = null">Back</button>
+              </div>
+            } @else if (confirming === 'void') {
+              <label class="field">Why is it cancelled? <span>(optional)</span>
+                <input name="reason" [(ngModel)]="reason" maxlength="200" placeholder="e.g. Faked win" />
+              </label>
+              <p class="warn">Cancel this coupon? The client can no longer use it.</p>
+              <div class="buttons">
+                <button type="button" class="danger" [disabled]="acting" (click)="act()">Yes, cancel coupon</button>
+                <button type="button" class="ghost" [disabled]="acting" (click)="confirming = null">Back</button>
+              </div>
+            } @else {
+              <div class="buttons">
+                <button type="button" class="primary" (click)="confirm('redeem')"><i class="fa-solid fa-check" aria-hidden="true"></i> Use on a deal</button>
+                <button type="button" class="ghost danger-text" (click)="confirm('void')"><i class="fa-solid fa-ban" aria-hidden="true"></i> Cancel coupon</button>
+              </div>
+            }
+          </div>
+        }
+      </article>
+    }
+  </section>
+
+  <section class="all" aria-labelledby="all-title">
+    <div class="all-head">
+      <h2 id="all-title">All coupons</h2>
+      <label class="search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" name="search" [value]="search" (input)="onSearch($any($event.target).value)" placeholder="Search by code, client or email" />
+      </label>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Coupon status">
+      @for (tab of tabs; track tab.value) {
+        <button type="button" role="tab" [class.active]="status === tab.value" [attr.aria-selected]="status === tab.value" (click)="setStatus(tab.value)">
+          {{ tab.label }} @if (count(tab.value) !== null) {<span data-no-translate>{{ count(tab.value) }}</span>}
+        </button>
+      }
+    </div>
+
+    @if (listLoading && !list) {
+      <div class="skeleton" aria-hidden="true"></div>
+    } @else if (listError) {
+      <div class="state"><h3>Coupons could not load</h3><button type="button" class="primary" (click)="load()">Try again</button></div>
+    } @else if (!list?.items?.length) {
+      <div class="state"><h3>No coupons here yet</h3><p>Coupons appear when clients win them in the Velven game.</p></div>
+    } @else {
+      <div class="table" role="table" aria-label="Coupons">
+        <div class="row head" role="row">
+          <span role="columnheader">Code</span><span role="columnheader">Client</span><span role="columnheader">Won</span><span role="columnheader">Status</span><span role="columnheader"></span>
+        </div>
+        @for (item of list!.items; track item.coupon.id) {
+          <div class="row" role="row">
+            <span role="cell" data-no-translate><code>{{ item.coupon.code }}</code></span>
+            <span role="cell" class="client">{{ item.clientName || '—' }}<small data-no-translate>{{ item.clientEmail }}</small></span>
+            <span role="cell">{{ item.coupon.createdAt | date: 'd MMM y' }}</span>
+            <span role="cell">
+              <b class="badge" [class]="'badge ' + item.coupon.status">{{ statusLabel(item.coupon.status) }}</b>
+              @if (item.coupon.status === 'redeemed') {<small class="by">{{ item.coupon.redeemedAt | date: 'd MMM' }}@if (item.redeemedBy) { · {{ item.redeemedBy }}}</small>}
+              @if (item.coupon.status === 'void') {<small class="by">{{ item.voidedAt | date: 'd MMM' }}@if (item.voidedBy) { · {{ item.voidedBy }}}</small>}
+            </span>
+            <span role="cell"><button type="button" class="ghost small" (click)="open(item)">Open</button></span>
+          </div>
+        }
+      </div>
+      @if (pages > 1) {
+        <nav class="pager" aria-label="Pages">
+          <button type="button" class="ghost small" [disabled]="page <= 1" (click)="load(page - 1)">Previous</button>
+          <span data-no-translate>{{ page }} / {{ pages }}</span>
+          <button type="button" class="ghost small" [disabled]="page >= pages" (click)="load(page + 1)">Next</button>
+        </nav>
+      }
+    }
+  </section>
+</main>

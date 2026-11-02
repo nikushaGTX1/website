@@ -36,16 +36,6 @@
       <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
     </button>
   </ng-container>
-  <div class="pc-dots" *ngIf="showDots && count > 1">
-    <button
-      type="button"
-      *ngFor="let dot of dots; trackBy: trackByIndex"
-      [class.active]="dot.index === index"
-      [class.small]="dot.small && dot.index !== index"
-      [attr.aria-label]="'Photo ' + (dot.index + 1)"
-      [attr.aria-current]="dot.index === index ? 'true' : null"
-      (click)="go(dot.index, $event)"
-    ><span></span></button>
-  </div>
+  <app-photo-dots class="pc-dots" *ngIf="showDots && count > 1" [count]="count" [index]="index"></app-photo-dots>
   <span class="pc-status" aria-live="polite" data-no-translate>{{ index + 1 }} / {{ count }}</span>
 </div>

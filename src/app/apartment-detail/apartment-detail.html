@@ -83,9 +83,7 @@
           <img [src]="activePhoto" alt="" width="600" height="400" loading="lazy" decoding="async" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
         </button>
         <span class="vp-photo-count" data-no-translate *ngIf="galleryImages.length > 1">{{ activePhotoIndex + 1 }} / {{ galleryImages.length }}</span>
-        <div class="vp-photo-dots" aria-hidden="true" *ngIf="galleryDots.length">
-          <span *ngFor="let dot of galleryDots; trackBy: trackByDotSlot" [class.active]="dot.active" [class.small]="dot.small"></span>
-        </div>
+        <app-photo-dots class="vp-photo-dots" *ngIf="galleryImages.length > 1" [count]="galleryImages.length" [index]="activePhotoIndex"></app-photo-dots>
       </section>
       <div class="vp-columns">
         <div class="vp-main">

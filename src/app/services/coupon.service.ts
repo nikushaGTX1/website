@@ -11,7 +11,28 @@ export interface ClientCoupon {
   title: string;
   createdAt: string;
   redeemedAt: string | null;
-  status: 'active' | 'redeemed';
+  status: 'active' | 'redeemed' | 'void';
+}
+
+/** A coupon as managers see it in the CRM, with its client and who used or cancelled it. */
+export interface StaffCoupon {
+  coupon: ClientCoupon;
+  clientName: string | null;
+  clientEmail: string | null;
+  clientPhone: string | null;
+  redeemNote: string | null;
+  redeemedBy: string | null;
+  voidedAt: string | null;
+  voidReason: string | null;
+  voidedBy: string | null;
+}
+
+export interface StaffCouponPage {
+  total: number;
+  page: number;
+  pageSize: number;
+  counts: { active: number; redeemed: number; void: number };
+  items: StaffCoupon[];
 }
 
 /** Floor the player must reach in the Velven game to win the $50 cashback (same as the API). */
@@ -37,6 +58,24 @@ export class CouponService {
 
   claimGameReward(floor: number): Observable<{ created: boolean; coupon: ClientCoupon }> {
     return this.http.post<{ created: boolean; coupon: ClientCoupon }>(`${this.apiUrl}/game-reward`, { floor });
+  }
+
+  // ---------- Managers (CRM) ----------
+
+  listAll(search: string, status: string, page: number): Observable<StaffCouponPage> {
+    return this.http.get<StaffCouponPage>(`${this.apiUrl}/all`, { params: { search, status, page } });
+  }
+
+  lookup(code: string): Observable<StaffCoupon> {
+    return this.http.get<StaffCoupon>(`${this.apiUrl}/lookup/${encodeURIComponent(code.trim())}`);
+  }
+
+  redeem(id: number, note: string): Observable<StaffCoupon> {
+    return this.http.post<StaffCoupon>(`${this.apiUrl}/${id}/redeem`, { note });
+  }
+
+  cancel(id: number, reason: string): Observable<StaffCoupon> {
+    return this.http.post<StaffCoupon>(`${this.apiUrl}/${id}/void`, { reason });
   }
 
   rememberPendingWin(floor: number): void {
