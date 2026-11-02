@@ -1,0 +1,34 @@
+<main class="play-page">
+  <section class="intro">
+    <span class="eyebrow"><i class="fa-solid fa-gamepad" aria-hidden="true"></i> Velven game</span>
+    <h1>Play and get <em>$50 cashback</em></h1>
+    <p>Win the game and get $50 back when you rent or buy a home through Velven.</p>
+    <ol class="steps">
+      <li><b>1</b><span>Play the game and win.</span></li>
+      <li><b>2</b><span>Take a screenshot of your winning screen.</span></li>
+      <li><b>3</b><span>Show it to your Velven agent when you sign your deal. The $50 is applied to your deal.</span></li>
+    </ol>
+    <p class="terms">One cashback per client and per deal. Valid only for deals made through a Velven agent.</p>
+    <a class="browse" routerLink="/ExploreProperty">Browse homes <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+  </section>
+
+  <section class="stage" #stage [class.fullscreen]="fullscreen" aria-label="Game">
+    @if (playing) {
+      <iframe src="/games/axali/index.html" title="Velven game" allow="fullscreen; autoplay"></iframe>
+      @if (fullscreen) {
+        <button type="button" class="screen-toggle" (click)="exitFullscreen()" aria-label="Exit full screen">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      } @else {
+        <button type="button" class="screen-toggle" (click)="enterFullscreen()" aria-label="Full screen">
+          <i class="fa-solid fa-expand" aria-hidden="true"></i>
+        </button>
+      }
+    } @else {
+      <button type="button" class="start" (click)="play()">
+        <span class="play-icon" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+        <strong>Play</strong>
+      </button>
+    }
+  </section>
+</main>

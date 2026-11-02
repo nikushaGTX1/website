@@ -154,6 +154,11 @@ const routes: Routes = [
   },
 
   {
+    path: 'play',
+    loadComponent: () => import('./play-game/play-game').then((module) => module.PlayGame),
+    title: 'Play and get $50 cashback | Velven',
+  },
+  {
     path: 'careers',
     loadComponent: () => import('./careers/careers').then((module) => module.Careers),
     title: 'Careers | Velven',

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>Velven game</title>
+    <style>
+      html, body { height: 100%; margin: 0; background: #231f20; overflow: hidden; }
+      body { display: grid; place-items: center; }
+      /* Keeps the game's 9:16 shape inside whatever space the page gives it. */
+      #unity-canvas { display: block; width: min(100vw, 56.25vh); height: min(100vh, 177.78vw); background: #231f20; }
+      /* Phones: fill the whole screen, as Unity's own mobile template does. */
+      @media (pointer: coarse) and (max-aspect-ratio: 3/4) {
+        #unity-canvas { width: 100vw; height: 100vh; }
+      }
+      #loading { position: fixed; inset: auto 0 24px; color: #d9d0ea; font: 600 14px system-ui, sans-serif; text-align: center; }
+      #loading span { display: block; width: 180px; height: 6px; margin: 10px auto 0; overflow: hidden; border-radius: 9px; background: #3d3640; }
+      #loading b { display: block; width: 0; height: 100%; background: #9b6cf0; transition: width 0.2s; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" width="540" height="960" tabindex="-1"></canvas>
+    <div id="loading">Loading game…<span><b id="bar"></b></span></div>
+    <script src="Build/AxaliBuild.loader.js"></script>
+    <script>
+      createUnityInstance(document.querySelector('#unity-canvas'), {
+        dataUrl: 'Build/AxaliBuild.data.br',
+        // Plain .js: the dev server (Vite) cannot load a brotli-packed script file.
+        frameworkUrl: 'Build/AxaliBuild.framework.js',
+        codeUrl: 'Build/AxaliBuild.wasm.br',
+        streamingAssetsUrl: 'StreamingAssets',
+        companyName: 'Velven',
+        productName: 'Velven',
+        productVersion: '1.0',
+      }, (progress) => {
+        document.getElementById('bar').style.width = Math.round(progress * 100) + '%';
+      }).then(() => {
+        document.getElementById('loading').remove();
+      }).catch((message) => {
+        document.getElementById('loading').textContent = 'The game could not load. Please refresh the page.';
+        console.error(message);
+      });
+    </script>
+  </body>
+</html>

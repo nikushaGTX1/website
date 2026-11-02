@@ -116,7 +116,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
   `img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://${supabaseHost}`,
   `connect-src 'self' https://*.googleapis.com https://api.frankfurter.dev ${apiOrigin} https://${supabaseHost}`,
-  "frame-src https://www.google.com",
+  "frame-src 'self' https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",
   "frame-ancestors 'none'",
@@ -183,16 +183,23 @@ app.use((request, response, next) => {
   next();
 });
 
-app.use((_request, response, next) => {
+// The Velven game (/games/...) runs inside the /play page, so only this site may frame it,
+// and its WebAssembly needs 'wasm-unsafe-eval'.
+const gameContentSecurityPolicy = contentSecurityPolicy
+  .replace("frame-ancestors 'none'", "frame-ancestors 'self'")
+  .replace("script-src 'self'", "script-src 'self' 'wasm-unsafe-eval'");
+
+app.use((request, response, next) => {
+  const isGame = request.path.startsWith('/games/');
   response.setHeader('X-Content-Type-Options', 'nosniff');
   response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
   // Also turn on HSTS in Cloudflare (SSL/TLS > Edge Certificates): it covers the http:// redirect too.
   response.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  response.setHeader('X-Frame-Options', 'DENY');
+  response.setHeader('X-Frame-Options', isGame ? 'SAMEORIGIN' : 'DENY');
   // Report-only for now: violations show in the browser console, nothing is blocked.
   // Rename the header to Content-Security-Policy once the console stays clean.
-  response.setHeader('Content-Security-Policy-Report-Only', contentSecurityPolicy);
+  response.setHeader('Content-Security-Policy-Report-Only', isGame ? gameContentSecurityPolicy : contentSecurityPolicy);
   next();
 });
 
@@ -1532,6 +1539,18 @@ app.use(express.static(browserDirectory, {
     // Hashed build files (main-444GX5AC.js, chunk-RZ3736J7.js, styles-XXXXXXXX.css) never
     // change content, so browsers may keep them for a year. The older "main.HASH.js"
     // pattern no longer matched Angular's output, so these were only cached for hours.
+    // Unity game files are stored brotli-compressed (AxaliBuild.wasm.br); the browser
+    // unpacks them itself when told the encoding and the real file type.
+    if (filePath.endsWith('.br')) {
+      const inner = filePath.slice(0, -3);
+      response.setHeader('Content-Encoding', 'br');
+      response.setHeader(
+        'Content-Type',
+        inner.endsWith('.wasm') ? 'application/wasm' : inner.endsWith('.js') ? 'text/javascript' : 'application/octet-stream',
+      );
+      response.setHeader('Cache-Control', 'public, max-age=86400');
+      return;
+    }
     if (/[-.][A-Z0-9]{8}\.(?:js|css)$/i.test(filePath)) {
       response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     } else if (/\.(?:png|jpe?g|webp|svg|ico|woff2?)$/i.test(filePath)) {

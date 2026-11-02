@@ -5387,3 +5387,166 @@
     min-height: 44px;
   }
 }
+
+/* Velven game banner after the featured homes. */
+.game-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 42%);
+  overflow: hidden;
+  margin-top: 96px;
+  border-radius: 28px;
+  background: linear-gradient(125deg, #23104a, #451a8f 60%, #6a33c2);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 24px 60px rgba(69, 26, 143, 0.22);
+}
+.game-banner-copy {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 14px;
+  padding: 48px 52px;
+}
+.game-banner-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #e6dcf8;
+  font-size: 13px;
+  font-weight: 700;
+}
+.game-banner-copy strong {
+  font-size: clamp(28px, 3.2vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.game-banner-copy em {
+  color: #c9a8ff;
+  font-style: normal;
+}
+.game-banner-copy small {
+  max-width: 440px;
+  color: #ddd2f2;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.game-banner-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  margin-top: 8px;
+  padding: 0 22px;
+  border-radius: 13px;
+  background: #fff;
+  color: #451a8f;
+  font-weight: 700;
+  transition: transform 0.2s;
+}
+.game-banner-art {
+  position: relative;
+  min-height: 320px;
+}
+.game-banner-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 78%;
+  /* Soft edge into the purple side. */
+  mask-image: linear-gradient(90deg, transparent, #000 22%);
+}
+.game-banner-play {
+  position: absolute;
+  top: 50%;
+  left: 55%;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #451a8f;
+  font-size: 26px;
+  box-shadow: 0 12px 30px rgba(20, 10, 45, 0.35);
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s;
+}
+.game-banner-play i {
+  margin-left: 4px;
+}
+@media (hover: hover) {
+  .game-banner:hover .game-banner-play {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  .game-banner:hover .game-banner-cta {
+    transform: translateX(3px);
+  }
+}
+.game-banner:focus-visible {
+  outline: 3px solid #b89ae8;
+  outline-offset: 4px;
+}
+/* Phones: the buildings picture runs edge to edge on top and fades into the purple card. */
+@media (max-width: 760px) {
+  .game-banner {
+    grid-template-columns: 1fr;
+    margin-top: 64px;
+    border-radius: 24px;
+  }
+  .game-banner-art {
+    order: -1;
+    min-height: 0;
+    aspect-ratio: 540 / 400;
+  }
+  .game-banner-art img {
+    object-position: center bottom;
+    mask-image: linear-gradient(180deg, #000 62%, transparent);
+  }
+  .game-banner-play {
+    top: 46%;
+    left: 50%;
+    width: 64px;
+    height: 64px;
+    font-size: 22px;
+  }
+  .game-banner-copy {
+    gap: 10px;
+    margin-top: -36px;
+    position: relative;
+    padding: 0 20px 22px;
+  }
+  .game-banner-copy strong {
+    font-size: 26px;
+  }
+  .game-banner-copy small {
+    font-size: 15px;
+  }
+  .game-banner-cta {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+}
+
+/* Phones give every .content-section side padding; the banner card has its own inner spacing, so
+   it keeps the same outer width as the other sections but no padding around the picture. */
+@media (max-width: 760px) {
+  .content-section.game-banner {
+    box-sizing: border-box;
+    width: calc(100% - 32px);
+    max-width: 560px;
+    padding: 0;
+    margin-inline: auto;
+  }
+}
+@media (max-width: 380px) {
+  .content-section.game-banner {
+    width: calc(100% - 24px);
+  }
+}
