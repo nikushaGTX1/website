@@ -137,6 +137,13 @@ export class App implements AfterViewInit {
   }
 
   workspaceMenuOpen = false;
+  /**
+   * Closes the phone side menu. Returns nothing on purpose: a click handler that returns false
+   * cancels the click in Angular, which blocked plain links in the menu (Open Live).
+   */
+  closeWorkspaceMenu(): void {
+    this.workspaceMenuOpen = false;
+  }
   get isCrmWorkspace(): boolean {
     const path = this.router.url.split(/[?#]/, 1)[0];
     return this.auth.canOpenCrm && /^\/crm(?:\/|$)/.test(path);

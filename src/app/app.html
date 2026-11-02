@@ -22,7 +22,7 @@
   *ngIf="isCrmWorkspace"
   [class.mobile-open]="workspaceMenuOpen"
 >
-  <nav aria-label="CRM navigation" (click)="workspaceMenuOpen = false">
+  <nav aria-label="CRM navigation" (click)="closeWorkspaceMenu()">
     <p class="workspace-nav-label">WORKSPACE</p>
     <a routerLink="/crm" routerLinkActive="selected" [routerLinkActiveOptions]="{ exact: true }"
       ><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Overview</a
@@ -57,8 +57,6 @@
     <a
       *ngIf="auth.isAgent || auth.isCrmManager"
       href="https://gtxlivewebscraper-production.up.railway.app/"
-      target="_blank"
-      rel="noopener"
       ><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i>Open Live</a
     >
     <a
@@ -92,7 +90,7 @@
 <button
   class="workspace-backdrop"
   *ngIf="isCrmWorkspace && workspaceMenuOpen"
-  (click)="workspaceMenuOpen = false"
+  (click)="closeWorkspaceMenu()"
   aria-label="Close navigation"
 ></button>
 <div
