@@ -21,6 +21,7 @@ import { toMediaUrl } from '../utils/api-media';
 import { isSaleListing } from '../utils/listing-deal';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { CurrencyPrice } from '../currency-price/currency-price';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 /**
  * Header bell. Clients: new homes matching their saved Velven Match searches.
@@ -30,7 +31,7 @@ import { CurrencyPrice } from '../currency-price/currency-price';
   selector: 'app-notification-bell',
   templateUrl: './notification-bell.html',
   styleUrl: './notification-bell.css',
-  imports: [NgIf, NgFor, RouterLink, CurrencyPrice],
+  imports: [PhotoUrlPipe, NgIf, NgFor, RouterLink, CurrencyPrice],
 })
 export class NotificationBell implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);

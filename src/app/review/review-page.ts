@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { ReviewLink, ReviewService } from '../services/review.service';
 import { AppLanguage, TranslationService } from '../services/translation.service';
 import { pick, ratingLabel, reviewSubmitError, ruPlural, starsText } from '../utils/review-i18n';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 /**
  * Public review form behind an agent's permanent link (velven.ge/review/{slug}).
@@ -16,7 +17,7 @@ import { pick, ratingLabel, reviewSubmitError, ruPlural, starsText } from '../ut
 @Component({
   selector: 'app-review-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [PhotoUrlPipe, CommonModule, FormsModule, RouterLink],
   templateUrl: './review-page.html',
   styleUrl: './review-page.css',
 })

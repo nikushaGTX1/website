@@ -29,7 +29,7 @@
     <ul class="list">
       @for (item of visible; track item.id) {
         <li class="row">
-          <a class="photo" [routerLink]="['/apartments', item.apartment.id]" target="_blank"><img [src]="image(item)" alt="" loading="lazy" /></a>
+          <a class="photo" [routerLink]="['/apartments', item.apartment.id]" target="_blank"><img [src]="(image(item)) | photoUrl" alt="" loading="lazy" /></a>
 
           <div class="info">
             <p class="place">{{ item.apartment.district }}<span *ngIf="item.apartment.street"> · {{ item.apartment.street }}</span></p>
@@ -46,7 +46,7 @@
           <div class="uploader">
             <span class="label">Uploaded by</span>
             <div class="person">
-              <img *ngIf="photo(item); else noPhoto" [src]="photo(item)" alt="" loading="lazy" />
+              <img *ngIf="photo(item); else noPhoto" [src]="(photo(item)) | photoUrl:320" alt="" loading="lazy" />
               <ng-template #noPhoto><span class="initials" aria-hidden="true">{{ initials(item) }}</span></ng-template>
               <div>
                 <strong data-no-translate>{{ item.submittedByName || item.submittedByEmail || 'Unknown' }}</strong>

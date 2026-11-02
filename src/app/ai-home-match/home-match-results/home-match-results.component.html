@@ -34,8 +34,8 @@
       </span>
       <div class="discover-save-copy">
         <ng-container *ngIf="saveState === 'guest'">
-          <strong>Save your search and get notified when new homes match.</strong>
-          <span>Create a free account. Your answers are kept, so there is no need to start again.</span>
+          <strong>Save your character and your answers.</strong>
+          <span>Create a free account to keep them. We'll also let you know when new homes match.</span>
         </ng-container>
         <strong *ngIf="saveState === 'saving'">Saving your search to Velven Discover…</strong>
         <ng-container *ngIf="saveState === 'saved'">
@@ -54,8 +54,11 @@
         </ng-container>
       </div>
       <div class="discover-save-actions" *ngIf="saveState === 'guest'">
-        <button type="button" class="primary" (click)="saveAsGuest.emit(true)">Create account</button>
-        <button type="button" (click)="saveAsGuest.emit(false)">Sign in</button>
+        <!-- Saving needs an account: the answers are kept and saved right after registration. -->
+        <button type="button" class="primary" (click)="saveAsGuest.emit(true)">
+          <i class="fa-solid fa-bookmark" aria-hidden="true"></i> Save my character
+        </button>
+        <button type="button" (click)="saveAsGuest.emit(false)">I have an account</button>
       </div>
       <a class="discover-save-link" *ngIf="saveState === 'saved' || saveState === 'updated' || saveState === 'duplicate'"
         routerLink="/discover" [queryParams]="savedSearchId ? { search: savedSearchId } : {}">Open Velven Discover <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
@@ -105,7 +108,7 @@
     <div class="mc-gallery">
       <div class="mc-track" #track (scroll)="onGalleryScroll(result, track)">
         <div class="slide" *ngFor="let sources of gallery(result); let i = index">
-          <img [src]="sources[0]" [class.placeholder-image]="sources[0] === '/property-placeholder.svg'" [alt]="(result.apartment | listingTitle) + ' photo ' + (i + 1)" [attr.loading]="i ? 'lazy' : null" (error)="onSlideError($event, result, sources)" />
+          <img [src]="(sources[0]) | photoUrl" [class.placeholder-image]="sources[0] === '/property-placeholder.svg'" [alt]="(result.apartment | listingTitle) + ' photo ' + (i + 1)" [attr.loading]="i ? 'lazy' : null" (error)="onSlideError($event, result, sources)" />
         </div>
       </div>
       <span class="mc-rank" [attr.data-kind]="kind">
@@ -178,7 +181,7 @@
       <section class="location-map" aria-label="Apartment location">
         <div class="map-caption">
           <div>
-            <span class="map-pin" aria-hidden="true">&#9679;</span>
+            <span class="map-pin" aria-hidden="true"><img [src]="districtIcon(result.apartment.district)" alt="" /></span>
             <p>
               <strong>{{ result.apartment.district || 'Location' }}</strong
               ><small>{{ result.apartment.address || 'Exact location shown on the map' }}</small>

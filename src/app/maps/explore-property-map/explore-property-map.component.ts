@@ -35,6 +35,10 @@ interface PropertyMarker {
   wrapper: HTMLDivElement;
   button: HTMLButtonElement;
   tail?: HTMLSpanElement;
+  /** Cluster/building markers: the Supercluster id, to find which homes are inside. */
+  clusterId?: number;
+  /** Ids of the homes inside a cluster marker, read once when first needed. */
+  leafIds?: Set<number>;
 }
 
 /** Apartments closer than this (meters) are treated as the same building. */
@@ -317,6 +321,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       })),
     );
     this.index = index;
+    // Cluster ids belong to one index; forget what was read from the previous one.
+    for (const item of this.markers.values()) item.leafIds = undefined;
     this.mappedApartmentCount = points.length;
     this.lastViewportKey = '';
 
@@ -513,7 +519,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         content: wrapper,
         zIndex: 5,
       });
-      return { key, kind: 'group', marker: groupMarker, wrapper, button };
+      return { key, kind: 'group', marker: groupMarker, wrapper, button, clusterId };
     }
     button.textContent = count > 999 ? '999+' : String(count);
     Object.assign(button.style, {
@@ -549,7 +555,7 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
       content: wrapper,
       zIndex: 5,
     });
-    return { key, kind: isBuilding ? 'group' : 'cluster', marker, wrapper, button };
+    return { key, kind: isBuilding ? 'group' : 'cluster', marker, wrapper, button, clusterId };
   }
 
   private onClusterClicked(
@@ -790,6 +796,33 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         : '0 5px 14px rgba(25, 16, 31, .22)';
       if (item.tail) item.tail.style.background = selected ? '#451a8f' : '#fff';
       item.marker.zIndex = selected ? 100 : 1;
+    }
+    this.updateSelectedCluster();
+  }
+
+  /**
+   * A hovered home that has no price marker of its own (it is inside a purple cluster or a
+   * building pill) lifts and highlights that cluster instead, above every other marker.
+   */
+  private updateSelectedCluster(): void {
+    const id = this.selectedApartmentId;
+    const ownMarker = id !== null && this.markers.has('a:' + id);
+    for (const item of this.markers.values()) {
+      if (item.kind === 'apartment' || item.clusterId === undefined) continue;
+      let inside = false;
+      if (id !== null && !ownMarker && this.index) {
+        item.leafIds ??= new Set(
+          this.index.getLeaves(item.clusterId, Infinity).map((leaf) => leaf.properties.id),
+        );
+        inside = item.leafIds.has(id);
+      }
+      const base = item.kind === 'group' ? '0 8px 22px rgba(69, 26, 143, .38)' : '0 6px 18px rgba(25, 16, 31, .32)';
+      item.button.style.transform = inside ? 'translateY(-6px) scale(1.18)' : '';
+      item.button.style.boxShadow = inside
+        ? '0 0 0 5px rgba(155, 108, 240, .45), 0 14px 30px rgba(69, 26, 143, .5)'
+        : base;
+      item.button.style.background = inside ? '#6d28d9' : item.kind === 'group' ? '#5b21d1' : '#451a8f';
+      item.marker.zIndex = inside ? 200 : 5;
     }
   }
 

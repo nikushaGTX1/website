@@ -2670,7 +2670,7 @@ svg {
   display: block;
   margin: 0 !important;
 }
-/* Same look as the main page cards: white circle, grey outline heart, red filled when saved. */
+/* Same look as the main page cards: white circle, grey outline heart, Velven purple filled when saved. */
 .heart,
 .map-preview-heart,
 .heart.saved,
@@ -2689,7 +2689,7 @@ svg {
 }
 .heart.saved,
 .map-preview-heart.saved {
-  color: #e63957 !important;
+  color: #5b21d1 !important;
 }
 .heart.saved svg,
 .map-preview-heart.saved svg {

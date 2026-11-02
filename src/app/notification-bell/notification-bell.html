@@ -58,7 +58,7 @@
                 aria-hidden="true"
               ></i
             ></span>
-            <img *ngIf="item.type !== 'crm-status'" [src]="image(item)" alt="" loading="lazy" />
+            <img *ngIf="item.type !== 'crm-status'" [src]="(image(item)) | photoUrl:320" alt="" loading="lazy" />
             <span class="notice-copy">
               <strong>{{
                 item.type === 'crm-status'

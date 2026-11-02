@@ -5,12 +5,13 @@ import { NgIf, NgFor, SlicePipe } from '@angular/common';
 import { CurrencyPrice } from '../../currency-price/currency-price';
 import { RouterLink } from '@angular/router';
 import { ListingTitlePipe } from '../../shared/listing-title.pipe';
+import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
 
 @Component({
   selector: 'app-concierge-results',
   templateUrl: './concierge-results.component.html',
   styleUrl: './concierge-results.component.css',
-  imports: [NgIf, NgFor, CurrencyPrice, RouterLink, SlicePipe, ListingTitlePipe],
+  imports: [PhotoUrlPipe, NgIf, NgFor, CurrencyPrice, RouterLink, SlicePipe, ListingTitlePipe],
 })
 export class ConciergeResultsComponent {
   @Input() matches: ApartmentMatchResult[] = [];

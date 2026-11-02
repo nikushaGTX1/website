@@ -2,7 +2,7 @@
   <button class="profile-burger" type="button" aria-label="Open account menu"
     [attr.aria-expanded]="isOpen" (click)="toggleMenu()">
     <span class="avatar-sm">
-      <img *ngIf="profileImage" [src]="profileImage" alt="Profile" (error)="fixProfileImage($event)">
+      <img *ngIf="profileImage" [src]="(profileImage) | photoUrl:320" alt="Profile" (error)="fixProfileImage($event)">
       <i *ngIf="!profileImage" class="fa-regular fa-user" aria-hidden="true"></i>
     </span>
     <span class="account-label">Account</span>
@@ -13,7 +13,7 @@
   <div class="burger-menu" [class.open]="isOpen">
     <div class="menu-profile">
       <div class="avatar-lg">
-        <img *ngIf="profileImage" [src]="profileImage" alt="Profile" (error)="fixProfileImage($event)">
+        <img *ngIf="profileImage" [src]="(profileImage) | photoUrl:320" alt="Profile" (error)="fixProfileImage($event)">
         <i *ngIf="!profileImage" class="fa-regular fa-user" aria-hidden="true"></i>
       </div>
       <div><div class="name">{{ user?.fullName || 'My account' }}</div>

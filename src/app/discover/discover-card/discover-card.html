@@ -1,6 +1,6 @@
 <article class="discover-card" [class.highlighted]="highlighted" [attr.id]="'match-' + apartment.id">
   <a class="card-image" [routerLink]="['/apartments', apartment.id]" (click)="opened.emit(apartment)" data-protected-image>
-    <img [src]="image" [alt]="(apartment | listingTitle) || 'Property in Tbilisi'" loading="lazy" decoding="async" (error)="onImageError($event)" />
+    <img [src]="(image) | photoUrl" [alt]="(apartment | listingTitle) || 'Property in Tbilisi'" loading="lazy" decoding="async" (error)="onImageError($event)" />
     <span class="badge new" *ngIf="isNew">New</span>
     <span class="badge reviewed" *ngIf="matched && !needsCheck"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Matches your search</span>
     <span class="badge check" *ngIf="needsCheck"><i class="fa-regular fa-circle-question" aria-hidden="true"></i> Confirm details</span>
@@ -39,7 +39,7 @@
     <p class="parking"><i class="fa-solid fa-car" aria-hidden="true"></i><span><span>Parking</span>: <b>{{ parkingText }}</b></span></p>
 
     <div class="agent-row" *ngIf="agentName">
-      <img *ngIf="agentPhoto; else initials" [src]="agentPhoto" alt="" loading="lazy" (error)="agentPhoto = ''" />
+      <img *ngIf="agentPhoto; else initials" [src]="(agentPhoto) | photoUrl:320" alt="" loading="lazy" (error)="agentPhoto = ''" />
       <ng-template #initials><span class="agent-initials" aria-hidden="true">{{ agentInitials }}</span></ng-template>
       <span class="agent-name"><b data-no-translate>{{ agentFirstName }}</b> · <span>Velven agent</span></span>
       <span class="posted" *ngIf="postedLabel">{{ postedLabel }}</span>

@@ -713,6 +713,45 @@ function warmApartmentImages(body) {
   }
 }
 
+/**
+ * Photos in any API answer (signed-in pages too: My listings, approvals, agents, saved homes)
+ * are fetched and resized right away, so the browser's request a moment later is served from
+ * memory instead of waiting 2-12 s for storage. Listing photos at 960px (cards), people at 320px.
+ */
+const signedPhotoPattern = /https:\/\/[a-z0-9.-]+\/storage\/v1\/object\/sign\/apartments\/[^"\\\s]+/gi;
+const photoWarmQueue = [];
+let photoWarmRunning = 0;
+function warmPhotosInBody(text) {
+  const seen = new Set();
+  for (const match of String(text).matchAll(signedPhotoPattern)) {
+    const url = match[0].replace(/\\u0026/g, "&"); // JSON may write & as the \u0026 escape
+    const key = url.split('?')[0];
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (seen.size > 80) break;
+    photoWarmQueue.push(url);
+  }
+  pumpPhotoWarmQueue();
+}
+function pumpPhotoWarmQueue() {
+  while (photoWarmRunning < 6 && photoWarmQueue.length) {
+    const url = photoWarmQueue.shift();
+    let width = 960;
+    try {
+      width = validateApartmentImageUrl(url).pathname.includes('/apartments/profiles/') ? 320 : 960;
+    } catch {
+      continue;
+    }
+    photoWarmRunning++;
+    resizedApartmentImage(url, width)
+      .catch(() => undefined)
+      .finally(() => {
+        photoWarmRunning--;
+        pumpPhotoWarmQueue();
+      });
+  }
+}
+
 function warmApartmentDetails(body) {
   try {
     const apartments = JSON.parse(body.toString('utf8'));
@@ -963,6 +1002,8 @@ async function fetchPublicApi(cacheKey, shouldWarmImages = true) {
 
     if (upstreamResponse.ok) {
       publicApiCache.set(cacheKey, apiResponse);
+      // Agents, reviews and every other public answer: get their photos ready too.
+      warmPhotosInBody(apiResponse.body.toString('utf8'));
       if (new URL(cacheKey, apiOrigin).pathname === '/api/Apartments') {
         warmApartmentImages(apiResponse.body);
         warmApartmentDetails(apiResponse.body);
@@ -1060,7 +1101,21 @@ app.use('/api', async (request, response) => {
       }
     });
 
-    if (upstreamResponse.body) {
+    const isJson = /json/i.test(upstreamResponse.headers.get('content-type') || '');
+    if (upstreamResponse.body && request.method === 'GET' && isJson && upstreamResponse.ok) {
+      // Signed-in answers: pass them on as they arrive and start their photos meanwhile.
+      const chunks = [];
+      let size = 0;
+      const stream = Readable.fromWeb(upstreamResponse.body);
+      stream.on('data', (chunk) => {
+        if (size < 4_000_000) chunks.push(chunk);
+        size += chunk.length;
+      });
+      stream.on('end', () => {
+        if (size < 4_000_000) warmPhotosInBody(Buffer.concat(chunks).toString('utf8'));
+      });
+      stream.pipe(response);
+    } else if (upstreamResponse.body) {
       Readable.fromWeb(upstreamResponse.body).pipe(response);
     } else {
       response.end();

@@ -11,6 +11,7 @@ import { FavoriteService } from '../../services/favorite.service';
 import { toMediaUrl } from '../../utils/api-media';
 import { isSaleListing } from '../../utils/listing-deal';
 import { parkingCostLabel } from '../../utils/parking-cost';
+import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
 
 /** Agent photos by user id, fetched once for every card on the page. */
 let agentPhotos$: Observable<Map<string, string>> | undefined;
@@ -23,7 +24,7 @@ export interface FitLine { lead?: string; text: string; tail?: string }
   selector: 'app-discover-card',
   templateUrl: './discover-card.html',
   styleUrl: './discover-card.css',
-  imports: [NgIf, NgFor, RouterLink, CurrencyPrice, ListingTitlePipe],
+  imports: [PhotoUrlPipe, NgIf, NgFor, RouterLink, CurrencyPrice, ListingTitlePipe],
 })
 export class DiscoverCard implements OnInit {
   @Input({ required: true }) apartment!: Apartment;

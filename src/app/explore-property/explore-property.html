@@ -174,8 +174,8 @@
               [style.left]="budgetTrackOffset(budgetMinPercent)"
               [style.width]="'calc((100% - 26px) * ' + (budgetMaxPercent - budgetMinPercent) / 100 + ')'"
             ></div>
-            <input type="range" min="0" max="100" step="0.5" aria-label="Minimum price" [attr.aria-valuetext]="'$' + (budgetMin ?? 0)" [ngModel]="budgetMinPercent" (ngModelChange)="slideBudget('min', $event)" />
-            <input type="range" min="0" max="100" step="0.5" aria-label="Maximum price" [attr.aria-valuetext]="budgetMax == null ? budgetCapLabel : '$' + budgetMax" [ngModel]="budgetMaxPercent" (ngModelChange)="slideBudget('max', $event)" />
+            <input type="range" min="0" max="100" step="0.5" aria-label="Minimum price" [attr.aria-valuetext]="'$' + (budgetMin ?? 0)" [value]="budgetMinPercent" (input)="slideBudget('min', +$any($event.target).value); $any($event.target).value = budgetMinPercent" />
+            <input type="range" min="0" max="100" step="0.5" aria-label="Maximum price" [attr.aria-valuetext]="budgetMax == null ? budgetCapLabel : '$' + budgetMax" [value]="budgetMaxPercent" (input)="slideBudget('max', +$any($event.target).value); $any($event.target).value = budgetMaxPercent" />
           </div>
           <div class="budget-range-labels budget-scale-labels" data-no-translate>
             <span *ngFor="let tick of budgetScaleLabels" [style.left]="budgetTrackOffset(tick.position)">{{ tick.label }}</span>

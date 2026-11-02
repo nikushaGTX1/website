@@ -39,6 +39,8 @@ import { HomeMatchService } from '../services/home-match.service';
 import { CurrencyPrice } from '../../currency-price/currency-price';
 import { GooglePropertyMapComponent } from '../../maps/google-property-map/google-property-map.component';
 import { ListingTitlePipe } from '../../shared/listing-title.pipe';
+import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
+import { districtIcon } from '../../utils/district-icons';
 
 interface LifestyleInsight {
   title: string;
@@ -57,7 +59,7 @@ const MATCH_WALK_LIMIT = 18;
   selector: 'app-home-match-results',
   templateUrl: './home-match-results.component.html',
   styleUrl: './home-match-results.component.css',
-  imports: [
+  imports: [PhotoUrlPipe, 
     NgIf,
     VelvenLifestyleAvatarComponent,
     RouterLink,
@@ -70,6 +72,9 @@ const MATCH_WALK_LIMIT = 18;
   ],
 })
 export class HomeMatchResultsComponent implements OnChanges {
+  /** District picture next to the map, same style as the area pickers. */
+  readonly districtIcon = districtIcon;
+
   @Input() matches: HomeMatchResult[] = [];
   @Input({ required: true }) profile!: HomeMatchProfile;
   @Output() edit = new EventEmitter<void>();

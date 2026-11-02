@@ -124,7 +124,7 @@
               <div class="cc-agent">
                 <p class="cc-agent-title">Your Velven agent</p>
                 <div class="cc-agent-row">
-                  <img *ngIf="client.agent.photo" [src]="client.agent.photo" alt="" loading="lazy" (error)="client.agent.photo = ''" />
+                  <img *ngIf="client.agent.photo" [src]="(client.agent.photo) | photoUrl:320" alt="" loading="lazy" (error)="client.agent.photo = ''" />
                   <span class="cc-agent-placeholder" *ngIf="!client.agent.photo" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>
                   <div><strong>{{ client.agent.name }}</strong><a *ngIf="client.agent.phone" [href]="'tel:' + client.agent.phone">{{ client.agent.phone }}</a></div>
                 </div>

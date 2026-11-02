@@ -10,12 +10,13 @@ import { FormsModule } from '@angular/forms';
 import { NgIf, NgFor } from '@angular/common';
 import { CurrencyPrice } from '../currency-price/currency-price';
 import { ListingTitlePipe } from '../shared/listing-title.pipe';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 @Component({
   selector: 'app-saved-listings',
   templateUrl: './saved-listings.html',
   styleUrls: ['./saved-listings.css', './saved-listings.icons.css'],
-  imports: [RouterLink, FormsModule, NgIf, NgFor, CurrencyPrice, ListingTitlePipe],
+  imports: [PhotoUrlPipe, RouterLink, FormsModule, NgIf, NgFor, CurrencyPrice, ListingTitlePipe],
 })
 export class SavedListings implements OnInit {
   readonly isSaleListing = isSaleListing;

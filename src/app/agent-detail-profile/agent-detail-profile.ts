@@ -18,12 +18,13 @@ import { NgIf, NgTemplateOutlet, NgFor, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPrice } from '../currency-price/currency-price';
 import { ListingTitlePipe } from '../shared/listing-title.pipe';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 @Component({
   selector: 'app-agent-detail-profile',
   templateUrl: './agent-detail-profile.html',
   styleUrl: './agent-detail-profile.css',
-  imports: [
+  imports: [PhotoUrlPipe, 
     RouterLink,
     NgIf,
     NgTemplateOutlet,

@@ -28,7 +28,7 @@
     @for (listing of listings; track listing.apartmentId) {
       <section class="listing" [id]="'listing-' + listing.apartmentId" [class.focused]="listing.apartmentId === focusId">
         <header class="listing-head">
-          <a class="listing-photo" [routerLink]="['/apartments', listing.apartmentId]"><img [src]="image(listing)" alt="" loading="lazy" /></a>
+          <a class="listing-photo" [routerLink]="['/apartments', listing.apartmentId]"><img [src]="(image(listing)) | photoUrl" alt="" loading="lazy" /></a>
           <div class="listing-copy">
             <p class="listing-place">{{ listing.district }}<span *ngIf="listing.street"> · {{ listing.street }}</span></p>
             <h2><a [routerLink]="['/apartments', listing.apartmentId]">{{ titleSource(listing) | listingTitle }}</a></h2>

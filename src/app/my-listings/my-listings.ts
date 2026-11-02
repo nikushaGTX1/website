@@ -9,12 +9,13 @@ import { PendingApartment, PendingApartmentService } from '../services/pending-a
 import { NgIf, NgFor } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CurrencyPrice } from '../currency-price/currency-price';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 @Component({
   selector: 'app-my-listings',
   templateUrl: './my-listings.html',
   styleUrl: './my-listings.css',
-  imports: [NgIf, RouterLink, NgFor, CurrencyPrice],
+  imports: [PhotoUrlPipe, NgIf, RouterLink, NgFor, CurrencyPrice],
 })
 export class MyListings implements OnInit, OnDestroy {
   user: User | null = null;

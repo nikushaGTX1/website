@@ -487,6 +487,17 @@
           </div>
           <small class="calculated-price-note"><i class="fa-solid fa-calculator" aria-hidden="true"></i> Calculated automatically: total price ÷ living area</small>
         </div>
+        <div class="field-group deposit-group" *ngIf="isRentDeal">
+          <label class="field-label">Refundable deposit</label>
+          <div class="deposit-choice" role="group" aria-label="Refundable deposit">
+            <button type="button" [class.active]="!form.hasDeposit" [attr.aria-pressed]="!form.hasDeposit" (click)="form.hasDeposit = false">No deposit</button>
+            <button type="button" [class.active]="form.hasDeposit" [attr.aria-pressed]="form.hasDeposit" (click)="form.hasDeposit = true">Deposit required</button>
+          </div>
+          <div class="deposit-amount" *ngIf="form.hasDeposit">
+            <input type="number" name="depositAmount" min="1" step="1" inputmode="numeric" placeholder="e.g. 1000" aria-label="Deposit amount" [(ngModel)]="form.depositAmount" />
+            <b>{{ form.currency === 'GEL' ? '₾' : '$' }}</b>
+          </div>
+        </div>
       </section>
 
       <section class="form-section" id="listing-step-4" (focusin)="generateListingCopy(false)" (pointerenter)="generateListingCopy(false)">

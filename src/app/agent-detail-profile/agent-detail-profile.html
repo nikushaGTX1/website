@@ -16,7 +16,7 @@
       <section class="listings-page-head" *ngIf="listingsPage">
         <a class="listings-back" [routerLink]="['/agent-profile', agentRouteId]"><i class="fa-solid fa-arrow-left"></i> Back to profile</a>
         <div class="listings-agent">
-          <img [src]="photo" [alt]="name" (error)="fixImage($event)" />
+          <img [src]="(photo) | photoUrl:320" [alt]="name" (error)="fixImage($event)" />
           <div>
             <span class="verified-pill"><i class="fa-solid fa-circle-check"></i> Verified Agent</span>
             <h1><span>All properties by</span> {{ name }}</h1>
@@ -26,7 +26,7 @@
       </section>
       <section class="profile-hero">
         <div class="portrait-wrap">
-          <img [src]="photo" [alt]="name" (error)="fixImage($event)" /><span
+          <img [src]="(photo) | photoUrl:320" [alt]="name" (error)="fixImage($event)" /><span
             class="portrait-verified"
             aria-label="Verified agent"
             ><i class="fa-solid fa-check"></i
@@ -156,7 +156,7 @@
         <div class="listing-grid" *ngIf="listings.length">
           <article *ngFor="let apartment of visibleListings">
             <a class="listing-image-link" [routerLink]="['/apartments', apartment.id]"
-              ><img [src]="getListingImage(apartment)" [alt]="apartment.title" /><span
+              ><img [src]="(getListingImage(apartment)) | photoUrl" [alt]="apartment.title" /><span
                 class="listing-badge"
                 [class.rent]="!isForSale(apartment)"
                 >{{ isForSale(apartment) ? 'For Sale' : 'For Rent' }}</span

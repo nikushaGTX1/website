@@ -13,10 +13,20 @@
   padding: 68px max(6.7vw, 32px);
   display: flex;
   align-items: flex-start;
+  /* Full photo: a soft Velven-violet tint from the left and a fade into the page below. */
   background:
-    linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0.95) 29%, rgba(255, 255, 255, 0.23) 49%, transparent 66%),
-    url("/services-hero.png") center / cover no-repeat;
-  border-bottom: 1px solid #e5e9ef;
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 62%, rgba(255, 255, 255, 0.7) 88%, #fff 100%),
+    linear-gradient(100deg, rgba(69, 26, 143, 0.28) 0%, rgba(113, 54, 190, 0.12) 28%, rgba(255, 255, 255, 0) 55%),
+    url("/services-hero.png") center 60% / cover no-repeat;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .hero-copy {
@@ -371,9 +381,11 @@
     padding: 50px 24px;
     /* The (longer) Georgian copy reaches well into the photo, so keep the white solid
        behind all of the text and only let the photo show at the very bottom. */
+    min-height: 300px;
     background:
-      linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.98) 55%, rgba(255, 255, 255, 0.93) 70%, rgba(255, 255, 255, 0.55) 84%, rgba(255, 255, 255, 0.1) 96%),
-      url("/services-hero.png") 65% bottom / cover no-repeat;
+      linear-gradient(180deg, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.75) 88%, #fff 100%),
+      linear-gradient(100deg, rgba(69, 26, 143, 0.26) 0%, rgba(255, 255, 255, 0) 60%),
+      url("/services-hero.png") 72% center / cover no-repeat;
   }
 
   .hero-copy p {

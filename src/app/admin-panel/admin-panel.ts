@@ -34,12 +34,13 @@ import { CurrencyPrice } from '../currency-price/currency-price';
 import { StreetValidationMapComponent } from './street-validation-map.component';
 import { ImageAiCard } from './image-ai-card';
 import { ClientIntakeCard } from './client-intake-card';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 @Component({
   selector: 'app-admin-panel',
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.css',
-  imports: [
+  imports: [PhotoUrlPipe, 
     ClientIntakeCard,
     ImageAiCard,
     RouterLink,

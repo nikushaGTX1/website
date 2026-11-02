@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -14,6 +14,7 @@ import { HomeMatchService } from '../services/home-match.service';
 import { GeoJsonPolygon } from '../../services/apartment.service';
 import { ApiLocation } from '../../models/location';
 import { LocationService } from '../../services/location.service';
+import { preloadImages } from '../../utils/api-media';
 import {
   answerLabel,
   answerList,
@@ -285,6 +286,40 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     const position = (index / (this.budgetHistogram.length - 1)) * 100;
     return position >= this.budgetMinPercent && position <= this.budgetMaxPercent;
   }
+  @ViewChild('budgetRange') private budgetRange?: ElementRef<HTMLElement>;
+
+  /**
+   * A click on the price chart moves a handle to that price: the left handle when the click is
+   * left of the selected range, the right one when it is right of it, otherwise the nearer one.
+   * Keeping the button pressed drags that handle.
+   */
+  pickBudgetAt(event: PointerEvent): void {
+    if ((event.target as HTMLElement).tagName === 'INPUT' || !this.budgetRange) return;
+    event.preventDefault();
+    const priceAt = (clientX: number): number => {
+      // Handles travel between the track's ends (13px in from each side, half a handle).
+      const rect = this.budgetRange!.nativeElement.getBoundingClientRect();
+      const ratio = Math.min(1, Math.max(0, (clientX - rect.left - 13) / (rect.width - 26)));
+      const step = this.budgetSliderStep;
+      return Math.round((ratio * this.budgetSliderMax) / step) * step;
+    };
+    const price = priceAt(event.clientX);
+    const min = Number(this.budgetForm.controls.min.value) || 0;
+    const max = Number(this.budgetForm.controls.max.value) || 0;
+    const moveMin = price < min || (price <= max && price - min < max - price);
+    const set = (value: number): void => (moveMin ? this.setBudgetMin(value) : this.setBudgetMax(value));
+    set(price);
+    const onMove = (move: PointerEvent): void => set(priceAt(move.clientX));
+    const onUp = (): void => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  }
+
   setBudgetMin(value: number | string): void {
     const max = Number(this.budgetForm.controls.max.value);
     this.budgetForm.controls.min.setValue(Math.min(max, Math.max(0, Number(value) || 0)));
@@ -306,6 +341,17 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     private clientService: ClientService,
     private boardService: ClientBoardService,
   ) {
+    // The lifestyle character's figures are fetched while the visitor reads the first
+    // question, so they appear at once when the profile panel shows them.
+    window.setTimeout(
+      () =>
+        preloadImages(
+          ['adult-man', 'adult-woman', 'adult-man-two', 'adult-woman-two', 'cat', 'dog-small', 'dog-medium', 'dog-large'].map(
+            (name) => `/images/ai-match/${name}.webp`,
+          ),
+        ),
+      1500,
+    );
     const query = route.snapshot.queryParamMap;
     this.intakeToken = query.get('intake');
     // "Find My Perfect Home" in Velven Discover starts a new search from the first question.
@@ -375,6 +421,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     });
   }
   ngOnDestroy(): void {
+    if (this.howItWorksOpen) this.closeHowItWorks();
     this.intakeRequest?.unsubscribe();
     if (this.loadingTimer) window.clearInterval(this.loadingTimer);
   }
@@ -438,10 +485,47 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           ? 'Selected map area'
           : 'Not selected yet';
   }
+  /** "How It Works" video window (Esc or the backdrop closes it). */
+  howItWorksOpen = false;
+
+  /** The page sits below the site header's layer, so the video window is moved to <body>. */
+  @ViewChild('howVideoLayer') set howVideoLayer(layer: ElementRef<HTMLElement> | undefined) {
+    if (layer && layer.nativeElement.parentElement !== document.body) document.body.appendChild(layer.nativeElement);
+  }
+
+  openHowItWorks(): void {
+    this.howItWorksOpen = true;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', this.closeOnEscape);
+  }
+
+  closeHowItWorks(): void {
+    this.howItWorksOpen = false;
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', this.closeOnEscape);
+  }
+
+  private readonly closeOnEscape = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') this.closeHowItWorks();
+  };
+
   scrollToMatcher(): void {
     this.quizStarted = true;
     document.querySelector('.wizard-shell')?.scrollIntoView({ behavior: 'smooth' });
   }
+  /**
+   * Keeps option buttons in place when their list is rebuilt (getters such as
+   * suggestedPriorities make a new list on every check). Otherwise Angular replaced the button
+   * between press and release and the click was lost.
+   */
+  trackOption(_index: number, item: unknown): unknown {
+    if (item && typeof item === 'object') {
+      const option = item as { value?: unknown; label?: unknown; name?: unknown };
+      return option.value ?? option.label ?? option.name ?? item;
+    }
+    return item;
+  }
+
   get suggestedPriorities(): HomeMatchOption[] {
     const rank = (value: unknown): number => {
       const index = this.profile.topPriorities.indexOf(String(value));
@@ -667,8 +751,22 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       error: () => undefined,
     });
   }
+  /**
+   * Option lists written in the template. The same list object is returned on every check:
+   * a new list each time made Angular replace the buttons between press and release, so
+   * clicks were lost.
+   */
+  // Created on first use: field initializers above this one already call opts().
+  private optionLists?: Map<string, HomeMatchOption[]>;
   opts(labels: string[], values?: string[]): HomeMatchOption[] {
-    return labels.map((label, index) => ({ label, value: values?.[index] || label }));
+    const key = JSON.stringify([labels, values ?? []]);
+    this.optionLists ??= new Map();
+    let list = this.optionLists.get(key);
+    if (!list) {
+      list = labels.map((label, index) => ({ label, value: values?.[index] || label }));
+      this.optionLists.set(key, list);
+    }
+    return list;
   }
   chooseCarFuel(value: 'Electric' | 'Fuel'): void {
     this.profile.carFuelType = value;

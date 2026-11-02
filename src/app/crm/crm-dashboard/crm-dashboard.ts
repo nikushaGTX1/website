@@ -29,6 +29,7 @@ import { AgentService } from '../../services/agent.service';
 import { AuthService } from '../../services/auth.service';
 import { CrmService, CrmBestAgent } from '../../services/crm.service';
 import { OwnerDealType, OwnerListingService } from '../../services/owner-listing.service';
+import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
 
 type StatusFilter = 'all' | CrmLeadStatus;
 type ManualRentalPeriod = '' | '6' | '12' | '12+';
@@ -45,7 +46,7 @@ interface ManualLeadForm extends CreateCrmLeadRequest {
 @Component({
   selector: 'app-crm-dashboard',
   standalone: true,
-  imports: [ClientIntakeCard, MyHomeVerification, CommonModule, FormsModule, RouterModule],
+  imports: [PhotoUrlPipe, ClientIntakeCard, MyHomeVerification, CommonModule, FormsModule, RouterModule],
   templateUrl: './crm-dashboard.html',
   styleUrl: './crm-dashboard.css',
 })

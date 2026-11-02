@@ -80,6 +80,9 @@ type UploadForm = {
   area: number | null;
   /** Land plot / yard area for houses and plots. */
   landArea: number | null;
+  /** Rentals: refundable deposit the tenant pays (amount in the listing's currency). */
+  hasDeposit: boolean;
+  depositAmount: number | null;
   rooms: number | null;
   bedrooms: number | null;
   bathrooms: number | null;
@@ -367,6 +370,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     description: '',
     area: null,
     landArea: null,
+    hasDeposit: false,
+    depositAmount: null,
     rooms: null,
     bedrooms: null,
     bathrooms: null,
@@ -842,6 +847,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.totalPrice = num(source.price);
     f.sqPrice = num(tag('Sq. price'));
     f.landArea = num(tag('Land area').replace(/\s*m2$/i, ''));
+    f.depositAmount = num(tag('Deposit'));
+    f.hasDeposit = f.depositAmount !== null;
     f.currency = tag('Currency').toUpperCase() === 'GEL' ? 'GEL' : '$';
     f.exchangePossible = /Exchange possible/i.test(meta);
     f.realEstateType = tag('Type') || f.realEstateType;
@@ -2668,6 +2675,9 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.streetNumber ? `Building: ${this.form.streetNumber}` : '',
       this.form.area ? `Area: ${this.form.area} m2` : '',
       this.form.landArea && this.hasLandArea ? `Land area: ${this.form.landArea} m2` : '',
+      this.isRentDeal && this.form.hasDeposit && Number(this.form.depositAmount) > 0
+        ? `Deposit: ${Math.round(Number(this.form.depositAmount))}`
+        : '',
       this.form.rooms ? `Rooms: ${this.form.rooms}` : '',
       this.form.bedrooms ? `Bedrooms: ${this.form.bedrooms}` : '',
       this.form.bathrooms ? `Bathrooms: ${this.form.bathrooms}` : '',

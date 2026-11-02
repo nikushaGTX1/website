@@ -10,13 +10,14 @@
         </p>
         <div class="hero-actions">
           <button type="button" (click)="scrollToMatcher()">Find My Match</button>
-          <a href="#how-it-works" (click)="$event.preventDefault(); scrollToMatcher()"
-            >▷ &nbsp; How It Works</a
-          >
+          <button type="button" class="how-link" (click)="openHowItWorks()">
+            <span class="how-play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+            How It Works
+          </button>
         </div>
       </div>
       <div class="hero-visual" aria-hidden="true">
-        <img src="/ojaxi.png" alt="" />
+        <img src="/ojaxi.webp" alt="" />
       </div>
     </div>
     <div class="how-it-works-strip">
@@ -126,7 +127,7 @@
           <div class="options condition-options">
             <button
               type="button"
-              *ngFor="let option of conditionOptions"
+              *ngFor="let option of conditionOptions; trackBy: trackOption"
               [class.selected]="conditionSelected(option.value)"
               [attr.aria-pressed]="conditionSelected(option.value)"
               (click)="toggleCondition(option.value)"
@@ -207,7 +208,7 @@
           <div class="featured-district-grid">
             <button
               type="button"
-              *ngFor="let area of featuredDistricts"
+              *ngFor="let area of featuredDistricts; trackBy: trackOption"
               [class.selected]="selected('districts', area.value)"
               [attr.aria-pressed]="selected('districts', area.value)"
               (click)="selectDistrict(area.value)"
@@ -224,7 +225,7 @@
           <div class="all-district-grid">
             <button
               type="button"
-              *ngFor="let option of otherDistricts"
+              *ngFor="let option of otherDistricts; trackBy: trackOption"
               [class.selected]="selected('districts', option.value)"
               [attr.aria-pressed]="selected('districts', option.value)"
               (click)="selectDistrict(option.value)"
@@ -271,7 +272,7 @@
                     'FamilyMemberWorkplace',
                     'SpecificAddress',
                     'No',
-                  ]
+                  ]; trackBy: trackOption
                 "
                 [value]="item"
               >
@@ -294,7 +295,7 @@
               >
                 <button
                   type="button"
-                  *ngFor="let suggestion of proximitySuggestions"
+                  *ngFor="let suggestion of proximitySuggestions; trackBy: trackOption"
                   (pointerdown)="selectProximitySuggestion(suggestion)"
                 >
                   <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
@@ -314,16 +315,19 @@
           <div class="budget-picker">
             <h3 class="budget-title">Price range</h3>
             <p class="budget-caption">Choose the monthly price that works for you</p>
+            <!-- Clicking (or dragging) anywhere on the chart moves the nearest handle there. -->
+            <div class="budget-click-area" (pointerdown)="pickBudgetAt($event)">
             <div class="budget-chart" aria-hidden="true">
               <span *ngFor="let height of budgetHistogram; let i = index" [class.in-range]="barInBudget(i)" [style.height.%]="height"></span>
             </div>
-            <div class="budget-range-control">
+            <div class="budget-range-control" #budgetRange>
               <div class="budget-range-track"></div>
               <div class="budget-range-fill" [style.left.%]="budgetMinPercent" [style.right.%]="100 - budgetMaxPercent"></div>
               <input type="range" min="0" [max]="budgetSliderMax" [step]="budgetSliderStep" aria-label="Minimum price"
-                [value]="budgetForm.controls.min.value" (input)="setBudgetMin($any($event.target).value)" />
+                [value]="budgetForm.controls.min.value" (input)="setBudgetMin($any($event.target).value); $any($event.target).value = budgetForm.controls.min.value" />
               <input type="range" min="0" [max]="budgetSliderMax" [step]="budgetSliderStep" aria-label="Maximum price"
-                [value]="budgetForm.controls.max.value" (input)="setBudgetMax($any($event.target).value)" />
+                [value]="budgetForm.controls.max.value" (input)="setBudgetMax($any($event.target).value); $any($event.target).value = budgetForm.controls.max.value" />
+            </div>
             </div>
             <div class="budget-range-labels"><span>{{ budgetSymbol }}0</span><span>{{ budgetSymbol }}{{ budgetSliderMax | number }}+</span></div>
           </div>
@@ -349,7 +353,7 @@
           <div class="options">
             <button
               type="button"
-              *ngFor="let option of household"
+              *ngFor="let option of household; trackBy: trackOption"
               [class.selected]="profile.householdType === option.value"
               [attr.aria-pressed]="profile.householdType === option.value"
               (click)="choose('householdType', option.value)"
@@ -412,7 +416,7 @@
                 let option of opts(
                   ['0–3 years', '4–6 years', '7–12 years', '13–17 years'],
                   ['Age0To3', 'Age4To6', 'Age7To12', 'Age13To17']
-                )
+                ); trackBy: trackOption
               "
               [class.selected]="selected('childrenAgeGroups', option.value)"
               (click)="selectChildAge(option.value)"
@@ -427,7 +431,7 @@
           <div class="options">
             <button
               type="button"
-              *ngFor="let option of bedroomOptions"
+              *ngFor="let option of bedroomOptions; trackBy: trackOption"
               [class.selected]="bedroomSelected(option.value)"
               [attr.aria-pressed]="bedroomSelected(option.value)"
               [disabled]="
@@ -473,7 +477,7 @@
                       'MoreThanTwelveMonths',
                       'Unknown',
                     ]
-                  )
+                  ); trackBy: trackOption
                 "
                 [class.selected]="profile.rentalDuration === option.value"
                 (click)="choose('rentalDuration', option.value)"
@@ -497,7 +501,7 @@
                       'I am flexible',
                     ],
                     ['Immediately', 'WithinOneWeek', 'WithinOneMonth', 'SpecificDate', 'Flexible']
-                  )
+                  ); trackBy: trackOption
                 "
                 [class.selected]="profile.moveInTiming === option.value"
                 (click)="choose('moveInTiming', option.value)"
@@ -535,7 +539,7 @@
                       'MoreThanSixMonths',
                       'Exploring',
                     ]
-                  )
+                  ); trackBy: trackOption
                 "
                 [class.selected]="profile.purchaseTiming === option.value"
                 (click)="choose('purchaseTiming', option.value)"
@@ -551,7 +555,7 @@
           <div class="options transport-options">
             <button
               type="button"
-              *ngFor="let option of transport"
+              *ngFor="let option of transport; trackBy: trackOption"
               [class.selected]="selected('transportation', option.value)"
               [attr.aria-pressed]="selected('transportation', option.value)"
               [disabled]="
@@ -602,7 +606,7 @@
         <div class="options" *ngSwitchCase="9">
           <button
             type="button"
-            *ngFor="let option of lifestyles"
+            *ngFor="let option of lifestyles; trackBy: trackOption"
             [class.selected]="selected('lifestyles', option.value)"
             [attr.aria-pressed]="selected('lifestyles', option.value)"
             [disabled]="!selected('lifestyles', option.value) && profile.lifestyles.length >= 3"
@@ -628,7 +632,7 @@
             <div class="options dog-size-options">
               <button
                 type="button"
-                *ngFor="let size of dogSizes"
+                *ngFor="let size of dogSizes; trackBy: trackOption"
                 [class.selected]="profile.dogSize === size.value"
                 [attr.aria-pressed]="profile.dogSize === size.value"
                 (click)="setDogSize(size.value)"
@@ -651,7 +655,7 @@
           <div class="options compact priority-options">
             <button
               type="button"
-              *ngFor="let option of suggestedPriorities"
+              *ngFor="let option of suggestedPriorities; trackBy: trackOption"
               [class.selected]="profile.topPriorities.includes(option.value)"
               [disabled]="
                 profile.topPriorities.length === 5 && !profile.topPriorities.includes(option.value)
@@ -824,3 +828,21 @@
   (apply)="applyMap($event)"
   (close)="mapVisible = false"
 ></app-draw-area-map>
+
+@if (howItWorksOpen) {
+  <div class="how-video-backdrop" #howVideoLayer (click)="closeHowItWorks()">
+    <div class="how-video" role="dialog" aria-modal="true" aria-label="How Velven Match works" (click)="$event.stopPropagation()">
+      <button type="button" class="how-video-close" (click)="closeHowItWorks()" aria-label="Close video">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+      <video
+        src="/videos/velven-match-how-it-works.mp4"
+        poster="/videos/velven-match-how-it-works.jpg"
+        controls
+        autoplay
+        playsinline
+        preload="auto"
+      ></video>
+    </div>
+  </div>
+}

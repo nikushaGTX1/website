@@ -17,6 +17,7 @@ import { BoardClient, BoardPage, ClientBoardService } from '../services/client-b
 import { EMPTY_HOME_MATCH_PROFILE } from '../ai-home-match/models/home-match-profile';
 import { answerLabel } from '../ai-home-match/services/answer-labels';
 import { enableFlagEmojis } from '../utils/flag-emoji';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 // Windows has no flag emoji; this loads a small flag font instead.
 enableFlagEmojis();
@@ -43,7 +44,7 @@ function countryFlag(name: string | null | undefined): string {
 
 @Component({
   selector: 'app-clients',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [PhotoUrlPipe, CommonModule, FormsModule, RouterLink],
   templateUrl: './clients.html',
   styleUrl: './clients.css',
 })
@@ -243,8 +244,11 @@ export class Clients implements OnInit, OnDestroy {
   }
 
   chooseFilter(key: FilterKey, value: string): void {
+    const changed = this[key] !== value;
     this[key] = value;
     this.openFilter = null;
+    // The list updates straight away; the Search button is not needed to apply a filter.
+    if (changed) this.search();
   }
 
   @HostListener('document:click', ['$event'])

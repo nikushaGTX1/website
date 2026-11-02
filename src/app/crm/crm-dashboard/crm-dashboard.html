@@ -245,7 +245,7 @@
       <div class="best-main" *ngIf="bestAgent.agent as top">
         <span class="best-trophy"><i class="fa-solid fa-trophy" aria-hidden="true"></i></span>
         <div class="best-photo">
-          <img *ngIf="bestAgentPhoto; else bestInitials" [src]="bestAgentPhoto" alt="" />
+          <img *ngIf="bestAgentPhoto; else bestInitials" [src]="(bestAgentPhoto) | photoUrl:320" alt="" />
           <ng-template #bestInitials
             ><span>{{ bestAgentInitials }}</span></ng-template
           >

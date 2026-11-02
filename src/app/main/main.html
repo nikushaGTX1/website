@@ -259,8 +259,8 @@
             <div class="budget-range-control">
               <div class="budget-range-track"></div>
               <div class="budget-range-fill" [style.left.%]="budgetMinPercent" [style.right.%]="100 - budgetMaxPercent"></div>
-              <input type="range" name="budgetMinSlider" min="0" [max]="budgetCap" [step]="budgetStep" aria-label="Minimum price" [ngModel]="budgetMin ?? 0" (ngModelChange)="setBudgetMin($event)" />
-              <input type="range" name="budgetMaxSlider" min="0" [max]="budgetCap" [step]="budgetStep" aria-label="Maximum price" [ngModel]="budgetMax ?? budgetCap" (ngModelChange)="setBudgetMax($event)" />
+              <input type="range" name="budgetMinSlider" min="0" [max]="budgetCap" [step]="budgetStep" aria-label="Minimum price" [value]="budgetMin ?? 0" (input)="setBudgetMin(+$any($event.target).value); $any($event.target).value = budgetMin ?? 0" />
+              <input type="range" name="budgetMaxSlider" min="0" [max]="budgetCap" [step]="budgetStep" aria-label="Maximum price" [value]="budgetMax ?? budgetCap" (input)="setBudgetMax(+$any($event.target).value); $any($event.target).value = budgetMax ?? budgetCap" />
             </div>
             <div class="budget-range-labels"><span>$0</span><span>{{ budgetCapLabel }}</span></div>
             <div class="main-budget-fields">
@@ -505,7 +505,7 @@
     </div>
     <img
       class="ai-sportsman"
-      src="/ojaxi.png"
+      src="/ojaxi.webp"
       alt="A family with two children and their golden retriever"
       loading="lazy"
       decoding="async"

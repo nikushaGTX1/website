@@ -27,7 +27,7 @@
     <div class="cards">
       <article class="card" *ngFor="let request of pendingListings">
         <div class="photo">
-          <img *ngIf="request.apartment.imageUrls?.[0] || request.apartment.imageUrl" [src]="request.apartment.imageUrls?.[0] || request.apartment.imageUrl" [alt]="request.apartment.title" loading="lazy" decoding="async" />
+          <img *ngIf="request.apartment.imageUrls?.[0] || request.apartment.imageUrl" [src]="(request.apartment.imageUrls?.[0] || request.apartment.imageUrl) | photoUrl" [alt]="request.apartment.title" loading="lazy" decoding="async" />
           <span class="no-photo" *ngIf="!(request.apartment.imageUrls?.[0] || request.apartment.imageUrl)"><i class="fa-regular fa-image"></i></span>
           <span class="badge" [class]="request.status">{{ getStatusLabel(request.status) }}</span>
         </div>
@@ -62,7 +62,7 @@
     <div class="cards">
       <article class="card" *ngFor="let apartment of awaitingReview">
         <div class="photo">
-          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'" [alt]="apartment.title" loading="lazy" decoding="async" />
+          <img [src]="(apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg') | photoUrl" [alt]="apartment.title" loading="lazy" decoding="async" />
           <span class="badge pending">Waiting for review</span>
         </div>
         <div class="body">
@@ -103,7 +103,7 @@
     <div class="cards" *ngIf="!loading && listings.length > 0">
       <article class="card" *ngFor="let apartment of listings">
         <a class="photo" [routerLink]="['/apartments', apartment.id]">
-          <img [src]="apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg'" [alt]="apartment.title" loading="lazy" decoding="async" />
+          <img [src]="(apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg') | photoUrl" [alt]="apartment.title" loading="lazy" decoding="async" />
           <span class="badge published">Published</span>
         </a>
         <div class="body">

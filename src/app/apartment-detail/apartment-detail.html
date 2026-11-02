@@ -143,11 +143,13 @@
             </p>
             <button
               class="vp-text-link"
-              *ngIf="description.length > 360"
+              type="button"
+              *ngIf="descriptionIsLong"
+              [attr.aria-expanded]="descriptionExpanded"
               (click)="descriptionExpanded = !descriptionExpanded"
             >
-              {{ descriptionExpanded ? 'Show less' : 'Read full description' }}
-              <i class="fa-solid fa-chevron-right"></i>
+              {{ descriptionExpanded ? 'Show less' : 'Show more' }}
+              <i class="fa-solid" [class.fa-chevron-down]="!descriptionExpanded" [class.fa-chevron-up]="descriptionExpanded"></i>
             </button>
           </section>
           <section class="vp-section vp-amenities-section">
@@ -172,7 +174,9 @@
                 <p>
                   <strong>{{ place.label }}</strong
                   ><span class="nearby-place-name" *ngIf="place.name" data-no-translate>{{ place.name }}</span
-                  ><small>{{ place.minutes }} min {{ place.mode === 'drive' ? 'drive' : 'walk' }}</small>
+                  ><small class="nearby-mode" [class.drive]="place.mode === 'drive'"
+                    ><i [class]="place.mode === 'drive' ? 'fa-solid fa-car' : 'fa-solid fa-person-walking'" aria-hidden="true"></i
+                    >{{ place.minutes }} min {{ place.mode === 'drive' ? 'drive' : 'walk' }}</small>
                 </p>
               </div>
             </div>
@@ -255,6 +259,12 @@
               ></app-currency-price
             ></strong>
           </div>
+          <p class="vp-deposit" *ngIf="!isForSale && depositAmount">
+            <i class="fa-solid fa-shield-heart" aria-hidden="true"></i>
+            <span>Refundable Deposit:</span>
+            <b *ngIf="depositInGel" data-no-translate>₾{{ depositAmount | number: '1.0-0' }}</b>
+            <b *ngIf="!depositInGel"><app-currency-price [usdPrice]="depositAmount" [showApproximate]="false"></app-currency-price></b>
+          </p>
           <!-- Only for listings an agent marked as checked in person (same rule as the badge). -->
           <div class="vp-proof" *ngIf="isVerifiedListing">
             <span class="vp-proof-icon"><i class="fa-solid fa-shield-halved"></i></span>
@@ -276,7 +286,7 @@
               class="vp-agent-avatar"
               ><img
                 *ngIf="agentImage; else linkedInitials"
-                [src]="agentImage"
+                [src]="(agentImage) | photoUrl:320"
                 [alt]="agentName"
                 (error)="handleAgentImageError()"
               /><ng-template #linkedInitials
@@ -286,7 +296,7 @@
               ><div class="vp-agent-avatar">
                 <img
                   *ngIf="agentImage; else initials"
-                  [src]="agentImage"
+                  [src]="(agentImage) | photoUrl:320"
                   [alt]="agentName"
                   (error)="handleAgentImageError()"
                 /><ng-template #initials

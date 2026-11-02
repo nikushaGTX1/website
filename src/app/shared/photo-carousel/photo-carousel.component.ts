@@ -90,6 +90,26 @@ export class PhotoCarouselComponent implements OnChanges, AfterViewInit, OnDestr
       element.addEventListener('wheel', this.onWheel, { passive: false });
       this.cleanup.push(() => element.removeEventListener('wheel', this.onWheel));
       listen('pointermove', (event) => this.onPointerMove(event));
+      // iPhone Safari: inside a scrollable layer (the full-screen photo viewer) it can take a
+      // sideways drag for itself and cancel the pointer stream, so the photo never changes.
+      // Blocking the touch move once the drag is known to be sideways keeps the swipe ours.
+      // The very first move already counts: Safari picks scroll or not on it.
+      let touchStart: { x: number; y: number } | null = null;
+      const rememberTouch = (event: TouchEvent): void => {
+        const touch = event.touches[0];
+        touchStart = touch && event.touches.length === 1 ? { x: touch.clientX, y: touch.clientY } : null;
+      };
+      const blockSidewaysTouch = (event: TouchEvent): void => {
+        const touch = event.touches[0];
+        if (!event.cancelable || !touch || !touchStart || this.count < 2) return;
+        const dx = Math.abs(touch.clientX - touchStart.x);
+        const dy = Math.abs(touch.clientY - touchStart.y);
+        if (this.gesture?.axis === 'x' || (!this.gesture?.axis && dx > dy)) event.preventDefault();
+      };
+      element.addEventListener('touchstart', rememberTouch, { passive: true });
+      this.cleanup.push(() => element.removeEventListener('touchstart', rememberTouch));
+      element.addEventListener('touchmove', blockSidewaysTouch, { passive: false });
+      this.cleanup.push(() => element.removeEventListener('touchmove', blockSidewaysTouch));
       listen('pointerup', (event) => this.onPointerEnd(event, false));
       listen('pointercancel', (event) => this.onPointerEnd(event, true));
       // Touch starts with implicit capture on the slide under the finger; moving capture to the

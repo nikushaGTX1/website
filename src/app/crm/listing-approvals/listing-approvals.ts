@@ -8,6 +8,7 @@ import { toMediaUrl } from '../../utils/api-media';
 import { isSaleListing } from '../../utils/listing-deal';
 import { clientRelativeTime } from '../../utils/client-relative-time';
 import { TranslationService } from '../../services/translation.service';
+import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
 
 /**
  * CRM (managers and admins): listings agents uploaded that wait for approval. Approve publishes
@@ -15,7 +16,7 @@ import { TranslationService } from '../../services/translation.service';
  */
 @Component({
   selector: 'app-listing-approvals',
-  imports: [CommonModule, RouterLink, ListingTitlePipe, CurrencyPrice],
+  imports: [PhotoUrlPipe, CommonModule, RouterLink, ListingTitlePipe, CurrencyPrice],
   templateUrl: './listing-approvals.html',
   styleUrl: './listing-approvals.css',
 })

@@ -108,7 +108,7 @@
 
     <article class="review-card" *ngFor="let item of filteredPendingApartments; trackBy: identifyPending">
       <div class="review-media">
-        <img *ngIf="item.apartment.imageUrl; else noPhoto" [src]="item.apartment.imageUrl" alt="" />
+        <img *ngIf="item.apartment.imageUrl; else noPhoto" [src]="(item.apartment.imageUrl) | photoUrl" alt="" />
         <ng-template #noPhoto><div class="media-empty"><i class="fa-regular fa-image"></i></div></ng-template>
         <span class="media-badge deal" [class.rent]="dealLabel(item.apartment) === 'Rent'">{{ dealLabel(item.apartment) === 'Rent' ? 'For rent' : 'For sale' }}</span>
         <span class="media-badge photos"><i class="fa-solid fa-camera"></i> {{ photoCount(item.apartment) }}</span>
@@ -142,7 +142,7 @@
         <p class="description" [class.expanded]="expandedPendingId === item.id">{{ item.apartment.description }}</p>
 
         <div class="thumb-strip" *ngIf="expandedPendingId === item.id && (item.apartment.images?.length || 0) > 1">
-          <img *ngFor="let image of item.apartment.images?.slice(0, 8)" [src]="image.url" alt="" loading="lazy" (error)="hideBrokenImage($event)" />
+          <img *ngFor="let image of item.apartment.images?.slice(0, 8)" [src]="(image.url) | photoUrl" alt="" loading="lazy" (error)="hideBrokenImage($event)" />
         </div>
 
         <div class="owner-grid" *ngIf="expandedPendingId === item.id && (item.apartment.ownerName || item.apartment.ownerPhoneNumber || item.apartment.agentName || item.apartment.agentPhoneNumber)">
@@ -161,7 +161,7 @@
         <div class="uploader-card">
           <span class="avatar">
             {{ initials(item.submittedByName) }}
-            <img *ngIf="personPicture(item.submittedByPicture)" [src]="personPicture(item.submittedByPicture)" alt="" (error)="hideBrokenImage($event)" />
+            <img *ngIf="personPicture(item.submittedByPicture)" [src]="(personPicture(item.submittedByPicture)) | photoUrl:320" alt="" (error)="hideBrokenImage($event)" />
           </span>
           <div class="uploader-text">
             <small>Uploaded by</small>
@@ -229,7 +229,7 @@
     <div class="data-row user-admin-row" *ngFor="let user of filteredUsers; trackBy: identifyUser">
       <div class="user-admin-identity">
         <span class="user-admin-avatar">
-          <img *ngIf="user.profilePictureUrl || user.profilePicture" [src]="user.profilePictureUrl || user.profilePicture" alt="" (error)="fixAdminUserPicture($event)">
+          <img *ngIf="user.profilePictureUrl || user.profilePicture" [src]="(user.profilePictureUrl || user.profilePicture) | photoUrl:320" alt="" (error)="fixAdminUserPicture($event)">
           <i *ngIf="!user.profilePictureUrl && !user.profilePicture" class="fa-regular fa-user" aria-hidden="true"></i>
         </span>
         <span>
@@ -360,7 +360,7 @@
     <div class="empty-state" *ngIf="filteredApartments.length === 0">No apartments found.</div>
     <article class="listing-card" *ngFor="let apartment of filteredApartments; trackBy: identifyApartment">
       <a class="listing-thumb" [routerLink]="['/apartments', apartment.id]" target="_blank">
-        <img *ngIf="apartment.imageUrl; else noThumb" [src]="apartment.imageUrl" alt="" loading="lazy" />
+        <img *ngIf="apartment.imageUrl; else noThumb" [src]="(apartment.imageUrl) | photoUrl" alt="" loading="lazy" />
         <ng-template #noThumb><span class="media-empty"><i class="fa-regular fa-image"></i></span></ng-template>
         <span class="media-badge deal" [class.rent]="dealLabel(apartment) === 'Rent'">{{ dealLabel(apartment) === 'Rent' ? 'For rent' : 'For sale' }}</span>
       </a>
@@ -383,7 +383,7 @@
         <ng-container *ngIf="uploaderOf(apartment)?.name; else noUploader">
           <span class="avatar small">
             {{ initials(uploaderOf(apartment)?.name) }}
-            <img *ngIf="personPicture(uploaderOf(apartment)?.picture)" [src]="personPicture(uploaderOf(apartment)?.picture)" alt="" (error)="hideBrokenImage($event)" />
+            <img *ngIf="personPicture(uploaderOf(apartment)?.picture)" [src]="(personPicture(uploaderOf(apartment)?.picture)) | photoUrl:320" alt="" (error)="hideBrokenImage($event)" />
           </span>
           <div class="uploader-text">
             <small>Uploaded by · <em class="role-tag">{{ uploaderOf(apartment)?.isAgent ? 'Agent' : 'Uploader' }}</em></small>

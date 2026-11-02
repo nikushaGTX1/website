@@ -21,7 +21,7 @@
       <h1>List your property with Velven</h1>
       <p>Share the essentials now. Your agent verifies everything during the visit.</p>
       <div class="agent">
-        <img *ngIf="info.agentPhoto; else agentInitial" [src]="info.agentPhoto" alt="">
+        <img *ngIf="info.agentPhoto; else agentInitial" [src]="(info.agentPhoto) | photoUrl:320" alt="">
         <ng-template #agentInitial><span class="agent-initial">{{ (info.agentName || 'V').charAt(0) }}</span></ng-template>
         <div><small>Your agent</small><b>{{ info.agentName }}</b></div>
         <i class="fa-solid fa-circle-check verified" title="Velven agent"></i>

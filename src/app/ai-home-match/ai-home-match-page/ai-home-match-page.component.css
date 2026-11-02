@@ -605,11 +605,112 @@ fieldset input,
 
 }
 }
-.hero-actions a {
+/* "How It Works": round play icon + label, opens the video window. */
+.hero-actions .how-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--match-blue);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.how-play {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f1ebfb;
   color: var(--match-blue);
   font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
+  box-shadow: 0 0 0 6px rgba(113, 54, 190, 0.08);
+  transition: transform 0.2s, background 0.2s, color 0.2s;
+}
+.how-play i {
+  margin-left: 3px;
+}
+@media (hover: hover) {
+  .hero-actions .how-link:hover {
+    background: none;
+    transform: none;
+  }
+  .hero-actions .how-link:hover .how-play {
+    background: var(--match-blue);
+    color: #fff;
+    transform: scale(1.06);
+  }
+}
+.hero-actions .how-link:focus-visible {
+  outline: 3px solid #b89ae8;
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+/* Video window: large 16:9 player on a dark backdrop. */
+.how-video-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000; /* above the site header */
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(14, 8, 30, 0.82);
+  backdrop-filter: blur(4px);
+  animation: how-fade 0.2s ease;
+}
+.how-video {
+  position: relative;
+  width: min(1200px, 100%, calc((100dvh - 48px) * 16 / 9));
+}
+.how-video video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  background: #000;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+.how-video-close {
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #451a8f;
+  font-size: 18px;
+  line-height: 0;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+@keyframes how-fade {
+  from { opacity: 0; }
+}
+@media (max-width: 700px) {
+  .how-video-backdrop {
+    padding: 12px;
+  }
+  .how-video video {
+    border-radius: 12px;
+  }
+  .how-video-close {
+    top: -54px;
+    right: 0;
+  }
 }
 
 .hero-visual {
@@ -2167,3 +2268,6 @@ fieldset {
 .condition-options button { gap: 10px; }
 .condition-options .condition-icon { width: 20px; color: #5b2bb0; font-size: 16px; text-align: center; }
 .condition-options button.selected .condition-icon { color: inherit; }
+
+/* Price chart: the whole area can be clicked to place a handle. */
+.budget-picker .budget-click-area { cursor: pointer; touch-action: pan-y; user-select: none; }

@@ -53,6 +53,13 @@
       [routerLinkActiveOptions]="{ exact: true }"
       ><i class="fa-solid fa-user-group" aria-hidden="true"></i>Interested clients</a
     >
+    <a
+      *ngIf="auth.isAgent || auth.isCrmManager"
+      routerLink="/crm/reviews"
+      routerLinkActive="selected"
+      [routerLinkActiveOptions]="{ exact: true }"
+      ><i class="fa-solid fa-star" aria-hidden="true"></i>My reviews</a
+    >
 
     <p class="workspace-nav-label">TOOLS</p>
     <app-crm-links-menu></app-crm-links-menu>

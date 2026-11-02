@@ -983,3 +983,16 @@ h1 {
     flex: 1;
   }
 }
+
+/* District picture instead of the plain dot. */
+.map-pin {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #f1ebfb;
+}
+.map-pin img {
+  display: block;
+  width: 32px;
+  height: 32px;
+}

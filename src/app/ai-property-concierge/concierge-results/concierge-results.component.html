@@ -16,7 +16,7 @@
   <div class="result-grid">
     <article class="match-card" *ngFor="let match of sortedMatches">
       <div class="media">
-        <img [src]="image(match)" [alt]="match.apartment.title || 'Apartment photo'" />
+        <img [src]="(image(match)) | photoUrl" [alt]="match.apartment.title || 'Apartment photo'" />
         <div class="score">
           <strong>{{ match.matchScore }}%</strong><span>{{ label(match.matchScore) }}</span>
         </div>

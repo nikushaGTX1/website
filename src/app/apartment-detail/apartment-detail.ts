@@ -50,6 +50,7 @@ import { NgIf, NgClass, NgFor, SlicePipe, DecimalPipe } from '@angular/common';
 import { PhotoCarouselComponent } from '../shared/photo-carousel/photo-carousel.component';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPrice } from '../currency-price/currency-price';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 interface Review {
   name: string;
@@ -79,7 +80,7 @@ interface ViewingInquiryForm {
   selector: 'app-apartment-detail',
   templateUrl: './apartment-detail.html',
   styleUrls: ['./apartment-detail.css', './apartment-detail.icons.css'],
-  imports: [
+  imports: [PhotoUrlPipe, 
     NgIf,
     RouterLink,
     PhotoCarouselComponent,
@@ -451,6 +452,16 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return match ? Number(match[1]) || 0 : 0;
   }
 
+  /** Refundable deposit of a rental, saved as "Deposit: N" in the listing's currency. */
+  get depositAmount(): number {
+    const match = (this.apartment?.description || '').match(/(?:^|[|\n])\s*Deposit:\s*([\d.]+)/i);
+    return match ? Number(match[1]) || 0 : 0;
+  }
+
+  get depositInGel(): boolean {
+    return /(?:^|[|\n])\s*Currency:\s*GEL/i.test(this.apartment?.description || '');
+  }
+
   get floorLabel(): string {
     const floor = this.apartment?.floor;
     return floor === undefined || floor === null
@@ -491,15 +502,29 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return `••• ••• ••${visibleDigits ? ` ${visibleDigits}` : ''}`;
   }
 
-  get visibleDescription(): string {
+  /** The whole description in the visitor's language (without the saved listing details). */
+  get fullDescription(): string {
     const clean = this.description.split(/\r?\n\s*\r?\n(?:Listing plan|Type):/i)[0].trim();
     const language = this.translation.language$.value;
     if (language === 'ru' || (language === 'en' && this.hasGeorgianText(clean))) {
       return this.generatedDescription(language);
     }
-    return this.descriptionExpanded || clean.length <= 360
-      ? clean
-      : `${clean.slice(0, 360).trim()}…`;
+    return clean;
+  }
+
+  /** Descriptions longer than this many words start collapsed behind "Show more". */
+  readonly descriptionWordLimit = 50;
+
+  get descriptionIsLong(): boolean {
+    return this.fullDescription.split(/\s+/).filter(Boolean).length > this.descriptionWordLimit;
+  }
+
+  get visibleDescription(): string {
+    const full = this.fullDescription;
+    if (this.descriptionExpanded || !this.descriptionIsLong) return full;
+    // Cut after the 50th word, keeping the spacing and line breaks before it.
+    const words = full.match(/\S+\s*/g) || [];
+    return `${words.slice(0, this.descriptionWordLimit).join('').trimEnd()}…`;
   }
 
   get isExclusiveListing(): boolean {
@@ -641,7 +666,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     preloadImages(order.map((i) => images[i]));
     this.photoViewerOpen = true;
     this.cdr.detectChanges();
-    this.photoViewer?.nativeElement.showModal();
+    const viewer = this.photoViewer?.nativeElement;
+    // Older iPhones (Safari before 15.4) have no showModal(): show the dialog as a plain overlay.
+    if (viewer && typeof viewer.showModal === 'function') viewer.showModal();
+    else viewer?.setAttribute('open', '');
     document.body.classList.add('photo-viewer-active');
     lockPageScroll(); // pins the page so iOS can't move it under the viewer
     requestAnimationFrame(() => {

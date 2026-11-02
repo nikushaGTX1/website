@@ -6,6 +6,7 @@ import { ClientService } from '../services/client.service';
 import { User } from '../models/user';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { NgIf, NgFor } from '@angular/common';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 interface MenuItem {
   label: string;
@@ -22,7 +23,7 @@ interface MenuItem {
   selector: 'app-profile-burger-menu',
   templateUrl: './profile-burger-menu.html',
   styleUrl: './profile-burger-menu.css',
-  imports: [NgIf, NgFor, RouterLink],
+  imports: [PhotoUrlPipe, NgIf, NgFor, RouterLink],
 })
 export class ProfileBurgerMenu implements OnInit, OnDestroy {
   isOpen = false;
@@ -69,22 +70,15 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
         },
         ...this.accountMenuItems.filter((item) => item.route !== '/my-listings'),
       ];
-    const items = this.canOpenCrm
+    // Staff open Interested clients and Reviews from the CRM side menu.
+    return this.canOpenCrm
       ? [
           { label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-address-book' },
-          { label: 'Interested clients', route: '/crm/interested-clients', icon: 'fa-solid fa-user-check' },
           ...this.accountMenuItems.filter((item) => item.route !== '/my-listings'),
         ]
       : this.accountMenuItems;
-    // Agents collect client reviews through their own review link.
-    return this.canOpenReviews
-      ? [...items, { label: 'My reviews', route: '/my-reviews', icon: 'fa-regular fa-star' }]
-      : items;
   }
 
-  get canOpenReviews(): boolean {
-    return this.authService.isAgent || this.authService.isCrmManager;
-  }
 
   private subscription?: Subscription;
 

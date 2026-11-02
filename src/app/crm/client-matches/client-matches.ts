@@ -7,6 +7,7 @@ import { CurrencyPrice } from '../../currency-price/currency-price';
 import { answerLabel } from '../../ai-home-match/services/answer-labels';
 import { toMediaUrl } from '../../utils/api-media';
 import { isSaleListing } from '../../utils/listing-deal';
+import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
 
 /**
  * CRM: client searches that match listings. The agent checks the client (call them, confirm the
@@ -14,7 +15,7 @@ import { isSaleListing } from '../../utils/listing-deal';
  */
 @Component({
   selector: 'app-client-matches',
-  imports: [CommonModule, RouterLink, ListingTitlePipe, CurrencyPrice],
+  imports: [PhotoUrlPipe, CommonModule, RouterLink, ListingTitlePipe, CurrencyPrice],
   templateUrl: './client-matches.html',
   styleUrl: './client-matches.css',
 })

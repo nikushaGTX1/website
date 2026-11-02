@@ -7,6 +7,8 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  /* iPhone Safari only reports taps on elements that look clickable. */
+  cursor: pointer;
   /* Vertical swipes scroll the page; horizontal ones are handled here. */
   touch-action: pan-y pinch-zoom;
   user-select: none;

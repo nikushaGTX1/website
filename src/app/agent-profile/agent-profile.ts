@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { whatsappDigits } from '../utils/phone';
 import { languageShortList } from '../utils/agent-languages';
 import { NgIf, NgFor, DecimalPipe } from '@angular/common';
+import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 export interface AgentCard {
   id: string | number;
@@ -26,7 +27,7 @@ export interface AgentCard {
   selector: 'app-agent-profile',
   templateUrl: './agent-profile.html',
   styleUrl: './agent-profile.css',
-  imports: [NgIf, NgFor, RouterLink, DecimalPipe],
+  imports: [PhotoUrlPipe, NgIf, NgFor, RouterLink, DecimalPipe],
 })
 export class AgentProfile implements OnInit {
   agents: AgentCard[] = [];

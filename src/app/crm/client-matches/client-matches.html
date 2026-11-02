@@ -56,7 +56,7 @@
           <section class="listing">
             <span class="label">Matches your listing</span>
             <a class="listing-card" [routerLink]="['/apartments', item.apartmentId]" target="_blank">
-              <img [src]="image(item)" alt="" loading="lazy" />
+              <img [src]="(image(item)) | photoUrl" alt="" loading="lazy" />
               <span>
                 <b>{{ titleSource(item) | listingTitle }}</b>
                 <small>{{ item.district }}<span *ngIf="item.street"> · {{ item.street }}</span></small>

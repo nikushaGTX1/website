@@ -41,7 +41,7 @@
     <form *ngIf="link && !submitted && !loading" (ngSubmit)="submit()" novalidate>
       <header class="review-head">
         <div class="agent-avatar">
-          <img *ngIf="link.profilePicture; else initials" [src]="link.profilePicture" alt="" />
+          <img *ngIf="link.profilePicture; else initials" [src]="(link.profilePicture) | photoUrl:320" alt="" />
           <ng-template #initials><span>{{ (link.agentName || 'V').charAt(0) }}</span></ng-template>
           <i class="fa-solid fa-circle-check verified" aria-hidden="true"></i>
         </div>

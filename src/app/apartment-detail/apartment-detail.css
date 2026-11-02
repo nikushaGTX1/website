@@ -3321,3 +3321,13 @@ dialog.photo-viewer::backdrop { background: #111113; }
     --photo-carousel-slide-padding: 8px 12px;
   }
 }
+
+/* Nearby places: walking vs. driving times are told apart at a glance. */
+.nearby-mode { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+.nearby-mode i { font-size: 0.9em; opacity: 0.8; }
+.nearby-mode.drive { color: #6330b2; font-weight: 600; }
+
+/* Refundable deposit under the rent price. */
+.vp-deposit { display: flex; align-items: center; gap: 8px; margin: 6px 0 14px; color: #5d566e; font-size: 14px; }
+.vp-deposit i { color: #6330b2; }
+.vp-deposit b { color: #1f1433; font-weight: 800; }
