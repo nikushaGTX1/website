@@ -72,3 +72,32 @@ h1 em { color: #6330b2; font-style: normal; }
 .screen-toggle > i { display: block; width: 1em; height: 1em; line-height: 1; text-align: center; }
 /* Solid white circle so the button reads clearly over any part of the game. */
 .screen-toggle { border: 0; background: #fff; color: #451a8f; font-size: 18px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); backdrop-filter: none; }
+
+/* Reward panel over the game when the player reaches the reward floor. */
+.reward { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; padding: 20px; background: rgba(20, 10, 45, 0.55); }
+.reward-card {
+  display: grid; justify-items: center; gap: 10px; width: min(100%, 320px); padding: 26px 22px 18px;
+  border-radius: 22px; background: #fff; color: #1f1433; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+.reward-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: #fff4e0; color: #d48a00; font-size: 24px; }
+.reward-card h2 { margin: 4px 0 0; font-size: 20px; line-height: 1.25; }
+.reward-card p { margin: 0; color: #6f6385; font-size: 14px; line-height: 1.45; }
+.reward-card code {
+  padding: 8px 12px; border: 1px dashed #b9a6e0; border-radius: 10px; background: #f8f5fd; color: #451a8f;
+  font: 700 16px ui-monospace, Consolas, monospace; letter-spacing: 0.08em;
+}
+.reward-primary {
+  display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 46px; margin-top: 6px;
+  border: 0; border-radius: 12px; background: linear-gradient(135deg, #451a8f, #7136be); color: #fff;
+  font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.reward-later { min-height: 40px; border: 0; background: none; color: #6f6385; font: inherit; font-weight: 600; cursor: pointer; }
+
+/* Admin-only test of the reward without the game reporting floors. */
+.test-panel {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; max-width: 420px;
+  margin-top: 18px; padding: 10px 12px; border: 1px dashed #d48a00; border-radius: 12px; background: #fff8ea; color: #6b4a00; font-size: 13px;
+}
+.test-panel button {
+  min-height: 36px; padding: 0 14px; border: 0; border-radius: 9px; background: #d48a00; color: #fff; font: inherit; font-weight: 700; cursor: pointer;
+}

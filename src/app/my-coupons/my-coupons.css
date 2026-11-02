@@ -1,0 +1,55 @@
+:host { display: block; min-height: 70vh; background: #f7f5fb; color: #1f1433; }
+.coupons-page { max-width: 880px; margin: 0 auto; padding: 40px 24px 72px; }
+.heading { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 26px; }
+.heading-icon {
+  display: grid; flex: 0 0 48px; place-items: center; width: 48px; height: 48px; border-radius: 14px;
+  background: #eee7fb; color: #451a8f; font-size: 20px;
+}
+h1 { margin: 2px 0 6px; font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -0.02em; }
+.heading p { margin: 0; color: #6f6385; line-height: 1.5; }
+
+.list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.coupon {
+  position: relative; display: grid; grid-template-columns: 130px minmax(0, 1fr) auto; align-items: center; gap: 22px;
+  overflow: hidden; padding: 18px 22px 18px 0; border: 1px solid #e8e1f1; border-radius: 20px; background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 20, 61, 0.06);
+}
+/* Ticket look: purple stub with a dashed tear line. */
+.amount {
+  display: grid; place-content: center; justify-items: center; align-self: stretch; margin: -18px 0;
+  border-right: 2px dashed #d8cdee; background: linear-gradient(150deg, #451a8f, #7136be); color: #fff;
+}
+.amount strong { font-size: 30px; line-height: 1; }
+.amount span { margin-top: 4px; color: #e2d7f5; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.details { min-width: 0; }
+.details h2 { margin: 0 0 4px; font-size: 17px; }
+.details p { margin: 0; color: #6f6385; font-size: 13px; line-height: 1.45; }
+.code-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+code {
+  padding: 8px 12px; border: 1px dashed #b9a6e0; border-radius: 10px; background: #f8f5fd; color: #451a8f;
+  font: 700 15px ui-monospace, Consolas, monospace; letter-spacing: 0.08em;
+}
+.status { align-self: start; padding: 6px 12px; border-radius: 99px; background: #efecf3; color: #6f6385; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.status.active { background: #e5f6ee; color: #16865a; }
+.coupon.used { opacity: 0.65; }
+.coupon.used .amount { background: #8b819b; }
+
+.ghost, .primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 14px;
+  border-radius: 11px; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.ghost { border: 1px solid #e8e1f1; background: #fff; color: #1f1433; }
+.primary { border: 0; background: linear-gradient(135deg, #451a8f, #7136be); color: #fff; min-height: 46px; padding: 0 20px; }
+.state { display: grid; justify-items: center; gap: 10px; padding: 48px 20px; border: 1px dashed #d8cfea; border-radius: 20px; background: #fff; text-align: center; }
+.state h2 { margin: 0; font-size: 19px; }
+.state p { max-width: 420px; margin: 0 0 6px; color: #6f6385; line-height: 1.5; }
+.state-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #eee7fb; color: #451a8f; font-size: 22px; }
+.skeleton { height: 150px; border-radius: 20px; background: #efecf5; }
+@media (hover: hover) { .ghost:hover { border-color: #451a8f; color: #451a8f; } }
+
+@media (max-width: 600px) {
+  .coupons-page { padding: 24px 16px 48px; }
+  .coupon { grid-template-columns: 1fr; gap: 14px; padding: 0 18px 18px; }
+  .amount { grid-auto-flow: column; justify-content: start; gap: 8px; align-items: baseline; margin: 0 -18px; padding: 16px 18px; border-right: 0; border-bottom: 2px dashed #d8cdee; }
+  .status { position: absolute; top: 14px; right: 14px; background: rgba(255, 255, 255, 0.9); }
+}

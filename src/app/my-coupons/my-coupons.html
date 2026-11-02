@@ -1,0 +1,52 @@
+<main class="coupons-page">
+  <header class="heading">
+    <span class="heading-icon" aria-hidden="true"><i class="fa-solid fa-ticket"></i></span>
+    <div>
+      <h1>My coupons</h1>
+      <p>Rewards saved to your account. Show the code to your Velven agent when you sign your deal.</p>
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="skeleton" aria-hidden="true"></div>
+  } @else if (error) {
+    <div class="state">
+      <h2>Coupons could not load</h2>
+      <button type="button" class="ghost" (click)="load()">Try again</button>
+    </div>
+  } @else if (!coupons.length) {
+    <div class="state">
+      <span class="state-icon" aria-hidden="true"><i class="fa-solid fa-gamepad"></i></span>
+      <h2>No coupons yet</h2>
+      <p>Reach floor {{ rewardFloor }} in the Velven game and a $50 cashback coupon is added here.</p>
+      <a class="primary" routerLink="/play">Play the game <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  } @else {
+    <ul class="list">
+      @for (coupon of coupons; track coupon.id) {
+        <li class="coupon" [class.used]="coupon.status === 'redeemed'">
+          <div class="amount">
+            <strong data-no-translate>${{ coupon.amountUsd }}</strong>
+            <span>cashback</span>
+          </div>
+          <div class="details">
+            <h2>Velven game cashback</h2>
+            <p>Won on {{ coupon.createdAt | date: 'd MMM y' }}. Applied to a rent or purchase made through a Velven agent.</p>
+            <div class="code-row">
+              <code data-no-translate>{{ coupon.code }}</code>
+              @if (coupon.status === 'active') {
+                <button type="button" class="ghost" (click)="copy(coupon)">
+                  <i class="fa-regular" [class.fa-copy]="copiedId !== coupon.id" [class.fa-circle-check]="copiedId === coupon.id" aria-hidden="true"></i>
+                  {{ copiedId === coupon.id ? 'Copied' : 'Copy code' }}
+                </button>
+              }
+            </div>
+          </div>
+          <span class="status" [class.active]="coupon.status === 'active'">
+            {{ coupon.status === 'active' ? 'Ready to use' : 'Used' }}
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</main>

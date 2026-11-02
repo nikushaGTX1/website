@@ -4,11 +4,17 @@
     <h1>Play and get <em>$50 cashback</em></h1>
     <p>Win the game and get $50 back when you rent or buy a home through Velven.</p>
     <ol class="steps">
-      <li><b>1</b><span>Play the game and win.</span></li>
-      <li><b>2</b><span>Take a screenshot of your winning screen.</span></li>
-      <li><b>3</b><span>Show it to your Velven agent when you sign your deal. The $50 is applied to your deal.</span></li>
+      <li><b>1</b><span>Log in and play the game.</span></li>
+      <li><b>2</b><span>Reach floor {{ rewardFloor }}. A $50 coupon is saved to My coupons in your account.</span></li>
+      <li><b>3</b><span>Show the coupon code to your Velven agent when you sign your deal. The $50 is applied to your deal.</span></li>
     </ol>
-    <p class="terms">One cashback per client and per deal. Valid only for deals made through a Velven agent.</p>
+    <p class="terms">One cashback per account. Valid only for deals made through a Velven agent.</p>
+    @if (canTestReward && playing) {
+      <div class="test-panel" data-no-translate>
+        <span><b>Test (admins only)</b> · floor {{ bestFloor }} / {{ rewardFloor }}</span>
+        <button type="button" (click)="testNextFloor()">+1 floor</button>
+      </div>
+    }
     <a class="browse" routerLink="/ExploreProperty">Browse homes <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
   </section>
 
@@ -23,6 +29,34 @@
         <button type="button" class="screen-toggle" (click)="enterFullscreen()" aria-label="Full screen">
           <i class="fa-solid fa-expand" aria-hidden="true"></i>
         </button>
+      }
+      @if (reward) {
+        <div class="reward" role="dialog" aria-modal="false" aria-labelledby="reward-title">
+          <div class="reward-card">
+            <span class="reward-icon" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>
+            @switch (reward) {
+              @case ('saving') {
+                <h2 id="reward-title">Floor {{ rewardFloor }}! Saving your coupon…</h2>
+              }
+              @case ('saved') {
+                <h2 id="reward-title">You won $50 cashback!</h2>
+                <p>The coupon is saved in My coupons.</p>
+                <code data-no-translate>{{ coupon?.code }}</code>
+                <a class="reward-primary" routerLink="/my-coupons">Open My coupons</a>
+              }
+              @case ('login') {
+                <h2 id="reward-title">You won $50 cashback!</h2>
+                <p>Log in or create an account to save the coupon.</p>
+                <a class="reward-primary" routerLink="/login" [queryParams]="{ returnUrl: '/my-coupons' }">Log in to save it</a>
+              }
+              @case ('error') {
+                <h2 id="reward-title">You won, but the coupon could not be saved</h2>
+                <button type="button" class="reward-primary" (click)="saveReward()">Try again</button>
+              }
+            }
+            <button type="button" class="reward-later" (click)="closeReward()">Keep playing</button>
+          </div>
+        </div>
       }
     } @else {
       <button type="button" class="start" (click)="play()">

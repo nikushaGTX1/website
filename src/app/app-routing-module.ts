@@ -320,6 +320,12 @@ const routes: Routes = [
     title: 'Saved Listings | Velven',
     canActivate: [authGuard, workspaceRedirect],
   },
+  {
+    path: 'my-coupons',
+    loadComponent: () => import('./my-coupons/my-coupons').then((m) => m.MyCoupons),
+    title: 'My coupons | Velven',
+    canActivate: [authGuard],
+  },
 
   {
     path: 'premium',

@@ -21,6 +21,13 @@
   <body>
     <canvas id="unity-canvas" width="540" height="960" tabindex="-1"></canvas>
     <div id="loading">Loading game…<span><b id="bar"></b></span></div>
+    <script>
+      // Bridge for the Unity game: call VelvenReportFloor(floor) each time the player reaches a
+      // new floor (see docs/velven-game-bridge.md). The /play page saves the $50 coupon.
+      window.VelvenReportFloor = function (floor) {
+        if (window.parent !== window) window.parent.postMessage({ type: 'velven-game', floor: Number(floor) }, window.location.origin);
+      };
+    </script>
     <script src="Build/AxaliBuild.loader.js"></script>
     <script>
       createUnityInstance(document.querySelector('#unity-canvas'), {

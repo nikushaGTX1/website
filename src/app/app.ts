@@ -293,6 +293,7 @@ export class App implements AfterViewInit {
       'clients',
       'careers',
       'play',
+      'my-coupons',
       'my-viewings',
       'my-reviews',
       'interested-clients',
