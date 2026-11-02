@@ -109,6 +109,11 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
+  /** The menu list is rebuilt on every check; keeping rows by route stops links being replaced mid-click. */
+  trackByRoute(_index: number, item: MenuItem): string {
+    return item.route;
+  }
+
   toggleMenu(): void {
     this.isOpen = !this.isOpen;
   }

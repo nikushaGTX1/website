@@ -9,8 +9,8 @@
 .bell-button {
   position: relative;
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   border: 1px solid #e2e7ef;
   border-radius: 12px;
@@ -31,6 +31,15 @@
   .notice:hover {
     background: #f8f6ff;
   }
+}
+
+/* Icon centred exactly (Georgian text styles must not shift it). */
+.bell-button > i {
+  display: block;
+  width: 1em;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
 }
 
 .bell-button.has-unread i {

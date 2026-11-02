@@ -14,7 +14,9 @@
   [attr.aria-expanded]="workspaceMenuOpen"
   aria-controls="workspace-sidebar"
 >
-  <i class="fa-solid fa-bars" aria-hidden="true"></i>CRM navigation
+  <i class="fa-solid fa-bars" aria-hidden="true"></i>
+  <span class="workspace-menu-text"><small>CRM menu</small><b>{{ workspaceSectionLabel }}</b></span>
+  <i class="fa-solid fa-chevron-down workspace-menu-chevron" aria-hidden="true"></i>
 </button>
 <aside
   id="workspace-sidebar"

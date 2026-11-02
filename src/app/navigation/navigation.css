@@ -768,9 +768,20 @@
 
 @media (max-width: 1020px) {
   .bell-mobile {
-    display: block;
+    display: flex;
+    align-items: center;
     margin-left: auto;
-    margin-right: -20px;
+  }
+
+  /* With the bell shown, only the bell takes the free space, so it sits right beside the menu button. */
+  .bell-mobile + .menu-toggle {
+    margin-left: 0 !important;
+  }
+
+  /* Bell sits right beside the menu button (the logo is pushed left by the bell's auto margin). */
+  .navigation,
+  :host-context(html:lang(ka)) .navigation {
+    gap: 8px;
   }
 
   .bell-desktop {

@@ -240,6 +240,22 @@ export class App implements AfterViewInit {
     const path = this.router.url.split(/[?#]/, 1)[0];
     return this.auth.canOpenCrm && /^\/crm(?:\/|$)/.test(path);
   }
+  /** Name of the CRM page that is open, shown on the phone menu button. */
+  get workspaceSectionLabel(): string {
+    const section = this.router.url.split(/[?#]/, 1)[0].split('/')[2] || '';
+    const labels: Record<string, string> = {
+      '': 'Overview',
+      listings: 'My listings',
+      'owner-submissions': 'Owner submissions',
+      'interested-clients': 'Interested clients',
+      'photo-cleaner': 'Watermark remover',
+      approvals: 'Listing approvals',
+      system: 'System dashboard',
+      viewings: 'Viewings',
+      reviews: 'Reviews',
+    };
+    return labels[section] ?? section.replace(/-/g, ' ').replace(/^./, (letter) => letter.toUpperCase());
+  }
   get workspaceName(): string {
     return this.auth.currentUser?.fullName || this.auth.currentUser?.userName || 'Your workspace';
   }

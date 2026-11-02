@@ -22,7 +22,7 @@
     <div class="menu-divider"></div>
 
     <ul class="menu-list">
-      <li *ngFor="let item of menuItems">
+      <li *ngFor="let item of menuItems; trackBy: trackByRoute">
         <a [routerLink]="item.route" [class.featured]="item.featured" [attr.target]="item.newTab ? '_blank' : null" [attr.rel]="item.newTab ? 'noopener' : null" (click)="closeMenu()">
           <i [class]="item.icon" aria-hidden="true"></i>
           <span class="item-label">{{ item.label }}</span>
