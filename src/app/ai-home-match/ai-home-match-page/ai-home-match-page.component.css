@@ -4570,3 +4570,17 @@ fieldset {
     justify-self: center;
   }
 }
+
+/* The character pictures have room around the figure; show them larger so they fill the card. */
+.gender-option-image {
+  width: 130px;
+  height: 180px;
+  flex: 0 0 180px;
+}
+@media (max-width: 430px) {
+  .gender-option-image {
+    width: 110px;
+    height: 160px;
+    flex-basis: 160px;
+  }
+}
