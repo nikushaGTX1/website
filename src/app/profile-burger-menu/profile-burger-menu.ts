@@ -74,7 +74,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
     return this.canOpenCrm
       ? [
           { label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-address-book' },
-          ...this.accountMenuItems.filter((item) => item.route !== '/my-listings'),
+          ...this.accountMenuItems,
         ]
       : this.accountMenuItems;
   }

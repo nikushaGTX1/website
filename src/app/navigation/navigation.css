@@ -792,3 +792,15 @@
 @media (max-width: 780px) {
   :host(.workspace-navigation) .navigation { min-height: 67px; }
 }
+
+/* "My listings" only in the phone/tablet menu; on desktop it is in the profile menu. */
+.my-listings-link {
+  display: none !important;
+}
+@media (max-width: 1020px) {
+  .my-listings-link {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+  }
+}
