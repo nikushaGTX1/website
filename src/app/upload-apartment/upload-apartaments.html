@@ -138,16 +138,16 @@
         <span>Your saved draft was restored. Add the photos again.</span>
         <button type="button" (click)="discardDraft()">Start fresh</button>
       </p>
-      <div class="myhome-field">
+      <div class="myhome-field" *ngIf="!isOwnerUpload">
         <label for="myhome-id">MyHome ID <small>{{ uploadLocationText('Optional', 'არასავალდებულო', 'Необязательно') }}</small></label>
         <input id="myhome-id" name="myHomeId" [(ngModel)]="form.myHomeId" inputmode="numeric" maxlength="10" placeholder="12345678" aria-describedby="myhome-hint">
         <small id="myhome-hint">{{ uploadLocationText('Link the original MyHome listing for availability checks.', 'მიუთითეთ MyHome განცხადება ხელმისაწვდომობის შესამოწმებლად.', 'Укажите исходное объявление MyHome для проверки доступности.') }}</small>
       </div>
       <div class="upload-validation" role="alert" *ngIf="validationAttempted && validationIssues.length" data-no-translate>
         <strong>{{ uploadLocationText('Please complete these fields', 'გთხოვთ, შეავსოთ შემდეგი ველები', 'Пожалуйста, заполните эти поля') }}</strong>
-        <button type="button" *ngFor="let issue of validationIssues" (click)="openStep(issue.step)"><i class="fa-solid fa-circle-exclamation"></i>{{ issue.message }}<i class="fa-solid fa-arrow-right"></i></button>
+        <button type="button" *ngFor="let issue of validationIssues; trackBy: trackIssue" (click)="openStep(issue.step)"><i class="fa-solid fa-circle-exclamation"></i>{{ issue.message }}<i class="fa-solid fa-arrow-right"></i></button>
       </div>
-      <section class="folder-import-card">
+      <section class="folder-import-card" *ngIf="!isOwnerUpload">
         <div class="folder-import-copy">
           <span><i class="fa-solid fa-folder-open"></i></span>
           <div>
@@ -256,7 +256,7 @@
             <div class="avail-days">
               <button
                 type="button"
-                *ngFor="let day of availCalendarDays"
+                *ngFor="let day of availCalendarDays; trackBy: trackAvailDay"
                 class="avail-day"
                 [class.blank]="!day.inMonth"
                 [class.selected]="day.selected"
@@ -311,7 +311,8 @@
               *ngFor="let option of viewTypeOptions"
               type="button"
               class="chip"
-              [class.selected]="form.viewType === option"
+              [class.selected]="isViewSelected(option)"
+              [attr.aria-pressed]="isViewSelected(option)"
               (click)="selectViewType(option)"
             >
               <i [class]="chipIcon(option)" aria-hidden="true"></i><span>{{ option }}</span>
@@ -599,8 +600,16 @@
       </section>
 
       <section class="form-section" id="listing-step-5">
-        <header class="section-header"><span>06</span><div><h2>Listing contacts</h2><p>Agent details are public. Owner details are restricted to agents and managers.</p></div></header>
-        <div class="field-group">
+        <header class="section-header" *ngIf="isOwnerUpload"><span>06</span><div><h2>Your contact details</h2><p>Only your Velven agent sees them. Visitors contact Velven, not you directly.</p></div></header>
+        <div class="field-group" *ngIf="isOwnerUpload">
+          <label class="field-label"><i class="fa-solid fa-lock"></i> Your name and phone <span class="req">*</span> <small>Private — shown only to your Velven agent</small></label>
+          <div class="input-row contact-fields">
+            <input type="text" name="contactName" placeholder="Your full name" required autocomplete="name" [(ngModel)]="form.contactName" />
+            <input type="tel" name="contactPhone" placeholder="+995 5XX XX XX XX" autocomplete="tel" inputmode="tel" required [(ngModel)]="form.contactPhone" />
+          </div>
+        </div>
+        <header class="section-header" *ngIf="!isOwnerUpload"><span>06</span><div><h2>Listing contacts</h2><p>Agent details are public. Owner details are restricted to agents and managers.</p></div></header>
+        <div class="field-group" *ngIf="!isOwnerUpload">
           <label class="field-label"><i class="fa-solid fa-lock"></i> Owner information <span class="req">*</span> <small>Private — visible only to agents and higher roles</small></label>
           <div class="input-row contact-fields">
             <input type="text" name="contactName" placeholder="Owner's full name" required [(ngModel)]="form.contactName" />
@@ -615,7 +624,7 @@
             />
           </div>
         </div>
-        <div class="field-group agent-contact-group">
+        <div class="field-group agent-contact-group" *ngIf="!isOwnerUpload">
           <label class="field-label"><i class="fa-solid fa-user-tie"></i> Agent information <span class="req">*</span> <small>Public — shown to everyone on the listing</small></label>
           <div class="input-row contact-fields">
             <input type="text" name="agentName" placeholder="Agent's full name" required [(ngModel)]="form.agentName" />

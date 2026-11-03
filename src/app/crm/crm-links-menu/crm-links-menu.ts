@@ -57,6 +57,11 @@ export class CrmLinksMenu {
     return list;
   }
 
+  /** The list is rebuilt on every check; keeping each button stops clicks being lost. */
+  trackKind(_index: number, action: LinkAction): LinkKind {
+    return action.kind;
+  }
+
   toggle(event: Event): void {
     // The side menu closes itself on any click inside it (mobile); keep it open for this button.
     event.stopPropagation();

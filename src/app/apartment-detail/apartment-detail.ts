@@ -1517,10 +1517,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
           this.selectedAgent.userName ||
           this.selectedAgent.email ||
           'Agent'
-        : this.apartment?.uploadedByName ||
-          this.getListingMetadata('Contact') ||
-          this.getListingMetadata('Owner Email') ||
-          'Listing agent')
+        : // Homes owners list themselves have no agent yet: show Velven, never the owner's
+          // own name or email (those stay private).
+          this.getListingMetadata('Contact') || 'Velven')
     );
   }
 

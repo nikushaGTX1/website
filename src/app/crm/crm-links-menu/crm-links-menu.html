@@ -17,7 +17,7 @@
     <button
       type="button"
       class="link-item"
-      *ngFor="let action of actions"
+      *ngFor="let action of actions; trackBy: trackKind"
       [attr.data-kind]="action.kind"
       [class.done]="copied === action.kind"
       [disabled]="busy !== null"

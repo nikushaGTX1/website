@@ -173,6 +173,13 @@ function localizeSegment(segment: string, language: AppLanguage, districts: Titl
  * 2. else the original title, re-written from its parts when it follows a known pattern,
  * 3. else the original title unchanged.
  */
+/** Titles name the home only; the price is shown next to them. Drops " — $2,800/თვე". */
+function withoutPrice(title: string): string {
+  return title
+    .replace(/\s*[—–-]\s*[$₾€]\s?[\d.,]+\s*(?:\/\s*(?:თვე|month|mo|месяц|мес\.?|დღე|day|сутки))?\s*$/i, '')
+    .trim();
+}
+
 export function localizeListingTitle(
   listing: string | ListingTitleSource | undefined | null,
   language: AppLanguage,
@@ -180,9 +187,9 @@ export function localizeListingTitle(
 ): string {
   const item: ListingTitleSource = typeof listing === 'string' ? { title: listing } : (listing ?? {});
   const saved = language === 'ka' ? item.titleKa : language === 'ru' ? item.titleRu : item.titleEn;
-  if (saved?.trim()) return saved.trim();
+  if (saved?.trim()) return withoutPrice(saved);
 
-  const source = item.title?.trim() ?? '';
+  const source = withoutPrice(item.title ?? '');
   if (!source) return '';
   // A Georgian title is already right for Georgian readers: keep the owner's wording.
   if (language === 'ka' && GEORGIAN.test(source)) return source;

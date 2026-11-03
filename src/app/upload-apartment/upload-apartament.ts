@@ -541,19 +541,13 @@ export class UploadApartment implements OnInit, OnDestroy {
         ? this.locationService.districtName(districtEntry, 'ru')
         : this.form.location,
     };
-    const price = this.form.totalPrice
-      ? `${this.form.currency === 'GEL' ? '₾' : '$'}${new Intl.NumberFormat('en-US').format(this.form.totalPrice)}`
-      : '';
-    const monthly = this.form.dealType === 'For Rent' || this.form.dealType === 'Lease';
+    // Titles name the home only; the price is shown beside them, so it is not repeated here.
     const roomKa = this.form.rooms ? `${this.form.rooms}-ოთახიანი ` : '';
     const roomEn = this.form.rooms ? `${this.form.rooms}-room ` : '';
     const roomRu = this.form.rooms ? `${this.form.rooms}-комнатная ` : '';
     const placeKa = places.ka ? `${places.ka}, თბილისში` : 'თბილისში';
     const placeEn = places.en ? `${places.en}, Tbilisi` : 'Tbilisi';
     const placeRu = places.ru ? `${places.ru}, Тбилиси` : 'Тбилиси';
-    const priceKa = price ? ` — ${price}${monthly ? '/თვე' : ''}` : '';
-    const priceEn = price ? ` — ${price}${monthly ? '/month' : ''}` : '';
-    const priceRu = price ? ` — ${price}${monthly ? '/месяц' : ''}` : '';
     const detailsKa = [
       this.form.area ? `${this.form.area} მ²` : '',
       this.form.bedrooms ? `${this.form.bedrooms} საძინებელი` : '',
@@ -591,15 +585,15 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     this.listingCopy = {
       ka: {
-        title: `${deal[0]} ${roomKa}${type[0]} ${placeKa}${priceKa}`,
+        title: `${deal[0]} ${roomKa}${type[0]} ${placeKa}`,
         description: `${deal[0]} ${type[0]} ${placeKa}.${detailsKa ? ` ძირითადი მახასიათებლები: ${detailsKa}.` : ''}${condition[0] ? ` მდგომარეობა: ${condition[0]}.` : ''} დაინტერესების შემთხვევაში დაგვიკავშირდით დამატებითი ინფორმაციისა და ნახვის დასაგეგმად.`,
       },
       en: {
-        title: `${roomEn}${type[1]} ${deal[1]} in ${placeEn}${priceEn}`,
+        title: `${roomEn}${type[1]} ${deal[1]} in ${placeEn}`,
         description: `${type[1]} ${deal[1]} in ${placeEn}.${detailsEn ? ` Key details: ${detailsEn}.` : ''}${this.form.condition ? ` Condition: ${this.form.condition}.` : ''} Contact us for more information or to arrange a viewing.`,
       },
       ru: {
-        title: `${roomRu}${type[2]} ${deal[2]} в ${placeRu}${priceRu}`,
+        title: `${roomRu}${type[2]} ${deal[2]} в ${placeRu}`,
         description: `${type[2]} ${deal[2]} в ${placeRu}.${detailsRu ? ` Основные параметры: ${detailsRu}.` : ''}${condition[1] ? ` Состояние: ${condition[1]}.` : ''} Свяжитесь с нами для получения дополнительной информации и организации просмотра.`,
       },
     };
@@ -651,7 +645,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.imageAiService.availability().subscribe({
         next: ({ enabled, canRemove }) => {
-          this.photoChecksEnabled = enabled;
+          // Owners upload their own photos: no watermark check or remover for them.
+          this.photoChecksEnabled = enabled && !this.authService.isOwner;
           this.canRemoveWatermarks = canRemove;
           if (enabled) this.queuePhotoChecks(this.selectedImages);
           this.cdr.markForCheck();
@@ -668,6 +663,12 @@ export class UploadApartment implements OnInit, OnDestroy {
       // Storage blocked.
     }
     this.form.agentPhone = currentUser?.phoneNumber || rememberedPhone;
+    if (this.authService.isOwner) {
+      this.form.contactName = this.form.agentName;
+      this.form.contactPhone = this.form.agentPhone;
+      this.form.agentName = '';
+      this.form.agentPhone = '';
+    }
     const query = this.route.snapshot.queryParamMap;
     if (!query.has('edit') && !query.has('pending') && !query.has('owner')) this.restoreDraft();
     this.pendingService.refresh();
@@ -828,11 +829,12 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (Object.keys(names).length) this.editSavedNearby.placeNames = names;
     if (Object.keys(driveMinutes).length) this.editSavedNearby.drivingMinutes = driveMinutes;
     this.editSavedLocationKey = '';
-    const description = source.description || '';
-    const splitAt = description.lastIndexOf('\n\n');
-    const tail = splitAt >= 0 ? description.slice(splitAt + 2) : '';
-    const hasMeta = tail.startsWith('Listing plan:');
-    const meta = hasMeta ? tail : '';
+    // Saved details follow a blank line. Some listings were saved with Windows line breaks
+    // ("\r\n\r\n"); missing those made every field fall back to its default when editing.
+    const description = (source.description || '').replace(/\r\n?/g, '\n');
+    const splitAt = description.lastIndexOf('\n\nListing plan:');
+    const hasMeta = splitAt >= 0;
+    const meta = hasMeta ? description.slice(splitAt + 2) : '';
     this.editOriginalMeta = meta;
     const tag = (name: string): string => this.metaTag(meta, name);
     const num = (value: unknown): number | null => {
@@ -893,6 +895,21 @@ export class UploadApartment implements OnInit, OnDestroy {
     for (const option of this.featureOptions) {
       if (tagged.includes(option.field)) f[option.field] = meta.includes(option.label + ': Yes');
     }
+    // The same words the save writes (some differ from the button labels or have no button),
+    // so every "…: Yes" saved on the listing comes back when it is edited.
+    const savedYes: Array<[string, BooleanFeature]> = [
+      ['Quiet street', 'isQuietStreet'],
+      ['Playground nearby', 'hasPlaygroundNearby'],
+      ['Cafe nearby', 'hasCafeNearby'],
+      ['Everyday services nearby', 'hasEverydayServicesNearby'],
+      ['Coworking nearby', 'hasCoworkingNearby'],
+      ['Security or concierge', 'hasSecurity'],
+      ['Modern building', 'isModernBuilding'],
+      ['Isolated bedrooms', 'hasIsolatedBedrooms'],
+      ['Away from nightlife', 'isAwayFromNightlife'],
+      ['Company lease available', 'hasCompanyLease'],
+    ];
+    for (const [label, field] of savedYes) if (meta.includes(label + ': Yes')) f[field] = true;
     f.isVerified = meta.includes('Verified listing: Yes');
     const parkingLabel = tag('Parking type');
     f.parkingCondition =
@@ -911,7 +928,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.parkingPrice = parkingCost.price;
     f.viewType = source.viewType || tag('View type');
     f.minimumRentalPeriod = source.minimumRentalPeriod || tag('Minimum rental');
-    f.availableFrom = source.availableFrom || '';
+    f.availableFrom = (source.availableFrom || tag('Available from') || '').slice(0, 10);
     f.maxOccupants = source.maxOccupants ?? null;
     f.apartmentStyle = normalizeApartmentStyle(source.apartmentStyle) || f.apartmentStyle;
     f.cadastralCode = tag('Cadastral');
@@ -1035,6 +1052,11 @@ export class UploadApartment implements OnInit, OnDestroy {
     return Array.from({ length: 7 }, (_, i) =>
       new Date(2024, 0, 1 + i).toLocaleDateString(this.availLocale, { weekday: 'short' }),
     );
+  }
+
+  /** The day list is rebuilt on every check; keeping each button stops clicks being lost. */
+  trackAvailDay(index: number, day: { fullYear: number; fullMonth: number; date: number; inMonth: boolean }): string {
+    return day.inMonth ? day.fullYear + '-' + day.fullMonth + '-' + day.date : 'blank-' + index;
   }
 
   get availCalendarDays(): {
@@ -1223,6 +1245,19 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.condition = this.isRentDeal ? '' : this.form.condition || 'Newly Renovated';
   }
 
+  /** Photos of a listing with a MyHome ID come from myhome.ge (a partner whose mark we remove). */
+  get photoSource(): string {
+    return /^[1-9][0-9]{4,7}$/.test(this.form.myHomeId.trim()) ? 'myhome' : '';
+  }
+
+  /**
+   * A property owner listing their own home: they give only their own name and phone (kept
+   * private), with no agent details, MyHome ID or folder import. Velven assigns the agent.
+   */
+  get isOwnerUpload(): boolean {
+    return this.authService.isOwner;
+  }
+
   get isRentDeal(): boolean {
     return ['For Rent', 'Daily rent', 'Lease'].includes(this.form.dealType);
   }
@@ -1363,9 +1398,25 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.clearDuplicateDismissal();
   }
 
+  /** Selected views, saved as "City View, Nature View". */
+  get selectedViews(): string[] {
+    return this.form.viewType.split(',').map((view) => view.trim()).filter(Boolean);
+  }
+
+  isViewSelected(value: string): boolean {
+    return this.selectedViews.includes(value);
+  }
+
+  /** City and nature views can both be chosen; "No View" stands alone. */
   selectViewType(value: string): void {
-    this.form.viewType = value;
-    this.form.hasView = value === 'City View' || value === 'Nature View';
+    let views = this.selectedViews;
+    if (value === 'No View') views = views.includes('No View') ? [] : ['No View'];
+    else if (views.includes(value)) views = views.filter((view) => view !== value);
+    else views = [...views.filter((view) => view !== 'No View'), value];
+    // Same order as the buttons, whatever order they were clicked in.
+    views = this.viewTypeOptions.filter((option) => views.includes(option));
+    this.form.viewType = views.join(', ');
+    this.form.hasView = views.includes('City View') || views.includes('Nature View');
   }
 
   selectRentalPeriod(value: string): void {
@@ -1688,8 +1739,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         return !!(
           this.form.contactName.trim() &&
           isValidPhone(this.form.contactPhone) &&
-          this.form.agentName.trim() &&
-          isValidPhone(this.form.agentPhone)
+          (this.isOwnerUpload || (this.form.agentName.trim() && isValidPhone(this.form.agentPhone)))
         );
       default:
         return false;
@@ -1855,7 +1905,7 @@ export class UploadApartment implements OnInit, OnDestroy {
           continue;
         }
         try {
-          const result = await firstValueFrom(this.imageAiService.check(file, 'detect'));
+          const result = await firstValueFrom(this.imageAiService.check(file, 'detect', false, this.photoSource));
           const state: PhotoCheckState =
             result.classification === 'third_party'
               ? 'third'
@@ -1887,7 +1937,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     if (!file || !this.canRemoveWatermarks || (!auto && !this.photoRightsConfirmed) || !this.isRemovableState(before?.state)) return;
     this.photoChecks.set(file, { state: 'cleaning' });
     try {
-      const result = await firstValueFrom(this.imageAiService.check(file, 'clean', true));
+      const result = await firstValueFrom(this.imageAiService.check(file, 'clean', true, this.photoSource));
       if (!result.cleanedImage) throw new Error(result.action);
       const type = result.contentType || 'image/jpeg';
       const bytes = Uint8Array.from(atob(result.cleanedImage), (char) => char.charCodeAt(0));
@@ -2385,6 +2435,10 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   validationAttempted = false;
 
+  trackIssue(_index: number, issue: { field: string }): string {
+    return issue.field;
+  }
+
   get validationIssues(): { field: string; step: number; message: string }[] {
     const issues: { field: string; step: number; message: string }[] = [];
     const add = (field: string, step: number, en: string, ka: string, ru: string) =>
@@ -2465,7 +2519,9 @@ export class UploadApartment implements OnInit, OnDestroy {
         'მიუთითეთ ნულზე მეტი ფასი.',
         'Укажите цену больше нуля.',
       );
-    if (!this.form.contactName.trim())
+    if (!this.form.contactName.trim() && this.isOwnerUpload)
+      add('contactName', 5, 'Enter your name.', 'მიუთითეთ თქვენი სახელი.', 'Укажите ваше имя.');
+    else if (!this.form.contactName.trim())
       add(
         'contactName',
         5,
@@ -2473,7 +2529,9 @@ export class UploadApartment implements OnInit, OnDestroy {
         'მიუთითეთ მესაკუთრის სახელი.',
         'Укажите имя собственника.',
       );
-    if (!this.form.contactPhone.trim())
+    if (!this.form.contactPhone.trim() && this.isOwnerUpload)
+      add('contactPhone', 5, 'Enter your phone number.', 'მიუთითეთ თქვენი ტელეფონის ნომერი.', 'Укажите ваш телефон.');
+    else if (!this.form.contactPhone.trim())
       add(
         'contactPhone',
         5,
@@ -2489,7 +2547,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         'მიუთითეთ მესაკუთრის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.',
         'Укажите корректный телефон собственника, например 555 12 34 56.',
       );
-    if (!this.form.agentName.trim())
+    if (!this.isOwnerUpload && !this.form.agentName.trim())
       add(
         'agentName',
         5,
@@ -2497,7 +2555,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         'მიუთითეთ აგენტის სახელი.',
         'Укажите имя агента.',
       );
-    if (!this.form.agentPhone.trim())
+    if (!this.isOwnerUpload && !this.form.agentPhone.trim())
       add(
         'agentPhone',
         5,
@@ -2505,7 +2563,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         'მიუთითეთ აგენტის ტელეფონის ნომერი.',
         'Укажите телефон агента.',
       );
-    else if (!isValidPhone(this.form.agentPhone))
+    else if (!this.isOwnerUpload && !isValidPhone(this.form.agentPhone))
       add(
         'agentPhone',
         5,

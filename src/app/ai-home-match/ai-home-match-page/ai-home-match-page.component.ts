@@ -178,7 +178,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       'Quiet lifestyle',
       'Social and active lifestyle',
       'I often host guests',
-      'I travel frequently',
     ],
     [
       'Athlete',
@@ -188,7 +187,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       'QuietLifestyle',
       'SocialLifestyle',
       'HostsGuests',
-      'FrequentTraveler',
     ],
   );
   readonly transport = this.opts(
@@ -497,9 +495,34 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.howItWorksOpen = true;
     document.body.style.overflow = 'hidden';
     document.addEventListener('keydown', this.closeOnEscape);
+    // Phones: the video is a wide screen recording, tiny in portrait. Play it full screen
+    // and turned sideways where the phone allows it; otherwise the window turns it (CSS).
+    if (window.matchMedia('(max-width: 760px)').matches) {
+      this.cdr.detectChanges();
+      const video = document.querySelector<HTMLVideoElement & { webkitEnterFullscreen?: () => void }>(
+        '.how-video video',
+      );
+      if (!video) return;
+      const fullscreen = video.requestFullscreen?.();
+      if (fullscreen) {
+        fullscreen
+          .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape'))
+          .catch(() => undefined);
+        video.addEventListener('fullscreenchange', () => {
+          if (!document.fullscreenElement) this.closeHowItWorks();
+        });
+      } else if (video.webkitEnterFullscreen) {
+        // iPhone: its own full-screen player, which turns with the phone.
+        video.webkitEnterFullscreen();
+        video.addEventListener('webkitendfullscreen', () => this.closeHowItWorks(), { once: true });
+      }
+    }
   }
 
   closeHowItWorks(): void {
+    if (!this.howItWorksOpen) return;
+    (screen.orientation as ScreenOrientation & { unlock?: () => void })?.unlock?.();
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
     this.howItWorksOpen = false;
     document.body.style.overflow = '';
     document.removeEventListener('keydown', this.closeOnEscape);
