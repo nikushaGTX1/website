@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { combineLatest } from 'rxjs';
 import { Apartment } from '../models/apartment';
 import { ApartmentService } from '../services/apartment.service';
@@ -24,6 +24,33 @@ export class SavedListings implements OnInit {
   loading = true;
   errorMessage = '';
   sort = 'recent';
+  sortOpen = false;
+  /** Sort choices with their icons (the same list object every time, so taps are never lost). */
+  readonly sortOptions = [
+    { value: 'recent', label: 'Recently saved', icon: 'fa-regular fa-clock' },
+    { value: 'price-low', label: 'Price: low to high', icon: 'fa-solid fa-arrow-up-wide-short' },
+    { value: 'price-high', label: 'Price: high to low', icon: 'fa-solid fa-arrow-down-wide-short' },
+  ];
+
+  get currentSort(): { value: string; label: string; icon: string } {
+    return this.sortOptions.find((option) => option.value === this.sort) ?? this.sortOptions[0];
+  }
+
+  chooseSort(value: string): void {
+    this.sort = value;
+    this.sortOpen = false;
+    this.onSortChange();
+  }
+
+  @HostListener('document:click')
+  closeSortMenu(): void {
+    this.sortOpen = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  closeSortOnEscape(): void {
+    this.sortOpen = false;
+  }
   view: 'grid' | 'list' = 'grid';
 
   constructor(

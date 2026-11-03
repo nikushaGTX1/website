@@ -2053,6 +2053,19 @@ function kaPets(list: string): string {
 }
 
 const GEORGIAN_RULES: GeorgianRule[] = [
+  { pattern: /^(\d+) homes? in this building$/i, translate: (m) => `${m[1]} სახლი ამ შენობაში` },
+  { pattern: /^Show all (\d+) photos$/i, translate: (m) => `ყველა ფოტოს ნახვა (${m[1]})` },
+  { pattern: /^(\d+) homes? on map$/i, translate: (m) => `${m[1]} სახლი რუკაზე` },
+  { pattern: /^(\d+) units?$/i, translate: (m) => `${m[1]} ბინა` },
+  { pattern: /^(\d+) active$/i, translate: (m) => `${m[1]} აქტიური` },
+  {
+    pattern: /^Reach floor (\d+)\. A \$50 coupon is saved to My coupons in your account\.$/i,
+    translate: (m) => `მიაღწიე ${m[1]}-ე სართულს. $50-იანი კუპონი შეინახება „ჩემ კუპონებში“ შენს ანგარიშზე.`,
+  },
+  {
+    pattern: /^Reach floor (\d+) in the Velven game and a \$50 cashback coupon is added here\.$/i,
+    translate: (m) => `მიაღწიე ${m[1]}-ე სართულს Velven-ის თამაშში და $50-იანი ქეშბექის კუპონი აქ დაემატება.`,
+  },
   // Velven Match budget tolerance and multi-pet notes.
   {
     pattern: /^Budget: (.+)\/month above your maximum of (.+)$/i,

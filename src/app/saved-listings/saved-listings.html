@@ -18,15 +18,26 @@
       <div class="toolbar">
         <p><strong>{{ apartments.length }}</strong> {{ apartments.length === 1 ? 'property' : 'properties' }} saved</p>
         <div class="toolbar-actions">
-          <label>Sort by:
-            <select [(ngModel)]="sort" (ngModelChange)="onSortChange()">
-              <option value="recent">Recently saved</option>
-              <option value="price-low">Price: low to high</option>
-              <option value="price-high">Price: high to low</option>
-            </select>
-          </label>
-          <button type="button" [class.active]="view === 'grid'" (click)="view = 'grid'" aria-label="Grid view"><i class="fa-solid fa-grip"></i></button>
-          <button type="button" [class.active]="view === 'list'" (click)="view = 'list'" aria-label="List view"><i class="fa-solid fa-list"></i></button>
+          <div class="sort-menu" [class.open]="sortOpen" (click)="$event.stopPropagation()">
+            <button type="button" class="sort-trigger" aria-haspopup="listbox" [attr.aria-expanded]="sortOpen" (click)="sortOpen = !sortOpen">
+              <i class="fa-solid fa-arrow-down-wide-short sort-lead" aria-hidden="true"></i>
+              <span class="sort-copy"><small>Sort by</small><b>{{ currentSort.label }}</b></span>
+              <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
+            </button>
+            <ul class="sort-options" role="listbox" *ngIf="sortOpen" aria-label="Sort by">
+              <li *ngFor="let option of sortOptions">
+                <button type="button" role="option" [class.selected]="sort === option.value" [attr.aria-selected]="sort === option.value" (click)="chooseSort(option.value)">
+                  <span class="sort-icon" aria-hidden="true"><i [class]="option.icon"></i></span>
+                  <span>{{ option.label }}</span>
+                  <i class="fa-solid fa-check sort-check" *ngIf="sort === option.value" aria-hidden="true"></i>
+                </button>
+              </li>
+            </ul>
+          </div>
+          <div class="view-toggle" role="group" aria-label="Layout">
+            <button type="button" [class.active]="view === 'grid'" [attr.aria-pressed]="view === 'grid'" (click)="view = 'grid'" aria-label="Grid view"><i class="fa-solid fa-grip"></i></button>
+            <button type="button" [class.active]="view === 'list'" [attr.aria-pressed]="view === 'list'" (click)="view = 'list'" aria-label="List view"><i class="fa-solid fa-list"></i></button>
+          </div>
         </div>
       </div>
 

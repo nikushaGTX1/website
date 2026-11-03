@@ -102,7 +102,7 @@
               <p class="cc-price"><strong>{{ currencySymbol(client.profile.currency) }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></p>
               <div class="cc-nationality">
                 <span>Nationality</span>
-                <b><em class="cc-flag" *ngIf="flag(client.nationality) as f" aria-hidden="true">{{ f }}</em>{{ client.nationality || 'Not specified' }}</b>
+                <b><em class="cc-flag" *ngIf="flag(client.nationality) as f" aria-hidden="true">{{ f }}</em><span data-no-translate>{{ countryName(client.nationality) }}</span></b>
               </div>
               <dl class="cc-rows">
                 <div><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Preferred area</span></dt><dd>

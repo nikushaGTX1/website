@@ -983,6 +983,18 @@ function ruPets(list: string): string {
 }
 
 const RUSSIAN_RULES: RussianRule[] = [
+  { pattern: /^(\d+) homes? in this building$/i, translate: (m) => `${m[1]} объект(а) в этом доме` },
+  { pattern: /^(\d+) homes? on map$/i, translate: (m) => `${m[1]} на карте` },
+  { pattern: /^(\d+) units?$/i, translate: (m) => `${m[1]} кв.` },
+  { pattern: /^(\d+) active$/i, translate: (m) => `${m[1]} активных` },
+  {
+    pattern: /^Reach floor (\d+)\. A \$50 coupon is saved to My coupons in your account\.$/i,
+    translate: (m) => `Дойдите до ${m[1]} этажа. Купон на $50 сохранится в разделе «Мои купоны».`,
+  },
+  {
+    pattern: /^Reach floor (\d+) in the Velven game and a \$50 cashback coupon is added here\.$/i,
+    translate: (m) => `Дойдите до ${m[1]} этажа в игре Velven, и здесь появится купон на кэшбэк $50.`,
+  },
   {
     pattern: /^(\d+) min drive$/i,
     translate: (match) => `${match[1]} мин на машине`,

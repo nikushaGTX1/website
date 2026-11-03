@@ -3014,3 +3014,58 @@ svg {
     align-self: start;
   }
 }
+
+/* Homes in one building: a clear header and roomier cards (photo, price, title, specs). */
+.map-group-panel { max-width: 720px; padding: 16px; border: 1px solid #ece8f4; border-radius: 22px; box-shadow: 0 24px 60px rgba(25, 16, 31, 0.3); }
+.map-group-panel > header { justify-content: flex-start; gap: 12px; margin-bottom: 14px; padding: 0; }
+.map-group-icon { display: grid; flex: 0 0 42px; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #451a8f, #7136be); color: #fff; font-size: 17px; }
+.map-group-heading { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.map-group-panel > header .map-group-heading strong { color: #171421; font-size: 16px; line-height: 1.25; }
+.map-group-heading small { overflow: hidden; color: #6f6385; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.map-group-panel > header .map-group-close { display: grid; flex: none; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: #f3f0fb; color: #2a2233; font-size: 15px; transition: background .15s; }
+.map-group-list { gap: 12px; padding: 2px 2px 6px; scrollbar-width: thin; }
+.map-group-card {
+  display: flex; flex-direction: column; width: 218px; border: 1px solid #ece8f4; border-radius: 16px; background: #fff;
+  box-shadow: 0 4px 14px rgba(31, 20, 61, .06); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.map-group-photo { position: relative; display: block; height: 132px; overflow: hidden; background: #f1edf7; }
+.map-group-card .map-group-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
+.map-group-floor {
+  position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 99px;
+  background: rgba(255, 255, 255, .92); color: #2a2233; font-size: 11px; font-weight: 700; box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+}
+.map-group-floor i { color: #451a8f; }
+.map-group-body { display: grid; gap: 4px; padding: 10px 12px 12px; }
+.map-group-card .map-group-price { padding: 0; font-size: 17px; }
+.map-group-title { overflow: hidden; color: #3b3350; font-size: 12.5px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.map-group-card .map-group-meta { gap: 6px; padding: 2px 0 0; }
+.map-group-card .map-group-meta > span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 7px; background: #f6f3fb; color: #4b4458; font-size: 11.5px; font-weight: 600; }
+@media (hover: hover) {
+  .map-group-card:hover { transform: translateY(-2px); border-color: #d6c8ef; box-shadow: 0 10px 24px rgba(31, 20, 61, .12); }
+  .map-group-card:hover .map-group-photo img { transform: scale(1.04); }
+  .map-group-panel > header .map-group-close:hover { background: #e8e0f8; }
+}
+@media (max-width: 760px) {
+  .map-group-panel { padding: 14px 12px; border-radius: 20px; }
+  .map-group-card { width: 190px; }
+  .map-group-photo { height: 112px; }
+}
+
+/* Short windows: the map is never taller than what is visible, so a panel docked to its
+   bottom (homes in one building) is always fully on screen. */
+@media (min-width: 761px) {
+  .map-pane { min-height: 300px; }
+}
+.map-group-panel { max-height: calc(100% - 24px); display: flex; flex-direction: column; overflow: hidden; }
+.map-group-list { flex: 0 1 auto; min-height: 0; }
+@media (max-height: 760px) {
+  .map-group-photo { height: 100px; }
+  .map-group-panel > header { margin-bottom: 10px; }
+}
+/* A true circle: the site-wide button rule (min-height, padding) made it an oval. */
+.map-group-panel > header .map-group-close {
+  width: 36px !important; height: 36px !important; min-width: 36px !important; min-height: 36px !important;
+  max-width: 36px !important; max-height: 36px !important; aspect-ratio: 1 / 1; box-sizing: border-box;
+  padding: 0 !important; border-radius: 50% !important; line-height: 0;
+}
+.map-group-panel > header .map-group-close i { display: block; width: 1em; line-height: 1; text-align: center; }

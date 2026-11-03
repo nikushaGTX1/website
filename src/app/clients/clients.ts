@@ -18,9 +18,40 @@ import { EMPTY_HOME_MATCH_PROFILE } from '../ai-home-match/models/home-match-pro
 import { answerLabel } from '../ai-home-match/services/answer-labels';
 import { enableFlagEmojis } from '../utils/flag-emoji';
 import { PhotoUrlPipe } from '../shared/photo-url.pipe';
+import { TranslationService } from '../services/translation.service';
 
 // Windows has no flag emoji; this loads a small flag font instead.
 enableFlagEmojis();
+
+/** Georgian and Russian names of the countries clients most often come from. */
+const COUNTRY_NAMES: Record<string, [string, string]> = {
+  GE: ['საქართველო', 'Грузия'], RU: ['რუსეთი', 'Россия'], UA: ['უკრაინა', 'Украина'], BY: ['ბელარუსი', 'Беларусь'],
+  AM: ['სომხეთი', 'Армения'], AZ: ['აზერბაიჯანი', 'Азербайджан'], TR: ['თურქეთი', 'Турция'], IL: ['ისრაელი', 'Израиль'],
+  IR: ['ირანი', 'Иран'], KZ: ['ყაზახეთი', 'Казахстан'], UZ: ['უზბეკეთი', 'Узбекистан'], KG: ['ყირგიზეთი', 'Киргизия'],
+  DE: ['გერმანია', 'Германия'], FR: ['საფრანგეთი', 'Франция'], PL: ['პოლონეთი', 'Польша'], GB: ['გაერთიანებული სამეფო', 'Великобритания'],
+  US: ['აშშ', 'США'], IT: ['იტალია', 'Италия'], ES: ['ესპანეთი', 'Испания'], NL: ['ნიდერლანდები', 'Нидерланды'],
+  CN: ['ჩინეთი', 'Китай'], IN: ['ინდოეთი', 'Индия'], JP: ['იაპონია', 'Япония'], KR: ['სამხრეთ კორეა', 'Южная Корея'],
+  AE: ['არაბთა გაერთიანებული საამიროები', 'ОАЭ'], SA: ['საუდის არაბეთი', 'Саудовская Аравия'], EG: ['ეგვიპტე', 'Египет'],
+  LT: ['ლიეტუვა', 'Литва'], LV: ['ლატვია', 'Латвия'], EE: ['ესტონეთი', 'Эстония'], MD: ['მოლდოვა', 'Молдова'],
+  GR: ['საბერძნეთი', 'Греция'], BG: ['ბულგარეთი', 'Болгария'], RO: ['რუმინეთი', 'Румыния'], SE: ['შვედეთი', 'Швеция'],
+  NO: ['ნორვეგია', 'Норвегия'], CZ: ['ჩეხეთი', 'Чехия'], AT: ['ავსტრია', 'Австрия'], CH: ['შვეიცარია', 'Швейцария'],
+  CA: ['კანადა', 'Канада'], AU: ['ავსტრალია', 'Австралия'],
+};
+
+/** English country name -> region code ("Georgia" -> "GE"), built once from the browser's names. */
+let codesByCountry: Map<string, string> | undefined;
+function countryCode(name: string): string {
+  if (!codesByCountry) {
+    codesByCountry = new Map();
+    const names = new Intl.DisplayNames(['en'], { type: 'region' });
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (const a of letters) for (const b of letters) {
+      const country = names.of(a + b);
+      if (country && country !== a + b && !codesByCountry.has(country.toLowerCase())) codesByCountry.set(country.toLowerCase(), a + b);
+    }
+  }
+  return codesByCountry.get(name.trim().toLowerCase()) ?? '';
+}
 
 /** English country name -> flag emoji ("Georgia" -> 🇬🇪), built once from the browser's country names. */
 let flagsByCountry: Map<string, string> | undefined;
@@ -276,6 +307,7 @@ export class Clients implements OnInit, OnDestroy {
   constructor(
     private api: ClientBoardService,
     private cdr: ChangeDetectorRef,
+    private translation: TranslationService,
     private host?: ElementRef<HTMLElement>,
   ) {}
   ngOnInit() {
@@ -391,6 +423,24 @@ export class Clients implements OnInit, OnDestroy {
   get pages() {
     return Math.ceil(this.result.total / this.result.pageSize);
   }
+  /** "Georgia" in the visitor's language (საქართველო, Грузия). */
+  countryName(nationality: string | null | undefined): string {
+    const name = nationality?.trim();
+    const language = this.translation.language$.value;
+    if (!name) return language === 'ka' ? 'არ არის მითითებული' : language === 'ru' ? 'Не указано' : 'Not specified';
+    const code = countryCode(name);
+    if (!code || language === 'en') return name;
+    // Browsers without Georgian region names answer in English, so common ones are built in.
+    const own = COUNTRY_NAMES[code]?.[language === 'ka' ? 0 : 1];
+    if (own) return own;
+    try {
+      const local = new Intl.DisplayNames([language], { type: 'region' }).of(code);
+      return local && local !== name ? local : name;
+    } catch {
+      return name;
+    }
+  }
+
   flag(nationality: string | null | undefined): string {
     return countryFlag(nationality);
   }

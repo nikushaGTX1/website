@@ -1162,6 +1162,24 @@ export class ExploreProperty implements OnInit, OnDestroy {
   closeFilterMenuOnMove(): void {
     if (this.filterMenu && window.innerWidth > 650) this.filterMenu = null;
     this.fitPageSizeToGrid();
+    if (this.mapGroupApartments) this.placeMapGroupPanel();
+  }
+
+  /** Distance of the building panel from the map's bottom edge (see placeMapGroupPanel). */
+  mapGroupBottom = 12;
+
+  /**
+   * The building panel sits at the bottom of the map. When the map runs below the window
+   * (short screens, page not scrolled yet) it is lifted just enough to stay fully visible.
+   */
+  private placeMapGroupPanel(): void {
+    const pane = document.querySelector('.map-pane');
+    if (!pane || window.innerWidth <= 760) {
+      this.mapGroupBottom = 12;
+      return;
+    }
+    const hidden = pane.getBoundingClientRect().bottom - window.innerHeight;
+    this.mapGroupBottom = Math.max(12, Math.round(hidden + 12));
   }
 
   /** About this many homes per page; rounded to whole rows of the card grid. */
@@ -1934,7 +1952,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
   toggleFavorite(event: Event, apartment: Apartment): void {
     event.stopPropagation();
     if (!this.authService.isLoggedIn) {
-      void this.router.navigate(['/login'], { queryParams: { returnUrl: '/ExploreProperty' } });
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
     this.favoriteService.toggleFavorite(apartment.id).subscribe({
@@ -2387,6 +2405,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.mapPreviewApartment = null;
     this.selectedApartment = null;
     this.mapGroupApartments = apartments.length ? apartments : null;
+    this.placeMapGroupPanel();
     this.cdr.detectChanges();
   }
 
