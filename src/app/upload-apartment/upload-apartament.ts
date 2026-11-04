@@ -476,7 +476,9 @@ export class UploadApartment implements OnInit, OnDestroy {
   photoRightsConfirmed = false;
   photoChecks = new Map<File, { state: PhotoCheckState; text?: string | null }>();
   private photoCheckQueue: File[] = [];
-  private photoCheckRunning = false;
+  /** Photo checks running at the same time (the AI service handles three photos at once). */
+  private photoCheckWorkers = 0;
+  private static readonly photoCheckParallel = 3;
   draggedImageIndex: number | null = null;
   imageDropIndex: number | null = null;
 
@@ -1921,10 +1923,15 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   // One photo at a time: the GPU service runs a single worker.
-  private async runPhotoChecks(): Promise<void> {
-    if (this.photoCheckRunning) return;
-    this.photoCheckRunning = true;
-    try {
+  private runPhotoChecks(): void {
+    while (this.photoCheckWorkers < UploadApartment.photoCheckParallel && this.photoCheckQueue.length) {
+      this.photoCheckWorkers++;
+      void this.photoCheckWorker().finally(() => this.photoCheckWorkers--);
+    }
+  }
+
+  private async photoCheckWorker(): Promise<void> {
+    {
       while (this.photoCheckQueue.length) {
         const file = this.photoCheckQueue.shift()!;
         if (!this.selectedImages.includes(file)) {
@@ -1952,8 +1959,6 @@ export class UploadApartment implements OnInit, OnDestroy {
         }
         this.cdr.markForCheck();
       }
-    } finally {
-      this.photoCheckRunning = false;
     }
   }
 
