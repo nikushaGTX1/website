@@ -1,13 +1,27 @@
 <div class="offer-backdrop" (click)="closed.emit()">
+  <svg class="offer-symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="offer-x" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="offer-user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M3 22v-2a9 9 0 0 1 18 0v2"/></symbol>
+    <symbol id="offer-wallet" viewBox="0 0 24 24"><path d="M21 8H4a2 2 0 0 1 0-4h14v4M3 7v12a1 1 0 0 0 1 1h17V8M21 12h-6v4h6"/></symbol>
+    <symbol id="offer-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 12-7 12S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2"/></symbol>
+    <symbol id="offer-people" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3M16 4a3 3 0 0 1 0 6M18 13a6 6 0 0 1 4 6v2"/></symbol>
+    <symbol id="offer-bed" viewBox="0 0 24 24"><path d="M2 20V7m20 13V9H9v8M2 17h20M2 12h7"/><circle cx="6" cy="10" r="2"/></symbol>
+    <symbol id="offer-house" viewBox="0 0 24 24"><path d="m2 10 10-8 10 8M5 8v13h14V8M9 21v-8h6v8"/></symbol>
+    <symbol id="offer-paw" viewBox="0 0 24 24"><ellipse cx="5" cy="8" rx="2" ry="3"/><ellipse cx="11" cy="5" rx="2" ry="3"/><ellipse cx="17" cy="7" rx="2" ry="3"/><ellipse cx="21" cy="12" rx="2" ry="3"/><path d="M7 15c3-6 7-4 10 1 4 7-4 3-6 4-6 3-8-1-4-5Z"/></symbol>
+    <symbol id="offer-spark" viewBox="0 0 24 24"><path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/></symbol>
+    <symbol id="offer-shield" viewBox="0 0 24 24"><path d="m12 2 9 4v6c0 5-9 10-9 10S3 17 3 12V6Z"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="offer-arrow" viewBox="0 0 24 24"><path d="M3 12h18m-7-7 7 7-7 7"/></symbol>
+    <symbol id="offer-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m7 12 3 3 7-7"/></symbol>
+  </defs></svg>
   <div class="offer-dialog" role="dialog" aria-modal="true" aria-labelledby="offer-title" (click)="$event.stopPropagation()">
     <header class="offer-head">
       <div class="offer-brand"><img src="/velven-mark.svg" alt="" aria-hidden="true" /><span data-no-translate>Velven</span></div>
-      <button type="button" class="offer-close" aria-label="Close" (click)="closed.emit()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <button type="button" class="offer-close" aria-label="Close" (click)="closed.emit()"><svg aria-hidden="true"><use href="#offer-x"/></svg></button>
     </header>
 
     @if (submitted) {
       <div class="offer-scroll offer-success" role="status">
-        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+        <svg aria-hidden="true"><use href="#offer-check"/></svg>
         <h2 id="offer-title">Your apartment was sent to the agent</h2>
         <p>The agent will review it before it is offered to anyone.</p>
         <button type="button" class="offer-send" (click)="closed.emit()">Done</button>
@@ -18,19 +32,19 @@
         <p class="offer-sub"><span>You are offering an apartment to client</span> #{{ client.id }}</p>
 
         <section class="offer-client">
-          <span class="offer-avatar" aria-hidden="true"><i class="fa-regular fa-user"></i></span>
+          <span class="offer-avatar" aria-hidden="true"><svg><use href="#offer-user"/></svg></span>
           <div>
             <h3><span>{{ goal === 'Buy' ? 'Buyer' : 'Client' }}</span> #{{ client.id }}</h3>
             <ul>
-              <li><i class="fa-solid fa-wallet" aria-hidden="true"></i><strong>{{ currency }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></li>
-              <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+              <li><svg aria-hidden="true"><use href="#offer-wallet"/></svg><strong>{{ currency }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></li>
+              <li><svg aria-hidden="true"><use href="#offer-pin"/></svg>
                 @for (district of client.profile.districts; track district) {@if ($index) {<span> · </span>}<span>{{ label(district) }}</span>}
                 <span *ngIf="!client.profile.districts.length">{{ client.profile.locationFlexible ? 'Flexible location' : 'Selected map area' }}</span>
               </li>
-              <li><i class="fa-solid fa-user-group" aria-hidden="true"></i>{{ residents }} @if (residents === 1) {<span>person</span>} @else {<span>people</span>}</li>
-              <li *ngIf="client.profile.bedrooms != null"><i class="fa-solid fa-bed" aria-hidden="true"></i>{{ client.profile.bedrooms }} @if (client.profile.bedrooms === 1) {<span>bedroom</span>} @else {<span>bedrooms</span>}</li>
-              <li *ngIf="client.profile.minSize"><i class="fa-solid fa-house" aria-hidden="true"></i>{{ client.profile.minSize }}+ m²</li>
-              <li *ngIf="goal !== 'Buy' && client.profile.hasPet"><i class="fa-solid fa-paw" aria-hidden="true"></i><span>With pets</span></li>
+              <li><svg aria-hidden="true"><use href="#offer-people"/></svg>{{ residents }} @if (residents === 1) {<span>person</span>} @else {<span>people</span>}</li>
+              <li *ngIf="client.profile.bedrooms != null"><svg aria-hidden="true"><use href="#offer-bed"/></svg>{{ client.profile.bedrooms }} @if (client.profile.bedrooms === 1) {<span>bedroom</span>} @else {<span>bedrooms</span>}</li>
+              <li *ngIf="client.profile.minSize"><svg aria-hidden="true"><use href="#offer-house"/></svg>{{ client.profile.minSize }}+ m²</li>
+              <li *ngIf="goal !== 'Buy' && client.profile.hasPet"><svg aria-hidden="true"><use href="#offer-paw"/></svg><span>With pets</span></li>
             </ul>
           </div>
         </section>
@@ -67,19 +81,20 @@
           <span>
             <strong>Offer to other matching clients too</strong>
             <small>After the agent's review, your apartment may also be offered to other clients whose requirements it meets.</small>
+            <span class="offer-benefit"><svg aria-hidden="true"><use href="#offer-spark"/></svg><span>This increases your chances of finding an interested client.</span></span>
           </span>
         </label>
         <p class="offer-hint">If you uncheck this, the apartment is sent only to the selected client.</p>
 
-        <p class="offer-security"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>A Velven agent reviews every offer. Sharing does not reveal clients' private details.</span></p>
+        <p class="offer-security"><svg aria-hidden="true"><use href="#offer-shield"/></svg><span>A Velven agent reviews every offer. Sharing does not reveal clients' private details.</span></p>
         <p class="offer-error" *ngIf="error" role="alert">{{ error }}</p>
       </div>
 
       <footer class="offer-foot">
         <button type="button" class="offer-back" (click)="closed.emit()">Back</button>
         <button type="button" class="offer-send" [disabled]="!canSend || submitting" [attr.aria-busy]="submitting" (click)="send()">
-          @if (submitting) {<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i><span>Sending…</span>}
-          @else {<span>Send to agent</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>}
+          @if (submitting) {<span class="offer-spinner" aria-hidden="true"></span><span>Sending…</span>}
+          @else {<span>Send to agent</span> <svg aria-hidden="true"><use href="#offer-arrow"/></svg>}
         </button>
       </footer>
     }

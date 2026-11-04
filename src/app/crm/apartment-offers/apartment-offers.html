@@ -8,7 +8,7 @@
       <button type="button" role="tab" [class.active]="status === tab.value" [attr.aria-selected]="status === tab.value" (click)="setStatus(tab.value)">{{ tab.label }}</button>
     }
   </div>
-  <p class="notice" *ngIf="notice" role="status">{{ notice }}</p>
+  <p class="notice" *ngIf="notice" role="status"><span>{{ notice }}</span><span *ngIf="matchedCount !== null" data-no-translate> {{ matchedCount }}</span></p>
   <p class="failure" *ngIf="actionError" role="alert">{{ actionError }}</p>
 
   @if (loading) {

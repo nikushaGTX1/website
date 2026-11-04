@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -18,7 +18,7 @@ import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
   templateUrl: './offer-apartment-modal.html',
   styleUrl: './offer-apartment-modal.css',
 })
-export class OfferApartmentModal implements OnInit, OnDestroy {
+export class OfferApartmentModal implements OnInit, AfterViewInit, OnDestroy {
   @Input({ required: true }) client!: BoardClient;
   @Input() goal: 'Rent' | 'Buy' = 'Rent';
   /** Example cards are not real clients: the modal shows them but cannot send. */
@@ -36,6 +36,7 @@ export class OfferApartmentModal implements OnInit, OnDestroy {
   submitted = false;
   error = '';
   private requests = new Subscription();
+  private previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
   constructor(
     private apartments: ApartmentService,
@@ -54,9 +55,14 @@ export class OfferApartmentModal implements OnInit, OnDestroy {
     else this.loading = false;
   }
 
+  ngAfterViewInit(): void {
+    this.host.nativeElement.querySelector<HTMLButtonElement>('.offer-close')?.focus();
+  }
+
   ngOnDestroy(): void {
     unlockPageScroll();
     this.requests.unsubscribe();
+    this.previousFocus?.focus();
   }
 
   loadListings(): void {
@@ -86,7 +92,7 @@ export class OfferApartmentModal implements OnInit, OnDestroy {
   }
 
   get canSend(): boolean {
-    return !this.example && this.loggedIn && !this.loading && !this.loadFailed && this.listings.length > 0;
+    return !this.submitted && !this.example && this.loggedIn && !this.loading && !this.loadFailed && this.listings.length > 0;
   }
 
   get currency(): string {
@@ -134,5 +140,23 @@ export class OfferApartmentModal implements OnInit, OnDestroy {
     if (escapeAlreadyHandled(event)) return;
     claimEscape(event);
     this.closed.emit();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onTab(event: Event): void {
+    const keyboard = event as KeyboardEvent;
+    if (keyboard.key !== 'Tab') return;
+    const controls = Array.from(this.host.nativeElement.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), a[href], input:not(:disabled), [tabindex="0"]',
+    )).filter((element) => element.getClientRects().length > 0);
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (keyboard.shiftKey && (document.activeElement === first || !this.host.nativeElement.contains(document.activeElement))) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!keyboard.shiftKey && (document.activeElement === last || !this.host.nativeElement.contains(document.activeElement))) {
+      event.preventDefault();
+      first?.focus();
+    }
   }
 }

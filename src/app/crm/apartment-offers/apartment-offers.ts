@@ -1,4 +1,6 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApartmentOfferMatchItem, ApartmentOfferReview, ApartmentOfferService, OfferStatus } from '../../services/apartment-offer.service';
@@ -27,21 +29,26 @@ export class ApartmentOffers implements OnInit {
   actionError = '';
   notice = '';
   busyId: number | null = null;
+  matchedCount: number | null = null;
+  private reviewRequest?: Subscription;
 
   constructor(
     private offers: ApartmentOfferService,
     private interests: ListingInterestService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
+    private destroyRef: DestroyRef,
   ) {}
 
   ngOnInit(): void {
     const offer = Number(this.route.snapshot.queryParamMap.get('offer'));
     this.focusId = Number.isInteger(offer) && offer > 0 ? offer : null;
     this.load();
-    this.offers.matches().subscribe({
+    this.offers.matches().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (matches) => {
         this.matches = matches;
+        for (const match of matches)
+          this.interests.markRead(match.id, 'apartment-offer-match').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
         this.cdr.markForCheck();
       },
       error: () => undefined,
@@ -59,13 +66,14 @@ export class ApartmentOffers implements OnInit {
     this.loading = true;
     this.error = '';
     this.actionError = '';
-    this.offers.reviews(this.status).subscribe({
+    this.reviewRequest?.unsubscribe();
+    this.reviewRequest = this.offers.reviews(this.status).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (items) => {
         this.items = items;
         this.loading = false;
         this.cdr.markForCheck();
         for (const item of items.filter((row) => row.isNew && row.status === 'pending'))
-          this.interests.markRead(item.id, 'apartment-offer').subscribe({ error: () => undefined });
+          this.interests.markRead(item.id, 'apartment-offer').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
       },
       error: () => {
         this.error = 'Offers could not be loaded.';
@@ -79,12 +87,13 @@ export class ApartmentOffers implements OnInit {
     if (this.busyId !== null) return;
     this.busyId = item.id;
     this.actionError = '';
-    this.offers[action](item.id).subscribe({
+    this.offers[action](item.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.busyId = null;
         this.items = this.items.filter((row) => row.id !== item.id);
+        this.matchedCount = action === 'approve' && item.shareWithOtherClients ? result.matchedClients : null;
         this.notice = action === 'reject' ? 'Offer rejected.' : item.shareWithOtherClients
-          ? `Offer approved. Compatible other clients: ${result.matchedClients}.`
+          ? 'Offer approved. Compatible other clients:'
           : 'Offer approved for the selected client only.';
         this.cdr.markForCheck();
       },

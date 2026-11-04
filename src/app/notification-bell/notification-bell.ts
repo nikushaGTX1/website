@@ -202,9 +202,15 @@ export class NotificationBell implements OnInit, OnDestroy {
     const apartment = item.apartment;
     if (item.type === 'apartment-offer') {
       const size = apartment?.sizeSquareMeters ? `, ${apartment.sizeSquareMeters} m²` : '';
+      if (this.translation.language$.value === 'ka')
+        return `ბინა შესთავაზეს კლიენტს #${item.clientId}: ${apartment?.district || 'თბილისი'}, ${apartment?.bedrooms ?? 0} საძინებელი${size}. სხვა კლიენტებთან გაზიარება: ${item.shareWithOtherClients ? 'ჩართულია' : 'გამორთულია'}.`;
+      if (this.translation.language$.value === 'ru')
+        return `Квартира предложена клиенту #${item.clientId}: ${apartment?.district || 'Тбилиси'}, ${apartment?.bedrooms ?? 0} спален${size}. Показ другим клиентам: ${item.shareWithOtherClients ? 'включён' : 'выключен'}.`;
       return `New apartment offered to client #${item.clientId}: ${apartment?.district || 'Tbilisi'}, ${apartment?.bedrooms ?? 0} bedrooms${size}. Sharing with other clients: ${item.shareWithOtherClients ? 'on' : 'off'}.`;
     }
     if (item.type === 'apartment-offer-match') {
+      if (this.translation.language$.value === 'ka') return `დამტკიცებული ბინა (${apartment?.district || 'თბილისი'}) შეესაბამება თქვენს კლიენტს #${item.clientId}.`;
+      if (this.translation.language$.value === 'ru') return `Одобренная квартира (${apartment?.district || 'Тбилиси'}) подходит вашему клиенту #${item.clientId}.`;
       return `An approved apartment in ${apartment?.district || 'Tbilisi'} fits your client #${item.clientId}.`;
     }
     if (item.type === 'interest-review') {

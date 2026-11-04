@@ -63,6 +63,10 @@
               <strong>{{
                 item.type === 'crm-status'
                   ? 'Lead status changed'
+                  : item.type === 'apartment-offer'
+                    ? 'Apartment offer to review'
+                    : item.type === 'apartment-offer-match'
+                      ? 'Apartment matches your client'
                   : item.type === 'interest-review'
                     ? 'Client match to review'
                     : item.type === 'interest'
@@ -83,6 +87,8 @@
                 >{{
                   item.type === 'crm-status'
                     ? 'View lead'
+                    : item.type === 'apartment-offer' || item.type === 'apartment-offer-match'
+                      ? 'Review apartment'
                     : item.type === 'interest-review'
                       ? 'Review'
                       : item.type === 'interest'

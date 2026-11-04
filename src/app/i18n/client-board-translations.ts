@@ -190,6 +190,7 @@ export const CLIENT_BOARD_COPY: readonly (readonly [string, string, string])[] =
   ['You have no listings yet. Upload your apartment first, then come back to offer it.', 'ჯერ განცხადება არ გაქვთ. ჯერ ატვირთეთ ბინა და შემდეგ შესთავაზეთ.', 'У вас пока нет объявлений. Сначала загрузите квартиру, затем предложите её.'],
   ['Upload your apartment', 'ატვირთეთ თქვენი ბინა', 'Загрузите свою квартиру'],
   ['Offer to other matching clients too', 'შესთავაზეთ სხვა შესაბამის კლიენტებსაც', 'Предложить и другим подходящим клиентам'],
+  ['This increases your chances of finding an interested client.', 'ეს ზრდის დაინტერესებული კლიენტის პოვნის შანსს.', 'Это повышает шансы найти заинтересованного клиента.'],
   ["After the agent's review, your apartment may also be offered to other clients whose requirements it meets.", 'აგენტის შემოწმების შემდეგ თქვენი ბინა შესაძლოა შესთავაზონ სხვა კლიენტებსაც, რომელთა მოთხოვნებსაც ის შეესაბამება.', 'После проверки агентом вашу квартиру могут предложить и другим клиентам, требованиям которых она соответствует.'],
   ['If you uncheck this, the apartment is sent only to the selected client.', 'მონიშვნის მოხსნის შემთხვევაში ბინა მხოლოდ არჩეულ კლიენტს გაეგზავნება.', 'Если снять отметку, квартира будет отправлена только выбранному клиенту.'],
   ["A Velven agent reviews every offer. Sharing does not reveal clients' private details.", 'შეთავაზებას Velven-ის აგენტი ამოწმებს. გაზიარება კლიენტების პირად მონაცემებს არ ამხელს.', 'Каждое предложение проверяет агент Velven. Клиентские личные данные при этом не раскрываются.'],
@@ -211,6 +212,20 @@ export const CLIENT_BOARD_COPY: readonly (readonly [string, string, string])[] =
   ['Compatible with your clients', 'შეესაბამება თქვენს კლიენტებს', 'Подходит вашим клиентам'],
   ['View apartment', 'ბინის ნახვა', 'Посмотреть квартиру'],
   ['Back to review', 'მიმოხილვაზე დაბრუნება', 'Вернуться к проверке'],
+  ['To review', 'შესამოწმებელი', 'На проверку'],
+  ['Offer status', 'შეთავაზების სტატუსი', 'Статус предложения'],
+  ['Loading offers', 'შეთავაზებები იტვირთება', 'Загрузка предложений'],
+  ['No offers here.', 'შეთავაზებები ჯერ არ არის.', 'Предложений пока нет.'],
+  ['Offers could not be loaded.', 'შეთავაზებები ვერ ჩაიტვირთა.', 'Не удалось загрузить предложения.'],
+  ['Offer rejected.', 'შეთავაზება უარყოფილია.', 'Предложение отклонено.'],
+  ['Offer approved. Compatible other clients:', 'შეთავაზება დამტკიცებულია. სხვა შესაბამისი კლიენტები:', 'Предложение одобрено. Других подходящих клиентов:'],
+  ['Offer approved for the selected client only.', 'შეთავაზება დამტკიცებულია მხოლოდ არჩეული კლიენტისთვის.', 'Предложение одобрено только для выбранного клиента.'],
+  ['This offer was already reviewed.', 'ეს შეთავაზება უკვე შემოწმებულია.', 'Это предложение уже проверено.'],
+  ['The review could not be saved.', 'გადაწყვეტილება ვერ შეინახა.', 'Не удалось сохранить решение.'],
+  ['Submitted by', 'გამომგზავნი', 'Отправитель'],
+  ['Apartment offer to review', 'ბინის შეთავაზება შესამოწმებლად', 'Предложение квартиры на проверку'],
+  ['Apartment matches your client', 'ბინა შეესაბამება თქვენს კლიენტს', 'Квартира подходит вашему клиенту'],
+  ['Review apartment', 'ბინის შემოწმება', 'Проверить квартиру'],
 ];
 
 export function clientBoardTranslation(value: string, language: 'ka' | 'ru'): string | undefined {

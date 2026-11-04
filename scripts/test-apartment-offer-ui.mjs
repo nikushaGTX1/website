@@ -55,6 +55,9 @@ async function open({ width, height, language = 'ka', role = 'Client', mine = li
   await page.goto(`${base}/clients`);
   await page.locator('.cc-offer').first().click();
   await page.locator('.offer-dialog').waitFor();
+  assert.equal(await page.locator('.offer-close').evaluate((el) => el === document.activeElement), true, 'focus enters dialog'); checks++;
+  await page.keyboard.press('Shift+Tab');
+  assert.equal(await page.evaluate(() => !!document.activeElement.closest('.offer-dialog')), true, 'keyboard focus stays in modal'); checks++;
   return { page, posts, context };
 }
 
