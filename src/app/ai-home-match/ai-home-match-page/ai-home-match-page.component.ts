@@ -352,6 +352,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     );
     const query = route.snapshot.queryParamMap;
     this.intakeToken = query.get('intake');
+    // A link an agent sent: the client came to answer the questions, so open them directly
+    // instead of the Velven Match intro page.
+    if (this.intakeToken) {
+      this.quizStarted = true;
+      setTimeout(() => document.querySelector('.wizard-shell')?.scrollIntoView({ block: 'start' }), 0);
+    }
     // "Find My Perfect Home" in Velven Discover starts a new search from the first question.
     if (query.get('new')) service.clearSession();
     // "Edit preferences" in Velven Discover: the saved answers are already in this tab.

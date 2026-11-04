@@ -1437,6 +1437,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       Number(this.form.rooms || 0),
       Number(this.form.bedrooms || 0),
       Number(this.form.floor || 0),
+      this.form.myHomeId.trim(),
     ]);
   }
 
@@ -1556,11 +1557,13 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.duplicateMatch = null;
       return;
     }
+    // A MyHome ID alone is enough to spot the same listing; otherwise street and area are needed.
+    const hasMyHomeId = /^[1-9][0-9]{4,7}$/.test(this.form.myHomeId.trim());
     if (
-      !this.selectedDistrictValue ||
-      !this.selectedStreetId ||
-      !this.form.area ||
-      !this.form.totalPrice
+      !hasMyHomeId &&
+      (!this.selectedDistrictValue ||
+        !(this.selectedStreetId || this.selectedStreetValue || this.form.street) ||
+        !this.form.area)
     ) {
       this.duplicateMatch = null;
       return;
@@ -1609,11 +1612,35 @@ export class UploadApartment implements OnInit, OnDestroy {
     const bedrooms = Number(this.form.bedrooms || 0);
     const floor = Number(this.form.floor || 0);
 
+    // The same MyHome listing is a duplicate whatever else differs.
+    const myHomeId = this.form.myHomeId.trim();
+    if (myHomeId) {
+      const sameListing = apartments.find((apartment) => String(apartment.myHomeId || '').trim() === myHomeId);
+      if (sameListing) return sameListing;
+    }
+
     let best: import('../models/apartment').Apartment | null = null;
     let bestScore = 0;
 
     for (const apartment of apartments) {
       let score = 0;
+      // Same street, area within 1 m², same rooms and floor: the same home even if the price
+      // changed (the server refuses these too).
+      const sameStreetAgain =
+        streetId != null && apartment.streetId != null
+          ? apartment.streetId === streetId
+          : !!streetName && this.normalizeText(apartment.street) === streetName;
+      const apartmentBuildingAgain = this.normalizeText(apartment.buildingNumber);
+      if (
+        sameStreetAgain &&
+        (!district || this.normalizeText(apartment.district) === district) &&
+        (!building || !apartmentBuildingAgain || building === apartmentBuildingAgain) &&
+        area && Math.abs(Number(apartment.sizeSquareMeters || 0) - area) <= 1 &&
+        rooms && Number(apartment.rooms || 0) === rooms &&
+        Number(apartment.floor ?? -1) === floor
+      ) {
+        return apartment;
+      }
       // Street must match by id when available, otherwise by normalized name.
       const sameStreet =
         streetId != null && apartment.streetId != null
