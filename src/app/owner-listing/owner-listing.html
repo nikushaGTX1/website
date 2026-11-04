@@ -159,7 +159,7 @@
     </section>
 
     <section class="card" *ngIf="general || info.dealType === 'Rent'">
-      <div class="card-head"><span class="num">·</span><div><h2>{{ general ? 'ხელმისაწვდომობა და პირობები' : 'Rental details' }}</h2><p *ngIf="!general">Optional</p></div></div>
+      <div class="card-head"><span class="num" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18m-13 5h2m4 0h2"/></svg></span><div><h2>{{ general ? 'ხელმისაწვდომობა და პირობები' : 'Rental details' }}</h2><p *ngIf="!general">Optional</p></div></div>
       <div class="grid two">
         <div class="field"><span>Available from</span><app-date-picker name="availableFrom" placeholder="Choose a date" [(ngModel)]="data['availableFrom']"></app-date-picker></div>
         <div class="field"><span>Minimum rental period</span><div class="segmented"><button type="button" *ngFor="let p of rentalPeriods" [class.active]="data['minimumRentalPeriod'] === p" (click)="data['minimumRentalPeriod'] = data['minimumRentalPeriod'] === p ? '' : p"><i class="fa-regular fa-calendar"></i> {{ p === 'Minimum 6 months' ? '6 months' : '12 months' }}</button></div></div>
