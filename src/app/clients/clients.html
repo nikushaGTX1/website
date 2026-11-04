@@ -4,6 +4,7 @@
       <p class="eyebrow">For property owners</p>
       <h1>@if (goal === 'Buy') {<span>Meet your next buyer.</span>} @else {<span>Meet your next tenant.</span>}</h1>
       <p class="subtitle">Clear requirements. Real budgets. Supported by Velven.</p>
+      <a class="general-submit" routerLink="/submit-apartment">შესთავაზე ბინა <span aria-hidden="true">→</span></a>
       <div class="trust">
         <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Checked by Velven agents</span
         ><span
@@ -61,7 +62,7 @@
   <section class="active-section" aria-live="polite" [attr.aria-busy]="loading">
     <div class="section-heading">
       <h2>Active clients</h2>
-      <span *ngIf="!loading && !error && !showingExamples">{{ result.total }}</span>
+      <span *ngIf="!loading && !error">{{ result.total }}</span>
     </div>
     @if (loading) {
       <div class="client-grid skeleton-grid" aria-label="Loading clients">
@@ -93,7 +94,7 @@
             <div class="cc-body">
               <header class="cc-top">
                 <h3><span>{{ goal === 'Buy' ? 'Buyer' : 'Client' }}</span> #{{ client.id }}</h3>
-                @if (showingExamples) {<span class="cc-example">Example profile</span>} @else {<span class="cc-status"><i aria-hidden="true"></i> Searching</span>}
+                <span class="cc-status"><i aria-hidden="true"></i> Searching</span>
               </header>
               <div class="cc-badges">
                 <span class="cc-kyc" *ngIf="client.identityVerified"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> ID verified</span>
@@ -131,12 +132,10 @@
               </div>
               <a class="cc-contact" *ngIf="client.agent.phone; else noPhone" [href]="'tel:' + client.agent.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a>
               <ng-template #noPhone><a class="cc-contact" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a></ng-template>
-              <button type="button" class="cc-offer" (click)="offerClient = client"><span>Offer your apartment</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
             </div>
           </article>
         }
       </div>
-      <p class="examples-note" *ngIf="showingExamples">Example profiles. Real clients appear here once they complete Velven Match.</p>
       <nav class="pagination" aria-label="Client pages" *ngIf="pages > 1">
         <button (click)="search(result.page - 1)" [disabled]="result.page <= 1">Previous</button
         ><span>{{ result.page }} / {{ pages }}</span
@@ -144,18 +143,6 @@
       </nav>
     }
   </section>
-  <section class="bottom-banner">
-    <div>
-      <h2>Does your apartment match their requirements?</h2>
-      <p>Our agent will check compatibility and contact you.</p>
-    </div>
-    <a routerLink="/upload-apartment">Offer your apartment <span aria-hidden="true">→</span></a>
-  </section>
-
-  @if (offerClient) {
-    <app-offer-apartment-modal [client]="offerClient" [goal]="goal" [example]="showingExamples" [uploadParams]="suggest(offerClient)" (closed)="offerClient = null"></app-offer-apartment-modal>
-  }
-
   @if (openFilter && filterSheet && openFilterDef; as sheet) {
     <div class="sheet-backdrop" #sheetPortal (click)="openFilter = null">
       <div class="filter-sheet" role="dialog" aria-modal="true" [attr.aria-label]="sheet.label" (click)="$event.stopPropagation()">

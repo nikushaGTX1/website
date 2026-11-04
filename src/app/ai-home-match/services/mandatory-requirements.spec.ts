@@ -184,3 +184,17 @@ test('"Immediately" accepts a home that is free within the next week, not later'
   assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: inDays(6) }), p, rates).status, 'exact');
   assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: inDays(20) }), p, rates).status, 'alternative');
 });
+
+test('flexible dates accept stated availability while area and occupant limits stay mandatory', () => {
+  assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: '2030-01-01' }), profile({ moveInTiming: 'Flexible' })).status, 'exact');
+  assert.equal(evaluateMandatoryRequirements(apartment({ sizeSquareMeters: 60 }), profile({ minSize: 80 })).status, 'alternative');
+  assert.equal(evaluateMandatoryRequirements(apartment({ maxOccupants: 1 }), profile({ adults: 2 })).status, 'alternative');
+  assert.equal(evaluateMandatoryRequirements(apartment({ city: 'Batumi' }), profile()).status, 'alternative');
+});
+
+test('buyer condition uses the existing listing tag and excludes unknown conditions', () => {
+  const buyer = profile({ propertyGoal: 'Buy', propertyConditions: ['WhiteFrame'] });
+  assert.equal(evaluateMandatoryRequirements(apartment({ description: 'Deal: Sale | Condition: White frame' }), buyer).status, 'exact');
+  assert.equal(evaluateMandatoryRequirements(apartment({ description: 'Deal: Sale | Condition: Black frame' }), buyer).status, 'alternative');
+  assert.equal(evaluateMandatoryRequirements(apartment({ description: 'Deal: Sale' }), buyer).status, 'alternative');
+});

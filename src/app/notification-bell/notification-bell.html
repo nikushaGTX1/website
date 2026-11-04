@@ -63,9 +63,9 @@
               <strong>{{
                 item.type === 'crm-status'
                   ? 'Lead status changed'
-                  : item.type === 'apartment-offer'
-                    ? 'Apartment offer to review'
-                    : item.type === 'apartment-offer-match'
+                  : item.type === 'owner-submission'
+                    ? 'ახალი ბინა შესამოწმებლად'
+                    : item.type === 'submission-match'
                       ? 'Apartment matches your client'
                   : item.type === 'interest-review'
                     ? 'Client match to review'
@@ -87,7 +87,7 @@
                 >{{
                   item.type === 'crm-status'
                     ? 'View lead'
-                    : item.type === 'apartment-offer' || item.type === 'apartment-offer-match'
+                    : item.type === 'owner-submission' || item.type === 'submission-match'
                       ? 'Review apartment'
                     : item.type === 'interest-review'
                       ? 'Review'

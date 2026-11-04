@@ -65,10 +65,9 @@ const routes: Routes = [
     canActivate: [authGuard, crmGuard],
   },
   {
-    // Agents approve or reject apartments users offered to a client.
-    path: 'crm/apartment-offers',
-    loadComponent: () => import('./crm/apartment-offers/apartment-offers').then((m) => m.ApartmentOffers),
-    title: 'Apartment offers | Velven',
+    path: 'crm/submission-matches',
+    loadComponent: () => import('./crm/submission-matches/submission-matches').then((m) => m.SubmissionMatches),
+    title: 'შესაბამისი ბინები | Velven',
     canActivate: [authGuard, crmGuard],
   },
   {
@@ -422,6 +421,16 @@ const routes: Routes = [
     canActivate: [authGuard, agentGuard, workspaceRedirect],
   },
 
+  {
+    path: 'submit-apartment',
+    loadComponent: () => import('./owner-listing/owner-listing').then((m) => m.OwnerListing),
+    title: 'შესთავაზე ბინა | Velven',
+  },
+  {
+    path: 'crm/owner-submissions/:id/edit',
+    loadComponent: () => import('./owner-listing/owner-listing').then((m) => m.OwnerListing),
+    canActivate: [authGuard, crmGuard],
+  },
   {
     path: 'owner/:token',
     loadComponent: () =>

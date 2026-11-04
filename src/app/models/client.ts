@@ -43,9 +43,8 @@ export interface ClientNotification {
   actorName?: string | null;
   fromStatus?: string | null;
   toStatus?: string | null;
-  offerId?: number | null;
+  submissionId?: number | null;
   clientId?: number | null;
-  shareWithOtherClients?: boolean;
   reviewLink?: string | null;
   createdAt: string;
   readAt: string | null;

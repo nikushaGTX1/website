@@ -10,7 +10,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ListingInterestService } from '../../services/listing-interest.service';
 import {
   OwnerListingService,
   OwnerSubmission,
@@ -60,8 +61,11 @@ export class OwnerSubmissions implements OnInit {
     private crm: CrmService,
     private router: Router,
     private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private interests: ListingInterestService,
   ) {}
   ngOnInit(): void {
+    this.selectedId = Number(this.route.snapshot.queryParamMap.get('submission')) || null;
     this.load();
     this.crm
       .getLeads()
@@ -104,11 +108,12 @@ export class OwnerSubmissions implements OnInit {
     return this.submissions.find((item) => item.id === this.selectedId);
   }
   isReady(item: OwnerSubmission): boolean {
+    if (item.status === 'approved') return true;
     return this.checks.every((check) => item.verification?.[check.key]);
   }
   matchesFilter(item: OwnerSubmission, filter: ReviewFilter): boolean {
-    if (filter === 'history') return ['published', 'rejected'].includes(item.status);
-    if (['published', 'rejected'].includes(item.status)) return false;
+    if (filter === 'history') return ['published', 'sent', 'rejected'].includes(item.status);
+    if (['published', 'sent', 'rejected'].includes(item.status)) return false;
     if (filter === 'ready') return this.isReady(item);
     if (filter === 'progress') return item.status !== 'new' && !this.isReady(item);
     return item.status === 'new' && !this.isReady(item);
@@ -154,12 +159,13 @@ export class OwnerSubmissions implements OnInit {
     this.photoIndex = 0;
     this.dirty = false;
     this.photoDialog?.nativeElement.close();
+    if (item?.isGeneralSubmission) this.interests.markRead(item.id, 'owner-submission').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
   }
   get completedChecks(): number {
     return this.checks.filter((check) => this.verification[check.key]).length;
   }
   get archived(): boolean {
-    return !!this.selected && ['published', 'rejected'].includes(this.selected.status);
+    return !!this.selected && ['published', 'sent', 'rejected'].includes(this.selected.status);
   }
   save(status?: OwnerSubmissionStatus): void {
     const item = this.selected;
@@ -202,12 +208,18 @@ export class OwnerSubmissions implements OnInit {
   }
   open(item: OwnerSubmission): void {
     if (!this.discardChanges()) return;
+    if (item.isGeneralSubmission) {
+      if (item.status === 'sent') this.router.navigate(['/apartments', item.publishedApartmentId]);
+      else this.router.navigate(['/crm/owner-submissions', item.id, 'edit']);
+      return;
+    }
     if (item.status === 'published' && item.publishedApartmentId)
       this.router.navigate(['/apartments', item.publishedApartmentId]);
     else this.router.navigate(['/upload-apartment'], { queryParams: { owner: item.id } });
   }
   title(item: OwnerSubmission): string {
     const d = item.data || {};
+    if (item.isGeneralSubmission) return `${item.dealType === 'Rent' ? 'ქირავდება' : 'იყიდება'} ${d['bedrooms'] ?? 0}-საძინებლიანი ${d['realEstateType'] === 'Apartment' ? 'ბინა' : 'სახლი'} — ${d['location'] || ''}`;
     return (
       d['title'] ||
       [
@@ -228,7 +240,7 @@ export class OwnerSubmissions implements OnInit {
       : ['EUR', '\u20ac'].includes(d['currency'])
         ? '\u20ac'
         : String.fromCharCode(36);
-    return symbol + value.toLocaleString('en-US') + (item.dealType === 'Rent' ? ' / month' : '');
+    return symbol + value.toLocaleString('en-US') + (item.dealType === 'Rent' ? item.isGeneralSubmission ? ' / თვეში' : ' / month' : '');
   }
   address(item: OwnerSubmission): string {
     const d = item.data || {};
@@ -239,9 +251,33 @@ export class OwnerSubmissions implements OnInit {
     );
   }
   statusLabel(item: OwnerSubmission): string {
+    if (item.status === 'approved') return 'დამტკიცებულია';
+    if (item.status === 'sent') return 'გაგზავნილია';
     if (['published', 'rejected'].includes(item.status))
       return item.status === 'published' ? 'Published' : 'Declined';
     return this.isReady(item) ? 'Ready' : item.status === 'new' ? 'Needs review' : 'In progress';
+  }
+  act(action: 'approve' | 'reject' | 'send'): void {
+    const item = this.selected;
+    if (!item || this.saving || this.dirty) return;
+    this.saving = true; this.error = ''; this.success = '';
+    this.service.review(item.id, action).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: result => {
+        this.service.getSubmission(item.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+          next: updated => {
+            this.submissions = this.submissions.map(row => row.id === updated.id ? updated : row);
+            this.filter = updated.status === 'sent' || updated.status === 'rejected' ? 'history' : 'ready';
+            this.saving = false;
+            this.success = action === 'send' ? result.matchedClients ? `ბინა გაეგზავნა ${result.matchedClients} შესაბამის კლიენტს.` : 'შესაბამისი კლიენტები ამ ეტაპზე არ მოიძებნა. გაგზავნა შენახულია ისტორიაში.'
+              : action === 'approve' ? 'ბინა დამტკიცებულია. გასავრცელებლად დააჭირეთ SEND-ს.' : 'განაცხადი უარყოფილია.';
+            this.cdr.markForCheck();
+          }, error: () => { this.saving = false; this.error = 'მონაცემები ვერ განახლდა. განაახლეთ სია.'; this.cdr.markForCheck(); },
+        });
+      }, error: e => { this.saving = false; this.error = e.error?.message || 'მოქმედება ვერ შესრულდა.'; this.cdr.markForCheck(); },
+    });
+  }
+  eventLabel(action: string): string {
+    return ({ submitted: 'განაცხადი მიღებულია', edited: 'მონაცემები შესწორებულია', contacted: 'მესაკუთრესთან დაკავშირება', visited: 'შემოწმება დასრულებულია', reviewed: 'შემოწმება შენახულია', approved: 'დამტკიცებულია', rejected: 'უარყოფილია', sent: 'გავრცელებულია' } as Record<string, string>)[action] || action;
   }
   initials(name: string): string {
     return name

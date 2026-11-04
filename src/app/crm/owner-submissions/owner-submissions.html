@@ -32,7 +32,7 @@
       [attr.aria-pressed]="filter === 'review'"
       (click)="setFilter('review')"
     >
-      Needs review <b>{{ count('review') }}</b>
+      <span>Needs review</span> <b>{{ count('review') }}</b>
     </button>
     <button
       type="button"
@@ -109,9 +109,9 @@
       </div>
     </section>
     <ng-container *ngIf="selected as item; else chooseSubmission">
-      <section class="property-panel" aria-label="Property review">
+      <section class="property-panel" [class.general-submission]="item.isGeneralSubmission" aria-label="Property review">
         <div class="submission-meta">
-          <span>SUBMISSION #OWN-{{ item.id.toString().padStart(4, '0') }}</span
+          <span>{{ item.isGeneralSubmission ? 'განაცხადი' : 'SUBMISSION' }} #OWN-{{ item.id.toString().padStart(4, '0') }}</span
           ><span class="status" [attr.data-status]="statusLabel(item)">{{
             statusLabel(item)
           }}</span>
@@ -161,8 +161,7 @@
             ><i class="fa-solid fa-expand" aria-hidden="true"></i
             >{{ item.data['area'] ?? '—' }} m²</span
           ><span
-            ><i class="fa-regular fa-building" aria-hidden="true"></i>Floor
-            {{ item.data['floor'] ?? '—' }} / {{ item.data['totalFloors'] ?? '—' }}</span
+            ><i class="fa-regular fa-building" aria-hidden="true"></i><span class="fact-value">{{ item.isGeneralSubmission ? 'სართული' : 'Floor' }} {{ item.data['floor'] ?? '—' }} / {{ item.data['totalFloors'] ?? '—' }}</span></span
           >
         </div>
         <div class="property-terms">
@@ -170,7 +169,7 @@
             ><i class="fa-regular fa-calendar" aria-hidden="true"></i
             >{{
               item.data['availableFrom']
-                ? 'Available ' + (item.data['availableFrom'] | date: 'd MMM')
+                ? (item.isGeneralSubmission ? 'ხელმისაწვდომია ' : 'Available ') + (item.data['availableFrom'] | date: 'dd.MM.yyyy')
                 : 'Availability to confirm'
             }}</span
           ><span
@@ -197,7 +196,7 @@
           <span class="owner-avatar">{{ initials(item.ownerName) }}</span>
           <div>
             <strong>{{ item.ownerName }}</strong
-            ><span> · Property owner</span><small>{{ item.ownerPhone }}</small>
+            ><span>{{ item.isGeneralSubmission ? ' · მესაკუთრე' : ' · Property owner' }}</span><small>{{ item.ownerPhone }}</small>
           </div>
           <a class="outline" *ngIf="item.ownerPhone" [href]="phoneHref(item.ownerPhone)"
             ><i class="fa-solid fa-phone" aria-hidden="true"></i>Call owner</a
@@ -206,8 +205,7 @@
         <div class="source-card">
           <strong>Source information</strong
           ><span
-            ><i class="fa-regular fa-file-lines" aria-hidden="true"></i>Submitted through an owner
-            link</span
+            ><i class="fa-regular fa-file-lines" aria-hidden="true"></i><span>{{ item.isGeneralSubmission ? 'მიღებულია საერთო განაცხადის ფორმიდან' : 'Submitted through an owner link' }}</span></span
           ><span
             ><i class="fa-regular fa-clock" aria-hidden="true"></i
             >{{ item.createdAt | date: 'd MMM yyyy, HH:mm' }}</span
@@ -216,7 +214,7 @@
         <section class="checklist">
           <header>
             <h3>Review checklist</h3>
-            <span>{{ completedChecks }} of {{ checks.length }} completed</span>
+            <span>{{ completedChecks }} / {{ checks.length }}</span>
           </header>
           <label *ngFor="let check of checks"
             ><input
@@ -244,7 +242,19 @@
         </div>
       </section>
       <aside class="review-sidebar" aria-label="Matching clients and actions">
-        <section class="matches-card">
+        <section class="general-workflow" *ngIf="item.isGeneralSubmission">
+          <h2>შემოწმება და გავრცელება</h2>
+          <p>დაუკავშირდით მესაკუთრეს, შეამოწმეთ მონაცემები და შეინახეთ ოთხივე შემოწმება. დამტკიცების შემდეგ SEND გამოაქვეყნებს ბინას და გაავრცელებს ყველა შესაბამის კლიენტთან.</p>
+          <button class="outline" type="button" [disabled]="saving || archived" (click)="open(item)">მონაცემების შესწორება</button>
+          <button class="outline" type="button" [disabled]="saving || archived" (click)="save('contacted')">მესაკუთრეს დავუკავშირდი</button>
+          <button class="primary approve-submission" type="button" [disabled]="saving || dirty || archived || item.status === 'new' || item.status === 'approved' || completedChecks !== checks.length" (click)="act('approve')">დამტკიცება</button>
+          <button class="primary send-submission" type="button" [disabled]="saving || dirty || item.status !== 'approved'" (click)="act('send')" data-no-translate>SEND</button>
+          <button class="outline" type="button" [disabled]="saving || dirty || archived" (click)="act('reject')">უარყოფა</button>
+          <p *ngIf="dirty">ჯერ შეინახეთ შემოწმების ცვლილებები.</p>
+          <h3>განაცხადისა და გავრცელების ისტორია</h3>
+          <ol class="distribution-history"><li *ngFor="let event of item.history"><strong>{{ eventLabel(event.action) }}</strong><time>{{ event.createdAt | date: 'dd.MM.yyyy HH:mm' }}</time><span *ngIf="event.action === 'sent'">შესაბამისი კლიენტები: {{ event.matchedClients }}</span></li></ol>
+        </section>
+        <section class="matches-card" *ngIf="!item.isGeneralSubmission">
           <header>
             <h2>Matching clients</h2>
             <span class="eligible">{{ matchingClients.length }} potential</span>
@@ -285,7 +295,7 @@
             </p>
           </details>
         </section>
-        <section class="ready-card" *ngIf="!archived">
+        <section class="ready-card" *ngIf="!archived && !item.isGeneralSubmission">
           <h2>
             {{
               completedChecks === checks.length ? 'Ready for the next step' : 'Prepare to publish'
@@ -327,7 +337,7 @@
             </button>
           </div>
         </section>
-        <section class="ready-card" *ngIf="archived">
+        <section class="ready-card" *ngIf="archived && !item.isGeneralSubmission">
           <h2>{{ item.status === 'published' ? 'Published property' : 'Submission declined' }}</h2>
           <p>
             {{

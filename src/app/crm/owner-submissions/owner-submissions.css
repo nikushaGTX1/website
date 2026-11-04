@@ -1105,3 +1105,7 @@ textarea {
     font-size: 10px;
   }
 }
+
+.general-workflow{background:white;padding:24px;border:1px solid #e8e1f0;border-radius:18px}.general-workflow>button{display:flex;width:100%;margin:12px 0;justify-content:center;min-height:48px}.general-workflow p{line-height:1.7;color:#675d72}.distribution-history{padding-left:20px}.distribution-history li{padding:12px 0;border-bottom:1px solid #eee}.distribution-history time,.distribution-history span{display:block;margin-top:6px;font-size:13px;color:#675d72}
+.property-facts .fact-value{display:block;line-height:1.5}
+@media(max-width:760px){.general-submission .owner-card{flex-wrap:wrap}.general-submission .owner-card>div{min-width:180px}.general-submission .owner-card .outline{width:100%;justify-content:center;font-size:12px}.general-submission .owner-card small{white-space:nowrap}.general-submission .property-facts{grid-template-columns:1fr 1fr}.general-submission .property-facts>span:last-child{grid-column:1 / -1}}

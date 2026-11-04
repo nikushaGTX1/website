@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiLocation, LocationSuggestion } from '../models/location';
 import { LocationService } from '../services/location.service';
 import { PropertyPointPickerComponent } from '../maps/property-point-picker/property-point-picker.component';
@@ -10,9 +12,9 @@ import { OwnerLinkInfo, OwnerListingService } from '../services/owner-listing.se
 import { TranslationService } from '../services/translation.service';
 import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
-type FieldKey = 'location' | 'street' | 'streetNumber' | 'totalPrice' | 'area' | 'rooms' | 'ownerName' | 'ownerPhone' | 'ownerEmail' | 'floor';
+type FieldKey = 'location' | 'street' | 'streetNumber' | 'totalPrice' | 'area' | 'rooms' | 'ownerName' | 'ownerPhone' | 'ownerEmail' | 'floor' | 'city' | 'condition' | 'buildingType' | 'availableFrom' | 'description' | 'photos';
 
-@Component({ selector: 'app-owner-listing', standalone: true, imports: [PhotoUrlPipe, CommonModule, FormsModule, PropertyPointPickerComponent, DatePickerComponent], templateUrl: './owner-listing.html', styleUrl: './owner-listing.css' })
+@Component({ selector: 'app-owner-listing', standalone: true, imports: [RouterLink, PhotoUrlPipe, CommonModule, FormsModule, PropertyPointPickerComponent, DatePickerComponent], templateUrl: './owner-listing.html', styleUrl: './owner-listing.css' })
 export class OwnerListing implements OnInit, OnDestroy {
   readonly maxPhotos = 15;
   readonly propertyTypes = [
@@ -52,6 +54,10 @@ export class OwnerListing implements OnInit, OnDestroy {
   ];
 
   token = ''; info?: OwnerLinkInfo; loading = true; submitting = false; submitted = false; attempted = false; error = '';
+  general = false;
+  editId: number | null = null;
+  existingPhotos: string[] = [];
+  readonly requestId = crypto.randomUUID();
   previews: string[] = []; photos: File[] = []; dragOver = false;
   ownerName = ''; ownerPhone = ''; ownerEmail = '';
   data: Record<string, any> = { realEstateType: 'Apartment', dealType: '', condition: '', location: '', street: '', streetNumber: '', totalPrice: null,
@@ -63,21 +69,38 @@ export class OwnerListing implements OnInit, OnDestroy {
   picker: 'area' | 'street' | null = null;
   selectedDistrict = ''; selectedStreetValue = ''; selectedStreetId: number | null = null;
 
-  constructor(private route: ActivatedRoute, private service: OwnerListingService, private locationService: LocationService, private translationService: TranslationService) {}
+  constructor(private route: ActivatedRoute, private service: OwnerListingService, private locationService: LocationService, private translationService: TranslationService, private cdr: ChangeDetectorRef, private destroyRef: DestroyRef) {}
 
   ngOnInit(): void {
     this.token = this.route.snapshot.paramMap.get('token') || '';
-    this.service.getLink(this.token).subscribe({
+    this.general = !this.token;
+    this.editId = Number(this.route.snapshot.paramMap.get('id')) || null;
+    if (this.general) {
+      this.data['city'] = 'Tbilisi'; this.data['buildingType'] = ''; this.data['description'] = '';
+      this.info = { dealType: 'Rent', agentName: 'Velven' }; this.data['dealType'] = 'For Rent'; this.loading = false;
+      if (this.editId) {
+        this.info = undefined; this.loading = true;
+        this.service.getSubmission(this.editId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: row => {
+          if (!row.isGeneralSubmission) { this.info = undefined; this.error = 'ეს განაცხადი ამ ფორმით არ რედაქტირდება.'; return; }
+          this.data = { ...this.data, ...row.data }; this.ownerName = row.ownerName; this.ownerPhone = row.ownerPhone; this.ownerEmail = row.ownerEmail || '';
+          this.selectedDistrict = row.data['location']; this.selectedStreetValue = row.data['street']; this.selectedStreetId = row.data['streetId'];
+          this.info = { dealType: row.dealType, agentName: row.agentName || 'Velven' }; this.existingPhotos = row.photos; this.loading = false; this.cdr.markForCheck();
+        }, error: () => { this.info = undefined; this.loading = false; this.error = 'განაცხადი ვერ ჩაიტვირთა.'; this.cdr.markForCheck(); },
+      });
+      }
+    } else this.service.getLink(this.token).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: info => { this.info = info; this.data['dealType'] = info.dealType === 'Rent' ? 'For Rent' : 'For Sale'; this.loading = false; },
       error: () => { this.error = 'This owner link is invalid or no longer active.'; this.loading = false; },
     });
-    this.locationService.getLocations().subscribe({
+    this.locationService.getLocations().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: locations => { this.locationEntries = locations; this.locationLoading = false; },
       error: () => { this.locationLoading = false; this.locationError = true; },
     });
   }
 
   ngOnDestroy(): void { this.previews.forEach(url => URL.revokeObjectURL(url)); }
+  setDeal(deal: 'Rent' | 'Sale'): void { if (this.info) this.info.dealType = deal; this.data['dealType'] = deal === 'Rent' ? 'For Rent' : 'For Sale'; }
 
   @HostListener('document:click') closePicker(): void { this.picker = null; }
 
@@ -145,7 +168,11 @@ export class OwnerListing implements OnInit, OnDestroy {
   toggle(key: string): void { this.data[key] = !this.data[key]; }
 
   addFiles(files: FileList | null): void {
-    const next = Array.from(files || []).filter(file => file.type.startsWith('image/')).slice(0, this.maxPhotos - this.photos.length);
+    const selected = Array.from(files || []);
+    if (this.general && selected.some(file => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 8 * 1024 * 1024)) {
+      this.error = 'აირჩიეთ JPG, PNG ან WebP ფოტო, მაქსიმუმ 8 მბ.'; return;
+    }
+    const next = selected.filter(file => file.type.startsWith('image/')).slice(0, this.maxPhotos - this.photos.length);
     this.photos.push(...next);
     this.previews.push(...next.map(file => URL.createObjectURL(file)));
   }
@@ -167,6 +194,20 @@ export class OwnerListing implements OnInit, OnDestroy {
     const digits = this.ownerPhone.replace(/\D/g, '');
     if (digits.length < 9 || digits.length > 15) e.ownerPhone = 'Enter a valid phone number, e.g. 5XX XX XX XX';
     if (this.ownerEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.ownerEmail.trim())) e.ownerEmail = 'Enter a valid email';
+    if (this.general) {
+      if ((d['city'] || '').trim().length < 2) e.city = 'მიუთითეთ ქალაქი.';
+      if (!d['condition']) e.condition = 'აირჩიეთ ბინის მდგომარეობა.';
+      if (!d['buildingType']) e.buildingType = 'აირჩიეთ შენობის ტიპი.';
+      if (!d['availableFrom']) e.availableFrom = 'მიუთითეთ ხელმისაწვდომობის თარიღი.';
+      if ((d['description'] || '').trim().length < 5) e.description = 'შეიყვანეთ ბინის აღწერა.';
+      if (!this.photos.length && !this.existingPhotos.length) e.photos = 'ატვირთეთ მინიმუმ ერთი ფოტო.';
+      if (d['floor'] == null || d['floor'] < 0 || !d['totalFloors'] || d['floor'] > d['totalFloors']) e.floor = 'შეამოწმეთ სართული და სართულების რაოდენობა.';
+      if (d['bedrooms'] > d['rooms']) e.rooms = 'საძინებლების რაოდენობა ოთახების რაოდენობას ვერ გადააჭარბებს.';
+      if (d['city'] !== 'Tbilisi') {
+        if ((d['location'] || '').trim().length >= 2) delete e.location;
+        if ((d['street'] || '').trim().length >= 2) delete e.street;
+      }
+    }
     return e;
   }
 
@@ -179,7 +220,7 @@ export class OwnerListing implements OnInit, OnDestroy {
   }
 
   submit(): void {
-    if (this.submitting) return;
+    if (this.submitting || this.submitted) return;
     this.attempted = true; this.error = '';
     const firstInvalid = Object.keys(this.errors)[0];
     if (firstInvalid) {
@@ -188,11 +229,13 @@ export class OwnerListing implements OnInit, OnDestroy {
     }
     this.submitting = true;
     // Canonical district/street values let the agent import resolve them to catalog entries.
-    const payload = { ...this.data, location: this.selectedDistrict, street: this.selectedStreetValue, streetId: this.selectedStreetId,
+    const payload = { ...this.data, location: this.selectedDistrict || this.data['location'], street: this.selectedStreetValue || this.data['street'], streetId: this.selectedStreetId,
       streetNumber: this.data['streetNumber'].trim(), contactName: this.ownerName.trim(), contactPhone: this.ownerPhone.trim() };
-    this.service.submit(this.token, payload, this.ownerName.trim(), this.ownerPhone.trim(), this.ownerEmail.trim(), this.photos).subscribe({
-      next: () => { this.submitting = false; this.submitted = true; window.scrollTo({ top: 0, behavior: 'smooth' }); },
-      error: e => { this.submitting = false; this.error = e.error?.message || 'Could not send your property. Please try again.'; },
+    const request: Observable<unknown> = this.editId ? this.service.updateSubmission(this.editId, { data: payload, ownerName: this.ownerName, ownerPhone: this.ownerPhone })
+      : this.service.submit(this.token, payload, this.ownerName.trim(), this.ownerPhone.trim(), this.ownerEmail.trim(), this.photos, this.general ? this.requestId : undefined);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => { this.submitting = false; this.submitted = true; window.scrollTo({ top: 0, behavior: 'smooth' }); this.cdr.markForCheck(); },
+      error: e => { this.submitting = false; this.error = e.error?.message || 'Could not send your property. Please try again.'; this.cdr.markForCheck(); },
     });
   }
 }

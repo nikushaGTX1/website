@@ -228,12 +228,8 @@ try {
       await page.locator('.pagination button').last().click();
       await page.waitForTimeout(100);
       assert.equal(lastQuery.get('page'), '2');
-      const suggest = await page.locator('.cc-offer').first().getAttribute('href');
-      assert.ok(
-        suggest.includes('district=Vake') &&
-          suggest.includes('bedrooms=2') &&
-          suggest.includes('client=1042'),
-      );
+      assert.equal(await page.locator('.general-submit').getAttribute('href'), '/submit-apartment');
+      assert.equal(await page.locator('.cc-offer,.bottom-banner').count(), 0);
       if (width === 390 || width === 1440) {
         await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo({ top: 0, behavior: 'instant' }); });
         await page.waitForTimeout(150);

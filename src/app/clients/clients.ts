@@ -14,12 +14,10 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { BoardClient, BoardPage, ClientBoardService } from '../services/client-board.service';
-import { EMPTY_HOME_MATCH_PROFILE } from '../ai-home-match/models/home-match-profile';
 import { answerLabel } from '../ai-home-match/services/answer-labels';
 import { enableFlagEmojis } from '../utils/flag-emoji';
 import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 import { TranslationService } from '../services/translation.service';
-import { OfferApartmentModal } from './offer-apartment-modal';
 
 // Windows has no flag emoji; this loads a small flag font instead.
 enableFlagEmojis();
@@ -76,20 +74,12 @@ function countryFlag(name: string | null | undefined): string {
 
 @Component({
   selector: 'app-clients',
-  imports: [PhotoUrlPipe, CommonModule, FormsModule, RouterLink, OfferApartmentModal],
+  imports: [PhotoUrlPipe, CommonModule, FormsModule, RouterLink],
   templateUrl: './clients.html',
   styleUrl: './clients.css',
 })
 export class Clients implements OnInit, OnDestroy {
   readonly label = answerLabel;
-  readonly hero = {
-    ...EMPTY_HOME_MATCH_PROFILE,
-    gender: 'Female' as const,
-    adults: 2,
-    householdType: 'Couple',
-    hasPet: true,
-    petTypes: ['Dog' as const],
-  };
   readonly districts = [
     'Vake',
     'Saburtalo',
@@ -109,8 +99,6 @@ export class Clients implements OnInit, OnDestroy {
     'Sololaki',
     'Samgori',
   ];
-  /** The client whose "Offer your apartment" modal is open. */
-  offerClient: BoardClient | null = null;
   district = '';
   budget = '';
   timing = '';
@@ -369,59 +357,7 @@ export class Clients implements OnInit, OnDestroy {
       },
     });
   }
-  /**
-   * Example cards shown only while the board has no real clients and no filter is set,
-   * clearly labelled as examples so owners see what a client profile looks like.
-   */
-  readonly examples: BoardClient[] = [
-    this.example(1042, 'Georgia', 900, 1200, ['Vake', 'Saburtalo'], 2, 'Dog', 'Small', 2, 65, ['ParkNearby', 'BalconyOrTerrace', 'Workspace']),
-    this.example(1086, 'France', 700, 900, ['Saburtalo'], 1, 'Cat', undefined, 1, 45, ['MetroNearby', 'Workspace', 'QuietStreet']),
-    this.example(1103, 'Poland', 1200, 1500, ['Vake'], 2, undefined, undefined, 2, 75, ['Parking', 'QuietStreet', 'BalconyOrTerrace']),
-  ];
-
-  private example(id: number, nationality: string, budgetMin: number, budgetMax: number, districts: string[],
-    adults: number, pet: 'Dog' | 'Cat' | undefined, dogSize: 'Small' | undefined, bedrooms: number, minSize: number,
-    topPriorities: string[]): BoardClient {
-    return {
-      id,
-      identityVerified: false,
-      nationality,
-      agent: { name: 'Velven team', phone: null, photo: null },
-      profile: {
-        ...EMPTY_HOME_MATCH_PROFILE,
-        gender: id === 1086 ? 'Male' : 'Female',
-        householdType: adults > 1 ? 'Couple' : 'Single',
-        adults,
-        currency: 'USD',
-        budgetMin,
-        budgetMax,
-        districts,
-        hasPet: !!pet,
-        petType: pet ?? 'None',
-        petTypes: pet ? [pet] : [],
-        petCount: pet ? 1 : 0,
-        dogSize,
-        bedrooms,
-        minSize,
-        rentalDuration: 'TwelveMonths',
-        moveInTiming: 'WithinOneMonth',
-        topPriorities,
-      } as BoardClient['profile'],
-    };
-  }
-
-  get hasFilters(): boolean {
-    return !!(this.district || this.budget || this.timing || this.residents || this.pets || this.condition);
-  }
-
-  /** Examples stand in for an empty Rent board with no filters set. */
-  get showingExamples(): boolean {
-    return !this.loading && !this.error && !this.result.items.length && !this.hasFilters && this.goal === 'Rent';
-  }
-
-  get cards(): BoardClient[] {
-    return this.showingExamples ? this.examples : this.result.items;
-  }
+  get cards(): BoardClient[] { return this.result.items; }
 
   get pages() {
     return Math.ceil(this.result.total / this.result.pageSize);
@@ -461,13 +397,6 @@ export class Clients implements OnInit, OnDestroy {
     const pets = profile.petTypes?.length ? profile.petTypes : [profile.petType || 'Other'];
     return pets.map((pet) => pet === 'Other' && profile.petOtherType?.trim()
       ? profile.petOtherType.trim() : this.label(pet)).join(', ');
-  }
-  suggest(client: BoardClient) {
-    return {
-      client: this.showingExamples ? undefined : client.id,
-      district: client.profile.districts[0] ? answerLabel(client.profile.districts[0]) : undefined,
-      bedrooms: client.profile.bedrooms ?? undefined,
-    };
   }
   priorityIcon(code: string) {
     if (/Parking/.test(code)) return 'car';

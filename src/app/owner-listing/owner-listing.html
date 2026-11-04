@@ -1,4 +1,4 @@
-<main class="owner-page">
+<main class="owner-page" [class.general-form]="general">
   <section class="state-card" *ngIf="loading"><span class="spinner"></span><p>Loading property form…</p></section>
 
   <section class="state-card error-card" *ngIf="!loading && error && !info">
@@ -9,7 +9,8 @@
   <section class="success-card" *ngIf="submitted">
     <div class="state-icon ok"><i class="fa-solid fa-check"></i></div>
     <h1>Thank you!</h1>
-    <p><span>Your agent will call you soon to arrange a visit.</span></p>
+    <p><span>{{ editId ? 'ცვლილებები შენახულია. საჭიროა ხელახალი შემოწმება.' : 'თქვენი ბინა მიღებულია და ელოდება აგენტის შემოწმებას. აგენტი დაგიკავშირდებათ.' }}</span></p>
+    <a *ngIf="editId" routerLink="/crm/owner-submissions">განაცხადებზე დაბრუნება</a>
   </section>
 
   <form *ngIf="info && !submitted" (ngSubmit)="submit()" novalidate>
@@ -18,9 +19,13 @@
         <span class="brand">VELVEN</span>
         <span class="deal-pill"><i class="fa-solid" [class.fa-key]="info.dealType === 'Rent'" [class.fa-tag]="info.dealType !== 'Rent'"></i>{{ info.dealType === 'Rent' ? 'For rent' : 'For sale' }}</span>
       </div>
-      <h1>List your property with Velven</h1>
-      <p>Share the essentials now. Your agent verifies everything during the visit.</p>
-      <div class="agent">
+      <h1>{{ editId ? 'ბინის მონაცემების შესწორება' : general ? 'შესთავაზე ბინა' : 'List your property with Velven' }}</h1>
+      <p>{{ general ? 'შეავსეთ ბინის მონაცემები. Velven-ის აგენტი დაგიკავშირდებათ და გადაამოწმებს ინფორმაციას. ბინა შემოწმებამდე არ გამოქვეყნდება.' : 'Share the essentials now. Your agent verifies everything during the visit.' }}</p>
+      <div class="segmented" *ngIf="general">
+        <button type="button" [class.active]="info.dealType === 'Rent'" (click)="setDeal('Rent')">ქირა</button>
+        <button type="button" [class.active]="info.dealType === 'Sale'" (click)="setDeal('Sale')">გაყიდვა</button>
+      </div>
+      <div class="agent" *ngIf="!general">
         <img *ngIf="info.agentPhoto; else agentInitial" [src]="(info.agentPhoto) | photoUrl:320" alt="">
         <ng-template #agentInitial><span class="agent-initial">{{ (info.agentName || 'V').charAt(0) }}</span></ng-template>
         <div><small>Your agent</small><b>{{ info.agentName }}</b></div>
@@ -36,7 +41,7 @@
     <section class="card">
       <div class="card-head"><span class="num">1</span><div><h2>Property</h2><p>Type, size and layout</p></div></div>
       <div class="type-grid">
-        <button type="button" *ngFor="let type of propertyTypes" [class.active]="data['realEstateType'] === type.value" (click)="data['realEstateType'] = type.value">
+        <button type="button" *ngFor="let type of (general ? propertyTypes.slice(0, 3) : propertyTypes)" [class.active]="data['realEstateType'] === type.value" (click)="data['realEstateType'] = type.value">
           <i [class]="type.icon"></i><span>{{ type.value }}</span>
         </button>
       </div>
@@ -66,16 +71,23 @@
           <div class="input-icon"><i class="fa-solid fa-building"></i><input type="number" min="1" name="totalFloors" inputmode="numeric" placeholder="12" [(ngModel)]="data['totalFloors']"></div>
         </label>
       </div>
-      <ng-container *ngIf="info.dealType !== 'Rent'">
+      <ng-container *ngIf="general || info.dealType !== 'Rent'">
+      <small class="err" *ngIf="showError('condition')">{{ showError('condition') }}</small>
       <div class="sub-label"><i class="fa-solid fa-paint-roller"></i>Condition</div>
       <div class="pill-row">
         <button type="button" *ngFor="let c of conditions" class="pill" [class.active]="data['condition'] === c.value" (click)="data['condition'] = data['condition'] === c.value ? '' : c.value"><i [class]="c.icon"></i> <span>{{ c.value }}</span></button>
       </div>
       </ng-container>
+      <div class="field" *ngIf="general">
+        <span>შენობის ტიპი</span>
+        <div class="pill-row"><button type="button" class="pill" *ngFor="let type of ['Old building', 'New building', 'Under construction']" [class.active]="data['buildingType'] === type" (click)="data['buildingType'] = type">{{ type }}</button></div>
+        <small class="err" *ngIf="showError('buildingType')">{{ showError('buildingType') }}</small>
+      </div>
     </section>
 
     <section class="card">
       <div class="card-head"><span class="num">2</span><div><h2>Location</h2><p>Pick district and street from the list</p></div></div>
+      <label class="field" *ngIf="general"><span>ქალაქი</span><input name="city" [(ngModel)]="data['city']" (ngModelChange)="onAreaInput()"><small class="err" *ngIf="showError('city')">{{ showError('city') }}</small></label>
       <div class="grid location-grid">
         <label class="field" [class.invalid]="showError('location')" [class.valid]="selectedDistrict">
           <span>District<i class="req">*</i></span>
@@ -84,7 +96,7 @@
               <input name="location" autocomplete="off" placeholder="e.g. Vake" [(ngModel)]="data['location']" (focus)="picker = 'area'" (input)="onAreaInput()">
               <i class="fa-solid fa-circle-check ok-mark" *ngIf="selectedDistrict"></i>
             </div>
-            <div class="dropdown" *ngIf="picker === 'area'">
+            <div class="dropdown" *ngIf="picker === 'area' && (!general || data['city'] === 'Tbilisi')">
               <div class="dd-status" *ngIf="locationLoading"><span class="spinner small"></span>Loading districts…</div>
               <div class="dd-status err" *ngIf="locationError">Locations are temporarily unavailable.</div>
               <button type="button" *ngFor="let s of areaSuggestions" (pointerdown)="selectArea(s, $event)"><i class="fa-solid fa-location-dot"></i><span>{{ s.label }}<small>Tbilisi</small></span></button>
@@ -97,10 +109,10 @@
           <span>Street<i class="req">*</i></span>
           <div class="picker" (click)="$event.stopPropagation()">
             <div class="input-icon"><i class="fa-solid fa-road"></i>
-              <input name="street" autocomplete="off" [disabled]="!selectedDistrict" [placeholder]="selectedDistrict ? 'Start typing a street' : 'Choose a district first'" [(ngModel)]="data['street']" (focus)="picker = 'street'" (input)="onStreetInput()">
+              <input name="street" autocomplete="off" [disabled]="!selectedDistrict && (!general || data['city'] === 'Tbilisi')" placeholder="Street / address" [(ngModel)]="data['street']" (focus)="picker = 'street'" (input)="onStreetInput()">
               <i class="fa-solid fa-circle-check ok-mark" *ngIf="selectedStreetValue"></i>
             </div>
-            <div class="dropdown" *ngIf="picker === 'street' && selectedDistrict">
+            <div class="dropdown" *ngIf="picker === 'street' && selectedDistrict && (!general || data['city'] === 'Tbilisi')">
               <button type="button" *ngFor="let s of streetSuggestions" (pointerdown)="selectStreet(s, $event)"><i class="fa-solid fa-road"></i><span>{{ s.label }}<small>{{ s.district }}</small></span></button>
               <div class="dd-status" *ngIf="!streetSuggestions.length">No matching street found.</div>
             </div>
@@ -113,7 +125,7 @@
           <small class="err" *ngIf="showError('streetNumber')">{{ showError('streetNumber') }}</small>
         </label>
       </div>
-      <div class="map-wrap">
+      <div class="map-wrap" *ngIf="!general">
         <app-property-point-picker [address]="mapAddress" [(latitude)]="data['propertyLatitude']" [(longitude)]="data['propertyLongitude']"></app-property-point-picker>
       </div>
     </section>
@@ -130,7 +142,7 @@
           <span>Currency</span>
           <div class="segmented">
             <button type="button" [class.active]="data['currency'] === '$'" (click)="data['currency'] = '$'">$ USD</button>
-            <button type="button" [class.active]="data['currency'] === 'GEL'" (click)="data['currency'] = 'GEL'">₾ GEL</button>
+            <button type="button" *ngIf="!general" [class.active]="data['currency'] === 'GEL'" (click)="data['currency'] = 'GEL'">₾ GEL</button>
           </div>
         </div>
       </div>
@@ -146,22 +158,29 @@
       </div>
     </section>
 
-    <section class="card" *ngIf="info.dealType === 'Rent'">
-      <div class="card-head"><span class="num">·</span><div><h2>Rental details</h2><p>Optional</p></div></div>
+    <section class="card" *ngIf="general || info.dealType === 'Rent'">
+      <div class="card-head"><span class="num">·</span><div><h2>{{ general ? 'ხელმისაწვდომობა და პირობები' : 'Rental details' }}</h2><p *ngIf="!general">Optional</p></div></div>
       <div class="grid two">
         <div class="field"><span>Available from</span><app-date-picker name="availableFrom" placeholder="Choose a date" [(ngModel)]="data['availableFrom']"></app-date-picker></div>
         <div class="field"><span>Minimum rental period</span><div class="segmented"><button type="button" *ngFor="let p of rentalPeriods" [class.active]="data['minimumRentalPeriod'] === p" (click)="data['minimumRentalPeriod'] = data['minimumRentalPeriod'] === p ? '' : p"><i class="fa-regular fa-calendar"></i> {{ p === 'Minimum 6 months' ? '6 months' : '12 months' }}</button></div></div>
       </div>
+      <small class="err" *ngIf="showError('availableFrom')">{{ showError('availableFrom') }}</small>
     </section>
 
-    <section class="card">
+    <section class="card" *ngIf="general">
+      <label class="field"><span>აღწერა</span><textarea name="description" rows="5" maxlength="5000" [(ngModel)]="data['description']"></textarea><small class="err" *ngIf="showError('description')">{{ showError('description') }}</small></label>
+      <label class="field" *ngIf="info.dealType === 'Rent'"><span>მცხოვრებთა მაქსიმალური რაოდენობა (არასავალდებულო)</span><input name="maxOccupants" type="number" min="1" max="50" [(ngModel)]="data['maxOccupants']"></label>
+    </section>
+
+    <section class="card" *ngIf="!editId">
       <div class="card-head"><span class="num">5</span><div><h2>Photos</h2><p>Photos help your agent prepare the visit</p></div></div>
+      <small class="err" *ngIf="showError('photos')">{{ showError('photos') }}</small>
       <label class="dropzone" [class.drag]="dragOver" [class.full]="photos.length >= maxPhotos"
         (dragover)="$event.preventDefault(); dragOver = true" (dragleave)="dragOver = false" (drop)="dropPhotos($event)">
         <i class="fa-solid fa-cloud-arrow-up"></i>
         <b>{{ photos.length >= maxPhotos ? 'Photo limit reached' : 'Drop photos or tap to upload' }}</b>
-        <small><span>{{ photos.length }}/{{ maxPhotos }}</span> · <span>Photos</span> · JPG, PNG, HEIC</small>
-        <input type="file" accept="image/*" multiple [disabled]="photos.length >= maxPhotos" (change)="choosePhotos($event)">
+        <small><span>{{ photos.length }}/{{ maxPhotos }}</span> · <span>Photos</span> · JPG, PNG, WebP · 8 MB</small>
+        <input type="file" [accept]="general ? 'image/jpeg,image/png,image/webp' : 'image/*'" multiple [disabled]="photos.length >= maxPhotos" (change)="choosePhotos($event)">
       </label>
       <div class="photos" *ngIf="previews.length">
         <figure *ngFor="let preview of previews; let i = index">
@@ -171,6 +190,7 @@
         </figure>
       </div>
     </section>
+    <div class="photos" *ngIf="editId"><figure *ngFor="let photo of existingPhotos"><img [src]="photo" alt="ბინის ფოტო"></figure></div>
 
     <section class="card">
       <div class="card-head"><span class="num">6</span><div><h2>Your contact details</h2><p>Only your agent sees these</p></div></div>
@@ -182,7 +202,7 @@
         </label>
         <label class="field" [class.invalid]="showError('ownerPhone')">
           <span>Phone<i class="req">*</i></span>
-          <div class="input-icon"><i class="fa-solid fa-phone"></i><input type="tel" name="ownerPhone" autocomplete="tel" inputmode="tel" placeholder="+995 5XX XX XX XX" [(ngModel)]="ownerPhone"></div>
+          <div class="input-icon"><i class="fa-solid fa-phone"></i><input type="tel" name="ownerPhone" [attr.data-phone-country]="general ? 'GE' : null" autocomplete="tel" inputmode="tel" placeholder="+995 5XX XX XX XX" [(ngModel)]="ownerPhone"></div>
           <small class="err" *ngIf="showError('ownerPhone')">{{ showError('ownerPhone') }}</small>
         </label>
         <label class="field" [class.invalid]="showError('ownerEmail')">
@@ -199,7 +219,7 @@
       <button class="submit" type="submit" [disabled]="submitting">
         <span class="spinner small light" *ngIf="submitting"></span>
         <i class="fa-solid fa-paper-plane" *ngIf="!submitting"></i>
-        {{ submitting ? 'Sending…' : 'Send property details' }}
+        {{ submitting ? 'Sending…' : editId ? 'ცვლილებების შენახვა' : 'Send property details' }}
       </button>
       <small class="privacy"><i class="fa-solid fa-lock"></i>Your details are shared only with your Velven agent.</small>
     </div>

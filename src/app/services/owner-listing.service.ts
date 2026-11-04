@@ -9,7 +9,7 @@ const fast = (url?: string | null) => (url ? toMediaUrl(url) || url : url);
 const withFastPhotos = (row: OwnerSubmission): OwnerSubmission => ({ ...row, photos: (row.photos ?? []).map((photo) => fast(photo)!) });
 
 export type OwnerDealType = 'Rent' | 'Sale';
-export type OwnerSubmissionStatus = 'new' | 'contacted' | 'visited' | 'published' | 'rejected';
+export type OwnerSubmissionStatus = 'new' | 'contacted' | 'visited' | 'approved' | 'sent' | 'published' | 'rejected';
 export interface OwnerLinkInfo {
   dealType: OwnerDealType;
   agentName: string;
@@ -17,7 +17,10 @@ export interface OwnerLinkInfo {
 }
 export interface OwnerSubmission {
   id: number;
-  linkId: number;
+  linkId: number | null;
+  isGeneralSubmission?: boolean;
+  approvedAt?: string;
+  history?: Array<{ id: number; action: string; createdAt: string; matchedClients: number }>;
   agentUserId: string;
   agentName?: string;
   dealType: OwnerDealType;
@@ -58,6 +61,7 @@ export class OwnerListingService {
     ownerPhone: string,
     ownerEmail: string,
     photos: File[],
+    requestId?: string,
   ): Observable<{ message: string }> {
     const body = new FormData();
     body.append('data', JSON.stringify(data));
@@ -65,7 +69,8 @@ export class OwnerListingService {
     body.append('ownerPhone', ownerPhone);
     if (ownerEmail.trim()) body.append('ownerEmail', ownerEmail.trim());
     photos.forEach((photo) => body.append('photos', photo, photo.name));
-    return this.http.post<{ message: string }>(`${this.apiUrl}/links/${token}/submissions`, body);
+    if (requestId) body.append('requestId', requestId);
+    return this.http.post<{ message: string }>(token ? `${this.apiUrl}/links/${token}/submissions` : `${this.apiUrl}/submissions`, body);
   }
   getSubmissions(): Observable<OwnerSubmission[]> {
     return this.http
@@ -73,11 +78,12 @@ export class OwnerListingService {
       .pipe(map((rows) => rows.map(withFastPhotos)), tap((rows) => this.submissions.set(rows)));
   }
   getSubmission(id: number): Observable<OwnerSubmission> {
-    return this.http.get<OwnerSubmission>(`${this.apiUrl}/submissions/${id}`).pipe(map(withFastPhotos));
+    return this.http.get<OwnerSubmission>(`${this.apiUrl}/submissions/${id}`).pipe(map(withFastPhotos), tap(updated =>
+      this.submissions.update(rows => rows.map(row => row.id === updated.id ? updated : row))));
   }
   updateSubmission(
     id: number,
-    update: Partial<
+    update: { data?: Record<string, any>; ownerName?: string; ownerPhone?: string } & Partial<
       Pick<OwnerSubmission, 'status' | 'verification' | 'agentNotes' | 'publishedApartmentId'>
     >,
   ): Observable<OwnerSubmission> {
@@ -90,5 +96,12 @@ export class OwnerListingService {
           ),
         ),
       );
+  }
+  review(id: number, action: 'approve' | 'reject' | 'send') {
+    return this.http.post<{ status: OwnerSubmissionStatus; matchedClients?: number; alreadySent?: boolean }>(`${this.apiUrl}/submissions/${id}/${action}`, {}).pipe(tap(result =>
+      this.submissions.update(rows => rows.map(row => row.id === id ? { ...row, status: result.status } : row))));
+  }
+  matches() {
+    return this.http.get<Array<{ id: number; submissionId: number; clientId: number; createdAt: string; apartmentId: number; dataJson: string }>>(`${this.apiUrl}/matches`);
   }
 }

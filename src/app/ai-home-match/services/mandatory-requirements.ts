@@ -184,6 +184,7 @@ function requestedMoveInDate(profile: HomeMatchProfile): string | null {
 
 function checkAvailability(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
   if (profile.propertyGoal !== 'Rent') return 'pass';
+  if (profile.moveInTiming === 'Flexible') return 'pass';
   const availableFrom = apartment.availableFrom?.trim();
   if (!availableFrom) return 'pass'; // no stated availability date: assumed available now
   const requested = requestedMoveInDate(profile);
@@ -332,6 +333,22 @@ export function evaluateMandatoryRequirements(
 ): RequirementEvaluation {
   const mismatches: string[] = [];
   const confirmations: string[] = [];
+  const cityName = (value: string) => /^(tbilisi|თბილისი|тбилиси)$/i.test(value.trim()) ? 'tbilisi' : value.trim().toLowerCase();
+  if (apartment.city && cityName(apartment.city) !== cityName(profile.city || 'Tbilisi'))
+    mismatches.push('The apartment is in another city.');
+  if (profile.minSize && (apartment.sizeSquareMeters || 0) < profile.minSize)
+    mismatches.push('Apartment area is below your minimum.');
+  if (apartment.maxOccupants != null && apartment.maxOccupants < profile.adults + profile.children)
+    mismatches.push('The apartment does not allow enough residents.');
+  if (profile.propertyGoal === 'Buy' && profile.propertyConditions?.length && !profile.propertyConditions.includes('Any')) {
+    const condition = (apartment.description || '').match(/(?:^|[|\r\n])\s*Condition:\s*([^|\r\n]+)/i)?.[1]?.trim().replace(/\.$/, '').toLowerCase();
+    const conditions: Record<string, string[]> = {
+      MoveInReady: ['newly renovated', 'old renovated'], Renovated: ['newly renovated', 'old renovated'],
+      WhiteFrame: ['white frame', 'white plus'], BlackFrame: ['black frame'], GreenFrame: ['green frame'], NeedsRenovation: ['current renovation', 'repairing'],
+    };
+    if (!condition || !profile.propertyConditions.some(code => conditions[code]?.includes(condition)))
+      mismatches.push('The apartment condition does not meet your requirement.');
+  }
 
   const location = checkLocation(apartment, profile);
   if (location === 'fail') {

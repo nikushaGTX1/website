@@ -146,8 +146,12 @@ export class NotificationBell implements OnInit, OnDestroy {
       void this.router.navigate(['/crm/leads', item.leadId]);
       return;
     }
-    if ((item.type === 'apartment-offer' || item.type === 'apartment-offer-match') && item.offerId) {
-      void this.router.navigate(['/crm/apartment-offers'], { queryParams: { offer: item.offerId } });
+    if (item.type === 'owner-submission' && item.submissionId) {
+      void this.router.navigate(['/crm/owner-submissions'], { queryParams: { submission: item.submissionId } });
+      return;
+    }
+    if (item.type === 'submission-match') {
+      void this.router.navigate(['/crm/submission-matches']);
       return;
     }
     if (item.type === 'interest-review') {
@@ -200,18 +204,11 @@ export class NotificationBell implements OnInit, OnDestroy {
       return `${item.actorName || 'A team member'} changed ${item.leadName || 'Lead #' + item.leadId} from ${this.statusLabel(item.fromStatus)} to ${this.statusLabel(item.toStatus)}.`;
     }
     const apartment = item.apartment;
-    if (item.type === 'apartment-offer') {
-      const size = apartment?.sizeSquareMeters ? `, ${apartment.sizeSquareMeters} m²` : '';
-      if (this.translation.language$.value === 'ka')
-        return `ბინა შესთავაზეს კლიენტს #${item.clientId}: ${apartment?.district || 'თბილისი'}, ${apartment?.bedrooms ?? 0} საძინებელი${size}. სხვა კლიენტებთან გაზიარება: ${item.shareWithOtherClients ? 'ჩართულია' : 'გამორთულია'}.`;
-      if (this.translation.language$.value === 'ru')
-        return `Квартира предложена клиенту #${item.clientId}: ${apartment?.district || 'Тбилиси'}, ${apartment?.bedrooms ?? 0} спален${size}. Показ другим клиентам: ${item.shareWithOtherClients ? 'включён' : 'выключен'}.`;
-      return `New apartment offered to client #${item.clientId}: ${apartment?.district || 'Tbilisi'}, ${apartment?.bedrooms ?? 0} bedrooms${size}. Sharing with other clients: ${item.shareWithOtherClients ? 'on' : 'off'}.`;
+    if (item.type === 'owner-submission') {
+      return `ახალი განაცხადი #${item.submissionId}: ${apartment?.district || 'თბილისი'}, ${apartment?.bedrooms ?? 0} საძინებელი. საჭიროა მესაკუთრესთან დაკავშირება და შემოწმება.`;
     }
-    if (item.type === 'apartment-offer-match') {
-      if (this.translation.language$.value === 'ka') return `დამტკიცებული ბინა (${apartment?.district || 'თბილისი'}) შეესაბამება თქვენს კლიენტს #${item.clientId}.`;
-      if (this.translation.language$.value === 'ru') return `Одобренная квартира (${apartment?.district || 'Тбилиси'}) подходит вашему клиенту #${item.clientId}.`;
-      return `An approved apartment in ${apartment?.district || 'Tbilisi'} fits your client #${item.clientId}.`;
+    if (item.type === 'submission-match') {
+      return `დამტკიცებული ბინა (${apartment?.district || 'თბილისი'}) შეესაბამება თქვენს კლიენტს #${item.clientId}.`;
     }
     if (item.type === 'interest-review') {
       return `A client's search matches your listing in ${apartment?.district || 'Tbilisi'}. Check the client before the owner is told.`;

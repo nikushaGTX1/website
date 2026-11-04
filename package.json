@@ -13,7 +13,7 @@
     "test:unit": "tsx --tsconfig tsconfig.app.json --test \"src/**/*.spec.ts\"",
     "test:myhome:ui": "node scripts/test-myhome-ui.mjs",
     "test:clients:ui": "node scripts/test-clients-ui.mjs",
-    "test:offer:ui": "node scripts/test-apartment-offer-ui.mjs",
+    "test:submissions:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-apartment-submissions.ps1",
     "test:crm:ui": "node scripts/test-crm-workspace-ui.mjs",
     "test:owner-submissions:ui": "node scripts/test-owner-submissions-ui.mjs",
     "test:crm-notifications:ui": "node scripts/test-crm-notifications-ui.mjs"
