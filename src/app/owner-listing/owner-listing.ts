@@ -12,7 +12,7 @@ import { OwnerLinkInfo, OwnerListingService } from '../services/owner-listing.se
 import { TranslationService } from '../services/translation.service';
 import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
-type FieldKey = 'location' | 'street' | 'streetNumber' | 'totalPrice' | 'area' | 'rooms' | 'ownerName' | 'ownerPhone' | 'ownerEmail' | 'floor' | 'city' | 'condition' | 'buildingType' | 'availableFrom' | 'description' | 'photos';
+type FieldKey = 'location' | 'street' | 'streetNumber' | 'totalPrice' | 'area' | 'rooms' | 'ownerName' | 'ownerPhone' | 'ownerEmail' | 'floor' | 'city' | 'condition' | 'buildingType' | 'availableFrom' | 'description' | 'photos' | 'maxOccupants';
 
 @Component({ selector: 'app-owner-listing', standalone: true, imports: [RouterLink, PhotoUrlPipe, CommonModule, FormsModule, PropertyPointPickerComponent, DatePickerComponent], templateUrl: './owner-listing.html', styleUrl: './owner-listing.css' })
 export class OwnerListing implements OnInit, OnDestroy {
@@ -165,6 +165,7 @@ export class OwnerListing implements OnInit, OnDestroy {
   }
 
   step(field: string, delta: number, min: number): void { this.data[field] = Math.max(min, Math.min(20, (Number(this.data[field]) || 0) + delta)); }
+  adjustOccupants(delta: number): void { this.data['maxOccupants'] = Math.max(1, Math.min(50, (Number(this.data['maxOccupants']) || 0) + delta)); }
   toggle(key: string): void { this.data[key] = !this.data[key]; }
 
   addFiles(files: FileList | null): void {
@@ -195,6 +196,7 @@ export class OwnerListing implements OnInit, OnDestroy {
     if (digits.length < 9 || digits.length > 15) e.ownerPhone = 'Enter a valid phone number, e.g. 5XX XX XX XX';
     if (this.ownerEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.ownerEmail.trim())) e.ownerEmail = 'Enter a valid email';
     if (this.general) {
+      if (d['maxOccupants'] != null && (!Number.isInteger(d['maxOccupants']) || d['maxOccupants'] < 1 || d['maxOccupants'] > 50)) e.maxOccupants = 'მიუთითეთ მთელი რიცხვი 1-დან 50-მდე.';
       if ((d['city'] || '').trim().length < 2) e.city = 'მიუთითეთ ქალაქი.';
       if (!d['condition']) e.condition = 'აირჩიეთ ბინის მდგომარეობა.';
       if (!d['buildingType']) e.buildingType = 'აირჩიეთ შენობის ტიპი.';

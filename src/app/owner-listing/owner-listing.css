@@ -354,3 +354,22 @@ textarea { resize: vertical; min-height: 110px; }
 
 .field>input,.field>textarea{box-sizing:border-box;width:100%;padding:14px;border:1px solid #dcd5e5;border-radius:10px;font:inherit;background:#fff}.hero .segmented{margin-top:20px}.field>textarea{resize:vertical;min-height:120px}
 .general-form .progress-bar{position:static}.general-form .counter{flex-direction:column;align-items:stretch;gap:10px}.general-form .counter-label{justify-content:center;white-space:nowrap}.general-form .stepper{justify-content:space-between}
+
+.occupancy-card { margin-top: 24px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: #faf8ff; }
+.occupancy-heading { display: flex; align-items: center; gap: 14px; }
+.occupancy-icon { display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 14px; background: #eee6fb; color: var(--brand); }
+.occupancy-card svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.occupancy-copy { min-width: 0; }
+.occupancy-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.occupancy-title-row h3 { margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink); }
+.occupancy-optional { padding: 3px 9px; border-radius: 20px; background: #eee8f7; color: #756389; font-size: 11px; }
+.occupancy-copy p, .occupancy-note p { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.occupancy-bottom { display: flex; align-items: center; gap: 20px; margin-top: 18px; }
+.occupancy-stepper { display: flex; align-items: center; gap: 8px; flex: none; padding: 6px; border: 1px solid #dfd2ef; border-radius: 13px; background: #fff; }
+.occupancy-stepper button { display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 0; border-radius: 9px; background: #f0e9fa; color: var(--brand); cursor: pointer; }
+.occupancy-stepper button:disabled { opacity: .35; cursor: default; }
+.occupancy-stepper input { box-sizing: border-box; width: 66px; height: 42px; padding: 0; border: 0; border-radius: 6px; background: #fff; color: var(--ink); font: inherit; font-size: 22px; font-weight: 800; text-align: center; appearance: textfield; -moz-appearance: textfield; }
+.occupancy-stepper input::-webkit-inner-spin-button, .occupancy-stepper input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.occupancy-clear { padding: 4px 0; border: 0; background: none; color: var(--brand); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.occupancy-card :is(input, button):focus-visible { outline: 3px solid #b394e2; outline-offset: 3px; }
+@media(max-width:560px) { .occupancy-card { padding: 16px; }.occupancy-heading { align-items: flex-start; gap: 11px; }.occupancy-title-row h3 { font-size: 15px; }.occupancy-bottom { flex-direction: column; align-items: flex-start; gap: 10px; }.occupancy-stepper { width: 100%; justify-content: space-between; box-sizing: border-box; }.occupancy-note p { font-size: 12px; } }

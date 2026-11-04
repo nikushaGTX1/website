@@ -169,7 +169,21 @@
 
     <section class="card" *ngIf="general">
       <label class="field"><span>აღწერა</span><textarea name="description" rows="5" maxlength="5000" [(ngModel)]="data['description']"></textarea><small class="err" *ngIf="showError('description')">{{ showError('description') }}</small></label>
-      <label class="field" *ngIf="info.dealType === 'Rent'"><span>მცხოვრებთა მაქსიმალური რაოდენობა (არასავალდებულო)</span><input name="maxOccupants" type="number" min="1" max="50" [(ngModel)]="data['maxOccupants']"></label>
+      <div class="occupancy-card" *ngIf="info.dealType === 'Rent'" role="group" aria-labelledby="occupancy-title" aria-describedby="occupancy-hint">
+        <div class="occupancy-heading">
+          <span class="occupancy-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3M16 4a3 3 0 0 1 0 6M18 13a6 6 0 0 1 4 6v2"/></svg></span>
+          <div class="occupancy-copy"><div class="occupancy-title-row"><h3 id="occupancy-title">მცხოვრებთა რაოდენობა</h3><span class="occupancy-optional">არასავალდებულო</span></div><p>რამდენი ადამიანის განთავსებაა შესაძლებელი?</p></div>
+        </div>
+        <div class="occupancy-bottom">
+          <div class="occupancy-stepper">
+            <button type="button" aria-label="მცხოვრებთა რაოდენობის შემცირება" [disabled]="!data['maxOccupants'] || data['maxOccupants'] <= 1" (click)="adjustOccupants(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+            <input name="maxOccupants" type="number" inputmode="numeric" min="1" max="50" step="1" placeholder="—" aria-label="მცხოვრებთა მაქსიმალური რაოდენობა" [(ngModel)]="data['maxOccupants']">
+            <button type="button" aria-label="მცხოვრებთა რაოდენობის გაზრდა" [disabled]="data['maxOccupants'] >= 50" (click)="adjustOccupants(1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
+          </div>
+          <div class="occupancy-note"><p id="occupancy-hint">ცარიელი ველი შეზღუდვას არ ადგენს.</p><button type="button" class="occupancy-clear" *ngIf="data['maxOccupants'] != null" (click)="data['maxOccupants'] = null">გასუფთავება</button></div>
+        </div>
+        <small class="err" *ngIf="showError('maxOccupants')">{{ showError('maxOccupants') }}</small>
+      </div>
     </section>
 
     <section class="card" *ngIf="!editId">
