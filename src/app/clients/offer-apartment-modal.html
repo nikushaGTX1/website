@@ -1,0 +1,87 @@
+<div class="offer-backdrop" (click)="closed.emit()">
+  <div class="offer-dialog" role="dialog" aria-modal="true" aria-labelledby="offer-title" (click)="$event.stopPropagation()">
+    <header class="offer-head">
+      <div class="offer-brand"><img src="/velven-mark.svg" alt="" aria-hidden="true" /><span data-no-translate>Velven</span></div>
+      <button type="button" class="offer-close" aria-label="Close" (click)="closed.emit()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </header>
+
+    @if (submitted) {
+      <div class="offer-scroll offer-success" role="status">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+        <h2 id="offer-title">Your apartment was sent to the agent</h2>
+        <p>The agent will review it before it is offered to anyone.</p>
+        <button type="button" class="offer-send" (click)="closed.emit()">Done</button>
+      </div>
+    } @else {
+      <div class="offer-scroll">
+        <h2 id="offer-title">Offer your apartment</h2>
+        <p class="offer-sub"><span>You are offering an apartment to client</span> #{{ client.id }}</p>
+
+        <section class="offer-client">
+          <span class="offer-avatar" aria-hidden="true"><i class="fa-regular fa-user"></i></span>
+          <div>
+            <h3><span>{{ goal === 'Buy' ? 'Buyer' : 'Client' }}</span> #{{ client.id }}</h3>
+            <ul>
+              <li><i class="fa-solid fa-wallet" aria-hidden="true"></i><strong>{{ currency }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></li>
+              <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                @for (district of client.profile.districts; track district) {@if ($index) {<span> · </span>}<span>{{ label(district) }}</span>}
+                <span *ngIf="!client.profile.districts.length">{{ client.profile.locationFlexible ? 'Flexible location' : 'Selected map area' }}</span>
+              </li>
+              <li><i class="fa-solid fa-user-group" aria-hidden="true"></i>{{ residents }} @if (residents === 1) {<span>person</span>} @else {<span>people</span>}</li>
+              <li *ngIf="client.profile.bedrooms != null"><i class="fa-solid fa-bed" aria-hidden="true"></i>{{ client.profile.bedrooms }} @if (client.profile.bedrooms === 1) {<span>bedroom</span>} @else {<span>bedrooms</span>}</li>
+              <li *ngIf="client.profile.minSize"><i class="fa-solid fa-house" aria-hidden="true"></i>{{ client.profile.minSize }}+ m²</li>
+              <li *ngIf="goal !== 'Buy' && client.profile.hasPet"><i class="fa-solid fa-paw" aria-hidden="true"></i><span>With pets</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="offer-listings" aria-labelledby="offer-listing-title">
+          <h3 id="offer-listing-title">Your apartment</h3>
+          @if (example) {
+            <p class="offer-note">This is an example profile, so nothing can be sent to it.</p>
+          } @else if (!loggedIn) {
+            <p class="offer-note">Sign in to choose one of your listings.</p>
+            <button type="button" class="offer-link" (click)="signIn()">Sign in</button>
+          } @else if (loading) {
+            <div class="offer-skeleton" aria-label="Loading your listings"></div>
+          } @else if (loadFailed) {
+            <p class="offer-error" role="alert">Your listings could not be loaded.</p>
+            <button type="button" class="offer-link" (click)="loadListings()">Retry</button>
+          } @else if (!listings.length) {
+            <p class="offer-note">You have no listings yet. Upload your apartment first, then come back to offer it.</p>
+            <a class="offer-link" routerLink="/upload-apartment" [queryParams]="uploadParams" (click)="closed.emit()">Upload your apartment</a>
+          } @else {
+            <div class="offer-options">
+              @for (listing of listings; track listing.id) {
+                <label [class.selected]="apartmentId === listing.id">
+                  <input type="radio" name="offerApartment" [value]="listing.id" [(ngModel)]="apartmentId" (ngModelChange)="error = ''" />
+                  <span><strong data-no-translate>{{ listing.title }}</strong><small><span data-no-translate>{{ listing.district }}</span> · ${{ listing.price | number }}</small></span>
+                </label>
+              }
+            </div>
+          }
+        </section>
+
+        <label class="offer-share">
+          <input type="checkbox" name="offerShare" [(ngModel)]="share" />
+          <span>
+            <strong>Offer to other matching clients too</strong>
+            <small>After the agent's review, your apartment may also be offered to other clients whose requirements it meets.</small>
+          </span>
+        </label>
+        <p class="offer-hint">If you uncheck this, the apartment is sent only to the selected client.</p>
+
+        <p class="offer-security"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>A Velven agent reviews every offer. Sharing does not reveal clients' private details.</span></p>
+        <p class="offer-error" *ngIf="error" role="alert">{{ error }}</p>
+      </div>
+
+      <footer class="offer-foot">
+        <button type="button" class="offer-back" (click)="closed.emit()">Back</button>
+        <button type="button" class="offer-send" [disabled]="!canSend || submitting" [attr.aria-busy]="submitting" (click)="send()">
+          @if (submitting) {<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i><span>Sending…</span>}
+          @else {<span>Send to agent</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>}
+        </button>
+      </footer>
+    }
+  </div>
+</div>

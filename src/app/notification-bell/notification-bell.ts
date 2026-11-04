@@ -146,6 +146,10 @@ export class NotificationBell implements OnInit, OnDestroy {
       void this.router.navigate(['/crm/leads', item.leadId]);
       return;
     }
+    if ((item.type === 'apartment-offer' || item.type === 'apartment-offer-match') && item.offerId) {
+      void this.router.navigate(['/crm/apartment-offers'], { queryParams: { offer: item.offerId } });
+      return;
+    }
     if (item.type === 'interest-review') {
       void this.router.navigate(['/crm/interested-clients']);
       return;
@@ -196,6 +200,13 @@ export class NotificationBell implements OnInit, OnDestroy {
       return `${item.actorName || 'A team member'} changed ${item.leadName || 'Lead #' + item.leadId} from ${this.statusLabel(item.fromStatus)} to ${this.statusLabel(item.toStatus)}.`;
     }
     const apartment = item.apartment;
+    if (item.type === 'apartment-offer') {
+      const size = apartment?.sizeSquareMeters ? `, ${apartment.sizeSquareMeters} m²` : '';
+      return `New apartment offered to client #${item.clientId}: ${apartment?.district || 'Tbilisi'}, ${apartment?.bedrooms ?? 0} bedrooms${size}. Sharing with other clients: ${item.shareWithOtherClients ? 'on' : 'off'}.`;
+    }
+    if (item.type === 'apartment-offer-match') {
+      return `An approved apartment in ${apartment?.district || 'Tbilisi'} fits your client #${item.clientId}.`;
+    }
     if (item.type === 'interest-review') {
       return `A client's search matches your listing in ${apartment?.district || 'Tbilisi'}. Check the client before the owner is told.`;
     }

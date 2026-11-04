@@ -1,0 +1,64 @@
+<main class="page">
+  <a class="back" routerLink="/crm"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> CRM</a>
+  <h1>Apartment offers</h1>
+  <p class="lead">Apartments users offered to your clients. Approving does not publish the listing.</p>
+
+  <div class="tabs" role="tablist" aria-label="Offer status">
+    @for (tab of tabs; track tab.value) {
+      <button type="button" role="tab" [class.active]="status === tab.value" [attr.aria-selected]="status === tab.value" (click)="setStatus(tab.value)">{{ tab.label }}</button>
+    }
+  </div>
+  <p class="notice" *ngIf="notice" role="status">{{ notice }}</p>
+  <p class="failure" *ngIf="actionError" role="alert">{{ actionError }}</p>
+
+  @if (loading) {
+    <div class="skeleton" aria-label="Loading offers"></div>
+  } @else if (error) {
+    <div class="state" role="alert"><h2>{{ error }}</h2><button type="button" class="primary" (click)="load()">Try again</button></div>
+  } @else if (!items.length) {
+    <div class="state"><h2>No offers here.</h2></div>
+  } @else {
+    <ul class="list">
+      @for (item of items; track item.id) {
+        <li class="offer" [class.focused]="item.id === focusId">
+          <div class="info">
+            <p class="meta"><strong><span>Client</span> #{{ item.clientId }}</strong> · {{ item.createdAt | date: 'dd.MM.yyyy HH:mm' }}</p>
+            <h2 data-no-translate>{{ item.apartment.title }}</h2>
+            <p><app-currency-price [usdPrice]="item.apartment.price"></app-currency-price> · <span data-no-translate>{{ item.apartment.district }}</span> · {{ item.apartment.bedrooms }} <span>bedrooms</span> · {{ item.apartment.sizeSquareMeters }} m²</p>
+            <p>
+              @if (item.shareWithOtherClients) {<span class="tag on">Sharing with other clients: on</span>} @else {<span class="tag">Sharing with other clients: off</span>}
+              @if (!item.apartment.isApproved) {<span class="tag">Listing not published</span>}
+            </p>
+            <p *ngIf="item.submitter.name || item.submitter.phone"><span>Submitted by</span> <span data-no-translate>{{ item.submitter.name }}</span> <a *ngIf="item.submitter.phone" [href]="'tel:' + item.submitter.phone">{{ item.submitter.phone }}</a></p>
+            <p *ngIf="item.matchedClientIds.length"><span>Compatible clients</span>: @for (id of item.matchedClientIds; track id) {#{{ id }} }</p>
+          </div>
+          <div class="actions">
+            <a class="secondary" [routerLink]="['/apartments', item.apartment.id]">View apartment</a>
+            @if (item.status === 'pending') {
+              <button type="button" class="secondary" [disabled]="busyId !== null" (click)="review(item, 'reject')">Reject</button>
+              <button type="button" class="primary" [disabled]="busyId !== null" (click)="review(item, 'approve')">Approve</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (matches.length) {
+    <section class="matches">
+      <h2>Compatible with your clients</h2>
+      <ul class="list">
+        @for (match of matches; track match.id) {
+          <li class="offer">
+            <div class="info">
+              <p class="meta"><strong><span>Client</span> #{{ match.clientId }}</strong> · {{ match.createdAt | date: 'dd.MM.yyyy' }}</p>
+              <h3 data-no-translate>{{ match.apartment.title }}</h3>
+              <p><app-currency-price [usdPrice]="match.apartment.price"></app-currency-price> · <span data-no-translate>{{ match.apartment.district }}</span> · {{ match.apartment.bedrooms }} <span>bedrooms</span></p>
+            </div>
+            <div class="actions"><a class="secondary" [routerLink]="['/apartments', match.apartment.id]">View apartment</a></div>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</main>

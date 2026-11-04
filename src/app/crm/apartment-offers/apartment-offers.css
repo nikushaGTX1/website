@@ -1,0 +1,25 @@
+.page { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; color: #14112a; }
+.back { color: #451a8f; font-weight: 700; text-decoration: none; }
+h1 { margin: 12px 0 6px; font-size: 30px; }
+.lead, .meta { color: #6b6478; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0; }
+.tabs button { min-height: 44px; padding: 0 16px; border: 1px solid #e9e5f0; border-radius: 10px; background: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.tabs .active { border-color: #451a8f; background: #451a8f; color: #fff; }
+.list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.offer { display: flex; justify-content: space-between; gap: 16px; padding: 18px; border: 1px solid #e9e5f0; border-radius: 14px; background: #fff; }
+.offer.focused { border-color: #451a8f; box-shadow: 0 0 0 2px #451a8f33; }
+.offer h2, .offer h3 { margin: 4px 0; font-size: 19px; overflow-wrap: anywhere; }
+.offer p { margin: 6px 0; }
+.tag { display: inline-block; margin-right: 6px; padding: 3px 9px; border-radius: 999px; background: #f3effa; font-size: 13px; }
+.tag.on { background: #451a8f; color: #fff; }
+.actions { display: flex; flex: none; flex-direction: column; gap: 8px; }
+.primary, .secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 10px; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.primary { border: 0; background: #451a8f; color: #fff; }
+.secondary { border: 1px solid #451a8f; background: #fff; color: #451a8f; }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+.notice { padding: 10px 14px; border-radius: 10px; background: #f3effa; }
+.failure { color: #b42318; font-weight: 600; }
+.skeleton { height: 140px; border-radius: 14px; background: #f3effa; }
+.state { padding: 40px 16px; text-align: center; }
+.matches { margin-top: 36px; }
+@media (max-width: 620px) { .offer { flex-direction: column; } .actions { flex-direction: row; flex-wrap: wrap; } .actions > * { flex: 1 1 120px; } }

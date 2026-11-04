@@ -573,7 +573,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(36px, 5vw, 68px); font-weigh
   display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; margin-top: auto;
   border-radius: 10px; background: var(--brand); color: #fff; font-size: 16px; font-weight: 700; text-decoration: none;
 }
-.cc-offer { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; margin-top: 6px; color: var(--brand); font-size: 16px; font-weight: 700; text-decoration: none; }
+.cc-offer { width: 100%; border: 0; background: none; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; margin-top: 6px; color: var(--brand); font-size: 16px; font-weight: 700; text-decoration: none; }
 @media (hover: hover) {
   .cc-contact:hover { background: #3a1479; }
   .cc-offer:hover span { text-decoration: underline; }

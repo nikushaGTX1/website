@@ -65,6 +65,13 @@ const routes: Routes = [
     canActivate: [authGuard, crmGuard],
   },
   {
+    // Agents approve or reject apartments users offered to a client.
+    path: 'crm/apartment-offers',
+    loadComponent: () => import('./crm/apartment-offers/apartment-offers').then((m) => m.ApartmentOffers),
+    title: 'Apartment offers | Velven',
+    canActivate: [authGuard, crmGuard],
+  },
+  {
     path: 'crm/viewings',
     loadComponent: () => import('./my-viewings/my-viewings').then((m) => m.MyViewings),
     canActivate: [authGuard, crmGuard],

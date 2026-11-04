@@ -19,6 +19,7 @@ import { answerLabel } from '../ai-home-match/services/answer-labels';
 import { enableFlagEmojis } from '../utils/flag-emoji';
 import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 import { TranslationService } from '../services/translation.service';
+import { OfferApartmentModal } from './offer-apartment-modal';
 
 // Windows has no flag emoji; this loads a small flag font instead.
 enableFlagEmojis();
@@ -75,7 +76,7 @@ function countryFlag(name: string | null | undefined): string {
 
 @Component({
   selector: 'app-clients',
-  imports: [PhotoUrlPipe, CommonModule, FormsModule, RouterLink],
+  imports: [PhotoUrlPipe, CommonModule, FormsModule, RouterLink, OfferApartmentModal],
   templateUrl: './clients.html',
   styleUrl: './clients.css',
 })
@@ -108,6 +109,8 @@ export class Clients implements OnInit, OnDestroy {
     'Sololaki',
     'Samgori',
   ];
+  /** The client whose "Offer your apartment" modal is open. */
+  offerClient: BoardClient | null = null;
   district = '';
   budget = '';
   timing = '';

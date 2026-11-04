@@ -131,7 +131,7 @@
               </div>
               <a class="cc-contact" *ngIf="client.agent.phone; else noPhone" [href]="'tel:' + client.agent.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a>
               <ng-template #noPhone><a class="cc-contact" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a></ng-template>
-              <a class="cc-offer" routerLink="/upload-apartment" [queryParams]="suggest(client)"><span>Offer your apartment</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+              <button type="button" class="cc-offer" (click)="offerClient = client"><span>Offer your apartment</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
             </div>
           </article>
         }
@@ -151,6 +151,10 @@
     </div>
     <a routerLink="/upload-apartment">Offer your apartment <span aria-hidden="true">→</span></a>
   </section>
+
+  @if (offerClient) {
+    <app-offer-apartment-modal [client]="offerClient" [goal]="goal" [example]="showingExamples" [uploadParams]="suggest(offerClient)" (closed)="offerClient = null"></app-offer-apartment-modal>
+  }
 
   @if (openFilter && filterSheet && openFilterDef; as sheet) {
     <div class="sheet-backdrop" #sheetPortal (click)="openFilter = null">

@@ -248,6 +248,7 @@ export class App implements AfterViewInit {
       listings: 'My listings',
       'owner-submissions': 'Owner submissions',
       'interested-clients': 'Interested clients',
+      'apartment-offers': 'Apartment offers',
       'photo-cleaner': 'Watermark remover',
       approvals: 'Listing approvals',
       coupons: 'Coupons',
