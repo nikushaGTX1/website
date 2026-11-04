@@ -83,10 +83,11 @@ export class ImageAiService {
   // Upload-form check: scans one photo, or removes our own watermark when allowed.
   // source: the partner site the photos come from ("myhome" when a MyHome ID is given), so its
   // pale logo is recognised even when only part of it can be read.
-  check(image: File, mode: 'detect' | 'clean', rightsConfirmed = false, source = ''): Observable<PhotoCheckResult> {
+  check(image: File, mode: 'detect' | 'clean', rightsConfirmed = false, source = '', watermarkScope: 'brands' | 'all' = 'brands'): Observable<PhotoCheckResult> {
     const body = new FormData();
     body.append('image', image);
     body.append('mode', mode);
+    body.append('watermarkScope', watermarkScope);
     body.append('rightsConfirmed', String(rightsConfirmed));
     if (source) body.append('source', source);
     return this.http.post<PhotoCheckResult>(`${this.baseUrl}/check`, body);

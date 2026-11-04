@@ -3,7 +3,7 @@
     <div>
       <a class="back" routerLink="/crm"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> CRM</a>
       <h1>Watermark remover</h1>
-      <p>Removes Velven, myhome.ge and ss.ge watermarks. Download the clean photos when they are ready.</p>
+      <p>Removes detected watermarks of any brand. Review the results and download your clean photos.</p>
     </div>
     <div class="top-actions" *ngIf="items.length">
       <button type="button" class="ghost" (click)="clear()" [disabled]="running">Clear</button>
@@ -31,7 +31,7 @@
     <span *ngIf="count('waiting') + count('working')"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i><b>{{ count('waiting') + count('working') }}</b> in progress</span>
     <span class="ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><b>{{ count('cleaned') }}</b> removed</span>
     <span><i class="fa-regular fa-image" aria-hidden="true"></i><b>{{ count('clean') }}</b> no watermark</span>
-    <span class="warn" *ngIf="count('other')"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><b>{{ count('other') }}</b> other company</span>
+    <span class="warn" *ngIf="count('other')"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><b>{{ count('other') }}</b> not removed</span>
     <span class="bad" *ngIf="count('error')"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i><b>{{ count('error') }}</b> failed</span>
   </div>
 
@@ -44,7 +44,7 @@
           <ng-container *ngSwitchCase="'working'"><i class="fa-solid fa-spinner fa-spin"></i> Removing…</ng-container>
           <ng-container *ngSwitchCase="'cleaned'"><i class="fa-solid fa-circle-check"></i> Removed</ng-container>
           <ng-container *ngSwitchCase="'clean'"><i class="fa-regular fa-image"></i> No watermark</ng-container>
-          <ng-container *ngSwitchCase="'other'"><i class="fa-solid fa-triangle-exclamation"></i> Other company</ng-container>
+          <ng-container *ngSwitchCase="'other'"><i class="fa-solid fa-triangle-exclamation"></i> Not removed</ng-container>
           <ng-container *ngSwitchCase="'error'"><i class="fa-solid fa-circle-xmark"></i> Failed</ng-container>
         </span>
         <button
@@ -65,7 +65,7 @@
         <button type="button" class="primary" *ngIf="item.state === 'cleaned' || item.state === 'clean'" (click)="download(item)">
           <i class="fa-solid fa-download" aria-hidden="true"></i> Download
         </button>
-        <button type="button" class="ghost" *ngIf="item.state === 'error'" (click)="retry(item)">Try again</button>
+        <button type="button" class="ghost" *ngIf="item.state === 'error' || item.state === 'other'" (click)="retry(item)">Try again</button>
         <button type="button" class="icon" (click)="remove(item)" [disabled]="item.state === 'working'" aria-label="Remove photo">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>

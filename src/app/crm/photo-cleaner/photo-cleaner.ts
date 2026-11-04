@@ -18,11 +18,7 @@ interface CleanItem {
 const MAX_BYTES = 8 * 1024 * 1024;
 const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-/**
- * CRM tool: staff drop listing photos, Velven's and licensed partners' watermarks
- * (myhome.ge, ss.ge) are removed, and the clean photos are downloaded.
- * Other companies' watermarks are never removed; those photos are flagged instead.
- */
+/** CRM cleanup for detected watermarks of any brand. */
 @Component({
   selector: 'app-photo-cleaner',
   standalone: true,
@@ -84,7 +80,7 @@ export class PhotoCleaner implements OnDestroy {
       item.state = 'working';
       this.cdr.markForCheck();
       try {
-        const result = await firstValueFrom(this.imageAi.check(item.file, 'clean', true));
+        const result = await firstValueFrom(this.imageAi.check(item.file, 'clean', true, '', 'all'));
         if (result.cleanedImage) {
           item.cleaned = URL.createObjectURL(base64Blob(result.cleanedImage, result.contentType || 'image/jpeg'));
           item.state = 'cleaned';
@@ -93,8 +89,8 @@ export class PhotoCleaner implements OnDestroy {
         } else if (result.classification === 'third_party') {
           item.state = 'other';
           item.message = result.watermarkText
-            ? `Watermark of another company (${result.watermarkText}). Ask the owner for the original photo.`
-            : 'Unrecognised watermark. Ask the owner for the original photo.';
+            ? `Watermark (${result.watermarkText}) could not be removed. Try again.`
+            : 'The detected watermark could not be removed. Try again.';
         } else {
           item.state = 'error';
           item.message = 'The watermark was found but could not be removed cleanly.';
