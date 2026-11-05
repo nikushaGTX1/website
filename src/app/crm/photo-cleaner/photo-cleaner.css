@@ -78,3 +78,13 @@ li[data-state='working'] .badge { color: var(--brand); }
   .compare, .back { min-height: 44px; }
   .icon { width: 44px; height: 44px; }
 }
+
+.edit-permissions { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; padding: 18px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+.edit-permissions label { display: grid; gap: 6px; font-size: 14px; }
+.edit-permissions .edit-consent { display: flex; align-items: center; gap: 8px; flex: 1 1 100%; }
+.edit-permissions select, .edit-permissions input:not([type=checkbox]) { min-height: 40px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; max-width: 100%; }
+.mask-picker { display: grid; gap: 6px; padding: 12px 14px; font-size: 13px; }
+.mask-picker input { width: 100%; }
+.mask-picker small { color: var(--muted); line-height: 1.5; }
+.actions { flex-wrap: wrap; }
+.actions .primary, .actions .ghost { padding: 6px 12px; flex: 1 1 130px; }

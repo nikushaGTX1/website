@@ -41,7 +41,7 @@ export class ImageAiCard implements OnInit, OnDestroy {
   queuedCount = 0;
 
   apartmentId: number | null = null;
-  mode: 'detect' | 'process' = 'detect';
+  mode: 'process' | 'enhance' = 'enhance';
   basis: ImageAuthorizationBasis = 'Unknown';
   permissionReference = '';
   submitting = false;
@@ -83,7 +83,7 @@ export class ImageAiCard implements OnInit, OnDestroy {
 
   get canSubmit(): boolean {
     if (!this.apartmentId || this.apartmentId < 1 || this.submitting) return false;
-    if (this.mode === 'process' && this.basis === 'Unknown') return false;
+    if (this.basis === 'Unknown') return false;
     return this.basis !== 'Licensed' || this.permissionReference.trim().length > 0;
   }
 

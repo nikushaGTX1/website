@@ -38,7 +38,7 @@ export interface ImageAiJob {
   apartmentId: number | null;
   apartmentImageId: number | null;
   status: ImageJobStatus;
-  mode: 'detect' | 'process';
+  mode: 'process' | 'enhance';
   authorizationBasis: ImageAuthorizationBasis;
   classification: string | null;
   watermarkText: string | null;
@@ -56,14 +56,15 @@ export interface ImageAiJob {
 
 export interface ImageAiEnqueueRequest {
   apartmentId: number;
-  mode: 'detect' | 'process';
+  mode: 'process' | 'enhance';
   authorizationBasis: ImageAuthorizationBasis;
   permissionReference?: string;
 }
 
 export interface PhotoCheckResult {
   /** partner_brand: a licensed partner's mark (e.g. myhome.ge) that Velven may remove. */
-  classification: 'none' | 'own_brand' | 'partner_brand' | 'third_party';
+  jobId?: number;
+  classification: 'authorized_edit' | 'none' | 'own_brand' | 'partner_brand' | 'third_party';
   watermarkText: string | null;
   action: string;
   cleanedImage?: string | null;
@@ -80,17 +81,22 @@ export class ImageAiService {
     return this.http.get<{ enabled: boolean; canRemove: boolean }>(`${this.baseUrl}/availability`);
   }
 
-  // Upload-form check: scans one photo, or removes our own watermark when allowed.
-  // source: the partner site the photos come from ("myhome" when a MyHome ID is given), so its
-  // pale logo is recognised even when only part of it can be read.
-  check(image: File, mode: 'detect' | 'clean', rightsConfirmed = false, source = '', watermarkScope: 'brands' | 'all' = 'brands'): Observable<PhotoCheckResult> {
+  // Explicit editing only. API credentials and output settings stay on the server.
+  check(image: File, mode: 'clean' | 'enhance' | 'objects', rightsConfirmed: boolean,
+    options: { mask?: File; instructions?: string; authorizationBasis?: 'owned' | 'licensed'; permissionReference?: string } = {}): Observable<PhotoCheckResult> {
     const body = new FormData();
     body.append('image', image);
     body.append('mode', mode);
-    body.append('watermarkScope', watermarkScope);
     body.append('rightsConfirmed', String(rightsConfirmed));
-    if (source) body.append('source', source);
+    body.append('authorizationBasis', options.authorizationBasis || 'owned');
+    if (options.mask) body.append('mask', options.mask);
+    if (options.instructions) body.append('instructions', options.instructions);
+    if (options.permissionReference) body.append('permissionReference', options.permissionReference);
     return this.http.post<PhotoCheckResult>(`${this.baseUrl}/check`, body);
+  }
+
+  approveDraft(id: number): Observable<unknown> {
+    return this.http.post(`${this.baseUrl}/jobs/${id}/approve-draft`, {});
   }
 
   status(): Observable<ImageAiStatus> {

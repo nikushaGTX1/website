@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ImageAiService } from '../../services/image-ai.service';
@@ -13,16 +14,17 @@ interface CleanItem {
   state: CleanState;
   message?: string;
   showOriginal?: boolean;
+  mask?: File;
 }
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-/** CRM cleanup for detected watermarks of any brand. */
+/** Explicit cleanup of uploader-owned or authorized marks. */
 @Component({
   selector: 'app-photo-cleaner',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './photo-cleaner.html',
   styleUrl: './photo-cleaner.css',
 })
@@ -31,8 +33,26 @@ export class PhotoCleaner implements OnDestroy {
   dragging = false;
   running = false;
   notice = '';
+  rightsConfirmed = false;
+  authorizationBasis: 'owned' | 'licensed' = 'owned';
+  permissionReference = '';
+  enabled = false;
 
-  constructor(private imageAi: ImageAiService, private cdr: ChangeDetectorRef) {}
+  constructor(private imageAi: ImageAiService, private cdr: ChangeDetectorRef) {
+    imageAi.availability().subscribe({ next: value => { this.enabled = value.canRemove; this.cdr.markForCheck(); }, error: () => { this.enabled = false; } });
+  }
+
+  pickMask(item: CleanItem, input: HTMLInputElement): void {
+    item.mask = input.files?.[0];
+    input.value = '';
+  }
+
+  get canStart(): boolean {
+    return this.enabled && this.rightsConfirmed && !this.running &&
+      (this.authorizationBasis === 'owned' || !!this.permissionReference.trim());
+  }
+
+  start(): void { if (this.canStart) void this.run(); }
 
   ngOnDestroy(): void {
     for (const item of this.items) {
@@ -68,21 +88,20 @@ export class PhotoCleaner implements OnDestroy {
     for (const file of files.filter((f) => !skipped.includes(f))) {
       this.items.push({ file, original: URL.createObjectURL(file), state: 'waiting' });
     }
-    void this.run();
   }
 
-  /** One photo at a time: the AI service runs on a single GPU worker. */
+  /** Submit each explicitly selected image once; stop the batch on failure. */
   private async run(): Promise<void> {
-    if (this.running) return;
+    if (!this.canStart) return;
     this.running = true;
     let item: CleanItem | undefined;
     while ((item = this.items.find((entry) => entry.state === 'waiting'))) {
       item.state = 'working';
       this.cdr.markForCheck();
       try {
-        const result = await firstValueFrom(this.imageAi.check(item.file, 'clean', true, '', 'all'));
+        const result = await firstValueFrom(this.imageAi.check(item.file, 'clean', this.rightsConfirmed, { mask: item.mask, authorizationBasis: this.authorizationBasis, permissionReference: this.permissionReference }));
         if (result.cleanedImage) {
-          item.cleaned = URL.createObjectURL(base64Blob(result.cleanedImage, result.contentType || 'image/jpeg'));
+          item.cleaned = URL.createObjectURL(base64Blob(result.cleanedImage, result.contentType || 'image/png'));
           item.state = 'cleaned';
         } else if (result.classification === 'none') {
           item.state = 'clean';
@@ -97,7 +116,9 @@ export class PhotoCleaner implements OnDestroy {
         }
       } catch (error: any) {
         item.state = 'error';
-        item.message = error?.error?.message || 'Photo check failed. Try again.';
+        item.message = error?.error?.message || 'Image editing failed. No automatic retry was made.';
+        this.notice = 'Processing paused after a failure. Review the error before starting remaining photos.';
+        break;
       }
       this.cdr.markForCheck();
     }
@@ -106,6 +127,7 @@ export class PhotoCleaner implements OnDestroy {
   }
 
   retry(item: CleanItem): void {
+    if (!this.canStart) return;
     item.state = 'waiting';
     item.message = undefined;
     void this.run();
@@ -126,7 +148,14 @@ export class PhotoCleaner implements OnDestroy {
 
   fileName(item: CleanItem): string {
     const base = item.file.name.replace(/\.[^.]+$/, '');
-    return `${base}-velven.jpg`;
+    return `${base}-velven.png`;
+  }
+
+  downloadOriginal(item: CleanItem): void {
+    const link = document.createElement('a');
+    link.href = item.original;
+    link.download = item.file.name;
+    link.click();
   }
 
   download(item: CleanItem): void {

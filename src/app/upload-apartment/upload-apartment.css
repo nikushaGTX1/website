@@ -2412,3 +2412,12 @@ select:focus {
 .deposit-amount { display: flex; align-items: center; gap: 10px; max-width: 260px; margin-top: 12px; }
 .deposit-amount input { flex: 1; min-width: 0; }
 .deposit-amount b { color: #451a8f; }
+/* Explicit image edits reuse the existing photo panel and gallery. */
+.photo-ai-panel .image-edit-consent { display: flex; align-items: start; gap: 10px; font-size: 14px; }
+.photo-ai-panel .image-edit-consent input[type=checkbox] { width: 18px; height: 18px; min-height: 18px; flex: 0 0 18px; margin-top: 3px; accent-color: #5b21b6; }
+.image-edit-actions { display: flex; flex-direction: column; gap: 10px; padding: 12px; font-size: 13px; }
+.image-edit-actions label { display: grid; gap: 6px; }
+.image-edit-actions input[type=file] { width: 100%; min-width: 0; font-size: 12px; padding: 6px; }
+.image-edit-actions small { line-height: 1.5; color: #716582; }
+.image-edit-actions button, .image-edit-actions a { padding: 10px; border: 1px solid #ded3ef; border-radius: 9px; background: #f6f1ff; color: #5b21b6; font: inherit; text-align: center; cursor: pointer; }
+.image-edit-actions button:disabled { opacity: .5; cursor: default; }

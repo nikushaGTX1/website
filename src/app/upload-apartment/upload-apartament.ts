@@ -163,8 +163,6 @@ interface ListingPlanOption {
   benefits: string[];
 }
 
-type PhotoCheckState = 'checking' | 'clean' | 'own' | 'partner' | 'third' | 'cleaning' | 'cleaned' | 'error';
-
 interface PreparedImage {
   previewUrl: string;
   file: File;
@@ -470,15 +468,19 @@ export class UploadApartment implements OnInit, OnDestroy {
   folderImportError = '';
   importingFolder = false;
   selectedImages: File[] = [];
-  // Watermark checks run in the background and never block the upload.
+  // Optional explicit admin editing; ordinary uploads never spend API credits.
   photoChecksEnabled = false;
   canRemoveWatermarks = false;
   photoRightsConfirmed = false;
-  photoChecks = new Map<File, { state: PhotoCheckState; text?: string | null }>();
-  private photoCheckQueue: File[] = [];
-  /** Photo checks running at the same time (the AI service handles three photos at once). */
-  private photoCheckWorkers = 0;
-  private static readonly photoCheckParallel = 3;
+  imageEditMode: 'enhance' | 'clean' | 'objects' = 'enhance';
+  imageEditInstructions = '';
+  imageEditBasis: 'owned' | 'licensed' = 'owned';
+  imageEditPermission = '';
+  editingPhoto = false;
+  imageMasks = new Map<File, File>();
+  imageDrafts = new Map<File, { file: File; url: string; jobId: number }>();
+  approvedImageOriginals = new Map<File, { file: File; url: string }>();
+
   draggedImageIndex: number | null = null;
   imageDropIndex: number | null = null;
 
@@ -647,10 +649,9 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.imageAiService.availability().subscribe({
         next: ({ enabled, canRemove }) => {
-          // Owners upload their own photos: no watermark check or remover for them.
+          // Editing availability is granted by the admin-only backend gate.
           this.photoChecksEnabled = enabled && !this.authService.isOwner;
           this.canRemoveWatermarks = canRemove;
-          if (enabled) this.queuePhotoChecks(this.selectedImages);
           this.cdr.markForCheck();
         },
         error: () => (this.photoChecksEnabled = false),
@@ -749,7 +750,6 @@ export class UploadApartment implements OnInit, OnDestroy {
           this.form.imageUrls = images.map((item) => item.previewUrl);
           this.form.imageUrl = this.form.imageUrls[0] || '';
           this.selectedImages = images.map((item) => item.file);
-          this.queuePhotoChecks(this.selectedImages);
           this.editLoading = false;
           this.cdr.detectChanges();
         },
@@ -1248,9 +1248,6 @@ export class UploadApartment implements OnInit, OnDestroy {
   }
 
   /** Photos of a listing with a MyHome ID come from myhome.ge (a partner whose mark we remove). */
-  get photoSource(): string {
-    return /^[1-9][0-9]{4,7}$/.test(this.form.myHomeId.trim()) ? 'myhome' : '';
-  }
 
   /**
    * A property owner listing their own home: they give only their own name and phone (kept
@@ -1819,179 +1816,67 @@ export class UploadApartment implements OnInit, OnDestroy {
 
     this.form.imageUrl = this.form.imageUrls[0] || '';
     input.value = '';
-    this.queuePhotoChecks(successfulImages.map((image) => image.file));
   }
 
-  photoCheck(index: number) {
+  setImageMask(index: number, input: HTMLInputElement): void {
     const file = this.selectedImages[index];
-    return file ? this.photoChecks.get(file) : undefined;
+    const mask = input.files?.[0];
+    if (file && mask) this.imageMasks.set(file, mask);
+    input.value = '';
   }
 
-  /** Velven's own mark or a licensed partner's (myhome.ge): staff may remove these. */
-  isRemovableState(state: PhotoCheckState | undefined): boolean {
-    return state === 'own' || state === 'partner';
-  }
+  draftAt(index: number) { return this.imageDrafts.get(this.selectedImages[index]); }
 
-  private photoCount(state: PhotoCheckState): number {
-    return this.selectedImages.filter((file) => this.photoChecks.get(file)?.state === state).length;
-  }
-
-  get removablePhotoCount(): number {
-    return this.photoCount('own') + this.photoCount('partner');
-  }
-
-  get checkingPhotoCount(): number {
-    return this.photoCount('checking') + this.photoCount('cleaning');
-  }
-
-  get cleanPhotoCount(): number {
-    return this.photoCount('clean');
-  }
-
-  get removedPhotoCount(): number {
-    return this.photoCount('cleaned');
-  }
-
-  /** Removes every removable watermark, one photo at a time (single GPU worker). */
-  async removeAllWatermarks(): Promise<void> {
-    if (!this.photoRightsConfirmed) return;
-    const indexes = this.selectedImages
-      .map((file, index) => (this.isRemovableState(this.photoChecks.get(file)?.state) ? index : -1))
-      .filter((index) => index >= 0);
-    for (const index of indexes) await this.removeOwnWatermark(index);
-  }
-
-  // Copy for the photo check panel (kept here: apostrophes break template string literals).
-  get photoAiTexts() {
-    const t = (en: string, ka: string, ru: string) => this.uploadLocationText(en, ka, ru);
-    return {
-      title: t('Photo check', 'ფოტოების შემოწმება', 'Проверка фото'),
-      subtitle: t(
-        'Watermarks are detected automatically while you fill in the form.',
-        'წყლის ნიშნები ავტომატურად მოწმდება, სანამ ფორმას ავსებთ.',
-        'Водяные знаки проверяются автоматически, пока вы заполняете форму.',
-      ),
-      checking: t('checking', 'მოწმდება', 'проверяется'),
-      clean: t('clean', 'სუფთა', 'без знака'),
-      removable: t('removable watermark', 'წასაშლელი ნიშანი', 'можно удалить'),
-      removed: this.removedPhotoCount === 1
-        ? t('watermark removed', 'ნიშანი წაიშალა', 'знак удалён')
-        : t('watermarks removed', 'ნიშანი წაიშალა', 'знаков удалено'),
-      auto: t(
-        '',
-        '',
-        '',
-      ),
-      other: t('other watermark', 'სხვა ნიშანი', 'чужой знак'),
-      rights: t(
-        'I confirm Velven may edit these photos (own photos or a partner such as myhome.ge).',
-        'ვადასტურებ, რომ Velven-ს შეუძლია ამ ფოტოების რედაქტირება (საკუთარი ან პარტნიორის, მაგ. myhome.ge).',
-        'Подтверждаю, что Velven может редактировать эти фото (свои или партнёра, например myhome.ge).',
-      ),
-      removeAll: t('Remove watermarks', 'ნიშნების წაშლა', 'Удалить знаки'),
-      confirmFirst: t('Confirm the photo rights first', 'ჯერ დაადასტურეთ ფოტოს უფლებები', 'Сначала подтвердите права на фото'),
-      thirdParty: t(
-        'Some photos carry another company’s watermark. Those are not removed. Please ask the owner for clean originals.',
-        'ზოგ ფოტოზე სხვა კომპანიის წყლის ნიშანია. მათ არ ვშლით. სთხოვეთ მფლობელს სუფთა ორიგინალები.',
-        'На некоторых фото водяной знак другой компании. Его мы не удаляем. Попросите у владельца чистые оригиналы.',
-      ),
-      partnerBadge: t('Partner watermark', 'პარტნიორის ნიშანი', 'Знак партнёра'),
-    };
-  }
-
-  /**
-   * Badge shown on a photo. Photos without a watermark (and checks still running or failed)
-   * show nothing: the check only speaks up when a watermark was found or removed.
-   */
-  visibleCheck(index: number) {
-    const check = this.photoCheck(index);
-    return check && !['clean', 'checking', 'error'].includes(check.state) ? check : null;
-  }
-
-  get thirdPartyPhotoCount(): number {
-    return this.selectedImages.filter((file) => this.photoChecks.get(file)?.state === 'third').length;
-  }
-
-  private queuePhotoChecks(files: File[]): void {
-    if (!this.photoChecksEnabled) return;
-    for (const file of files) {
-      if (this.photoChecks.has(file)) continue;
-      this.photoChecks.set(file, { state: 'checking' });
-      this.photoCheckQueue.push(file);
-    }
-    void this.runPhotoChecks();
-  }
-
-  // One photo at a time: the GPU service runs a single worker.
-  private runPhotoChecks(): void {
-    while (this.photoCheckWorkers < UploadApartment.photoCheckParallel && this.photoCheckQueue.length) {
-      this.photoCheckWorkers++;
-      void this.photoCheckWorker().finally(() => this.photoCheckWorkers--);
-    }
-  }
-
-  private async photoCheckWorker(): Promise<void> {
-    {
-      while (this.photoCheckQueue.length) {
-        const file = this.photoCheckQueue.shift()!;
-        if (!this.selectedImages.includes(file)) {
-          this.photoChecks.delete(file);
-          continue;
-        }
-        try {
-          const result = await firstValueFrom(this.imageAiService.check(file, 'detect', false, this.photoSource));
-          const state: PhotoCheckState =
-            result.classification === 'third_party'
-              ? 'third'
-              : result.classification === 'partner_brand'
-                ? 'partner'
-                : result.classification === 'own_brand'
-                  ? 'own'
-                  : 'clean';
-          this.photoChecks.set(file, { state, text: result.watermarkText });
-          // Our own and partner marks (myhome.ge, ss.ge) are removed straight away for staff.
-          if (this.canRemoveWatermarks && this.isRemovableState(state)) {
-            this.cdr.markForCheck();
-            await this.removeOwnWatermark(this.selectedImages.indexOf(file), true);
-          }
-        } catch {
-          this.photoChecks.set(file, { state: 'error' });
-        }
-        this.cdr.markForCheck();
-      }
-    }
-  }
-
-  /** auto: removal right after detection (partner agreements cover the permission). */
-  async removeOwnWatermark(index: number, auto = false): Promise<void> {
+  async editPhoto(index: number): Promise<void> {
     const file = this.selectedImages[index];
-    const before = file ? this.photoChecks.get(file) : undefined;
-    if (!file || !this.canRemoveWatermarks || (!auto && !this.photoRightsConfirmed) || !this.isRemovableState(before?.state)) return;
-    this.photoChecks.set(file, { state: 'cleaning' });
+    if (!file || !this.canRemoveWatermarks || !this.photoRightsConfirmed || this.editingPhoto || this.imageDrafts.has(file)) return;
+    this.editingPhoto = true;
+    this.imageUploadMessage = '';
     try {
-      const result = await firstValueFrom(this.imageAiService.check(file, 'clean', true, this.photoSource));
-      if (!result.cleanedImage) throw new Error(result.action);
-      const type = result.contentType || 'image/jpeg';
-      const bytes = Uint8Array.from(atob(result.cleanedImage), (char) => char.charCodeAt(0));
-      const cleaned = new File([bytes], file.name, { type, lastModified: Date.now() });
-      const position = this.selectedImages.indexOf(file);
-      if (position === -1) return;
-      this.selectedImages = this.selectedImages.map((item, i) => (i === position ? cleaned : item));
-      this.form.imageUrls = this.form.imageUrls.map((url, i) =>
-        i === position ? `data:${type};base64,${result.cleanedImage}` : url,
-      );
-      this.form.imageUrl = this.form.imageUrls[0] || '';
-      this.photoChecks.delete(file);
-      this.photoChecks.set(cleaned, { state: 'cleaned' });
-    } catch {
-      this.photoChecks.set(file, { state: before!.state, text: before!.text });
-      this.imageUploadMessage = this.uploadLocationText(
-        'The watermark could not be removed. You can still upload the photo.',
-        'წყლის ნიშანი ვერ წაიშალა. ფოტოს ატვირთვა მაინც შეგიძლიათ.',
-        'Не удалось удалить водяной знак. Фото всё равно можно загрузить.',
-      );
+      const result = await firstValueFrom(this.imageAiService.check(file, this.imageEditMode, this.photoRightsConfirmed, {
+        mask: this.imageMasks.get(file), instructions: this.imageEditInstructions,
+        authorizationBasis: this.imageEditBasis, permissionReference: this.imageEditPermission,
+      }));
+      if (!result.cleanedImage || !result.jobId) throw new Error('No edited image returned.');
+      const bytes = Uint8Array.from(atob(result.cleanedImage), char => char.charCodeAt(0));
+      const edited = new File([bytes], file.name.replace(/\.[^.]+$/, '') + '-edited.png', { type: 'image/png' });
+      if (this.selectedImages.includes(file)) this.imageDrafts.set(file, { file: edited, url: `data:image/png;base64,${result.cleanedImage}`, jobId: result.jobId });
+    } catch (error: any) {
+      this.imageUploadMessage = error?.error?.message || 'Image editing failed. You can still upload the original. No automatic retry was made.';
+    } finally {
+      this.editingPhoto = false;
+      this.cdr.markForCheck();
     }
-    this.cdr.markForCheck();
+  }
+
+  async approveImageEdit(index: number): Promise<void> {
+    const original = this.selectedImages[index];
+    const draft = this.imageDrafts.get(original);
+    if (!draft || this.editingPhoto) return;
+    this.editingPhoto = true;
+    try {
+      await firstValueFrom(this.imageAiService.approveDraft(draft.jobId));
+      const position = this.selectedImages.indexOf(original);
+      if (position < 0) return;
+      this.approvedImageOriginals.set(draft.file, { file: original, url: this.form.imageUrls[position] });
+      this.selectedImages[position] = draft.file;
+      this.form.imageUrls[position] = draft.url;
+      this.form.imageUrl = this.form.imageUrls[0] || '';
+      this.imageDrafts.delete(original);
+    } catch (error: any) { this.imageUploadMessage = error?.error?.message || 'Approval failed; the original remains selected.'; }
+    finally { this.editingPhoto = false; this.cdr.markForCheck(); }
+  }
+
+  discardImageEdit(index: number): void { this.imageDrafts.delete(this.selectedImages[index]); }
+
+  restoreImageOriginal(index: number): void {
+    const file = this.selectedImages[index];
+    const original = this.approvedImageOriginals.get(file);
+    if (!original) return;
+    this.selectedImages[index] = original.file;
+    this.form.imageUrls[index] = original.url;
+    this.form.imageUrl = this.form.imageUrls[0] || '';
+    this.approvedImageOriginals.delete(file);
   }
 
   removeImage(index: number): void {
@@ -2096,7 +1981,6 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.imageUrls = images.map((item) => item.previewUrl);
       this.selectedImages = images.map((item) => item.file);
       this.form.imageUrl = this.form.imageUrls[0] || '';
-      this.queuePhotoChecks(this.selectedImages);
       const skipped = imageFiles.length - images.length;
       this.folderImportMessage = `Imported data.json and ${images.length} photo${images.length === 1 ? '' : 's'}.${skipped ? ` ${skipped} could not be processed.` : ''}`;
       this.activeStep = 0;

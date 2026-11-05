@@ -3,7 +3,7 @@
     <span class="ai-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
     <div>
       <h2>Photo AI</h2>
-      <p>Finds watermarks on listing photos. Only our own or licensed watermarks are removed. Other watermarks are flagged so you can ask the owner for a clean photo.</p>
+      <p>Create authorized photo edits with OpenAI. Review drafts before approval. Each request may incur a charge.</p>
     </div>
     <button type="button" class="ghost-btn refresh" (click)="load()" [disabled]="loading">
       <i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh
@@ -23,7 +23,7 @@
 
   <div class="stats" *ngIf="status">
     <div><span>This month</span><strong>{{ status.budget.imagesProcessed }} / {{ status.budget.monthlyImageQuota }}</strong></div>
-    <div><span>Spent</span><strong>${{ status.budget.spentUsd | number: '1.2-2' }}</strong></div>
+    <div><span>Estimated / reserved</span><strong>${{ status.budget.spentUsd | number: '1.2-2' }}</strong></div>
     <div><span>Projected</span><strong>${{ status.budget.projectedUsd | number: '1.2-2' }}</strong></div>
     <div><span>Cutoff</span><strong>${{ status.budget.budgetCutoffUsd | number: '1.0-0' }}</strong></div>
     <div><span>Queued</span><strong>{{ count('Pending') + count('Running') }}</strong></div>
@@ -33,7 +33,7 @@
     <label><span>Apartment ID</span><input type="number" min="1" name="apartmentId" [(ngModel)]="apartmentId" required /></label>
     <label><span>Action</span>
       <select name="mode" [(ngModel)]="mode">
-        <option value="detect">Scan only</option>
+        <option value="enhance">Natural enhancement</option>
         <option value="process">Remove allowed watermarks</option>
       </select>
     </label>
@@ -51,7 +51,7 @@
       <i class="fa-solid fa-play" aria-hidden="true"></i> Queue photos
     </button>
   </form>
-  <small class="hint" *ngIf="mode === 'process' && basis === 'Unknown'">Choose the photo rights before removing watermarks.</small>
+  <small class="hint" *ngIf="basis === 'Unknown'">Choose the photo rights before removing watermarks.</small>
 
   <nav class="filters" aria-label="Job filter">
     <button type="button" *ngFor="let item of filters" [class.active]="filter === item.value" (click)="setFilter(item.value)">
@@ -78,7 +78,7 @@
       <p *ngIf="job.duplicateOfJobId"><span>Same photo as job</span> #{{ job.duplicateOfJobId }}</p>
       <p class="err" *ngIf="job.lastError">{{ job.lastError }}</p>
       <p *ngIf="job.cleanOriginalRequestedAt" class="muted"><span>Clean original requested</span> {{ job.cleanOriginalRequestedAt | date: 'yyyy-MM-dd' }}</p>
-      <small class="muted">{{ job.createdAt | date: 'yyyy-MM-dd HH:mm' }} · {{ job.gpuSeconds | number: '1.1-1' }}s GPU</small>
+      <small class="muted">{{ job.createdAt | date: 'yyyy-MM-dd HH:mm' }} · estimated ${{ job.estimatedCostUsd | number: '1.2-2' }}</small>
     </div>
     <div class="actions">
       <ng-container *ngIf="job.status === 'AwaitingApproval'">
@@ -86,7 +86,6 @@
         <button type="button" class="ghost-btn" (click)="run(job, 'reject')" [disabled]="busyId === job.id">Reject</button>
       </ng-container>
       <button type="button" class="ghost-btn" *ngIf="job.status === 'Approved'" (click)="run(job, 'revert')" [disabled]="busyId === job.id">Restore original</button>
-      <button type="button" class="ghost-btn" *ngIf="job.status === 'Failed'" (click)="run(job, 'retry')" [disabled]="busyId === job.id">Retry</button>
       <button type="button" class="ghost-btn" *ngIf="job.status === 'NeedsCleanOriginal' && !job.cleanOriginalRequestedAt" (click)="run(job, 'clean-original-requested')" [disabled]="busyId === job.id">Mark as requested</button>
     </div>
   </article>

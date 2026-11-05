@@ -3,7 +3,7 @@
     <div>
       <a class="back" routerLink="/crm"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> CRM</a>
       <h1>Watermark remover</h1>
-      <p>Removes detected watermarks of any brand. Review the results and download your clean photos.</p>
+      <p>Remove only marks you own or have explicit permission to modify. Review before downloading. Results are never published automatically.</p>
     </div>
     <div class="top-actions" *ngIf="items.length">
       <button type="button" class="ghost" (click)="clear()" [disabled]="running">Clear</button>
@@ -12,6 +12,14 @@
       </button>
     </div>
   </header>
+
+  <p *ngIf="!enabled" role="status">Image editing is available to administrators only during testing and may be disabled.</p>
+  <div class="edit-permissions">
+  <label class="edit-consent"><input type="checkbox" [(ngModel)]="rightsConfirmed" [disabled]="running" /> I own these images and marks, or have explicit permission to modify them.</label>
+  <label>Photo rights <select [(ngModel)]="authorizationBasis" [disabled]="running"><option value="owned">Owned</option><option value="licensed">Licensed / authorized</option></select></label>
+  <label *ngIf="authorizationBasis === 'licensed'">Written permission reference <input [(ngModel)]="permissionReference" [disabled]="running" maxlength="500" /></label>
+  <button type="button" class="primary" (click)="start()" [disabled]="!canStart || !count('waiting')">Process selected photos</button>
+  </div>
 
   <label
     class="drop"
@@ -28,7 +36,7 @@
   <p class="notice" *ngIf="notice">{{ notice }}</p>
 
   <div class="stats" *ngIf="items.length" aria-live="polite">
-    <span *ngIf="count('waiting') + count('working')"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i><b>{{ count('waiting') + count('working') }}</b> in progress</span>
+    <span *ngIf="count('waiting') + count('working')"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i><b>{{ count('waiting') + count('working') }}</b> waiting / processing</span>
     <span class="ok"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><b>{{ count('cleaned') }}</b> removed</span>
     <span><i class="fa-regular fa-image" aria-hidden="true"></i><b>{{ count('clean') }}</b> no watermark</span>
     <span class="warn" *ngIf="count('other')"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><b>{{ count('other') }}</b> not removed</span>
@@ -51,21 +59,25 @@
           type="button"
           class="compare"
           *ngIf="item.cleaned"
-          (pointerdown)="item.showOriginal = true"
-          (pointerup)="item.showOriginal = false"
-          (pointerleave)="item.showOriginal = false"
-          aria-label="Hold to see the original"
-        >Hold: original</button>
+          (click)="item.showOriginal = !item.showOriginal"
+          [attr.aria-pressed]="item.showOriginal || false"
+          aria-label="Toggle before and after"
+        >{{ item.showOriginal ? 'Show after' : 'Show before' }}</button>
       </div>
       <div class="meta">
         <strong [title]="item.file.name">{{ item.file.name }}</strong>
         <small *ngIf="item.message">{{ item.message }}</small>
       </div>
+      <label class="mask-picker" *ngIf="item.state === 'waiting'">Optional removal mask
+        <input #maskPicker type="file" accept="image/png" (change)="pickMask(item, maskPicker)" />
+        <small>PNG, same dimensions: transparent pixels are edited, opaque pixels stay unchanged. {{ item.mask?.name }}</small>
+      </label>
       <div class="actions">
+        <button type="button" class="ghost" (click)="downloadOriginal(item)">Download original</button>
         <button type="button" class="primary" *ngIf="item.state === 'cleaned' || item.state === 'clean'" (click)="download(item)">
           <i class="fa-solid fa-download" aria-hidden="true"></i> Download
         </button>
-        <button type="button" class="ghost" *ngIf="item.state === 'error' || item.state === 'other'" (click)="retry(item)">Try again</button>
+        <button type="button" class="ghost" *ngIf="item.state === 'error' || item.state === 'other'" (click)="retry(item)" [disabled]="!canStart">Try again</button>
         <button type="button" class="icon" (click)="remove(item)" [disabled]="item.state === 'working'" aria-label="Remove photo">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>

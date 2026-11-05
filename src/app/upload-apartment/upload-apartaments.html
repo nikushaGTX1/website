@@ -547,22 +547,14 @@
 
           <p *ngIf="imageUploadMessage" class="image-upload-message">{{ imageUploadMessage }}</p>
 
-          <section class="photo-ai-panel" *ngIf="photoChecksEnabled && uploadedImageCount && (removedPhotoCount || removablePhotoCount || thirdPartyPhotoCount)" aria-live="polite">
-            <header class="photo-ai-head">
-              <span class="photo-ai-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
-              <div class="photo-ai-title">
-                <strong>{{ photoAiTexts.title }}</strong>
-                <small>{{ photoAiTexts.subtitle }}</small>
-              </div>
-            </header>
-            <div class="photo-ai-stats">
-              <span class="stat checking" *ngIf="checkingPhotoCount"><i class="fa-solid fa-spinner fa-spin"></i><b>{{ checkingPhotoCount }}</b> {{ photoAiTexts.checking }}</span>
-              <span class="stat clean"><i class="fa-solid fa-circle-check"></i><b>{{ cleanPhotoCount }}</b> {{ photoAiTexts.clean }}</span>
-              <span class="stat removed" *ngIf="removedPhotoCount"><i class="fa-solid fa-eraser"></i><b>{{ removedPhotoCount }}</b> {{ photoAiTexts.removed }}</span>
-              <span class="stat removable" *ngIf="removablePhotoCount && !canRemoveWatermarks"><i class="fa-solid fa-droplet"></i><b>{{ removablePhotoCount }}</b> {{ photoAiTexts.removable }}</span>
-              <span class="stat third" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><b>{{ thirdPartyPhotoCount }}</b> {{ photoAiTexts.other }}</span>
-            </div>
-            <p class="photo-ai-warning" *ngIf="thirdPartyPhotoCount"><i class="fa-solid fa-triangle-exclamation"></i><span>{{ photoAiTexts.thirdParty }}</span></p>
+          <section class="photo-ai-panel" *ngIf="photoChecksEnabled && canRemoveWatermarks && uploadedImageCount">
+            <strong>Optional photo editing</strong>
+            <p>Improve exposure, white balance and clarity, or remove only authorized marks or unwanted movable objects. Original photos are retained. Review each draft before using it in your listing.</p>
+            <label class="image-edit-consent"><input type="checkbox" name="photoRights" [(ngModel)]="photoRightsConfirmed" [disabled]="editingPhoto" /> I own these photos and marks, or have explicit editing permission.</label>
+            <select name="imageEditBasis" [(ngModel)]="imageEditBasis" [disabled]="editingPhoto"><option value="owned">Owned</option><option value="licensed">Licensed / authorized</option></select>
+            <input *ngIf="imageEditBasis === 'licensed'" name="imageEditPermission" [(ngModel)]="imageEditPermission" placeholder="Written permission reference" maxlength="500" [disabled]="editingPhoto" />
+            <select name="imageEditMode" [(ngModel)]="imageEditMode" [disabled]="editingPhoto"><option value="enhance">Natural enhancement</option><option value="clean">Remove my / authorized watermark</option><option value="objects">Remove unwanted object (mask required)</option></select>
+            <input name="imageEditInstructions" [(ngModel)]="imageEditInstructions" placeholder="Describe the specific authorized mark or object" maxlength="1000" [disabled]="editingPhoto" />
           </section>
 
           <div class="gallery-tip" *ngIf="uploadedImageCount > 1"><i class="fa-solid fa-hand-pointer"></i><span>Drag photos to reorder them. The first photo is your listing cover.</span></div>
@@ -576,25 +568,26 @@
               <div class="image-position">{{ index + 1 }}</div>
               <span class="cover-badge" *ngIf="index === 0"><i class="fa-solid fa-star"></i> Cover</span>
               <button type="button" (click)="removeImage(index)" aria-label="Remove image">×</button>
-              <span class="photo-ai-badge" *ngIf="visibleCheck(index) as check" [attr.data-state]="check.state" [title]="check.text || ''">
-                <ng-container [ngSwitch]="check.state">
-                  <ng-container *ngSwitchCase="'checking'"><i class="fa-solid fa-spinner fa-spin"></i> {{ uploadLocationText('Checking', 'მოწმდება', 'Проверка') }}</ng-container>
-                  <ng-container *ngSwitchCase="'cleaning'"><i class="fa-solid fa-spinner fa-spin"></i> {{ uploadLocationText('Removing', 'იშლება', 'Удаление') }}</ng-container>
-                  <ng-container *ngSwitchCase="'clean'"><i class="fa-solid fa-check"></i> {{ uploadLocationText('No watermark', 'წყლის ნიშანი არ არის', 'Без знака') }}</ng-container>
-                  <ng-container *ngSwitchCase="'cleaned'"><i class="fa-solid fa-check"></i> {{ uploadLocationText('Watermark removed', 'წყლის ნიშანი წაიშალა', 'Знак удалён') }}</ng-container>
-                  <ng-container *ngSwitchCase="'own'"><i class="fa-solid fa-droplet"></i> {{ uploadLocationText('Velven watermark', 'Velven-ის წყლის ნიშანი', 'Знак Velven') }}</ng-container>
-                  <ng-container *ngSwitchCase="'partner'"><i class="fa-solid fa-handshake"></i> {{ photoAiTexts.partnerBadge }}</ng-container>
-                  <ng-container *ngSwitchCase="'third'"><i class="fa-solid fa-triangle-exclamation"></i> {{ uploadLocationText('Other watermark', 'სხვა წყლის ნიშანი', 'Чужой знак') }}</ng-container>
-                  <ng-container *ngSwitchDefault><i class="fa-solid fa-circle-question"></i> {{ uploadLocationText('Not checked', 'არ შემოწმდა', 'Не проверено') }}</ng-container>
-                </ng-container>
-              </span>
+
               </div>
               <div class="image-actions">
                 <button type="button" *ngIf="index !== 0" class="make-cover" (click)="makeCoverImage(index)" aria-label="Make cover photo"><i class="fa-solid fa-star"></i><span>Make cover</span></button>
                 <button type="button" *ngIf="index > 0" (click)="moveImage(index, index - 1)" aria-label="Move photo left"><i class="fa-solid fa-arrow-left"></i></button>
                 <button type="button" *ngIf="index < uploadedImageCount - 1" (click)="moveImage(index, index + 1)" aria-label="Move photo right"><i class="fa-solid fa-arrow-right"></i></button>
               </div>
-            </article>
+            <div draggable="false" (dragstart)="$event.stopPropagation()" class="image-edit-actions" *ngIf="canRemoveWatermarks && selectedImages[index]">
+                <label>Optional PNG mask <input #editMask type="file" accept="image/png" (change)="setImageMask(index, editMask)" [disabled]="editingPhoto" /></label>
+                <small>Same dimensions as the photo. Transparent pixels are edited; opaque pixels are preserved.</small>
+                <button type="button" (click)="editPhoto(index)" [disabled]="editingPhoto || !photoRightsConfirmed || !!draftAt(index)">Create edit preview</button>
+                <ng-container *ngIf="draftAt(index) as draft">
+                  <p>Before is shown above. After:</p><img [src]="draft.url" alt="Edited preview" style="width:100%;height:auto" />
+                  <a [href]="draft.url" [download]="draft.file.name">Download preview</a>
+                  <button type="button" (click)="approveImageEdit(index)" [disabled]="editingPhoto">Approve for this listing</button>
+                  <button type="button" (click)="discardImageEdit(index)" [disabled]="editingPhoto">Keep original</button>
+                </ng-container>
+                <button type="button" *ngIf="approvedImageOriginals.has(selectedImages[index])" (click)="restoreImageOriginal(index)" [disabled]="editingPhoto">Restore original</button>
+              </div>
+              </article>
           </div>
         </div>
       </section>
