@@ -1,0 +1,13 @@
+<section class="lifestyle-fit" *ngIf="items.length">
+  <div class="fit-heading">
+    <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+    <div><small>{{ exact ? 'Matches your answers' : 'Matches some of your answers' }}</small><h3>Why this home fits you</h3></div>
+  </div>
+  <div class="fit-grid">
+    <article *ngFor="let match of items">
+      <i class="fa-solid" [ngClass]="match.icon" aria-hidden="true"></i>
+      <p><b>{{ match.title }}</b><span>{{ match.reason }}</span></p>
+      <em class="fit-meta" *ngIf="match.meta">{{ match.meta }}</em>
+    </article>
+  </div>
+</section>

@@ -36,13 +36,12 @@ export class DiscoverCard implements OnInit {
   @Input() highlighted = false;
   /** Name of the saved search it matches, when the list shows several searches. */
   @Input() searchName = '';
+  @Input() searchId: number | null = null;
   /** Matched a saved search: shows "Matches your must-haves". */
   @Input() matched = false;
   /** Velven Match reasons, shown as "Why it fits". */
   @Input() reasons: string[] = [];
   @Output() opened = new EventEmitter<Apartment>();
-  /** "Not for me": the page hides the home. */
-  @Output() dismissed = new EventEmitter<Apartment>();
 
   agentPhoto = '';
 

@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EMPTY_HOME_MATCH_PROFILE, HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchApartment } from '../models/home-match-result';
+import { explainHomeMatch } from './match-explanations';
 import {
   budgetRangeUsd,
   maxRecommendedPriceUsd,
@@ -47,6 +48,18 @@ function apartment(overrides: Partial<HomeMatchApartment> = {}): HomeMatchApartm
     ...overrides,
   } as HomeMatchApartment;
 }
+
+test('match explanations connect confirmed pet permission and park access to the saved dog preference', () => {
+  const p = profile({ hasPet: true, petType: 'Dog', petTypes: ['Dog'] });
+  const friendly = apartment({ parkDistanceMinutes: 5 });
+  const insights = explainHomeMatch(friendly, p, rates, evaluateMandatoryRequirements(friendly, p, rates));
+  assert.ok(insights.some(item => item.title === 'Pet-friendly home' && item.reason === 'dog'));
+  assert.ok(insights.some(item => item.reason === 'Great for walking your dog' && item.meta === '5 min'));
+
+  const unconfirmed = apartment({ isPetFriendly: false, parkDistanceMinutes: 5 });
+  const otherInsights = explainHomeMatch(unconfirmed, p, rates, evaluateMandatoryRequirements(unconfirmed, p, rates));
+  assert.ok(!otherInsights.some(item => item.title === 'Pet-friendly home' || item.reason === 'Great for walking your dog'));
+});
 
 // VELVEN-002: a GEL budget must be converted before comparing with USD prices.
 test('VELVEN-002: $3,600 home is over a GEL 4,500 maximum', () => {

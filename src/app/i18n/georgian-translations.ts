@@ -1856,6 +1856,8 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Nearest EV charger', 'ელექტრო დამტენი'],
   ['Trusted agents', 'სანდო აგენტები'],
   ['Secure deals', 'უსაფრთხო გარიგებები'],
+  ['Budget match', 'ბიუჯეტის ფარგლებში'],
+  ['Preferred district', 'სასურველი უბანი'],
   ["Clients for you", "კლიენტები თქვენთვის"],
   ["Matched homes", "შესაბამისი ბინები"],
   ["Find your next home or list your property with Velven.", "იპოვეთ ახალი სახლი ან განათავსეთ თქვენი ქონება Velven-ზე."],

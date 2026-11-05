@@ -26,16 +26,6 @@ import { DiscoverCard } from './discover-card/discover-card';
 type DiscoverTab = 'new' | 'all' | 'saved';
 type SortOrder = 'best' | 'newest' | 'price-low' | 'price-high';
 
-const HIDDEN_KEY = 'velven-discover-hidden';
-function readHiddenIds(): number[] {
-  try {
-    const value = JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]');
-    return Array.isArray(value) ? value.filter((id) => typeof id === 'number') : [];
-  } catch {
-    return [];
-  }
-}
-
 /** One home in a Discover list. */
 interface DiscoverItem {
   apartment: Apartment;
@@ -252,7 +242,7 @@ export class Discover implements OnInit, OnDestroy {
         result,
         status: evaluateMandatoryRequirements(result.apartment, profile, this.currency.rates).status,
       }))
-      // Every must-have met; homes that only need a detail confirmed are kept, marked as such.
+      // Keep plausible matches, but only label fully confirmed homes as exact.
       .filter(({ status }) => status !== 'alternative')
       .map(({ result, status }): DiscoverItem | null => {
         const apartment = this.catalogue.get(result.apartment.id) ?? (result.apartment as unknown as Apartment);
@@ -325,24 +315,10 @@ export class Discover implements OnInit, OnDestroy {
     );
   }
 
-  /** Homes the client marked "Not for me" (kept in this browser only). */
-  hiddenIds = new Set<number>(readHiddenIds());
-
-  hideApartment(apartment: Apartment): void {
-    this.hiddenIds.add(apartment.id);
-    try {
-      localStorage.setItem(HIDDEN_KEY, JSON.stringify([...this.hiddenIds].slice(-500)));
-    } catch {
-      // Private mode: hidden for this visit only.
-    }
-    this.cdr.markForCheck();
-  }
-
   /** The same home can match several searches: show it once (unseen wins). */
   private unique(items: DiscoverItem[]): DiscoverItem[] {
     const byId = new Map<number, DiscoverItem>();
     for (const item of items) {
-      if (this.hiddenIds.has(item.apartment.id)) continue;
       const current = byId.get(item.apartment.id);
       if (!current || (item.isNew && !current.isNew) || (item.isNew === current.isNew && item.score > current.score)) byId.set(item.apartment.id, item);
     }

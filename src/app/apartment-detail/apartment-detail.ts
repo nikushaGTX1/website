@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectorRef,
+  DestroyRef,
+  inject,
   Component,
   ElementRef,
   HostListener,
@@ -42,7 +44,12 @@ import { parkingCostLabel } from '../utils/parking-cost';
 import { SeoService } from '../services/seo.service';
 import { backToResultsQuery, lastResultsUrl } from '../utils/results-return';
 import { HomeMatchService } from '../ai-home-match/services/home-match.service';
-import { selectedPets } from '../ai-home-match/services/mandatory-requirements';
+import { evaluateMandatoryRequirements, selectedPets } from '../ai-home-match/services/mandatory-requirements';
+import { explainHomeMatch, type LifestyleInsight } from '../ai-home-match/services/match-explanations';
+import { MatchFit } from '../ai-home-match/match-fit/match-fit';
+import { ClientService } from '../services/client.service';
+import { CurrencyService } from '../services/currency.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { nearbyDriveMinutes } from '../utils/nearby-places';
 import { isListedUniversity } from '../utils/universities';
@@ -92,9 +99,16 @@ interface ViewingInquiryForm {
     CurrencyPrice,
     SlicePipe,
     DecimalPipe,
+    MatchFit,
   ],
 })
 export class ApartmentDetail implements OnInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly client = inject(ClientService);
+  private readonly currency = inject(CurrencyService);
+  matchInsights: LifestyleInsight[] = [];
+  exactMatch = false;
+  discoverBackQuery: { search: number; tab: 'all' } | null = null;
   @ViewChild('photoViewer') private photoViewer?: ElementRef<HTMLDialogElement>;
   @ViewChild('viewingDialog') private viewingDialog?: ElementRef<HTMLElement>;
 
@@ -169,6 +183,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return (lastResultsUrl() || '').startsWith('/ai-home-match');
   }
 
+  get discoverSearchId(): number | null {
+    const id = Number(this.route.snapshot.queryParamMap.get('matchSearch'));
+    return this.authService.isPersonalAccount && Number.isSafeInteger(id) && id > 0 ? id : null;
+  }
+
   get backToResultsQuery(): Record<string, string> | null {
     return backToResultsQuery(lastResultsUrl(), this.isForSale);
   }
@@ -188,6 +207,8 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const searchId = this.discoverSearchId;
+    if (searchId) this.discoverBackQuery = { search: searchId, tab: 'all' };
     const apartmentId = Number(
       this.route.snapshot.paramMap.get('id') || this.route.snapshot.queryParamMap.get('id') || 0,
     );
@@ -216,6 +237,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     this.apartmentService.getApartment(id).subscribe({
       next: (apartment) => {
         this.applyApartment(apartment);
+        this.loadMatchInsights(apartment);
         // "Request a viewing" on Velven Discover opens the booking form straight away.
         if (this.route.snapshot.queryParamMap.get('viewing') === '1' && !this.viewingDialogOpen) {
           setTimeout(() => this.scheduleViewing());
@@ -236,6 +258,27 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         this.errorMessage = 'Could not load this apartment from the API.';
         this.cdr.detectChanges();
       },
+    });
+  }
+
+  private loadMatchInsights(apartment: Apartment): void {
+    this.matchInsights = [];
+    this.exactMatch = false;
+    const searchId = this.discoverSearchId;
+    if (!searchId) return;
+
+    this.client.getSearches().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (searches) => {
+        if (this.apartment !== apartment || this.discoverSearchId !== searchId) return;
+        const profile = searches.find((search) => search.id === searchId)?.profile;
+        if (!profile) return;
+        const rates = this.currency.rates;
+        const requirement = evaluateMandatoryRequirements(apartment, profile, rates);
+        this.matchInsights = explainHomeMatch(apartment, profile, rates, requirement);
+        this.exactMatch = requirement.status === 'exact';
+        this.cdr.markForCheck();
+      },
+      error: () => undefined,
     });
   }
 

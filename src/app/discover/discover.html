@@ -163,7 +163,7 @@
               [searchName]="searchName(item)"
               [reasons]="item.reasons"
               [matched]="true"
-              (dismissed)="hideApartment($event)"
+              [searchId]="item.searchId"
               (opened)="onOpened($event)"
             ></app-discover-card>
           </div>
@@ -189,7 +189,7 @@
               [searchName]="searchName(item)"
               [reasons]="item.reasons"
               [matched]="true"
-              (dismissed)="hideApartment($event)"
+              [searchId]="item.searchId"
               (opened)="onOpened($event)"
             ></app-discover-card>
           </div>

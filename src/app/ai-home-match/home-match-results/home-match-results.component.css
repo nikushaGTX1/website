@@ -87,33 +87,6 @@ h1 {
   padding: 14px 0;
   border-bottom: 1px solid #eee;
 }
-.lifestyle-fit {
-  margin: 18px 0;
-  padding: 16px;
-  border: 1px solid #e2d8f3;
-  border-radius: 16px;
-  background: linear-gradient(145deg, #fbf9ff, #f5f0fc);
-}
-.fit-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.fit-heading > span { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 38px; border-radius: 11px; color: #fff; background: linear-gradient(135deg, #54209a, #8236ca); }
-.fit-heading small, .fit-heading h3 { display: block; margin: 0; }
-.fit-heading small { color: #7551aa; font-size: 9px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
-.fit-heading h3 { margin-top: 2px; color: #281b3d; font-size: 16px; }
-.fit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
-.fit-grid article { min-width: 0; display: flex; align-items: flex-start; gap: 10px; padding: 11px; border: 1px solid rgba(91, 44, 145, .1); border-radius: 12px; background: rgba(255, 255, 255, .86); }
-.fit-grid article > i { width: 31px; height: 31px; display: grid; place-items: center; flex: 0 0 31px; border-radius: 9px; color: #692bb0; background: #eee3fc; }
-.fit-grid p, .fit-grid b, .fit-grid span { display: block; margin: 0; }
-.fit-grid b { color: #30233f; font-size: 13px; }
-.fit-grid span { margin-top: 3px; color: #756d7e; font-size: 11px; line-height: 1.35; }
-.fit-grid article p { flex: 1; min-width: 0; }
-/* Walk-time badge on preference matches, e.g. "5 min". */
-.fit-grid .fit-meta {
-  flex: none; align-self: center;
-  padding: 4px 10px; border-radius: 999px;
-  background: #f1eafc; color: #451a8f;
-  font-size: 12px; font-style: normal; font-weight: 800; white-space: nowrap;
-}
-
 /* Polished, rank-first recommendation cards. */
 .card.best-match {
   border-color: #b9acec;
@@ -177,7 +150,6 @@ h1 {
   .reasons {
     grid-template-columns: 1fr;
   }
-  .fit-grid { grid-template-columns: 1fr; }
 }
 .location-map {
   position: relative;
@@ -759,7 +731,6 @@ h1 {
 .mc-facts small { color: #6f6385; font-size: 12px; }
 
 .match-card .requirement-notes { margin: 0; }
-.match-card .lifestyle-fit { margin: 0; }
 
 .mc-details { padding: 18px; border-radius: 18px; background: #faf8fd; border: 1px solid #efe9f7; }
 .mc-details h3 { margin: 0 0 14px; display: flex; gap: 9px; align-items: center; font-size: 16px; color: #1f1433; }

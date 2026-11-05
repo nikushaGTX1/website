@@ -82,8 +82,7 @@
   text-transform: uppercase;
 }
 
-.badge.reviewed,
-.badge.check {
+.badge.reviewed {
   bottom: 12px;
   left: 12px;
   padding: 7px 10px;
@@ -91,10 +90,6 @@
   background: rgba(20, 17, 42, 0.7);
   color: #fff;
   backdrop-filter: blur(4px);
-}
-
-.badge.check {
-  background: rgba(154, 91, 0, 0.88);
 }
 
 .card-heart {
@@ -181,10 +176,6 @@ h3 {
   color: #16865a;
   font-size: 14px;
   font-weight: 700;
-}
-
-.must-haves.check {
-  color: #9a5b00;
 }
 
 .why {
@@ -315,10 +306,5 @@ h3 { margin: 2px 0 8px; font-size: 16px; }
 .request-viewing { min-height: 42px; font-size: 14px; }
 .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 2px; }
 .view-details { font-size: 13.5px; }
-.not-for-me {
-  min-height: 40px; padding: 0 4px; border: 0; background: none; color: #7c7490;
-  font: inherit; font-size: 13px; cursor: pointer;
-}
-@media (hover: hover) {
-  .not-for-me:hover { color: #14112a; text-decoration: underline; }
-}
+.card-title { color: inherit; text-decoration: none; }
+.card-title:hover { text-decoration: underline; }

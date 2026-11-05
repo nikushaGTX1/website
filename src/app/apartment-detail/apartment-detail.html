@@ -4,8 +4,8 @@
     <ng-container *ngIf="apartment; else state">
       <div class="vp-toolbar">
         <a
-          [routerLink]="backToMatch ? '/ai-home-match' : '/ExploreProperty'"
-          [queryParams]="backToMatch ? null : backToResultsQuery"
+          [routerLink]="discoverBackQuery ? '/discover' : backToMatch ? '/ai-home-match' : '/ExploreProperty'"
+          [queryParams]="discoverBackQuery ?? (backToMatch ? null : backToResultsQuery)"
           ><i class="fa-solid fa-chevron-left"></i> Back to results</a
         >
         <div class="vp-share-wrap">
@@ -134,6 +134,7 @@
               </div>
             </div>
           </section>
+          <app-match-fit *ngIf="matchInsights.length" [items]="matchInsights" [exact]="exactMatch"></app-match-fit>
           <section class="vp-section">
             <h2>About this home</h2>
             <p [class.georgian-copy]="hasGeorgianText(visibleDescription)">

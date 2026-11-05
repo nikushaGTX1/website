@@ -811,6 +811,8 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Verified listings', 'Проверенные объявления'],
   ['Trusted agents', 'Надёжные агенты'],
   ['Secure deals', 'Безопасные сделки'],
+  ['Budget match', 'В пределах бюджета'],
+  ['Preferred district', 'Предпочтительный район'],
   ["Clients for you", "Клиенты для вас"],
   ["Matched homes", "Подходящие квартиры"],
   ["Find your next home or list your property with Velven.", "Найдите новый дом или разместите объявление на Velven."],
