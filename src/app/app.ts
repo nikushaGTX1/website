@@ -222,6 +222,10 @@ export class App implements AfterViewInit {
     }
   }
 
+  get isRegistrationPage(): boolean {
+    return this.router.url.split(/[?#]/, 1)[0].toLowerCase() === '/register';
+  }
+
   get isExploreProperty(): boolean {
     return this.router.url.split(/[?#]/, 1)[0].toLowerCase() === '/exploreproperty';
   }
