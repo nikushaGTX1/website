@@ -877,9 +877,24 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.profile.carFuelType = value;
     this.persist();
   }
+  /** Question 2: Rent or Buy first; the type of home is asked right below, in the same question. */
+  pickGoal(goal: 'Rent' | 'Buy'): void {
+    if (this.profile.propertyGoal === goal) return;
+    this.choose('propertyGoal', goal);
+    // A new goal asks the follow-up again ("rent" or "buy" wording).
+    this.profile.homeType = '';
+    this.persist();
+  }
+
+  pickHomeType(type: 'Apartment' | 'House'): void {
+    this.profile.homeType = type;
+    this.persist();
+  }
+
   choose(
     key:
       | 'propertyGoal'
+      | 'homeType'
       | 'gender'
       | 'householdType'
       | 'rentalDuration'
@@ -1079,7 +1094,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       case 0:
         return !!this.profile.gender;
       case 1:
-        return !!this.profile.propertyGoal;
+        // Rent/Buy and the type of home are answered together.
+        return !!this.profile.propertyGoal && !!this.profile.homeType;
       case 2:
         return (
           this.profile.locationFlexible ||

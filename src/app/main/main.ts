@@ -1,4 +1,5 @@
 import { cardNearbyPlaces, NearbyPlace } from '../utils/nearby-places';
+import { listingHomeType } from '../utils/listing-home-type';
 import {
   Component,
   DoCheck,
@@ -1006,10 +1007,9 @@ export class Main implements OnInit, OnDestroy, DoCheck {
 
   /** Featured Properties shows apartments only: no commercial places, houses or country houses. */
   private isApartmentType(apartment: Apartment): boolean {
-    const style = (apartment.apartmentStyle || '').toLowerCase();
-    if (style) return /apartment|apartament|flat/.test(style);
-    const text = `${apartment.title || ''}`.toLowerCase();
-    return !/commercial|office|shop|house|cottage|villa/.test(text);
+    // The listing type lives in the "Type: ..." meta (apartmentStyle is the design style).
+    const type = listingHomeType(apartment);
+    return type !== 'House' && type !== 'Other';
   }
 
   loadApartments(): void {

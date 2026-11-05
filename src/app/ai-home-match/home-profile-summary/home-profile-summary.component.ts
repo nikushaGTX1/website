@@ -74,7 +74,7 @@ export class HomeProfileSummaryComponent {
         ? { step: 0, label: 'Gender', value: this.label(p.gender), icon: 'fa-venus-mars' }
         : null,
       p.propertyGoal
-        ? { step: 1, label: 'Looking for', value: this.label(p.propertyGoal), icon: 'fa-house' }
+        ? { step: 1, label: 'Looking for', value: this.goalValue, icon: 'fa-house' }
         : null,
       p.apartmentStyle
         ? {
@@ -174,6 +174,12 @@ export class HomeProfileSummaryComponent {
     return priorities.length ? priorities.map((value) => answerLabel(value)).join(' · ') : 'No preference';
   }
 
+  /** "Rent · Private house". */
+  get goalValue(): string {
+    const type = this.profile.homeType === 'House' ? 'Private house' : this.profile.homeType === 'Apartment' ? 'Apartment' : '';
+    return [this.label(this.profile.propertyGoal), type].filter(Boolean).join(' · ');
+  }
+
   get budget(): string {
     return `${this.profile.currency} ${this.profile.budgetMin.toLocaleString()}–${this.profile.budgetMax.toLocaleString()}`;
   }
@@ -184,7 +190,7 @@ export class HomeProfileSummaryComponent {
         ? {
             step: 1,
             label: 'Looking for',
-            value: this.label(this.profile.propertyGoal),
+            value: this.goalValue,
             icon: 'fa-house',
           }
         : null,

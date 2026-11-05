@@ -1,4 +1,4 @@
-<article class="discover-card" [class.highlighted]="highlighted" [attr.id]="'match-' + apartment.id">
+<article class="discover-card" [class.compact]="compact" [class.highlighted]="highlighted" [attr.id]="'match-' + apartment.id">
   <a class="card-image" [routerLink]="['/apartments', apartment.id]" [queryParams]="{ matchSearch: searchId }" (click)="opened.emit(apartment)" data-protected-image>
     <img [src]="(image) | photoUrl" [alt]="(apartment | listingTitle) || 'Property in Tbilisi'" loading="lazy" decoding="async" (error)="onImageError($event)" />
     <span class="card-badges">
@@ -6,7 +6,6 @@
       <span class="badge new" *ngIf="isNew">New</span>
     </span>
     <span class="badge match" *ngIf="savedView && matched"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Velven Match</span>
-    <span class="badge reviewed" *ngIf="!savedView && matched && !needsCheck"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Matches your search</span>
     <span class="photo-count" *ngIf="photoCount > 1" data-no-translate><i class="fa-regular fa-image" aria-hidden="true"></i> 1 / {{ photoCount }}</span>
   </a>
   <button

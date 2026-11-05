@@ -49,6 +49,8 @@ export class DiscoverCard implements OnInit {
   @Input() reasons: string[] = [];
   /** Shown on the Saved homes page: "Velven Match" badge, or "About the home" for homes no search found. */
   @Input() savedView = false;
+  /** Small card (property page suggestions): photo, price, title, specs and a link only. */
+  @Input() compact = false;
   @Output() opened = new EventEmitter<Apartment>();
   /** Client tapped "Not for me": the list hides this home. */
   @Output() notForMe = new EventEmitter<Apartment>();

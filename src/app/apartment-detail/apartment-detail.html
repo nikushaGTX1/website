@@ -246,6 +246,15 @@
               <small>One advisor · One route · Zero hassle</small>
             </aside>
           </section>
+          <section class="vp-suggested" *ngIf="suggestedApartments.length" aria-labelledby="suggested-title">
+            <header>
+              <small>Suggested for you</small>
+              <h2 id="suggested-title">You may also like</h2>
+            </header>
+            <div class="vp-suggested-grid">
+              <app-property-card *ngFor="let item of suggestedApartments; trackBy: trackSuggested" [apartment]="item"></app-property-card>
+            </div>
+          </section>
         </div>
         <aside class="vp-side-rail">
         <section class="vp-inquiry">

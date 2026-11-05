@@ -3334,3 +3334,12 @@ dialog.photo-viewer::backdrop { background: #111113; }
 .vp-deposit { display: flex; align-items: center; gap: 8px; margin: 6px 0 14px; color: #5d566e; font-size: 14px; }
 .vp-deposit i { color: #6330b2; }
 .vp-deposit b { color: #1f1433; font-weight: 800; }
+
+
+/* "You may also like": 4 suggested homes under the Velven way banner. */
+.vp-suggested { margin-top: 32px; }
+.vp-suggested header { margin-bottom: 16px; }
+.vp-suggested header small { color: #451a8f; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.vp-suggested header h2 { margin: 4px 0 0; color: #14112a; font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; }
+.vp-suggested-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 640px) { .vp-suggested-grid { grid-template-columns: minmax(0, 1fr); } }

@@ -1078,77 +1078,63 @@
 
 .results-head[hidden] { display: none; }
 
-/* My preferences cards: character hero band, tiled facts, softer footer. */
-.search-list { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-.search-card {
-  overflow: hidden; padding: 0 20px 18px; border-color: #ebe6f3; border-radius: 22px;
-  box-shadow: 0 10px 30px rgba(37, 20, 74, 0.07);
-}
-@media (hover: hover) {
-  .search-card:hover { border-color: #d9cff0; box-shadow: 0 16px 40px rgba(37, 20, 74, 0.12); }
-}
+/* ===== My preferences card (single clean layer) =====
+   Top band: goal, match count and name on the left, the Velven character on the right.
+   Below: one line of facts, lifestyle chips, last updated, actions. */
+.search-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.search-card { padding: 0; overflow: hidden; border-color: #ebe6f3; border-radius: 18px; box-shadow: 0 6px 20px rgba(37, 20, 74, 0.06); }
+@media (hover: hover) { .search-card:hover { border-color: #d9cff0; box-shadow: 0 12px 30px rgba(37, 20, 74, 0.1); } }
+
 .search-hero {
-  position: relative; display: flex; align-items: flex-start; min-height: 84px; margin: 0 -20px 6px; padding: 18px 20px 14px;
-  background: radial-gradient(120% 140% at 100% 0%, #e6dbfb 0%, #f4effd 45%, #fbf9ff 100%);
+  display: flex; align-items: stretch; min-height: 0;
+  background: linear-gradient(120deg, #fbf9ff 0%, #f2ecfd 55%, #e7dcfb 100%);
   border-bottom: 1px solid #efe9f8;
 }
-.search-hero.with-character { min-height: 150px; padding-right: 140px; }
-.search-hero .search-select {
-  flex-direction: column; align-items: flex-start; gap: 12px; margin: 0; padding: 0; width: 100%;
-}
-.search-character {
-  position: absolute; right: 8px; bottom: 0; width: 132px; height: 146px; pointer-events: none;
-}
+.search-hero-text { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; padding: 14px 18px 14px; }
+.search-hero.with-character .search-hero-text { padding-right: 4px; }
+.search-character { position: relative; flex: 0 0 132px; height: 148px; align-self: flex-end; pointer-events: none; }
 .search-character::before {
-  content: ''; position: absolute; left: 50%; bottom: 6px; width: 104px; height: 18px; transform: translateX(-50%);
-  border-radius: 50%; background: radial-gradient(ellipse, rgba(69, 26, 143, 0.22), transparent 70%);
+  content: ''; position: absolute; left: 50%; bottom: 3px; width: 80%; height: 12px; transform: translateX(-50%);
+  border-radius: 50%; background: radial-gradient(ellipse, rgba(69, 26, 143, 0.2), transparent 70%);
 }
 .search-character app-velven-lifestyle-avatar { position: relative; width: 100%; height: 100%; }
-.search-goal { padding: 6px 12px; background: #fff; box-shadow: 0 2px 8px rgba(69, 26, 143, 0.12); }
-.search-counts { flex-direction: row; align-items: baseline; gap: 6px; color: #5d566b; font-size: 13px; }
-.search-counts b { color: #14112a; font-size: 30px; font-weight: 800; line-height: 1; }
-.search-title h3 { font-size: 19px; font-weight: 800; color: #14112a; }
-.search-facts { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
-.search-facts li {
-  align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: #f8f6fc;
-  color: #2b2340; font-size: 13.5px; font-weight: 600;
+.search-hero .search-character { order: 2; }
+
+.search-select { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 8px; margin: 0; padding: 0; }
+.search-goal { padding: 4px 10px; background: #fff; box-shadow: 0 1px 4px rgba(69, 26, 143, 0.12); font-size: 10.5px; }
+.search-counts { align-items: baseline; gap: 5px; color: #5d566b; font-size: 12.5px; }
+.search-counts b { color: #14112a; font-size: 24px; font-weight: 800; line-height: 1; }
+
+.search-hero .search-title { position: relative; z-index: 1; margin: 0; gap: 8px; }
+.search-hero .search-title h3 {
+  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  color: #14112a; font-size: 16px; font-weight: 800; line-height: 1.3;
 }
-.search-facts i {
-  display: grid; flex: none; place-items: center; width: 30px; height: 30px; margin: 0; border-radius: 9px;
-  background: #fff; color: #451a8f; font-size: 13px; box-shadow: 0 1px 3px rgba(37, 20, 74, 0.08);
-}
-.search-chips { gap: 8px; margin-top: 14px; }
-.search-chips span {
-  padding: 6px 12px; border: 1px solid #e6def6; background: #fff; color: #451a8f; font-size: 12px; text-transform: none;
-}
-.search-updated { display: flex; align-items: center; gap: 6px; margin-top: 14px; color: #8a849a; }
-.search-updated::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #16a36a; }
-.search-actions { margin-top: auto; padding-top: 16px; border-top: 1px solid #f0ecf6; margin-top: 16px; }
+.search-hero .search-title .icon-btn { flex: none; width: 30px; height: 30px; min-height: 30px; border-radius: 8px; background: #fff; font-size: 12px; }
+.search-hero .rename-form { position: relative; z-index: 1; margin: 0; }
+
+.search-facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 12px 18px 0; }
+.search-facts li { align-items: center; gap: 7px; color: #2b2340; font-size: 13px; font-weight: 600; }
+.search-facts i { width: auto; margin: 0; color: #451a8f; font-size: 12px; }
+.search-chips { gap: 6px; margin: 10px 0 0; padding: 0 18px; }
+.search-chips span { padding: 3px 10px; border: 1px solid #e9e2f6; background: #fff; color: #451a8f; font-size: 11.5px; }
+.search-updated { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; padding: 0 18px; color: #8a849a; font-size: 11.5px; }
+.search-updated::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #16a36a; }
+.search-card > p[role='alert'] { padding: 0 18px; }
+.search-actions, .delete-confirm { margin: 12px 18px 0; padding: 10px 0 12px; border-top: 1px solid #f0ecf6; }
+.search-actions .icon-btn { width: 34px; height: 34px; min-height: 34px; }
+
 @media (max-width: 760px) {
-  .search-card { flex-basis: min(320px, 86vw); }
+  .search-card { flex: 0 0 min(340px, 86vw); }
+  .search-character { flex-basis: 112px; height: 132px; }
 }
 
-/* Bigger character: fills the hero's right side, feet on the band's bottom edge. */
-.search-hero.with-character { min-height: 196px; padding-right: 46%; }
-.search-character {
-  right: 0; bottom: 0; width: 52%; height: 188px;
-  --avatar-character-origin: center bottom;
-}
-.search-character::before { bottom: 2px; width: 70%; height: 22px; }
-.search-character app-velven-lifestyle-avatar { height: 100%; }
-
-/* Character centred under the pill/count row, larger. */
-.search-hero.with-character {
-  flex-direction: column; align-items: stretch; min-height: 0; padding: 16px 20px 0;
-}
-.search-hero.with-character .search-select {
-  flex-direction: row; align-items: center; justify-content: space-between;
-}
-.search-hero.with-character .search-counts b { font-size: 24px; }
-.search-hero.with-character .search-character {
-  position: relative; right: auto; bottom: auto; align-self: center;
-  width: min(100%, 300px); height: 230px; margin-top: 4px;
-}
-.search-character::before { width: 60%; }
-.search-hero.with-character .search-select { order: -1; }
-.search-hero.with-character .search-character { height: 200px; margin-top: -8px; }
+/* Fixes after screenshot: bigger characters, full name, no empty band. */
+.search-hero { align-items: flex-end; }
+.search-hero-text { justify-content: flex-start; gap: 10px; padding-bottom: 16px; }
+.search-character { flex: 0 0 48%; height: 178px; margin-right: -6px; }
+.search-hero .search-title { align-items: flex-start; }
+.search-hero .search-title h3 { white-space: normal; text-overflow: clip; font-size: 15.5px; }
+.search-hero .search-title .icon-btn { width: 26px; height: 26px; min-height: 26px; border: 0; background: rgba(255, 255, 255, 0.85); color: #6b6380; font-size: 11px; }
+.search-facts li:nth-child(3) { flex-basis: auto; }
+@media (max-width: 760px) { .search-character { height: 158px; } }

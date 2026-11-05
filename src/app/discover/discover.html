@@ -282,6 +282,7 @@
           <div class="search-character" *ngIf="view.search.profile.gender" aria-hidden="true">
             <app-velven-lifestyle-avatar [profile]="view.search.profile"></app-velven-lifestyle-avatar>
           </div>
+          <div class="search-hero-text">
           <button
             type="button"
             class="search-select"
@@ -295,7 +296,6 @@
             </span>
             <span class="search-counts muted" *ngIf="matchesLoading">…</span>
           </button>
-          </div>
 
           <div class="search-title" *ngIf="renamingId !== view.search.id">
             <h3>{{ view.search.name }}</h3>
@@ -316,6 +316,8 @@
               <i class="fa-solid fa-check" aria-hidden="true"></i>
             </button>
           </form>
+          </div>
+          </div>
 
           <ul class="search-facts">
             <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ locationText(view.search.profile) }}</span></li>

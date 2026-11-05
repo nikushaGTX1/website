@@ -1,4 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { PropertyCard } from '../shared/property-card/property-card';
+import { listingHomeType } from '../utils/listing-home-type';
+import { isSaleListing } from '../utils/listing-deal';
 import {
   ChangeDetectorRef,
   DestroyRef,
@@ -89,7 +92,7 @@ interface ViewingInquiryForm {
   selector: 'app-apartment-detail',
   templateUrl: './apartment-detail.html',
   styleUrls: ['./apartment-detail.css', './apartment-detail.icons.css'],
-  imports: [PhotoDotsComponent, PhotoUrlPipe, 
+  imports: [PropertyCard, PhotoDotsComponent, PhotoUrlPipe, 
     NgIf,
     RouterLink,
     PhotoCarouselComponent,
@@ -116,6 +119,36 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   apartment: Apartment | null = null;
   selectedAgent: Agent | null = null;
   similarApartments: SimilarApartment[] = [];
+  /** "You may also like": 4 published homes closest to this one. */
+  suggestedApartments: Apartment[] = [];
+
+  /**
+   * Same deal (rent/sale) and same kind of home first, then the same district, a similar
+   * price and the same bedrooms; newest breaks ties.
+   */
+  trackSuggested = (_: number, apartment: Apartment): number => apartment.id;
+
+  private rankSuggestions(apartments: Apartment[], currentId: number): Apartment[] {
+    const current = apartments.find((apartment) => apartment.id === currentId);
+    const sale = current ? isSaleListing(current) : false;
+    const type = current ? listingHomeType(current) : null;
+    const score = (apartment: Apartment): number => {
+      if (!current) return 0;
+      let points = 0;
+      if (type && listingHomeType(apartment) === type) points += 4;
+      if (current.district && apartment.district === current.district) points += 3;
+      if (current.price && apartment.price && Math.abs(apartment.price - current.price) <= current.price * 0.3) points += 2;
+      if (current.bedrooms != null && apartment.bedrooms === current.bedrooms) points += 1;
+      return points;
+    };
+    const time = (apartment: Apartment) => new Date(apartment.publishedAt || apartment.createdAt || 0).getTime();
+    return apartments
+      .filter((apartment) => apartment.id !== currentId && (!current || isSaleListing(apartment) === sale))
+      .map((apartment) => ({ apartment, points: score(apartment) }))
+      .sort((a, b) => b.points - a.points || time(b.apartment) - time(a.apartment))
+      .slice(0, 2)
+      .map((entry) => entry.apartment);
+  }
 
   loading = false;
   errorMessage = '';
@@ -208,6 +241,17 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.init();
+    // Opening a suggested home keeps this component: load the new listing when the id changes.
+    let first = true;
+    this.route.paramMap.subscribe(() => {
+      if (first) { first = false; return; }
+      this.init();
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    });
+  }
+
+  private init(): void {
     const searchId = this.discoverSearchId;
     if (searchId) this.discoverBackQuery = { search: searchId, tab: 'all' };
     const apartmentId = Number(
@@ -288,10 +332,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       next: (apartments) => {
         const nearby = apartments
           .filter((apartment) => apartment.id !== currentId)
-          .slice(0, 4)
+          .slice(0, 2)
           .map((apartment, index) => this.toSimilarApartment(apartment, index));
 
         this.similarApartments = nearby;
+        this.suggestedApartments = this.rankSuggestions(apartments, currentId);
         this.cdr.detectChanges();
       },
       error: () => {

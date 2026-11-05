@@ -434,3 +434,20 @@ h3 {
 .terms .deposit i { width: 16px; color: #451a8f; text-align: center; }
 .terms .deposit b, .terms .deposit app-currency-price { display: inline; color: #14112a; font-size: inherit; font-weight: 700; }
 .terms .deposit.placeholder { visibility: hidden; }
+
+/* Compact card: property page suggestions. */
+.discover-card.compact .card-image { margin: 8px 8px 0; aspect-ratio: 16 / 10; }
+.discover-card.compact .card-heart { top: 16px; right: 16px; width: 34px; height: 34px; font-size: 15px; }
+.discover-card.compact .card-body { padding: 10px 12px 10px; }
+.discover-card.compact app-currency-price { font-size: 19px; }
+.discover-card.compact h3 { margin: 2px 0 8px; font-size: 14.5px; }
+.discover-card.compact .specs { gap: 6px 0; font-size: 12.5px; }
+.discover-card.compact .why,
+.discover-card.compact .terms,
+.discover-card.compact .needs-check,
+.discover-card.compact .agent-row,
+.discover-card.compact .search-name,
+.discover-card.compact .primary-action,
+.discover-card.compact .photo-count { display: none; }
+.discover-card.compact .card-actions { margin-top: 6px; }
+.discover-card.compact .card-foot { margin-top: 0; }

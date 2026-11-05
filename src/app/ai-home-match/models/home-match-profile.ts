@@ -12,6 +12,8 @@ export interface HomeMatchProfile {
   /** Conversion used when saving; changing budget or currency invalidates this snapshot. */
   budgetConversion?: { currency: Currency; min: number; max: number; usdGel: number; usdEur: number };
   propertyGoal: PropertyGoal | '';
+  /** Follow-up to Rent/Buy: a flat or a private house. Missing on older searches (= Apartment). */
+  homeType?: 'Apartment' | 'House' | '';
   districts: string[];
   locationFlexible: boolean;
   selectedMapArea?: GeoJsonPolygon;
@@ -60,6 +62,7 @@ export interface HomeMatchProfile {
 export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   nationality: '',
   propertyGoal: '',
+  homeType: '',
   districts: [],
   locationFlexible: false,
   budgetMin: 0,
