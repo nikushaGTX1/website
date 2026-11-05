@@ -69,6 +69,10 @@ export class HomeMatchResultsComponent implements OnChanges {
   @Input() matches: HomeMatchResult[] = [];
   @Input({ required: true }) profile!: HomeMatchProfile;
   @Output() edit = new EventEmitter<void>();
+  /** "Reset preferences": clear every answer and start Velven Match again. */
+  @Output() reset = new EventEmitter<void>();
+  /** Second tap confirms the reset. */
+  confirmReset = false;
   /** Emits the question step whose answer the user wants to change from the results. */
   @Output() changeAnswer = new EventEmitter<number>();
   @Input() saveState: SearchSaveState = null;

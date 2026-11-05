@@ -975,3 +975,15 @@ h1 {
   font-size: 17px; font-weight: 800; box-shadow: 0 4px 14px rgba(20, 17, 42, 0.25);
 }
 .best-match .mc-number { background: linear-gradient(135deg, #f5b301, #e38b00); }
+
+/* "See all answers" and "Reset preferences" on one row. */
+.answer-chips-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 12px; }
+.answer-chips-actions .answer-chips-all { margin-top: 0; }
+.answer-chips-reset, .answer-chips-confirm button {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px;
+  border: 1px solid #e3dcef; border-radius: 10px; background: #fff; color: #5d566b;
+  font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.answer-chips-reset:hover { border-color: #d2c7e6; color: #2b2340; }
+.answer-chips-confirm { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.answer-chips-confirm .danger { border-color: #f3c7c1; background: #fff5f4; color: #b42318; }

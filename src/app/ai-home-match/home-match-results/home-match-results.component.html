@@ -24,9 +24,20 @@
           <i class="fa-solid fa-pen answer-chip-edit" aria-hidden="true"></i>
         </button>
       </div>
-      <button type="button" class="answer-chips-all" (click)="edit.emit()">
-        <i class="fa-solid fa-sliders" aria-hidden="true"></i> See all answers
-      </button>
+      <div class="answer-chips-actions">
+        <button type="button" class="answer-chips-all" (click)="edit.emit()">
+          <i class="fa-solid fa-sliders" aria-hidden="true"></i> See all answers
+        </button>
+        <button type="button" class="answer-chips-reset" *ngIf="!confirmReset" (click)="confirmReset = true">
+          <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset preferences
+        </button>
+        <span class="answer-chips-confirm" *ngIf="confirmReset" role="group" aria-label="Reset preferences?">
+          <button type="button" class="danger" (click)="confirmReset = false; reset.emit()">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Yes, reset everything
+          </button>
+          <button type="button" (click)="confirmReset = false">Cancel</button>
+        </span>
+      </div>
     </div>
     <div class="discover-save" *ngIf="saveState" [class.guest]="saveState === 'guest'" role="status" aria-live="polite">
       <span class="discover-save-icon" aria-hidden="true">
