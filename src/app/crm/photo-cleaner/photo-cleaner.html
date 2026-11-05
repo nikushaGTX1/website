@@ -15,6 +15,7 @@
 
   <p *ngIf="!enabled" role="status">Image editing is available to administrators only during testing and may be disabled.</p>
   <div class="edit-permissions">
+  <p class="trial-limit">Admin trial: 5 requests per hour, 5 edits per UTC day and 20 edits per month. Processing pauses when a limit is reached.</p>
   <label class="edit-consent"><input type="checkbox" [(ngModel)]="rightsConfirmed" [disabled]="running" /> I own these images and marks, or have explicit permission to modify them.</label>
   <label>Photo rights <select [(ngModel)]="authorizationBasis" [disabled]="running"><option value="owned">Owned</option><option value="licensed">Licensed / authorized</option></select></label>
   <label *ngIf="authorizationBasis === 'licensed'">Written permission reference <input [(ngModel)]="permissionReference" [disabled]="running" maxlength="500" /></label>

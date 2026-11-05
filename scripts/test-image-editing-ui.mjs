@@ -16,7 +16,7 @@ try {
     localStorage.setItem('token', 'offline-test');
     localStorage.setItem('user', JSON.stringify({ id: 'admin', role: 'Admin', fullName: 'Test Admin' }));
   });
-  let calls = 0, approvals = 0, fail = false;
+  let calls = 0, approvals = 0, fail = false, limited = false;
   await page.route('**/api/**', async route => {
     const url = route.request().url();
     if (url.endsWith('/image-processing/availability')) return route.fulfill({ json: { enabled: true, canRemove: true } });
@@ -25,6 +25,7 @@ try {
       const body = route.request().postDataBuffer().toString('latin1');
       assert.match(body, /name="rightsConfirmed"/);
       assert.doesNotMatch(body, /OPENAI_API_KEY|api.openai.com|mode.*detect/);
+      if (limited) return route.fulfill({ status: 429, body: '' });
       return route.fulfill(fail ? { status: 502, json: { message: 'Editing failed; no automatic retry.' } } : { json: { classification: 'authorized_edit', action: 'processed', cleanedImage: edited.toString('base64'), contentType: 'image/png', jobId: calls } });
     }
     if (url.endsWith('/approve-draft')) { approvals++; return route.fulfill({ json: {} }); }
@@ -76,6 +77,20 @@ try {
   await page.getByRole('button', { name: 'Restore original', exact: true }).click();
   assert.equal(await page.locator('.image-thumbnail img').first().getAttribute('src'), before);
   await page.screenshot({ path: 'tmp/image-editing/listing.png', fullPage: true });
+  limited = true;
+  await page.goto(base + '/crm/photo-cleaner');
+  await page.locator('input[type=file]').first().setInputFiles([
+    { name: 'pending-one.png', mimeType: 'image/png', buffer: photo },
+    { name: 'pending-two.png', mimeType: 'image/png', buffer: photo },
+  ]);
+  await page.getByRole('checkbox').first().check();
+  const callsBeforeLimit = calls;
+  await page.getByRole('button', { name: 'Process selected photos' }).click();
+  await page.locator('.notice').filter({ hasText: 'Image processing limit reached' }).waitFor();
+  assert.equal(calls, callsBeforeLimit + 1, 'Do not automatically retry or continue after 429');
+  assert.equal(await page.locator('li[data-state=waiting]').count(), 2, 'Rate-limited photos remain queued');
+  assert.equal(await page.locator('li[data-state=error]').count(), 0, 'Rate limits must not appear as image failures');
+  assert.equal(await page.getByRole('button', { name: 'Process selected photos' }).isDisabled(), true);
   assert.deepEqual(errors, []);
   console.log('Passed offline image-editing browser checks: explicit processing, consent, failure, comparison, downloads, listing preview, approval and restore.');
 } finally { await browser.close(); }

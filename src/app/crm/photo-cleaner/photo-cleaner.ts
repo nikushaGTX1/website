@@ -33,6 +33,7 @@ export class PhotoCleaner implements OnDestroy {
   dragging = false;
   running = false;
   notice = '';
+  rateLimited = false;
   rightsConfirmed = false;
   authorizationBasis: 'owned' | 'licensed' = 'owned';
   permissionReference = '';
@@ -48,7 +49,7 @@ export class PhotoCleaner implements OnDestroy {
   }
 
   get canStart(): boolean {
-    return this.enabled && this.rightsConfirmed && !this.running &&
+    return this.enabled && this.rightsConfirmed && !this.running && !this.rateLimited &&
       (this.authorizationBasis === 'owned' || !!this.permissionReference.trim());
   }
 
@@ -115,6 +116,16 @@ export class PhotoCleaner implements OnDestroy {
           item.message = 'The watermark was found but could not be removed cleanly.';
         }
       } catch (error: any) {
+        if (error?.status === 429) {
+          // A rejected request did not produce an edit. Retain this and remaining originals.
+          item.state = 'waiting';
+          const message = error?.error?.message;
+          const busy = typeof message === 'string' && message.includes('Another image');
+          this.rateLimited = !busy;
+          this.notice = busy ? message : (message || 'Image processing limit reached: the trial allows 5 requests per hour and 5 edits per UTC day.') +
+            ' Your remaining photos are kept here. Download completed results and refresh after the limit resets. No automatic retry was made.';
+          break;
+        }
         item.state = 'error';
         item.message = error?.error?.message || 'Image editing failed. No automatic retry was made.';
         this.notice = 'Processing paused after a failure. Review the error before starting remaining photos.';
