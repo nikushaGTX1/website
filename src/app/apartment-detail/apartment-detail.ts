@@ -783,7 +783,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   private shareFeedbackTimer?: number;
 
   async shareApartment(): Promise<void> {
-    const url = location.href;
+    const publicLink = new URL(location.href);
+    publicLink.searchParams.delete('matchSearch');
+    const url = publicLink.href;
     if (navigator.share) {
       try {
         await navigator.share({ title: this.title, text: this.address, url });
