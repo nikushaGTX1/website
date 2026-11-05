@@ -31,11 +31,17 @@ import { HomeProfileSummaryComponent } from '../home-profile-summary/home-profil
 import { HomeMatchResultsComponent } from '../home-match-results/home-match-results.component';
 import { DrawAreaMapComponent } from '../../maps/draw-area-map/draw-area-map.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { enableFlagEmojis } from '../../utils/flag-emoji';
 import { AuthService } from '../../services/auth.service';
 import { ClientService } from '../../services/client.service';
+import { CountryOption, countryOptions, fold, localizedCountryName } from '../../utils/country-names';
+import { TranslationService } from '../../services/translation.service';
 import { SearchSaveState } from '../home-match-results/home-match-results.component';
 import { ClientBoardService, IntakeContact } from '../../services/client-board.service';
 import { isValidPhone } from '../../utils/phone';
+
+// Windows has no flag emoji: the nationality step loads the site's flag font.
+enableFlagEmojis();
 
 type ViewState = 'questions' | 'review' | 'intake' | 'loading' | 'results' | 'error';
 @Component({
@@ -95,7 +101,47 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     },
     { title: 'What style of apartment do you like?' },
     { title: 'What condition should the property be in?', subtitle: 'Choose one or more.' },
+    { title: 'What is your nationality?', subtitle: 'Choose the country whose nationality you hold.' },
   ];
+  /**
+   * Countries shown first. Every other country follows alphabetically, and the search
+   * matches names in English, Georgian and Russian as well as the country code.
+   */
+  private static readonly popularNationalities = [
+    'GE', 'RU', 'UA', 'BY', 'AM', 'AZ', 'KZ', 'UZ', 'KG', 'TJ', 'TM', 'MD',
+    'TR', 'IR', 'IL', 'AE', 'SA', 'QA', 'KW', 'BH', 'OM', 'JO', 'LB', 'IQ', 'EG',
+    'IN', 'PK', 'BD', 'LK', 'NP',
+    'CN', 'JP', 'KR', 'PH', 'VN', 'TH', 'ID', 'MY', 'SG',
+    'US', 'CA', 'GB', 'IE', 'AU', 'NZ',
+    'DE', 'FR', 'IT', 'ES', 'PT', 'NL', 'BE', 'CH', 'AT', 'PL', 'CZ', 'SK', 'HU',
+    'RO', 'BG', 'GR', 'CY', 'RS', 'HR', 'SI', 'BA', 'MK', 'AL', 'EE', 'LV', 'LT',
+    'FI', 'SE', 'NO', 'DK', 'IS',
+    'BR', 'AR', 'MX', 'CL', 'CO', 'PE', 'ZA', 'NG', 'KE',
+  ];
+  nationalitySearch = '';
+  get allNationalities(): CountryOption[] {
+    return countryOptions(this.translation.language$.value);
+  }
+  get nationalityOptions(): CountryOption[] {
+    const all = this.allNationalities;
+    const query = fold(this.nationalitySearch.trim());
+    if (query) return all.filter((country) => country.search.includes(query));
+    // Suggested countries first, then every other country in the language's alphabetical order.
+    const suggested = AiHomeMatchPageComponent.popularNationalities
+      .map((code) => all.find((country) => country.code === code))
+      .filter((country): country is CountryOption => !!country);
+    const shown = new Set(suggested.map((country) => country.code));
+    return [...suggested, ...all.filter((country) => !shown.has(country.code))];
+  }
+  chooseNationality(name: string): void {
+    this.profile.nationality = name;
+    this.nationalitySearch = '';
+    this.persist();
+  }
+  /** The chosen nationality as the client sees it, in the site language. */
+  get nationalityLabel(): string {
+    return localizedCountryName(this.profile.nationality, this.translation.language$.value);
+  }
   /** Buyers only (question 13). "Any" stands alone. */
   readonly conditionOptions = [
     { value: 'MoveInReady', label: 'Move-in ready', icon: 'fa-solid fa-couch' },
@@ -338,6 +384,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     private auth: AuthService,
     private clientService: ClientService,
     private boardService: ClientBoardService,
+    private translation: TranslationService,
   ) {
     // The lifestyle character's figures are fetched while the visitor reads the first
     // question, so they appear at once when the profile panel shows them.
@@ -351,7 +398,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       1500,
     );
     const query = route.snapshot.queryParamMap;
-    this.intakeToken = query.get('intake');
+    // Short agent link (/m/nika) and the older ?intake= form both open the same flow.
+    this.intakeToken = query.get('intake') || route.snapshot.paramMap.get('slug');
     // A link an agent sent: the client came to answer the questions, so open them directly
     // instead of the Velven Match intro page.
     if (this.intakeToken) {
@@ -414,6 +462,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         }
       }
     }
+    // A fresh intake link opens on the first question actually asked. It used to open on the
+    // old default (property goal) and silently skip the nationality question.
+    if (this.quizStarted && !restored) {
+      this.step = this.firstIncompleteStep() ?? this.visibleSteps[0] ?? this.step;
+    }
     this.locationService.getLocations().subscribe({
       next: (locations) => {
         this.locationEntries = locations;
@@ -436,9 +489,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return (this.stepNumber / this.visibleSteps.length) * 100;
   }
   get visibleSteps(): number[] {
-    // Question 12 (apartment style) is asked right after Rent / Buy.
+    // Question 14 (nationality) opens the flow; 12 (apartment style) follows Rent/Buy.
     // 13 (property condition) is for buyers only, right after bedrooms.
-    return [1, 12, 0, 2, 3, 4, 5, 6, 13, 7, 8, 9, 10, 11].filter(
+    return [14, 1, 12, 0, 2, 3, 4, 5, 6, 13, 7, 8, 9, 10, 11].filter(
       (step) =>
         !(this.profile.propertyGoal === 'Buy' && [3, 4, 5, 10].includes(step)) &&
         !(step === 13 && this.profile.propertyGoal !== 'Buy') &&
@@ -450,7 +503,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get currentPhase(): number {
     // Use the question ID as the source of truth so phase labels cannot drift.
-    if (this.step === 1 || this.step === 12 || this.step === 0) return 0;
+    if (this.step === 14 || this.step === 1 || this.step === 12 || this.step === 0) return 0;
     if (this.step === 2) return 1;
     if ([4, 5, 6, 13, 7].includes(this.step)) return 2;
     if ([8, 9, 10].includes(this.step)) return 3;
@@ -539,6 +592,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   };
 
   scrollToMatcher(): void {
+    if (!this.quizStarted) {
+      // Start on the first question in the current order (nationality), not the old default.
+      this.step = this.firstIncompleteStep() ?? this.visibleSteps[0] ?? this.step;
+    }
     this.quizStarted = true;
     document.querySelector('.wizard-shell')?.scrollIntoView({ behavior: 'smooth' });
   }
@@ -563,6 +620,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return this.generateSuggestedPriorities().sort((a, b) => rank(a.value) - rank(b.value));
   }
   get currentStepIcon(): string {
+    if (this.step === 14) return 'social';
     return (
       [
         'solo',
@@ -998,6 +1056,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   canContinue(step: number = this.step): boolean {
     switch (step) {
+      case 14:
+        return !!this.profile.nationality;
       case 0:
         return !!this.profile.gender;
       case 1:
@@ -1133,6 +1193,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['topPriorities'],
       ['apartmentStyle'],
       ['propertyConditions'],
+      ['nationality'],
     ];
     for (const key of fields[step]) {
       const value = EMPTY_HOME_MATCH_PROFILE[key];
@@ -1241,6 +1302,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   submitIntake(): void {
     if (this.intakeBusy) return;
     const contact = this.intakeContact;
+    // Nationality is collected as the first questionnaire question.
+    contact.nationality = this.profile.nationality || '';
     if (!contact.firstName.trim() || !isValidPhone(contact.phone) || !contact.consent) {
       this.intakeError = 'Enter your first name, a valid phone number and consent to contact.';
       return;

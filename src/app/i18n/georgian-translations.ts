@@ -1448,6 +1448,12 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Not provided', 'მითითებული არ არის'],
   // AI match questions (screenshots 3-6)
   ['Select your gender', 'აირჩიეთ სქესი'],
+  ['What is your nationality?', 'რა მოქალაქეობა გაქვთ?'],
+  ['Choose the country whose nationality you hold.', 'აირჩიეთ ქვეყანა, რომლის მოქალაქეც ხართ.'],
+  ['Search your country', 'მოძებნეთ თქვენი ქვეყანა'],
+  ['No countries match your search.', 'ქვეყანა ვერ მოიძებნა.'],
+  ['Nationality', 'მოქალაქეობა'],
+  ['Nationality:', 'მოქალაქეობა:'],
   ['What are you looking for?', 'რას ეძებთ?'],
   ['Where would you like to live?', 'სად გსურთ ცხოვრება?'],
   ['What is your budget?', 'რა არის თქვენი ბიუჯეტი?'],

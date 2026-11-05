@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { answerLabel, answerList, bedroomsLabel } from '../services/answer-labels';
+import { localizedCountryName } from '../../utils/country-names';
 import { NgFor, NgClass } from '@angular/common';
 import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
 
@@ -49,6 +50,14 @@ export class HomeProfileSummaryComponent {
     const p = this.profile;
     const rent = p.propertyGoal !== 'Buy';
     const rows: Array<AnswerRow | null> = [
+      p.nationality
+        ? {
+            step: 14,
+            label: 'Nationality',
+            value: localizedCountryName(p.nationality, document.documentElement.lang || 'en'),
+            icon: 'fa-earth-europe',
+          }
+        : null,
       p.gender
         ? { step: 0, label: 'Gender', value: this.label(p.gender), icon: 'fa-venus-mars' }
         : null,

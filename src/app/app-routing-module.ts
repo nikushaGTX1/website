@@ -439,6 +439,16 @@ const routes: Routes = [
   },
 
   {
+    // Short agent intake link: /m/nika opens Velven Match with that agent's intake link.
+    path: 'm/:slug',
+    loadComponent: () =>
+      import('./ai-home-match/ai-home-match-page/ai-home-match-page.component').then(
+        (m) => m.AiHomeMatchPageComponent,
+      ),
+    title: 'Velven Match | Velven',
+  },
+
+  {
     path: ':agentToken',
     loadComponent: () => import('./crm/crm-questioner/crm-questioner').then((m) => m.CrmQuestioner),
     title: 'Apartment Questionnaire | Velven',

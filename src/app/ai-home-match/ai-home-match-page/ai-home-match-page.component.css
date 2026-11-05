@@ -4584,3 +4584,87 @@ fieldset {
     flex-basis: 160px;
   }
 }
+
+/* First question: nationality, with a flag for every country. */
+.nationality-step {
+  display: grid;
+  gap: 14px;
+}
+.nationality-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #dfe4ec;
+  border-radius: 12px;
+  background: #fff;
+  color: #7b8698;
+}
+.nationality-search:focus-within {
+  border-color: var(--match-blue);
+  box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.1);
+}
+.nationality-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 13px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #172238;
+  font: inherit;
+  font-size: 15px;
+  box-shadow: none;
+  appearance: none;
+}
+/* The pill itself shows focus (focus-within); the input must not draw its own ring. */
+.nationality-search input:focus,
+.nationality-search input:focus-visible {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+.nationality-search input::-webkit-search-decoration,
+.nationality-search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.question .nationality-options {
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 8px;
+  max-height: min(420px, 55vh);
+  overflow-y: auto;
+  padding: 2px;
+  align-content: start;
+}
+.question .nationality-options button {
+  min-height: 64px;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.nationality-flag {
+  flex: 0 0 auto;
+  font-family: 'Twemoji Country Flags', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-size: 24px;
+  line-height: 1;
+}
+.nationality-name {
+  min-width: 0;
+}
+.nationality-empty {
+  margin: 0;
+  color: #7b8698;
+  font-size: 14px;
+}
+@media (max-width: 620px) {
+  .question .nationality-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -84,6 +84,33 @@
         </div>
       </div>
       <ng-container [ngSwitch]="step">
+        <div class="nationality-step" *ngSwitchCase="14">
+          <label class="nationality-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input
+              type="search"
+              name="nationalitySearch"
+              placeholder="Search your country"
+              autocomplete="country-name"
+              [(ngModel)]="nationalitySearch"
+            />
+          </label>
+          <div class="options nationality-options" role="listbox" aria-label="Nationality">
+            <button
+              type="button"
+              *ngFor="let country of nationalityOptions; trackBy: trackOption"
+              [class.selected]="profile.nationality === country.name"
+              [attr.aria-selected]="profile.nationality === country.name"
+              (click)="chooseNationality(country.name)"
+            >
+              <span class="nationality-flag" data-no-translate aria-hidden="true">{{ country.flag }}</span>
+              <span class="nationality-name" data-no-translate>{{ country.label }}</span>
+            </button>
+          </div>
+          <p class="nationality-empty" *ngIf="!nationalityOptions.length">
+            No countries match your search.
+          </p>
+        </div>
         <div class="options gender-first-step" *ngSwitchCase="0">
           <button
             type="button"
@@ -786,7 +813,7 @@
   <form (ngSubmit)="submitIntake()">
     <label for="intake-name">First name</label><input id="intake-name" name="firstName" [(ngModel)]="intakeContact.firstName" autocomplete="given-name" required maxlength="80"/>
     <label for="intake-phone">Phone number</label><input id="intake-phone" name="phone" [(ngModel)]="intakeContact.phone" type="tel" placeholder="+995 5XX XX XX XX" autocomplete="tel" required maxlength="40"/>
-    <label for="intake-nationality">Nationality (optional)</label><input id="intake-nationality" name="nationality" [(ngModel)]="intakeContact.nationality" maxlength="80"/>
+    <p class="intake-note" *ngIf="profile.nationality">Nationality: <b>{{ nationalityLabel }}</b></p>
     <label class="intake-check"><input type="checkbox" name="consent" [(ngModel)]="intakeContact.consent" required/><span>I consent to Velven storing my requirements and contact details and contacting me about my search.</span></label>
     <label class="intake-check"><input type="checkbox" name="publishConsent" [(ngModel)]="intakeContact.publishConsent"/><span>Show my anonymised profile to property owners</span></label>
     <p class="intake-note">Publication is optional. You can ask your agent to pause or close your profile at any time.</p>

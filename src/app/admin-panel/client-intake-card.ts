@@ -31,7 +31,8 @@ export class ClientIntakeCard implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
   url(link: IntakeLink) {
-    return `${location.origin}/ai-home-match?intake=${encodeURIComponent(link.slug || link.token)}`;
+    // Short, recognisable share link: velven.ge/m/nika (the agent's name), not a long token.
+    return `${location.origin}/m/${encodeURIComponent(link.slug || link.token)}`;
   }
   share(link: IntakeLink, channel: 'whatsapp' | 'telegram') {
     const url = encodeURIComponent(this.url(link));

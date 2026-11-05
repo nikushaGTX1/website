@@ -6,6 +6,8 @@ export type PetKind = 'Dog' | 'Cat' | 'Other';
 export type DogSize = 'Small' | 'Medium' | 'Large';
 export interface HomeMatchProfile {
   city?: string;
+  /** Country name in English, asked first so the agent and public card can show it. */
+  nationality?: string;
   minSize?: number;
   /** Conversion used when saving; changing budget or currency invalidates this snapshot. */
   budgetConversion?: { currency: Currency; min: number; max: number; usdGel: number; usdEur: number };
@@ -56,6 +58,7 @@ export interface HomeMatchProfile {
 }
 
 export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
+  nationality: '',
   propertyGoal: '',
   districts: [],
   locationFlexible: false,

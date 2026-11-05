@@ -1649,6 +1649,7 @@ app.use(async (request, response) => {
     const dynamicMetadata = apartmentMetadata || agentMetadata || reviewMetadata || questionnaireMetadata;
     const staticMetadata = routeSeo.get(pathname);
     const knownPrivateRoute = privateRoutePattern.test(pathname)
+      || /^\/m\/[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(pathname)
       || ['/property', '/apartment-detail'].includes(pathname);
     const unknownResource = !missingResource && !dynamicMetadata && !staticMetadata && !knownPrivateRoute;
     const notFound = missingResource || unknownResource;
