@@ -122,8 +122,8 @@ export class PhotoCleaner implements OnDestroy {
           const message = error?.error?.message;
           const busy = typeof message === 'string' && message.includes('Another image');
           this.rateLimited = !busy;
-          this.notice = busy ? message : (message || 'Image processing limit reached: the trial allows 5 requests per hour and 5 edits per UTC day.') +
-            ' Your remaining photos are kept here. Download completed results and refresh after the limit resets. No automatic retry was made.';
+          this.notice = busy ? message : (message || 'Image processing is temporarily unavailable.') +
+            ' Your remaining photos are kept here. Download completed results and refresh before trying again. No automatic retry was made.';
           break;
         }
         item.state = 'error';

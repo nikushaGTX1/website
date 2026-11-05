@@ -86,7 +86,7 @@ try {
   await page.getByRole('checkbox').first().check();
   const callsBeforeLimit = calls;
   await page.getByRole('button', { name: 'Process selected photos' }).click();
-  await page.locator('.notice').filter({ hasText: 'Image processing limit reached' }).waitFor();
+  await page.locator('.notice').filter({ hasText: 'Image processing is temporarily unavailable' }).waitFor();
   assert.equal(calls, callsBeforeLimit + 1, 'Do not automatically retry or continue after 429');
   assert.equal(await page.locator('li[data-state=waiting]').count(), 2, 'Rate-limited photos remain queued');
   assert.equal(await page.locator('li[data-state=error]').count(), 0, 'Rate limits must not appear as image failures');
