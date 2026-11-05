@@ -59,6 +59,11 @@
         </div>
 
         <div class="form-group">
+          <label for="reg-nationality">Nationality</label>
+          <app-nationality-picker inputId="reg-nationality" [(value)]="registerData.nationality"></app-nationality-picker>
+        </div>
+
+        <div class="form-group">
           <label for="reg-password">Password</label>
           <div class="input-icon-wrapper">
             <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>

@@ -12,7 +12,7 @@
     <button
       type="button"
       class="profile-attribute orbit-attribute"
-      *ngFor="let attribute of profileAttributes"
+      *ngFor="let attribute of profileAttributes; trackBy: trackAttribute"
       [style.left.%]="attribute.left"
       [style.top.%]="attribute.top"
       (click)="changeAnswer.emit(attribute.step)"
@@ -34,7 +34,7 @@
     <button
       type="button"
       class="profile-attribute extra-attribute"
-      *ngFor="let attribute of mobileExtraAttributes"
+      *ngFor="let attribute of mobileExtraAttributes; trackBy: trackAttribute"
       (click)="changeAnswer.emit(attribute.step)"
     >
       <span class="attribute-icon"><i class="fa-solid" [ngClass]="attribute.icon" aria-hidden="true"></i></span>
@@ -47,7 +47,9 @@
   <p class="save-message" aria-live="polite">{{ saveMessage }}</p>
   <div class="actions">
     <button type="button" class="secondary" (click)="edit.emit()"><i class="fa-solid fa-pen"></i> Edit My Answers</button>
-    <button type="button" class="secondary" (click)="save.emit()" [disabled]="saving"><i class="fa-regular fa-bookmark"></i> {{ saving ? 'Saving…' : 'Save My Profile' }}</button>
+    <button type="button" class="secondary" *ngIf="!confirmReset" (click)="confirmReset = true"><i class="fa-solid fa-rotate-left"></i> Reset Profile</button>
+    <button type="button" class="secondary danger" *ngIf="confirmReset" (click)="confirmReset = false; reset.emit()"><i class="fa-solid fa-rotate-left"></i> Yes, reset everything</button>
+    <button type="button" class="secondary" *ngIf="confirmReset" (click)="confirmReset = false">Cancel</button>
     <button type="button" class="primary" (click)="submitProfile.emit()">Find My Best Matches <i class="fa-solid fa-arrow-right"></i></button>
   </div>
 </section>

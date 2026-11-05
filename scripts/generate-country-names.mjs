@@ -14,10 +14,17 @@ for (const locale of locales) {
   territories[locale] = json.main[locale].localeDisplayNames.territories;
 }
 
+// CLDR spells out the full "special administrative region of China" for these two,
+// which is far too long for the country picker.
+const nameOverrides = {
+  HK: { ka: 'ჰონკონგი' },
+  MO: { ka: 'მაკაო' },
+};
+
 const codes = getCountries().slice().sort();
 const lines = codes.map((code) => {
   const en = territories.en[code] ?? code;
-  const ka = territories.ka[code] ?? en;
+  const ka = nameOverrides[code]?.ka ?? territories.ka[code] ?? en;
   const ru = territories.ru[code] ?? en;
   return `  ${code}: { en: ${JSON.stringify(en)}, ka: ${JSON.stringify(ka)}, ru: ${JSON.stringify(ru)} },`;
 });

@@ -12,6 +12,8 @@ export interface RegisterRequest {
   password: string;
   confirmPassword?: string;
   phoneNumber: string;
+  /** English country name, e.g. "Georgia". */
+  nationality?: string;
 }
 
 export interface LoginRequest {

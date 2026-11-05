@@ -1,7 +1,7 @@
 <div class="interest-page" [class.embedded]="embedded" [attr.role]="embedded ? null : 'main'">
   <header class="page-head">
     @if (embedded) {
-      <h2 class="section-title">Clients for you</h2>
+      <h2 class="section-title" *ngIf="!hideTitle">Clients for you</h2>
     } @else {
       <p class="eyebrow">For property owners</p>
       <h1>Clients looking for your homes.</h1>

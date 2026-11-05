@@ -4,6 +4,8 @@ export interface User {
   fullName: string;
   email: string;
   phoneNumber?: string;
+  /** English country name from sign-up ("Georgia"); Velven Match uses it. */
+  nationality?: string | null;
   pin?: string;
   bio?: string;
   /** Short-lived signed Supabase URL returned by the API. */

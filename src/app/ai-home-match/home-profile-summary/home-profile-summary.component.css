@@ -409,3 +409,4 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
   .profile-stage .orbit-attribute .attribute-edit { top: 12px !important; transform: none; }
   .profile-stage .orbit-attribute:hover .attribute-edit { transform: scale(1.1); }
 }
+.secondary.danger { color: #b42318; border-color: #f3c7c1; background: #fff5f4; }

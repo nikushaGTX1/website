@@ -12,9 +12,13 @@ import { toMediaUrl } from '../../utils/api-media';
 import { isSaleListing } from '../../utils/listing-deal';
 import { parkingCostLabel } from '../../utils/parking-cost';
 import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
+import { listingDeposit, listingDepositInGel } from '../../utils/listing-deposit';
+import { DecimalPipe } from '@angular/common';
 
-/** Agent photos by user id, fetched once for every card on the page. */
-let agentPhotos$: Observable<Map<string, string>> | undefined;
+interface AgentContact { photo: string; phone: string }
+
+/** Agent photos and phones by user id, fetched once for every card on the page. */
+let agentPhotos$: Observable<Map<string, AgentContact>> | undefined;
 
 /** One line under "Why it fits": lead and tail are numbers/dates kept out of translation. */
 export interface FitLine { lead?: string; text: string; tail?: string }
@@ -24,12 +28,14 @@ export interface FitLine { lead?: string; text: string; tail?: string }
   selector: 'app-discover-card',
   templateUrl: './discover-card.html',
   styleUrl: './discover-card.css',
-  imports: [PhotoUrlPipe, NgIf, NgFor, RouterLink, CurrencyPrice, ListingTitlePipe],
+  imports: [DecimalPipe, PhotoUrlPipe, NgIf, NgFor, RouterLink, CurrencyPrice, ListingTitlePipe],
 })
 export class DiscoverCard implements OnInit {
   @Input({ required: true }) apartment!: Apartment;
   /** Shows the "New match" badge (published after the search was saved, not opened yet). */
   @Input() isNew = false;
+  /** Place in the Velven Match order for its search (1 = best match); same numbers as the results page. */
+  @Input() rank: number | null = null;
   /** Nothing fails, but something still needs confirming with the agent (e.g. pets). */
   @Input() needsCheck = false;
   /** Opened from an alert: briefly outlined so it is easy to find. */
@@ -41,9 +47,15 @@ export class DiscoverCard implements OnInit {
   @Input() matched = false;
   /** Velven Match reasons, shown as "Why it fits". */
   @Input() reasons: string[] = [];
+  /** Shown on the Saved homes page: "Velven Match" badge, or "About the home" for homes no search found. */
+  @Input() savedView = false;
   @Output() opened = new EventEmitter<Apartment>();
+  /** Client tapped "Not for me": the list hides this home. */
+  @Output() notForMe = new EventEmitter<Apartment>();
 
   agentPhoto = '';
+  /** Phone from the agent's Velven profile, used when the listing has none. */
+  agentProfilePhone = '';
 
   constructor(
     readonly favorites: FavoriteService,
@@ -55,11 +67,18 @@ export class DiscoverCard implements OnInit {
     const id = this.apartment.uploadedByUserId || this.apartment.agentUserId || this.apartment.agentId;
     if (!id || !this.agentName) return;
     agentPhotos$ ??= this.agents.getAgents().pipe(
-      map((list) => new Map(list.filter((a) => a.id).map((a) => [a.id!, toMediaUrl(a.profilePictureUrl || a.profilePicture || '')]))),
-      catchError(() => of(new Map<string, string>())),
+      map((list) => new Map(list.filter((a) => a.id).map((a) => [a.id!, {
+        photo: toMediaUrl(a.profilePictureUrl || a.profilePicture || ''),
+        phone: a.phoneNumber || '',
+      }]))),
+      catchError(() => of(new Map<string, AgentContact>())),
       shareReplay(1),
     );
-    agentPhotos$.subscribe((photos) => (this.agentPhoto = photos.get(id) || ''));
+    agentPhotos$.subscribe((agents) => {
+      const agent = agents.get(id);
+      this.agentPhoto = agent?.photo || '';
+      this.agentProfilePhone = agent?.phone || '';
+    });
   }
 
   get agentName(): string {
@@ -67,11 +86,11 @@ export class DiscoverCard implements OnInit {
   }
 
   get agentFirstName(): string {
-    return this.agentName.split(/s+/)[0];
+    return this.agentName.split(/\s+/)[0];
   }
 
   get agentInitials(): string {
-    return this.agentName.split(/s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+    return this.agentName.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   }
 
   /** "Today", "Yesterday" or a short date, in the page language. */
@@ -91,6 +110,7 @@ export class DiscoverCard implements OnInit {
   get whyItFits(): FitLine[] {
     const lines: FitLine[] = [];
     const a = this.apartment;
+    if (!this.matched && a.isFurnished) lines.push({ text: 'Furnished, with appliances' });
     if (a.isPetFriendly) lines.push({ text: 'Pets accepted' });
     if (a.parkDistanceMinutes) lines.push({ lead: String(a.parkDistanceMinutes), text: 'min walk to a park' });
     else if (a.metroDistanceMinutes) lines.push({ lead: String(a.metroDistanceMinutes), text: 'min walk to the metro' });
@@ -103,6 +123,23 @@ export class DiscoverCard implements OnInit {
     }
     for (const reason of this.reasons) if (lines.length < 3) lines.push({ text: reason });
     return lines.slice(0, 3);
+  }
+
+  /** Refundable deposit, same value as on the property page (0 = none listed). */
+  get deposit(): number {
+    return this.isSale ? 0 : listingDeposit(this.apartment);
+  }
+
+  get depositInGel(): boolean {
+    return listingDepositInGel(this.apartment);
+  }
+
+  get photoCount(): number {
+    return this.apartment.imageUrls?.length || (this.apartment.imageUrl ? 1 : 0);
+  }
+
+  get agentPhone(): string {
+    return (this.apartment.agentPhoneNumber || this.agentProfilePhone || this.apartment.phoneNumber || '').replace(/[^\d+]/g, '');
   }
 
   get image(): string {

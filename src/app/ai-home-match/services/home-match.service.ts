@@ -10,6 +10,7 @@ import {
   budgetRangeUsd,
   matchesPropertyGoal,
   petsExplicitlyProhibited,
+  petConfirmationRank,
   withinBudgetCeiling,
 } from './mandatory-requirements';
 import { applyPriorityScoring } from './priority-scoring';
@@ -60,7 +61,8 @@ export class HomeMatchService {
           !petsExplicitlyProhibited(match.apartment, profile),
       )
       .map((match) => applyPriorityScoring(match, profile))
-      .sort((a, b) => (b.rankingScore || 0) - (a.rankingScore || 0));
+      .sort((a, b) => petConfirmationRank(a.apartment, profile) - petConfirmationRank(b.apartment, profile) ||
+        (b.rankingScore || 0) - (a.rankingScore || 0));
   }
 
   /** findMatches + rankMatches. */
@@ -109,7 +111,7 @@ export class HomeMatchService {
   }
 
   private static readonly SESSION_KEY = 'velven:home-match-profile';
-  private static readonly RESULTS_KEY = 'velven:home-match-results';
+  private static readonly RESULTS_KEY = 'velven:home-match-results-v2';
   /** Kept results are shown again for this long (Back from an apartment); then Match runs again. */
   private static readonly RESULTS_LIFETIME_MS = 60 * 60_000;
 

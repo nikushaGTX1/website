@@ -50,7 +50,7 @@ import {
   OwnerSubmission,
   OwnerSubmissionStatus,
 } from '../services/owner-listing.service';
-import { NgIf, NgFor, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
+import { NgIf, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PropertyPointPickerComponent } from '../maps/property-point-picker/property-point-picker.component';
 
@@ -172,7 +172,7 @@ interface PreparedImage {
   selector: 'app-upload-apartment',
   templateUrl: './upload-apartaments.html',
   styleUrl: './upload-apartment.css',
-  imports: [NgIf, NgFor, NgSwitch, NgSwitchCase, NgSwitchDefault, RouterLink, FormsModule, PropertyPointPickerComponent],
+  imports: [NgIf, NgFor, RouterLink, FormsModule, PropertyPointPickerComponent],
 })
 export class UploadApartment implements OnInit, OnDestroy {
   /**

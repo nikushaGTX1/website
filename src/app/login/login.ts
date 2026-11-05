@@ -7,12 +7,13 @@ import { FormsModule } from '@angular/forms';
 import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
 import { CodeDialogComponent } from '../shared/code-dialog/code-dialog.component';
 import { ClientService } from '../services/client.service';
+import { NationalityPicker } from '../shared/nationality-picker/nationality-picker';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.html',
   styleUrl: './login.css',
-  imports: [NgIf, RouterLink, NgTemplateOutlet, FormsModule, CodeDialogComponent],
+  imports: [NgIf, RouterLink, NgTemplateOutlet, FormsModule, CodeDialogComponent, NationalityPicker],
 })
 export class Login {
   isRegisterMode = false;
@@ -22,6 +23,7 @@ export class Login {
     fullName: '',
     email: '',
     phoneNumber: '',
+    nationality: '',
     password: '',
     confirmPassword: '',
   };
@@ -83,6 +85,10 @@ export class Login {
       this.errorMessage = 'Please enter a valid phone number.';
       return;
     }
+    if (!this.registerData.nationality) {
+      this.errorMessage = 'Please choose your nationality.';
+      return;
+    }
     if (this.registerData.password.length < 6) {
       this.errorMessage = 'Password must be at least 6 characters.';
       return;
@@ -100,6 +106,7 @@ export class Login {
         password: this.registerData.password,
         confirmPassword: this.registerData.confirmPassword,
         phoneNumber: phone.number,
+        nationality: this.registerData.nationality,
       })
       .subscribe({
         next: (response) => {

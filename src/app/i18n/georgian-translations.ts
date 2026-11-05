@@ -1449,6 +1449,8 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Search your country', 'მოძებნეთ თქვენი ქვეყანა'],
   ['No countries match your search.', 'ქვეყანა ვერ მოიძებნა.'],
   ['Nationality', 'მოქალაქეობა'],
+  ['Choose your nationality', 'აირჩიეთ მოქალაქეობა'],
+  ['Please choose your nationality.', 'გთხოვთ, აირჩიოთ მოქალაქეობა.'],
   ['Nationality:', 'მოქალაქეობა:'],
   ['What are you looking for?', 'რას ეძებთ?'],
   ['Where would you like to live?', 'სად გსურთ ცხოვრება?'],

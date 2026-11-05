@@ -134,7 +134,7 @@
               </div>
             </div>
           </section>
-          <app-match-fit *ngIf="matchInsights.length" [items]="matchInsights" [exact]="exactMatch"></app-match-fit>
+          <app-match-fit class="detail-fit" *ngIf="matchInsights.length" [items]="matchInsights" [exact]="exactMatch"></app-match-fit>
           <section class="vp-section">
             <h2>About this home</h2>
             <p [class.georgian-copy]="hasGeorgianText(visibleDescription)">

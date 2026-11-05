@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { answerLabel, answerList, bedroomsLabel } from '../services/answer-labels';
 import { localizedCountryName } from '../../utils/country-names';
-import { NgFor, NgClass } from '@angular/common';
+import { NgFor, NgIf, NgClass } from '@angular/common';
 import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
 
 interface AnswerRow {
@@ -25,7 +25,7 @@ interface ProfileAttribute {
   selector: 'app-home-profile-summary',
   templateUrl: './home-profile-summary.component.html',
   styleUrl: './home-profile-summary.component.css',
-  imports: [NgFor, NgClass, VelvenLifestyleAvatarComponent],
+  imports: [NgFor, NgIf, NgClass, VelvenLifestyleAvatarComponent],
 })
 export class HomeProfileSummaryComponent {
   @Input({ required: true }) profile!: HomeMatchProfile;
@@ -34,8 +34,20 @@ export class HomeProfileSummaryComponent {
   @Output() submitProfile = new EventEmitter<void>();
   @Output() edit = new EventEmitter<void>();
   @Output() save = new EventEmitter<void>();
+  /** Clears every answer and starts Velven Match again. */
+  @Output() reset = new EventEmitter<void>();
+  /** Second tap confirms, so one slip never erases the profile. */
+  confirmReset = false;
   /** Emits the question step whose answer the user wants to change. */
   @Output() changeAnswer = new EventEmitter<number>();
+
+  /**
+   * The attribute lists are rebuilt on every change detection. Without a stable key Angular
+   * replaced each button every cycle, so a click that spanned a refresh was lost.
+   */
+  trackAttribute(_: number, attribute: { step: number; label: string }): string {
+    return `${attribute.step}:${attribute.label}`;
+  }
 
   label(value: string | undefined | null): string {
     return value ? answerLabel(value) : 'Not specified';

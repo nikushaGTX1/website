@@ -1,4 +1,26 @@
 :host { display: block; }
+:host(.detail-fit) { margin-top: 24px; }
+:host(.detail-fit) .lifestyle-fit { padding: 22px; border-radius: 20px; background: #f8f5fd; }
+:host(.detail-fit) .fit-heading { gap: 12px; margin-bottom: 18px; align-items: center; }
+:host(.detail-fit) .fit-heading > span { width: 42px; height: 42px; flex-basis: 42px; border-radius: 13px; }
+:host(.detail-fit) .fit-heading > div { min-width: 0; }
+:host(.detail-fit) .fit-heading small { font-size: 10px; line-height: 1.5; letter-spacing: .05em; }
+:host(.detail-fit) .fit-heading h3 { margin-top: 4px; font-size: 19px; line-height: 1.5; font-weight: 700; }
+:host(.detail-fit) .fit-grid { gap: 12px; }
+:host(.detail-fit) .fit-grid article { align-items: center; gap: 12px; padding: 16px; border-radius: 14px; background: #fff; }
+:host(.detail-fit) .fit-grid article > i { width: 36px; height: 36px; flex-basis: 36px; border-radius: 11px; font-size: 16px; }
+:host(.detail-fit) .fit-grid b { font-size: 14px; line-height: 1.65; font-weight: 600; overflow-wrap: anywhere; }
+:host(.detail-fit) .fit-grid span { margin-top: 4px; font-size: 12px; line-height: 1.6; color: #71677e; overflow-wrap: anywhere; }
+@media (max-width: 1100px) and (min-width: 741px) {
+  :host(.detail-fit) .fit-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 740px) {
+  :host(.detail-fit) { margin-top: 20px; }
+  :host(.detail-fit) .lifestyle-fit { padding: 16px; border-radius: 16px; }
+  :host(.detail-fit) .fit-heading h3 { font-size: 17px; }
+  :host(.detail-fit) .fit-grid { grid-template-columns: 1fr; gap: 10px; }
+  :host(.detail-fit) .fit-grid article { padding: 13px; }
+}
 .lifestyle-fit {
   padding: 16px;
   border: 1px solid #e2d8f3;

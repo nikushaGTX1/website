@@ -3,11 +3,11 @@
     <div class="results-intro">
     <span>Velven recommendations</span>
     <h1>Your Velven Match results</h1>
-    <p *ngIf="exactMatches.length">
-      We found {{ exactMatches.length }} home{{ exactMatches.length === 1 ? '' : 's' }} that
+    <p *ngIf="rankedMatches.length">
+      We found {{ rankedMatches.length }} home{{ rankedMatches.length === 1 ? '' : 's' }} that
       meet your requirements, ranked by how well they fit your lifestyle.
     </p>
-    <p *ngIf="!exactMatches.length && matches.length">
+    <p *ngIf="!rankedMatches.length && matches.length">
       No home meets all of your requirements exactly.
     </p>
     <div class="answer-chips" *ngIf="answerChips.length">
@@ -77,7 +77,7 @@
     <button type="button" (click)="edit.emit()">Adjust My Preferences</button
     ><a routerLink="/ExploreProperty">View All Apartments</a>
   </div>
-  <div class="no-exact" *ngIf="matches.length && !exactMatches.length" role="status">
+  <div class="no-exact" *ngIf="matches.length && !rankedMatches.length" role="status">
     <h2>No exact matches found</h2>
     <p>
       None of the available homes meets all of your must-have requirements (location,
@@ -111,6 +111,7 @@
           <img [src]="(sources[0]) | photoUrl" [class.placeholder-image]="sources[0] === '/property-placeholder.svg'" [alt]="(result.apartment | listingTitle) + ' photo ' + (i + 1)" [attr.loading]="i ? 'lazy' : null" (error)="onSlideError($event, result, sources)" />
         </div>
       </div>
+      <span class="mc-number" *ngIf="kind !== 'alternative'" [attr.aria-label]="'Match number ' + (matchIndex + 1)" data-no-translate>{{ matchIndex + 1 }}</span>
       <span class="mc-rank" [attr.data-kind]="kind">
         <i class="fa-solid" [ngClass]="kind === 'exact' ? (matchIndex === 0 ? 'fa-crown' : 'fa-medal') : kind === 'confirm' ? 'fa-circle-question' : 'fa-shuffle'" aria-hidden="true"></i>
         <span>{{ cardLabel(kind, matchIndex) }}</span>
@@ -189,17 +190,10 @@
     </div>
   </article>
   </ng-template>
-  <ng-container *ngFor="let result of exactMatches; let i = index">
-    <ng-container *ngTemplateOutlet="card; context: { $implicit: result, index: i, kind: 'exact' }"></ng-container>
+  <ng-container *ngFor="let result of rankedMatches; let i = index">
+    <ng-container *ngTemplateOutlet="card; context: { $implicit: result, index: i, kind: result.requirement?.status ?? 'exact' }"></ng-container>
   </ng-container>
-  <h2 class="results-group" *ngIf="confirmMatches.length">
-    Needs confirmation
-    <small>These homes match your requirements, but a detail must be confirmed with the owner.</small>
-  </h2>
-  <ng-container *ngFor="let result of confirmMatches; let i = index">
-    <ng-container *ngTemplateOutlet="card; context: { $implicit: result, index: i, kind: 'confirm' }"></ng-container>
-  </ng-container>
-  <div class="alternatives-toggle" *ngIf="exactMatches.length && alternativeMatches.length && !showAlternatives">
+  <div class="alternatives-toggle" *ngIf="rankedMatches.length && alternativeMatches.length && !showAlternatives">
     <button type="button" (click)="showAlternatives = true">
       Show alternatives ({{ alternativeMatches.length }})
     </button>

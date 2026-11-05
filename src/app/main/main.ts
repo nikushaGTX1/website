@@ -1000,8 +1000,16 @@ export class Main implements OnInit, OnDestroy, DoCheck {
 
   get topApartments(): Apartment[] {
     return this.apartmentsForSelectedMode
-      .filter((apartment) => this.isDisplayableApartment(apartment))
+      .filter((apartment) => this.isDisplayableApartment(apartment) && this.isApartmentType(apartment))
       .slice(0, 4);
+  }
+
+  /** Featured Properties shows apartments only: no commercial places, houses or country houses. */
+  private isApartmentType(apartment: Apartment): boolean {
+    const style = (apartment.apartmentStyle || '').toLowerCase();
+    if (style) return /apartment|apartament|flat/.test(style);
+    const text = `${apartment.title || ''}`.toLowerCase();
+    return !/commercial|office|shop|house|cottage|villa/.test(text);
   }
 
   loadApartments(): void {

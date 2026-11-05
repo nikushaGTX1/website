@@ -308,3 +308,129 @@ h3 { margin: 2px 0 8px; font-size: 16px; }
 .view-details { font-size: 13.5px; }
 .card-title { color: inherit; text-decoration: none; }
 .card-title:hover { text-decoration: underline; }
+
+/* Card layout from the 2026-11 reference: photo counter, pin address, 2x2 specs,
+   lavender "Why it fits you" panel, agent block and a full-width call button. */
+.discover-card { border-radius: 20px; }
+.card-image { margin: 10px 10px 0; border-radius: 14px; aspect-ratio: 16 / 9.5; }
+.card-heart { top: 22px; right: 22px; }
+.photo-count {
+  position: absolute; right: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 9px; border-radius: 8px; background: rgba(20, 17, 42, 0.72); color: #fff;
+  font-size: 12px; font-weight: 600; line-height: 1;
+}
+.card-body { padding: 12px 16px 14px; }
+.location { margin-bottom: 4px; }
+.card-body app-currency-price { font-size: 24px; }
+.address { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; color: #2b2340; font-size: 14px; font-weight: 600; }
+.address i { color: #451a8f; }
+h3 { margin: 2px 0 12px; font-size: 18px; font-weight: 800; }
+.specs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 0; font-size: 14px; color: #2b2340; }
+.specs > span + span::before { content: none; }
+.specs > span { gap: 10px; }
+.specs > span:nth-child(even) { padding-left: 14px; border-left: 1px solid #e7e3ef; }
+.specs i { width: 18px; color: #451a8f; font-size: 16px; text-align: center; }
+.why { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #f1ecfb; }
+.why-title { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: #2d0f63; font-size: 15px; letter-spacing: 0; text-transform: none; }
+.why-title i { color: #451a8f; font-size: 17px; }
+.why li { font-size: 13.5px; }
+.why-all {
+  display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0d6f3;
+  color: #451a8f; font-size: 13.5px; font-weight: 700; text-decoration: none;
+}
+.parking { margin-top: 12px; padding-top: 0; border-top: 0; font-size: 14px; }
+.parking i { color: #4d4560; }
+.needs-check { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; color: #b4690e; font-size: 13.5px; font-weight: 700; }
+.agent-row { gap: 12px; margin-top: 12px; padding-top: 12px; font-size: 13px; }
+.agent-row img, .agent-initials { width: 44px; height: 44px; }
+.agent-initials { font-size: 14px; }
+.agent-name { display: flex; flex-direction: column; gap: 2px; }
+.agent-name b { font-size: 15px; }
+.request-viewing, .primary-action { margin-top: 12px; }
+.primary-action {
+  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; border-radius: 10px;
+  background: #451a8f; color: #fff; font-size: 15px; font-weight: 700; text-decoration: none;
+}
+.primary-action + .request-viewing {
+  min-height: 40px; margin-top: 8px; border: 1px solid #d9cff0; background: #fff; color: #451a8f;
+}
+.agent-row + .request-viewing, .search-name + .request-viewing, .parking + .request-viewing { margin-top: 12px; }
+.card-foot { margin-top: 8px; }
+.not-for-me { padding: 8px 0; border: 0; background: none; color: #7c7490; font: inherit; font-size: 13.5px; cursor: pointer; }
+@media (hover: hover) {
+  .primary-action:hover { background: #3a1479; }
+  .primary-action + .request-viewing:hover { background: #f6f2fd; }
+  .not-for-me:hover { color: #14112a; }
+}
+
+/* Saved homes page */
+.badge.match {
+  top: 12px; left: 12px; padding: 7px 10px; border-radius: 8px; background: #fff; color: #451a8f;
+  box-shadow: 0 2px 8px rgba(20, 17, 42, 0.12);
+}
+.why.about { background: #f5f4f8; }
+.why.about .why-title { color: #14112a; }
+.why.about li i { color: #4d4560; }
+.why-note {
+  display: flex; align-items: center; gap: 8px; margin: 10px 0 0; padding-top: 10px;
+  border-top: 1px solid #e7e3ef; color: #5d566b; font-size: 13.5px;
+}
+
+/* Match number: same order as the Velven Match results (1 = best). */
+.card-badges { position: absolute; top: 12px; left: 12px; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 70px); }
+.card-badges .badge { position: static; }
+.badge.rank {
+  gap: 7px; padding: 4px 10px 4px 4px; border-radius: 99px; background: #fff; color: #451a8f;
+  box-shadow: 0 2px 8px rgba(20, 17, 42, 0.14);
+}
+.badge.rank b {
+  display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 99px;
+  background: #451a8f; color: #fff; font-size: 12px;
+}
+.badge.rank:not(.top) { padding-right: 4px; }
+.badge.rank.top b { background: linear-gradient(135deg, #f5b301, #e38b00); }
+
+/* Bottom block: agent, call button, links. Pinned to the card bottom. */
+.card-actions { display: flex; flex-direction: column; margin-top: auto; padding-top: 4px; }
+.card-actions .agent-row { margin-top: 12px; }
+.card-actions > .primary-action:first-child { margin-top: 12px; }
+.agent-row { align-items: center; }
+.agent-row img, .agent-initials { width: 40px; height: 40px; box-shadow: 0 0 0 2px #fff, 0 0 0 3px #ece6f6; }
+.agent-name b { font-size: 14.5px; font-weight: 700; }
+.agent-name span { color: #7c7490; font-size: 12.5px; }
+.posted { align-self: flex-start; padding: 3px 8px; border-radius: 99px; background: #f4f1fa; color: #6b6380; font-size: 11.5px; font-weight: 600; }
+.primary-action { min-height: 46px; border-radius: 12px; box-shadow: 0 6px 16px rgba(69, 26, 143, 0.22); }
+.primary-action i { font-size: 14px; }
+.card-foot { margin-top: 10px; padding-top: 2px; }
+.not-for-me { padding: 6px 10px; border-radius: 8px; font-size: 13px; }
+.not-for-me:hover { background: #f4f1fa; }
+.parking { margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: #f8f7fb; }
+.needs-check {
+  margin-top: 8px; padding: 9px 12px; border: 1px solid #f6dfb5; border-radius: 10px;
+  background: #fff8ec; color: #9a5b06; font-size: 13px; font-weight: 600;
+}
+.needs-check i { color: #d38a10; }
+
+/* Symmetric cards: every block takes the same height whatever the listing text. */
+.location, .address span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.address { min-width: 0; }
+.address span { min-width: 0; }
+h3 {
+  display: -webkit-box; min-height: calc(2 * 1.3em); overflow: hidden;
+  -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+}
+.why ul { min-height: calc(3 * 1.35em + 10px); align-content: start; }
+.why li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The pets line keeps its space on every card so the rows stay level. */
+.needs-check.placeholder { visibility: hidden; }
+
+/* Parking and deposit share one grey box. */
+.terms { margin-top: 14px; padding: 4px 12px; border-radius: 10px; background: #f8f7fb; }
+.terms .parking, .terms .deposit {
+  display: flex; align-items: center; gap: 8px; margin: 0; padding: 7px 0; border: 0; background: none;
+  color: #4d4560; font-size: 13.5px;
+}
+.terms .deposit { border-top: 1px solid #ece8f3; }
+.terms .deposit i { width: 16px; color: #451a8f; text-align: center; }
+.terms .deposit b, .terms .deposit app-currency-price { display: inline; color: #14112a; font-size: inherit; font-weight: 700; }
+.terms .deposit.placeholder { visibility: hidden; }

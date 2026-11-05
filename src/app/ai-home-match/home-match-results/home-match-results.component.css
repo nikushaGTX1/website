@@ -967,3 +967,11 @@ h1 {
   width: 32px;
   height: 32px;
 }
+
+/* Match number, same as in Velven Discover. */
+.mc-number {
+  position: absolute; z-index: 3; top: 16px; right: 16px; display: grid; place-items: center;
+  min-width: 38px; height: 38px; padding: 0 8px; border-radius: 99px; background: #451a8f; color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 14px rgba(20, 17, 42, 0.25);
+}
+.best-match .mc-number { background: linear-gradient(135deg, #f5b301, #e38b00); }

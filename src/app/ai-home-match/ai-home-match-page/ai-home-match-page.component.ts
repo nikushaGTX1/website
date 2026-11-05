@@ -6,7 +6,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { finalize, Subscription } from 'rxjs';
+import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
 import { HomeMatchResult } from '../models/home-match-result';
 import { HomeMatchOption, HomeMatchQuestion } from '../models/home-match-question';
 import { EMPTY_HOME_MATCH_PROFILE, HomeMatchProfile } from '../models/home-match-profile';
@@ -71,6 +71,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     firstName: '', phone: '', nationality: '', consent: false, publishConsent: false,
   };
   intakeBusy = false;
+  /** Nationality from the signed-in account; when set, the nationality question is skipped. */
+  private accountNationality = '';
   intakeError = '';
   readonly phaseLabels = [
     'Lifestyle',
@@ -402,6 +404,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.intakeToken = query.get('intake') || route.snapshot.paramMap.get('slug');
     // A link an agent sent: the client came to answer the questions, so open them directly
     // instead of the Velven Match intro page.
+    // Agent links need an account: the client registers (with nationality) before answering.
+    if (this.intakeToken && !this.auth.currentUser) {
+      void this.router.navigate(['/register'], { queryParams: { returnUrl: this.router.url } });
+    }
     if (this.intakeToken) {
       this.quizStarted = true;
       setTimeout(() => document.querySelector('.wizard-shell')?.scrollIntoView({ block: 'start' }), 0);
@@ -435,6 +441,16 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     };
     // Multi-select pets; older profiles carried a single petType.
     this.profile.petTypes = this.profile.hasPet ? selectedPets(this.profile) : [];
+    // Signed-in client: nationality, name and phone come from the account, not asked again.
+    const user = this.auth.currentUser;
+    if (user?.nationality) {
+      this.accountNationality = user.nationality;
+      this.profile.nationality = user.nationality;
+    }
+    if (user) {
+      this.intakeContact.firstName ||= (user.fullName || '').trim().split(/\s+/)[0] || '';
+      this.intakeContact.phone ||= user.phoneNumber || '';
+    }
     this.budgetForm.setValue({
       min: this.profile.budgetMin,
       max: this.profile.budgetMax,
@@ -495,7 +511,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       (step) =>
         !(this.profile.propertyGoal === 'Buy' && [3, 4, 5, 10].includes(step)) &&
         !(step === 13 && this.profile.propertyGoal !== 'Buy') &&
-        !(step === 5 && this.fixedHousehold),
+        !(step === 5 && this.fixedHousehold) &&
+        // Nationality already saved on the account at sign-up.
+        !(step === 14 && !!this.accountNationality),
     );
   }
   get stepNumber(): number {
@@ -1235,6 +1253,29 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   /** Walks through every step again with all saved answers pre-selected; ends on the profile page. */
+  /** "Reset Profile": forget every answer and start again from the first question. */
+  resetProfile(): void {
+    this.service.clearSession();
+    this.service.reset();
+    this.profile = {
+      ...this.service.profile,
+      gender: '',
+      adults: 1,
+      children: 0,
+      lifestyles: [],
+      petTypes: [],
+      petCount: 1,
+      topPriorities: [],
+      // Nationality from the account stays: it is not a Velven Match answer.
+      nationality: this.accountNationality || '',
+    };
+    this.budgetForm.setValue({ min: this.profile.budgetMin, max: this.profile.budgetMax, currency: this.profile.currency });
+    this.matches = [];
+    this.editSearchId = null;
+    this.saveState = null;
+    this.saveMessage = '';
+    this.editProfile();
+  }
   editProfile(): void {
     this.returnToReviewAfterStep = false;
     this.returnToResultsAfterStep = false;
@@ -1277,7 +1318,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.errorMessage = '';
     this.startLoadingMessages();
     this.service
-      .findMatches(this.profile)
+      .findRankedMatches(this.profile)
       .pipe(
         finalize(() => {
           this.stopLoadingMessages();
@@ -1286,7 +1327,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       )
       .subscribe({
         next: (response) => {
-          this.matches = this.service.rankMatches(response, this.profile);
+          this.matches = response;
           this.view = 'results';
           this.service.saveResults(JSON.stringify(this.profile), this.matches);
           this.saveSearchToAccount();
@@ -1331,6 +1372,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   /** Saved search being edited (opened from Velven Discover); results update it instead of adding one. */
   private editSearchId: number | null = null;
   saveState: SearchSaveState = null;
+
   savedSearchName = '';
   savedSearchId: number | null = null;
 
@@ -1362,9 +1404,20 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     }
     this.saveState = 'saving';
     const profile = { ...this.profile };
+    const name = this.defaultSearchName();
+    // Editing replaces the old search. Without an edit id, a saved search with the same
+    // name (same places and Rent/Buy) is updated too, so the list never shows two versions.
     const request: import('rxjs').Observable<{ id: number; name: string }> = this.editSearchId
       ? this.clientService.updateSearch(this.editSearchId, { profile })
-      : this.clientService.saveSearch(profile, this.defaultSearchName());
+      : this.clientService.getSearches().pipe(
+          catchError(() => of([])),
+          switchMap((searches) => {
+            const same = searches.find((search) => search.name.trim().toLowerCase() === name.trim().toLowerCase());
+            if (!same) return this.clientService.saveSearch(profile, name);
+            this.editSearchId = same.id;
+            return this.clientService.updateSearch(same.id, { profile });
+          }),
+        );
     request.subscribe({
       next: (saved) => {
         this.savedSearchId = saved.id;

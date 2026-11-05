@@ -274,6 +274,30 @@ export function selectedPets(profile: HomeMatchProfile): PetKind[] {
 
 export type PetPermission = 'allowed' | 'prohibited' | 'unconfirmed';
 
+/** Confirmed pet-friendly rentals come before listings whose pet policy needs checking. */
+/**
+ * One order for Velven Match results and Velven Discover, so both list the same homes in
+ * the same sequence: fully matching homes first, then ones with a detail to confirm; inside
+ * each group, homes whose pet policy is unconfirmed go last; then the best lifestyle fit.
+ */
+export function compareMatchOrder(
+  a: { status?: RequirementStatus; apartment: HomeMatchApartment; score: number },
+  b: { status?: RequirementStatus; apartment: HomeMatchApartment; score: number },
+  profile: HomeMatchProfile,
+): number {
+  const group = (status?: RequirementStatus) => (status === 'confirm' ? 1 : status === 'alternative' ? 2 : 0);
+  return (
+    group(a.status) - group(b.status) ||
+    petConfirmationRank(a.apartment, profile) - petConfirmationRank(b.apartment, profile) ||
+    b.score - a.score
+  );
+}
+
+export function petConfirmationRank(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
+  return profile.propertyGoal === 'Rent' &&
+    petPermission(apartment, selectedPets(profile), profile.dogSize) === 'unconfirmed' ? 1 : 0;
+}
+
 const NO_PETS =
   /pet[\s-]*friendly:\s*no\b|pets?(?:\s+allowed)?:\s*(?:no|not allowed)\b|\bno pets\b|pets? (?:are )?not (?:allowed|permitted)|without pets|შინაური ცხოველ\S*\s+(?:არ|აკრძალ)|ცხოველები\s+(?:არ|აკრძალ)|ცხოველების გარეშე|без (?:домашних )?животных|животны\S* (?:не допуска|запрещ)/i;
 const NO_DOGS = /\bno dogs\b|dogs? (?:are )?not (?:allowed|permitted)|ძაღლ\S*\s+(?:არ|აკრძალ)|без собак|собаки? запрещ/i;

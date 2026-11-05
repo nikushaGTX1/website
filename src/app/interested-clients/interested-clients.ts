@@ -24,6 +24,8 @@ import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 })
 export class InterestedClients implements OnInit {
   @Input() embedded = false;
+  /** The host page shows its own heading (Velven Discover "Clients for you" page). */
+  @Input() hideTitle = false;
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
   readonly label = answerLabel;

@@ -1,0 +1,33 @@
+:host { position: relative; display: block; }
+
+.np-trigger {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 14px;
+  border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; color: #111827;
+  font: inherit; font-size: 15px; text-align: left; cursor: pointer;
+}
+.np-trigger:focus-visible, .np-trigger[aria-expanded='true'] { border-color: #451a8f; outline: none; box-shadow: 0 0 0 3px rgba(69, 26, 143, 0.12); }
+.np-trigger.empty .np-label { color: #9ca3af; }
+.np-globe { width: 22px; color: #9ca3af; text-align: center; }
+.np-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.np-chevron { color: #6b7280; font-size: 12px; }
+
+.np-flag {
+  flex: none; font-family: 'Twemoji Country Flags', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+  font-size: 22px; line-height: 1;
+}
+
+.np-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 30; padding: 8px;
+  border: 1px solid #e7e3ef; border-radius: 12px; background: #fff; box-shadow: 0 16px 40px rgba(31, 20, 61, 0.16);
+}
+.np-search { display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 8px; background: #f6f4fa; color: #6b7280; }
+.np-search input { flex: 1; min-width: 0; min-height: 40px; border: 0; background: none; font: inherit; font-size: 14px; outline: none; }
+.np-list { max-height: 260px; margin: 6px 0 0; padding: 0; overflow-y: auto; list-style: none; }
+.np-list button {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 42px; padding: 0 10px;
+  border: 0; border-radius: 8px; background: none; color: #111827; font: inherit; font-size: 14px; text-align: left; cursor: pointer;
+}
+.np-list button:hover { background: #f4f0fc; }
+.np-list button.on { background: #efe8fb; color: #451a8f; font-weight: 700; }
+.np-name { flex: 1; }
+.np-empty { margin: 12px 4px; color: #6b7280; font-size: 14px; }

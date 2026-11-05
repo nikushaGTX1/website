@@ -26,6 +26,7 @@ import {
   parsePhoneNumberFromString,
 } from 'libphonenumber-js/min';
 import { enableFlagEmojis } from '../utils/flag-emoji';
+import { listingDeposit, listingDepositInGel } from '../utils/listing-deposit';
 
 enableFlagEmojis();
 
@@ -481,12 +482,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
 
   /** Refundable deposit of a rental, saved as "Deposit: N" in the listing's currency. */
   get depositAmount(): number {
-    const match = (this.apartment?.description || '').match(/(?:^|[|\n])\s*Deposit:\s*([\d.]+)/i);
-    return match ? Number(match[1]) || 0 : 0;
+    return listingDeposit(this.apartment);
   }
 
   get depositInGel(): boolean {
-    return /(?:^|[|\n])\s*Currency:\s*GEL/i.test(this.apartment?.description || '');
+    return listingDepositInGel(this.apartment);
   }
 
   get floorLabel(): string {

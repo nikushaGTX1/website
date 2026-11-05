@@ -14,7 +14,7 @@ import { HomeMatchProfile } from '../ai-home-match/models/home-match-profile';
 import { HomeMatchResult } from '../ai-home-match/models/home-match-result';
 import { HomeMatchService } from '../ai-home-match/services/home-match.service';
 import { answerLabel, answerList, bedroomsLabel } from '../ai-home-match/services/answer-labels';
-import { evaluateMandatoryRequirements, selectedPets } from '../ai-home-match/services/mandatory-requirements';
+import { compareMatchOrder, evaluateMandatoryRequirements, selectedPets } from '../ai-home-match/services/mandatory-requirements';
 import { ApartmentService } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { ClientService } from '../services/client.service';
@@ -22,8 +22,9 @@ import { CurrencyService } from '../services/currency.service';
 import { FavoriteService } from '../services/favorite.service';
 import { TranslationService } from '../services/translation.service';
 import { DiscoverCard } from './discover-card/discover-card';
+import { VelvenLifestyleAvatarComponent } from '../ai-home-match/lifestyle-avatar/lifestyle-avatar.component';
 
-type DiscoverTab = 'new' | 'all' | 'saved';
+type DiscoverTab = 'new' | 'all' | 'saved' | 'clients';
 type SortOrder = 'best' | 'newest' | 'price-low' | 'price-high';
 
 /** One home in a Discover list. */
@@ -33,6 +34,8 @@ interface DiscoverItem {
   /** Lifestyle ranking from Velven Match (higher is better). */
   score: number;
   needsCheck: boolean;
+  /** Position in the Velven Match results for this search (0 = first). */
+  order: number;
   isNew: boolean;
   matchedAt?: string;
   /** Velven Match's reasons this home fits ("Why it fits" on the card). */
@@ -56,7 +59,7 @@ interface SearchView {
   selector: 'app-discover',
   templateUrl: './discover.html',
   styleUrl: './discover.css',
-  imports: [NgIf, NgFor, FormsModule, RouterLink, DiscoverCard, InterestedClients],
+  imports: [NgIf, NgFor, FormsModule, RouterLink, DiscoverCard, InterestedClients, VelvenLifestyleAvatarComponent],
 })
 export class Discover implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
@@ -99,7 +102,7 @@ export class Discover implements OnInit, OnDestroy {
     this.sortOpen = false;
   }
   /** Quick refinements on top of the saved criteria (the saved search itself never changes). */
-  refine = { parking: false, petFriendly: false, furnished: false };
+  refine = { parking: false, petFriendly: false };
   highlightedApartmentId: number | null = null;
   justSaved = false;
   pendingSaveBusy = false;
@@ -149,7 +152,9 @@ export class Discover implements OnInit, OnDestroy {
     this.highlightedApartmentId = Number(query.get('apartment')) || null;
     this.justSaved = query.get('saved') === '1';
     const tab = query.get('tab');
-    if (tab === 'all' || tab === 'saved' || tab === 'new') this.tab = tab;
+    if (tab === 'all' || tab === 'saved' || tab === 'new' || tab === 'clients') this.tab = tab;
+    // A "client interested" notification links to one listing: open Clients for you.
+    else if (query.get('interestApartment')) this.tab = 'clients';
     else this.tab = 'new';
     if (!this.loading && !this.matchesLoading) this.revealHighlightedApartment();
     }));
@@ -240,11 +245,19 @@ export class Discover implements OnInit, OnDestroy {
     view.matches = results
       .map((result) => ({
         result,
-        status: evaluateMandatoryRequirements(result.apartment, profile, this.currency.rates).status,
+        ...(({ status, confirmations }) => ({ status, petsUnconfirmed: confirmations.some((note) => note.startsWith("Pets:")) }))(
+          evaluateMandatoryRequirements(result.apartment, profile, this.currency.rates),
+        ),
       }))
       // Keep plausible matches, but only label fully confirmed homes as exact.
       .filter(({ status }) => status !== 'alternative')
-      .map(({ result, status }): DiscoverItem | null => {
+      // Same order as the Velven Match results page; "Best match" sorting keeps it.
+      .sort((a, b) => compareMatchOrder(
+        { status: a.status, apartment: a.result.apartment, score: a.result.rankingScore ?? a.result.matchScore ?? 0 },
+        { status: b.status, apartment: b.result.apartment, score: b.result.rankingScore ?? b.result.matchScore ?? 0 },
+        profile,
+      ))
+      .map(({ result, petsUnconfirmed }, order): DiscoverItem | null => {
         const apartment = this.catalogue.get(result.apartment.id) ?? (result.apartment as unknown as Apartment);
         if (!apartment) return null;
         const record = newIds.get(result.apartment.id);
@@ -252,7 +265,9 @@ export class Discover implements OnInit, OnDestroy {
           apartment,
           searchId: view.search.id,
           score: result.rankingScore ?? result.matchScore ?? 0,
-          needsCheck: status === 'confirm',
+          order,
+          // Only pets are called out on the card; other open details stay on the property page.
+          needsCheck: petsUnconfirmed,
           isNew: !!record && !record.seenAt,
           matchedAt: record?.matchedAt,
           reasons: (result.reasons ?? []).map((reason) => reason.title).filter(Boolean).slice(0, 3),
@@ -293,6 +308,38 @@ export class Discover implements OnInit, OnDestroy {
       .filter((apartment): apartment is Apartment => !!apartment);
   }
 
+  /** Saved page chips: every saved home, ones Velven Match found, or the rest. */
+  savedFilter: 'all' | 'matched' | 'other' = 'all';
+  savedSort: 'recent' | 'priceAsc' | 'priceDesc' = 'recent';
+  readonly savedSortOptions = [
+    { value: 'recent' as const, label: 'Recently saved' },
+    { value: 'priceAsc' as const, label: 'Price: low to high' },
+    { value: 'priceDesc' as const, label: 'Price: high to low' },
+  ];
+
+  /** Velven Match result for a saved home, when any saved search found it. */
+  savedMatch(apartment: Apartment): DiscoverItem | undefined {
+    for (const view of this.searches) {
+      const item = view.matches.find((match) => match.apartment.id === apartment.id);
+      if (item) return item;
+    }
+    return undefined;
+  }
+
+  get savedMatchedCount(): number {
+    return this.savedApartments.filter((apartment) => this.savedMatch(apartment)).length;
+  }
+
+  get savedList(): Apartment[] {
+    const list = this.savedApartments.filter((apartment) =>
+      this.savedFilter === 'all' ? true : this.savedFilter === 'matched' ? !!this.savedMatch(apartment) : !this.savedMatch(apartment),
+    );
+    // favoriteIds keeps save order, so the newest save is last.
+    if (this.savedSort === 'recent') return list.reverse();
+    const direction = this.savedSort === 'priceAsc' ? 1 : -1;
+    return list.sort((a, b) => ((a.price ?? 0) - (b.price ?? 0)) * direction);
+  }
+
   get unseenCount(): number {
     return this.newItems.filter((item) => item.isNew).length;
   }
@@ -316,9 +363,31 @@ export class Discover implements OnInit, OnDestroy {
   }
 
   /** The same home can match several searches: show it once (unseen wins). */
+  /** Homes the client marked "Not for me", kept in this browser only. */
+  notForMe = new Set<number>(Discover.readNotForMe());
+
+  private static readNotForMe(): number[] {
+    try {
+      const ids = JSON.parse(localStorage.getItem("velven.discover.notForMe") || "[]");
+      return Array.isArray(ids) ? ids.filter((id) => typeof id === "number") : [];
+    } catch {
+      return [];
+    }
+  }
+
+  onNotForMe(apartment: Apartment): void {
+    this.notForMe.add(apartment.id);
+    try {
+      localStorage.setItem("velven.discover.notForMe", JSON.stringify([...this.notForMe]));
+    } catch {
+      /* Storage blocked: the card stays hidden for this visit only. */
+    }
+  }
+
   private unique(items: DiscoverItem[]): DiscoverItem[] {
     const byId = new Map<number, DiscoverItem>();
     for (const item of items) {
+      if (this.notForMe.has(item.apartment.id)) continue;
       const current = byId.get(item.apartment.id);
       if (!current || (item.isNew && !current.isNew) || (item.isNew === current.isNew && item.score > current.score)) byId.set(item.apartment.id, item);
     }
@@ -329,8 +398,7 @@ export class Discover implements OnInit, OnDestroy {
     const apartment = item.apartment;
     return (
       (!this.refine.parking || !!apartment.hasParking) &&
-      (!this.refine.petFriendly || !!apartment.isPetFriendly) &&
-      (!this.refine.furnished || !!apartment.isFurnished)
+      (!this.refine.petFriendly || !!apartment.isPetFriendly)
     );
   }
 
@@ -342,7 +410,7 @@ export class Discover implements OnInit, OnDestroy {
       if (order === 'price-low') return a.apartment.price - b.apartment.price;
       if (order === 'price-high') return b.apartment.price - a.apartment.price;
       if (order === 'newest') return time(b) - time(a);
-      return b.score - a.score;
+      return a.order - b.order || b.score - a.score;
     });
   }
 

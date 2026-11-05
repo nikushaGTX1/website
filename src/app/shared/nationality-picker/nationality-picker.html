@@ -1,0 +1,31 @@
+<button
+  type="button"
+  class="np-trigger"
+  [id]="inputId"
+  [class.empty]="!selected"
+  aria-haspopup="listbox"
+  [attr.aria-expanded]="open"
+  (click)="toggle()"
+>
+  <span class="np-flag" *ngIf="selected; else globe" data-no-translate aria-hidden="true">{{ selected.flag }}</span>
+  <ng-template #globe><i class="fa-solid fa-earth-europe np-globe" aria-hidden="true"></i></ng-template>
+  <span class="np-label" *ngIf="selected" data-no-translate>{{ selected.label }}</span>
+  <span class="np-label" *ngIf="!selected">Choose your nationality</span>
+  <i class="fa-solid fa-chevron-down np-chevron" aria-hidden="true"></i>
+</button>
+<div class="np-panel" *ngIf="open">
+  <label class="np-search">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="search" name="npSearch" placeholder="Search your country" autocomplete="off" [(ngModel)]="search" />
+  </label>
+  <ul class="np-list" role="listbox" aria-label="Nationality">
+    <li *ngFor="let country of options; trackBy: trackCode">
+      <button type="button" role="option" [class.on]="country.name === value" [attr.aria-selected]="country.name === value" (click)="choose(country)">
+        <span class="np-flag" data-no-translate aria-hidden="true">{{ country.flag }}</span>
+        <span class="np-name" data-no-translate>{{ country.label }}</span>
+        <i class="fa-solid fa-check" *ngIf="country.name === value" aria-hidden="true"></i>
+      </button>
+    </li>
+  </ul>
+  <p class="np-empty" *ngIf="!options.length">No countries match your search.</p>
+</div>

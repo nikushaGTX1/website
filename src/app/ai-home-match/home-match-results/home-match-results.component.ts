@@ -21,6 +21,7 @@ import { answerLabel, answerList, bedroomsLabel } from '../services/answer-label
 import {
   evaluateMandatoryRequirements,
   petListLabel,
+  compareMatchOrder,
   selectedPets,
 } from '../services/mandatory-requirements';
 import { CurrencyService } from '../../services/currency.service';
@@ -29,7 +30,9 @@ import { parseParkingCost } from '../../utils/parking-cost';
 import { listedUniversityMinutes } from '../../utils/universities';
 import { NgIf, NgFor, NgClass, NgTemplateOutlet } from '@angular/common';
 import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { FavoriteService } from '../../services/favorite.service';
+import { AuthService } from '../../services/auth.service';
 import { rememberResultsUrl } from '../../utils/results-return';
 import { HomeMatchService } from '../services/home-match.service';
 import { CurrencyPrice } from '../../currency-price/currency-price';
@@ -133,10 +136,34 @@ export class HomeMatchResultsComponent implements OnChanges {
     private readonly cdr: ChangeDetectorRef,
     private readonly currency: CurrencyService,
     private readonly homeMatch: HomeMatchService,
+    public readonly favorites: FavoriteService,
+    private readonly auth: AuthService,
+    private readonly router: Router,
   ) {}
+
+  readonly dismissedIds = new Set<number>();
+  readonly expandedMatches = new Set<number>();
+  toggleMatchDetails(result: HomeMatchResult): void {
+    const id = result.apartment.id;
+    this.expandedMatches.has(id) ? this.expandedMatches.delete(id) : this.expandedMatches.add(id);
+  }
+  saveFavorite(result: HomeMatchResult): void {
+    if (!this.auth.isLoggedIn) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    this.favorites.toggleFavorite(result.apartment.id).subscribe({ error: () => this.cdr.markForCheck() });
+  }
+  parkingLabel(result: HomeMatchResult): string {
+    const parking = parseParkingCost(result.apartment.description || '');
+    if (parking.cost === 'Free') return 'Free';
+    if (parking.cost === 'Paid') return 'Paid';
+    return result.apartment.hasParking ? 'Available' : '';
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['matches']) {
+      this.favorites.loadFavorites().subscribe({ error: () => {} });
       this.matches.forEach((result) => {
         Object.assign(result, applyPriorityScoring(result, this.profile));
         result.requirement = evaluateMandatoryRequirements(
@@ -171,6 +198,15 @@ export class HomeMatchResultsComponent implements OnChanges {
   }
   get alternativeMatches(): HomeMatchResult[] {
     return this.byStatus('alternative');
+  }
+  /** Same eligible set as Discover, ordered by preference fit inside each pet-policy group. */
+  get rankedMatches(): HomeMatchResult[] {
+    return this.matches.filter(result => result.requirement?.status !== 'alternative')
+      .sort((a, b) => compareMatchOrder(
+        { status: a.requirement?.status, apartment: a.apartment, score: a.rankingScore ?? a.matchScore },
+        { status: b.requirement?.status, apartment: b.apartment, score: b.rankingScore ?? b.matchScore },
+        this.profile,
+      ));
   }
   /** One URL per photo, cover first. Cached per apartment so the gallery DOM stays stable. */
   private readonly galleryCache = new Map<HomeMatchResult['apartment'], string[][]>();

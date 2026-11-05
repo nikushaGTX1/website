@@ -1047,3 +1047,108 @@
   .steps-banner li { padding: 0; border-left: 0; }
   .new-banner { flex-wrap: wrap; }
 }
+
+/* Saved homes page: filter chips and sort */
+.saved-head p { color: #7c7490; }
+.saved-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.saved-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.saved-chips button {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 18px;
+  border: 1px solid #e0dbe9; border-radius: 10px; background: #fff; color: #14112a;
+  font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.saved-chips button em {
+  min-width: 22px; padding: 2px 7px; border-radius: 99px; background: #f1ecfb; color: #451a8f;
+  font-size: 12px; font-style: normal; text-align: center;
+}
+.saved-chips button.on { border-color: #451a8f; background: #451a8f; color: #fff; }
+.saved-chips button.on em { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.saved-sort { position: relative; display: inline-flex; align-items: center; }
+.saved-sort select {
+  min-height: 44px; padding: 0 40px 0 16px; border: 1px solid #e0dbe9; border-radius: 10px;
+  background: #fff; color: #14112a; font: inherit; font-size: 14px; font-weight: 600; appearance: none; cursor: pointer;
+}
+.saved-sort i { position: absolute; right: 14px; color: #4d4560; font-size: 12px; pointer-events: none; }
+.saved-empty-filter { margin: 24px 0; color: #7c7490; text-align: center; }
+@media (max-width: 600px) {
+  .saved-toolbar { flex-direction: column; align-items: stretch; }
+  .saved-chips { flex-wrap: nowrap; overflow-x: auto; }
+  .saved-chips button { flex: none; }
+}
+
+.results-head[hidden] { display: none; }
+
+/* My preferences cards: character hero band, tiled facts, softer footer. */
+.search-list { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+.search-card {
+  overflow: hidden; padding: 0 20px 18px; border-color: #ebe6f3; border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(37, 20, 74, 0.07);
+}
+@media (hover: hover) {
+  .search-card:hover { border-color: #d9cff0; box-shadow: 0 16px 40px rgba(37, 20, 74, 0.12); }
+}
+.search-hero {
+  position: relative; display: flex; align-items: flex-start; min-height: 84px; margin: 0 -20px 6px; padding: 18px 20px 14px;
+  background: radial-gradient(120% 140% at 100% 0%, #e6dbfb 0%, #f4effd 45%, #fbf9ff 100%);
+  border-bottom: 1px solid #efe9f8;
+}
+.search-hero.with-character { min-height: 150px; padding-right: 140px; }
+.search-hero .search-select {
+  flex-direction: column; align-items: flex-start; gap: 12px; margin: 0; padding: 0; width: 100%;
+}
+.search-character {
+  position: absolute; right: 8px; bottom: 0; width: 132px; height: 146px; pointer-events: none;
+}
+.search-character::before {
+  content: ''; position: absolute; left: 50%; bottom: 6px; width: 104px; height: 18px; transform: translateX(-50%);
+  border-radius: 50%; background: radial-gradient(ellipse, rgba(69, 26, 143, 0.22), transparent 70%);
+}
+.search-character app-velven-lifestyle-avatar { position: relative; width: 100%; height: 100%; }
+.search-goal { padding: 6px 12px; background: #fff; box-shadow: 0 2px 8px rgba(69, 26, 143, 0.12); }
+.search-counts { flex-direction: row; align-items: baseline; gap: 6px; color: #5d566b; font-size: 13px; }
+.search-counts b { color: #14112a; font-size: 30px; font-weight: 800; line-height: 1; }
+.search-title h3 { font-size: 19px; font-weight: 800; color: #14112a; }
+.search-facts { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
+.search-facts li {
+  align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: #f8f6fc;
+  color: #2b2340; font-size: 13.5px; font-weight: 600;
+}
+.search-facts i {
+  display: grid; flex: none; place-items: center; width: 30px; height: 30px; margin: 0; border-radius: 9px;
+  background: #fff; color: #451a8f; font-size: 13px; box-shadow: 0 1px 3px rgba(37, 20, 74, 0.08);
+}
+.search-chips { gap: 8px; margin-top: 14px; }
+.search-chips span {
+  padding: 6px 12px; border: 1px solid #e6def6; background: #fff; color: #451a8f; font-size: 12px; text-transform: none;
+}
+.search-updated { display: flex; align-items: center; gap: 6px; margin-top: 14px; color: #8a849a; }
+.search-updated::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #16a36a; }
+.search-actions { margin-top: auto; padding-top: 16px; border-top: 1px solid #f0ecf6; margin-top: 16px; }
+@media (max-width: 760px) {
+  .search-card { flex-basis: min(320px, 86vw); }
+}
+
+/* Bigger character: fills the hero's right side, feet on the band's bottom edge. */
+.search-hero.with-character { min-height: 196px; padding-right: 46%; }
+.search-character {
+  right: 0; bottom: 0; width: 52%; height: 188px;
+  --avatar-character-origin: center bottom;
+}
+.search-character::before { bottom: 2px; width: 70%; height: 22px; }
+.search-character app-velven-lifestyle-avatar { height: 100%; }
+
+/* Character centred under the pill/count row, larger. */
+.search-hero.with-character {
+  flex-direction: column; align-items: stretch; min-height: 0; padding: 16px 20px 0;
+}
+.search-hero.with-character .search-select {
+  flex-direction: row; align-items: center; justify-content: space-between;
+}
+.search-hero.with-character .search-counts b { font-size: 24px; }
+.search-hero.with-character .search-character {
+  position: relative; right: auto; bottom: auto; align-self: center;
+  width: min(100%, 300px); height: 230px; margin-top: 4px;
+}
+.search-character::before { width: 60%; }
+.search-hero.with-character .search-select { order: -1; }
+.search-hero.with-character .search-character { height: 200px; margin-top: -8px; }

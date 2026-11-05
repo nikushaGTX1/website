@@ -46,6 +46,10 @@ export interface HomeMatchApartment {
   }>;
   district?: string;
   bedrooms?: number;
+  rooms?: number;
+  agentName?: string;
+  agentPhoneNumber?: string;
+  agentProfilePictureUrl?: string;
   bathrooms?: number;
   sizeSquareMeters?: number;
   floor?: number;
