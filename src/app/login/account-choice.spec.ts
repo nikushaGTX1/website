@@ -19,8 +19,13 @@ function setup(returnUrl: string | null = null) {
 test('the same registration continues to Discover or the requested listing form', () => {
   for (const returnUrl of [null, '/upload-apartment?district=Vake']) {
     const { page, sent, destinations } = setup(returnUrl);
-    page.registerData = { fullName: 'Test User', email: 'user@example.invalid', phoneNumber: '', password: 'Test123!', confirmPassword: 'Test123!' };
+    page.registerData = { fullName: 'Test User', email: 'user@example.invalid', phoneNumber: '+995', password: 'Test123!', confirmPassword: 'Test123!' };
     page.register();
+    assert.equal(sent.length, 0);
+    assert.equal(page.errorMessage, 'Please enter a valid phone number.');
+    page.registerData.phoneNumber = '555 12 34 56';
+    page.register();
+    assert.equal((sent[0] as { phoneNumber: string }).phoneNumber, '+995555123456');
     assert.equal(Object.hasOwn(sent[0] as object, 'accountType'), false);
     page.submitVerify('123456');
     assert.equal(destinations.at(-1), returnUrl ?? '/discover');

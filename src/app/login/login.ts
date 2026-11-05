@@ -4,6 +4,7 @@ import { safeReturnUrl } from '../utils/return-url';
 import { AuthService } from '../services/auth.service';
 import { NgIf, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
 import { CodeDialogComponent } from '../shared/code-dialog/code-dialog.component';
 import { ClientService } from '../services/client.service';
 
@@ -74,6 +75,14 @@ export class Login {
 
     this.errorMessage = '';
     this.successMessage = '';
+    const phone = parsePhoneNumberFromString(this.registerData.phoneNumber.trim(), {
+      defaultCountry: 'GE',
+      extract: false,
+    });
+    if (!phone?.isValid()) {
+      this.errorMessage = 'Please enter a valid phone number.';
+      return;
+    }
     if (this.registerData.password.length < 6) {
       this.errorMessage = 'Password must be at least 6 characters.';
       return;
@@ -90,7 +99,7 @@ export class Login {
         email: this.registerData.email.trim(),
         password: this.registerData.password,
         confirmPassword: this.registerData.confirmPassword,
-        phoneNumber: this.registerData.phoneNumber.trim() || undefined,
+        phoneNumber: phone.number,
       })
       .subscribe({
         next: (response) => {

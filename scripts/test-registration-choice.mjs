@@ -29,6 +29,7 @@ try {
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     assert.equal(await page.locator('.auth-card .owner-note:not(.match-note)').count(),returnUrl ? 1 : 0);
     await page.locator('#reg-email').fill(user.email);
+    await page.locator('#reg-phone').fill('555 12 34 56');
     await page.locator('#reg-password').fill('Fixture123!');
     await page.locator('#reg-confirm').fill('Fixture123!');
     await page.locator('.auth-form .submit-btn').click();
