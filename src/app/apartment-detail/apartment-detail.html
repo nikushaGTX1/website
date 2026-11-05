@@ -167,16 +167,18 @@
             <small class="vp-kicker">THE NEIGHBOURHOOD</small>
             <h2>Everything within reach</h2>
             <div class="vp-nearby" *ngIf="storedNearbyPlaces.length">
-              <div *ngFor="let place of storedNearbyPlaces">
-                <img *ngIf="place.image; else faIcon" class="nearby-place-image" [src]="place.image" alt="" aria-hidden="true" />
-                <ng-template #faIcon><i class="fa-solid {{ place.icon }}"></i></ng-template>
-                <p>
-                  <strong>{{ place.label }}</strong
-                  ><span class="nearby-place-name" *ngIf="place.name" data-no-translate>{{ place.name }}</span
-                  ><small class="nearby-mode" [class.drive]="place.mode === 'drive'"
+              <div class="vp-nearby-card" *ngFor="let place of storedNearbyPlaces">
+                <span class="vp-nearby-icon" aria-hidden="true">
+                  <img *ngIf="place.image; else faIcon" class="nearby-place-image" [src]="place.image" alt="" />
+                  <ng-template #faIcon><i class="fa-solid {{ place.icon }}"></i></ng-template>
+                </span>
+                <span class="vp-nearby-text">
+                  <strong>{{ place.label }}</strong>
+                  <span class="nearby-place-name" *ngIf="place.name" data-no-translate>{{ place.name }}</span>
+                  <small class="nearby-mode" [class.drive]="place.mode === 'drive'"
                     ><i [class]="place.mode === 'drive' ? 'fa-solid fa-car' : 'fa-solid fa-person-walking'" aria-hidden="true"></i
                     >{{ place.minutes }} min {{ place.mode === 'drive' ? 'drive' : 'walk' }}</small>
-                </p>
+                </span>
               </div>
             </div>
             <div class="vp-map">

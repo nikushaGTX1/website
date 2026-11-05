@@ -3343,3 +3343,30 @@ dialog.photo-viewer::backdrop { background: #111113; }
 .vp-suggested header h2 { margin: 4px 0 0; color: #14112a; font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; }
 .vp-suggested-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 @media (max-width: 640px) { .vp-suggested-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* "Everything within reach": big icon tile, label, place name, time pill and a chevron. */
+.vp-nearby { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+.vp-nearby > .vp-nearby-card {
+  display: flex; align-items: center; gap: 16px; min-width: 0; margin: 0; padding: 16px 16px 16px 16px;
+  border: 1px solid #ece7f4; border-radius: 18px; background: #fff; color: inherit; text-decoration: none;
+  box-shadow: 0 4px 14px rgba(37, 20, 74, 0.05);
+}
+.vp-nearby-icon {
+  flex: none; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 16px;
+  background: #f1ecfc; color: #451a8f; font-size: 24px;
+}
+.vp-nearby-icon .nearby-place-image { width: 36px; height: 36px; margin: 0; object-fit: contain; }
+.vp-nearby-text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; flex: 1; min-width: 0; text-align: left; }
+.vp-nearby-text strong { max-width: 100%; overflow: hidden; color: #14112a; font-size: 15.5px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.vp-nearby-text .nearby-place-name { max-width: 100%; overflow: hidden; color: #6b6380; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.vp-nearby-text .nearby-mode {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 5px 11px; border-radius: 99px;
+  background: #f1ecfc; color: #2b2340; font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.vp-nearby-text .nearby-mode i { color: #451a8f; font-size: 12px; opacity: 1; }
+.vp-nearby-text .nearby-mode.drive { background: #eef4ff; }
+@media (max-width: 640px) {
+  .vp-nearby { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .vp-nearby > .vp-nearby-card { padding: 12px 14px; gap: 12px; }
+  .vp-nearby-icon { width: 50px; height: 50px; font-size: 20px; }
+}

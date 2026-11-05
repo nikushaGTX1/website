@@ -73,6 +73,18 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   intakeBusy = false;
   /** Nationality from the signed-in account; when set, the nationality question is skipped. */
   private accountNationality = '';
+
+  /** Nationality saved at sign-up: fill it in and leave the nationality question if it is open. */
+  private applyAccountNationality(nationality: string | null | undefined): void {
+    if (!nationality) return;
+    this.accountNationality = nationality;
+    this.profile.nationality = nationality;
+    this.persist();
+    if (this.view === 'questions' && this.step === 14) {
+      this.step = this.firstIncompleteStep() ?? this.visibleSteps[0] ?? this.step;
+    }
+    this.cdr.markForCheck();
+  }
   intakeError = '';
   readonly phaseLabels = [
     'Lifestyle',
@@ -450,6 +462,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     if (user) {
       this.intakeContact.firstName ||= (user.fullName || '').trim().split(/\s+/)[0] || '';
       this.intakeContact.phone ||= user.phoneNumber || '';
+      // The stored session can predate the nationality field: read it fresh from the account.
+      if (!user.nationality) {
+        this.auth.getProfile().subscribe({
+          next: (fresh) => this.applyAccountNationality(fresh.nationality),
+          error: () => undefined,
+        });
+      }
     }
     this.budgetForm.setValue({
       min: this.profile.budgetMin,
