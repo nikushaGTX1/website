@@ -6,6 +6,8 @@
       <button type="button" [class.active]="tab === 'saved'" (click)="setTab('saved')"><i class="fa-regular fa-heart" aria-hidden="true"></i><span>Saved</span><em>{{ savedApartments.length }}</em></button>
       <a routerLink="/my-viewings"><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>Viewings</span></a>
       <button type="button" (click)="scrollToSearches()" [disabled]="!searches.length"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>My preferences</span><em *ngIf="searches.length">{{ searches.length }}</em></button>
+      <a routerLink="/my-listings"><i class="fa-solid fa-list" aria-hidden="true"></i><span>My listings</span></a>
+      <button type="button" (click)="clientMatches.scrollToSection()"><i class="fa-solid fa-user-check" aria-hidden="true"></i><span>Clients for you</span></button>
     </nav>
   </aside>
   <div class="discover-main">
@@ -309,5 +311,6 @@
       <li><b>3</b><div><strong>Request a viewing</strong><span>When you're interested, request a viewing and we'll arrange it.</span></div></li>
     </ol>
   </section>
+  <app-interested-clients #clientMatches id="clients-for-you" [embedded]="true"></app-interested-clients>
   </div>
 </main>

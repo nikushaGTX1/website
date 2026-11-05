@@ -104,7 +104,7 @@ export class MyProfile implements OnInit, OnDestroy {
 
   // ---------- Velven Discover (client accounts) ----------
 
-  isClient = false;
+  isPersonalAccount = false;
   preferences: ClientPreferences | null = null;
   preferencesBusy = false;
   preferencesMessage = '';
@@ -182,8 +182,8 @@ export class MyProfile implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.isClient = this.authService.isClient;
-    if (this.isClient) this.loadClientSettings();
+    this.isPersonalAccount = this.authService.isPersonalAccount;
+    if (this.isPersonalAccount) this.loadClientSettings();
     this.subscription = this.authService.currentUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
       this.user = user;
       this.syncFormWithUser();
@@ -430,8 +430,6 @@ export class MyProfile implements OnInit, OnDestroy {
   get accountType(): string {
     if (this.user?.isAdmin || this.user?.roles?.includes('Admin')) return 'Admin';
     if (this.user?.isAgent || this.user?.roles?.includes('Agent')) return 'Agent';
-    if (this.authService.isOwner) return 'Property owner';
-    if (this.authService.isClient) return 'Client';
     return 'Member';
   }
 

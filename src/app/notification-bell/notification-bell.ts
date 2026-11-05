@@ -36,7 +36,10 @@ import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 export class NotificationBell implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   open = false;
-  unread = 0;
+  homeUnread = 0;
+  interestUnread = 0;
+  showClientMatches = false;
+  private feedRequest?: Subscription;
   items: ClientNotification[] = [];
   total = 0;
   page = 1;
@@ -59,15 +62,13 @@ export class NotificationBell implements OnInit, OnDestroy {
     this.subscription = this.client.summary$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((summary) => {
-        if (this.forOwners) return;
-        this.unread = summary.unread;
+        this.homeUnread = summary.unread;
         this.cdr.markForCheck();
       });
     this.subscription.add(
       this.interests.unread$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((unread) => {
-        if (!this.forOwners) return;
-        const refreshOpenFeed = this.open && !this.loading && this.unread !== unread;
-        this.unread = unread;
+        const refreshOpenFeed = this.forOwners && this.open && !this.loading && this.interestUnread !== unread;
+        this.interestUnread = unread;
         if (refreshOpenFeed) this.load(1);
         this.cdr.markForCheck();
       }),
@@ -77,15 +78,29 @@ export class NotificationBell implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
     this.requests.unsubscribe();
+    this.feedRequest?.unsubscribe();
   }
 
   get isStaff(): boolean {
     return this.auth.isStaff;
   }
 
-  /** Owner/agent alerts instead of client alerts. */
   get forOwners(): boolean {
-    return this.interests.enabled;
+    return this.isStaff || this.showClientMatches;
+  }
+
+  get unread(): number {
+    return this.isStaff ? this.interestUnread : this.homeUnread + this.interestUnread;
+  }
+
+  get activeUnread(): number {
+    return this.forOwners ? this.interestUnread : this.homeUnread;
+  }
+
+  selectFeed(showClientMatches: boolean): void {
+    if (this.showClientMatches === showClientMatches) return;
+    this.showClientMatches = showClientMatches;
+    this.load(1);
   }
 
   toggle(): void {
@@ -94,29 +109,30 @@ export class NotificationBell implements OnInit, OnDestroy {
   }
 
   load(page: number): void {
+    this.feedRequest?.unsubscribe();
+    if (page === 1) {
+      this.items = [];
+      this.total = 0;
+    }
     this.loading = true;
     this.failed = false;
-    this.requests.add(
-      (this.forOwners
-        ? this.interests.getNotifications(page, 10)
-        : this.client.getNotifications(page, 10)
-      )
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (result) => {
-            this.items = page === 1 ? result.items : [...this.items, ...result.items];
-            this.total = result.total;
-            this.page = page;
-            this.loading = false;
-            this.cdr.detectChanges();
-          },
-          error: () => {
-            this.loading = false;
-            this.failed = true;
-            this.cdr.detectChanges();
-          },
-        }),
-    );
+    const feed = this.forOwners
+      ? this.interests.getNotifications(page, 10)
+      : this.client.getNotifications(page, 10);
+    this.feedRequest = feed.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (result) => {
+        this.items = page === 1 ? result.items : [...this.items, ...result.items];
+        this.total = result.total;
+        this.page = page;
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loading = false;
+        this.failed = true;
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   get hasMore(): boolean {
@@ -128,7 +144,7 @@ export class NotificationBell implements OnInit, OnDestroy {
     if (!item.readAt) {
       item.readAt = new Date().toISOString();
       this.requests.add(
-        (this.forOwners
+        (this.isStaff || item.type === 'interest'
           ? this.interests.markRead(item.id, item.type)
           : this.client.markRead(item.id)
         )
@@ -159,8 +175,9 @@ export class NotificationBell implements OnInit, OnDestroy {
       return;
     }
     if (item.type === 'interest') {
-      void this.router.navigate(['/interested-clients'], {
-        queryParams: { apartment: item.apartment?.id ?? undefined },
+      void this.router.navigate(['/discover'], {
+        fragment: 'clients-for-you',
+        queryParams: { interestApartment: item.apartment?.id ?? undefined },
       });
       return;
     }
@@ -173,16 +190,18 @@ export class NotificationBell implements OnInit, OnDestroy {
   }
 
   markAllRead(): void {
-    const previous = this.items.map((item) => item.readAt);
+    const forOwners = this.forOwners;
+    const items = this.items;
+    const previous = items.map((item) => item.readAt);
     const now = new Date().toISOString();
     this.items.forEach((item) => (item.readAt ??= now));
     this.requests.add(
-      (this.forOwners ? this.interests.markAllRead() : this.client.markAllRead())
+      (forOwners ? this.interests.markAllRead() : this.client.markAllRead())
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           error: () => {
-            this.items.forEach((item, index) => (item.readAt = previous[index]));
-            if (this.forOwners) this.interests.refreshSummary();
+            items.forEach((item, index) => (item.readAt = previous[index]));
+            if (forOwners) this.interests.refreshSummary();
             else this.client.refreshSummary();
             this.cdr.markForCheck();
           },

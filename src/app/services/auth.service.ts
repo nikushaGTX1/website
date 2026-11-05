@@ -5,7 +5,6 @@ import { AuthResponse, User } from '../models/user';
 import { API_URL } from '../utils/api-config';
 
 export interface RegisterRequest {
-  accountType?: 'Client' | 'Owner';
   /** Optional: when empty the API uses the email address. */
   userName?: string;
   fullName: string;
@@ -80,17 +79,8 @@ export class AuthService {
     return this.isAgent || this.isCrmManager || this.isCrmUploader;
   }
 
-  /**
-   * Client account (Velven Discover). New sign-ups get the Client role; accounts from before it
-   * existed are clients too unless they are staff, which is the rule the API applies.
-   */
-  get isClient(): boolean {
-    if (!this.isLoggedIn) return false;
-    return !this.isStaff && !this.isOwner;
-  }
-
-  get isOwner(): boolean {
-    return this.isLoggedIn && !this.isStaff && this.hasAnyRole(['owner']);
+  get isPersonalAccount(): boolean {
+    return this.isLoggedIn && !this.isStaff;
   }
 
   get canOpenCrm(): boolean {

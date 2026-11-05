@@ -1356,7 +1356,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.saveState = 'guest';
       return;
     }
-    if (!this.auth.isClient) {
+    if (!this.auth.isPersonalAccount) {
       this.saveState = null;
       return;
     }

@@ -1,4 +1,6 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, ElementRef, Input, OnInit, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { InterestedClient, ListingInterest, ListingInterestService } from '../services/listing-interest.service';
@@ -21,11 +23,16 @@ import { PhotoUrlPipe } from '../shared/photo-url.pipe';
   styleUrl: './interested-clients.css',
 })
 export class InterestedClients implements OnInit {
+  @Input() embedded = false;
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
   readonly label = answerLabel;
   listings: ListingInterest[] = [];
   loading = true;
   error = false;
   focusId: number | null = null;
+  private focusTimer?: ReturnType<typeof setTimeout>;
+  private loadRequest?: Subscription;
 
   constructor(
     private interests: ListingInterestService,
@@ -35,14 +42,19 @@ export class InterestedClients implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.focusId = Number(this.route.snapshot.queryParamMap.get('apartment')) || null;
-    this.load();
+    this.destroyRef.onDestroy(() => clearTimeout(this.focusTimer));
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.focusId = Number(params.get(this.embedded ? 'interestApartment' : 'apartment')) || null;
+      this.load();
+    });
   }
 
   load(): void {
+    this.loadRequest?.unsubscribe();
+    clearTimeout(this.focusTimer);
     this.loading = true;
     this.error = false;
-    this.interests.getInterests().subscribe({
+    this.loadRequest = this.interests.getInterests().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (listings) => {
         // The listing from the notification first, then listings with the most clients.
         this.listings = [...listings].sort((a, b) =>
@@ -51,12 +63,10 @@ export class InterestedClients implements OnInit {
         this.loading = false;
         this.cdr.markForCheck();
         // Opening the page counts as seeing the alerts.
-        if (listings.some((listing) => listing.clients.some((client) => client.isNew))) {
+        if (!this.embedded && listings.some((listing) => listing.clients.some((client) => client.isNew))) {
           this.interests.markAllRead().subscribe({ error: () => undefined });
         }
-        if (this.focusId) {
-          setTimeout(() => document.getElementById('listing-' + this.focusId)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-        }
+        this.focusListing();
       },
       error: () => {
         this.loading = false;
@@ -64,6 +74,19 @@ export class InterestedClients implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  scrollToSection(): void {
+    this.host.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  private focusListing(): void {
+    if (!this.focusId) return;
+    this.focusTimer = setTimeout(() => {
+      const listing = this.host.nativeElement.querySelector('#listing-' + this.focusId);
+      if (listing) listing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else this.scrollToSection();
+    }, 100);
   }
 
   get isStaff(): boolean {

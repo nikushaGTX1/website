@@ -136,6 +136,10 @@
   cursor: pointer;
 }
 
+.notification-feeds { display: flex; gap: 6px; padding: 8px 12px; }
+.notification-feeds button { flex: 1; padding: 8px; border: 0; border-radius: 8px; background: transparent; color: #514666; font: inherit; cursor: pointer; }
+.notification-feeds button[aria-pressed="true"] { background: #f0e9ff; color: #451a8f; font-weight: 700; }
+
 .panel-body {
   flex: 1;
   overflow-y: auto;

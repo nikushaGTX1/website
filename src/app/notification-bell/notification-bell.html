@@ -17,10 +17,15 @@
   <div class="bell-panel" *ngIf="open" role="dialog" aria-label="Notifications">
     <header class="panel-head">
       <h2>Notifications</h2>
-      <button type="button" class="panel-link" *ngIf="unread > 0" (click)="markAllRead()">
+      <button type="button" class="panel-link" *ngIf="activeUnread > 0" (click)="markAllRead()">
         Mark all as read
       </button>
     </header>
+
+    <div class="notification-feeds" *ngIf="!isStaff">
+      <button type="button" [attr.aria-pressed]="!forOwners" (click)="selectFeed(false)">Matched homes <b *ngIf="homeUnread">{{ homeUnread }}</b></button>
+      <button type="button" [attr.aria-pressed]="forOwners" (click)="selectFeed(true)">Clients for you <b *ngIf="interestUnread">{{ interestUnread }}</b></button>
+    </div>
 
     <div class="panel-body">
       <p class="panel-state" *ngIf="loading && !items.length">

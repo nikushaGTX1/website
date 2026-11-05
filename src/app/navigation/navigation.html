@@ -36,7 +36,7 @@
         <a routerLink="/about" routerLinkActive="active" (click)="closeMenu()">About Us</a>
         <a routerLink="/clients" routerLinkActive="active" (click)="closeMenu()">Clients</a>
         <!-- People who upload homes (owners, agents, staff) reach their listings from the phone menu too. -->
-        <a class="mobile-only my-listings-link" *ngIf="isLoggedIn && !isClient" routerLink="/my-listings" routerLinkActive="active" (click)="closeMenu()"><i class="fa-solid fa-list" aria-hidden="true"></i> My listings</a>
+        <a class="mobile-only my-listings-link" *ngIf="isLoggedIn" routerLink="/my-listings" routerLinkActive="active" (click)="closeMenu()"><i class="fa-solid fa-list" aria-hidden="true"></i> My listings</a>
       </div>
 
       <div class="nav-actions">

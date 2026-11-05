@@ -38,7 +38,7 @@ export class ClientService {
     private currency: CurrencyService,
   ) {
     this.auth.currentUser$.subscribe(() => {
-      if (this.auth.isClient) {
+      if (this.auth.isPersonalAccount) {
         this.getPreferences().subscribe({ next: (preferences) => {
           if (preferences.preferredLanguage) this.translation.setLanguage(preferences.preferredLanguage);
         }, error: () => undefined });
@@ -58,7 +58,7 @@ export class ClientService {
   // ---------- Badges ----------
 
   refreshSummary(): void {
-    if (!this.auth.isClient) return;
+    if (!this.auth.isPersonalAccount) return;
     this.http
       .get<ClientSummary>(`${this.apiUrl}/notifications/summary`)
       .pipe(catchError(() => of(null)))
@@ -194,7 +194,7 @@ export class ClientService {
   /** Saves the search a visitor finished before signing in; emits the new search id (or null). */
   savePendingSearch(): Observable<number | null> {
     const pending = this.readPendingSearch();
-    if (!pending || !this.auth.isClient) return of(null);
+    if (!pending || !this.auth.isPersonalAccount) return of(null);
     return this.saveSearch(pending.profile, pending.name).pipe(
       tap(() => localStorage.removeItem(PENDING_SEARCH_KEY)),
       map((saved) => saved.id),

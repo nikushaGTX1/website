@@ -1,7 +1,11 @@
-<main class="interest-page">
+<div class="interest-page" [class.embedded]="embedded" [attr.role]="embedded ? null : 'main'">
   <header class="page-head">
-    <p class="eyebrow">For property owners</p>
-    <h1>Clients looking for your homes.</h1>
+    @if (embedded) {
+      <h2 class="section-title">Clients for you</h2>
+    } @else {
+      <p class="eyebrow">For property owners</p>
+      <h1>Clients looking for your homes.</h1>
+    }
     <p class="subtitle">When a client's Velven Match search fits one of your listings, a Velven agent checks the client first. Once they confirm, the client appears here and you get a notification.</p>
     <a class="staff-link" *ngIf="isStaff" routerLink="/crm/interested-clients"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Review client matches in the CRM</a>
     <div class="stats" *ngIf="!loading && !error && listings.length">
@@ -83,4 +87,4 @@
     }
     <p class="privacy-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Clients stay anonymous. Velven agents arrange every contact and viewing.</p>
   }
-</main>
+</div>

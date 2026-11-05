@@ -17,8 +17,6 @@ import { NotificationBell } from '../notification-bell/notification-bell';
 })
 export class Navigation implements OnInit, OnDestroy {
   isLoggedIn = false;
-  /** Client accounts get the match-alert bell (Velven Discover). */
-  isClient = false;
   /** Bell: clients get match alerts, owners and agents get interested-client alerts. */
   showBell = false;
   private menuIsOpen = false;
@@ -75,12 +73,10 @@ export class Navigation implements OnInit, OnDestroy {
       document.addEventListener('pointerdown', this.onDocumentPointerDown, { passive: true }),
     );
     this.isLoggedIn = this.authService.isLoggedIn;
-    this.isClient = this.authService.isClient;
-    this.showBell = this.authService.isLoggedIn && (this.authService.isClient || this.authService.isOwner || this.authService.isStaff);
+    this.showBell = this.authService.isLoggedIn;
     this.subscription = this.authService.currentUser$.subscribe(() => {
       this.isLoggedIn = this.authService.isLoggedIn;
-      this.isClient = this.authService.isClient;
-      this.showBell = this.authService.isLoggedIn && (this.authService.isClient || this.authService.isOwner || this.authService.isStaff);
+      this.showBell = this.authService.isLoggedIn;
     });
   }
 

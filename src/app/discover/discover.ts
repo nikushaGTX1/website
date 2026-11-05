@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { clientRelativeTime } from '../utils/client-relative-time';
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
+import { InterestedClients } from '../interested-clients/interested-clients';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -65,7 +66,7 @@ interface SearchView {
   selector: 'app-discover',
   templateUrl: './discover.html',
   styleUrl: './discover.css',
-  imports: [NgIf, NgFor, FormsModule, RouterLink, DiscoverCard],
+  imports: [NgIf, NgFor, FormsModule, RouterLink, DiscoverCard, InterestedClients],
 })
 export class Discover implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);

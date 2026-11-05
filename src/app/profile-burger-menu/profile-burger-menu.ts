@@ -29,7 +29,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   isOpen = false;
   user: User | null = null;
   canOpenCrm = false;
-  isClient = false;
+  isPersonalAccount = false;
   newMatches = 0;
 
   readonly accountMenuItems: MenuItem[] = [
@@ -41,25 +41,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
   ];
 
   get menuItems(): MenuItem[] {
-    if (this.authService.isOwner)
-      return [
-        {
-          label: 'List your property',
-          route: '/upload-apartment',
-          icon: 'fa-solid fa-house-circle-check',
-          featured: true,
-        },
-        {
-          label: 'Interested clients',
-          route: '/interested-clients',
-          icon: 'fa-solid fa-user-check',
-        },
-        ...this.accountMenuItems.filter((item) =>
-          ['/my-profile', '/my-listings'].includes(item.route),
-        ),
-      ];
-    // Clients: Velven Discover first, with the number of new matches.
-    if (this.isClient)
+    if (this.isPersonalAccount)
       return [
         {
           label: 'Velven Discover',
@@ -68,7 +50,8 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
           badge: this.newMatches,
           featured: true,
         },
-        ...this.accountMenuItems.filter((item) => item.route !== '/my-listings'),
+        { label: 'List your property', route: '/upload-apartment', icon: 'fa-solid fa-house-circle-check' },
+        ...this.accountMenuItems,
       ];
     // Staff open Interested clients and Reviews from the CRM side menu.
     return this.canOpenCrm
@@ -93,7 +76,7 @@ export class ProfileBurgerMenu implements OnInit, OnDestroy {
     this.subscription = this.authService.currentUser$.subscribe((user) => {
       this.user = user;
       this.canOpenCrm = this.authService.canOpenCrm;
-      this.isClient = this.authService.isClient;
+      this.isPersonalAccount = this.authService.isPersonalAccount;
     });
     this.subscription.add(
       this.clientService.summary$.subscribe((summary) => (this.newMatches = summary.newMatches)),

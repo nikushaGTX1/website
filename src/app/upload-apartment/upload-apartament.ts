@@ -645,7 +645,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.imageAiService.availability().subscribe({
         next: ({ enabled, canRemove }) => {
           // Editing availability is granted by the admin-only backend gate.
-          this.photoChecksEnabled = enabled && !this.authService.isOwner;
+          this.photoChecksEnabled = enabled && !this.authService.isPersonalAccount;
           this.canRemoveWatermarks = canRemove;
           this.cdr.markForCheck();
         },
@@ -661,7 +661,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       // Storage blocked.
     }
     this.form.agentPhone = currentUser?.phoneNumber || rememberedPhone;
-    if (this.authService.isOwner) {
+    if (this.authService.isPersonalAccount) {
       this.form.contactName = this.form.agentName;
       this.form.contactPhone = this.form.agentPhone;
       this.form.agentName = '';
@@ -1249,7 +1249,7 @@ export class UploadApartment implements OnInit, OnDestroy {
    * private), with no agent details or MyHome ID. Velven assigns the agent.
    */
   get isOwnerUpload(): boolean {
-    return this.authService.isOwner;
+    return this.authService.isPersonalAccount;
   }
 
   get isRentDeal(): boolean {
@@ -1998,11 +1998,12 @@ export class UploadApartment implements OnInit, OnDestroy {
       !this.form.totalPrice ||
       !this.form.contactName.trim() ||
       !isValidPhone(this.form.contactPhone) ||
-      !this.form.agentName.trim() ||
-      !isValidPhone(this.form.agentPhone)
+      (!this.isOwnerUpload && (!this.form.agentName.trim() || !isValidPhone(this.form.agentPhone)))
     ) {
       this.errorMessage =
-        'Please fill in the price and all owner and agent contact fields before publishing.';
+        this.isOwnerUpload
+          ? 'Please fill in the price and your contact details before submitting.'
+          : 'Please fill in the price and all owner and agent contact fields before publishing.';
       return;
     }
 

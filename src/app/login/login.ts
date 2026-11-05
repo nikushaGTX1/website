@@ -16,7 +16,6 @@ import { ClientService } from '../services/client.service';
 export class Login {
   isRegisterMode = false;
   isSubmitting = false;
-  accountType: 'Client' | 'Owner' = 'Client';
 
   registerData = {
     fullName: '',
@@ -45,15 +44,6 @@ export class Login {
   ) {
     // /register opens the sign-up form directly.
     this.isRegisterMode = !!this.route.snapshot.data['register'];
-    this.accountType = this.route.snapshot.queryParamMap.get('account') === 'owner' ||
-      this.returnUrl?.startsWith('/upload-apartment') ? 'Owner' : 'Client';
-  }
-
-  selectAccount(type: 'Client' | 'Owner'): void {
-    this.accountType = type;
-    this.errorMessage = '';
-    void this.router.navigate([], { relativeTo: this.route, replaceUrl: true, queryParamsHandling: 'merge',
-      queryParams: { account: type.toLowerCase(), returnUrl: type === 'Client' && this.returnUrl?.startsWith('/upload-apartment') ? null : this.returnUrl } });
   }
 
   /** A visitor finished Velven Match and asked to save the search. */
@@ -67,8 +57,8 @@ export class Login {
   }
 
   /** Owners arriving from "List your property" get context about why an account is needed. */
-  get isOwnerFlow(): boolean {
-    return this.isRegisterMode || this.step === 'verify' ? this.accountType === 'Owner' : !!this.returnUrl?.startsWith('/upload-apartment');
+  get isListingFlow(): boolean {
+    return this.returnUrl?.split(/[?#]/, 1)[0] === '/upload-apartment';
   }
 
   toggleMode(): void {
@@ -96,7 +86,6 @@ export class Login {
 
     this.authService
       .register({
-        accountType: this.accountType,
         fullName: this.registerData.fullName.trim(),
         email: this.registerData.email.trim(),
         password: this.registerData.password,
@@ -176,7 +165,7 @@ export class Login {
    * Velven Discover.
    */
   private continueAfterSignIn(newAccount = false): void {
-    if (this.authService.isClient && this.clientService.hasPendingSearch()) {
+    if (!this.isListingFlow && this.authService.isPersonalAccount && this.clientService.hasPendingSearch()) {
       this.clientService.savePendingSearch().subscribe((searchId) => {
         void this.router.navigate(['/discover'], {
           queryParams: searchId ? { search: searchId, saved: 1 } : {},
@@ -184,11 +173,7 @@ export class Login {
       });
       return;
     }
-    const fallback = this.authService.isOwner ? '/my-listings' : newAccount && this.authService.isClient ? '/discover' : '/main';
-    if (newAccount && this.authService.isOwner) {
-      void this.router.navigateByUrl(this.returnUrl?.startsWith('/upload-apartment') ? this.returnUrl : '/upload-apartment');
-      return;
-    }
+    const fallback = newAccount && this.authService.isPersonalAccount ? '/discover' : '/main';
     void this.router.navigateByUrl(this.returnUrl ?? fallback);
   }
 

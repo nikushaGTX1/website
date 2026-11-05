@@ -56,7 +56,7 @@
               <small>Manage your published properties</small>
             </span>
           </a>
-          <a class="account-link" routerLink="/discover" *ngIf="isClient">
+          <a class="account-link" routerLink="/discover" *ngIf="isPersonalAccount">
             <span class="link-mark">04</span>
             <span>
               <strong>Velven Discover</strong>
@@ -245,7 +245,7 @@
           </div>
         </form>
 
-        <section class="discover-zone" id="notifications" *ngIf="isClient" aria-labelledby="discover-settings-title">
+        <section class="discover-zone" id="notifications" *ngIf="isPersonalAccount" aria-labelledby="discover-settings-title">
           <div class="discover-zone-head">
             <div>
               <p class="section-kicker">Velven Discover</p>

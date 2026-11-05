@@ -105,7 +105,7 @@ export class ListingInterestService {
 
   /** Anyone who lists homes: owners and staff (agents, uploaders, managers). */
   get enabled(): boolean {
-    return this.auth.isLoggedIn && !this.auth.isClient && (this.auth.isOwner || this.auth.isStaff);
+    return this.auth.isLoggedIn;
   }
 
   private get notificationsUrl(): string {

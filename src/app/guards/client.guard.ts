@@ -10,5 +10,5 @@ export const clientGuard: CanActivateFn = (_route, state) => {
   if (!authService.isLoggedIn) {
     return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
   }
-  return authService.isClient ? true : router.createUrlTree(['/main']);
+  return authService.isPersonalAccount ? true : router.createUrlTree(['/main']);
 };
