@@ -16,7 +16,7 @@
         <button
           type="button"
           class="answer-chip"
-          *ngFor="let chip of answerChips"
+          *ngFor="let chip of answerChips; trackBy: trackChip"
           (click)="changeAnswer.emit(chip.step)"
         >
           <i class="fa-solid" [ngClass]="chip.icon" aria-hidden="true"></i>

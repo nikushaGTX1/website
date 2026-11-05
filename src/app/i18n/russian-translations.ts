@@ -398,6 +398,7 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['Rank your Top 5 priorities', 'Расставьте по важности топ-5 приоритетов'],
   ['Choose them in order from most to least important.', 'Выберите их по порядку от самого важного к менее важному.'],
   ['To buy', 'Продажа'],
+  ['You can choose both', 'Можно выбрать оба варианта'],
   ['Suggested for you', 'Рекомендуем вам'],
   ['You may also like', 'Вам также может понравиться'],
   ['What would you like to rent?', 'Что вы хотите снять?'],

@@ -90,6 +90,11 @@ export class HomeMatchResultsComponent implements OnChanges {
   }
 
   /** The main answers, shown above the results so each can be changed in one tap. */
+  /** Chips are rebuilt on every change detection; a stable key keeps their buttons (and clicks). */
+  trackChip(_: number, chip: { step: number; label: string }): string {
+    return `${chip.step}:${chip.label}`;
+  }
+
   get answerChips(): Array<{ step: number; label: string; value: string; icon: string }> {
     const p = this.profile;
     const rent = p.propertyGoal !== 'Buy';

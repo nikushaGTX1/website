@@ -716,6 +716,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Gender', 'სქესი'],
   ['Verified listing (checked in person by a Velven agent)', 'გადამოწმებული განცხადება (ადგილზე შეამოწმა Velven-ის აგენტმა)'],
   ['To buy', 'იყიდება'],
+  ['You can choose both', 'შეგიძლიათ ორივე აირჩიოთ'],
   ['Suggested for you', 'შემოთავაზებული თქვენთვის'],
   ['You may also like', 'შეიძლება მოგეწონოთ'],
   ['What would you like to rent?', 'რისი ქირაობა გსურთ?'],

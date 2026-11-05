@@ -883,12 +883,22 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.choose('propertyGoal', goal);
     // A new goal asks the follow-up again ("rent" or "buy" wording).
     this.profile.homeType = '';
+    this.profile.homeTypes = [];
     this.persist();
   }
 
+  /** Apartment, private house or both: each card toggles. */
   pickHomeType(type: 'Apartment' | 'House'): void {
-    this.profile.homeType = type;
+    const current = this.profile.homeTypes ?? [];
+    const next = current.includes(type) ? current.filter((value) => value !== type) : [...current, type];
+    this.profile.homeTypes = next;
+    // Kept for older code and the API: set only when exactly one type is chosen.
+    this.profile.homeType = next.length === 1 ? next[0] : '';
     this.persist();
+  }
+
+  isHomeTypeSelected(type: 'Apartment' | 'House'): boolean {
+    return (this.profile.homeTypes ?? []).includes(type) || (!this.profile.homeTypes?.length && this.profile.homeType === type);
   }
 
   choose(
@@ -1095,7 +1105,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return !!this.profile.gender;
       case 1:
         // Rent/Buy and the type of home are answered together.
-        return !!this.profile.propertyGoal && !!this.profile.homeType;
+        return !!this.profile.propertyGoal && (!!this.profile.homeTypes?.length || !!this.profile.homeType);
       case 2:
         return (
           this.profile.locationFlexible ||

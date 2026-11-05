@@ -4676,3 +4676,5 @@ fieldset {
 .home-card.selected .home-art { transform: translateY(-3px) scale(1.05); }
 @keyframes home-type-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .home-type, .home-art { animation: none; transition: none; } }
+
+.home-type-hint { margin-left: 8px; color: #7c7490; font-size: 12.5px; font-weight: 600; }

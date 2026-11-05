@@ -149,13 +149,13 @@
           </div>
           <!-- Follow-up in the same question, like "What does your car run on?" -->
           <div class="car-fuel home-type" *ngIf="profile.propertyGoal">
-            <p class="car-fuel-title">{{ profile.propertyGoal === 'Buy' ? 'What would you like to buy?' : 'What would you like to rent?' }}</p>
+            <p class="car-fuel-title">{{ profile.propertyGoal === 'Buy' ? 'What would you like to buy?' : 'What would you like to rent?' }} <small class="home-type-hint">You can choose both</small></p>
             <div class="car-fuel-options">
               <button
                 type="button"
                 class="fuel-card home-card"
-                [class.selected]="profile.homeType === 'Apartment'"
-                [attr.aria-pressed]="profile.homeType === 'Apartment'"
+                [class.selected]="isHomeTypeSelected('Apartment')"
+                [attr.aria-pressed]="isHomeTypeSelected('Apartment')"
                 (click)="pickHomeType('Apartment')"
               >
                 <span class="home-art"><svg viewBox="0 0 96 80" aria-hidden="true"><rect x="6" y="70" width="84" height="4" rx="2" fill="#e4daf7" /><rect x="26" y="10" width="44" height="62" rx="5" fill="#ede5fc" stroke="#451a8f" stroke-width="2.5" /><rect x="20" y="6" width="56" height="8" rx="3" fill="#451a8f" /><g fill="#fff" stroke="#7a52d6" stroke-width="2"><rect x="33" y="21" width="11" height="10" rx="2" /><rect x="52" y="21" width="11" height="10" rx="2" /><rect x="33" y="37" width="11" height="10" rx="2" /><rect x="52" y="37" width="11" height="10" rx="2" /></g><rect x="42" y="54" width="12" height="18" rx="2" fill="#451a8f" /><circle cx="80" cy="60" r="7" fill="#c9b5f5" /><rect x="79" y="62" width="2" height="10" fill="#7a52d6" /></svg></span>
@@ -166,8 +166,8 @@
               <button
                 type="button"
                 class="fuel-card home-card"
-                [class.selected]="profile.homeType === 'House'"
-                [attr.aria-pressed]="profile.homeType === 'House'"
+                [class.selected]="isHomeTypeSelected('House')"
+                [attr.aria-pressed]="isHomeTypeSelected('House')"
                 (click)="pickHomeType('House')"
               >
                 <span class="home-art"><svg viewBox="0 0 96 80" aria-hidden="true"><rect x="6" y="70" width="84" height="4" rx="2" fill="#e4daf7" /><path d="M16 38 48 12l32 26" fill="none" stroke="#451a8f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" /><rect x="66" y="16" width="8" height="14" rx="1.5" fill="#451a8f" /><path d="M22 36 48 15l26 21v36H22z" fill="#ede5fc" stroke="#451a8f" stroke-width="2.5" stroke-linejoin="round" /><rect x="30" y="44" width="12" height="11" rx="2" fill="#fff" stroke="#7a52d6" stroke-width="2" /><rect x="53" y="50" width="13" height="22" rx="2" fill="#451a8f" /><circle cx="12" cy="60" r="7" fill="#c9b5f5" /><rect x="11" y="62" width="2" height="10" fill="#7a52d6" /></svg></span>

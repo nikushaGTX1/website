@@ -14,6 +14,8 @@ export interface HomeMatchProfile {
   propertyGoal: PropertyGoal | '';
   /** Follow-up to Rent/Buy: a flat or a private house. Missing on older searches (= Apartment). */
   homeType?: 'Apartment' | 'House' | '';
+  /** Every type of home the client accepts (apartment, private house or both). Replaces homeType. */
+  homeTypes?: Array<'Apartment' | 'House'>;
   districts: string[];
   locationFlexible: boolean;
   selectedMapArea?: GeoJsonPolygon;
@@ -63,6 +65,7 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   nationality: '',
   propertyGoal: '',
   homeType: '',
+  homeTypes: [],
   districts: [],
   locationFlexible: false,
   budgetMin: 0,

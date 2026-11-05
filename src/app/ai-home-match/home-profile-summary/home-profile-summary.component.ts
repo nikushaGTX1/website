@@ -176,7 +176,8 @@ export class HomeProfileSummaryComponent {
 
   /** "Rent · Private house". */
   get goalValue(): string {
-    const type = this.profile.homeType === 'House' ? 'Private house' : this.profile.homeType === 'Apartment' ? 'Apartment' : '';
+    const types = this.profile.homeTypes?.length ? this.profile.homeTypes : this.profile.homeType ? [this.profile.homeType] : [];
+    const type = types.map((value) => (value === 'House' ? 'Private house' : 'Apartment')).join(' · ');
     return [this.label(this.profile.propertyGoal), type].filter(Boolean).join(' · ');
   }
 

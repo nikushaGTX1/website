@@ -1,5 +1,5 @@
 import { DogSize, HomeMatchProfile, PetKind } from '../models/home-match-profile';
-import { listingHomeType, wantedHomeType } from '../../utils/listing-home-type';
+import { listingHomeType, wantedHomeTypes } from '../../utils/listing-home-type';
 import { HomeMatchApartment } from '../models/home-match-result';
 import { answerLabel, selectedBedrooms } from './answer-labels';
 
@@ -377,9 +377,9 @@ export function evaluateMandatoryRequirements(
 
   // Type of home (follow-up to Rent/Buy): a private house never matches "apartment", and back.
   const homeType = listingHomeType(apartment);
-  const wantedType = wantedHomeType(profile);
-  if (homeType && homeType !== wantedType)
-    mismatches.push(wantedType === 'House' ? 'Property type: this is not a private house' : 'Property type: this is not an apartment');
+  const wantedTypes = wantedHomeTypes(profile);
+  if (homeType && !(wantedTypes as string[]).includes(homeType))
+    mismatches.push(wantedTypes.length === 1 && wantedTypes[0] === 'House' ? 'Property type: this is not a private house' : 'Property type: this is not an apartment');
 
   const location = checkLocation(apartment, profile);
   if (location === 'fail') {

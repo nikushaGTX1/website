@@ -23,7 +23,11 @@ export function listingHomeType(apartment: { title?: string | null; description?
   return type ? 'Other' : null;
 }
 
-/** Older saved searches never asked the question; they were all "Rent/Buy an apartment". */
-export function wantedHomeType(profile: { homeType?: HomeType | '' }): HomeType {
-  return profile.homeType || 'Apartment';
+/**
+ * Types of home the client accepts. One or both can be chosen; profiles saved with the
+ * single-choice version keep their answer, and older searches without one meant Apartment.
+ */
+export function wantedHomeTypes(profile: { homeType?: HomeType | ''; homeTypes?: HomeType[] }): HomeType[] {
+  if (profile.homeTypes?.length) return profile.homeTypes;
+  return [profile.homeType || 'Apartment'];
 }
