@@ -147,22 +147,6 @@
         <strong>{{ uploadLocationText('Please complete these fields', 'გთხოვთ, შეავსოთ შემდეგი ველები', 'Пожалуйста, заполните эти поля') }}</strong>
         <button type="button" *ngFor="let issue of validationIssues; trackBy: trackIssue" (click)="openStep(issue.step)"><i class="fa-solid fa-circle-exclamation"></i>{{ issue.message }}<i class="fa-solid fa-arrow-right"></i></button>
       </div>
-      <section class="folder-import-card" *ngIf="!isOwnerUpload">
-        <div class="folder-import-copy">
-          <span><i class="fa-solid fa-folder-open"></i></span>
-          <div>
-            <strong>Import listing folder</strong>
-            <small>Select a folder containing data.json and an images folder. Its form fields and photos will be filled automatically.</small>
-          </div>
-        </div>
-        <label class="folder-import-button" [class.disabled]="importingFolder">
-          <input type="file" webkitdirectory directory multiple (change)="onListingFolderSelected($event)" [disabled]="importingFolder" />
-          <i class="fa-solid" [class.fa-spinner]="importingFolder" [class.fa-spin]="importingFolder" [class.fa-upload]="!importingFolder"></i>
-          {{ importingFolder ? 'Importing…' : 'Choose folder' }}
-        </label>
-        <p *ngIf="folderImportMessage" class="folder-import-status success">{{ folderImportMessage }}</p>
-        <p *ngIf="folderImportError" class="folder-import-status error">{{ folderImportError }}</p>
-      </section>
 
       <div
         class="review-message"

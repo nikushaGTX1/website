@@ -168,8 +168,6 @@ interface PreparedImage {
   file: File;
 }
 
-type FolderListingData = Record<string, unknown>;
-
 @Component({
   selector: 'app-upload-apartment',
   templateUrl: './upload-apartaments.html',
@@ -464,9 +462,6 @@ export class UploadApartment implements OnInit, OnDestroy {
   userMessages: PendingApartment[] = [];
   pendingDebug = '';
   imageUploadMessage = '';
-  folderImportMessage = '';
-  folderImportError = '';
-  importingFolder = false;
   selectedImages: File[] = [];
   // Optional explicit admin editing; ordinary uploads never spend API credits.
   photoChecksEnabled = false;
@@ -1251,7 +1246,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   /**
    * A property owner listing their own home: they give only their own name and phone (kept
-   * private), with no agent details, MyHome ID or folder import. Velven assigns the agent.
+   * private), with no agent details or MyHome ID. Velven assigns the agent.
    */
   get isOwnerUpload(): boolean {
     return this.authService.isOwner;
@@ -1934,145 +1929,6 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   makeCoverImage(index: number): void {
     this.moveImage(index, 0);
-  }
-
-  async onListingFolderSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files || []);
-    this.folderImportMessage = '';
-    this.folderImportError = '';
-    if (!files.length) return;
-
-    const dataFile = files.find((file) =>
-      /(^|\/)data\.json$/i.test(file.webkitRelativePath || file.name),
-    );
-    if (!dataFile) {
-      this.folderImportError = 'The selected folder does not contain data.json.';
-      input.value = '';
-      return;
-    }
-
-    this.importingFolder = true;
-    try {
-      const parsed = JSON.parse(await dataFile.text()) as unknown;
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
-        throw new Error('data.json must contain one listing object.');
-      this.applyFolderListingData(parsed as FolderListingData);
-      this.resolveImportedLocation();
-
-      const imageFiles = files
-        .filter(
-          (file) =>
-            /(^|\/)images\//i.test((file.webkitRelativePath || file.name).replace(/\\/g, '/')) &&
-            file.type.startsWith('image/'),
-        )
-        .sort((a, b) =>
-          (a.webkitRelativePath || a.name).localeCompare(
-            b.webkitRelativePath || b.name,
-            undefined,
-            { numeric: true },
-          ),
-        )
-        .slice(0, this.maxImages);
-      const prepared = await Promise.all(
-        imageFiles.map((file) => this.prepareImage(file).catch(() => null)),
-      );
-      const images = prepared.filter((item): item is PreparedImage => item !== null);
-      this.form.imageUrls = images.map((item) => item.previewUrl);
-      this.selectedImages = images.map((item) => item.file);
-      this.form.imageUrl = this.form.imageUrls[0] || '';
-      const skipped = imageFiles.length - images.length;
-      this.folderImportMessage = `Imported data.json and ${images.length} photo${images.length === 1 ? '' : 's'}.${skipped ? ` ${skipped} could not be processed.` : ''}`;
-      this.activeStep = 0;
-    } catch (error) {
-      this.folderImportError =
-        error instanceof Error
-          ? `Could not import folder: ${error.message}`
-          : 'Could not import folder.';
-    } finally {
-      this.importingFolder = false;
-      input.value = '';
-    }
-  }
-
-  private applyFolderListingData(data: FolderListingData): void {
-    const text = (key: string): string => (data[key] == null ? '' : String(data[key]).trim());
-    const number = (key: string): number | null => {
-      const raw = data[key];
-      if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
-      const parsed = Number(String(raw ?? '').replace(/[^\d.-]/g, ''));
-      return String(raw ?? '').trim() && Number.isFinite(parsed) ? parsed : null;
-    };
-    const enabled = (key: string): boolean =>
-      ['true', 'yes', 'კი', 'არის', '1'].includes(text(key).toLowerCase());
-    const propertyTypes: Record<string, string> = {
-      ბინა: 'Apartment',
-      'კერძო სახლი': 'Private house',
-      აგარაკი: 'Country house',
-      'მიწის ნაკვეთი': 'Plot',
-      'კომერციული ფართი': 'Commercial area',
-      სასტუმრო: 'Hotel',
-    };
-    const dealTypes: Record<string, string> = {
-      იყიდება: 'For Sale',
-      ქირავდება: 'For Rent',
-      გირავდება: 'Lease',
-      'ქირავდება დღიურად': 'Daily rent',
-    };
-    const statuses: Record<string, string> = {
-      'ძველი აშენებული': 'Old building',
-      'ახალი აშენებული': 'New building',
-      მშენებარე: 'Under construction',
-    };
-    const conditions: Record<string, string> = {
-      'ახალი რემონტით': 'Newly Renovated',
-      'ძველი რემონტით': 'Old renovated',
-      'მიმდინარე რემონტი': 'Current renovation',
-      სარემონტო: 'Repairing',
-      'თეთრი კარკასი': 'White frame',
-      'შავი კარკასი': 'Black frame',
-      'მწვანე კარკასი': 'Green frame',
-      'თეთრი პლუსი': 'White Plus',
-    };
-    const deal = text('გაყიდვა/ქირა') || text('განცხადების სახეობა');
-    const condition = text('რემონტი') || text('მდგომარეობა');
-
-    this.form.realEstateType = propertyTypes[text('ქონების ტიპი')] || this.form.realEstateType;
-    this.form.dealType = dealTypes[deal] || this.form.dealType;
-    this.form.buildingStatus = statuses[text('სტატუსი')] || this.form.buildingStatus;
-    this.form.condition = conditions[condition] || this.form.condition;
-    this.form.location = text('უბანი');
-    this.form.street = text('მისამართი')
-      .replace(/\s+(ქ\.?|ქუჩა)$/i, '')
-      .trim();
-    this.form.totalPrice = number('ფასი');
-    this.form.sqPrice = number('ფასი / მ²');
-    this.form.currency = text('ვალუტა').toUpperCase() === 'GEL' ? 'GEL' : '$';
-    this.form.area = number('ფართობი (მ²)') ?? number('კვადრატულობა');
-    this.recalculateSqPrice();
-    this.form.rooms = number('ოთახები');
-    this.form.bedrooms = number('საძინებელი');
-    this.form.floor = number('სართული');
-    this.form.totalFloors = number('სართულიანობა');
-    this.form.description = text('კომენტარი');
-    // Scraped listing JSON contains the source contact, which is always the
-    // property owner for this import workflow—even when a legacy scraper used
-    // an "agent"-labelled key. Never use these values for the website agent.
-    this.form.contactName = text('მესაკუთრის სახელი') || text('აგენტის სახელი');
-    this.form.contactPhone =
-      text('მესაკუთრის ნომერი') ||
-      text('ტელეფონის ნომერი') ||
-      text('აგენტის ნომერი') ||
-      text('აგენტის ტელეფონის ნომერი');
-    this.form.hasElevator = enabled('ლიფტი');
-    this.form.hasParking = enabled('პარკინგი');
-    this.form.hasBalcony = enabled('აივანი');
-    this.form.isFurnished = /ავეჯ|მოწყობილ/i.test(
-      `${text('მდგომარეობა')} ${this.form.description}`,
-    );
-    this.form.title = [this.form.realEstateType, this.form.dealType, this.form.location]
-      .filter(Boolean)
-      .join(' · ');
   }
 
   private resolveImportedLocation(): void {
