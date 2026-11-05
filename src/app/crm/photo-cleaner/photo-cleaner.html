@@ -78,7 +78,7 @@
         <button type="button" class="primary" *ngIf="item.state === 'cleaned' || item.state === 'clean'" (click)="download(item)">
           <i class="fa-solid fa-download" aria-hidden="true"></i> Download
         </button>
-        <button type="button" class="ghost" *ngIf="item.state === 'error' || item.state === 'other'" (click)="retry(item)" [disabled]="!canStart">Try again</button>
+        <button type="button" class="ghost" *ngIf="item.state === 'error' || item.state === 'other'" (click)="retry(item)" [disabled]="!canStart">{{ item.failedJobId ? 'Retry edit (may incur a charge)' : 'Try again' }}</button>
         <button type="button" class="icon" (click)="remove(item)" [disabled]="item.state === 'working'" aria-label="Remove photo">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>

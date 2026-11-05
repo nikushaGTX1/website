@@ -15,6 +15,7 @@ interface CleanItem {
   message?: string;
   showOriginal?: boolean;
   mask?: File;
+  failedJobId?: number;
 }
 
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -92,15 +93,15 @@ export class PhotoCleaner implements OnDestroy {
   }
 
   /** Submit each explicitly selected image once; stop the batch on failure. */
-  private async run(): Promise<void> {
+  private async run(onlyItem?: CleanItem): Promise<void> {
     if (!this.canStart) return;
     this.running = true;
     let item: CleanItem | undefined;
-    while ((item = this.items.find((entry) => entry.state === 'waiting'))) {
+    while ((item = onlyItem ? (onlyItem.state === 'waiting' ? onlyItem : undefined) : this.items.find((entry) => entry.state === 'waiting'))) {
       item.state = 'working';
       this.cdr.markForCheck();
       try {
-        const result = await firstValueFrom(this.imageAi.check(item.file, 'clean', this.rightsConfirmed, { mask: item.mask, authorizationBasis: this.authorizationBasis, permissionReference: this.permissionReference }));
+        const result = await firstValueFrom(this.imageAi.check(item.file, 'clean', this.rightsConfirmed, { mask: item.mask, authorizationBasis: this.authorizationBasis, permissionReference: this.permissionReference, retryFailedJobId: onlyItem === item ? item.failedJobId : undefined, acknowledgePossibleCharge: onlyItem === item && !!item.failedJobId }));
         if (result.cleanedImage) {
           item.cleaned = URL.createObjectURL(base64Blob(result.cleanedImage, result.contentType || 'image/png'));
           item.state = 'cleaned';
@@ -126,6 +127,7 @@ export class PhotoCleaner implements OnDestroy {
             ' Your remaining photos are kept here. Download completed results and refresh before trying again. No automatic retry was made.';
           break;
         }
+        item.failedJobId = error?.error?.failedJobId;
         item.state = 'error';
         item.message = error?.error?.message || 'Image editing failed. No automatic retry was made.';
         this.notice = 'Processing paused after a failure. Review the error before starting remaining photos.';
@@ -141,7 +143,7 @@ export class PhotoCleaner implements OnDestroy {
     if (!this.canStart) return;
     item.state = 'waiting';
     item.message = undefined;
-    void this.run();
+    void this.run(item);
   }
 
   remove(item: CleanItem): void {

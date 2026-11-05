@@ -83,12 +83,14 @@ export class ImageAiService {
 
   // Explicit editing only. API credentials and output settings stay on the server.
   check(image: File, mode: 'clean' | 'enhance' | 'objects', rightsConfirmed: boolean,
-    options: { mask?: File; instructions?: string; authorizationBasis?: 'owned' | 'licensed'; permissionReference?: string } = {}): Observable<PhotoCheckResult> {
+    options: { mask?: File; instructions?: string; authorizationBasis?: 'owned' | 'licensed'; permissionReference?: string; retryFailedJobId?: number; acknowledgePossibleCharge?: boolean } = {}): Observable<PhotoCheckResult> {
     const body = new FormData();
     body.append('image', image);
     body.append('mode', mode);
     body.append('rightsConfirmed', String(rightsConfirmed));
     body.append('authorizationBasis', options.authorizationBasis || 'owned');
+    if (options.retryFailedJobId) body.append('retryFailedJobId', String(options.retryFailedJobId));
+    if (options.acknowledgePossibleCharge) body.append('acknowledgePossibleCharge', 'true');
     if (options.mask) body.append('mask', options.mask);
     if (options.instructions) body.append('instructions', options.instructions);
     if (options.permissionReference) body.append('permissionReference', options.permissionReference);

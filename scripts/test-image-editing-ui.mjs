@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+﻿import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import sharp from 'sharp';
@@ -26,7 +26,7 @@ try {
       assert.match(body, /name="rightsConfirmed"/);
       assert.doesNotMatch(body, /OPENAI_API_KEY|api.openai.com|mode.*detect/);
       if (limited) return route.fulfill({ status: 429, body: '' });
-      return route.fulfill(fail ? { status: 502, json: { message: 'Editing failed; no automatic retry.' } } : { json: { classification: 'authorized_edit', action: 'processed', cleanedImage: edited.toString('base64'), contentType: 'image/png', jobId: calls } });
+      return route.fulfill(fail ? { status: 502, json: { message: 'Editing failed; no automatic retry.', failedJobId: 777 } } : { json: { classification: 'authorized_edit', action: 'processed', cleanedImage: edited.toString('base64'), contentType: 'image/png', jobId: calls } });
     }
     if (url.endsWith('/approve-draft')) { approvals++; return route.fulfill({ json: {} }); }
     return route.fulfill({ json: [] });
@@ -41,6 +41,7 @@ try {
   await page.getByRole('button', { name: 'Toggle before and after' }).waitFor();
   assert.equal(calls, 1);
   await page.getByRole('button', { name: 'Toggle before and after' }).click();
+  await page.locator('button.compare[aria-pressed=true]').waitFor();
   assert.equal(await page.getByRole('button', { name: 'Toggle before and after' }).getAttribute('aria-pressed'), 'true');
   const originalDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download original', exact: true }).click();
@@ -77,6 +78,27 @@ try {
   await page.getByRole('button', { name: 'Restore original', exact: true }).click();
   assert.equal(await page.locator('.image-thumbnail img').first().getAttribute('src'), before);
   await page.screenshot({ path: 'tmp/image-editing/listing.png', fullPage: true });
+  // A retry must be a separate explicit action, scoped to that photo and acknowledging possible cost.
+  await page.goto(base + '/crm/photo-cleaner');
+  await page.locator('input[type=file]').first().setInputFiles([
+    { name: 'retry-only.png', mimeType: 'image/png', buffer: photo },
+    { name: 'leave-waiting.png', mimeType: 'image/png', buffer: photo },
+  ]);
+  await page.getByRole('checkbox').first().check();
+  fail = true;
+  await page.getByRole('button', { name: 'Process selected photos' }).click();
+  const retry = page.getByRole('button', { name: 'Retry edit (may incur a charge)', exact: true });
+  await retry.waitFor();
+  const callsBeforeRetry = calls;
+  fail = false;
+  const retried = page.waitForRequest(request => request.url().endsWith('/image-processing/check'));
+  await retry.click();
+  const retryBody = (await retried).postDataBuffer().toString('latin1');
+  assert.match(retryBody, /name="retryFailedJobId"[\s\S]*777/);
+  assert.match(retryBody, /name="acknowledgePossibleCharge"[\s\S]*true/);
+  await page.locator('li[data-state=cleaned]').waitFor();
+  assert.equal(calls, callsBeforeRetry + 1);
+  assert.equal(await page.locator('li[data-state=waiting]').count(), 1, 'Explicit retry must not automatically process another photo');
   limited = true;
   await page.goto(base + '/crm/photo-cleaner');
   await page.locator('input[type=file]').first().setInputFiles([
@@ -94,3 +116,4 @@ try {
   assert.deepEqual(errors, []);
   console.log('Passed offline image-editing browser checks: explicit processing, consent, failure, comparison, downloads, listing preview, approval and restore.');
 } finally { await browser.close(); }
+
