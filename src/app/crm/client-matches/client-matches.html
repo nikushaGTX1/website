@@ -63,16 +63,26 @@
                 <app-currency-price [usdPrice]="item.price" [suffix]="isSale(item) ? '' : '/ month'" [showApproximate]="false"></app-currency-price>
               </span>
             </a>
-            <div class="owner">
-              <span class="label">Owner</span>
-              <strong data-no-translate>{{ item.ownerName || 'Owner' }}</strong>
-              <a *ngIf="item.ownerPhone" [href]="'tel:' + item.ownerPhone" data-no-translate>{{ item.ownerPhone }}</a>
-              <small>
-                @if (item.ownerHasAccount && item.ownerEmail) {<span>Gets a notification and an email</span>}
-                @else if (item.ownerHasAccount) {<span>Gets a notification on Velven</span>}
-                @else if (item.ownerEmail) {<span>Gets an email</span>}
-                @else {<span>No account or email: call the owner yourself</span>}
-              </small>
+            <div class="people">
+              <div class="person send-to">
+                <span class="person-icon" aria-hidden="true"><i class="fa-solid fa-paper-plane"></i></span>
+                <div>
+                  <span class="label">Sent to</span>
+                  <strong data-no-translate>{{ item.uploaderName || 'The listing uploader' }}</strong>
+                  <small>
+                    @if (item.uploaderEmail) {<span>Gets a notification and an email</span>}
+                    @else {<span>Gets a notification on Velven</span>}
+                  </small>
+                </div>
+              </div>
+              <div class="person" *ngIf="item.ownerName || item.ownerPhone">
+                <span class="person-icon" aria-hidden="true"><i class="fa-solid fa-house-user"></i></span>
+                <div>
+                  <span class="label">Listing owner</span>
+                  <strong data-no-translate>{{ item.ownerName || 'Owner' }}</strong>
+                  <a *ngIf="item.ownerPhone" [href]="'tel:' + item.ownerPhone" data-no-translate><i class="fa-solid fa-phone" aria-hidden="true"></i> {{ item.ownerPhone }}</a>
+                </div>
+              </div>
             </div>
             <p class="reviewed" *ngIf="status !== 'pending' && item.reviewedAt">
               <span>Reviewed</span> {{ item.reviewedAt | date: 'd MMM, HH:mm' }}<span *ngIf="item.reviewerName"> · <span data-no-translate>{{ item.reviewerName }}</span></span>

@@ -48,6 +48,9 @@ export interface ClientMatchReview {
   ownerPhone: string | null;
   ownerEmail: string | null;
   ownerHasAccount: boolean;
+  /** Account that uploaded the listing: "Send" notifies and emails it. */
+  uploaderName?: string | null;
+  uploaderEmail?: string | null;
 }
 
 export interface ReviewResult {

@@ -70,3 +70,52 @@ button:disabled { cursor: default; opacity: 0.6; }
   .actions .primary, .actions .ghost { flex: 1 1 100%; }
   .tabs { display: flex; overflow-x: auto; }
 }
+
+
+/* ===== Polish: phones and desktop ===== */
+.page *, .page *::before { overflow-wrap: normal; word-break: normal; hyphens: none; }
+.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 6px; }
+.tabs button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 6px 8px; line-height: 1.2; text-align: center; }
+.facts > div { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 10px; align-items: start; }
+.facts dt { color: #7c7490; }
+.facts dd { margin: 0; color: #14112a; font-weight: 600; }
+.contacts { display: flex; flex-wrap: wrap; gap: 8px; }
+.contacts a { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; }
+.contacts a span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.actions .primary { flex: 1 1 240px; }
+@media (max-width: 640px) {
+  .page { padding-left: 14px; padding-right: 14px; }
+  .top h1 { font-size: 26px; }
+  .top p { font-size: 14px; line-height: 1.55; }
+  .tabs { border-radius: 16px; }
+  .tabs button { flex-direction: column; gap: 4px; min-height: 58px; padding: 8px 4px; border-radius: 12px; font-size: 12.5px; }
+  .tabs button i { font-size: 15px; }
+  .match { padding: 16px; border-radius: 18px; }
+  .match h2 { font-size: 21px; }
+  .budget strong { font-size: 24px; }
+  /* Label above value: long Georgian labels no longer break in the middle of a word. */
+  .facts { gap: 10px; }
+  .facts > div { grid-template-columns: minmax(0, 1fr); gap: 2px; padding-bottom: 10px; border-bottom: 1px solid #f0ecf6; }
+  .facts > div:last-child { border-bottom: 0; padding-bottom: 0; }
+  .facts dt { font-size: 12.5px; }
+  .facts dd { font-size: 15px; }
+  .listing-card { gap: 12px; }
+  .listing-card img { width: 84px; height: 72px; flex: none; border-radius: 12px; object-fit: cover; }
+  .actions { flex-direction: column; }
+  .actions button { width: 100%; min-height: 48px; }
+  .privacy { font-size: 12.5px; line-height: 1.5; text-align: center; }
+}
+
+
+/* Who receives the match, and the listing owner's contact. */
+.people { display: grid; gap: 10px; margin-top: 14px; }
+.person { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1px solid #ece7f4; border-radius: 14px; background: #fff; }
+.person.send-to { border-color: #d9cff0; background: #f6f2fd; }
+.person-icon { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: #ece4fb; color: #451a8f; font-size: 15px; }
+.person > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.person .label { margin: 0 0 2px; }
+.person strong { color: #14112a; font-size: 15.5px; }
+.person small { color: #6b6380; font-size: 12.5px; }
+.person a { display: inline-flex; align-items: center; gap: 6px; color: #451a8f; font-weight: 700; text-decoration: none; }
+.listing-card b { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; }
