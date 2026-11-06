@@ -809,3 +809,95 @@
     gap: 10px;
   }
 }
+
+
+/* ===== Phone and tablet menu (tiles) ===== */
+.mobile-menu { display: none; }
+@media (max-width: 1020px) {
+  .navigation-content, .navigation-content.is-open { display: none !important; }
+  .mobile-menu {
+    position: fixed; inset: 0; z-index: 2000; display: flex; justify-content: center; align-items: flex-start;
+    padding: max(10px, env(safe-area-inset-top)) 10px 10px; overflow-y: auto; overscroll-behavior: contain;
+    background: rgba(20, 15, 40, 0.55); backdrop-filter: blur(6px); animation: mm-fade 0.18s ease;
+  }
+  .mm-sheet {
+    width: min(100%, 460px); overflow: hidden; border-radius: 26px; background: #f8f6fd;
+    box-shadow: 0 24px 60px rgba(20, 12, 50, 0.35); animation: mm-up 0.22s ease; padding-bottom: 16px;
+  }
+  .mm-head {
+    position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 120px; padding: 18px 18px 46px; overflow: hidden;
+    background: linear-gradient(180deg, #ece5fb 0%, #f3effc 60%, #f8f6fd 100%);
+  }
+  .mm-skyline {
+    position: absolute; inset: auto 0 0 0; height: 48px; pointer-events: none; opacity: 0.55;
+    background:
+      linear-gradient(180deg, transparent, rgba(248, 246, 253, 0.9)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 48' preserveAspectRatio='none'%3E%3Cpath fill='%23c9b8f0' d='M0 48V34l30-8 26 6 34-14 30 10 22-6 18 8V18h6v-8h4v8h6v12l20-6 28 8 30-16 24 10 18-4V12h8v20l14 4 20-10 26 8 36-12v32z'/%3E%3C/svg%3E") bottom / 100% 100% no-repeat;
+  }
+  .mm-brand { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; color: #451a8f; text-decoration: none; }
+  .mm-brand img { width: 40px; height: auto; }
+  .mm-brand span { font-size: 24px; font-weight: 800; letter-spacing: 0.02em; }
+  .mm-head-actions { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; }
+  .mm-close {
+    display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid #e3dcef; border-radius: 14px;
+    background: rgba(255, 255, 255, 0.9); color: #14112a; font-size: 20px; cursor: pointer;
+  }
+  .mm-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 6px 14px 0; }
+  .mm-grid a, .mm-account-grid a {
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    min-height: 92px; padding: 12px 6px; border: 1px solid #ebe6f4; border-radius: 16px; background: #fff;
+    color: #14112a; font-size: 13.5px; font-weight: 700; line-height: 1.25; text-align: center; text-decoration: none;
+    box-shadow: 0 2px 8px rgba(37, 20, 74, 0.04);
+  }
+  .mm-grid a i, .mm-account-grid a i { color: #2b2340; font-size: 22px; }
+  .mm-grid a:active, .mm-account-grid a:active { transform: scale(0.98); background: #f6f2fd; }
+  .mm-featured { border-color: #cdbdf1 !important; background: linear-gradient(160deg, #efe7fd, #e4d7fb) !important; color: #451a8f !important; }
+  .mm-featured i { color: #451a8f !important; }
+  .mm-divider { height: 1px; margin: 16px 18px; background: #e7e1f1; }
+  .mm-language { display: flex; gap: 8px; padding: 0 14px; }
+  .mm-language button {
+    display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+    border: 1px solid #e3dcef; border-radius: 12px; background: #fff; color: #14112a; font: inherit; font-weight: 700; cursor: pointer;
+  }
+  .mm-language button.on { border-color: #451a8f; background: #f1ebfd; color: #451a8f; }
+  .mm-flag { font-family: 'Twemoji Country Flags', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif; font-size: 18px; }
+  .mm-sign-in, .mm-logout {
+    display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; margin: 14px 14px 0;
+    border-radius: 16px; font: inherit; font-size: 15px; font-weight: 800; text-decoration: none; cursor: pointer;
+  }
+  .mm-sign-in { border: 0; background: #451a8f; color: #fff; }
+  .mm-logout { width: calc(100% - 28px); border: 1px solid #f6cdd3; background: #fdecef; color: #c8243a; }
+  .mm-account { margin: 14px 14px 0; overflow: hidden; border: 1px solid #ebe6f4; border-radius: 18px; background: #fff; }
+  .mm-account-head {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 0; background: none;
+    color: #14112a; font: inherit; text-align: left; cursor: pointer;
+  }
+  .mm-avatar { flex: none; display: grid; place-items: center; width: 48px; height: 48px; overflow: hidden; border-radius: 50%; background: #efe8fb; color: #451a8f; font-size: 20px; }
+  .mm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .mm-account-text { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+  .mm-account-text b { overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+  .mm-account-text small { overflow: hidden; color: #7c7490; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+  .mm-account-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 4px 10px 12px; background: #fbfaff; }
+  .mm-account-grid a { min-height: 84px; background: #f4f0fc; border-color: #ece5f9; font-size: 12.5px; }
+  .mm-account-grid a i { color: #451a8f; font-size: 20px; }
+  .mm-account-grid em {
+    position: absolute; top: 6px; right: 6px; min-width: 20px; padding: 2px 6px; border-radius: 99px;
+    background: #e11d48; color: #fff; font-size: 11px; font-style: normal; font-weight: 800;
+  }
+  @keyframes mm-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes mm-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+}
+@media (max-width: 360px) {
+  .mm-grid, .mm-account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .mobile-menu, .mm-sheet { animation: none; } }
+
+/* Tile labels wrap only between words (long Georgian words were split letter by letter). */
+@media (max-width: 1020px) {
+  .mm-grid a span, .mm-account-grid a span {
+    max-width: 100%; overflow-wrap: normal; word-break: normal; hyphens: none; text-wrap: balance;
+  }
+  :host-context(html:lang(ka)) .mm-grid a, :host-context(html:lang(ka)) .mm-account-grid a { font-size: 12px; letter-spacing: -0.01em; }
+  .mm-grid a, .mm-account-grid a { padding-left: 4px; padding-right: 4px; }
+}

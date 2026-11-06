@@ -5,7 +5,13 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { AppLanguage, TranslationService } from '../services/translation.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
+import { Router } from '@angular/router';
+import { ClientService } from '../services/client.service';
+import { toMediaUrl } from '../utils/api-media';
+import { enableFlagEmojis } from '../utils/flag-emoji';
+
+enableFlagEmojis();
 import { ProfileBurgerMenu } from '../profile-burger-menu/profile-burger-menu';
 import { NotificationBell } from '../notification-bell/notification-bell';
 
@@ -13,7 +19,7 @@ import { NotificationBell } from '../notification-bell/notification-bell';
   selector: 'app-navigation',
   templateUrl: './navigation.html',
   styleUrl: './navigation.css',
-  imports: [RouterLink, RouterLinkActive, NgIf, ProfileBurgerMenu, NotificationBell],
+  imports: [RouterLink, RouterLinkActive, NgIf, NgFor, ProfileBurgerMenu, NotificationBell],
 })
 export class Navigation implements OnInit, OnDestroy {
   isLoggedIn = false;
@@ -31,13 +37,58 @@ export class Navigation implements OnInit, OnDestroy {
     else unlockPageScroll();
   }
   languageOpen = false;
+  /** Phone menu: the account tiles are shown open. */
+  accountOpen = true;
+  private newMatches = 0;
+  readonly languageOptions: Array<{ code: AppLanguage; label: string; flag: string }> = [
+    { code: 'ka', label: 'GE', flag: '🇬🇪' },
+    { code: 'en', label: 'EN', flag: '🇬🇧' },
+    { code: 'ru', label: 'RU', flag: '🇷🇺' },
+  ];
   private subscription?: Subscription;
+
+  get accountName(): string {
+    return this.authService.currentUser?.fullName || 'My account';
+  }
+
+  get accountEmail(): string {
+    return this.authService.currentUser?.email || '';
+  }
+
+  get profileImage(): string {
+    const user = this.authService.currentUser;
+    return toMediaUrl(user?.profilePictureUrl || user?.profilePicture);
+  }
+
+  /** Same account links as the desktop profile menu. */
+  get accountItems(): Array<{ label: string; route: string; icon: string; badge?: number; featured?: boolean }> {
+    const account = [
+      { label: 'My Profile', route: '/my-profile', icon: 'fa-regular fa-user' },
+      { label: 'My listings', route: '/my-listings', icon: 'fa-solid fa-house-user' },
+      { label: 'Saved listings', route: '/saved-listings', icon: 'fa-regular fa-heart' },
+      { label: 'My viewings', route: '/my-viewings', icon: 'fa-regular fa-calendar-check' },
+      { label: 'My coupons', route: '/my-coupons', icon: 'fa-solid fa-ticket' },
+    ];
+    if (this.authService.isPersonalAccount)
+      return [{ label: 'Velven Discover', route: '/discover', icon: 'fa-solid fa-wand-magic-sparkles', badge: this.newMatches, featured: true }, ...account];
+    return this.authService.canOpenCrm
+      ? [{ label: 'CRM workspace', route: '/crm', icon: 'fa-solid fa-chart-line', featured: true }, ...account]
+      : account;
+  }
+
+  logout(): void {
+    this.closeMenu();
+    this.authService.logout();
+    void this.router.navigate(['/login']);
+  }
 
   constructor(
     private authService: AuthService,
     readonly translation: TranslationService,
     private host: ElementRef<HTMLElement>,
     private zone: NgZone,
+    private router: Router,
+    private clientService: ClientService,
   ) {}
 
   /**
@@ -78,6 +129,7 @@ export class Navigation implements OnInit, OnDestroy {
       this.isLoggedIn = this.authService.isLoggedIn;
       this.showBell = this.authService.isLoggedIn;
     });
+    this.subscription.add(this.clientService.summary$.subscribe((summary) => (this.newMatches = summary.newMatches)));
   }
 
   ngOnDestroy(): void {
@@ -95,4 +147,6 @@ export class Navigation implements OnInit, OnDestroy {
     this.translation.setLanguage(language);
     this.languageOpen = false;
   }
+
+  trackLanguage = (_: number, option: { code: string }) => option.code;
 }

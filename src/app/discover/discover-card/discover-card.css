@@ -451,3 +451,19 @@ h3 {
 .discover-card.compact .photo-count { display: none; }
 .discover-card.compact .card-actions { margin-top: 6px; }
 .discover-card.compact .card-foot { margin-top: 0; }
+
+/* Phones: one card per row, so nothing needs reserved space; tighter spacing. */
+@media (max-width: 640px) {
+  .needs-check.placeholder, .terms .deposit.placeholder { display: none; }
+  h3 { min-height: 0; margin-bottom: 10px; font-size: 17px; }
+  .why ul { min-height: 0; }
+  .why { margin-top: 12px; padding: 12px; }
+  .why-all { margin-top: 8px; padding-top: 8px; }
+  .terms { margin-top: 10px; padding: 2px 12px; }
+  .card-actions { margin-top: 0; padding-top: 0; }
+  .card-actions .agent-row { margin-top: 12px; padding-top: 12px; }
+  .card-body { padding: 12px 14px 12px; }
+  .card-image { margin: 8px 8px 0; aspect-ratio: 16 / 10; }
+  .address { margin: 6px 0 2px; }
+  .specs { gap: 8px 0; }
+}

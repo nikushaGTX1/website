@@ -3370,3 +3370,35 @@ dialog.photo-viewer::backdrop { background: #111113; }
   .vp-nearby > .vp-nearby-card { padding: 12px 14px; gap: 12px; }
   .vp-nearby-icon { width: 50px; height: 50px; font-size: 20px; }
 }
+
+
+/* ===== Phones: neighbourhood grid, static map ===== */
+@media (max-width: 640px) {
+  .vp-nearby { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .vp-nearby > .vp-nearby-card {
+    flex-direction: column; justify-content: flex-start; gap: 10px; min-height: 0; height: 100%;
+    padding: 16px 10px 14px; text-align: center;
+  }
+  .vp-nearby-icon { width: 52px; height: 52px; border-radius: 15px; font-size: 21px; }
+  .vp-nearby-text { align-items: center; width: 100%; text-align: center; }
+  .vp-nearby-text strong { font-size: 13.5px; white-space: normal; overflow-wrap: anywhere; }
+  .vp-nearby-text .nearby-place-name {
+    display: -webkit-box; font-size: 12.5px; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  }
+  .vp-nearby-text .nearby-mode { margin-top: auto; padding: 4px 10px; font-size: 12px; }
+
+  /* The map is a picture here: no dragging, no zooming, the page scrolls past it. */
+  .vp-map { height: auto; touch-action: auto; overscroll-behavior: auto; border-radius: 18px; background: #fff; }
+  .vp-map app-google-property-map { height: 220px; pointer-events: none; }
+  .vp-map-overlay {
+    position: static; display: flex; flex-direction: column; align-items: stretch; gap: 12px;
+    margin: 0; padding: 14px; border: 0; border-top: 1px solid #ece7f4; border-radius: 0; box-shadow: none; background: #fff;
+  }
+  .vp-map-overlay > div > i { width: 38px; height: 38px; }
+  .vp-map-overlay strong { font-size: 14px; white-space: normal; }
+  .vp-map-overlay span { font-size: 12px; }
+  .vp-map-overlay button {
+    display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px;
+    border: 0; border-radius: 12px; background: #451a8f; color: #fff; font-weight: 700;
+  }
+}

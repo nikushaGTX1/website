@@ -5550,3 +5550,7 @@
     width: calc(100% - 24px);
   }
 }
+
+/* Gap between the Nearby boxes and "View details". */
+.property-info .nearby + .view-details,
+.property-info .view-details { margin-top: 14px; }

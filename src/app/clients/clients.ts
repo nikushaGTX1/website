@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { countryOptions } from '../utils/country-names';
 import { claimEscape, escapeAlreadyHandled } from '../utils/escape-layer';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 
@@ -52,23 +53,12 @@ function countryCode(name: string): string {
   return codesByCountry.get(name.trim().toLowerCase()) ?? '';
 }
 
-/** English country name -> flag emoji ("Georgia" -> 🇬🇪), built once from the browser's country names. */
+/** English country name -> flag emoji ("Georgia" -> 🇬🇪), from the same country list as the nationality picker. */
 let flagsByCountry: Map<string, string> | undefined;
 function countryFlag(name: string | null | undefined): string {
   const key = name?.trim().toLowerCase();
   if (!key) return '';
-  if (!flagsByCountry) {
-    flagsByCountry = new Map();
-    const names = new Intl.DisplayNames(['en'], { type: 'region' });
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    for (const a of letters) for (const b of letters) {
-      const code = a + b;
-      const country = names.of(code);
-      if (country && country !== code && !flagsByCountry.has(country.toLowerCase())) {
-        flagsByCountry.set(country.toLowerCase(), String.fromCodePoint(...[...code].map((c) => 127397 + c.charCodeAt(0))));
-      }
-    }
-  }
+  flagsByCountry ??= new Map(countryOptions('en').map((country) => [country.name.toLowerCase(), country.flag]));
   return flagsByCountry.get(key) ?? '';
 }
 
@@ -80,6 +70,17 @@ function countryFlag(name: string | null | undefined): string {
 })
 export class Clients implements OnInit, OnDestroy {
   readonly label = answerLabel;
+  /** Long area lists show 3 names and "+N"; a tap shows them all. */
+  readonly expandedClients = new Set<object>();
+
+  shownDistricts(client: { profile: { districts: string[] } }): string[] {
+    return this.expandedClients.has(client) ? client.profile.districts : client.profile.districts.slice(0, 3);
+  }
+
+  hiddenDistrictCount(client: { profile: { districts: string[] } }): number {
+    return this.expandedClients.has(client) ? 0 : Math.max(0, client.profile.districts.length - 3);
+  }
+
   readonly districts = [
     'Vake',
     'Saburtalo',

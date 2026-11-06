@@ -316,3 +316,7 @@
 }
 
 /* The Featured cards use the Georgian layout tweaks too (main.css). */
+
+/* Gap between the Nearby boxes and "View details". */
+.property-info .nearby + .view-details,
+.property-info .view-details { margin-top: 14px; }

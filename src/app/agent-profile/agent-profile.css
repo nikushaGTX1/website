@@ -1043,3 +1043,14 @@
     transition: none;
   }
 }
+
+/* Call and WhatsApp: solid icons in tinted squares. */
+.action-btn.icon-only { width: 48px; height: 48px; border-radius: 14px; }
+.action-btn.icon-only .btn-fa { font-size: 18px; line-height: 1; }
+.action-btn.phone-btn { border-color: #e3d9f6; background: #f3eefc; color: #451a8f; }
+.action-btn.whatsapp-btn { border-color: #c9eed8; background: #eafaf1; color: #16a34a; }
+.action-btn.whatsapp-btn .btn-fa { font-size: 21px; }
+@media (hover: hover) {
+  .action-btn.phone-btn:hover { background: #451a8f; color: #fff; }
+  .action-btn.whatsapp-btn:hover { background: #16a34a; color: #fff; }
+}

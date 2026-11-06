@@ -581,3 +581,33 @@
 #why-velven {
   scroll-margin-top: 96px;
 }
+
+/* Font icons in Velven purple instead of emoji. */
+.icon-circle, .trust-icon {
+  background: linear-gradient(145deg, #f5efff, #e8dcfb); color: #451a8f;
+}
+.icon-circle { width: 44px; height: 44px; flex: none; font-size: 18px; }
+.trust-icon { width: 52px; height: 52px; border-radius: 15px; font-size: 22px; }
+
+/* The page's "* { font-family }" also hit the icons and showed empty boxes. */
+i.fa-solid, i.fa-regular, i.fa-brands {
+  font-family: var(--fa-family, 'Font Awesome 7 Free') !important;
+}
+i.fa-solid { font-weight: 900; }
+
+/* Phones: mission cards as clean rows (icon left, text right), readable sizes, no box inside a box. */
+@media (max-width: 640px) {
+  .mission-section.card-box { padding: 22px 16px; border-radius: 20px; }
+  .mission-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 18px; }
+  .feature-card {
+    display: flex; flex-direction: row; align-items: flex-start; gap: 14px; padding: 16px;
+    border: 1px solid #ece7f4; border-radius: 16px; background: #fff; box-shadow: 0 2px 10px rgba(37, 20, 74, 0.04);
+  }
+  .feature-card .icon-circle { width: 46px; height: 46px; border-radius: 14px; font-size: 19px; }
+  .feature-card > div:last-child { min-width: 0; }
+  .feature-card h4 { margin: 2px 0 6px; font-size: 15.5px; line-height: 1.3; }
+  .feature-card p { font-size: 13.5px; line-height: 1.55; color: #5d566b; }
+  .trust-card { padding: 20px 16px; }
+  .trust-card h4 { font-size: 16px; }
+  .trust-card p { font-size: 13.5px; line-height: 1.55; }
+}

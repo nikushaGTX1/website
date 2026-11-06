@@ -77,4 +77,60 @@
       </div>
     </div>
   </nav>
+  <!-- Phones and tablets: full-screen menu with tiles (the desktop bar above is hidden there). -->
+  <div class="mobile-menu" *ngIf="menuOpen" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="mm-sheet">
+      <div class="mm-head">
+        <a class="mm-brand" routerLink="/main" (click)="closeMenu()" aria-label="Velven home">
+          <img src="/logosh2-mark-v2.png" width="644" height="790" alt="" /><span>VELVEN</span>
+        </a>
+        <div class="mm-head-actions">
+          <app-notification-bell *ngIf="showBell"></app-notification-bell>
+          <button type="button" class="mm-close" aria-label="Close navigation" (click)="closeMenu()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        </div>
+        <span class="mm-skyline" aria-hidden="true"></span>
+      </div>
+
+      <nav class="mm-grid" aria-label="Main navigation">
+        <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'buy' }" (click)="closeMenu()"><i class="fa-solid fa-tag" aria-hidden="true"></i><span>Buy</span></a>
+        <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }" (click)="closeMenu()"><i class="fa-solid fa-key" aria-hidden="true"></i><span data-no-translate>{{ translation.language$.value === 'ka' ? 'ქირავდება' : translation.language$.value === 'ru' ? 'Аренда' : 'Rent' }}</span></a>
+        <a class="mm-featured" routerLink="/ai-home-match" (click)="closeMenu()"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Velven Match</span></a>
+        <a routerLink="/agent-profile" (click)="closeMenu()"><i class="fa-solid fa-user-tie" aria-hidden="true"></i><span>Agents</span></a>
+        <a routerLink="/services" (click)="closeMenu()"><i class="fa-solid fa-handshake" aria-hidden="true"></i><span>Services</span></a>
+        <a routerLink="/blog" (click)="closeMenu()"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>Blog</span></a>
+        <a routerLink="/about" (click)="closeMenu()"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>About Us</span></a>
+        <a routerLink="/clients" (click)="closeMenu()"><i class="fa-solid fa-users" aria-hidden="true"></i><span>Clients</span></a>
+        <a routerLink="/upload-apartment" (click)="closeMenu()"><i class="fa-solid fa-square-plus" aria-hidden="true"></i><span>List your property</span></a>
+      </nav>
+
+      <div class="mm-divider" aria-hidden="true"></div>
+
+      <div class="mm-language" data-no-translate>
+        <button type="button" *ngFor="let option of languageOptions; trackBy: trackLanguage" [class.on]="translation.language$.value === option.code" (click)="selectLanguage(option.code)">
+          <span class="mm-flag" aria-hidden="true">{{ option.flag }}</span>{{ option.label }}
+        </button>
+      </div>
+
+      <a class="mm-sign-in" *ngIf="!isLoggedIn" routerLink="/login" (click)="closeMenu()"><i class="fa-regular fa-user" aria-hidden="true"></i> Sign in</a>
+
+      <section class="mm-account" *ngIf="isLoggedIn">
+        <button type="button" class="mm-account-head" [attr.aria-expanded]="accountOpen" (click)="accountOpen = !accountOpen">
+          <span class="mm-avatar">
+            <img *ngIf="profileImage" [src]="profileImage" alt="" />
+            <i *ngIf="!profileImage" class="fa-regular fa-user" aria-hidden="true"></i>
+          </span>
+          <span class="mm-account-text"><b data-no-translate>{{ accountName }}</b><small data-no-translate>{{ accountEmail }}</small></span>
+          <i class="fa-solid" [class.fa-chevron-up]="accountOpen" [class.fa-chevron-down]="!accountOpen" aria-hidden="true"></i>
+        </button>
+        <div class="mm-account-grid" *ngIf="accountOpen">
+          <a *ngFor="let item of accountItems" [routerLink]="item.route" (click)="closeMenu()" [class.mm-featured]="item.featured">
+            <i [class]="item.icon" aria-hidden="true"></i><span>{{ item.label }}</span>
+            <em *ngIf="item.badge" data-no-translate>{{ item.badge > 99 ? '99+' : item.badge }}</em>
+          </a>
+        </div>
+      </section>
+
+      <button type="button" class="mm-logout" *ngIf="isLoggedIn" (click)="logout()"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Log out</button>
+    </div>
+  </div>
 </header>

@@ -290,7 +290,9 @@ export class GooglePropertyMapComponent implements AfterViewInit, OnChanges, OnD
         fullscreenControl: false,
         zoomControl: false,
         clickableIcons: true,
-        gestureHandling: this.compact ? 'greedy' : 'cooperative',
+        gestureHandling: this.compact
+          ? window.matchMedia?.('(pointer: coarse)').matches ? 'none' : 'greedy'
+          : 'cooperative',
       });
       this.parks?.destroy();
       this.parks = new ParkLayer(this.map);
