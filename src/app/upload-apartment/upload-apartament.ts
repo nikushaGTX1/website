@@ -1,4 +1,5 @@
 import { normalizeApartmentStyle } from '../utils/apartment-style';
+import { toMediaUrl } from '../utils/api-media';
 import { isValidPhone } from '../utils/phone';
 import {
   ChangeDetectorRef,
@@ -462,7 +463,12 @@ export class UploadApartment implements OnInit, OnDestroy {
   userMessages: PendingApartment[] = [];
   pendingDebug = '';
   imageUploadMessage = '';
-  selectedImages: File[] = [];
+  /** One entry per photo in form.imageUrls: the new file, or null for a photo already saved. */
+  selectedImages: (File | null)[] = [];
+  /** One entry per photo: the saved image id, or null for a new upload. */
+  imageIds: (number | null)[] = [];
+  /** Saved photo ids when editing started, to tell the API which ones were removed. */
+  private editOriginalImageIds: number[] = [];
   // Optional explicit admin editing; ordinary uploads never spend API credits.
   photoChecksEnabled = false;
   canRemoveWatermarks = false;
@@ -745,6 +751,7 @@ export class UploadApartment implements OnInit, OnDestroy {
           this.form.imageUrls = images.map((item) => item.previewUrl);
           this.form.imageUrl = this.form.imageUrls[0] || '';
           this.selectedImages = images.map((item) => item.file);
+          this.imageIds = images.map(() => null);
           this.editLoading = false;
           this.cdr.detectChanges();
         },
@@ -841,8 +848,14 @@ export class UploadApartment implements OnInit, OnDestroy {
     const f = this.form;
     f.description = hasMeta ? description.slice(0, splitAt) : description;
     f.title = source.title || f.title;
-    if (source.titleEn) this.listingCopy.en.title = source.titleEn;
-    if (source.titleRu) this.listingCopy.ru.title = source.titleRu;
+    // The saved texts fill every language box; the automatic text never replaces them.
+    const savedKa = (source as { titleKa?: string }).titleKa || f.title;
+    this.listingCopy = {
+      ka: { title: savedKa, description: f.description },
+      en: { title: source.titleEn || savedKa, description: f.description },
+      ru: { title: source.titleRu || savedKa, description: f.description },
+    };
+    this.listingCopyTouched = true;
     f.totalPrice = num(source.price);
     f.sqPrice = num(tag('Sq. price'));
     f.landArea = num(tag('Land area').replace(/\s*m2$/i, ''));
@@ -860,7 +873,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.rooms = num(source.rooms) ?? num(tag('Rooms'));
     f.bedrooms = source.bedrooms ?? num(tag('Bedrooms'));
     f.bathrooms = source.bathrooms ?? num(tag('Bathrooms'));
-    f.floor = num(source.floor);
+    f.floor = source.floor != null && Number.isFinite(Number(source.floor)) ? Number(source.floor) : null;
     f.totalFloors = num(source.totalFloors);
     const flags: BooleanFeature[] = [
       'hasElevator',
@@ -926,7 +939,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.viewType = source.viewType || tag('View type');
     f.minimumRentalPeriod = source.minimumRentalPeriod || tag('Minimum rental');
     f.availableFrom = (source.availableFrom || tag('Available from') || '').slice(0, 10);
-    f.maxOccupants = source.maxOccupants ?? null;
+    f.maxOccupants = source.maxOccupants ?? num(tag('Max occupants'));
     f.apartmentStyle = normalizeApartmentStyle(source.apartmentStyle) || f.apartmentStyle;
     f.cadastralCode = tag('Cadastral');
     const district = source.district || tag('District');
@@ -937,6 +950,8 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.street = street;
     this.selectedStreetId = source.streetId || num(tag('Street ID'));
     f.streetNumber = source.buildingNumber || tag('Building');
+    // "Hide exact address" saved the address without the building number.
+    f.hideAddress = !!f.streetNumber && !!source.address && !String(source.address).includes(f.streetNumber);
     f.propertyLatitude = num(source.propertyLatitude ?? source.latitude);
     f.propertyLongitude = num(source.propertyLongitude ?? source.longitude);
     f.contactName = source.ownerName || '';
@@ -944,10 +959,18 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.contactPhone = source.ownerPhoneNumber || '';
     f.agentName = source.agentName || f.agentName;
     f.agentPhone = source.agentPhoneNumber || source.phoneNumber || f.agentPhone;
-    const images = source.imageUrls?.length
-      ? source.imageUrls
-      : (source.images || []).map((image) => image.url || '').filter(Boolean);
-    f.imageUrls = images.length ? [...images] : source.imageUrl ? [source.imageUrl] : [];
+    // Saved photos with their ids, cover first, so they can be shown, reordered and removed.
+    const gallery = (source.images || []).filter((image) => image.url || image.storagePath);
+    if (gallery.length) {
+      f.imageUrls = gallery.map((image) => toMediaUrl(image.url || image.storagePath) || '');
+      this.imageIds = gallery.map((image) => image.id ?? null);
+    } else {
+      const urls = source.imageUrls?.length ? source.imageUrls : source.imageUrl ? [source.imageUrl] : [];
+      f.imageUrls = urls.map((url) => toMediaUrl(url) || url);
+      this.imageIds = f.imageUrls.map(() => null);
+    }
+    this.selectedImages = f.imageUrls.map(() => null);
+    this.editOriginalImageIds = this.imageIds.filter((id): id is number => id != null);
     f.imageUrl = f.imageUrls[0] || '';
     this.activeStep = 0;
   }
@@ -1808,6 +1831,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       ...this.selectedImages,
       ...successfulImages.map((image) => image.file),
     ].slice(0, this.maxImages);
+    this.imageIds = [...this.imageIds, ...successfulImages.map(() => null)].slice(0, this.maxImages);
 
     this.form.imageUrl = this.form.imageUrls[0] || '';
     input.value = '';
@@ -1820,7 +1844,17 @@ export class UploadApartment implements OnInit, OnDestroy {
     input.value = '';
   }
 
-  draftAt(index: number) { return this.imageDrafts.get(this.selectedImages[index]); }
+  draftAt(index: number) { const file = this.selectedImages[index]; return file ? this.imageDrafts.get(file) : undefined; }
+
+  /** Saved photos are links; new ones are data previews. */
+  imagePreviewSrc(image: string): string {
+    return image.startsWith('data:') || image.startsWith('blob:') ? image : toMediaUrl(image) || image;
+  }
+
+  hasRestorableOriginal(index: number): boolean {
+    const file = this.selectedImages[index];
+    return !!file && this.approvedImageOriginals.has(file);
+  }
 
   async editPhoto(index: number): Promise<void> {
     const file = this.selectedImages[index];
@@ -1846,6 +1880,7 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   async approveImageEdit(index: number): Promise<void> {
     const original = this.selectedImages[index];
+    if (!original) return;
     const draft = this.imageDrafts.get(original);
     if (!draft || this.editingPhoto) return;
     this.editingPhoto = true;
@@ -1862,10 +1897,11 @@ export class UploadApartment implements OnInit, OnDestroy {
     finally { this.editingPhoto = false; this.cdr.markForCheck(); }
   }
 
-  discardImageEdit(index: number): void { this.imageDrafts.delete(this.selectedImages[index]); }
+  discardImageEdit(index: number): void { const file = this.selectedImages[index]; if (file) this.imageDrafts.delete(file); }
 
   restoreImageOriginal(index: number): void {
     const file = this.selectedImages[index];
+    if (!file) return;
     const original = this.approvedImageOriginals.get(file);
     if (!original) return;
     this.selectedImages[index] = original.file;
@@ -1877,6 +1913,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   removeImage(index: number): void {
     this.form.imageUrls = this.form.imageUrls.filter((_, imageIndex) => imageIndex !== index);
     this.selectedImages = this.selectedImages.filter((_, imageIndex) => imageIndex !== index);
+    this.imageIds = this.imageIds.filter((_, imageIndex) => imageIndex !== index);
     this.form.imageUrl = this.form.imageUrls[0] || '';
   }
 
@@ -1916,14 +1953,17 @@ export class UploadApartment implements OnInit, OnDestroy {
       target >= this.form.imageUrls.length
     )
       return;
-    const previews = [...this.form.imageUrls];
-    const files = [...this.selectedImages];
-    const [preview] = previews.splice(source, 1);
-    const [file] = files.splice(source, 1);
-    previews.splice(target, 0, preview);
-    if (file) files.splice(target, 0, file);
+    // Photos, files and saved ids move together so every photo keeps its own file or id.
+    const move = <T>(list: T[]): T[] => {
+      const copy = [...list];
+      const [item] = copy.splice(source, 1);
+      copy.splice(target, 0, item);
+      return copy;
+    };
+    const previews = move(this.form.imageUrls);
+    this.selectedImages = move(this.selectedImages);
+    this.imageIds = move(this.imageIds);
     this.form.imageUrls = previews;
-    this.selectedImages = files;
     this.form.imageUrl = previews[0] || '';
   }
 
@@ -2623,9 +2663,22 @@ export class UploadApartment implements OnInit, OnDestroy {
       imageUrls: this.form.imageUrls.length ? this.form.imageUrls : undefined,
     };
 
-    if (includeImageFile && this.selectedImages.length) {
-      apartment.imageFile = this.selectedImages[0];
-      apartment.imageFiles = [...this.selectedImages];
+    const newFiles = this.selectedImages.filter((file): file is File => !!file);
+    if (includeImageFile && newFiles.length) {
+      apartment.imageFile = newFiles[0];
+      apartment.imageFiles = newFiles;
+    }
+    if (includeImageFile && this.editId) {
+      // Saved photos are kept by id; only new files are uploaded. The order is the gallery order.
+      let next = 0;
+      apartment.imageOrder = this.form.imageUrls.map((_, index) =>
+        this.imageIds[index] != null ? `id:${this.imageIds[index]}` : this.selectedImages[index] ? `new:${next++}` : '',
+      ).filter(Boolean);
+      const kept = new Set(this.imageIds.filter((id): id is number => id != null));
+      apartment.removedImageIds = this.editOriginalImageIds.filter((id) => !kept.has(id));
+      // Saved photo links are not new uploads.
+      apartment.imageUrls = undefined;
+      apartment.imageUrl = undefined;
     }
 
     return apartment;

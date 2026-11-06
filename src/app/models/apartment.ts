@@ -181,4 +181,8 @@ export interface CreateApartment {
   imageUrls?: string[];
   imageFile?: File;
   imageFiles?: File[];
+  /** Edit only: full photo order ("id:12" kept, "new:0" uploaded), cover first. */
+  imageOrder?: string[];
+  /** Edit only: saved photos the user removed. */
+  removedImageIds?: number[];
 }

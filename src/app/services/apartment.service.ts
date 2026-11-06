@@ -453,6 +453,9 @@ export class ApartmentService {
       }
     });
 
+    (data.imageOrder || []).forEach((token) => formData.append('ImageOrder', token));
+    (data.removedImageIds || []).forEach((id) => formData.append('RemovedImageIds', String(id)));
+
     const images = this.getApartmentImages(data).slice(0, 15);
 
     if (images.length) {

@@ -548,7 +548,7 @@
               [class.is-drop-target]="imageDropIndex === index && draggedImageIndex !== index" draggable="true"
               (dragstart)="startImageDrag(index, $event)" (dragover)="hoverImageDrop(index, $event)" (drop)="dropImageAt(index, $event)">
               <div class="image-thumbnail">
-              <img draggable="false" [src]="image" [alt]="'Uploaded apartment photo ' + (index + 1)" />
+              <img draggable="false" [src]="imagePreviewSrc(image)" [alt]="'Uploaded apartment photo ' + (index + 1)" />
               <div class="image-position">{{ index + 1 }}</div>
               <span class="cover-badge" *ngIf="index === 0"><i class="fa-solid fa-star"></i> Cover</span>
               <button type="button" (click)="removeImage(index)" aria-label="Remove image">×</button>
@@ -569,7 +569,7 @@
                   <button type="button" (click)="approveImageEdit(index)" [disabled]="editingPhoto">Approve for this listing</button>
                   <button type="button" (click)="discardImageEdit(index)" [disabled]="editingPhoto">Keep original</button>
                 </ng-container>
-                <button type="button" *ngIf="approvedImageOriginals.has(selectedImages[index])" (click)="restoreImageOriginal(index)" [disabled]="editingPhoto">Restore original</button>
+                <button type="button" *ngIf="hasRestorableOriginal(index)" (click)="restoreImageOriginal(index)" [disabled]="editingPhoto">Restore original</button>
               </div>
               </article>
           </div>
