@@ -28,6 +28,18 @@ const DISTANCE_FIELDS: Record<string, keyof HomeMatchApartment> = {
   PharmacyNearby: 'pharmacyDistanceMinutes',
 };
 
+/**
+ * Somewhere to work from home: a home office the owner ticked, or a spare room
+ * (more rooms than bedrooms plus a living room, or more bedrooms than the client needs).
+ */
+export function hasWorkspace(apartment: HomeMatchApartment, profile?: Pick<HomeMatchProfile, 'bedrooms'>): boolean {
+  if (apartment.hasHomeOfficeSpace || hasTag(apartment, 'Home office')) return true;
+  const rooms = apartment.rooms ?? 0;
+  const bedrooms = apartment.bedrooms ?? 0;
+  if (rooms > 0 && bedrooms > 0 && rooms - bedrooms >= 2) return true;
+  return !!profile?.bedrooms && bedrooms > profile.bedrooms;
+}
+
 export function walkingDistanceScore(minutes?: number): number {
   if (minutes === undefined || minutes < 0) return 0;
   // 18-minute walk is the edge of 'nearby': 1 point there, 0 beyond, more the closer it is.
@@ -148,7 +160,7 @@ export function scorePriority(priority: string, apartment: HomeMatchApartment, p
         nearby(apartment, ['Cafe nearby', 'Cafés / coworking nearby'], 'cafeDistanceMinutes'),
       );
     case 'Workspace':
-      return yes(apartment.hasHomeOfficeSpace || hasTag(apartment, 'Home office'));
+      return yes(hasWorkspace(apartment, profile));
     case 'BalconyOrTerrace':
       return yes(apartment.hasBalcony);
     case 'MultipleBathrooms':
@@ -211,7 +223,7 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
   const people = profile.adults + profile.children;
   if (apartment.bedrooms != null && apartment.bedrooms > 0 && people > apartment.bedrooms * 2) points -= 10;
   const lifestyles = new Set(profile.lifestyles);
-  if (lifestyles.has('RemoteWorker') && (apartment.hasHomeOfficeSpace || hasTag(apartment, 'Home office'))) points += 6;
+  if (lifestyles.has('RemoteWorker') && hasWorkspace(apartment, profile)) points += 6;
   if (lifestyles.has('QuietLifestyle') && (apartment.isQuietStreet || hasTag(apartment, 'Quiet street'))) points += 6;
   // Active/Sporty: proximity to gyms and parks.
   if (lifestyles.has('Athlete')) {

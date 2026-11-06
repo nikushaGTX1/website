@@ -1,5 +1,6 @@
 import type { HomeMatchApartment } from '../models/home-match-result';
 import type { HomeMatchProfile } from '../models/home-match-profile';
+import { normalizeApartmentStyle } from '../../utils/apartment-style';
 import { answerLabel } from './answer-labels';
 import {
   budgetRangeUsd,
@@ -11,7 +12,7 @@ import {
   type BudgetRates,
   type RequirementEvaluation,
 } from './mandatory-requirements';
-import { parkingScore, scorePriority } from './priority-scoring';
+import { parkingScore, scorePriority, hasWorkspace } from './priority-scoring';
 import { parseParkingCost } from '../../utils/parking-cost';
 import { listedUniversityMinutes } from '../../utils/universities';
 
@@ -124,6 +125,28 @@ export function explainHomeMatch(
     (apartment.isQuietStreet || /Quiet street:\s*yes/i.test(apartment.description || ''))
   ) {
     add('Quiet street', 'Matches your quiet lifestyle', 'fa-volume-xmark');
+  }
+  // Home features behind lifestyle answers and top priorities, so each choice shows when it is met.
+  if ((p.lifestyles.includes('RemoteWorker') || priorities.has('Workspace')) && hasWorkspace(apartment, p)) {
+    add('Room to work from home', apartment.hasHomeOfficeSpace ? 'Home office space' : 'A spare room you can use as an office', 'fa-laptop');
+  }
+  const features: Array<[string, string, string, string]> = [
+    ['BalconyOrTerrace', 'Balcony or terrace', 'One of your top priorities', 'fa-umbrella-beach'],
+    ['MultipleBathrooms', 'More than one bathroom', 'One of your top priorities', 'fa-bath'],
+    ['SecurityOrConcierge', 'Security or concierge', 'One of your top priorities', 'fa-shield-halved'],
+    ['ModernMaintainedBuilding', 'Modern, well-kept building', 'One of your top priorities', 'fa-building'],
+    ['IsolatedBedrooms', 'Separate bedrooms', 'Good for sharing a home', 'fa-door-closed'],
+    ['AwayFromNightlife', 'Away from nightlife', 'One of your top priorities', 'fa-moon'],
+    ['CompanyLeaseAvailable', 'Company lease available', 'One of your top priorities', 'fa-file-signature'],
+  ];
+  for (const [code, title, reason, icon] of features) {
+    if (priorities.has(code) && scorePriority(code, apartment, p) > 0) add(title, reason, icon);
+  }
+  if (p.lifestyles.includes('HostsGuests') && ((apartment.bedrooms ?? 0) >= 2 || (apartment.sizeSquareMeters ?? 0) >= 80)) {
+    add('Space for guests', 'Matches how often you host', 'fa-people-group');
+  }
+  if ((p.apartmentStyle === 'Modern' || p.apartmentStyle === 'Vintage') && normalizeApartmentStyle(apartment.apartmentStyle) === p.apartmentStyle) {
+    add('Your style of home', answerLabel(p.apartmentStyle), 'fa-couch');
   }
   if (
     priorities.has('SelectedLocationNearby') &&

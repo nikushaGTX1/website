@@ -289,9 +289,19 @@ export function compareMatchOrder(
   const group = (status?: RequirementStatus) => (status === 'confirm' ? 1 : status === 'alternative' ? 2 : 0);
   return (
     group(a.status) - group(b.status) ||
+    locationRank(a.apartment, profile) - locationRank(b.apartment, profile) ||
     petConfirmationRank(a.apartment, profile) - petConfirmationRank(b.apartment, profile) ||
     b.score - a.score
   );
+}
+
+/**
+ * Location is the first priority: homes in the districts (or map area) the client chose come
+ * before ones whose area is unknown, then everything else. Also applies with a flexible location.
+ */
+export function locationRank(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
+  const check = checkLocation(apartment, { ...profile, locationFlexible: false });
+  return check === 'pass' ? 0 : check === 'unknown' ? 1 : 2;
 }
 
 export function petConfirmationRank(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
