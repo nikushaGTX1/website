@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Agent as ApiAgent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
@@ -27,7 +28,7 @@ export interface AgentCard {
   selector: 'app-agent-profile',
   templateUrl: './agent-profile.html',
   styleUrl: './agent-profile.css',
-  imports: [PhotoUrlPipe, NgIf, NgFor, RouterLink, DecimalPipe],
+  imports: [PhotoUrlPipe, NgIf, NgFor, RouterLink, DecimalPipe, FormsModule],
 })
 export class AgentProfile implements OnInit {
   agents: AgentCard[] = [];
@@ -37,6 +38,25 @@ export class AgentProfile implements OnInit {
   errorMessage = '';
 
   searchQuery = '';
+  /** Neighborhood from the hero search; matches the agent's location or bio. */
+  selectedDistrict = '';
+  districtOpen = false;
+
+  pickDistrict(district: string): void {
+    this.selectedDistrict = district;
+    this.districtOpen = false;
+    this.onFilterChange();
+  }
+
+  /** Close the neighborhood menu on a click outside it. */
+  @HostListener('document:click', ['$event'])
+  closeDistrictMenu(event: MouseEvent): void {
+    if (this.districtOpen && !(event.target as HTMLElement).closest?.('.agents-search-area')) {
+      this.districtOpen = false;
+      this.cdr.detectChanges();
+    }
+  }
+  readonly districts = ['Vake', 'Saburtalo', 'Vera', 'Mtatsminda', 'Sololaki', 'Old Tbilisi', 'Didube', 'Chughureti', 'Nadzaladevi', 'Isani', 'Samgori', 'Gldani', 'Krtsanisi', 'Didi Dighomi', 'Ortachala'];
   selectedSort = 'name-az';
   selectedPhoneAgent: AgentCard | null = null;
 
@@ -90,7 +110,9 @@ export class AgentProfile implements OnInit {
   onFilterChange(): void {
     const query = this.searchQuery.trim().toLowerCase();
 
+    const district = this.selectedDistrict.toLowerCase();
     const filtered = this.allAgents.filter((agent) => {
+      if (district && !(agent.location + ' ' + agent.bio).toLowerCase().includes(district)) return false;
       return (
         agent.name.toLowerCase().includes(query) ||
         agent.location.toLowerCase().includes(query) ||
@@ -114,11 +136,28 @@ export class AgentProfile implements OnInit {
     this.cdr.detectChanges();
   }
 
+  /** Search button: apply the filters and jump to the results. */
+  runSearch(): void {
+    this.onFilterChange();
+    document.getElementById('agents-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   onCall(agent: AgentCard): void {
     this.selectedPhoneAgent = agent;
   }
 
+  phoneCopied = false;
+
+  copyPhone(phone: string): void {
+    void navigator.clipboard?.writeText(phone).then(() => {
+      this.phoneCopied = true;
+      this.cdr.detectChanges();
+      setTimeout(() => { this.phoneCopied = false; this.cdr.detectChanges(); }, 1800);
+    });
+  }
+
   closePhoneDialog(): void {
+    this.phoneCopied = false;
     this.selectedPhoneAgent = null;
   }
 

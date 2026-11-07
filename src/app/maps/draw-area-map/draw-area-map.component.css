@@ -1264,3 +1264,7 @@ h3 {
     min-height: 0;
   }
 }
+
+/* Rent and Buy tabs: same width, whatever the label length. */
+.mode-tabs { display: inline-grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mode-tabs button { justify-content: center; min-width: 140px; white-space: nowrap; }

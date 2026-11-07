@@ -7,4 +7,10 @@ import { RouterLink } from '@angular/router';
   styleUrl: './services.css',
   imports: [RouterLink],
 })
-export class Services {}
+export class Services {
+  /** Hero buttons: smooth scroll to a section on this page. */
+  scrollTo(event: Event, id: string): void {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}

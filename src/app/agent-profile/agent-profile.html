@@ -1,66 +1,47 @@
 <div class="page-container">
 
 
-  <section class="hero-section">
-    <div class="hero-content">
-      <span class="section-tag">OUR AGENTS</span>
-      <h1 class="hero-title">
-        Meet Our Agents<span class="sparkle-gold">✦</span>
-      </h1>
-      <p class="hero-subtitle">
-        Our experienced agents are here to guide you every step of the way.<br />
-        Local experts. Trusted advisors. Dedicated to you.
-      </p>
-
-      <div class="metrics-card">
-        <div class="metric-item">
-          <div class="metric-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-          </div>
-          <div class="metric-text">
-            <strong>{{ allAgents.length }}</strong>
-            <span>Expert Agents</span>
-          </div>
+  <section class="agents-hero">
+    <picture class="agents-hero-photo" aria-hidden="true">
+      <source media="(max-width: 760px)" srcset="/images/tbilisi-banner-sm.webp" />
+      <img src="/images/tbilisi-banner.webp" width="2172" height="724" alt="" fetchpriority="high" decoding="async" />
+    </picture>
+    <div class="agents-hero-copy">
+      <span class="agents-hero-tag">Our experts</span>
+      <h1>Find your trusted<br />agent in Tbilisi</h1>
+      <p>Meet experienced real estate agents in Tbilisi who can help you rent, buy, or list verified property with confidence.</p>
+      <form class="agents-search" role="search" (submit)="$event.preventDefault(); runSearch()">
+        <label class="agents-search-name">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search" name="agentName" [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()" placeholder="Agent name..." aria-label="Search agents by name" />
+        </label>
+        <div class="agents-search-area" [class.open]="districtOpen">
+          <button type="button" class="agents-area-toggle" (click)="districtOpen = !districtOpen" aria-haspopup="listbox" [attr.aria-expanded]="districtOpen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.1-7-11.5a7 7 0 0 1 14 0C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+            <span>{{ selectedDistrict || 'All Neighborhoods' }}</span>
+            <svg class="agents-search-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          @if (districtOpen) {
+            <div class="agents-area-menu" role="listbox" aria-label="Neighborhood">
+              <button type="button" role="option" [class.selected]="!selectedDistrict" [attr.aria-selected]="!selectedDistrict" (click)="pickDistrict('')">
+                <span>All Neighborhoods</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+              </button>
+              @for (district of districts; track district) {
+                <button type="button" role="option" [class.selected]="selectedDistrict === district" [attr.aria-selected]="selectedDistrict === district" (click)="pickDistrict(district)">
+                  <span>{{ district }}</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+                </button>
+              }
+            </div>
+          }
         </div>
-        <div class="metric-divider"></div>
-
-        <div class="metric-item">
-          <div class="metric-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <circle cx="12" cy="8" r="7"></circle>
-              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-            </svg>
-          </div>
-          <div class="metric-text">
-            <strong>{{ totalClosedDeals }}</strong>
-            <span>Closed Deals</span>
-          </div>
-        </div>
-
-        <div class="metric-divider"></div>
-
-        <div class="metric-item">
-          <div class="metric-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
-          <div class="metric-text">
-            <strong>&lt; 2h</strong>
-            <span>Avg. Response Time</span>
-          </div>
-        </div>
-      </div>
+        <button type="submit">Search</button>
+      </form>
     </div>
   </section>
 
-  <main class="agents-list">
+  <main class="agents-list" id="agents-list">
     <p class="agents-message error" *ngIf="errorMessage">{{ errorMessage }}</p>
 
     <ng-container *ngIf="isLoading">
@@ -213,44 +194,62 @@
     role="presentation"
   >
     <section
-      class="phone-dialog"
+      class="phone-dialog pd"
       role="dialog"
       aria-modal="true"
       [attr.aria-labelledby]="'phone-dialog-title-' + phoneAgent.id"
       (click)="$event.stopPropagation()"
     >
-      <button class="dialog-close" type="button" (click)="closePhoneDialog()" aria-label="Close phone number">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 6 6 18M6 6l12 12"/>
-        </svg>
+      <button class="dialog-close" type="button" (click)="closePhoneDialog()" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
 
-      <div class="dialog-phone-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-        </svg>
+      <div class="pd-head">
+        <div class="pd-avatar">
+          <img [src]="(phoneAgent.avatarUrl || '/agent1.jpg') | photoUrl:320" [alt]="phoneAgent.name" width="96" height="96" (error)="fixAgentImage($event)" />
+          <span class="pd-avatar-badge" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 16.5v2.8a1.9 1.9 0 0 1-2.1 1.9A18.3 18.3 0 0 1 2.8 5.1 1.9 1.9 0 0 1 4.7 3h2.8a1.9 1.9 0 0 1 1.9 1.6c.1 1 .4 1.9.7 2.7a1.9 1.9 0 0 1-.4 2l-1.2 1.2a15 15 0 0 0 5.2 5.2l1.2-1.2a1.9 1.9 0 0 1 2-.4c.9.3 1.8.6 2.7.7a1.9 1.9 0 0 1 1.6 1.7z"/></svg></span>
+        </div>
+        <span class="pd-eyebrow">Contact the agent</span>
+        <h2 [id]="'phone-dialog-title-' + phoneAgent.id" data-no-translate>{{ phoneAgent.name }}</h2>
+        <p class="pd-role"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8 7.5 9.5 4.4-1.5 7.5-4.9 7.5-9.5V6z"/><path d="m8.8 12 2.2 2.2 4.4-4.4"/></svg><span>Verified agent</span></p>
       </div>
 
-      <p class="dialog-eyebrow">DIRECT CONTACT</p>
-      <h2 [id]="'phone-dialog-title-' + phoneAgent.id">Call {{ phoneAgent.name }}</h2>
-      <p class="dialog-description">Speak directly with this agent about properties, viewings, and availability.</p>
+      @if (phoneAgent.phoneNumber) {
+        <div class="pd-number">
+          <div>
+            <span>Phone number</span>
+            <a [href]="'tel:' + phoneAgent.phoneNumber" data-no-translate>{{ phoneAgent.phoneNumber }}</a>
+          </div>
+          <button type="button" class="pd-copy" [class.done]="phoneCopied" (click)="copyPhone(phoneAgent.phoneNumber)" [attr.aria-label]="phoneCopied ? 'Copied' : 'Copy number'">
+            @if (phoneCopied) {
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Copied</span>
+            } @else {
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span>Copy</span>
+            }
+          </button>
+        </div>
 
-      <div class="revealed-number" [class.unavailable]="!phoneAgent.phoneNumber">
-        <span>Phone number</span>
-        <strong>{{ phoneAgent.phoneNumber || 'Not provided' }}</strong>
-      </div>
+        <div class="pd-actions">
+          <a class="pd-btn call" [href]="'tel:' + phoneAgent.phoneNumber">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16.5v2.8a1.9 1.9 0 0 1-2.1 1.9A18.3 18.3 0 0 1 2.8 5.1 1.9 1.9 0 0 1 4.7 3h2.8a1.9 1.9 0 0 1 1.9 1.6c.1 1 .4 1.9.7 2.7a1.9 1.9 0 0 1-.4 2l-1.2 1.2a15 15 0 0 0 5.2 5.2l1.2-1.2a1.9 1.9 0 0 1 2-.4c.9.3 1.8.6 2.7.7a1.9 1.9 0 0 1 1.6 1.7z"/></svg>
+            <span>Call now</span>
+          </a>
+          <button type="button" class="pd-btn whatsapp" (click)="onMessage(phoneAgent)">
+            <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+            <span>WhatsApp</span>
+          </button>
+        </div>
+      } @else {
+        <div class="pd-number empty">
+          <div>
+            <span>Phone number</span>
+            <strong>Not provided</strong>
+          </div>
+        </div>
+      }
 
-      <a
-        *ngIf="phoneAgent.phoneNumber"
-        class="call-now-btn"
-        [href]="'tel:' + phoneAgent.phoneNumber"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
-        </svg>
-        Call now
-    </a>
-  </section>
+      <a class="pd-profile" [routerLink]="['/agent-profile', phoneAgent.id]" (click)="closePhoneDialog()">View full profile <span aria-hidden="true">→</span></a>
+    </section>
 
   </div>
 </div>

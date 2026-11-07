@@ -618,3 +618,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(36px, 5vw, 68px); font-weigh
 /* Agent and Contact sit together at the bottom of every card: no gap between them. */
 .cc-agent { margin-top: auto; }
 .cc-agent + .cc-contact, .cc-agent ~ .cc-contact { margin-top: 14px; }
+
+/* Rent and Buy tabs: same width, whatever the label length. */
+.goal-tabs { display: inline-grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.goal-tabs button { justify-content: center; min-width: 150px; padding-left: 22px; padding-right: 22px; white-space: nowrap; }

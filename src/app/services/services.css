@@ -492,3 +492,99 @@
     font-size: 13px;
   }
 }
+
+
+/* ===== Hero: "Full real estate services." ===== */
+.svc-hero {
+  position: relative; display: flex; align-items: center; overflow: hidden;
+  width: min(100% - 32px, 1240px); min-height: clamp(300px, 26vw, 340px); margin: 20px auto 8px;
+  border-radius: 24px; background: linear-gradient(120deg, #fbfaff 0%, #f3eefd 55%, #ece4fb 100%);
+}
+.svc-hero-art { position: absolute; inset: 0 0 0 auto; width: 58%; pointer-events: none; }
+.svc-hero-photo {
+  width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 40%); mask-image: linear-gradient(90deg, transparent 0%, #000 40%);
+}
+.svc-hero-chart {
+  position: absolute; left: 6%; top: 22%; display: flex; flex-direction: column; gap: 9px;
+  width: 140px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(6px); box-shadow: 0 18px 40px rgba(69, 26, 143, 0.14);
+  transform: rotate(-4deg);
+}
+.svc-chart-line { height: 5px; width: 70%; border-radius: 4px; background: #d9cdf3; }
+.svc-chart-line.wide { width: 90%; background: #b9a3ec; }
+.svc-chart-line.short { width: 45%; }
+.svc-chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 56px; margin-top: 6px; }
+.svc-chart-bars i { flex: 1; border-radius: 4px 4px 2px 2px; background: linear-gradient(180deg, #8b5cf6, #5b21b6); }
+.svc-chart-bars i:nth-child(1) { height: 25%; opacity: 0.55; }
+.svc-chart-bars i:nth-child(2) { height: 45%; opacity: 0.7; }
+.svc-chart-bars i:nth-child(3) { height: 70%; opacity: 0.85; }
+.svc-chart-bars i:nth-child(4) { height: 100%; }
+.svc-hero-pin { position: absolute; left: 44%; top: 8%; display: grid; place-items: center; width: 60px; }
+.svc-hero-pin svg { position: relative; z-index: 1; width: 44px; height: 44px; fill: #8b5cf6; stroke: #fff; stroke-width: 1.4; filter: drop-shadow(0 8px 14px rgba(91, 33, 182, 0.4)); }
+.svc-hero-pin circle { fill: #fff; }
+.svc-pin-ring { position: absolute; bottom: -8px; width: 60px; height: 18px; border: 2px solid rgba(139, 92, 246, 0.45); border-radius: 50%; }
+.svc-hero-copy { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; width: min(100%, 560px); padding: clamp(28px, 4vw, 44px) clamp(20px, 4vw, 52px); }
+.svc-hero-tag { display: inline-flex; align-items: center; gap: 12px; color: #451a8f; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.svc-hero-tag::after { content: ""; width: 30px; height: 2px; border-radius: 2px; background: #451a8f; }
+.svc-hero h1 { margin: 0; color: #14112a; font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; line-height: 1.18; letter-spacing: -0.01em; }
+.svc-hero h1 em { color: #7c3aed; font-style: normal; }
+.svc-hero-copy > p { margin: 0; max-width: 480px; color: #3d3550; font-size: clamp(14.5px, 1.3vw, 16px); line-height: 1.6; }
+.svc-hero-actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
+.svc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 26px;
+  border-radius: 10px; font-size: 15px; font-weight: 700; text-decoration: none; transition: transform 0.18s ease, background 0.18s ease;
+}
+.svc-btn.primary { background: linear-gradient(180deg, #5b21b6, #451a8f); color: #fff; box-shadow: 0 10px 24px rgba(69, 26, 143, 0.28); }
+.svc-btn.ghost { border: 1.5px solid #451a8f; background: #fff; color: #451a8f; }
+.svc-btn.ghost svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.svc-btn:hover { transform: translateY(-2px); }
+.svc-btn.ghost:hover { background: #f6f2fd; }
+#our-services, #consultation { scroll-margin-top: 100px; }
+@media (max-width: 860px) {
+  .svc-hero { flex-direction: column; align-items: stretch; min-height: 0; }
+  .svc-hero-art { position: relative; inset: auto; width: 100%; height: 210px; }
+  .svc-hero-photo { -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%); mask-image: linear-gradient(180deg, #000 70%, transparent 100%); }
+  .svc-hero-chart { left: 6%; top: 18%; width: 110px; padding: 12px; }
+  .svc-chart-bars { height: 40px; }
+  .svc-hero-pin { left: auto; right: 14%; top: 10%; }
+  .svc-hero-copy { width: 100%; margin-top: -24px; padding-top: 0; }
+}
+@media (max-width: 480px) {
+  .svc-hero { width: calc(100% - 24px); margin-top: 12px; border-radius: 20px; }
+  .svc-hero-actions { flex-direction: column; }
+  .svc-btn { width: 100%; }
+}
+
+/* Banner artwork (building, chart and pin are part of the image). */
+.svc-hero { min-height: clamp(260px, 24vw, 320px); background: #f7f4fd; }
+.svc-hero-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.svc-hero-photo {
+  display: block; width: 100%; height: 100%; object-fit: cover; object-position: right 30%;
+  -webkit-mask-image: none; mask-image: none;
+}
+@media (max-width: 860px) {
+  .svc-hero-art { position: relative; height: 220px; }
+  .svc-hero-photo { object-position: 75% 35%; -webkit-mask-image: linear-gradient(180deg, #000 75%, transparent 100%); mask-image: linear-gradient(180deg, #000 75%, transparent 100%); }
+}
+.svc-hero-copy { width: min(100%, 640px); }
+.svc-hero h1 { font-size: clamp(28px, 3vw, 40px); }
+.svc-hero-copy > p { max-width: 540px; }
+
+/* Hero as in the reference: open page background, art on the right, text never over the art. */
+.svc-hero {
+  width: 100%; max-width: none; min-height: 0; margin: 0; padding: 0; border-radius: 0; overflow: hidden;
+  background: linear-gradient(90deg, #fbfaff 0%, #f6f2fd 60%, #f1ebfc 100%);
+}
+.svc-hero-art { position: absolute; inset: 0 0 0 auto; width: 58%; height: 100%; }
+.svc-hero-photo { object-fit: cover; object-position: right center; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 18%); mask-image: linear-gradient(90deg, transparent 0%, #000 18%); }
+.svc-hero-copy { width: min(100%, 1240px); margin: 0 auto; padding: clamp(28px, 3.4vw, 44px) clamp(16px, 4vw, 40px) clamp(32px, 4vw, 52px); }
+.svc-hero-copy > * { max-width: 600px; }
+.svc-hero h1 { font-size: clamp(28px, 2.9vw, 40px); line-height: 1.2; }
+.svc-hero-tag { letter-spacing: 0.16em; }
+@media (max-width: 860px) {
+  .svc-hero-art { position: relative; inset: auto; width: 100%; height: 220px; }
+  .svc-hero-photo { object-position: 75% 35%; -webkit-mask-image: linear-gradient(180deg, #000 75%, transparent 100%); mask-image: linear-gradient(180deg, #000 75%, transparent 100%); }
+  .svc-hero-copy { margin-top: -20px; padding-top: 0; }
+}
+@media (max-width: 480px) { .svc-hero { width: 100%; margin: 0; border-radius: 0; } }

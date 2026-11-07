@@ -1,10 +1,24 @@
 <div class="services-page">
-  <section class="services-hero">
-    <!-- Photo only; the heading stays for screen readers and search engines. -->
-    <h1 class="visually-hidden">Velven real estate services</h1>
+  <section class="svc-hero">
+    <picture class="svc-hero-art" aria-hidden="true">
+      <source media="(max-width: 760px)" srcset="/images/services-banner-sm.webp" />
+      <img class="svc-hero-photo" src="/images/services-banner.webp" width="1774" height="887" alt="" fetchpriority="high" decoding="async" />
+    </picture>
+    <div class="svc-hero-copy">
+      <span class="svc-hero-tag">Velven Services</span>
+      <h1>Full real estate<br /><em>services.</em></h1>
+      <p>At Velven we give you full support — from searching for an apartment to drafting documents and professional help.</p>
+      <div class="svc-hero-actions">
+        <a class="svc-btn primary" href="/services#our-services" (click)="scrollTo($event, 'our-services')">Our services <span aria-hidden="true">→</span></a>
+        <a class="svc-btn ghost" href="/services#consultation" (click)="scrollTo($event, 'consultation')">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 1.5-1.5 2.5-4 2.5h-2"/></svg>
+          Consultation
+        </a>
+      </div>
+    </div>
   </section>
 
-  <section class="services-content">
+  <section class="services-content" id="our-services">
     <div class="section-heading">
       <span>Our services</span>
       <h2>How we help you every step of the way</h2>
@@ -33,7 +47,7 @@
         <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6c8 6 16 8 25 9v16c0 14-10 23-25 29C17 54 7 45 7 31V15c9-1 17-3 25-9Zm0 12v28M16 25h32M20 25l-7 13h14l-7-13Zm24 0-7 13h14l-7-13Z" /></svg>
         <h3>Legal Support</h3>
         <p>Get expert legal assistance at every step, from agreements to documentation and compliance.</p>
-        <a href="mailto:hello@velven.ge">Learn more <span>→</span></a>
+        <a href="mailto:info@velven.ge">Learn more <span>→</span></a>
       </article>
 
 
@@ -41,7 +55,7 @@
         <svg viewBox="0 0 64 64" aria-hidden="true"><path d="m7 26 21 6L46 14c4-4 9-6 12-5 1 3-1 8-5 12L35 39l6 18-5 2-10-13-8 7-1 8-4 1-3-12 7-8L5 31l2-5Z" /></svg>
         <h3>Relocation Help</h3>
         <p>Moving to a new city or country? We help you settle in with housing, local info, and relocation support.</p>
-        <a href="mailto:hello@velven.ge">Learn more <span>→</span></a>
+        <a href="mailto:info@velven.ge">Learn more <span>→</span></a>
       </article>
 
       <article class="service-card">
@@ -52,7 +66,7 @@
       </article>
     </div>
 
-    <aside class="contact-banner">
+    <aside class="contact-banner" id="consultation">
       <div class="support-icon" aria-hidden="true">
         <svg viewBox="0 0 64 64"><path d="M11 37v-8a21 21 0 0 1 42 0v8M11 33H7v14h10V33h-6Zm42 0h4v14H47V33h6ZM47 48c-3 7-8 9-16 9m0 0h-5" /></svg>
       </div>
@@ -62,7 +76,7 @@
       </div>
       <div class="contact-details">
         <p><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 3 3 5-2 2a15 15 0 0 0 6 6l2-2 5 3v3a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3Z" /></svg><span><b>+995 555 123 456</b><small>Mon - Fri, 9:00 AM - 6:00 PM</small></span></p>
-        <p><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></svg><span><b>hello&#64;velven.ge</b><small>We reply within 24 hours</small></span></p>
+        <p><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></svg><span><b>info&#64;velven.ge</b><small>We reply within 24 hours</small></span></p>
         <a routerLink="/agent-profile">Contact an Expert <span>→</span></a>
       </div>
       <div class="skyline" aria-hidden="true">
