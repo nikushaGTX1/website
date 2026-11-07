@@ -345,6 +345,12 @@ export class Clients implements OnInit, OnDestroy {
       filters['moveInBefore'] =
         `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     }
+    // Seen before (this visit or this tab): show it now, then refresh in the background.
+    const cached = this.api.cachedBoard(filters);
+    if (cached) {
+      this.result = cached;
+      this.loading = false;
+    }
     this.request = this.api.board(filters).subscribe({
       next: (result) => {
         this.result = result;
@@ -352,7 +358,7 @@ export class Clients implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.error = true;
+        this.error = !cached;
         this.loading = false;
         this.cdr.markForCheck();
       },

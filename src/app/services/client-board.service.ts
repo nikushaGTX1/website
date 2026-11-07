@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { API_URL } from '../utils/api-config';
 import { toMediaUrl } from '../utils/api-media';
-import { map } from 'rxjs';
+import { map, tap } from 'rxjs';
 import { HomeMatchProfile } from '../ai-home-match/models/home-match-profile';
 import { CurrencyService } from './currency.service';
 
@@ -49,7 +49,34 @@ export class ClientBoardService {
     private http: HttpClient,
     private currency: CurrencyService,
   ) {}
+  /** Last answer per filter set: the board shows it at once and refreshes quietly. */
+  private boardCache = new Map<string, BoardPage>();
+
+  cachedBoard(filters: Record<string, string | number | boolean>): BoardPage | null {
+    const key = this.boardKey(filters);
+    const hit = this.boardCache.get(key);
+    if (hit) return hit;
+    try {
+      const saved = sessionStorage.getItem('client-board:' + key);
+      return saved ? (JSON.parse(saved) as BoardPage) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private boardKey(filters: Record<string, string | number | boolean>): string {
+    return Object.entries(filters).filter(([, v]) => v !== '').sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => k + '=' + v).join('&');
+  }
+
   board(filters: Record<string, string | number | boolean>) {
+    const key = this.boardKey(filters);
+    return this.loadBoard(filters).pipe(tap((page) => {
+      this.boardCache.set(key, page);
+      try { sessionStorage.setItem('client-board:' + key, JSON.stringify(page)); } catch { /* storage full or blocked */ }
+    }));
+  }
+
+  private loadBoard(filters: Record<string, string | number | boolean>) {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(filters))
       if (value !== '') params = params.set(key, value);

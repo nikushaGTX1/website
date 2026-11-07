@@ -63,7 +63,7 @@
   margin-bottom: 48px;
   display: flex;
   align-items: center;
-  background-image: url("/agents-banner.jpeg");
+  background-image: url("/agents-banner.webp");
   background-size: cover;
   background-position: center right;
   border-radius: 16px;
@@ -921,7 +921,7 @@
         rgba(18, 5, 53, 0.9) 42%,
         rgba(25, 8, 66, 0.15) 78%
       ),
-      url("/agents-banner.jpeg");
+      url("/agents-banner.webp");
     background-position: 67% center;
   }
 

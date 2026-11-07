@@ -449,7 +449,7 @@
     <div class="empty-state" *ngIf="filteredBlogPosts.length === 0">No blog posts found.</div>
 
     <article class="blog-admin-row" *ngFor="let post of filteredBlogPosts; trackBy: identifyBlogPost">
-      <img [src]="post.imageUrl || '/banner.jpg'" [alt]="post.title" />
+      <img [src]="post.imageUrl || '/blog-fallback.webp'" [alt]="post.title" />
       <div>
         <strong>{{ post.title }}</strong>
         <span>{{ post.description }}</span>
