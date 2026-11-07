@@ -1,258 +1,263 @@
-﻿
-
-.site-header {
-  width: 100%;
-  background: linear-gradient(90deg, #fff 0%, #fbfaff 48%, #f7f4ff 100%);
-  border-bottom: 1px solid #e9e3ff;
-  box-shadow: 0 5px 20px rgba(69,26,143, 0.07);
-  font-family: Arial, Helvetica, sans-serif;
+﻿:host {
+  display: block;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-@media (max-width: 768px) {
-  :host {
-    display: block;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+.footer {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid #ebe5f7;
+  background: linear-gradient(180deg, #fbfaff 0%, #f6f3fd 100%);
+  color: #14112a;
 }
 
-.navigation {
-  width: min(100%, 1480px);
-  min-height: 76px;
+.footer-container {
+  width: min(100%, 1240px);
   margin: 0 auto;
-  padding: 0 38px;
+  padding: clamp(36px, 5vw, 64px) clamp(16px, 4vw, 40px) 0;
+}
+
+/* ---------- Hero: brand, tagline, highlights, Tbilisi skyline ---------- */
+.footer-hero {
+  position: relative;
+  min-height: clamp(220px, 24vw, 300px);
   display: flex;
-  align-items: center;
-  gap: 32px;
+  align-items: flex-end;
+  padding-bottom: clamp(24px, 3vw, 36px);
+  border-bottom: 1px solid #e7e1f1;
+}
+
+.footer-skyline {
+  position: absolute;
+  right: calc(-1 * clamp(16px, 4vw, 40px));
+  bottom: 0;
+  width: min(64%, 760px);
+  height: 100%;
+  pointer-events: none;
+}
+
+.footer-brand {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 18px;
+  max-width: 560px;
 }
 
 .brand {
-  flex: 0 0 auto;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+  width: fit-content;
   color: #451a8f;
   text-decoration: none;
 }
 
-.brand-mark {
-  width: 46px;
-  height: 52px;
-  flex: 0 0 46px;
-  display: block;
-  overflow: hidden;
-}
-
 .brand-mark img {
-  width: 100%;
-  height: 100%;
   display: block;
-  object-fit: contain;
-  object-position: center;
+  width: clamp(44px, 4.4vw, 60px);
+  height: auto;
 }
 
 .brand-name {
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 27px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: 0.025em;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
-.footer {
-  color: #172238;
-  background: #fff;
-  font-family: Arial, Helvetica, sans-serif;
+.footer-tagline {
+  margin: 0;
+  max-width: 470px;
+  color: #3d3550;
+  font-size: clamp(15px, 1.3vw, 17px);
+  line-height: 1.6;
 }
 
-.footer-container {
-  width: min(1180px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 28px 0 26px;
-  border-top: 1px solid #e5e9ef;
-}
-
-.footer-grid {
-  padding: 10px 0 28px;
-  display: grid;
-  grid-template-columns: 1.6fr repeat(4, 1fr);
-  gap: 38px;
-}
-
-.footer-logo {
-  width: 132px;
-  height: 38px;
-  display: block;
-  overflow: hidden;
-}
-
-.footer-logo img {
-  width: auto;
-  height: 38px;
-  max-width: 100%;
-  object-fit: contain;
-  object-position: left center;
-}
-
-.brand-column > p {
-  margin: 12px 0 17px;
-  color: #697386;
-  font-size: 11px;
-  line-height: 1.65;
-}
-
-.socials {
+.footer-pills {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.socials a {
-  width: 25px;
-  height: 25px;
+.footer-pills li {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #e4dbf6;
+  border-radius: 99px;
+  background: rgba(241, 236, 252, 0.9);
+  color: #2b2340;
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+.footer-pills i {
+  color: #451a8f;
+  font-size: 15px;
+}
+
+/* ---------- Link columns ---------- */
+.footer-grid {
   display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-.socials a:hover {
-  transform: translateY(-3px);
-  transition: transform 0.2s ease-in-out;
-}
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 32px clamp(20px, 3vw, 48px);
+  padding: clamp(28px, 3.5vw, 44px) 0;
+  border-bottom: 1px solid #e7e1f1;
 }
 
 .footer-column {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
 }
 
 .footer-column h3 {
-  margin: 4px 0 17px;
-  color: #111b31;
-  font-size: 11px;
+  margin: 0 0 6px;
+  color: #14112a;
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .footer-column a,
-.footer-column p,
-.footer-column > span {
-  margin: 0 0 10px;
-  color: #667185;
-  font-size: 10.5px;
-  line-height: 1.25;
+.footer-column p {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  color: #3d3550;
+  font-size: 15px;
+  line-height: 1.4;
   text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.footer-column a i,
+.footer-column p i {
+  flex: none;
+  width: 20px;
+  margin-top: 1px;
+  color: #451a8f;
+  font-size: 16px;
+  text-align: center;
+}
+
+.footer-column span {
+  min-width: 0;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 @media (hover: hover) {
-.footer-column a:hover {
-  color: #451a8f;
-}
-}
-
-.footer-column > a {
-  min-height: 24px;
-  display: inline-flex;
-  align-items: center;
+  .footer-column a:hover { color: #451a8f; }
+  .footer-column a:hover span { text-decoration: underline; text-underline-offset: 3px; }
 }
 
-.contact-column a,
-.contact-column p {
-  display: flex;
-  gap: 7px;
+.footer-column a:focus-visible,
+.brand:focus-visible {
+  outline: 3px solid rgba(69, 26, 143, 0.3);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
-.contact-column span {
-  color: #172238;
-  font-size: 13px;
-}
-
+/* ---------- Bottom bar ---------- */
 .footer-bottom {
   display: flex;
-  align-items: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  color: #6a7486;
-  font-size: 10px;
+  gap: 12px;
+  padding: 22px 0 28px;
+  color: #5d566b;
+  font-size: 14px;
 }
 
-.footer-bottom-logo {
-  width: 38px;
-  height: 47px;
-  flex: 0 0 38px;
-  display: block;
+/* ---------- Laptops ---------- */
+@media (max-width: 1100px) {
+  .footer-skyline { width: 58%; opacity: 0.85; }
 }
 
-.footer-bottom-logo img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-}
-@media (max-width: 940px) {
-  .footer-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+/* ---------- Tablets: two columns ---------- */
+@media (max-width: 860px) {
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .footer-skyline { width: 70%; opacity: 0.55; }
 }
 
-@media (max-width: 580px) {
-  .footer-container {
-    width: min(100% - 32px, 520px);
+/* ---------- Phones ---------- */
+@media (max-width: 560px) {
+  .footer-hero {
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: 150px;
   }
-
-  .footer-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 28px 20px;
+  .footer-skyline {
+    top: 0;
+    right: calc(-1 * clamp(16px, 4vw, 40px));
+    bottom: auto;
+    width: calc(100% + 2 * clamp(16px, 4vw, 40px));
+    height: 170px;
+    opacity: 0.9;
   }
-
-  .brand-column {
-    grid-column: 1 / -1;
-  }
+  .footer-pills li { min-height: 38px; padding: 0 13px; font-size: 13px; }
+  .footer-grid { gap: 28px 18px; }
+  .footer-column { gap: 12px; }
+  .footer-column a, .footer-column p { font-size: 14px; }
+  .footer-bottom { justify-content: center; text-align: center; }
 }
 
-@media (max-width: 390px) {
-  .footer-container {
-    width: calc(100% - 24px);
-    padding-top: 22px;
-  }
-
-  .footer-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 26px 20px;
-  }
-
-  .brand-column {
-    grid-column: 1 / -1;
-  }
-
-  .footer-column {
-    min-width: 0;
-  }
-
-  .footer-column h3 {
-    margin-bottom: 11px;
-  }
-
-  .footer-column a,
-  .footer-column p,
-  .footer-column > span {
-    max-width: 100%;
-    margin-bottom: 8px;
-    overflow-wrap: anywhere;
-    font-size: 13px;
-  }
-
-  .contact-column { grid-column: 1 / -1; }
+@media (max-width: 360px) {
+  .footer-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Touch screens: 44px tap height per link (QA audit), spacing moved into the link itself. */
-@media (max-width: 768px) {
-  .footer-column a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    margin-bottom: 0;
-  }
+/* Clean outline icons in the link columns (as in the reference). */
+.fi-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.footer-column .fi {
+  flex: none; width: 22px; height: 22px; margin-top: -1px;
+  fill: none; stroke: #2b2340; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+}
+.footer-column h3 { font-size: 18px; margin-bottom: 8px; }
+.footer-column { gap: 18px; }
+.footer-column a, .footer-column p { align-items: center; gap: 14px; color: #2b2340; font-size: 15.5px; }
+@media (hover: hover) {
+  .footer-column a:hover .fi { stroke: #451a8f; }
+}
+@media (max-width: 560px) {
+  .footer-column { gap: 15px; }
+  .footer-column .fi { width: 20px; height: 20px; }
+  .footer-column a, .footer-column p { gap: 12px; font-size: 14.5px; }
+}
+
+/* Symmetric columns: equal widths, rows on the same baseline, long labels on one line on wide screens. */
+.footer-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; }
+.footer-column { gap: 0; }
+.footer-column h3 { margin-bottom: 18px; }
+.footer-column a, .footer-column p { min-height: 46px; }
+@media (max-width: 860px) {
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .footer-column a, .footer-column p { min-height: 42px; }
+  .footer-column h3 { margin-bottom: 12px; }
+}
+
+/* Tbilisi banner photo (Mtatsminda and the TV tower) behind the brand. */
+.footer-skyline { display: block; }
+.footer-skyline img {
+  display: block; width: 100%; height: 100%; object-fit: cover; object-position: right bottom;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 34%, #000 100%), linear-gradient(180deg, #000 70%, transparent 100%);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0%, #000 34%), linear-gradient(180deg, #000 70%, transparent 100%);
+  mask-composite: intersect;
+}
+.footer-skyline { width: min(72%, 900px); opacity: 1; }
+@media (max-width: 860px) { .footer-skyline { width: 80%; opacity: 0.7; } }
+@media (max-width: 560px) {
+  .footer-skyline { width: calc(100% + 2 * clamp(16px, 4vw, 40px)); opacity: 1; }
+  .footer-skyline img { object-position: 70% bottom; -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%); mask-image: linear-gradient(180deg, #000 72%, transparent 100%); }
 }

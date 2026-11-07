@@ -1,54 +1,71 @@
 <footer class="footer">
+    <svg class="fi-sprite" aria-hidden="true" width="0" height="0"><defs><symbol id="fi-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol><symbol id="fi-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8"/><path d="m17 6 3 3"/><path d="m14.5 8.5 2 2"/></symbol><symbol id="fi-sparkle" viewBox="0 0 24 24"><path d="M12 3c.6 4.6 2.4 6.4 7 7-4.6.6-6.4 2.4-7 7-.6-4.6-2.4-6.4-7-7 4.6-.6 6.4-2.4 7-7z"/></symbol><symbol id="fi-building" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/><path d="M10 21v-3h4v3"/></symbol><symbol id="fi-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-3.6 3-5.5 6.5-5.5s6 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c2 .7 3.2 2.4 3.5 5.2"/></symbol><symbol id="fi-newspaper" viewBox="0 0 24 24"><path d="M4 5h13v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v10a2 2 0 0 1-2 2"/><path d="M7.5 9h6M7.5 12.5h6M7.5 16h4"/></symbol><symbol id="fi-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></symbol><symbol id="fi-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2"/><path d="M3 12.5h18"/></symbol><symbol id="fi-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8 7.5 9.5 4.4-1.5 7.5-4.9 7.5-9.5V6z"/><path d="m8.8 12 2.2 2.2 4.4-4.4"/></symbol><symbol id="fi-form" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></symbol><symbol id="fi-plus" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M12 8v8M8 12h8"/></symbol><symbol id="fi-sitemap" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2h12v2"/></symbol><symbol id="fi-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></symbol><symbol id="fi-phone" viewBox="0 0 24 24"><path d="M21 16.5v2.8a1.9 1.9 0 0 1-2.1 1.9A18.3 18.3 0 0 1 2.8 5.1 1.9 1.9 0 0 1 4.7 3h2.8a1.9 1.9 0 0 1 1.9 1.6c.1 1 .4 1.9.7 2.7a1.9 1.9 0 0 1-.4 2l-1.2 1.2a15 15 0 0 0 5.2 5.2l1.2-1.2a1.9 1.9 0 0 1 2-.4c.9.3 1.8.6 2.7.7a1.9 1.9 0 0 1 1.6 1.7z"/></symbol><symbol id="fi-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.1-7-11.5a7 7 0 0 1 14 0C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol></defs></svg>
   <div class="footer-container">
-    <div class="footer-grid">
-      <div class="brand-column">
+    <!-- Brand, promise and highlights, with Tbilisi (Mtatsminda and the TV tower) drawn on the right. -->
+    <section class="footer-hero">
+      <picture class="footer-skyline" aria-hidden="true">
+        <source media="(max-width: 760px)" srcset="/images/tbilisi-banner-sm.webp" />
+        <img src="/images/tbilisi-banner.webp" width="2172" height="724" alt="" loading="lazy" decoding="async" />
+      </picture>
+
+      <div class="footer-brand">
         <a class="brand" routerLink="/main" aria-label="Velven home">
           <span class="brand-mark" aria-hidden="true">
             <img src="/logosh2-mark-v2.png" width="644" height="790" alt="" loading="lazy" decoding="async" />
           </span>
           <span class="brand-name" aria-hidden="true">VELVEN</span>
         </a>
-
-        <p>Find a home that fits your life.<br />Verified properties. Smart search.<br />Real results.</p>
-        <!-- Social icons (Facebook / Instagram / LinkedIn) return once their real profile URLs exist;
-             they previously pointed to "#". -->
+        <p class="footer-tagline">Find a home that fits your life. Verified properties. Smart search. Real results.</p>
+        <ul class="footer-pills">
+          <li><i class="fa-solid fa-house" aria-hidden="true"></i><span>Homes in Tbilisi</span></li>
+          <li><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Verified agents</span></li>
+          <li><i class="fa-solid fa-bolt" aria-hidden="true"></i><span>Fast search</span></li>
+        </ul>
       </div>
+    </section>
 
-      <div class="footer-column">
+    <!-- Four links per column so the columns line up. -->
+    <div class="footer-grid">
+      <nav class="footer-column" aria-label="Explore">
         <h3>Explore</h3>
-        <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'buy' }">Buy</a>
-        <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }">Rent</a>
-        <a routerLink="/ai-home-match">Velven Match</a>
-        <a routerLink="/agent-profile">Agents</a>
-        <a routerLink="/services">Services</a>
-        <a routerLink="/blog">Blog</a>
-      </div>
+        <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'buy' }"><svg class="fi" aria-hidden="true"><use href="#fi-home"></use></svg><span>Buy</span></a>
+        <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }"><svg class="fi" aria-hidden="true"><use href="#fi-key"></use></svg><span>Rent</span></a>
+        <a routerLink="/ai-home-match"><svg class="fi" aria-hidden="true"><use href="#fi-sparkle"></use></svg><span>Velven Match</span></a>
+        <a routerLink="/agent-profile"><svg class="fi" aria-hidden="true"><use href="#fi-building"></use></svg><span>Agents</span></a>
+      </nav>
 
-      <div class="footer-column">
+      <nav class="footer-column" aria-label="Company">
         <h3>Company</h3>
-        <a routerLink="/about">About Us</a>
-        <a routerLink="/careers">Careers</a>
-        <a href="mailto:hello@velven.ge">Contact Us</a>
-      </div>
+        <a routerLink="/about"><svg class="fi" aria-hidden="true"><use href="#fi-info"></use></svg><span>About Us</span></a>
+        <a routerLink="/services"><svg class="fi" aria-hidden="true"><use href="#fi-users"></use></svg><span>Services</span></a>
+        <a routerLink="/careers"><svg class="fi" aria-hidden="true"><use href="#fi-briefcase"></use></svg><span>Careers</span></a>
+        <a routerLink="/blog"><svg class="fi" aria-hidden="true"><use href="#fi-newspaper"></use></svg><span>Blog</span></a>
+      </nav>
 
-      <div class="footer-column">
+      <nav class="footer-column" aria-label="Resources">
         <h3>Resources</h3>
-        <a routerLink="/upload-apartment">List your property</a>
-        <a href="/sitemap.xml">Sitemap</a>
-      </div>
+        <a routerLink="/upload-apartment"><svg class="fi" aria-hidden="true"><use href="#fi-plus"></use></svg><span>List your property</span></a>
+        <a routerLink="/play"><svg class="fi" aria-hidden="true"><use href="#fi-sparkle"></use></svg><span>Velven game</span></a>
+        <a href="/sitemap.xml"><svg class="fi" aria-hidden="true"><use href="#fi-sitemap"></use></svg><span>Sitemap</span></a>
+        <a routerLink="/clients"><svg class="fi" aria-hidden="true"><use href="#fi-users"></use></svg><span>Clients</span></a>
+      </nav>
 
       <!-- Legal column (Terms of Use / Privacy Policy / Cookie Policy) returns once those pages exist. -->
 
       <div class="footer-column contact-column">
         <h3>Contact</h3>
-        <a href="mailto:hello@velven.ge"><span aria-hidden="true">✉</span> hello&#64;velven.ge</a>
+        <a href="mailto:hello@velven.ge"><svg class="fi" aria-hidden="true"><use href="#fi-mail"></use></svg><span data-no-translate>hello&#64;velven.ge</span></a>
         @if (phone) {
-          <a [href]="phoneHref"><span aria-hidden="true">⌕</span> {{ phone }}</a>
+          <a [href]="phoneHref"><svg class="fi" aria-hidden="true"><use href="#fi-phone"></use></svg><span data-no-translate>{{ phone }}</span></a>
         }
-        <p><span aria-hidden="true">⌖</span> Tbilisi, Georgia</p>
+        <a href="mailto:hello@velven.ge"><svg class="fi" aria-hidden="true"><use href="#fi-form"></use></svg><span>Contact Us</span></a>
+        <p><svg class="fi" aria-hidden="true"><use href="#fi-pin"></use></svg><span>Tbilisi, Georgia</span></p>
       </div>
     </div>
 
-    <div class="footer-bottom">© 2026 Velven. All rights reserved.</div>
+    <div class="footer-bottom">
+      <span>© 2026 Velven. All rights reserved.</span>
+      <!-- Social icons (Instagram / Facebook / TikTok / YouTube / LinkedIn) return once their real profile URLs exist. -->
+    </div>
   </div>
 </footer>
