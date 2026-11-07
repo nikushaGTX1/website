@@ -1,54 +1,47 @@
 <div class="velven" *ngIf="view === 'questions'">
-  <header class="match-hero" *ngIf="!quizStarted">
-    <div class="hero-inner">
-      <div class="hero-copy">
-        <span>Velven Match</span>
-        <h1>A home that<br />fits your life.</h1>
-        <p>
-          Tell us about your lifestyle and what matters most to you. We’ll match you with handpicked
-          homes that suit your routines, preferences, and priorities.
-        </p>
-        <div class="hero-actions">
-          <button type="button" (click)="scrollToMatcher()">Find My Match</button>
-          <button type="button" class="how-link" (click)="openHowItWorks()">
-            <span class="how-play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
-            How It Works
-          </button>
-        </div>
-      </div>
-      <div class="hero-visual" aria-hidden="true">
+  <header class="match-hero vm-intro" *ngIf="!quizStarted">
+    <div class="vm-head">
+      <span class="vm-eyebrow">Velven <b>Match</b></span>
+      <h1>A home that fits your life.</h1>
+      <p>Tell us about your lifestyle and what matters most to you. We’ll match you with handpicked homes that suit your routines, preferences, and priorities.</p>
+      <button type="button" class="vm-cta" (click)="scrollToMatcher()">Find My Match</button>
+    </div>
+
+    <button type="button" class="vm-video" (click)="openHowItWorks()" aria-label="Watch how Velven Match works">
+      <span class="vm-video-thumb">
         <img src="/ojaxi.webp" alt="" />
-      </div>
-    </div>
-    <div class="how-it-works-strip">
-      <h2>How Velven Match Works</h2>
-      <div class="how-it-works-steps">
-        <div class="how-it-works-step">
-          <span class="step-number">01</span>
-          <i class="fa-regular fa-user"></i>
-          <div>
-            <h3>Tell us about you</h3>
-            <p>Your lifestyle and home preferences</p>
-          </div>
-        </div>
-        <div class="how-it-works-step">
-          <span class="step-number">02</span>
-          <i class="fa-solid fa-sliders"></i>
-          <div>
-            <h3>Set your priorities</h3>
-            <p>Location, budget, and must-have features</p>
-          </div>
-        </div>
-        <div class="how-it-works-step">
-          <span class="step-number">03</span>
-          <i class="fa-solid fa-house"></i>
-          <div>
-            <h3>See matching homes</h3>
-            <p>Options tailored to how you live</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        <span class="vm-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+      </span>
+      <span class="vm-video-copy">
+        <span class="vm-video-tag">Video Tutorial</span>
+        <span class="vm-video-kicker">How it works</span>
+        <strong>Watch How It Works</strong>
+        <span class="vm-video-text">A quick guide to Velven Match and how it finds the right home for you.</span>
+      </span>
+    </button>
+
+    <ol class="vm-steps">
+      <li class="vm-step">
+        <span class="vm-step-num">1</span>
+        <span class="vm-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="15" cy="7" r="2.5"/><circle cx="9" cy="17" r="2.5"/><path d="M4 7h8.5M17.5 7H20M4 17h2.5M11.5 17H20"/></svg></span>
+        <h3>Tell Us About You</h3>
+        <p>Share your lifestyle, preferences, and must-haves.</p>
+        <svg class="vm-step-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+      </li>
+      <li class="vm-step">
+        <span class="vm-step-num">2</span>
+        <span class="vm-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 4c.5 4 2 5.5 6 6-4 .5-5.5 2-6 6-.5-4-2-5.5-6-6 4-.5 5.5-2 6-6z"/><path d="M18.5 3v3M17 4.5h3M5 17v2.5M3.75 18.25h2.5"/></svg></span>
+        <h3>We Find the Best Fit</h3>
+        <p>Our smart matching tool selects the most relevant homes for you.</p>
+        <svg class="vm-step-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+      </li>
+      <li class="vm-step">
+        <span class="vm-step-num">3</span>
+        <span class="vm-step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/><circle cx="18.5" cy="4.5" r="1"/></svg></span>
+        <h3>Explore Your Matches</h3>
+        <p>Browse handpicked listings that fit your life and goals.</p>
+      </li>
+    </ol>
   </header>
 
   <ng-container *ngIf="quizStarted">
