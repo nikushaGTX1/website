@@ -90,16 +90,21 @@ export class Discover implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   closeSortOnOutsideClick(event: MouseEvent): void {
+    if (this.savedSortOpen) {
+      const saved = this.host?.nativeElement.querySelector('.saved-sort-menu');
+      if (saved && !saved.contains(event.target as Node)) this.savedSortOpen = false;
+    }
     if (!this.sortOpen) return;
-    const menu = this.host?.nativeElement.querySelector('.sort-menu');
+    const menu = this.host?.nativeElement.querySelector('.sort-menu:not(.saved-sort-menu)');
     if (menu && !menu.contains(event.target as Node)) this.sortOpen = false;
   }
 
   @HostListener('document:keydown.escape', ['$event'])
   closeSortOnEscape(event: Event): void {
-    if (!this.sortOpen || escapeAlreadyHandled(event)) return;
+    if ((!this.sortOpen && !this.savedSortOpen) || escapeAlreadyHandled(event)) return;
     claimEscape(event);
     this.sortOpen = false;
+    this.savedSortOpen = false;
   }
   /** Quick refinements on top of the saved criteria (the saved search itself never changes). */
   refine = { parking: false, petFriendly: false };
@@ -311,11 +316,15 @@ export class Discover implements OnInit, OnDestroy {
   /** Saved page chips: every saved home, ones Velven Match found, or the rest. */
   savedFilter: 'all' | 'matched' | 'other' = 'all';
   savedSort: 'recent' | 'priceAsc' | 'priceDesc' = 'recent';
+  savedSortOpen = false;
   readonly savedSortOptions = [
-    { value: 'recent' as const, label: 'Recently saved' },
-    { value: 'priceAsc' as const, label: 'Price: low to high' },
-    { value: 'priceDesc' as const, label: 'Price: high to low' },
+    { value: 'recent' as const, label: 'Recently saved', icon: 'fa-regular fa-clock' },
+    { value: 'priceAsc' as const, label: 'Price: low to high', icon: 'fa-solid fa-arrow-up-short-wide' },
+    { value: 'priceDesc' as const, label: 'Price: high to low', icon: 'fa-solid fa-arrow-down-wide-short' },
   ];
+  get savedSortLabel(): string {
+    return this.savedSortOptions.find((option) => option.value === this.savedSort)?.label ?? 'Recently saved';
+  }
 
   /** Velven Match result for a saved home, when any saved search found it. */
   savedMatch(apartment: Apartment): DiscoverItem | undefined {
