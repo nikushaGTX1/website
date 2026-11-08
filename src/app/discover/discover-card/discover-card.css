@@ -467,3 +467,42 @@ h3 {
   .address { margin: 6px 0 2px; }
   .specs { gap: 8px 0; }
 }
+
+
+/* ===== Card refresh (Nov 2026 reference) ===== */
+.discover-card { border-radius: 24px; border-color: #eee8f8; box-shadow: 0 14px 36px rgba(45, 22, 95, 0.08); }
+.card-image { border-radius: 18px; }
+.badge.rank.top { background: linear-gradient(180deg, #ffe08a, #fbc94c); color: #3b2a05; box-shadow: 0 4px 12px rgba(180, 130, 20, 0.25); }
+.badge.rank.top i { color: #e6a400; font-size: 13px; }
+.badge.rank:not(.top) { background: #5b21d6; color: #fff; border: 2px solid #fff; }
+.photo-count {
+  left: 12px; right: auto; bottom: 12px; top: auto; padding: 5px 10px; border-radius: 99px;
+  background: rgba(20, 14, 40, 0.55); color: #fff; font-size: 12.5px; font-weight: 700; backdrop-filter: blur(4px);
+}
+.photo-dots { position: absolute; left: 50%; bottom: 18px; display: flex; gap: 5px; transform: translateX(-50%); pointer-events: none; }
+.photo-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.55); }
+.photo-dots i.on { background: #fff; }
+.photo-expand {
+  position: absolute; right: 12px; bottom: 12px; display: grid; place-items: center; width: 30px; height: 30px;
+  border-radius: 9px; background: rgba(20, 14, 40, 0.5); color: #fff; font-size: 12px; pointer-events: none;
+}
+.location { display: flex; align-items: center; gap: 6px; }
+.location i { color: #5b21d6; font-size: 12px; }
+/* The pin line above already names the place. */
+.address { display: none; }
+:host ::ng-deep app-currency-price .price-display { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+:host ::ng-deep app-currency-price .approximate-price {
+  order: 2; padding: 4px 10px; border-radius: 99px; background: #f1ebfd; color: #451a8f; font-size: 13px; font-weight: 700;
+}
+:host ::ng-deep app-currency-price .approximate-price b { font-weight: 700; }
+.why {
+  position: relative; overflow: hidden; border: 0; border-radius: 16px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 110'%3E%3Cg fill='%23c9b5f5' opacity='.55'%3E%3Cpath d='M30 110V40l40-14v84z'/%3E%3Cpath d='M70 110V26l40 16v68z' opacity='.7'/%3E%3C/g%3E%3Cg fill='%23fff' opacity='.7'%3E%3Crect x='38' y='50' width='6' height='8'/%3E%3Crect x='52' y='46' width='6' height='8'/%3E%3Crect x='38' y='66' width='6' height='8'/%3E%3Crect x='52' y='62' width='6' height='8'/%3E%3Crect x='38' y='82' width='6' height='8'/%3E%3Crect x='52' y='78' width='6' height='8'/%3E%3C/g%3E%3C/svg%3E") right -6px bottom -4px / 120px auto no-repeat,
+    linear-gradient(135deg, #f6f1ff 0%, #efe7fd 100%);
+}
+.why ul, .why .why-title, .why .why-all, .why .why-note { position: relative; }
+.terms { padding: 10px 14px; border-radius: 12px; background: #f6f4fb; }
+/* Empty rows no longer reserve space; the agent block stays at the bottom so buttons still line up. */
+.deposit.placeholder, .needs-check.placeholder { display: none; }
+.primary-action { border-radius: 14px; background: linear-gradient(180deg, #6d2ee0 0%, #4c1ba8 100%); box-shadow: 0 10px 22px rgba(76, 27, 168, 0.25); }

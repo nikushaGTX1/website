@@ -1,0 +1,55 @@
+<main class="sm-page">
+  <header class="sm-head">
+    <span class="sm-head-icon" aria-hidden="true"><i class="fa-solid fa-house-circle-check"></i></span>
+    <div class="sm-head-copy">
+      <span class="sm-eyebrow">Owner listings</span>
+      <h1>Homes that match your clients</h1>
+      <p>Homes checked by an agent and shared with SEND.</p>
+    </div>
+    <a class="sm-link-btn" routerLink="/crm/owner-submissions"><i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>Owner submissions</span></a>
+  </header>
+
+  @if (loading) {
+    <div class="sm-grid" aria-label="Loading">
+      @for (s of skeletons; track s) {
+        <div class="sm-card sm-skeleton"><i></i><i></i><i></i></div>
+      }
+    </div>
+  } @else if (error) {
+    <section class="sm-state error" role="alert">
+      <span class="sm-state-icon" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span>
+      <h2>{{ error }}</h2>
+      <p>Check your connection and try again.</p>
+      <button type="button" class="sm-primary" (click)="load()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span>Try again</span></button>
+    </section>
+  } @else if (!items.length) {
+    <section class="sm-state">
+      <span class="sm-state-icon" aria-hidden="true"><i class="fa-solid fa-inbox"></i></span>
+      <h2>No matching homes yet</h2>
+      <p>When an agent sends a home that fits one of your clients, it shows up here.</p>
+      <a class="sm-primary" routerLink="/crm/owner-submissions"><i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>Owner submissions</span></a>
+    </section>
+  } @else {
+    <p class="sm-count"><b>{{ items.length }}</b> <span>matching homes</span></p>
+    <div class="sm-grid">
+      @for (item of items; track item.id) {
+        <article class="sm-card">
+          <div class="sm-card-top">
+            <span class="sm-client"><i class="fa-solid fa-user" aria-hidden="true"></i><span>Client</span>&nbsp;<b data-no-translate>#{{ item.clientId }}</b></span>
+            <span class="sm-date" data-no-translate>{{ item.createdAt | date: 'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+          <p class="sm-price" data-no-translate>&#36;{{ item.data['totalPrice'] | number }}</p>
+          <ul class="sm-facts">
+            @if (item.data['location']) {
+              <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span data-no-translate>{{ item.data['location'] }}</span></li>
+            }
+            @if (item.data['bedrooms'] != null) {
+              <li><i class="fa-solid fa-bed" aria-hidden="true"></i><span data-no-translate>{{ item.data['bedrooms'] }}</span>&nbsp;<span>bedrooms</span></li>
+            }
+          </ul>
+          <a class="sm-primary" [routerLink]="['/apartments', item.apartmentId]"><span>View home</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
+      }
+    </div>
+  }
+</main>

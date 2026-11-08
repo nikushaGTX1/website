@@ -1,0 +1,66 @@
+:host { display: block; min-height: 70vh; background: #f8f6fc; }
+.sm-page { width: min(100% - 32px, 1120px); margin: 0 auto; padding: clamp(24px, 4vw, 44px) 0 64px; color: #1f1838; }
+
+.sm-head {
+  display: flex; align-items: center; gap: 18px; padding: clamp(18px, 2.4vw, 28px);
+  border: 1px solid #ebe5f5; border-radius: 22px; background: linear-gradient(120deg, #fff 0%, #f6f1ff 100%);
+  box-shadow: 0 14px 36px rgba(45, 22, 95, 0.07);
+}
+.sm-head-icon {
+  flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px;
+  background: linear-gradient(180deg, #6d2ee0, #4c1ba8); color: #fff; font-size: 22px; box-shadow: 0 10px 22px rgba(76, 27, 168, 0.28);
+}
+.sm-head-copy { flex: 1; min-width: 0; }
+.sm-eyebrow { color: #7c3aed; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.sm-head h1 { margin: 4px 0 0; color: #14112a; font-size: clamp(22px, 2.6vw, 30px); font-weight: 800; line-height: 1.2; }
+.sm-head p { margin: 6px 0 0; color: #5d566b; font-size: 15px; }
+.sm-link-btn {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px;
+  border: 1.5px solid #d9cff0; border-radius: 12px; background: #fff; color: #451a8f; font-size: 14.5px; font-weight: 700; text-decoration: none;
+}
+.sm-link-btn:hover { background: #f6f2fd; }
+
+.sm-count { margin: 26px 0 12px; color: #5d566b; font-size: 14.5px; }
+.sm-count b { color: #14112a; }
+.sm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+.sm-card {
+  display: flex; flex-direction: column; gap: 12px; padding: 20px; border: 1px solid #ebe5f5; border-radius: 18px;
+  background: #fff; box-shadow: 0 10px 26px rgba(45, 22, 95, 0.06); transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.sm-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(45, 22, 95, 0.1); }
+.sm-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sm-client { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 99px; background: #f1ebfd; color: #451a8f; font-size: 13px; font-weight: 600; }
+.sm-date { color: #8a8399; font-size: 12.5px; }
+.sm-price { margin: 4px 0 0; color: #14112a; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+.sm-facts { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.sm-facts li { display: flex; align-items: center; gap: 9px; color: #3d3550; font-size: 14.5px; }
+.sm-facts i { width: 16px; color: #7c3aed; text-align: center; }
+.sm-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 46px; margin-top: auto; padding: 0 20px;
+  border: 0; border-radius: 12px; background: linear-gradient(180deg, #6d2ee0, #4c1ba8); color: #fff;
+  font: inherit; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; box-shadow: 0 10px 22px rgba(76, 27, 168, 0.25);
+}
+.sm-primary:hover { filter: brightness(1.06); }
+
+.sm-state {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 22px; padding: 48px 24px;
+  border: 1px dashed #dcd2f1; border-radius: 22px; background: #fff; text-align: center;
+}
+.sm-state-icon { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 6px; border-radius: 50%; background: #f1ebfd; color: #6d2ee0; font-size: 26px; }
+.sm-state.error .sm-state-icon { background: #fff1f0; color: #d9363e; }
+.sm-state h2 { margin: 0; color: #14112a; font-size: 20px; font-weight: 800; }
+.sm-state p { margin: 0 0 12px; max-width: 420px; color: #5d566b; font-size: 15px; line-height: 1.5; }
+.sm-state .sm-primary { margin-top: 4px; }
+
+.sm-skeleton { min-height: 200px; }
+.sm-skeleton i { display: block; height: 14px; border-radius: 7px; background: linear-gradient(90deg, #f1edf8 0%, #e7e1f3 50%, #f1edf8 100%); background-size: 200% 100%; animation: sm-shine 1.2s linear infinite; }
+.sm-skeleton i:nth-child(1) { width: 40%; }
+.sm-skeleton i:nth-child(2) { width: 65%; height: 26px; }
+.sm-skeleton i:nth-child(3) { width: 80%; }
+@keyframes sm-shine { to { background-position: -200% 0; } }
+
+@media (max-width: 640px) {
+  .sm-head { flex-wrap: wrap; }
+  .sm-head-icon { width: 48px; height: 48px; font-size: 19px; }
+  .sm-link-btn { width: 100%; justify-content: center; }
+}

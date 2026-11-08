@@ -5696,3 +5696,197 @@
   border-color: transparent; background: linear-gradient(180deg, #6d2ee0 0%, #4c1ba8 100%); color: #fff;
   box-shadow: 0 10px 22px rgba(76, 27, 168, 0.3);
 }
+/* Let the artwork show: lighter wash only behind the text, city and tower kept above the search card. */
+.home-page > .hero { background-position: right 78%; background-size: cover; }
+.home-page > .hero::after {
+  background: linear-gradient(90deg, rgba(250, 248, 255, 0.92) 0%, rgba(250, 248, 255, 0.7) 22%, rgba(250, 248, 255, 0.25) 38%, rgba(250, 248, 255, 0) 50%);
+}
+.home-page > .hero .property-search.property-search { background: rgba(255, 255, 255, 0.92); backdrop-filter: none; }
+:host-context(html:lang(ka)) .home-page > .hero h1 { font-size: clamp(32px, 3.2vw, 46px); }
+:host-context(html:lang(ka)) .home-page > .hero .hero-pills li { padding: 0 13px; font-size: 13px; }
+:host-context(html:lang(ka)) .home-page > .hero .hero-pills { max-width: 760px; }
+@media (max-width: 650px) {
+  .home-page > .hero { background-position: 72% bottom; }
+}
+@media (max-width: 650px) {
+  .home-page > .hero::after { background: linear-gradient(180deg, rgba(250, 248, 255, 0.9) 0%, rgba(248, 245, 255, 0.7) 45%, rgba(248, 245, 255, 0.35) 100%); }
+}
+
+/* Search card no longer hangs below the hero, so the old 128-165px offset is not needed. */
+.home-page > .featured.content-section { padding-top: clamp(36px, 4vw, 56px); }
+
+/* ===== Home hero on phones: compact, artwork visible, two-column fields ===== */
+@media (max-width: 650px) {
+  .home-page > .hero {
+    width: calc(100% - 20px); margin-top: 8px; padding: 22px 14px 0; gap: 16px; border-radius: 22px;
+    background: #f6f2fd url('/images/home-hero-sm.webp') 78% top / auto 330px no-repeat;
+  }
+  .home-page > .hero::after {
+    background: linear-gradient(90deg, rgba(250, 248, 255, 0.94) 0%, rgba(250, 248, 255, 0.75) 45%, rgba(250, 248, 255, 0.1) 75%),
+      linear-gradient(180deg, rgba(246, 242, 253, 0) 200px, #f6f2fd 330px);
+  }
+  .home-page > .hero .hero-copy { gap: 10px; }
+  .home-page > .hero .eyebrow { gap: 8px; font-size: 10.5px; letter-spacing: 0.08em; }
+  .home-page > .hero .eyebrow::before { width: 18px; }
+  .home-page > .hero h1, :host-context(html:lang(ka)) .home-page > .hero h1 { font-size: clamp(30px, 8.6vw, 38px); }
+  .home-page > .hero .hero-pills, :host-context(html:lang(ka)) .home-page > .hero .hero-pills {
+    flex-wrap: nowrap; gap: 6px; max-width: none; margin: 4px -14px 0; padding: 0 14px 2px; overflow-x: auto; scrollbar-width: none;
+  }
+  .home-page > .hero .hero-pills::-webkit-scrollbar { display: none; }
+  .home-page > .hero .hero-pills li, :host-context(html:lang(ka)) .home-page > .hero .hero-pills li {
+    flex: none; min-height: 32px; padding: 0 11px; gap: 6px; font-size: 12px;
+  }
+  .home-page > .hero .hero-pills svg { width: 15px; height: 15px; }
+
+  .home-page > .hero .property-search.property-search { margin: 0 0 14px; padding: 12px 12px 14px; border-radius: 18px; }
+  .home-page > .hero .search-top { gap: 10px; padding-bottom: 12px; margin-bottom: 12px; }
+  .home-page > .hero .search-tabs button, :host-context(html:lang(ka)) .home-page > .hero .search-tabs button { height: 42px; border-radius: 12px; font-size: 14.5px; }
+  .home-page > .hero .ai-strip { flex-direction: row; align-items: center; gap: 10px; }
+  .home-page > .hero .ai-hint { flex: 1; min-width: 0; gap: 8px; }
+  .home-page > .hero .ai-hint i { font-size: 18px; }
+  .home-page > .hero .ai-hint strong { overflow: hidden; font-size: 13px; line-height: 1.3; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .home-page > .hero .ai-hint span { display: none; }
+  .home-page > .hero .ai-home-link { flex: none; height: 38px; padding: 0 12px; gap: 6px; border-radius: 11px; font-size: 13px; }
+
+  .home-page > .hero .search-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 8px; }
+  .home-page > .hero .search-fields > .location-field { grid-column: 1 / -1; }
+  .home-page > .hero .search-fields label > span,
+  .home-page > .hero .search-fields .location-field > span { font-size: 12.5px; margin-bottom: 4px; }
+  .home-page > .hero .field-control { height: 44px; font-size: 14px; border-radius: 12px; }
+  .home-page > .hero .search-submit { grid-column: 1 / -1; width: 100%; height: 48px; font-size: 15.5px; border-radius: 13px; }
+}
+@media (max-width: 650px) {
+  .home-page > .hero .property-search .ai-home-link.ai-home-link { width: auto; flex: none; margin: 0; }
+  .home-page > .hero .ai-hint { display: flex; flex: 1 1 auto; width: auto; }
+  .home-page > .hero .search-fields > .property-type-filter { grid-column: 1 / -1; }
+  .home-page > .hero .field-control { padding-inline: 12px; gap: 8px; }
+  .home-page > .hero { padding: 20px 12px 0; }
+  .home-page > .hero .property-search.property-search { margin-left: -2px; margin-right: -2px; }
+}
+@media (max-width: 650px) {
+  .home-page > .hero::after {
+    background: linear-gradient(90deg, rgba(250, 248, 255, 0.95) 0%, rgba(250, 248, 255, 0.85) 55%, rgba(250, 248, 255, 0.35) 85%, rgba(250, 248, 255, 0.15) 100%),
+      linear-gradient(180deg, rgba(246, 242, 253, 0) 180px, #f6f2fd 320px);
+  }
+  .home-page > .hero .main-bedrooms .field-control span, .home-page > .hero .main-budget .field-control span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+/* Wash follows the hero corners exactly (28px desktop vs 22px phones left a purple sliver). */
+.home-page > .hero::after { border-radius: inherit; }
+@media (max-width: 650px) {
+  /* Pills: three equal chips that fit the width, no cut-off scroll row. */
+  .home-page > .hero .hero-pills, :host-context(html:lang(ka)) .home-page > .hero .hero-pills {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 2px 0 0; padding: 0; overflow: visible;
+  }
+  .home-page > .hero .hero-pills li, :host-context(html:lang(ka)) .home-page > .hero .hero-pills li {
+    justify-content: center; min-width: 0; min-height: 34px; padding: 0 6px; gap: 5px; font-size: 11.5px; white-space: nowrap;
+  }
+  .home-page > .hero .hero-pills li span { overflow: hidden; text-overflow: ellipsis; }
+  .home-page > .hero .hero-pills svg { flex: none; width: 14px; height: 14px; }
+}
+@media (max-width: 650px) {
+  /* Pills keep their full text: natural width, wrap onto a second row if needed. */
+  .home-page > .hero .hero-pills, :host-context(html:lang(ka)) .home-page > .hero .hero-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .home-page > .hero .hero-pills li, :host-context(html:lang(ka)) .home-page > .hero .hero-pills li { flex: 0 0 auto; padding: 0 10px; font-size: 11.5px; }
+  .home-page > .hero .hero-pills li span { overflow: visible; text-overflow: clip; }
+}
+@media (max-width: 650px) {
+  /* Two short pills on top, the long one centred below. */
+  .home-page > .hero .hero-pills, :host-context(html:lang(ka)) .home-page > .hero .hero-pills { justify-content: center; }
+  .home-page > .hero .hero-pills li:first-child { order: 3; }
+  .home-page > .hero .hero-pills li:nth-child(2) { order: 1; }
+  .home-page > .hero .hero-pills li:nth-child(3) { order: 2; }
+  .home-page > .hero .hero-pills::after { content: ""; order: 2; flex-basis: 100%; height: 0; }
+}
+@media (max-width: 650px) {
+  /* One row of three; the long label may wrap to two lines inside its pill. */
+  .home-page > .hero .hero-pills, :host-context(html:lang(ka)) .home-page > .hero .hero-pills {
+    display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 5px; justify-content: stretch;
+  }
+  .home-page > .hero .hero-pills::after { content: none; }
+  .home-page > .hero .hero-pills li, :host-context(html:lang(ka)) .home-page > .hero .hero-pills li {
+    min-height: 36px; padding: 4px 8px; gap: 5px; font-size: 10.5px; line-height: 1.2; white-space: normal; border-radius: 14px;
+  }
+  .home-page > .hero .hero-pills li:nth-child(2), .home-page > .hero .hero-pills li:nth-child(3) { white-space: nowrap; }
+  .home-page > .hero .hero-pills svg { width: 13px; height: 13px; }
+}
+@media (max-width: 650px) {
+  /* Never split a word: the long label breaks only between its two words. */
+  .home-page > .hero .hero-pills { grid-template-columns: max-content max-content minmax(max-content, 1fr); }
+  .home-page > .hero .hero-pills li span { word-break: keep-all; overflow-wrap: normal; hyphens: none; }
+  .home-page > .hero .hero-pills li:first-child span { display: block; max-width: 7.5em; text-align: left; }
+  .home-page > .hero .hero-pills li, :host-context(html:lang(ka)) .home-page > .hero .hero-pills li { padding: 4px 7px; }
+}
+@media (max-width: 650px) {
+  .home-page > .hero .hero-pills { grid-template-columns: auto auto auto; justify-content: start; }
+}
+@media (max-width: 650px) {
+  /* All three on one line each, row centred and kept inside the card. */
+  .home-page > .hero .hero-pills { display: flex; flex-wrap: nowrap; justify-content: center; gap: 5px; }
+  .home-page > .hero .hero-pills li, :host-context(html:lang(ka)) .home-page > .hero .hero-pills li { flex: 0 1 auto; min-width: 0; white-space: nowrap; }
+  .home-page > .hero .hero-pills li:first-child span { display: inline; max-width: none; }
+}
+@media (max-width: 650px) {
+  /* Pills never shrink below their text; if the row is too narrow the last one moves to a new centred line. */
+  .home-page > .hero .hero-pills { flex-wrap: wrap; }
+  .home-page > .hero .hero-pills li, :host-context(html:lang(ka)) .home-page > .hero .hero-pills li { flex: none; overflow: visible; }
+  .home-page > .hero .hero-pills li span { overflow: visible; }
+}
+@media (max-width: 400px) {
+  .home-page > .hero .hero-pills li, :host-context(html:lang(ka)) .home-page > .hero .hero-pills li { padding: 4px 6px; gap: 4px; font-size: 10px; }
+}
+@media (max-width: 650px) {
+  /* Same as above, with the Georgian selector that otherwise kept the old grid. */
+  .home-page > .hero .hero-pills.hero-pills, :host-context(html:lang(ka)) .home-page > .hero .hero-pills.hero-pills {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; max-width: none; margin: 2px 0 0; padding: 0; overflow: visible;
+  }
+}
+@media (max-width: 650px) {
+  /* Budget and Bedrooms side by side: tighter icon/text/arrow so the label fits. */
+  .home-page > .hero .property-search.property-search :is(.main-budget-trigger, .main-bedroom-trigger) {
+    padding-inline: 10px 8px; gap: 6px; font-size: 13px;
+  }
+  .home-page > .hero .property-search :is(.main-budget-trigger, .main-bedroom-trigger) i:first-child { font-size: 13px; }
+  .home-page > .hero .property-search :is(.main-budget-trigger, .main-bedroom-trigger) :is(.fa-chevron-down, i:last-child) { font-size: 11px; margin-left: auto; }
+  .home-page > .hero .property-search :is(.main-budget-trigger, .main-bedroom-trigger) span { min-width: 0; overflow: visible; text-overflow: clip; white-space: nowrap; }
+}
+@media (max-width: 650px) {
+  .home-page > .hero .property-search.property-search :is(.main-budget-trigger, .main-bedroom-trigger) { padding: 0 8px; gap: 4px; }
+  .home-page > .hero .property-search.property-search :is(.main-budget-trigger, .main-bedroom-trigger) > span { flex: 1 1 auto; font-size: 12.5px; white-space: nowrap; }
+  .home-page > .hero .property-search.property-search :is(.main-budget-trigger, .main-bedroom-trigger) > span > i { width: 16px; margin-right: 3px; }
+  .home-page > .hero .search-fields { column-gap: 6px; }
+  .home-page > .hero .property-search.property-search { padding-left: 10px; padding-right: 10px; }
+}
+@media (max-width: 420px) {
+  /* Narrow phones: drop the small arrow on Budget/Bedrooms so the label fits. */
+  .home-page > .hero .property-search.property-search :is(.main-budget-trigger, .main-bedroom-trigger) > b { display: none; }
+}
+@media (max-width: 370px) {
+  .home-page > .hero .property-search.property-search :is(.main-budget-trigger, .main-bedroom-trigger) > span { font-size: 11.5px; }
+}
+@media (max-width: 650px) {
+  /* Hint row as one soft panel, same width and corners as the tab row above. */
+  .home-page > .hero .ai-strip {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center;
+    padding: 8px; border-radius: 14px; background: #f5f0fe;
+  }
+  .home-page > .hero .ai-hint { gap: 8px; padding-left: 6px; }
+  .home-page > .hero .ai-hint i { flex: none; width: 20px; text-align: center; }
+  .home-page > .hero .property-search .ai-home-link.ai-home-link { width: 100%; height: 42px; justify-content: center; }
+}
+@media (max-width: 650px) {
+  /* Button lines up with the Buy tab: panel has no right padding, the button is its right edge. */
+  .home-page > .hero .ai-strip { padding: 0 0 0 8px; background: #f5f0fe; }
+  .home-page > .hero .property-search .ai-home-link.ai-home-link { height: 44px; border-radius: 12px; }
+}
+@media (max-width: 650px) {
+  /* Velven Match row: one full-width button, the question as a small line above it. */
+  .home-page > .hero .ai-strip { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 0; background: none; border-radius: 0; }
+  .home-page > .hero .ai-hint { justify-content: center; padding: 0; gap: 6px; }
+  .home-page > .hero .ai-hint i { width: auto; font-size: 14px; }
+  .home-page > .hero .ai-hint strong { display: block; color: #5d566b; font-size: 12.5px; font-weight: 500; -webkit-line-clamp: unset; white-space: nowrap; }
+  .home-page > .hero .property-search .ai-home-link.ai-home-link {
+    width: 100%; height: 46px; border: 0; border-radius: 13px; justify-content: center; gap: 8px;
+    background: linear-gradient(90deg, #f3ecff 0%, #ebe1fd 100%); color: #451a8f; font-size: 15px; font-weight: 700;
+    box-shadow: inset 0 0 0 1px #ddd0f6;
+  }
+}

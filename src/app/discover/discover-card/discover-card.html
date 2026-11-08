@@ -2,11 +2,13 @@
   <a class="card-image" [routerLink]="['/apartments', apartment.id]" [queryParams]="{ matchSearch: searchId }" (click)="opened.emit(apartment)" data-protected-image>
     <img [src]="(image) | photoUrl" [alt]="(apartment | listingTitle) || 'Property in Tbilisi'" loading="lazy" decoding="async" (error)="onImageError($event)" />
     <span class="card-badges">
-      <span class="badge rank" *ngIf="rank" [class.top]="rank === 1" [attr.aria-label]="'Match number ' + rank"><b data-no-translate>{{ rank }}</b><span *ngIf="rank === 1">Best match</span></span>
+      <span class="badge rank" *ngIf="rank" [class.top]="rank === 1" [attr.aria-label]="'Match number ' + rank"><i *ngIf="rank === 1" class="fa-solid fa-star" aria-hidden="true"></i><b *ngIf="rank !== 1" data-no-translate>{{ rank }}</b><span *ngIf="rank === 1">Best match</span></span>
       <span class="badge new" *ngIf="isNew">New</span>
     </span>
     <span class="badge match" *ngIf="savedView && matched"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Velven Match</span>
-    <span class="photo-count" *ngIf="photoCount > 1" data-no-translate><i class="fa-regular fa-image" aria-hidden="true"></i> 1 / {{ photoCount }}</span>
+    <span class="photo-count" *ngIf="photoCount > 1" data-no-translate><i class="fa-regular fa-image" aria-hidden="true"></i> 1/{{ photoCount }}</span>
+    <span class="photo-dots" *ngIf="photoCount > 1" aria-hidden="true"><i class="on"></i><i></i><i></i></span>
+    <span class="photo-expand" aria-hidden="true"><i class="fa-solid fa-expand"></i></span>
   </a>
   <button
     type="button"
@@ -19,7 +21,7 @@
     <i [class]="favorites.isFavorite(apartment.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" aria-hidden="true"></i>
   </button>
   <div class="card-body">
-    <p class="location" data-no-translate>{{ location }}</p>
+    <p class="location" data-no-translate><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ location }}</p>
     <app-currency-price [usdPrice]="apartment.price" [suffix]="isSale ? '' : '/ month'"></app-currency-price>
     <p class="address" ><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>{{ location }}</span></p>
     <h3><a class="card-title" [routerLink]="['/apartments', apartment.id]" [queryParams]="{ matchSearch: searchId }" (click)="opened.emit(apartment)">{{ (apartment | listingTitle) || 'Apartment in Tbilisi' }}</a></h3>
