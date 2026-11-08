@@ -12,7 +12,7 @@ import {
   type BudgetRates,
   type RequirementEvaluation,
 } from './mandatory-requirements';
-import { parkingScore, scorePriority, hasWorkspace } from './priority-scoring';
+import { parkingScore, scorePriority, hasWorkspace, officeDistanceKm, officeDistancePoints } from './priority-scoring';
 import { parseParkingCost } from '../../utils/parking-cost';
 import { listedUniversityMinutes } from '../../utils/universities';
 
@@ -127,6 +127,13 @@ export function explainHomeMatch(
     add('Quiet street', 'Matches your quiet lifestyle', 'fa-volume-xmark');
   }
   // Home features behind lifestyle answers and top priorities, so each choice shows when it is met.
+  if (p.lifestyles.includes('BusinessProfessional') && p.businessMode === 'NearOffice') {
+    const km = officeDistanceKm(apartment, p);
+    if (km !== undefined && officeDistancePoints(km) > 0) add('Close to your office', `${km.toFixed(1)} km`, 'fa-building');
+  }
+  if (p.lifestyles.includes('BusinessProfessional') && p.businessMode === 'HomeBusiness' && !p.lifestyles.includes('RemoteWorker') && hasWorkspace(apartment, p)) {
+    add('Room for your business', apartment.hasHomeOfficeSpace ? 'Home office space' : 'A spare room you can use as an office', 'fa-house-laptop');
+  }
   if ((p.lifestyles.includes('RemoteWorker') || priorities.has('Workspace')) && hasWorkspace(apartment, p)) {
     add('Room to work from home', apartment.hasHomeOfficeSpace ? 'Home office space' : 'A spare room you can use as an office', 'fa-laptop');
   }

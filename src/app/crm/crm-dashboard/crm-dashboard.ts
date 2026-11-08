@@ -853,7 +853,38 @@ export class CrmDashboard implements OnInit {
 
     const lead = this.leads.find((item) => item.id === leadId);
     if (!lead || lead.status === status || this.statusUpdatingLeadIds.has(lead.id)) return;
+    if (status === 'lost') {
+      // Moving to Lost needs a reason first.
+      this.lostLead = lead;
+      this.lostReason = '';
+      this.lostComment = '';
+      this.lostTouched = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.moveLead(lead, status);
+  }
 
+  /** "Lost" popup opened by dropping a lead on the Lost column. */
+  lostLead: CrmLead | null = null;
+  lostReason = '';
+  lostComment = '';
+  lostTouched = false;
+
+  closeLostDialog(): void {
+    this.lostLead = null;
+    this.cdr.markForCheck();
+  }
+
+  confirmLost(): void {
+    this.lostTouched = true;
+    if (!this.lostLead || !this.lostReason.trim()) return;
+    const lead = this.lostLead;
+    this.lostLead = null;
+    this.moveLead(lead, 'lost', { lostReason: this.lostReason.trim(), comment: this.lostComment.trim() || undefined });
+  }
+
+  private moveLead(lead: CrmLead, status: CrmLeadStatus, lost?: { lostReason: string; comment?: string }): void {
     const previousLeads = this.leads;
     this.statusUpdatingLeadIds.add(lead.id);
     const movedLead = { ...lead, status };
@@ -870,7 +901,7 @@ export class CrmDashboard implements OnInit {
     this.metrics = this.calculateMetrics(this.propertyLeads);
     this.errorMessage = '';
 
-    this.crmService.updateLeadStatus(lead.id, status).subscribe({
+    this.crmService.updateLeadStatus(lead.id, status, lost).subscribe({
       next: (updatedLead) => {
         this.leads = this.leads.map((item) => (item.id === lead.id ? updatedLead : item));
         this.statusUpdatingLeadIds.delete(lead.id);

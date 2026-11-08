@@ -100,7 +100,7 @@ export function everydayServicesMinutes(apartment: HomeMatchApartment): number |
   return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : undefined;
 }
 
-function walkingMinutesTo(apartment: HomeMatchApartment, lat?: number | null, lng?: number | null): number | undefined {
+export function walkingMinutesTo(apartment: HomeMatchApartment, lat?: number | null, lng?: number | null): number | undefined {
   const aLat = apartment.propertyLatitude ?? apartment.latitude;
   const aLng = apartment.propertyLongitude ?? apartment.longitude;
   if (lat == null || lng == null || aLat == null || aLng == null) return undefined;
@@ -191,6 +191,29 @@ export function scorePriority(priority: string, apartment: HomeMatchApartment, p
   return walkingDistanceScore(typeof value === 'number' ? value : undefined);
 }
 
+/** Straight-line km from the home to the client's office, when both points are known. */
+export function officeDistanceKm(apartment: HomeMatchApartment, profile: HomeMatchProfile): number | undefined {
+  const minutes = walkingMinutesTo(apartment, profile.officeLatitude, profile.officeLongitude);
+  return minutes === undefined ? undefined : minutes / 12;
+}
+
+/** Same bands as the API: the closer to the office, the higher. */
+export function officeDistancePoints(km: number): number {
+  return km <= 1.5 ? 10 : km <= 3 ? 8 : km <= 5 ? 5 : km <= 8 ? 2 : 0;
+}
+
+function businessScore(apartment: HomeMatchApartment, profile: HomeMatchProfile, lifestyles: Set<string>): number {
+  if (profile.businessMode === 'HomeBusiness') {
+    // Same rule as "I work from home"; not counted twice when both are chosen.
+    return !lifestyles.has('RemoteWorker') && hasWorkspace(apartment, profile) ? 6 : 0;
+  }
+  if (profile.businessMode === 'NearOffice') {
+    const km = officeDistanceKm(apartment, profile);
+    return km === undefined ? 0 : officeDistancePoints(km);
+  }
+  return (apartment.metroDistanceMinutes ?? 99) <= 10 || parkingScore(apartment) >= 3 ? 5 : 0;
+}
+
 /** Lifestyle answers that are not priorities still nudge the ranking. */
 function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
   let points = 0;
@@ -231,13 +254,8 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
     if ((apartment.parkDistanceMinutes ?? 99) <= 10) points += 3;
   }
   if (lifestyles.has('Student') && (listedUniversityMinutes(apartment) ?? 99) <= 15) points += 5;
-  // Business/professional: commute to work and transportation access.
-  if (
-    lifestyles.has('BusinessProfessional') &&
-    ((apartment.metroDistanceMinutes ?? 99) <= 10 || parkingScore(apartment) >= 3)
-  ) {
-    points += 5;
-  }
+  // Business/professional: near the office they marked, a home office, or (no answer yet) metro / parking.
+  if (lifestyles.has('BusinessProfessional')) points += businessScore(apartment, profile, lifestyles);
   // Social lifestyle: proximity to cafés and restaurants.
   if (lifestyles.has('SocialLifestyle') && (apartment.cafeDistanceMinutes ?? 99) <= 10) points += 5;
   // Frequently hosts guests: enough living/dining space for company.

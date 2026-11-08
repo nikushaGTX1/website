@@ -45,6 +45,10 @@ export interface HomeMatchProfile {
   /** Asked when Car is selected. */
   carFuelType?: 'Electric' | 'Fuel' | '';
   lifestyles: string[];
+  /** Follow-up to "Business professional". */
+  businessMode?: 'NearOffice' | 'HomeBusiness' | '';
+  officeLatitude?: number;
+  officeLongitude?: number;
   hasPet: boolean | null;
   /** First selected pet ('None' = no pets); kept for older saved profiles and summaries. */
   petType?: 'None' | 'Dog' | 'Cat' | 'Other';

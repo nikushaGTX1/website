@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { OfficeMapPickerComponent } from '../office-map-picker/office-map-picker.component';
 import {
   FormControl,
   FormGroup,
@@ -48,7 +49,7 @@ type ViewState = 'questions' | 'review' | 'intake' | 'loading' | 'results' | 'er
   selector: 'app-ai-home-match-page',
   templateUrl: './ai-home-match-page.component.html',
   styleUrl: './ai-home-match-page.component.css',
-  imports: [
+  imports: [OfficeMapPickerComponent, 
     NgIf,
     NgFor,
     NgSwitch,
@@ -985,7 +986,26 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     if (values.includes(value)) values = values.filter((item) => item !== value);
     else if (max === undefined || values.length < max) values = [...values, value];
     this.profile[key] = values;
+    if (key === 'lifestyles' && !values.includes('BusinessProfessional')) {
+      this.profile.businessMode = '';
+      this.profile.officeLatitude = undefined;
+      this.profile.officeLongitude = undefined;
+    }
     if (key === 'districts' && values.length) this.profile.locationFlexible = false;
+    this.persist();
+  }
+  /** "Business professional" follow-up. */
+  setBusinessMode(mode: 'NearOffice' | 'HomeBusiness'): void {
+    this.profile.businessMode = mode;
+    if (mode !== 'NearOffice') {
+      this.profile.officeLatitude = undefined;
+      this.profile.officeLongitude = undefined;
+    }
+    this.persist();
+  }
+  setOffice(point: { latitude: number; longitude: number }): void {
+    this.profile.officeLatitude = point.latitude;
+    this.profile.officeLongitude = point.longitude;
     this.persist();
   }
   flexible(): void {
@@ -1158,7 +1178,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
           (!this.profile.transportation.includes('Car') || !!this.profile.carFuelType)
         );
       case 9:
-        return this.profile.lifestyles.length > 0 && this.profile.lifestyles.length <= 3;
+        return this.profile.lifestyles.length > 0 && this.profile.lifestyles.length <= 3 &&
+          (!this.profile.lifestyles.includes('BusinessProfessional') ||
+            this.profile.businessMode === 'HomeBusiness' ||
+            (this.profile.businessMode === 'NearOffice' && this.profile.officeLatitude != null));
       case 10: {
         if (this.profile.petType === 'None') return true;
         const pets = this.profile.petTypes || [];
@@ -1251,7 +1274,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['bedrooms', 'bedroomChoices'],
       ['rentalDuration', 'moveInTiming', 'moveInDate', 'purchaseTiming'],
       ['transportation', 'metroDistanceMinutes', 'parkingAutomaticallyPrioritized', 'carFuelType'],
-      ['lifestyles'],
+      ['lifestyles', 'businessMode', 'officeLatitude', 'officeLongitude'],
       ['hasPet', 'petType', 'petTypes', 'dogSize', 'petOtherType', 'petCount'],
       ['topPriorities'],
       ['apartmentStyle'],

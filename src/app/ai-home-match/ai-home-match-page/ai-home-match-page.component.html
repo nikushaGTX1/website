@@ -667,6 +667,24 @@
             >{{ option.label }}
           </button>
         </div>
+        <div class="business-follow" *ngSwitchCase="9" [hidden]="!profile.lifestyles.includes('BusinessProfessional')">
+          <p class="car-fuel-title">How does your work shape where you live?</p>
+          <div class="business-options">
+            <button type="button" class="business-option" [class.selected]="profile.businessMode === 'NearOffice'" [attr.aria-pressed]="profile.businessMode === 'NearOffice'" (click)="setBusinessMode('NearOffice')">
+              <span class="business-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
+              <span><b>Close to my office</b><small>Mark your office on the map; closer homes rank higher.</small></span>
+              <i class="fa-solid fa-circle-check business-check" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="business-option" [class.selected]="profile.businessMode === 'HomeBusiness'" [attr.aria-pressed]="profile.businessMode === 'HomeBusiness'" (click)="setBusinessMode('HomeBusiness')">
+              <span class="business-icon" aria-hidden="true"><i class="fa-solid fa-house-laptop"></i></span>
+              <span><b>I run my business from home</b><small>Homes with a separate room for an office come first.</small></span>
+              <i class="fa-solid fa-circle-check business-check" aria-hidden="true"></i>
+            </button>
+          </div>
+          @if (profile.businessMode === 'NearOffice') {
+            <app-office-map-picker [latitude]="profile.officeLatitude" [longitude]="profile.officeLongitude" (picked)="setOffice($event)"></app-office-map-picker>
+          }
+        </div>
         <div *ngSwitchCase="10">
           <p class="selection-count pet-hint">Select all that apply</p>
           <div class="options pet-options">

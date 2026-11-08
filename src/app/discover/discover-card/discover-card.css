@@ -530,3 +530,5 @@ h3 {
 .why.about li i { color: #451a8f; }
 .why.about .why-note { border-top-color: #e2d8f6; }
 .terms .parking { padding: 4px 0; }
+/* No photo zoom on hover. */
+.discover-card .card-image img, .discover-card:hover .card-image img { transform: none !important; }

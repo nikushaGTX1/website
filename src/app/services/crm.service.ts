@@ -108,10 +108,11 @@ export class CrmService {
     return this.http.delete<void>(`${this.apiUrl}/leads/${leadId}`);
   }
 
-  updateLeadStatus(leadId: number, status: CrmLeadStatus): Observable<CrmLead> {
+  /** Moving to Lost needs a reason; an optional comment is saved with it. */
+  updateLeadStatus(leadId: number, status: CrmLeadStatus, lost?: { lostReason: string; comment?: string }): Observable<CrmLead> {
     return this.http.patch<CrmLead>(
       `${this.apiUrl}/leads/${leadId}/status`,
-      { status },
+      { status, ...lost },
     );
   }
 

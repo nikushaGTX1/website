@@ -3275,3 +3275,30 @@ button.admin-shortcut {
     font-size: 19px;
   }
 }
+
+
+/* "Mark as Lost" popup */
+.lost-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: rgba(20, 14, 36, 0.55); backdrop-filter: blur(3px); }
+.lost-dialog { position: relative; width: min(480px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 28px 26px 22px; border-radius: 22px; background: #fff; box-shadow: 0 24px 60px rgba(20, 14, 36, 0.28); }
+.lost-close { position: absolute; top: 14px; right: 14px; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #f3f0f8; color: #4a4359; cursor: pointer; }
+.lost-close:hover { background: #e9e3f3; }
+.lost-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: #fdecec; color: #d92d20; font-size: 21px; }
+.lost-dialog h2 { margin: 14px 0 4px; color: #1f1838; font-size: 21px; font-weight: 800; }
+.lost-sub { margin: 0 0 18px; color: #6b6380; font-size: 14px; line-height: 1.5; }
+.lost-field { display: grid; gap: 6px; margin-bottom: 14px; }
+.lost-field > span { color: #2a2238; font-size: 14px; font-weight: 700; }
+.lost-field b { color: #d92d20; }
+.lost-field em { color: #8a829c; font-style: normal; font-weight: 500; }
+.lost-field textarea { width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1.5px solid #e3dcef; border-radius: 12px; font: inherit; font-size: 14.5px; resize: vertical; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.lost-field textarea:focus { border-color: #6d2ee0; box-shadow: 0 0 0 3px rgba(109, 46, 224, 0.12); }
+.lost-field textarea.invalid { border-color: #e5484d; box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.12); }
+.lost-error { color: #b42318; font-size: 12.5px; }
+.lost-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+.lost-actions button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 12px; font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+.lost-cancel { border: 1.5px solid #e3dcef; background: #fff; color: #2a2238; }
+.lost-confirm { border: 0; background: #d92d20; color: #fff; }
+.lost-confirm:hover:not(:disabled) { background: #b42318; }
+.lost-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 480px) { .lost-actions { flex-direction: column-reverse; } .lost-actions button { justify-content: center; } }
+
+.lost-name { margin: 2px 0 6px; color: #5b21b6; font-size: 14.5px; font-weight: 700; }

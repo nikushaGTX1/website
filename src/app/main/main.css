@@ -5890,3 +5890,25 @@
     box-shadow: inset 0 0 0 1px #ddd0f6;
   }
 }
+
+/* Mobile: hide the three hero pills */
+@media (max-width: 768px) {
+  .hero-pills.hero-pills { display: none !important; }
+}
+
+/* Mobile: every search field uses the same text size */
+@media (max-width: 768px) {
+  .search-fields .location-trigger-text,
+  .search-fields button > span,
+  .search-fields button > span * {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+  }
+  .search-fields button > span > i,
+  .search-fields .location-leading-icon { font-size: 16px !important; }
+}
+/* Font Awesome solid icons need weight 900 (the rule above set 500). */
+@media (max-width: 768px) {
+  .search-fields button > span i.fa-solid,
+  .search-fields i.fa-solid { font-weight: 900 !important; }
+}

@@ -236,6 +236,12 @@ export class CrmLeadDetail implements OnInit {
   statusSaving =
     false;
 
+  /** "Lost" popup: reason is required before the stage changes. */
+  lostDialogOpen = false;
+  lostReason = '';
+  lostComment = '';
+  lostTouched = false;
+
 
   assignmentSaving =
     false;
@@ -1245,9 +1251,45 @@ export class CrmLeadDetail implements OnInit {
      STATUS
   ======================================================= */
 
+  openLostDialog(): void {
+    this.lostReason = '';
+    this.lostComment = '';
+    this.lostTouched = false;
+    this.lostDialogOpen = true;
+  }
+
+  closeLostDialog(): void {
+    this.lostDialogOpen = false;
+  }
+
+  confirmLost(): void {
+    this.lostTouched = true;
+    if (!this.lostReason.trim()) return;
+    this.lostDialogOpen = false;
+    this.updateStatus('lost', { lostReason: this.lostReason.trim(), comment: this.lostComment.trim() || undefined });
+  }
+
+  /** Splits a status activity into its stage line, loss reason and comment. */
+  activityParts(activity: CrmLeadActivity): { main: string; from?: string; to?: string; reason?: string; comment?: string } {
+    const lines = (activity.body || '').split('\n');
+    const parts: { main: string; from?: string; to?: string; reason?: string; comment?: string } = { main: lines[0] };
+    for (const line of lines.slice(1)) {
+      if (line.startsWith('Lost reason:')) parts.reason = line.slice(12).trim();
+      else if (line.startsWith('Comment:')) parts.comment = line.slice(8).trim();
+      else parts.main += '\n' + line;
+    }
+    const stage = /^Status changed from (\w+) to (\w+)\.$/.exec(lines[0]);
+    if (activity.type === 'status' && stage) {
+      parts.from = stage[1];
+      parts.to = stage[2];
+    }
+    return parts;
+  }
+
   updateStatus(
     status:
-      CrmLeadStatus
+      CrmLeadStatus,
+    lost?: { lostReason: string; comment?: string }
   ): void {
 
     if (
@@ -1260,6 +1302,12 @@ export class CrmLeadDetail implements OnInit {
 
       return;
 
+    }
+
+
+    if (status === 'lost' && !lost) {
+      this.openLostDialog();
+      return;
     }
 
 
@@ -1284,7 +1332,8 @@ export class CrmLeadDetail implements OnInit {
     this.crmService
       .updateLeadStatus(
         this.lead.id,
-        status
+        status,
+        lost
       )
       .subscribe({
 

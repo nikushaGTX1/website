@@ -1285,4 +1285,33 @@
       </form>
     </section>
   </div>
+@if (lostLead) {
+  <div class="lost-backdrop" (click)="closeLostDialog()">
+    <div class="lost-dialog" role="dialog" aria-modal="true" aria-labelledby="lost-title" (click)="$event.stopPropagation()">
+      <button type="button" class="lost-close" aria-label="Close" (click)="closeLostDialog()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <span class="lost-icon" aria-hidden="true"><i class="fa-solid fa-user-xmark"></i></span>
+      <h2 id="lost-title">Mark lead as Lost</h2>
+      <p class="lost-name">{{ lostLead.fullName }}</p>
+      <p class="lost-sub">Tell the team why this lead was lost. It is saved in the activity timeline.</p>
+      <label class="lost-field">
+        <span>Reason for losing the lead <b aria-hidden="true">*</b></span>
+        <textarea rows="3" maxlength="1000" [(ngModel)]="lostReason" name="lostReason" required
+          [class.invalid]="lostTouched && !lostReason.trim()" placeholder="e.g. Chose another agency, budget too low..."></textarea>
+        @if (lostTouched && !lostReason.trim()) {
+          <small class="lost-error">Please enter the reason for losing the lead.</small>
+        }
+      </label>
+      <label class="lost-field">
+        <span>Comment <em>(optional)</em></span>
+        <textarea rows="2" maxlength="2000" [(ngModel)]="lostComment" name="lostComment" placeholder="Anything else worth noting"></textarea>
+      </label>
+      <div class="lost-actions">
+        <button type="button" class="lost-cancel" (click)="closeLostDialog()">Cancel</button>
+        <button type="button" class="lost-confirm" [disabled]="!lostReason.trim()" (click)="confirmLost()">
+          <i class="fa-solid fa-check" aria-hidden="true"></i>Mark as Lost
+        </button>
+      </div>
+    </div>
+  </div>
+}
 </main>
