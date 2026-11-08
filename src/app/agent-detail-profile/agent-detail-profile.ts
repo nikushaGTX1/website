@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { Agent, AgentPublicReview } from '../models/agent';
@@ -79,6 +79,11 @@ export class AgentDetailProfile implements OnInit {
   errorMessage = '';
   phoneDialogOpen = false;
   private crmWonDeals: number | null = null;
+
+  /** The call popup is moved to <body> so a parent with a transform or filter cannot clip it. */
+  @ViewChild("phoneBackdrop") set phoneBackdrop(ref: ElementRef<HTMLElement> | undefined) {
+    if (ref && ref.nativeElement.parentElement !== document.body) document.body.appendChild(ref.nativeElement);
+  }
 
   constructor(
     private route: ActivatedRoute,
