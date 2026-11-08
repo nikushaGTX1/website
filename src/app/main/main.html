@@ -6,8 +6,13 @@
       <h1 data-no-translate [ngSwitch]="translationService.language$ | async">
         <ng-container *ngSwitchCase="'ka'">იპოვეთ სახლი, <br />რომელიც <em>თქვენ</em> გერგებათ.</ng-container>
         <ng-container *ngSwitchCase="'ru'">Найдите дом, <br />который <em>подходит</em> именно вам.</ng-container>
-        <ng-container *ngSwitchDefault>Find a home <br />that fits <em>your</em>&nbsp;<span class="hero-life">life</span></ng-container>
+        <ng-container *ngSwitchDefault>Find a home <br />that fits <em>your&nbsp;life</em></ng-container>
       </h1>
+      <ul class="hero-pills">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8 7.5 9.5 4.4-1.5 7.5-4.9 7.5-9.5V6z"/><path d="m8.8 12 2.2 2.2 4.4-4.4"/></svg><span>Verified Listings</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg><span>AI Match</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M6.5 19c.4-3 2.6-4.8 5.5-4.8s5.1 1.8 5.5 4.8"/><circle cx="5" cy="10" r="2.2"/><path d="M1.8 18c.3-2 1.5-3.3 3.4-3.6"/><circle cx="19" cy="10" r="2.2"/><path d="M22.2 18c-.3-2-1.5-3.3-3.4-3.6"/></svg><span>Trusted Agents</span></li>
+      </ul>
     </div>
 
     <form

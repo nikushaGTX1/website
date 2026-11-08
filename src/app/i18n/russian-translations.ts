@@ -382,6 +382,7 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['fits your life.', 'подходит вашей жизни.'],
   ['feels like you.', 'подходит именно вам.'],
   ['Find My Match', 'Найти мой вариант'],
+  ['Trusted Agents', 'Надёжные агенты'],
   ['Contact the agent', 'Связаться с агентом'],
   ['Verified agent', 'Проверенный агент'],
   ['Copy', 'Копировать'],

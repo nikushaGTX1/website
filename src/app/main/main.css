@@ -5567,3 +5567,132 @@
   :host-context(html) .search-tabs button,
   :host-context(html:lang(ka)) .search-tabs button { width: auto; min-width: 0; flex: 1 1 0; padding-inline: 8px; }
 }
+
+
+/* ===== Home hero, Nov 2026 design: lavender Tbilisi artwork, pills, floating search card ===== */
+.home-page > .hero {
+  width: min(1560px, calc(100% - 32px)); min-height: 0; margin: 16px auto 0;
+  padding: clamp(36px, 4vw, 64px) clamp(20px, 4vw, 64px) 0; border-radius: 28px;
+  background: #f3effc url('/images/home-hero.webp') right center / cover no-repeat;
+  display: flex; flex-direction: column; gap: clamp(28px, 3vw, 44px);
+}
+.home-page > .hero::after {
+  border-radius: 28px;
+  background: linear-gradient(90deg, rgba(250, 248, 255, 0.97) 0%, rgba(248, 245, 255, 0.9) 30%, rgba(246, 242, 255, 0.55) 48%, rgba(246, 242, 255, 0) 66%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 60%, rgba(250, 248, 255, 0.7) 100%);
+}
+.home-page > .hero .hero-copy { width: min(100%, 640px); margin: 0 !important; gap: 18px; }
+.home-page > .hero .eyebrow {
+  display: inline-flex; align-items: center; gap: 14px; color: #451a8f; font-size: 14px; font-weight: 700; letter-spacing: 0.12em;
+}
+.home-page > .hero .eyebrow::before { content: ""; width: 30px; height: 2px; border-radius: 2px; background: #451a8f; }
+.home-page > .hero h1 {
+  font-family: inherit; color: #120d26; font-size: clamp(40px, 4.4vw, 64px); font-weight: 600; line-height: 1.08; letter-spacing: -0.035em;
+}
+.home-page > .hero h1 em {
+  position: relative; display: inline-block; color: #5b21d6; font-style: italic; font-weight: 600; padding-right: 0.06em; padding-bottom: 0.12em;
+}
+.home-page > .hero h1 em::after {
+  content: ""; position: absolute; left: 4%; right: -2%; bottom: -0.02em; height: 0.2em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 14' preserveAspectRatio='none'%3E%3Cpath d='M3 11C50 4 120 2 197 5' fill='none' stroke='%235b21d6' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.hero-pills { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0 0; padding: 0; list-style: none; }
+.hero-pills li {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 99px; background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(6px); color: #1f1838; font-size: 15px; font-weight: 500; box-shadow: 0 6px 18px rgba(69, 26, 143, 0.08);
+}
+.hero-pills svg { width: 22px; height: 22px; fill: none; stroke: #5b21d6; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Search card: sits in the flow at the bottom of the hero. */
+.home-page > .hero .property-search {
+  position: relative; left: auto; right: auto; bottom: auto; margin: 0 0 clamp(20px, 2.4vw, 36px);
+  padding: 22px clamp(18px, 2.2vw, 34px) 28px; border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 26px;
+  background: rgba(255, 255, 255, 0.86); box-shadow: 0 24px 60px rgba(45, 22, 95, 0.14);
+}
+.home-page > .hero .search-top {
+  display: flex; align-items: center; gap: 28px; padding-bottom: 18px; margin-bottom: 18px;
+  border-bottom: 1px solid #ece7f5;
+}
+.home-page > .hero .search-tabs { display: inline-grid; grid-template-columns: repeat(2, max-content); gap: 10px; height: auto; border: 0; padding-right: 28px; border-right: 1px solid #ece7f5; }
+.home-page > .hero .search-tabs button,
+:host-context(html:lang(ka)) .home-page > .hero .search-tabs button {
+  width: auto; min-width: 150px; height: 52px; padding-inline: 26px; border: 1px solid #ece7f5; border-radius: 16px;
+  background: #fff; color: #1f1838; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(45, 22, 95, 0.06);
+}
+:host-context(html:lang(ka)) .home-page > .hero .search-tabs button { min-width: 178px; }
+.home-page > .hero .search-tabs button::before { display: none; }
+.home-page > .hero .search-tabs button.active {
+  border-color: transparent; background: linear-gradient(180deg, #6d2ee0 0%, #4c1ba8 100%); color: #fff;
+  box-shadow: 0 10px 22px rgba(76, 27, 168, 0.3);
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-page > .hero .search-tabs button:hover { background: #f6f2fd; color: #451a8f; }
+  .home-page > .hero .search-tabs button.active:hover { background: linear-gradient(180deg, #7438ea 0%, #5520b5 100%); color: #fff; }
+}
+.home-page > .hero .ai-strip { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-width: 0; margin: 0; padding: 0; border: 0; background: none; }
+.home-page > .hero .ai-hint { display: flex; align-items: center; gap: 16px; }
+.home-page > .hero .ai-hint i { color: #6d2ee0; font-size: 26px; }
+.home-page > .hero .ai-hint strong { display: block; color: #120d26; font-size: 17px; font-weight: 600; }
+.home-page > .hero .ai-hint span { color: #5d566b; font-size: 14.5px; }
+.home-page > .hero .ai-home-link {
+  display: inline-flex; align-items: center; gap: 12px; height: 52px; padding: 0 26px; border: 1.5px solid #cdbcf3; border-radius: 16px;
+  background: #fff; color: #1f1838; font-size: 16.5px; font-weight: 600; white-space: nowrap; box-shadow: none;
+}
+.home-page > .hero .ai-home-link i { color: #6d2ee0; }
+.home-page > .hero .ai-home-link:hover { border-color: #6d2ee0; background: #faf7ff; }
+.home-page > .hero .search-fields label > span,
+.home-page > .hero .search-fields .location-field > span { color: #1f1838; font-size: 15px; font-weight: 600; }
+.home-page > .hero .field-control { height: 56px; border-radius: 14px; background: #fff; border: 1px solid #e6e0f3; font-size: 16px; }
+.home-page > .hero .search-submit {
+  height: 62px; padding: 0 34px; border-radius: 16px; background: linear-gradient(180deg, #6d2ee0 0%, #4c1ba8 100%);
+  font-size: 17px; font-weight: 600; box-shadow: 0 14px 30px rgba(76, 27, 168, 0.32); align-self: end;
+}
+
+@media (max-width: 1100px) {
+  .home-page > .hero .search-top { flex-wrap: wrap; gap: 16px; }
+  .home-page > .hero .search-tabs { padding-right: 0; border-right: 0; }
+  .home-page > .hero .ai-strip { flex-basis: 100%; }
+}
+@media (max-width: 650px) {
+  .home-page > .hero {
+    width: calc(100% - 20px); margin-top: 10px; padding: 28px 16px 0; border-radius: 22px;
+    background-image: url('/images/home-hero-sm.webp'); background-position: 72% center;
+  }
+  .home-page > .hero::after {
+    background: linear-gradient(180deg, rgba(250, 248, 255, 0.95) 0%, rgba(248, 245, 255, 0.82) 45%, rgba(248, 245, 255, 0.5) 100%);
+  }
+  .home-page > .hero h1 { font-size: clamp(34px, 10vw, 44px); }
+  .hero-pills { gap: 8px; }
+  .hero-pills li { min-height: 38px; padding: 0 13px; font-size: 13px; }
+  .hero-pills svg { width: 18px; height: 18px; }
+  .home-page > .hero .property-search { padding: 16px 14px 18px; border-radius: 20px; }
+  .home-page > .hero .search-tabs { display: grid; width: 100%; grid-template-columns: 1fr 1fr; }
+  .home-page > .hero .search-tabs button,
+  :host-context(html:lang(ka)) .home-page > .hero .search-tabs button { min-width: 0; height: 48px; padding-inline: 10px; }
+  .home-page > .hero .ai-strip { flex-direction: column; align-items: stretch; }
+  .home-page > .hero .ai-home-link { justify-content: center; }
+  .home-page > .hero .search-submit { width: 100%; }
+}
+/* Older desktop rule centred the card with left:50% + translateX(-50%); the card is in the flow now. */
+.home-page > .hero .property-search.property-search { left: auto; right: auto; width: auto; max-width: none; transform: none; }
+.home-page > .hero .hero-pills { max-width: 640px; }
+.home-page > .hero .hero-pills li { white-space: nowrap; }
+/* Shorter hero. */
+.home-page > .hero { padding-top: clamp(24px, 2.6vw, 40px); gap: clamp(18px, 2vw, 28px); }
+.home-page > .hero .hero-copy { gap: 12px; }
+.home-page > .hero h1 { font-size: clamp(34px, 3.6vw, 52px); }
+.home-page > .hero .hero-pills { margin-top: 6px; gap: 10px; }
+.home-page > .hero .hero-pills li { min-height: 40px; padding: 0 16px; font-size: 14px; }
+.home-page > .hero .property-search.property-search { margin-bottom: clamp(14px, 1.8vw, 24px); padding: 16px clamp(16px, 2vw, 28px) 20px; }
+.home-page > .hero .search-top { padding-bottom: 14px; margin-bottom: 14px; }
+.home-page > .hero .search-tabs button, :host-context(html:lang(ka)) .home-page > .hero .search-tabs button { height: 46px; }
+.home-page > .hero .ai-home-link { height: 46px; }
+.home-page > .hero .field-control { height: 50px; }
+.home-page > .hero .search-submit { height: 54px; }
+/* Georgian: the language rule above outranks .active, so repeat the selected look for it. */
+:host-context(html) .home-page > .hero .search-tabs button.active,
+:host-context(html:lang(ka)) .home-page > .hero .search-tabs button.active {
+  border-color: transparent; background: linear-gradient(180deg, #6d2ee0 0%, #4c1ba8 100%); color: #fff;
+  box-shadow: 0 10px 22px rgba(76, 27, 168, 0.3);
+}
