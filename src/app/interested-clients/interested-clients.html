@@ -49,7 +49,7 @@
             @for (client of listing.clients; track client.searchId) {
               <article class="client-card">
                 <div class="cc-top">
-                  <span class="cc-id"><span>Client</span> #{{ client.searchId }}</span>
+                  <span class="cc-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="cc-id"><span>Client</span> #{{ client.searchId }}<small>Confirmed by a Velven agent</small></span>
                   <span class="cc-new" *ngIf="client.isNew">New</span>
                 </div>
                 <p class="cc-price"><strong>{{ currencySymbol(client.profile['currency']) }}{{ (client.profile['budgetMin'] || 0) | number }}–{{ (client.profile['budgetMax'] || 0) | number }}</strong><span *ngIf="client.profile['propertyGoal'] !== 'Buy'">/ month</span></p>
@@ -81,7 +81,14 @@
             }
           </div>
         } @else {
-          <p class="no-clients">No confirmed client for this home yet. We'll notify you as soon as a Velven agent confirms one.</p>
+          <div class="no-clients">
+            <span class="nc-icon" aria-hidden="true"><i class="fa-solid fa-user-clock"></i></span>
+            <div class="nc-copy">
+              <strong>No confirmed clients yet</strong>
+              <span>We'll notify you as soon as a Velven agent confirms a client for this home.</span>
+            </div>
+            <span class="nc-status"><i aria-hidden="true"></i><span>Searching</span></span>
+          </div>
         }
       </section>
     }

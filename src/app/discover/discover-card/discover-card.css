@@ -506,3 +506,27 @@ h3 {
 /* Empty rows no longer reserve space; the agent block stays at the bottom so buttons still line up. */
 .deposit.placeholder, .needs-check.placeholder { display: none; }
 .primary-action { border-radius: 14px; background: linear-gradient(180deg, #6d2ee0 0%, #4c1ba8 100%); box-shadow: 0 10px 22px rgba(76, 27, 168, 0.25); }
+
+/* Fixes: price row left-aligned in one line, GEL pill on the right; no reserved empty rows. */
+:host ::ng-deep app-currency-price .price-display.price-display { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; width: 100%; }
+.card-body app-currency-price { width: 100%; text-align: left; }
+.terms .deposit.placeholder, .card-body .needs-check.placeholder { display: none; }
+.terms { min-height: 0; }
+.terms .parking { padding: 0; }
+.why ul { min-height: 0; }
+.why.about { background: #f6f4fb; }
+/* Velven Match tag sits next to the rank number instead of under it. */
+.card-badges:has(.rank) ~ .badge.match { left: 54px; top: 14px; padding: 6px 10px; }
+.terms .parking { padding: 8px 0; }
+.terms, .terms * { min-height: 0 !important; }
+/* Breathing room between location, price and title. */
+.card-body .location { margin-bottom: 6px; }
+.card-body app-currency-price { margin-bottom: 12px; }
+/* "About the home" box looks the same as "Why it fits you". */
+.why.about.about { background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 110'%3E%3Cg fill='%23c9b5f5' opacity='.55'%3E%3Cpath d='M30 110V40l40-14v84z'/%3E%3Cpath d='M70 110V26l40 16v68z' opacity='.7'/%3E%3C/g%3E%3Cg fill='%23fff' opacity='.7'%3E%3Crect x='38' y='50' width='6' height='8'/%3E%3Crect x='52' y='46' width='6' height='8'/%3E%3Crect x='38' y='66' width='6' height='8'/%3E%3Crect x='52' y='62' width='6' height='8'/%3E%3Crect x='38' y='82' width='6' height='8'/%3E%3Crect x='52' y='78' width='6' height='8'/%3E%3C/g%3E%3C/svg%3E") right -6px bottom -4px / 120px auto no-repeat,
+    linear-gradient(135deg, #f6f1ff 0%, #efe7fd 100%); }
+.why.about .why-title { color: #451a8f; }
+.why.about li i { color: #451a8f; }
+.why.about .why-note { border-top-color: #e2d8f6; }
+.terms .parking { padding: 4px 0; }

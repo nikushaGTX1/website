@@ -35,7 +35,7 @@
 
     <div class="why" [class.about]="!matched" *ngIf="whyItFits.length || !matched">
       <p class="why-title" *ngIf="matched"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Why it fits you</span></p>
-      <p class="why-title" *ngIf="!matched"><span>About the home</span></p>
+      <p class="why-title" *ngIf="!matched"><i class="fa-solid fa-house" aria-hidden="true"></i><span>About the home</span></p>
       <ul>
         <li *ngFor="let line of whyItFits"><i class="fa-solid fa-check" aria-hidden="true"></i><span><span *ngIf="line.lead" data-no-translate>{{ line.lead }}&nbsp;</span><span>{{ line.text }}</span><span *ngIf="line.tail" data-no-translate>&nbsp;{{ line.tail }}</span></span></li>
       </ul>
@@ -51,7 +51,6 @@
         <span><span>Refundable Deposit</span>:&ngsp;<b *ngIf="depositInGel" data-no-translate>₾{{ deposit | number: '1.0-0' }}</b><b *ngIf="!depositInGel"><app-currency-price [usdPrice]="deposit" [showApproximate]="false"></app-currency-price></b></span>
       </p>
     </div>
-    <p class="needs-check" [class.placeholder]="!needsCheck" [attr.aria-hidden]="needsCheck ? null : true"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>Confirm with the agent that pets are allowed</span></p>
 
     <!-- Agent and actions sit at the bottom, so buttons line up across cards of different heights. -->
     <div class="card-actions">
