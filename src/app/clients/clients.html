@@ -131,8 +131,8 @@
                   <div><strong>{{ client.agent.name }}</strong><a *ngIf="client.agent.phone" [href]="'tel:' + client.agent.phone">{{ client.agent.phone }}</a></div>
                 </div>
               </div>
-              <a class="cc-contact" *ngIf="client.agent.phone; else noPhone" [href]="'tel:' + client.agent.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a>
-              <ng-template #noPhone><a class="cc-contact" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact agent</a></ng-template>
+              <a class="cc-contact" *ngIf="client.agent.phone; else noPhone" [href]="'tel:' + client.agent.phone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact Velven</a>
+              <ng-template #noPhone><a class="cc-contact" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact Velven</a></ng-template>
             </div>
           </article>
         }

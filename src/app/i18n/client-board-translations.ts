@@ -121,6 +121,7 @@ export const CLIENT_BOARD_COPY: readonly (readonly [string, string, string])[] =
   ['Priorities', 'პრიორიტეტები', 'Приоритеты'],
   ['Velven agent', 'Velven-ის აგენტი', 'Агент Velven'],
   ['Contact agent', 'დაუკავშირდით აგენტს', 'Связаться с агентом'],
+  ['Contact Velven', 'დაუკავშირდით Velven-ს', 'Связаться с Velven'],
   ['Suggest apartment', 'შესთავაზეთ ბინა', 'Предложить квартиру'],
   [
     'Does your apartment match their requirements?',

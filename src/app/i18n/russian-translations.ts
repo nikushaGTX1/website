@@ -382,6 +382,8 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['fits your life.', 'подходит вашей жизни.'],
   ['feels like you.', 'подходит именно вам.'],
   ['Find My Match', 'Найти мой вариант'],
+  ['Owner contact', 'Контакт владельца'],
+  ['Staff only', 'Только для команды'],
   ['Type your office address', 'Введите адрес офиса'],
   ['Find', 'Найти'],
   ['We could not find that address. Try another or tap the map.', 'Адрес не найден. Попробуйте другой или отметьте на карте.'],

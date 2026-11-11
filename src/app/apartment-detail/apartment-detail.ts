@@ -567,6 +567,17 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return this.canViewOwnerContact ? this.apartment?.ownerPhoneNumber?.trim() || '' : '';
   }
 
+  ownerCopied = false;
+  copyOwnerPhone(): void {
+    const phone = this.ownerPhoneNumber;
+    if (!phone || !navigator.clipboard) return;
+    navigator.clipboard.writeText(phone).then(() => {
+      this.ownerCopied = true;
+      setTimeout(() => { this.ownerCopied = false; this.cdr?.detectChanges?.(); }, 1600);
+      this.cdr?.detectChanges?.();
+    }).catch(() => {});
+  }
+
   get maskedPhoneNumber(): string {
     const phone = this.phoneNumber;
     if (!phone) return '';

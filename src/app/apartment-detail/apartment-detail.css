@@ -3402,3 +3402,17 @@ dialog.photo-viewer::backdrop { background: #111113; }
     border: 0; border-radius: 12px; background: #451a8f; color: #fff; font-weight: 700;
   }
 }
+
+/* Owner contact card (agents, managers, admins only) */
+.vp-owner { display: grid; gap: 12px; margin: 4px 0 14px; padding: 14px; border: 1px solid #e4dbf6; border-radius: 16px; background: linear-gradient(180deg, #faf7ff, #fff); }
+.vp-owner-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.vp-owner-head > div { flex: 1; min-width: 0; }
+.vp-owner-icon { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: linear-gradient(180deg, #6d2ee0, #4c1ba8); color: #fff; font-size: 17px; }
+.vp-owner-head small { display: block; color: #7a7290; font-size: 11.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.vp-owner-head b { display: block; overflow: hidden; color: #1f1838; font-size: 15.5px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.vp-owner-badge { flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; background: #f1ebfd; color: #5b21b6; font-size: 11px; font-weight: 800; }
+.vp-owner-actions { display: flex; gap: 8px; }
+.vp-owner-call { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; padding: 0 14px; border-radius: 12px; background: #ecfdf3; color: #15803d; font-size: 16px; font-weight: 800; letter-spacing: 0.02em; text-decoration: none; transition: background 0.15s ease; }
+.vp-owner-call:hover { background: #dcfce7; }
+.vp-owner-copy { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid #e4dbf6; border-radius: 12px; background: #fff; color: #5b21b6; cursor: pointer; }
+.vp-owner-copy:hover { background: #f5f0ff; }

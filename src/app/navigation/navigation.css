@@ -901,3 +901,8 @@
   :host-context(html:lang(ka)) .mm-grid a, :host-context(html:lang(ka)) .mm-account-grid a { font-size: 12px; letter-spacing: -0.01em; }
   .mm-grid a, .mm-account-grid a { padding-left: 4px; padding-right: 4px; }
 }
+
+/* Desktop: a little more room between the menu links */
+@media (min-width: 1025px) {
+  .navigation-content .nav-links.nav-links { gap: clamp(24px, 1.9vw, 32px) !important; }
+}

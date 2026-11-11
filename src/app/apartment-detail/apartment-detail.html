@@ -283,6 +283,23 @@
               <p class="vp-proof-note">A Velven agent has checked this property in person.</p>
             </div>
           </div>
+          <!-- Staff only: the owner contact saved with the listing. -->
+          <div class="vp-owner" *ngIf="canViewOwnerContact && (ownerPhoneNumber || ownerName)">
+            <div class="vp-owner-head">
+              <span class="vp-owner-icon" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>
+              <div>
+                <small>Owner contact</small>
+                <b>{{ ownerName || 'Owner' }}</b>
+              </div>
+              <span class="vp-owner-badge"><i class="fa-solid fa-lock" aria-hidden="true"></i> Staff only</span>
+            </div>
+            <div class="vp-owner-actions" *ngIf="ownerPhoneNumber">
+              <a class="vp-owner-call" [href]="'tel:' + ownerPhoneNumber"><i class="fa-solid fa-phone" aria-hidden="true"></i><span data-no-translate>{{ ownerPhoneNumber }}</span></a>
+              <button type="button" class="vp-owner-copy" (click)="copyOwnerPhone()" [attr.aria-label]="ownerCopied ? 'Copied' : 'Copy number'">
+                <i [class]="ownerCopied ? 'fa-solid fa-check' : 'fa-regular fa-copy'" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
           <button class="vp-primary" (click)="scheduleViewing()">
             <i class="fa-regular fa-calendar-check"></i> Schedule a viewing</button
           ><button class="vp-secondary" (click)="openWhatsApp()">
