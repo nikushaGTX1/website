@@ -1278,6 +1278,15 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return days;
   }
 
+  /**
+   * The day grid is rebuilt on every change detection. Without a stable key Angular replaced
+   * every button each time, so a click that started on one button could land on a new one and
+   * be lost, which left the date stuck on the default day.
+   */
+  trackViewingDay(_: number, day: { date: number; fullYear: number; fullMonth: number }): string {
+    return day.fullYear + "-" + day.fullMonth + "-" + day.date;
+  }
+
   selectViewingDay(day: {
     date: number;
     fullYear: number;

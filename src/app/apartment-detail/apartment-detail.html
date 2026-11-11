@@ -413,7 +413,7 @@
           <div class="vd-days" data-no-translate>
             <button
               type="button"
-              *ngFor="let day of viewingCalendarDays"
+              *ngFor="let day of viewingCalendarDays; trackBy: trackViewingDay"
               class="vd-day"
               [class.blank]="!day.inMonth"
               [class.selected]="day.selected"
