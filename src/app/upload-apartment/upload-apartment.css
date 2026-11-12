@@ -2407,3 +2407,4 @@ select:focus {
 .image-edit-actions small { line-height: 1.5; color: #716582; }
 .image-edit-actions button, .image-edit-actions a { padding: 10px; border: 1px solid #ded3ef; border-radius: 9px; background: #f6f1ff; color: #5b21b6; font: inherit; text-align: center; cursor: pointer; }
 .image-edit-actions button:disabled { opacity: .5; cursor: default; }
+.myhome-field input.invalid { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12); }

@@ -5912,3 +5912,12 @@
   .search-fields button > span i.fa-solid,
   .search-fields i.fa-solid { font-weight: 900 !important; }
 }
+
+/* Phones: no headline or AI hint above the search; Budget and Bedrooms on their own rows */
+@media (max-width: 640px) {
+  .home-page > .hero .hero-copy .eyebrow,
+  .home-page > .hero .hero-copy h1,
+  .home-page > .hero .ai-strip .ai-hint { display: none !important; }
+  .home-page > .hero .search-fields.search-fields { grid-template-columns: minmax(0, 1fr) !important; }
+  .home-page > .hero .search-fields.search-fields > * { grid-column: 1 / -1 !important; width: 100% !important; }
+}

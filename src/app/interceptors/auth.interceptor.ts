@@ -3,9 +3,12 @@ import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = inject(AuthService).getToken();
+  const auth = inject(AuthService);
+  const token = auth.getToken();
+  // Staff need their token on a single apartment: the API only returns the owner contact to them.
+  const staff = !!token && auth.hasAnyRole(['agent', 'manager', 'crm-manager', 'crm_manager', 'admin']);
 
-  if (!token || isPublicReadRequest(req.method, req.url)) {
+  if (!token || isPublicReadRequest(req.method, req.url, staff)) {
     return next(req);
   }
 
@@ -18,7 +21,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
-function isPublicReadRequest(method: string, url: string): boolean {
+function isPublicReadRequest(method: string, url: string, staff = false): boolean {
   if (method !== 'GET') {
     return false;
   }
@@ -32,5 +35,5 @@ function isPublicReadRequest(method: string, url: string): boolean {
     '/api/Locations/cities',
   ]);
 
-  return publicPaths.has(requestUrl.pathname) || /^\/api\/Apartments\/\d+$/.test(requestUrl.pathname);
+  return publicPaths.has(requestUrl.pathname) || (!staff && /^\/api\/Apartments\/\d+$/.test(requestUrl.pathname));
 }

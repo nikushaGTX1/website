@@ -2019,6 +2019,14 @@ export class UploadApartment implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.validationAttempted = true;
     this.form.myHomeId = this.form.myHomeId.trim();
+    if (!this.isOwnerUpload && !this.form.myHomeId) {
+      this.errorMessage = this.uploadLocationText(
+        'Please enter the MyHome ID.',
+        'გთხოვთ, მიუთითოთ MyHome ID.',
+        'Пожалуйста, укажите MyHome ID.',
+      );
+      return;
+    }
     if (this.form.myHomeId && !/^[1-9][0-9]{4,7}$/.test(this.form.myHomeId)) {
       this.errorMessage = this.uploadLocationText(
         'MyHome ID must contain 5 to 8 digits.',

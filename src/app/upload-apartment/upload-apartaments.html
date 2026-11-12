@@ -139,8 +139,8 @@
         <button type="button" (click)="discardDraft()">Start fresh</button>
       </p>
       <div class="myhome-field" *ngIf="!isOwnerUpload">
-        <label for="myhome-id">MyHome ID <small>{{ uploadLocationText('Optional', 'არასავალდებულო', 'Необязательно') }}</small></label>
-        <input id="myhome-id" name="myHomeId" [(ngModel)]="form.myHomeId" (ngModelChange)="clearDuplicateDismissal(); checkDuplicates()" inputmode="numeric" maxlength="10" placeholder="12345678" aria-describedby="myhome-hint">
+        <label for="myhome-id">MyHome ID <span class="required-mark" aria-hidden="true" style="color:#dc2626">*</span></label>
+        <input id="myhome-id" name="myHomeId" [(ngModel)]="form.myHomeId" (ngModelChange)="clearDuplicateDismissal(); checkDuplicates()" inputmode="numeric" maxlength="10" placeholder="12345678" required [class.invalid]="validationAttempted && !form.myHomeId.trim()" aria-describedby="myhome-hint">
         <small id="myhome-hint">{{ uploadLocationText('Link the original MyHome listing for availability checks.', 'მიუთითეთ MyHome განცხადება ხელმისაწვდომობის შესამოწმებლად.', 'Укажите исходное объявление MyHome для проверки доступности.') }}</small>
       </div>
       <div class="upload-validation" role="alert" *ngIf="validationAttempted && validationIssues.length" data-no-translate>
