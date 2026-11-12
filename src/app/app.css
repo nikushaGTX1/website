@@ -44,6 +44,10 @@
   }
   .route-content {
     isolation: isolate;
+    /* The page layer must sit above the footer, or the footer covers fixed bars
+       (Velven Match Back / Continue) when scrolled to the bottom. */
+    position: relative;
+    z-index: 1;
   }
 }
 
