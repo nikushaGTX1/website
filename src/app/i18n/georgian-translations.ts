@@ -2324,8 +2324,8 @@ const GEORGIAN_RULES: GeorgianRule[] = [
       `სახლები ${match[1].toLowerCase() === 'for sale' ? 'იყიდება' : 'ქირავდება'} — ${match[2]}`,
   },
   {
-    pattern: /^([\d,.\s]+) verified homes in this map area$/i,
-    translate: (match) => `${match[1].trim()} გადამოწმებული სახლი რუკის ამ არეალში`,
+    pattern: /^([\d,.\s]+) homes in this map area$/i,
+    translate: (match) => `${match[1].trim()} ბინა რუკის ამ არეალში`,
   },
   {
     pattern: /^Step (\d+) of (\d+)$/i,

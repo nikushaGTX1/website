@@ -82,6 +82,14 @@ export class Navigation implements OnInit, OnDestroy {
     void this.router.navigate(['/login']);
   }
 
+  /** Buy / Rent highlight from the current URL; the explore page adds other filters to it. */
+  exploreMode(): 'buy' | 'rent' | null {
+    const tree = this.router.parseUrl(this.router.url);
+    const path = tree.root.children['primary']?.segments.map((segment) => segment.path).join('/') ?? '';
+    if (path.toLowerCase() !== 'exploreproperty') return null;
+    return tree.queryParamMap.get('mode') === 'buy' ? 'buy' : 'rent';
+  }
+
   constructor(
     private authService: AuthService,
     readonly translation: TranslationService,

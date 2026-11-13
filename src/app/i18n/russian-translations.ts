@@ -1233,8 +1233,8 @@ const RUSSIAN_RULES: RussianRule[] = [
       `Дома ${match[1].toLowerCase() === 'for sale' ? 'на продажу' : 'в аренду'} в ${match[2]}`,
   },
   {
-    pattern: /^([\d,.\s]+) verified homes in this map area$/i,
-    translate: (match) => `${match[1].trim()} проверенных объектов в этой области карты`,
+    pattern: /^([\d,.\s]+) homes in this map area$/i,
+    translate: (match) => `${match[1].trim()} объектов в этой области карты`,
   },
   {
     pattern: /^Everyday services ([\d.]+) min on average$/i,

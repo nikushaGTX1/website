@@ -5921,3 +5921,23 @@
   .home-page > .hero .search-fields.search-fields { grid-template-columns: minmax(0, 1fr) !important; }
   .home-page > .hero .search-fields.search-fields > * { grid-column: 1 / -1 !important; width: 100% !important; }
 }
+
+/* Phones: Location and Property type text start at the same place */
+@media (max-width: 768px) {
+  .search-fields .location-panel-trigger,
+  .search-fields .field-control:not(.location-panel-trigger) { padding-left: 18px !important; }
+  .search-fields .location-panel-trigger { gap: 0 !important; }
+  .search-fields .location-leading-icon,
+  .search-fields button > span > i:first-child {
+    position: static !important; flex: none; width: 20px !important; margin: 0 12px 0 0 !important; text-align: center;
+  }
+  .search-fields .location-trigger-text { padding-left: 0 !important; margin-left: 0 !important; flex: 1; text-align: left; }
+  .search-fields button > span { display: inline-flex !important; align-items: center; gap: 0 !important; padding-left: 0 !important; margin-left: 0 !important; }
+}
+/* Phones: every search box uses the same left padding so icons and texts line up */
+@media (max-width: 768px) {
+  .home-page .search-fields > * > button:not(.main-budget-apply) {
+    padding-left: 16px !important; padding-right: 16px !important;
+  }
+}
+@media (max-width: 768px) { .home-page .search-fields .location-panel-trigger > .location-leading-icon { width: 20px !important; margin-right: 12px !important; } .home-page .search-fields .location-panel-trigger > .location-trigger-text { margin-left: 0 !important; padding-left: 0 !important; } }

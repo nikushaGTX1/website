@@ -385,7 +385,7 @@
             Homes {{ selectedType === 'For Sale' ? 'for sale' : 'for rent' }} in
             {{ location || 'Tbilisi' }}
           </h1>
-          <p>{{ filteredApartments.length | number }} verified homes in this map area</p>
+          <p>{{ filteredApartments.length | number }} homes in this map area</p>
         </div>
         <button type="button" class="sort-trigger" [class.open]="filterMenu === 'sort'" [attr.aria-expanded]="filterMenu === 'sort'"
           aria-haspopup="listbox" (click)="toggleFilterMenu('sort', $event)">

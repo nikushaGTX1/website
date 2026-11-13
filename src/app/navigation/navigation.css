@@ -904,5 +904,6 @@
 
 /* Desktop: a little more room between the menu links */
 @media (min-width: 1025px) {
-  .navigation-content .nav-links.nav-links { gap: clamp(24px, 1.9vw, 32px) !important; }
+  .navigation-content .nav-links.nav-links { gap: clamp(26px, 2.1vw, 36px) !important; }
 }
+@media (min-width: 1025px) { .navigation-content .nav-links.nav-links > a { letter-spacing: 0.015em; } }
