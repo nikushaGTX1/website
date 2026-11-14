@@ -49,3 +49,20 @@ export function parkingCostLabel(
   if (BUILDING_PARKING.includes(type) || BUILDING_PARKING_LABELS.includes(typeLabel)) return 'Building parking';
   return '';
 }
+
+const PARKING_TYPES: Record<string, string> = {
+  Garage: 'Garage',
+  PrivateCourtyard: 'Private courtyard parking',
+  CourtyardWithBarrier: 'Courtyard with a barrier/gate',
+  CourtyardWithoutBarrier: 'Courtyard without a barrier/gate',
+  StreetParking: 'Street parking',
+  DifficultParking: 'Parking is difficult',
+};
+
+/** Kind of parking ("Garage", "Street parking"...), from the field or the "Parking type:" line. '' when unknown. */
+export function parkingTypeLabel(apartment: Pick<Apartment, 'description' | 'parkingCondition'> | null | undefined): string {
+  const type = (apartment?.parkingCondition || '').trim();
+  if (PARKING_TYPES[type]) return PARKING_TYPES[type];
+  const label = metadata(apartment?.description || '', 'Parking type').toLowerCase();
+  return Object.values(PARKING_TYPES).find((value) => value.toLowerCase() === label) || '';
+}

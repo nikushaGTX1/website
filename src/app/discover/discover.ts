@@ -1,3 +1,4 @@
+import { explainHomeMatch, type LifestyleInsight } from '../ai-home-match/services/match-explanations';
 import { DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { clientRelativeTime } from '../utils/client-relative-time';
@@ -39,7 +40,7 @@ interface DiscoverItem {
   isNew: boolean;
   matchedAt?: string;
   /** Velven Match's reasons this home fits ("Why it fits" on the card). */
-  reasons: string[];
+  reasons: LifestyleInsight[];
 }
 
 /** What the page shows for each saved search. */
@@ -275,7 +276,8 @@ export class Discover implements OnInit, OnDestroy {
           needsCheck: petsUnconfirmed,
           isNew: !!record && !record.seenAt,
           matchedAt: record?.matchedAt,
-          reasons: (result.reasons ?? []).map((reason) => reason.title).filter(Boolean).slice(0, 3),
+          // Same "Why it fits" as the property page: pets, then ranked priorities, then lifestyle.
+          reasons: explainHomeMatch(result.apartment, profile).slice(0, 3),
         };
       })
       .filter((item): item is DiscoverItem => !!item);

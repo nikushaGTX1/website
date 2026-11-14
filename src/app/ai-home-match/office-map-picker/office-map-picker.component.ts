@@ -69,12 +69,13 @@ export class OfficeMapPickerComponent implements AfterViewInit, OnDestroy {
     const apiKey = document.querySelector<HTMLMetaElement>('meta[name="google-maps-api-key"]')?.content.trim();
     if (!apiKey) { this.failed = true; return; }
     try {
-      setOptions({ key: apiKey, v: 'weekly' });
+      const mapId = document.querySelector<HTMLMetaElement>('meta[name="google-maps-map-id"]')?.content?.trim();
+      setOptions({ key: apiKey, v: 'weekly', ...(mapId ? { mapIds: [mapId] } : {}) });
       const { Map } = (await importLibrary('maps')) as google.maps.MapsLibrary;
       await importLibrary('marker');
       const start = this.latitude != null && this.longitude != null ? { lat: this.latitude, lng: this.longitude } : TBILISI;
       const map = new Map(this.mapEl.nativeElement, {
-        center: start, zoom: this.latitude != null ? 15 : 12,
+        center: start, zoom: this.latitude != null ? 15 : 12, ...(mapId ? { mapId } : {}),
         disableDefaultUI: true, zoomControl: true, gestureHandling: 'greedy', clickableIcons: false,
       });
       this.map = map;

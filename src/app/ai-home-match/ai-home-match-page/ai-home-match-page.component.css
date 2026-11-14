@@ -4835,3 +4835,5 @@ fieldset {
 
 /* Title letters were packed too tightly */
 .velven > header.vm-intro h1, .match-hero.vm-intro h1 { letter-spacing: -0.005em !important; word-spacing: 0.04em; }
+
+.business-follow[hidden] { display: none !important; }

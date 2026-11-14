@@ -1,3 +1,4 @@
+import type { LifestyleInsight } from '../../ai-home-match/services/match-explanations';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Observable, catchError, map, of, shareReplay } from 'rxjs';
 import { AgentService } from '../../services/agent.service';
@@ -10,7 +11,7 @@ import { ListingTitlePipe } from '../../shared/listing-title.pipe';
 import { FavoriteService } from '../../services/favorite.service';
 import { toMediaUrl } from '../../utils/api-media';
 import { isSaleListing } from '../../utils/listing-deal';
-import { parkingCostLabel } from '../../utils/parking-cost';
+import { parkingCostLabel, parkingTypeLabel } from '../../utils/parking-cost';
 import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
 import { listingDeposit, listingDepositInGel } from '../../utils/listing-deposit';
 import { DecimalPipe } from '@angular/common';
@@ -46,7 +47,7 @@ export class DiscoverCard implements OnInit {
   /** Matched a saved search: shows "Matches your must-haves". */
   @Input() matched = false;
   /** Velven Match reasons, shown as "Why it fits". */
-  @Input() reasons: string[] = [];
+  @Input() reasons: LifestyleInsight[] = [];
   /** Shown on the Saved homes page: "Velven Match" badge, or "About the home" for homes no search found. */
   @Input() savedView = false;
   /** Small card (property page suggestions): photo, price, title, specs and a link only. */
@@ -112,6 +113,15 @@ export class DiscoverCard implements OnInit {
   get whyItFits(): FitLine[] {
     const lines: FitLine[] = [];
     const a = this.apartment;
+    if (this.matched) {
+      // Velven Match: only what fits this user, in their priority order.
+      const language = this.translation.language$.value;
+      const unit = language === 'ka' ? 'წთ' : language === 'ru' ? 'мин' : 'min';
+      return this.reasons.slice(0, 3).map((item) => ({
+        text: item.title,
+        tail: item.meta ? '· ' + item.meta.replace('min', unit) : undefined,
+      }));
+    }
     if (!this.matched && a.isFurnished) lines.push({ text: 'Furnished, with appliances' });
     if (a.isPetFriendly) lines.push({ text: 'Pets accepted' });
     if (a.parkDistanceMinutes) lines.push({ lead: String(a.parkDistanceMinutes), text: 'min walk to a park' });
@@ -123,7 +133,6 @@ export class DiscoverCard implements OnInit {
         else lines.push({ text: 'Available by', tail: date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) });
       }
     }
-    for (const reason of this.reasons) if (lines.length < 3) lines.push({ text: reason });
     return lines.slice(0, 3);
   }
 
@@ -155,6 +164,20 @@ export class DiscoverCard implements OnInit {
   /** "Vake · Chavchavadze Ave" */
   get location(): string {
     return [this.apartment.district, this.apartment.street].filter(Boolean).join(' · ') || this.apartment.city || 'Tbilisi';
+  }
+
+  /** Kind of parking (garage, courtyard, street), shown before the cost. */
+  get parkingType(): string {
+    const type = parkingTypeLabel(this.apartment);
+    // Without parking included, only street / difficult parking says something useful.
+    if (!this.apartment.hasParking && type !== 'Street parking' && type !== 'Parking is difficult') return '';
+    return type;
+  }
+
+  /** Cost next to a known parking type ("Free", "Extra   get parkingText(): string {00"); "" when nothing to add. */
+  get parkingCost(): string {
+    const cost = this.apartment.hasParking ? parkingCostLabel(this.apartment) : "";
+    return cost === "Building parking" ? "" : cost;
   }
 
   get parkingText(): string {

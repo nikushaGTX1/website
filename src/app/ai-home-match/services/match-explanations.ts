@@ -3,9 +3,6 @@ import type { HomeMatchProfile } from '../models/home-match-profile';
 import { normalizeApartmentStyle } from '../../utils/apartment-style';
 import { answerLabel } from './answer-labels';
 import {
-  budgetRangeUsd,
-  formatBudgetAmount,
-  fromUsd,
   petListLabel,
   petPermission,
   selectedPets,
@@ -35,147 +32,144 @@ export function petsConfirmed(apartment: HomeMatchApartment, profile: HomeMatchP
   );
 }
 
+/**
+ * "Why it fits": only things tailored to the user, in this order:
+ * pets (when they have one), their top-5 priorities in rank order, their lifestyle answers,
+ * then other answers (car, children, style). Budget and location are hard filters, so every
+ * result already meets them and they are not listed. Cards show the first 3.
+ */
 export function explainHomeMatch(
   apartment: HomeMatchApartment,
   p: HomeMatchProfile,
-  rates: BudgetRates,
-  requirement: RequirementEvaluation,
+  _rates?: BudgetRates,
+  _requirement?: RequirementEvaluation,
 ): LifestyleInsight[] {
-  const rent = p.propertyGoal !== 'Buy';
-  const mismatch = (prefix: string) =>
-    (requirement.mismatches || []).some((note) => note.startsWith(prefix));
   const items: LifestyleInsight[] = [];
-  const add = (title: string, reason: string, icon: string) =>
-    items.push({ title, reason, icon });
+  const seen = new Set<string>();
+  const push = (item: LifestyleInsight | undefined) => {
+    if (item && !seen.has(item.title)) {
+      seen.add(item.title);
+      items.push(item);
+    }
+  };
+  const rent = p.propertyGoal !== 'Buy';
+  const near = (field: keyof HomeMatchApartment, title: string, reason: string, icon: string): LifestyleInsight | undefined => {
+    const value = field === 'universityDistanceMinutes' ? listedUniversityMinutes(apartment) : apartment[field];
+    if (typeof value !== 'number' || value < 0 || value > MATCH_WALK_LIMIT) return undefined;
+    return { title, reason, icon, meta: `${Math.round(value)} min` };
+  };
+  const parking = (reason: string): LifestyleInsight | undefined =>
+    apartment.hasParking || parkingScore(apartment) > 0
+      ? {
+          title: 'Parking for your car',
+          reason: parseParkingCost(apartment.description || '').cost === 'Paid' ? 'Paid parking' : reason,
+          icon: 'fa-square-parking',
+        }
+      : undefined;
+  const quiet = (reason: string): LifestyleInsight | undefined =>
+    apartment.isQuietStreet || /Quiet street:\s*yes/i.test(apartment.description || '')
+      ? { title: 'Quiet street', reason, icon: 'fa-volume-xmark' }
+      : undefined;
+  const workspace = (title: string, icon: string): LifestyleInsight | undefined =>
+    hasWorkspace(apartment, p)
+      ? { title, reason: apartment.hasHomeOfficeSpace ? 'Home office space' : 'A spare room you can use as an office', icon }
+      : undefined;
 
-  const districts = p.districts.filter((d) => d !== 'SelectOnMap');
-  const unverified = (prefix: string) =>
-    (requirement.confirmations || []).some((note) => note.startsWith(prefix));
-  // Only claim a location match when the location was actually verified inside the selected area.
-  if (
-    (districts.length || p.selectedMapArea) &&
-    !p.locationFlexible &&
-    !mismatch('Location') &&
-    !unverified('Location')
-  ) {
-    add('Location matches', apartment.district || apartment.address || '', 'fa-location-dot');
+  // 1. Pets: only for people who live with one.
+  if (rent && petsConfirmed(apartment, p)) {
+    push({ title: 'Pet-friendly home', reason: petListLabel(selectedPets(p)), icon: 'fa-paw' });
+    if (selectedPets(p).includes('Dog')) push(near('parkDistanceMinutes', 'Park', 'Great for walking your dog', 'fa-tree'));
   }
-  // Budget in the user's own currency, checked against both bounds.
-  const budget = budgetRangeUsd(p, rates);
-  const price = Number(apartment.price);
-  if (
-    budget.max !== null &&
-    price > 0 &&
-    price <= budget.max &&
-    (budget.min === null || price >= budget.min)
-  ) {
-    const shown = formatBudgetAmount(fromUsd(price, p.currency, rates), p.currency);
-    const range =
-      budget.min !== null
-        ? `${formatBudgetAmount(p.budgetMin, p.currency)}–${formatBudgetAmount(p.budgetMax, p.currency)}`
-        : `≤ ${formatBudgetAmount(p.budgetMax, p.currency)}`;
-    add('Within your budget', `${shown} · ${range}`, 'fa-wallet');
+
+  // 2. Top-5 priorities, #1 first.
+  const top = 'One of your top priorities';
+  const features: Record<string, [string, string]> = {
+    BalconyOrTerrace: ['Balcony or terrace', 'fa-umbrella-beach'],
+    MultipleBathrooms: ['More than one bathroom', 'fa-bath'],
+    SecurityOrConcierge: ['Security or concierge', 'fa-shield-halved'],
+    ModernMaintainedBuilding: ['Modern, well-kept building', 'fa-building'],
+    IsolatedBedrooms: ['Separate bedrooms', 'fa-door-closed'],
+    AwayFromNightlife: ['Away from nightlife', 'fa-moon'],
+    CompanyLeaseAvailable: ['Company lease available', 'fa-file-signature'],
+  };
+  for (const code of p.topPriorities.slice(0, 5)) {
+    switch (code) {
+      case 'Parking': push(parking('Parking available')); break;
+      case 'QuietStreet': push(quiet(top)); break;
+      case 'Workspace': push(workspace('Room to work from home', 'fa-laptop')); break;
+      case 'ParkNearby':
+      case 'PlaygroundNearby':
+      case 'PlaygroundOrSportsFieldNearby': push(near('parkDistanceMinutes', 'Park', top, 'fa-tree')); break;
+      case 'GymNearby': push(near('gymDistanceMinutes', 'Gym', top, 'fa-dumbbell')); break;
+      case 'MetroNearby':
+      case 'PublicTransportNearby': push(near('metroDistanceMinutes', 'Metro', top, 'fa-train-subway')); break;
+      case 'SchoolNearby': push(near('schoolDistanceMinutes', 'School', top, 'fa-school')); break;
+      case 'KindergartenNearby': push(near('kindergartenDistanceMinutes', 'Kindergarten', top, 'fa-children')); break;
+      case 'UniversityNearby': push(near('universityDistanceMinutes', 'University', top, 'fa-graduation-cap')); break;
+      case 'CafesNearby':
+      case 'CafesAndRestaurantsNearby':
+      case 'CafesOrCoworkingNearby':
+      case 'MeetingPlacesNearby':
+      case 'StudySpacesNearby': push(near('cafeDistanceMinutes', 'Café', top, 'fa-mug-hot')); break;
+      case 'EverydayServicesNearby':
+      case 'SupermarketNearby': push(near('groceryDistanceMinutes', 'Supermarket', top, 'fa-basket-shopping')); break;
+      case 'PharmacyNearby':
+      case 'ClinicNearby': push(near('pharmacyDistanceMinutes', 'Pharmacy', top, 'fa-prescription-bottle-medical')); break;
+      case 'OfficeNearby': {
+        const km = officeDistanceKm(apartment, p);
+        if (km !== undefined && officeDistancePoints(km) > 0) push({ title: 'Close to your office', reason: top, icon: 'fa-building', meta: `${km.toFixed(1)} km` });
+        break;
+      }
+      case 'CityCenterNearby':
+      case 'EntertainmentNearby':
+        if (scorePriority(code, apartment, p) >= 2) push({ title: 'Close to the city centre', reason: top, icon: 'fa-city' });
+        break;
+      case 'SelectedLocationNearby':
+        if (scorePriority(code, apartment, p) >= 2) push({ title: 'Near the place you chose', reason: 'Close to your chosen location', icon: 'fa-location-crosshairs' });
+        break;
+      default:
+        if (features[code] && scorePriority(code, apartment, p) > 0) push({ title: features[code][0], reason: top, icon: features[code][1] });
+    }
   }
-  // Over-budget rentals (inside the tolerance) say how much more they cost each month.
-  const overUsd = requirement.overBudgetUsd ?? 0;
-  if (overUsd > 0) {
-    const extra = formatBudgetAmount(
-      fromUsd(overUsd, p.currency, rates),
-      p.currency,
-    );
-    add(
-      'Above your budget',
-      `+${extra}/month over ${formatBudgetAmount(p.budgetMax, p.currency)}`,
-      'fa-arrow-trend-up',
-    );
+
+  // 3. Lifestyle answers turned into home features.
+  const lifestyles = new Set(p.lifestyles);
+  if (lifestyles.has('Athlete')) {
+    push(near('gymDistanceMinutes', 'Gym', 'Matches your active lifestyle', 'fa-dumbbell'));
+    push(near('parkDistanceMinutes', 'Park', 'Matches your outdoor lifestyle', 'fa-tree'));
   }
-  if (
-    p.bedrooms != null &&
-    p.bedrooms > 0 &&
-    apartment.bedrooms != null &&
-    apartment.bedrooms >= p.bedrooms
-  ) {
-    add('Enough bedrooms', `${apartment.bedrooms} ≥ ${p.bedrooms}`, 'fa-bed');
+  if (lifestyles.has('RemoteWorker')) {
+    push(workspace('Room to work from home', 'fa-laptop'));
+    push(quiet('Matches your quiet lifestyle'));
+    push(near('cafeDistanceMinutes', 'Café', 'Good for working remotely', 'fa-mug-hot'));
   }
-  if (rent && p.moveInTiming && !mismatch('Availability')) {
-    add('Ready for your move-in', answerLabel(p.moveInTiming), 'fa-calendar-check');
+  if (lifestyles.has('BusinessProfessional')) {
+    if (p.businessMode === 'NearOffice') {
+      const km = officeDistanceKm(apartment, p);
+      if (km !== undefined && officeDistancePoints(km) > 0) push({ title: 'Close to your office', reason: 'Matches your work routine', icon: 'fa-building', meta: `${km.toFixed(1)} km` });
+    } else if (p.businessMode === 'HomeBusiness') {
+      push(workspace('Room for your business', 'fa-house-laptop'));
+    }
+    push(near('metroDistanceMinutes', 'Metro', 'Handy for meetings', 'fa-train-subway'));
   }
-  if (rent && p.rentalDuration && !mismatch('Lease')) {
-    add('Fits your rental period', answerLabel(p.rentalDuration), 'fa-hourglass-half');
+  if (lifestyles.has('Student')) {
+    push(near('universityDistanceMinutes', 'University', 'Handy for your studies', 'fa-graduation-cap'));
+    push(near('metroDistanceMinutes', 'Metro', 'Handy for your studies', 'fa-train-subway'));
   }
-  if (rent && petsConfirmed(apartment, p))
-    add('Pet-friendly home', petListLabel(selectedPets(p)), 'fa-paw');
-  const priorities = new Set(p.topPriorities.slice(0, 5));
-  // One parking card, whether parking came from driving or from the priority list.
-  if (
-    (p.transportation.includes('Car') || priorities.has('Parking')) &&
-    (apartment.hasParking || parkingScore(apartment) > 0)
-  ) {
-    add(
-      'Parking for your car',
-      parseParkingCost(apartment.description || '').cost === 'Paid'
-        ? 'Paid parking'
-        : 'Parking available',
-      'fa-square-parking',
-    );
+  if (lifestyles.has('QuietLifestyle')) {
+    push(quiet('Matches your quiet lifestyle'));
+    push(near('parkDistanceMinutes', 'Park', 'Green space for a calm routine', 'fa-tree'));
   }
-  if (
-    (priorities.has('QuietStreet') || p.lifestyles.includes('QuietLifestyle')) &&
-    // The API has no quiet-street field; the upload form writes "Quiet street: Yes" in the details.
-    (apartment.isQuietStreet || /Quiet street:\s*yes/i.test(apartment.description || ''))
-  ) {
-    add('Quiet street', 'Matches your quiet lifestyle', 'fa-volume-xmark');
+  if (lifestyles.has('SocialLifestyle')) push(near('cafeDistanceMinutes', 'Café', 'Matches your social lifestyle', 'fa-mug-hot'));
+  if (lifestyles.has('HostsGuests') && ((apartment.bedrooms ?? 0) >= 2 || (apartment.sizeSquareMeters ?? 0) >= 80)) {
+    push({ title: 'Space for guests', reason: 'Matches how often you host', icon: 'fa-people-group' });
   }
-  // Home features behind lifestyle answers and top priorities, so each choice shows when it is met.
-  if (p.lifestyles.includes('BusinessProfessional') && p.businessMode === 'NearOffice') {
-    const km = officeDistanceKm(apartment, p);
-    if (km !== undefined && officeDistancePoints(km) > 0) add('Close to your office', `${km.toFixed(1)} km`, 'fa-building');
-  }
-  if (p.lifestyles.includes('BusinessProfessional') && p.businessMode === 'HomeBusiness' && !p.lifestyles.includes('RemoteWorker') && hasWorkspace(apartment, p)) {
-    add('Room for your business', apartment.hasHomeOfficeSpace ? 'Home office space' : 'A spare room you can use as an office', 'fa-house-laptop');
-  }
-  if ((p.lifestyles.includes('RemoteWorker') || priorities.has('Workspace')) && hasWorkspace(apartment, p)) {
-    add('Room to work from home', apartment.hasHomeOfficeSpace ? 'Home office space' : 'A spare room you can use as an office', 'fa-laptop');
-  }
-  const features: Array<[string, string, string, string]> = [
-    ['BalconyOrTerrace', 'Balcony or terrace', 'One of your top priorities', 'fa-umbrella-beach'],
-    ['MultipleBathrooms', 'More than one bathroom', 'One of your top priorities', 'fa-bath'],
-    ['SecurityOrConcierge', 'Security or concierge', 'One of your top priorities', 'fa-shield-halved'],
-    ['ModernMaintainedBuilding', 'Modern, well-kept building', 'One of your top priorities', 'fa-building'],
-    ['IsolatedBedrooms', 'Separate bedrooms', 'Good for sharing a home', 'fa-door-closed'],
-    ['AwayFromNightlife', 'Away from nightlife', 'One of your top priorities', 'fa-moon'],
-    ['CompanyLeaseAvailable', 'Company lease available', 'One of your top priorities', 'fa-file-signature'],
-  ];
-  for (const [code, title, reason, icon] of features) {
-    if (priorities.has(code) && scorePriority(code, apartment, p) > 0) add(title, reason, icon);
-  }
-  if (p.lifestyles.includes('HostsGuests') && ((apartment.bedrooms ?? 0) >= 2 || (apartment.sizeSquareMeters ?? 0) >= 80)) {
-    add('Space for guests', 'Matches how often you host', 'fa-people-group');
-  }
+
+  // 4. Other answers: car, children, pets, style, everyday routine.
+  if (p.transportation.includes('Car')) push(parking('Parking available'));
+  for (const place of preferencePlaces(apartment, p)) push(near(place.field, place.title, place.reason, place.icon));
   if ((p.apartmentStyle === 'Modern' || p.apartmentStyle === 'Vintage') && normalizeApartmentStyle(apartment.apartmentStyle) === p.apartmentStyle) {
-    add('Your style of home', answerLabel(p.apartmentStyle), 'fa-couch');
-  }
-  if (
-    priorities.has('SelectedLocationNearby') &&
-    scorePriority('SelectedLocationNearby', apartment, p) >= 2
-  ) {
-    add('Near the place you chose', 'Close to your chosen location', 'fa-location-crosshairs');
-  }
-
-  // Nearby places: shown here only when they answer something the user chose, with the
-  // reason tied to that answer. Everything else nearby stays in "Walking times" only.
-  for (const place of preferencePlaces(apartment, p)) {
-    const minutes =
-      place.field === 'universityDistanceMinutes'
-        ? listedUniversityMinutes(apartment)
-        : apartment[place.field];
-    if (typeof minutes !== 'number' || minutes < 0 || minutes > MATCH_WALK_LIMIT) continue;
-    items.push({
-      title: place.title,
-      reason: place.reason,
-      icon: place.icon,
-      meta: `${Math.round(minutes)} min`,
-    });
+    push({ title: 'Your style of home', reason: answerLabel(p.apartmentStyle), icon: 'fa-couch' });
   }
   return items;
 }
