@@ -38,7 +38,7 @@ const COPY: Array<[string, string, string]> = [
   ['Velven game', 'Velven-ის თამაში', 'Игра Velven'],
   ['Play and get', 'ითამაშე და მიიღე', 'Играйте и получите'],
   ['$50 cashback', '$50 ქეშბექი', 'кэшбэк $50'],
-  ['Win the game and get $50 back when you rent or buy a home through Velven.', 'მოიგე თამაში და მიიღე $50 უკან, როცა Velven-ით იქირავებ ან იყიდი სახლს.', 'Выиграйте и получите $50 назад при аренде или покупке жилья через Velven.'],
+  ['Win the game and get $50 back when you rent or buy a home through Velven.', 'მოიგე თამაში და მიიღე $50 უკან, როცა Velven-ით იქირავებ სახლს.', 'Выиграйте и получите $50 назад при аренде или покупке жилья через Velven.'],
   ['Play the game and win.', 'ითამაშე და მოიგე.', 'Сыграйте и выиграйте.'],
   ['Take a screenshot of your winning screen.', 'გადაუღე სქრინშოტი მოგების ეკრანს.', 'Сделайте скриншот экрана победы.'],
   ['Show it to your Velven agent when you sign your deal. The $50 is applied to your deal.', 'აჩვენე ის Velven-ის აგენტს გარიგების დადებისას. $50 აისახება შენს გარიგებაზე.', 'Покажите его агенту Velven при заключении сделки. $50 будут учтены в сделке.'],
