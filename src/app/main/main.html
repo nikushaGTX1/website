@@ -4,7 +4,7 @@
       <span class="eyebrow">Verified homes. Personalized search.</span>
       <!-- Per-language headline (kept short); the translation observer skips this node. -->
       <h1 data-no-translate [ngSwitch]="translationService.language$ | async">
-        <ng-container *ngSwitchCase="'ka'">იპოვეთ სახლი, <br />რომელიც <em>თქვენ</em> გერგებათ.</ng-container>
+        <ng-container *ngSwitchCase="'ka'">სახლი, <br />რომელიც <em>თქვენთვისაა</em>.</ng-container>
         <ng-container *ngSwitchCase="'ru'">Найдите дом, <br />который <em>подходит</em> именно вам.</ng-container>
         <ng-container *ngSwitchDefault>Find a home <br />that fits <em>your&nbsp;life</em></ng-container>
       </h1>

@@ -124,7 +124,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['New Listing', 'ახალი განცხადება'],
 
   // Home and search
-  ['Verified homes. Personalized search.', 'გადამოწმებული სახლები. თქვენზე მორგებული ძიება.'],
+  ['Verified homes. Personalized search.', 'როცა ველვენით იქირავებ სახლს'],
   ['Verified Homes, Personalized Search.', 'გადამოწმებული სახლები, თქვენზე მორგებული ძიება.'],
   ['Verified homes, ', 'გადამოწმებული სახლები'],
   ['Personalized Search.', 'პერსონალიზირებული ძიება'],
