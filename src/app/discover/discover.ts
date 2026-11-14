@@ -590,7 +590,10 @@ export class Discover implements OnInit, OnDestroy {
 
   /** "My preferences" in the side menu: scroll to the saved searches. */
   scrollToSearches(): void {
-    document.getElementById('searches-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // The preferences list is not on the "Clients for you" page: open My homes first, then scroll.
+    const target = () => document.getElementById('searches-title');
+    if (!target()) this.setTab('all');
+    setTimeout(() => target()?.scrollIntoView({ behavior: 'smooth', block: 'start' }), target() ? 0 : 120);
   }
 
   goalLabel(profile: HomeMatchProfile): string {
