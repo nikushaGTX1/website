@@ -907,3 +907,8 @@
   .navigation-content .nav-links.nav-links { gap: clamp(26px, 2.1vw, 36px) !important; }
 }
 @media (min-width: 1025px) { .navigation-content .nav-links.nav-links > a { letter-spacing: 0.015em; } }
+
+/* Sign in: icon + label centred in the button (Georgian text sat low and off-centre). */
+.sign-in { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px; padding: 0 18px !important; line-height: 1 !important; text-align: center; }
+.sign-in svg { flex: none; width: 18px; height: 18px; }
+.sign-in > span { display: block; line-height: 1.2; }

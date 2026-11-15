@@ -171,7 +171,7 @@
               *ngFor="let item of newItems; trackBy: trackItem"
               [apartment]="item.apartment"
               [isNew]="item.isNew"
-              [rank]="item.order + 1"
+              [rank]="null"
               [needsCheck]="item.needsCheck"
               [highlighted]="highlightedApartmentId === item.apartment.id"
               [searchName]="searchName(item)"
@@ -196,10 +196,10 @@
         <ng-container *ngIf="tab === 'all'">
           <div class="card-grid" *ngIf="allItems.length">
             <app-discover-card
-              *ngFor="let item of allItems; trackBy: trackItem"
+              *ngFor="let item of allItems; let i = index; trackBy: trackItem"
               [apartment]="item.apartment"
               [isNew]="item.isNew"
-              [rank]="item.order + 1"
+              [rank]="sort === 'best' ? i + 1 : null"
               [needsCheck]="item.needsCheck"
               [highlighted]="highlightedApartmentId === item.apartment.id"
               [searchName]="searchName(item)"
@@ -258,7 +258,7 @@
                 *ngIf="savedMatch(apartment) as match; else plainSaved"
                 [apartment]="apartment"
                 [savedView]="true"
-                [rank]="match.order + 1"
+                [rank]="null"
                 [matched]="true"
                 [needsCheck]="match.needsCheck"
                 [reasons]="match.reasons"

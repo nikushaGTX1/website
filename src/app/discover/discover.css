@@ -1322,3 +1322,14 @@
 .search-hero .rename-form .icon-btn.solid { background: linear-gradient(135deg, #7c3aed, #4c1d95); color: #fff; border: 0; box-shadow: 0 6px 16px rgba(76, 29, 149, 0.3); }
 .search-hero .rename-form .rename-cancel { border: 1.5px solid #e6def3; background: #fff; color: #6b5d85; }
 .search-hero .rename-form .rename-cancel:hover { background: #f6f2fd; }
+
+/* Preference card header: counts on one line, "new" pill, readable name */
+.search-hero .search-hero-text { position: relative; z-index: 1; display: grid; gap: 10px; width: 60%; min-width: 0; }
+.search-hero .search-select { display: grid; justify-items: start; gap: 10px; padding: 0; border: 0; background: none; text-align: left; }
+.search-hero .search-counts { display: flex !important; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: #6b6280; font-size: 13px; line-height: 1.2; }
+.search-hero .search-counts b { color: #1f1530; font-size: 30px; font-weight: 800; line-height: 1; white-space: nowrap; }
+.search-hero .search-counts em { order: 3; flex-basis: 100%; width: max-content; max-width: 100%; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #e8f8ee; color: #15803d; font-size: 12px; font-style: normal; font-weight: 800; white-space: nowrap; }
+.search-hero .search-counts em::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+.search-hero .search-title { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.search-hero .search-title h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal !important; font-size: 16px; line-height: 1.3; }
+.search-hero .search-title .icon-btn { width: 30px; height: 30px; flex: none; }
