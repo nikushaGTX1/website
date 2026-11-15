@@ -1312,3 +1312,13 @@
 @media (max-width: 640px) and (prefers-reduced-motion: reduce) { .sort-menu .sort-options { animation: none !important; } }
 :host-context(html:lang(ka)) .sort-menu .sort-options::before { content: "დალაგება"; }
 :host-context(html:lang(ru)) .sort-menu .sort-options::before { content: "Сортировка"; }
+
+
+/* Rename a saved search: wide field, save + cancel */
+.search-hero .rename-form { width: min(100%, 340px); gap: 8px; padding: 6px; border-radius: 16px; background: rgba(255, 255, 255, 0.85); box-shadow: 0 10px 28px rgba(76, 29, 149, 0.14); backdrop-filter: blur(6px); }
+.search-hero .rename-form input { height: 44px; padding: 0 14px; border: 1.5px solid #d9c9f7; border-radius: 12px; background: #fff; color: #1f1530; font-size: 15.5px; font-weight: 700; transition: border-color 0.15s, box-shadow 0.15s; }
+.search-hero .rename-form input:focus { border-color: #6d2ee0; box-shadow: 0 0 0 4px rgba(109, 46, 224, 0.12); }
+.search-hero .rename-form .icon-btn { width: 44px; height: 44px; border-radius: 12px; }
+.search-hero .rename-form .icon-btn.solid { background: linear-gradient(135deg, #7c3aed, #4c1d95); color: #fff; border: 0; box-shadow: 0 6px 16px rgba(76, 29, 149, 0.3); }
+.search-hero .rename-form .rename-cancel { border: 1.5px solid #e6def3; background: #fff; color: #6b5d85; }
+.search-hero .rename-form .rename-cancel:hover { background: #f6f2fd; }

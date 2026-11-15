@@ -328,6 +328,9 @@
             <button type="submit" class="icon-btn solid" aria-label="Save name" [disabled]="busySearchId === view.search.id">
               <i class="fa-solid fa-check" aria-hidden="true"></i>
             </button>
+            <button type="button" class="icon-btn rename-cancel" aria-label="Cancel" (click)="renamingId = null">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
           </form>
           </div>
           </div>

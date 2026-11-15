@@ -512,7 +512,14 @@ export class Discover implements OnInit, OnDestroy {
     this.renamingId = search.id;
     this.renameValue = search.name;
     this.confirmDeleteId = null;
-    window.setTimeout(() => document.getElementById(`rename-${search.id}`)?.focus());
+    window.setTimeout(() => {
+      // Focus with the whole name selected, scrolled to its start (not cut off on the left).
+      const input = document.getElementById(`rename-${search.id}`) as HTMLInputElement | null;
+      if (!input) return;
+      input.focus();
+      input.select();
+      input.scrollLeft = 0;
+    });
   }
 
   saveRename(search: SavedSearch): void {
