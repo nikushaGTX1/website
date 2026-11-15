@@ -11,6 +11,12 @@ import { answerLabel } from '../ai-home-match/services/answer-labels';
 import { toMediaUrl } from '../utils/api-media';
 import { isSaleListing } from '../utils/listing-deal';
 import { PhotoUrlPipe } from '../shared/photo-url.pipe';
+import { countryOptions } from '../utils/country-names';
+import { enableFlagEmojis } from '../utils/flag-emoji';
+import { TranslationService } from '../services/translation.service';
+
+// Windows has no flag emoji: load the site's flag font for the nationality row.
+enableFlagEmojis();
 
 /**
  * Owners and agents: for each published listing, the clients whose saved Velven Match search it
@@ -28,6 +34,7 @@ export class InterestedClients implements OnInit {
   @Input() hideTitle = false;
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translation = inject(TranslationService);
   readonly label = answerLabel;
   listings: ListingInterest[] = [];
   loading = true;
@@ -114,6 +121,19 @@ export class InterestedClients implements OnInit {
   /** Title pipe input: the listing's own and translated titles. */
   titleSource(listing: ListingInterest) {
     return { title: listing.title, titleEn: listing.titleEn, titleKa: listing.titleKa, titleRu: listing.titleRu, district: listing.district };
+  }
+
+  /** Client's nationality (saved as the English country name) with its flag, in the page language. */
+  nationality(client: InterestedClient): { flag: string; label: string } | null {
+    const name = String(client.profile['nationality'] || '').trim().toLowerCase();
+    if (!name) return null;
+    const country = countryOptions(this.translation.language$.value).find((option) => option.name.toLowerCase() === name || option.code.toLowerCase() === name);
+    return country ? { flag: country.flag, label: country.label } : { flag: '', label: String(client.profile['nationality']) };
+  }
+
+  initials(name: string | null | undefined): string {
+    const parts = (name || 'Velven').trim().split(/\s+/);
+    return parts.map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   }
 
   currencySymbol(currency: string | undefined): string {
