@@ -208,3 +208,6 @@ h1 { margin: 0; font-size: clamp(32px, 4.4vw, 56px); font-weight: 800; line-heig
   .cc-facts { grid-template-columns: 1fr 1fr; }
   .cc-agent { order: 9; }
 }
+
+.cc-agent-avatar { overflow: hidden; }
+.cc-agent-avatar img { width: 100%; height: 100%; object-fit: cover; }

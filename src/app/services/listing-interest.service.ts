@@ -14,6 +14,8 @@ export interface InterestedClient {
   /** The Velven agent who checked the client; the owner calls them. */
   agentName?: string | null;
   agentPhone?: string | null;
+  /** Profile picture of the agent who confirmed the client. */
+  agentPhoto?: string | null;
 }
 
 export type ReviewStatus = 'pending' | 'ready' | 'dismissed';

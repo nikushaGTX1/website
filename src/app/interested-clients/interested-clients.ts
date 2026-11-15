@@ -131,6 +131,10 @@ export class InterestedClients implements OnInit {
     return country ? { flag: country.flag, label: country.label } : { flag: '', label: String(client.profile['nationality']) };
   }
 
+  media(path: string): string {
+    return toMediaUrl(path);
+  }
+
   initials(name: string | null | undefined): string {
     const parts = (name || 'Velven').trim().split(/\s+/);
     return parts.map((part) => part[0]).join('').slice(0, 2).toUpperCase();
