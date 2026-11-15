@@ -131,6 +131,29 @@ export class InterestedClients implements OnInit {
     return country ? { flag: country.flag, label: country.label } : { flag: '', label: String(client.profile['nationality']) };
   }
 
+  /** Cards whose "+N" areas were opened. */
+  readonly expandedClients = new Set<InterestedClient>();
+
+  /** Icon for a priority chip (same set as the Clients page). */
+  priorityIcon(code: string): string {
+    if (/Parking/.test(code)) return 'car';
+    if (/Quiet|Away/.test(code)) return 'moon';
+    if (/Park|Playground/.test(code)) return 'tree';
+    if (/Metro|Transport/.test(code)) return 'train-subway';
+    if (/School|University|Study|Kindergarten/.test(code)) return 'graduation-cap';
+    if (/Workspace|Office|Company/.test(code)) return 'briefcase';
+    if (/Gym/.test(code)) return 'dumbbell';
+    if (/Everyday|Supermarket|Pharmacy/.test(code)) return 'basket-shopping';
+    if (/Cafe|Restaurant|Meeting|Entertainment/.test(code)) return 'mug-hot';
+    if (/Clinic/.test(code)) return 'house-medical';
+    if (/Balcony/.test(code)) return 'sun';
+    if (/Security/.test(code)) return 'shield-halved';
+    if (/Bathroom|Bedroom/.test(code)) return 'bed';
+    if (/CityCenter|Location/.test(code)) return 'location-dot';
+    if (/Modern|Building/.test(code)) return 'building';
+    return 'check';
+  }
+
   /** Agent photos that failed to load: show initials instead. */
   readonly brokenPhotos = new Set<string>();
 

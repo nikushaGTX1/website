@@ -382,6 +382,8 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['fits your life.', 'подходит вашей жизни.'],
   ['feels like you.', 'подходит именно вам.'],
   ['Find My Match', 'Найти мой вариант'],
+  ['Country', 'Страна'],
+  ['Animals', 'Животные'],
   ['Looking for', 'Ищет'],
   ['A team that cares about your home as much as you do.', 'Команда, которой ваш дом так же важен, как и вам.'],
   ['Agents, technologists and market experts with one goal: helping you find the right home quickly, simply and safely.', 'Агенты, технологи и эксперты рынка с одной целью: помочь вам найти подходящий дом быстро, просто и безопасно.'],

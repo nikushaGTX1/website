@@ -912,3 +912,5 @@
 .sign-in { display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px; padding: 0 18px !important; line-height: 1 !important; text-align: center; }
 .sign-in svg { flex: none; width: 18px; height: 18px; }
 .sign-in > span { display: block; line-height: 1.2; }
+/* Sign in never clips its Georgian label: size to the content */
+.nav-actions .sign-in { flex: none; width: auto; min-width: max-content; padding: 0 16px !important; overflow: visible; }

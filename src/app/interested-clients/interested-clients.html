@@ -48,56 +48,46 @@
           <div class="client-grid">
             @for (client of listing.clients; track client.searchId) {
               <article class="client-card" [class.is-new]="client.isNew">
-                <aside class="cc-side">
-                  <div class="cc-id-row">
-                    <span class="cc-avatar" aria-hidden="true">
-                      @if (nationality(client)?.flag) {<span class="cc-flag">{{ nationality(client)?.flag }}</span>} @else {<i class="fa-solid fa-user"></i>}
-                    </span>
-                    <div class="cc-who">
-                      <strong><span>Client</span> #{{ client.searchId }}</strong>
-                      <span class="cc-new" *ngIf="client.isNew">New</span>
-                    </div>
+                <div class="cc-body">
+                  <header class="cc-top">
+                    <h3><span>Client</span> #{{ client.searchId }}</h3>
+                    @if (client.isNew) {<span class="cc-status new"><i aria-hidden="true"></i> New</span>} @else {<span class="cc-status"><i aria-hidden="true"></i> Searching</span>}
+                  </header>
+                  <div class="cc-badges">
+                    <span class="cc-match">Velven Match <i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                    <span class="cc-confirmed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Confirmed by a Velven agent</span>
                   </div>
-                  <span class="cc-verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>Confirmed by a Velven agent</span></span>
-                  <div class="cc-budget">
-                    <span class="cc-label">Budget</span>
-                    <p><strong data-no-translate>{{ currencySymbol(client.profile['currency']) }}{{ (client.profile['budgetMin'] || 0) | number }}–{{ (client.profile['budgetMax'] || 0) | number }}</strong><span *ngIf="client.profile['propertyGoal'] !== 'Buy'">/ month</span></p>
-                  </div>
-                  <div class="cc-agent">
-                    <span class="cc-agent-avatar" aria-hidden="true">@if (client.agentPhoto && !brokenPhotos.has(client.agentPhoto)) {<img [src]="media(client.agentPhoto)" alt="" (error)="brokenPhotos.add(client.agentPhoto)" />} @else {{{ initials(client.agentName) }}}</span>
-                    <div class="cc-agent-copy">
-                      <span>Your Velven agent</span>
-                      <strong data-no-translate>{{ client.agentName || 'Velven' }}</strong>
-                    </div>
-                  </div>
-                  @if (client.agentPhone) {
-                    <a class="cc-action" [href]="'tel:' + client.agentPhone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Call your agent</a>
-                  } @else {
-                    <a class="cc-action" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact a Velven agent</a>
-                  }
-                </aside>
-
-                <div class="cc-main">
-                  <dl class="cc-facts">
+                  <p class="cc-price"><strong data-no-translate>{{ currencySymbol(client.profile['currency']) }}{{ (client.profile['budgetMin'] || 0) | number }}–{{ (client.profile['budgetMax'] || 0) | number }}</strong><span *ngIf="client.profile['propertyGoal'] !== 'Buy'">/ month</span></p>
+                  <dl class="cc-rows">
                     @if (nationality(client); as nat) {
-                      <div><dt><i class="fa-solid fa-earth-europe" aria-hidden="true"></i><span>Nationality</span></dt><dd><span class="cc-flag-sm" aria-hidden="true">{{ nat.flag }}</span><span data-no-translate>{{ nat.label }}</span></dd></div>
+                      <div><dt><i class="fa-solid fa-earth-europe" aria-hidden="true"></i><span>Country</span></dt><dd class="cc-nat"><em class="cc-flag" *ngIf="nat.flag" aria-hidden="true">{{ nat.flag }}</em><span data-no-translate>{{ nat.label }}</span></dd></div>
                     }
-                    <div><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Preferred area</span></dt><dd>
-                      @for (district of districts(client); track district) {@if ($index) {<span> · </span>}<span>{{ label(district) }}</span>}
+                    <div><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>District</span></dt><dd>
+                      @for (district of districts(client).slice(0, expandedClients.has(client) ? 99 : 3); track district) {@if ($index) {<span> · </span>}<span>{{ label(district) }}</span>}
+                      <button type="button" class="more-areas" *ngIf="!expandedClients.has(client) && districts(client).length > 3" (click)="expandedClients.add(client)" data-no-translate>+{{ districts(client).length - 3 }}</button>
                       <span *ngIf="!districts(client).length">Flexible location</span>
                     </dd></div>
                     <div><dt><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>Residents</span></dt><dd>{{ residents(client) }} @if (residents(client) === 1) {<span>person</span>} @else {<span>people</span>}</dd></div>
-                    <div><dt><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home size</span></dt><dd>@if (client.profile['bedrooms'] != null) {{{ client.profile['bedrooms'] }} @if (client.profile['bedrooms'] === 1) {<span>bedroom</span>} @else {<span>bedrooms</span>}} @else {<span>No preference</span>}</dd></div>
+                    <div *ngIf="client.profile['propertyGoal'] !== 'Buy'"><dt><i class="fa-solid fa-paw" aria-hidden="true"></i><span>Animals</span></dt><dd>@if (pets(client).length) {@for (pet of pets(client); track $index) {@if ($index) {<span>, </span>}<span>{{ label(pet) }}</span>}} @else {<span>No pets</span>}</dd></div>
                     <div><dt><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>Move-in</span></dt><dd>{{ client.profile['moveInDate'] || label(client.profile['moveInTiming']) || 'Not specified' }}</dd></div>
                     <div *ngIf="client.profile['propertyGoal'] !== 'Buy'"><dt><i class="fa-regular fa-file-lines" aria-hidden="true"></i><span>Lease term</span></dt><dd>{{ label(client.profile['rentalDuration']) || 'Not specified' }}</dd></div>
-                    <div><dt><i class="fa-solid fa-paw" aria-hidden="true"></i><span>Pets</span></dt><dd>@if (pets(client).length) {@for (pet of pets(client); track $index) {@if ($index) {<span>, </span>}<span>{{ label(pet) }}</span>}} @else {<span>No pets</span>}</dd></div>
+                    <div><dt><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home size</span></dt><dd>@if (client.profile['bedrooms'] != null) {{{ client.profile['bedrooms'] }} @if (client.profile['bedrooms'] === 1) {<span>bedroom</span>} @else {<span>bedrooms</span>}} @else {<span>No preference</span>}</dd></div>
                   </dl>
-                  <div class="cc-wants" *ngIf="priorities(client).length">
-                    <span class="cc-label">Looking for</span>
-                    <div class="cc-chips">
-                      @for (priority of priorities(client); track priority) {<span><i class="fa-solid fa-check" aria-hidden="true"></i>{{ label(priority) }}</span>}
+                  <div class="cc-chips" *ngIf="priorities(client).length">
+                    @for (priority of priorities(client).slice(0, 3); track priority) {<span><i [class]="'fa-solid fa-' + priorityIcon(priority)" aria-hidden="true"></i>{{ label(priority) }}</span>}
+                  </div>
+                  <div class="cc-agent">
+                    <p class="cc-agent-title">Your Velven agent</p>
+                    <div class="cc-agent-row">
+                      @if (client.agentPhoto && !brokenPhotos.has(client.agentPhoto)) {<img [src]="media(client.agentPhoto)" alt="" loading="lazy" (error)="brokenPhotos.add(client.agentPhoto)" />} @else {<span class="cc-agent-placeholder" aria-hidden="true"><i class="fa-solid fa-user-tie"></i></span>}
+                      <div><strong data-no-translate>{{ client.agentName || 'Velven' }}</strong><a *ngIf="client.agentPhone" [href]="'tel:' + client.agentPhone" data-no-translate>{{ client.agentPhone }}</a></div>
                     </div>
                   </div>
+                  @if (client.agentPhone) {
+                    <a class="cc-contact" [href]="'tel:' + client.agentPhone"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact Velven</a>
+                  } @else {
+                    <a class="cc-contact" routerLink="/agent-profile"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact Velven</a>
+                  }
                 </div>
               </article>
             }
