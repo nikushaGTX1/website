@@ -211,3 +211,14 @@ h1 { margin: 0; font-size: clamp(32px, 4.4vw, 56px); font-weight: 800; line-heig
 
 .cc-agent-avatar { overflow: hidden; }
 .cc-agent-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Phones: one detail per row (label left, value right) instead of squeezed tiles */
+@media (max-width: 760px) {
+  .client-card .cc-side { gap: 12px; }
+  .client-card .cc-facts { grid-template-columns: minmax(0, 1fr) !important; gap: 0 !important; padding: 4px 14px; border: 1px solid #f0ebf8; border-radius: 16px; background: #fbf9ff; }
+  .client-card .cc-facts > div { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 !important; border: 0 !important; border-bottom: 1px solid #efe9f8 !important; border-radius: 0 !important; background: none !important; }
+  .client-card .cc-facts > div:last-child { border-bottom: 0 !important; }
+  .client-card .cc-facts dt { flex: 0 1 auto; font-size: 13px; }
+  .client-card .cc-facts dd { flex: 0 1 auto; justify-content: flex-end; text-align: right; font-size: 14px; }
+  .client-card .cc-chips span { font-size: 12.5px; }
+}

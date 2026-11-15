@@ -131,6 +131,9 @@ export class InterestedClients implements OnInit {
     return country ? { flag: country.flag, label: country.label } : { flag: '', label: String(client.profile['nationality']) };
   }
 
+  /** Agent photos that failed to load: show initials instead. */
+  readonly brokenPhotos = new Set<string>();
+
   media(path: string): string {
     return toMediaUrl(path);
   }

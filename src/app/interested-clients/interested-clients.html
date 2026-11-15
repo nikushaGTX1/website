@@ -64,7 +64,7 @@
                     <p><strong data-no-translate>{{ currencySymbol(client.profile['currency']) }}{{ (client.profile['budgetMin'] || 0) | number }}–{{ (client.profile['budgetMax'] || 0) | number }}</strong><span *ngIf="client.profile['propertyGoal'] !== 'Buy'">/ month</span></p>
                   </div>
                   <div class="cc-agent">
-                    <span class="cc-agent-avatar" aria-hidden="true">@if (client.agentPhoto) {<img [src]="media(client.agentPhoto)" alt="" />} @else {{{ initials(client.agentName) }}}</span>
+                    <span class="cc-agent-avatar" aria-hidden="true">@if (client.agentPhoto && !brokenPhotos.has(client.agentPhoto)) {<img [src]="media(client.agentPhoto)" alt="" (error)="brokenPhotos.add(client.agentPhoto)" />} @else {{{ initials(client.agentName) }}}</span>
                     <div class="cc-agent-copy">
                       <span>Your Velven agent</span>
                       <strong data-no-translate>{{ client.agentName || 'Velven' }}</strong>
