@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../utils/land-area';
 import { cardNearbyPlaces, NearbyPlace } from '../utils/nearby-places';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import {
@@ -35,7 +36,7 @@ import { ListingTitlePipe } from '../shared/listing-title.pipe';
   selector: 'app-explore-property',
   templateUrl: './explore-property.html',
   styleUrl: './explore-property.css',
-  imports: [
+  imports: [LandAreaPipe, 
     NgIf,
     FormsModule,
     NgFor,

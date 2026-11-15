@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../utils/land-area';
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { combineLatest } from 'rxjs';
 import { Apartment } from '../models/apartment';
@@ -16,7 +17,7 @@ import { PhotoUrlPipe } from '../shared/photo-url.pipe';
   selector: 'app-saved-listings',
   templateUrl: './saved-listings.html',
   styleUrls: ['./saved-listings.css', './saved-listings.icons.css'],
-  imports: [PhotoUrlPipe, RouterLink, FormsModule, NgIf, NgFor, CurrencyPrice, ListingTitlePipe],
+  imports: [LandAreaPipe, PhotoUrlPipe, RouterLink, FormsModule, NgIf, NgFor, CurrencyPrice, ListingTitlePipe],
 })
 export class SavedListings implements OnInit {
   readonly isSaleListing = isSaleListing;

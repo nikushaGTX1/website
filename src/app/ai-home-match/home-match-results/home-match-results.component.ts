@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../../utils/land-area';
 import {
   ChangeDetectorRef,
   Component,
@@ -49,7 +50,7 @@ export type SearchSaveState = 'saving' | 'saved' | 'updated' | 'duplicate' | 'fa
   selector: 'app-home-match-results',
   templateUrl: './home-match-results.component.html',
   styleUrl: './home-match-results.component.css',
-  imports: [PhotoDotsComponent, PhotoUrlPipe, 
+  imports: [LandAreaPipe, PhotoDotsComponent, PhotoUrlPipe, 
     NgIf,
     VelvenLifestyleAvatarComponent,
     RouterLink,

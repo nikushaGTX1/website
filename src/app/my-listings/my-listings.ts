@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../utils/land-area';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -15,7 +16,7 @@ import { PhotoUrlPipe } from '../shared/photo-url.pipe';
   selector: 'app-my-listings',
   templateUrl: './my-listings.html',
   styleUrl: './my-listings.css',
-  imports: [PhotoUrlPipe, NgIf, RouterLink, NgFor, CurrencyPrice],
+  imports: [LandAreaPipe, PhotoUrlPipe, NgIf, RouterLink, NgFor, CurrencyPrice],
 })
 export class MyListings implements OnInit, OnDestroy {
   user: User | null = null;

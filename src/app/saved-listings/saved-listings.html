@@ -66,7 +66,7 @@
               <span *ngIf="apartment.rooms"><i class="fa-solid fa-door-open"></i>{{ apartment.rooms }} <span>rooms</span></span>
               <span><i class="fa-solid fa-bed"></i>{{ apartment.bedrooms || '—' }} Beds</span>
               <span *ngIf="apartment.floor != null"><i class="fa-solid fa-stairs"></i>{{ apartment.floor }} <span>Floor</span></span>
-              <span><span class="measurement-svg" aria-hidden="true"></span>{{ apartment.sizeSquareMeters || '—' }} m²</span>
+              <span><span class="measurement-svg" aria-hidden="true"></span>{{ apartment.sizeSquareMeters || '—' }} m²</span><span class="yard-area" *ngIf="apartment | landArea as yard"><i class="fa-solid fa-tree" aria-hidden="true"></i> <span>Yard</span> {{ yard }} m²</span>
             </div>
             <small>Saved recently</small>
             <a class="view-details" [routerLink]="['/apartments', apartment.id]">View details</a>

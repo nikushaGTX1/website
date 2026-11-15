@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../../utils/land-area';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ApartmentMatchResult } from '../models/apartment-match-result';
 import { toMediaUrl } from '../../utils/api-media';
@@ -11,7 +12,7 @@ import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
   selector: 'app-concierge-results',
   templateUrl: './concierge-results.component.html',
   styleUrl: './concierge-results.component.css',
-  imports: [PhotoUrlPipe, NgIf, NgFor, CurrencyPrice, RouterLink, SlicePipe, ListingTitlePipe],
+  imports: [LandAreaPipe, PhotoUrlPipe, NgIf, NgFor, CurrencyPrice, RouterLink, SlicePipe, ListingTitlePipe],
 })
 export class ConciergeResultsComponent {
   @Input() matches: ApartmentMatchResult[] = [];

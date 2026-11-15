@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../../utils/land-area';
 import type { LifestyleInsight } from '../../ai-home-match/services/match-explanations';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Observable, catchError, map, of, shareReplay } from 'rxjs';
@@ -29,7 +30,7 @@ export interface FitLine { lead?: string; text: string; tail?: string }
   selector: 'app-discover-card',
   templateUrl: './discover-card.html',
   styleUrl: './discover-card.css',
-  imports: [DecimalPipe, PhotoUrlPipe, NgIf, NgFor, RouterLink, CurrencyPrice, ListingTitlePipe],
+  imports: [LandAreaPipe, DecimalPipe, PhotoUrlPipe, NgIf, NgFor, RouterLink, CurrencyPrice, ListingTitlePipe],
 })
 export class DiscoverCard implements OnInit {
   @Input({ required: true }) apartment!: Apartment;
@@ -168,10 +169,7 @@ export class DiscoverCard implements OnInit {
 
   /** Kind of parking (garage, courtyard, street), shown before the cost. */
   get parkingType(): string {
-    const type = parkingTypeLabel(this.apartment);
-    // Without parking included, only street / difficult parking says something useful.
-    if (!this.apartment.hasParking && type !== 'Street parking' && type !== 'Parking is difficult') return '';
-    return type;
+    return parkingTypeLabel(this.apartment);
   }
 
   /** Cost next to a known parking type ("Free", "Extra   get parkingText(): string {00"); "" when nothing to add. */

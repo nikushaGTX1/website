@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../utils/land-area';
 import { ChangeDetectorRef, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
@@ -24,7 +25,7 @@ import { PhotoUrlPipe } from '../shared/photo-url.pipe';
   selector: 'app-agent-detail-profile',
   templateUrl: './agent-detail-profile.html',
   styleUrl: './agent-detail-profile.css',
-  imports: [PhotoUrlPipe, 
+  imports: [LandAreaPipe, PhotoUrlPipe, 
     RouterLink,
     NgIf,
     NgTemplateOutlet,

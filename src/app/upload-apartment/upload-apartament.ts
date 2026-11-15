@@ -1,9 +1,11 @@
+import { buildListingCopy } from './listing-copy';
 import { normalizeApartmentStyle } from '../utils/apartment-style';
 import { toMediaUrl } from '../utils/api-media';
 import { isValidPhone } from '../utils/phone';
 import {
   ChangeDetectorRef,
   Component,
+  DoCheck,
   HostListener,
   NgZone,
   OnDestroy,
@@ -81,6 +83,8 @@ type UploadForm = {
   area: number | null;
   /** Land plot / yard area for houses and plots. */
   landArea: number | null;
+  /** Commercial area only: office, retail, warehouse... (saved as "Commercial type:"). */
+  commercialType: string;
   /** Rentals: refundable deposit the tenant pays (amount in the listing's currency). */
   hasDeposit: boolean;
   depositAmount: number | null;
@@ -175,7 +179,7 @@ interface PreparedImage {
   styleUrl: './upload-apartment.css',
   imports: [NgIf, NgFor, RouterLink, FormsModule, PropertyPointPickerComponent],
 })
-export class UploadApartment implements OnInit, OnDestroy {
+export class UploadApartment implements OnInit, OnDestroy, DoCheck {
   /**
    * The local approval-queue counter is a diagnostic: it never sees listings waiting on the
    * server, so for agents it contradicted My listings (VELVEN-024). Admins still get it.
@@ -240,7 +244,7 @@ export class UploadApartment implements OnInit, OnDestroy {
         'Premium marketing on all platforms',
         'Key management & showing service',
         'Tenant screening & verification',
-        'One-time re-rental service',
+        'Owner protection',
       ],
     },
   ];
@@ -300,15 +304,37 @@ export class UploadApartment implements OnInit, OnDestroy {
     },
   ];
   readonly parkingTypeOptions = [
-    { label: 'Garage', value: 'Garage', points: 5 },
-    { label: 'Private courtyard parking', value: 'PrivateCourtyard', points: 4 },
-    { label: 'Courtyard with a barrier/gate', value: 'CourtyardWithBarrier', points: 3 },
-    { label: 'Courtyard without a barrier/gate', value: 'CourtyardWithoutBarrier', points: 2 },
-    { label: 'Street parking', value: 'StreetParking', points: 1 },
-    { label: 'Parking is difficult', value: 'DifficultParking', points: 0 },
+    { label: 'Garage', value: 'Garage', points: 5, icon: 'fa-warehouse' },
+    { label: 'Private courtyard parking', value: 'PrivateCourtyard', points: 4, icon: 'fa-house-lock' },
+    { label: 'Courtyard with a barrier/gate', value: 'CourtyardWithBarrier', points: 3, icon: 'fa-road-barrier' },
+    { label: 'Courtyard without a barrier/gate', value: 'CourtyardWithoutBarrier', points: 2, icon: 'fa-square-parking' },
+    { label: 'Street parking', value: 'StreetParking', points: 1, icon: 'fa-road' },
+    { label: 'Parking is difficult', value: 'DifficultParking', points: 0, icon: 'fa-triangle-exclamation' },
   ];
+  /** Custom parking-type picker: popover on desktop, bottom sheet on phones. */
+  parkingMenuOpen = false;
+  get selectedParkingType() {
+    return this.parkingTypeOptions.find((option) => option.value === this.form.parkingCondition);
+  }
 
   readonly viewTypeOptions = ['City View', 'Nature View', 'No View'];
+
+  /** Kinds of commercial space, as on MyHome. */
+  readonly commercialTypeOptions = [
+    { value: 'Special', label: 'Special purpose', icon: 'fa-solid fa-star' },
+    { value: 'Office', label: 'Office space', icon: 'fa-solid fa-briefcase' },
+    { value: 'Retail', label: 'Retail space', icon: 'fa-solid fa-store' },
+    { value: 'Warehouse', label: 'Warehouse space', icon: 'fa-solid fa-warehouse' },
+    { value: 'Production', label: 'Production space', icon: 'fa-solid fa-industry' },
+    { value: 'FoodService', label: 'Food service', icon: 'fa-solid fa-utensils' },
+    { value: 'Garage', label: 'Car garage', icon: 'fa-solid fa-car' },
+    { value: 'Basement', label: 'Basement', icon: 'fa-solid fa-stairs' },
+    { value: 'SemiBasement', label: 'Semi-basement', icon: 'fa-solid fa-layer-group' },
+    { value: 'WholeBuilding', label: 'Whole building', icon: 'fa-solid fa-building' },
+    { value: 'CarWash', label: 'Car wash', icon: 'fa-solid fa-soap' },
+    { value: 'CarService', label: 'Car service', icon: 'fa-solid fa-screwdriver-wrench' },
+    { value: 'Universal', label: 'Universal space', icon: 'fa-solid fa-shapes' },
+  ];
 
   readonly minimumRentalPeriodOptions = ['Minimum 6 months', 'Minimum 12 months'];
 
@@ -367,6 +393,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     description: '',
     area: null,
     landArea: null,
+    commercialType: '',
     hasDeposit: false,
     depositAmount: null,
     rooms: null,
@@ -413,7 +440,7 @@ export class UploadApartment implements OnInit, OnDestroy {
   };
 
   loading = false;
-  selectedListingPlan: ListingPlan | null = 'exclusive';
+  selectedListingPlan: ListingPlan | null = null;
   activeStep = 0;
   draftSaved = false;
   successMessage = '';
@@ -517,94 +544,36 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   generateListingCopy(force = true): void {
     if (!force && this.listingCopyTouched) return;
-
-    const type = {
-      Apartment: ['ბინა', 'Apartment', 'Квартира'],
-      'Private house': ['კერძო სახლი', 'Private house', 'Частный дом'],
-      'Country house': ['აგარაკი', 'Country house', 'Загородный дом'],
-      Plot: ['მიწის ნაკვეთი', 'Land plot', 'Земельный участок'],
-      'Commercial area': ['კომერციული ფართი', 'Commercial property', 'Коммерческая недвижимость'],
-      Hotel: ['სასტუმრო', 'Hotel', 'Отель'],
-    }[this.form.realEstateType] || ['უძრავი ქონება', 'Property', 'Недвижимость'];
-    const deal = {
-      'For Sale': ['იყიდება', 'for sale', 'на продажу'],
-      'For Rent': ['ქირავდება', 'for rent', 'в аренду'],
-      Lease: ['გრძელვადიანი იჯარა', 'for lease', 'в долгосрочную аренду'],
-      'Daily rent': ['ქირავდება დღიურად', 'for daily rent', 'в посуточную аренду'],
-    }[this.form.dealType] || ['იყიდება', 'for sale', 'на продажу'];
-    const districtEntry = this.locationEntries.find(
-      (entry) => entry.district === this.selectedDistrictValue,
-    );
-    const places = {
-      ka: districtEntry
-        ? this.locationService.districtName(districtEntry, 'ka')
-        : this.form.location,
-      en: districtEntry
-        ? this.locationService.districtName(districtEntry, 'en')
-        : this.form.location,
-      ru: districtEntry
-        ? this.locationService.districtName(districtEntry, 'ru')
-        : this.form.location,
-    };
-    // Titles name the home only; the price is shown beside them, so it is not repeated here.
-    const roomKa = this.form.rooms ? `${this.form.rooms}-ოთახიანი ` : '';
-    const roomEn = this.form.rooms ? `${this.form.rooms}-room ` : '';
-    const roomRu = this.form.rooms ? `${this.form.rooms}-комнатная ` : '';
-    const placeKa = places.ka ? `${places.ka}, თბილისში` : 'თბილისში';
-    const placeEn = places.en ? `${places.en}, Tbilisi` : 'Tbilisi';
-    const placeRu = places.ru ? `${places.ru}, Тбилиси` : 'Тбилиси';
-    const detailsKa = [
-      this.form.area ? `${this.form.area} მ²` : '',
-      this.form.bedrooms ? `${this.form.bedrooms} საძინებელი` : '',
-      this.form.floor != null ? `${this.form.floor} სართული` : '',
-    ]
-      .filter(Boolean)
-      .join(', ');
-    const detailsEn = [
-      this.form.area ? `${this.form.area} m²` : '',
-      this.form.bedrooms
-        ? `${this.form.bedrooms} bedroom${this.form.bedrooms === 1 ? '' : 's'}`
-        : '',
-      this.form.floor != null ? `floor ${this.form.floor}` : '',
-    ]
-      .filter(Boolean)
-      .join(', ');
-    const detailsRu = [
-      this.form.area ? `${this.form.area} м²` : '',
-      this.form.bedrooms ? `${this.form.bedrooms} спал.` : '',
-      this.form.floor != null ? `${this.form.floor} этаж` : '',
-    ]
-      .filter(Boolean)
-      .join(', ');
-    const conditions: Record<string, [string, string]> = {
-      'Newly Renovated': ['ახალი რემონტით', 'Свежий ремонт'],
-      'Old renovated': ['ძველი რემონტით', 'Старый ремонт'],
-      'Current renovation': ['მიმდინარე რემონტი', 'Ремонт в процессе'],
-      Repairing: ['სარემონტო', 'Требует ремонта'],
-      'White frame': ['თეთრი კარკასი', 'Белый каркас'],
-      'Black frame': ['შავი კარკასი', 'Чёрный каркас'],
-      'Green frame': ['მწვანე კარკასი', 'Зелёный каркас'],
-      'White Plus': ['თეთრი კარკასი პლუსი', 'Белый каркас плюс'],
-    };
-    const condition = conditions[this.form.condition] || ['', ''];
-
-    this.listingCopy = {
-      ka: {
-        title: `${deal[0]} ${roomKa}${type[0]} ${placeKa}`,
-        description: `${deal[0]} ${type[0]} ${placeKa}.${detailsKa ? ` ძირითადი მახასიათებლები: ${detailsKa}.` : ''}${condition[0] ? ` მდგომარეობა: ${condition[0]}.` : ''} დაინტერესების შემთხვევაში დაგვიკავშირდით დამატებითი ინფორმაციისა და ნახვის დასაგეგმად.`,
-      },
-      en: {
-        title: `${roomEn}${type[1]} ${deal[1]} in ${placeEn}`,
-        description: `${type[1]} ${deal[1]} in ${placeEn}.${detailsEn ? ` Key details: ${detailsEn}.` : ''}${this.form.condition ? ` Condition: ${this.form.condition}.` : ''} Contact us for more information or to arrange a viewing.`,
-      },
-      ru: {
-        title: `${roomRu}${type[2]} ${deal[2]} в ${placeRu}`,
-        description: `${type[2]} ${deal[2]} в ${placeRu}.${detailsRu ? ` Основные параметры: ${detailsRu}.` : ''}${condition[1] ? ` Состояние: ${condition[1]}.` : ''} Свяжитесь с нами для получения дополнительной информации и организации просмотра.`,
-      },
-    };
+    const districtEntry = this.locationEntries.find((entry) => entry.district === this.selectedDistrictValue);
+    const place = (lang: 'ka' | 'en' | 'ru') =>
+      districtEntry ? this.locationService.districtName(districtEntry, lang) : this.form.location;
+    this.listingCopy = buildListingCopy({
+      ...this.form,
+      places: { ka: place('ka'), en: place('en'), ru: place('ru') },
+      features: this.featureOptions.map((option) => option.field).filter((field) => field !== 'hasParking' && this.form[field]),
+      parkingCondition: this.form.hasParking ? this.form.parkingCondition : '',
+      parkingCost: this.form.hasParking ? this.form.parkingCost : '',
+    });
+    this.listingCopySignature = this.copySignature();
     this.form.title = this.listingCopy.ka.title;
     this.form.description = this.listingCopy.ka.description;
     this.listingCopyTouched = false;
+  }
+  private listingCopySignature = '';
+
+  /** Everything the generated text is built from. */
+  private copySignature(): string {
+    const f = this.form;
+    return JSON.stringify([f.realEstateType, f.dealType, f.buildingStatus, f.condition, this.selectedDistrictValue, f.location,
+      f.rooms, f.bedrooms, f.bathrooms, f.area, f.landArea, f.floor, f.totalFloors, f.parkingCondition, f.parkingCost,
+      f.viewType, f.apartmentStyle, f.minimumRentalPeriod, f.availableFrom, f.maxOccupants,
+      this.featureOptions.map((option) => !!f[option.field])]);
+  }
+
+  /** The text follows the form as it fills in, until the agent edits it by hand. */
+  ngDoCheck(): void {
+    if (this.listingCopyTouched || this.isEditMode) return;
+    if (this.copySignature() !== this.listingCopySignature) this.generateListingCopy(false);
   }
   locationEntries: ApiLocation[] = [];
   locationLoading = false;
@@ -674,6 +643,8 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.agentPhone = '';
     }
     const query = this.route.snapshot.queryParamMap;
+    // New listings start on the plan choice; editing keeps the saved plan (loaded below).
+    if (query.has('edit') || query.has('pending') || query.has('owner')) this.selectedListingPlan = 'exclusive';
     if (!query.has('edit') && !query.has('pending') && !query.has('owner')) this.restoreDraft();
     this.pendingService.refresh();
     this.startEditFromRoute();
@@ -859,6 +830,7 @@ export class UploadApartment implements OnInit, OnDestroy {
     f.totalPrice = num(source.price);
     f.sqPrice = num(tag('Sq. price'));
     f.landArea = num(tag('Land area').replace(/\s*m2$/i, ''));
+    f.commercialType = this.commercialTypeOptions.some((option) => option.value === tag('Commercial type')) ? tag('Commercial type') : '';
     f.depositAmount = num(tag('Deposit'));
     f.hasDeposit = f.depositAmount !== null;
     f.currency = tag('Currency').toUpperCase() === 'GEL' ? 'GEL' : '$';
@@ -1312,6 +1284,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       const draft = {
         form: { ...this.form, imageUrl: '', imageUrls: [] },
         listingCopy: this.listingCopy,
+        listingCopyTouched: this.listingCopyTouched,
         listingPlan: this.selectedListingPlan,
         district: this.selectedDistrictValue,
         street: this.selectedStreetValue,
@@ -1343,6 +1316,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.agentName = this.form.agentName || agentName;
       this.form.agentPhone = this.form.agentPhone || agentPhone;
       if (draft.listingCopy) this.listingCopy = draft.listingCopy;
+      if (draft.listingCopyTouched) this.listingCopyTouched = true;
       if (draft.listingPlan !== undefined) this.selectedListingPlan = draft.listingPlan;
       if (draft.district) this.selectedDistrictValue = draft.district;
       if (draft.street) this.selectedStreetValue = draft.street;
@@ -1402,7 +1376,17 @@ export class UploadApartment implements OnInit, OnDestroy {
 
   toggle(field: 'hideAddress' | 'isVerified' | 'exchangePossible' | BooleanFeature): void {
     this.form[field] = !this.form[field];
-    if (field === 'hasParking' && !this.form.hasParking) this.form.parkingCondition = '';
+    if (field === 'hasParking' && !this.form.hasParking) {
+      this.form.parkingCondition = '';
+      this.parkingMenuOpen = false;
+    }
+    // Ticking Parking opens the parking type picker straight away.
+    if (field === 'hasParking' && this.form.hasParking && !this.form.parkingCondition) {
+      setTimeout(() => {
+        this.parkingMenuOpen = true;
+        document.querySelector('.ptype')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
   }
 
   parkingPointsFor(value: string): number {
@@ -2554,6 +2538,7 @@ export class UploadApartment implements OnInit, OnDestroy {
       this.form.streetNumber ? `Building: ${this.form.streetNumber}` : '',
       this.form.area ? `Area: ${this.form.area} m2` : '',
       this.form.landArea && this.hasLandArea ? `Land area: ${this.form.landArea} m2` : '',
+      this.form.realEstateType === 'Commercial area' && this.form.commercialType ? `Commercial type: ${this.form.commercialType}` : '',
       this.isRentDeal && this.form.hasDeposit && Number(this.form.depositAmount) > 0
         ? `Deposit: ${Math.round(Number(this.form.depositAmount))}`
         : '',

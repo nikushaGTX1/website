@@ -616,3 +616,8 @@ input[type='tel'].phone-invalid { border-color: #c4284a !important; box-shadow: 
   background-repeat: no-repeat !important;
 }
 .pac-item > span:last-child { overflow: hidden; text-overflow: ellipsis; }
+
+
+/* Yard / land area next to the living area on listing cards */
+.yard-area { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.yard-area > i { color: #2f9e5b; font-size: 0.9em; }

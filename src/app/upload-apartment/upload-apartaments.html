@@ -124,6 +124,7 @@
         <div class="preview-facts">
           <span><i class="fa-solid fa-ruler-combined"></i> {{ form.area || '—' }} m²</span>
           <span><i class="fa-solid fa-bed"></i> {{ form.bedrooms || '—' }} beds</span>
+          <span *ngIf="hasLandArea"><i class="fa-solid fa-tree"></i> {{ form.landArea || '—' }} m² <span>{{ form.realEstateType === 'Plot' ? 'Land' : 'Yard' }}</span></span>
           <span><i class="fa-solid fa-stairs"></i> {{ form.floor ?? "\u2014" }} <span>Floor</span></span>
         </div>
         <small class="preview-location"><i class="fa-solid fa-location-dot"></i> {{ previewLocation }}, Tbilisi</small>
@@ -185,6 +186,21 @@
               <i [class]="chipIcon(option)" aria-hidden="true"></i><span>{{ option }}</span>
             </button>
           </div>
+          <div class="commercial-types" *ngIf="form.realEstateType === 'Commercial area'">
+            <span class="commercial-types-label">Commercial space type</span>
+            <div class="chip-grid">
+              <button type="button" class="chip" *ngFor="let option of commercialTypeOptions" [class.selected]="form.commercialType === option.value" [attr.aria-pressed]="form.commercialType === option.value" (click)="form.commercialType = form.commercialType === option.value ? '' : option.value">
+                <i [class]="option.icon" aria-hidden="true"></i><span>{{ option.label }}</span>
+              </button>
+            </div>
+          </div>
+          <label class="yard-input" *ngIf="hasLandArea">
+            <span class="yard-input-label"><i class="fa-solid fa-tree" aria-hidden="true"></i><span>{{ form.realEstateType === 'Plot' ? 'Land area' : 'Yard area' }}</span></span>
+            <span class="yard-input-box">
+              <input type="number" name="landArea" min="1" max="1000000" step="1" placeholder="0" inputmode="numeric" [(ngModel)]="form.landArea" (ngModelChange)="clampNumericField('landArea', { min: 1, max: 1000000, integer: false })" />
+              <b>m²</b>
+            </span>
+          </label>
         </div>
 
         <div class="field-group">
@@ -373,7 +389,6 @@
           <div class="feature-block-title"><div><span>Property specifications</span><small>The essentials buyers compare first</small></div><i class="fa-solid fa-ruler-combined"></i></div>
           <div class="metric-grid">
             <label class="metric-field"><span><i class="fa-solid fa-vector-square"></i> Living area</span><div><input type="number" name="area" min="1" max="5000" step="0.1" placeholder="0" [(ngModel)]="form.area" (ngModelChange)="clampNumericField('area', { min: 1, max: 5000, integer: false }); recalculateSqPrice(); clearDuplicateDismissal(); checkDuplicates()" /><b>m²</b></div></label>
-            <label class="metric-field" *ngIf="hasLandArea"><span><i class="fa-solid fa-tree"></i> Land / yard area</span><div><input type="number" name="landArea" min="1" max="1000000" step="1" placeholder="0" [(ngModel)]="form.landArea" (ngModelChange)="clampNumericField('landArea', { min: 1, max: 1000000, integer: false })" /><b>m²</b></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-door-open"></i> Rooms</span><div><input type="number" name="rooms" min="1" max="50" step="1" placeholder="0" [(ngModel)]="form.rooms" (ngModelChange)="clampNumericField('rooms', { min: 1, max: 50, integer: true }); clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-bed"></i> Bedrooms</span><div><input type="number" name="bedrooms" min="0" max="50" step="1" placeholder="0" [(ngModel)]="form.bedrooms" (ngModelChange)="clampNumericField('bedrooms', { min: 0, max: 50, integer: true }); clearDuplicateDismissal(); checkDuplicates()" /></div></label>
             <label class="metric-field"><span><i class="fa-solid fa-bath"></i> Bathrooms</span><div><input type="number" name="bathrooms" min="0" max="50" step="1" placeholder="0" [(ngModel)]="form.bathrooms" (ngModelChange)="clampNumericField('bathrooms', { min: 0, max: 50, integer: true })" /></div></label>
@@ -406,16 +421,40 @@
             <i class="fa-solid fa-volume-low" aria-hidden="true"></i>
             Mark “Quiet street” only when the street is not on or directly connected to a main avenue.
           </p>
-          <label class="style-select parking-type-select" *ngIf="form.hasParking">
-            <span>Parking type</span>
-            <select name="parkingCondition" [ngModel]="form.parkingCondition" (ngModelChange)="selectParkingType($event)" required>
-              <option value="" disabled>Select parking type</option>
-              <option *ngFor="let option of parkingTypeOptions" [value]="option.value">
-                {{ option.label }} — {{ option.points }} {{ option.points === 1 ? 'point' : 'points' }}
-              </option>
-            </select>
-            <small *ngIf="form.parkingCondition">Parking score: {{ parkingPointsFor(form.parkingCondition) }} / 5</small>
-          </label>
+          <div class="ptype" *ngIf="form.hasParking" [class.open]="parkingMenuOpen">
+            <span class="ptype-label">Parking type</span>
+            <input type="hidden" name="parkingCondition" [ngModel]="form.parkingCondition" required />
+            <button type="button" class="ptype-trigger" [class.empty]="!selectedParkingType" aria-haspopup="listbox" [attr.aria-expanded]="parkingMenuOpen" (click)="parkingMenuOpen = !parkingMenuOpen; $event.stopPropagation()">
+              <span class="ptype-icon"><i [class]="'fa-solid ' + (selectedParkingType?.icon || 'fa-square-parking')" aria-hidden="true"></i></span>
+              <span class="ptype-text">
+                <b>{{ selectedParkingType?.label || 'Select parking type' }}</b>
+                <span class="ptype-score" *ngIf="selectedParkingType">
+                  <i *ngFor="let n of [1, 2, 3, 4, 5]" [class.on]="n <= selectedParkingType.points"></i>
+                  <small>{{ selectedParkingType.points }} / 5</small>
+                </span>
+              </span>
+              <i class="fa-solid fa-chevron-down ptype-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="ptype-backdrop" *ngIf="parkingMenuOpen" (click)="parkingMenuOpen = false"></div>
+            <div class="ptype-panel" *ngIf="parkingMenuOpen" role="listbox" aria-label="Parking type" (click)="$event.stopPropagation()">
+              <div class="ptype-sheet-head">
+                <span class="ptype-grip" aria-hidden="true"></span>
+                <b>Parking type</b>
+                <button type="button" class="ptype-close" aria-label="Close" (click)="parkingMenuOpen = false"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+              </div>
+              <button type="button" role="option" class="ptype-option" *ngFor="let option of parkingTypeOptions" [class.selected]="form.parkingCondition === option.value" [attr.aria-selected]="form.parkingCondition === option.value" (click)="selectParkingType(option.value); parkingMenuOpen = false">
+                <span class="ptype-icon"><i [class]="'fa-solid ' + option.icon" aria-hidden="true"></i></span>
+                <span class="ptype-text">
+                  <b>{{ option.label }}</b>
+                  <span class="ptype-score">
+                    <i *ngFor="let n of [1, 2, 3, 4, 5]" [class.on]="n <= option.points"></i>
+                    <small>{{ option.points }} / 5</small>
+                  </span>
+                </span>
+                <i class="fa-solid fa-circle-check ptype-check" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
           <div class="parking-cost" *ngIf="form.hasParking">
             <span class="parking-cost-title">Parking cost</span>
             <div class="parking-cost-options" role="radiogroup" aria-label="Parking cost">

@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../../utils/land-area';
 import { Component, Input } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -15,7 +16,7 @@ import { cardNearbyPlaces, NearbyPlace } from '../../utils/nearby-places';
   selector: 'app-property-card',
   templateUrl: './property-card.html',
   styleUrl: './property-card.css',
-  imports: [NgIf, NgFor, RouterLink, CurrencyPrice, ListingTitlePipe, PhotoUrlPipe],
+  imports: [LandAreaPipe, NgIf, NgFor, RouterLink, CurrencyPrice, ListingTitlePipe, PhotoUrlPipe],
 })
 export class PropertyCard {
   @Input({ required: true }) apartment!: Apartment;

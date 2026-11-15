@@ -28,7 +28,7 @@
     <div class="specs">
       <span *ngIf="apartment.rooms"><i class="fa-solid fa-door-open" aria-hidden="true"></i>{{ apartment.rooms }} <span>rooms</span></span>
       <span><i class="fa-solid fa-bed" aria-hidden="true"></i>{{ apartment.bedrooms || '—' }} <span>bedrooms</span></span>
-      <span *ngIf="apartment.sizeSquareMeters"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>{{ apartment.sizeSquareMeters }} m²</span>
+      <span *ngIf="apartment.sizeSquareMeters"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>{{ apartment.sizeSquareMeters }} m²</span><span class="yard-area" *ngIf="apartment | landArea as yard"><i class="fa-solid fa-tree" aria-hidden="true"></i> <span>Yard</span> {{ yard }} m²</span>
       <span *ngIf="apartment.floor != null"><i class="fa-regular fa-building" aria-hidden="true"></i><span>Floor</span>&nbsp;{{ apartment.floor }}</span>
     </div>
 

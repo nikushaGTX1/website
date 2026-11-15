@@ -155,7 +155,7 @@
       <div class="mc-facts">
         <span *ngIf="result.apartment.bedrooms != null"><i class="fa-solid fa-bed" aria-hidden="true"></i><b>{{ result.apartment.bedrooms }}</b> <small>bedrooms</small></span>
         <span *ngIf="result.apartment.bathrooms"><i class="fa-solid fa-bath" aria-hidden="true"></i><b>{{ result.apartment.bathrooms }}</b> <small>bathrooms</small></span>
-        <span *ngIf="result.apartment.sizeSquareMeters"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i><b>{{ result.apartment.sizeSquareMeters }}</b> <small>m²</small></span>
+        <span *ngIf="result.apartment.sizeSquareMeters"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i><b>{{ result.apartment.sizeSquareMeters }}</b> <small>m²</small></span><span class="yard-area" *ngIf="result.apartment | landArea as yard"><i class="fa-solid fa-tree" aria-hidden="true"></i> <span>Yard</span> {{ yard }} m²</span>
         <span *ngIf="result.apartment.floor != null"><i class="fa-solid fa-stairs" aria-hidden="true"></i><b>{{ result.apartment.floor }}{{ result.apartment.totalFloors ? '/' + result.apartment.totalFloors : '' }}</b> <small>floor</small></span>
       </div>
 

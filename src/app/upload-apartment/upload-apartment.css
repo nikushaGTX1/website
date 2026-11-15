@@ -2408,3 +2408,69 @@ select:focus {
 .image-edit-actions button, .image-edit-actions a { padding: 10px; border: 1px solid #ded3ef; border-radius: 9px; background: #f6f1ff; color: #5b21b6; font: inherit; text-align: center; cursor: pointer; }
 .image-edit-actions button:disabled { opacity: .5; cursor: default; }
 .myhome-field input.invalid { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12); }
+
+
+/* Parking type picker */
+.ptype { position: relative; max-width: 560px; margin-top: 16px; }
+.ptype-label { display: block; margin-bottom: 8px; color: #3b2948; font-size: 12px; font-weight: 800; }
+.ptype-trigger { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 64px; padding: 10px 16px 10px 10px; border: 1.5px solid #e2d9ef; border-radius: 16px; background: #fff; font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 18px rgba(76, 29, 149, 0.06); transition: border-color 0.15s, box-shadow 0.15s; }
+.ptype-trigger:hover { border-color: #c4b0ec; }
+.ptype.open .ptype-trigger { border-color: #6d2ee0; box-shadow: 0 0 0 4px rgba(109, 46, 224, 0.12); }
+.ptype-trigger.empty .ptype-text b { color: #8a829c; font-weight: 600; }
+.ptype-icon { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 12px; background: #f3edff; color: #5b21b6; font-size: 18px; }
+.ptype-text { display: grid; gap: 5px; flex: 1; min-width: 0; }
+.ptype-text b { color: #1f1530; font-size: 14.5px; font-weight: 700; line-height: 1.3; }
+.ptype-score { display: flex; align-items: center; gap: 4px; }
+.ptype-score i { width: 16px; height: 5px; border-radius: 3px; background: #e9e2f5; }
+.ptype-score i.on { background: linear-gradient(90deg, #7c3aed, #5b21b6); }
+.ptype-score small { margin-left: 6px; color: #7a7090; font-size: 11.5px; font-weight: 700; }
+.ptype-chevron { flex: none; color: #6d5b8a; transition: transform 0.2s; }
+.ptype.open .ptype-chevron { transform: rotate(180deg); }
+.ptype-backdrop { position: fixed; inset: 0; z-index: 40; background: transparent; }
+.ptype-panel { position: absolute; z-index: 41; top: calc(100% + 8px); left: 0; right: 0; display: grid; gap: 4px; padding: 8px; border: 1px solid #ebe4f6; border-radius: 18px; background: #fff; box-shadow: 0 24px 60px rgba(40, 18, 80, 0.18); animation: ptype-pop 0.16s ease-out; }
+.ptype-sheet-head { display: none; }
+.ptype-option { display: flex; align-items: center; gap: 14px; width: 100%; padding: 10px 12px 10px 8px; border: 1.5px solid transparent; border-radius: 13px; background: none; font: inherit; text-align: left; cursor: pointer; }
+.ptype-option:hover { background: #f8f5ff; }
+.ptype-option.selected { border-color: #c9b5f3; background: #f5f0ff; }
+.ptype-check { flex: none; color: #6d2ee0; font-size: 18px; opacity: 0; }
+.ptype-option.selected .ptype-check { opacity: 1; }
+@keyframes ptype-pop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes ptype-up { from { transform: translateY(100%); } to { transform: none; } }
+@media (max-width: 640px) {
+  .ptype-backdrop { z-index: 1000; background: rgba(20, 10, 40, 0.45); }
+  .ptype-panel { position: fixed; z-index: 1001; top: auto; bottom: 0; left: 0; right: 0; max-height: 85vh; overflow-y: auto; padding: 6px 14px calc(16px + env(safe-area-inset-bottom)); border: 0; border-radius: 24px 24px 0 0; animation: ptype-up 0.25s ease-out; }
+  .ptype-sheet-head { position: relative; display: grid; justify-items: center; gap: 12px; padding: 4px 0 10px; }
+  .ptype-grip { width: 42px; height: 5px; border-radius: 3px; background: #ddd3ec; }
+  .ptype-sheet-head b { color: #1f1530; font-size: 17px; font-weight: 800; }
+  .ptype-close { position: absolute; right: 0; top: 14px; width: 34px; height: 34px; border: 0; border-radius: 50%; background: #f3eff9; color: #4c3a66; }
+  .ptype-option { min-height: 64px; }
+}
+
+
+/* Yard / land area, right under the property type */
+.yard-input { display: grid; gap: 8px; max-width: 320px; margin-top: 18px; }
+.yard-input-label { display: inline-flex; align-items: center; gap: 8px; color: #2a1d3d; font-size: 13px; font-weight: 800; }
+.yard-input-label i { color: #2f9e5b; }
+.yard-input-box { display: flex; align-items: center; height: 52px; padding: 0 16px; border: 1.5px solid #e2d9ef; border-radius: 14px; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; }
+.yard-input-box:focus-within { border-color: #6d2ee0; box-shadow: 0 0 0 4px rgba(109, 46, 224, 0.12); }
+.yard-input-box input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: none; font: inherit; font-size: 16px; font-weight: 700; color: #1f1530; }
+.yard-input-box b { color: #7a7090; font-size: 14px; }
+
+.commercial-types { display: grid; gap: 10px; margin-top: 18px; }
+.commercial-types-label { color: #2a1d3d; font-size: 13px; font-weight: 800; }
+
+/* Plan choice header polish */
+.upload-page > .page-intro { align-items: center !important; margin-bottom: 40px !important; }
+.upload-page > .page-intro .page-eyebrow { display: inline-flex !important; padding: 7px 14px; border-radius: 999px; background: #f1eaff; color: #4c1d95 !important; font-size: 11.5px !important; letter-spacing: 0.08em !important; }
+.upload-page > .page-intro .page-eyebrow i::before { content: "\f3ed"; }
+.upload-page > .page-intro h1 { margin: 16px 0 14px !important; font-size: clamp(30px, 3.4vw, 48px) !important; line-height: 1.18 !important; letter-spacing: -0.01em; }
+.upload-page > .page-intro p { max-width: 560px; color: #6b6280 !important; font-size: 15.5px !important; line-height: 1.6 !important; }
+.upload-page > .page-intro .intro-trust { padding: 14px 18px !important; border-radius: 16px !important; box-shadow: 0 10px 30px rgba(76, 29, 149, 0.08); }
+.upload-page .popular-ribbon { background: linear-gradient(135deg, #7c3aed, #4c1d95) !important; box-shadow: 0 10px 24px rgba(76, 29, 149, 0.3) !important; }
+@media (max-width: 760px) {
+  .upload-page > .page-intro { align-items: flex-start !important; margin-bottom: 28px !important; }
+  .upload-page > .page-intro .intro-trust { display: none !important; }
+}
+/* Center the plan header over the two plan cards */
+.upload-page > .page-intro:has(+ .plan-choice) { flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 18px !important; text-align: center; }
+.upload-page > .page-intro:has(+ .plan-choice) p { margin: 0 auto !important; }

@@ -173,7 +173,7 @@
                 ><span
                   ><span class="measurement-svg" aria-hidden="true"></span
                   >{{ apartment.sizeSquareMeters || '—' }} m²</span
-                >
+                ><span class="yard-area" *ngIf="apartment | landArea as yard"><i class="fa-solid fa-tree" aria-hidden="true"></i> <span>Yard</span> {{ yard }} m²</span>
               </div>
             </div>
           </article>

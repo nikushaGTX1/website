@@ -519,6 +519,17 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     return this.apartment?.sizeSquareMeters || 0;
   }
 
+  /** Land plots show 'land'; houses show 'yard'. */
+  /** Commercial listings: office, retail, warehouse... */
+  get commercialType(): string {
+    const labels: Record<string, string> = {"Special":"Special purpose","Office":"Office space","Retail":"Retail space","Warehouse":"Warehouse space","Production":"Production space","FoodService":"Food service","Garage":"Car garage","Basement":"Basement","SemiBasement":"Semi-basement","WholeBuilding":"Whole building","CarWash":"Car wash","CarService":"Car service","Universal":"Universal space"};
+    return labels[this.getListingMetadata('Commercial type')] || '';
+  }
+
+  get isPlot(): boolean {
+    return /plot/i.test(this.getListingMetadata('Type'));
+  }
+
   /** Land plot / yard area of a house or plot, saved as "Land area: N m2". */
   get landArea(): number {
     const match = (this.apartment?.description || '').match(/(?:^|[|\n])\s*Land area:\s*([\d.]+)/i);

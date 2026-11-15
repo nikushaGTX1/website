@@ -38,7 +38,7 @@
           ><span *ngIf="match.apartment.bathrooms">🛁 {{ match.apartment.bathrooms }} bath</span
           ><span *ngIf="match.apartment.sizeSquareMeters"
             ><span class="measurement-svg" aria-hidden="true"></span>{{ match.apartment.sizeSquareMeters }} m²</span
-          >
+          ><span class="yard-area" *ngIf="match.apartment | landArea as yard"><i class="fa-solid fa-tree" aria-hidden="true"></i> <span>Yard</span> {{ yard }} m²</span>
         </div>
         <ul class="reasons">
           <li *ngFor="let reason of match.reasons | slice: 0 : 4">✓ {{ reason }}</li>

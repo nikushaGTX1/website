@@ -38,7 +38,7 @@
             <p class="specs">
               <span *ngIf="item.apartment.rooms">{{ item.apartment.rooms }} <span>rooms</span></span>
               <span>{{ item.apartment.bedrooms || '—' }} <span>beds</span></span>
-              <span *ngIf="item.apartment.sizeSquareMeters">{{ item.apartment.sizeSquareMeters }} m²</span>
+              <span *ngIf="item.apartment.sizeSquareMeters">{{ item.apartment.sizeSquareMeters }} m²</span><span class="yard-area" *ngIf="item.apartment | landArea as yard"><i class="fa-solid fa-tree" aria-hidden="true"></i> <span>Yard</span> {{ yard }} m²</span>
               <span *ngIf="item.apartment.floor != null"><span>Floor</span> {{ item.apartment.floor }}</span>
             </p>
           </div>

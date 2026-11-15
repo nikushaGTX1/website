@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../utils/land-area';
 import { cardNearbyPlaces, NearbyPlace } from '../utils/nearby-places';
 import { listingHomeType } from '../utils/listing-home-type';
 import {
@@ -39,7 +40,7 @@ import { ListingTitlePipe } from '../shared/listing-title.pipe';
   selector: 'app-main',
   templateUrl: './main.html',
   styleUrl: './main.css',
-  imports: [
+  imports: [LandAreaPipe, 
     NgSwitch,
     NgSwitchCase,
     NgSwitchDefault,

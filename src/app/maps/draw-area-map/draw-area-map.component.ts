@@ -778,6 +778,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     this.drawingEnabled = enabled;
     this.compactMapInteractive = this.compact && enabled;
     this.draw?.setMode(enabled ? 'polyline' : 'render');
+    this.map?.setOptions({ disableDoubleClickZoom: enabled });
     this.cdr.detectChanges();
   }
 
@@ -1175,7 +1176,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
             gestureHandling: 'greedy',
             scrollwheel: true,
             zoomControl: false,
-            disableDoubleClickZoom: true,
+            // Double-tap zooms in; switched off only while drawing an area (taps add points there).
+            disableDoubleClickZoom: !!this.drawingEnabled,
             keyboardShortcuts: true,
             mapTypeControl: false,
             streetViewControl: false,

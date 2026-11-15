@@ -121,7 +121,11 @@
               </div>
               <div *ngIf="landArea">
                 <i class="fa-solid fa-tree"></i
-                ><span><strong>{{ landArea }} m²</strong> land / yard</span>
+                ><span><strong>{{ landArea }} m²</strong> <span>{{ isPlot ? 'land' : 'yard' }}</span></span>
+              </div>
+              <div *ngIf="commercialType">
+                <i class="fa-solid fa-store"></i
+                ><span><strong>{{ commercialType }}</strong></span>
               </div>
               <div>
                 <i class="fa-regular fa-building"></i

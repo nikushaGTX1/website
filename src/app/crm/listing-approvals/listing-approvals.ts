@@ -1,3 +1,4 @@
+import { LandAreaPipe } from '../../utils/land-area';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -16,7 +17,7 @@ import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
  */
 @Component({
   selector: 'app-listing-approvals',
-  imports: [PhotoUrlPipe, CommonModule, RouterLink, ListingTitlePipe, CurrencyPrice],
+  imports: [LandAreaPipe, PhotoUrlPipe, CommonModule, RouterLink, ListingTitlePipe, CurrencyPrice],
   templateUrl: './listing-approvals.html',
   styleUrl: './listing-approvals.css',
 })
