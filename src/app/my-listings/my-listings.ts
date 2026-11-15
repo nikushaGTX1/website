@@ -1,3 +1,4 @@
+import { LocalizedAddressPipe } from '../shared/localized-address.pipe';
 import { LandAreaPipe } from '../utils/land-area';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -16,7 +17,7 @@ import { PhotoUrlPipe } from '../shared/photo-url.pipe';
   selector: 'app-my-listings',
   templateUrl: './my-listings.html',
   styleUrl: './my-listings.css',
-  imports: [LandAreaPipe, PhotoUrlPipe, NgIf, RouterLink, NgFor, CurrencyPrice],
+  imports: [LocalizedAddressPipe, LandAreaPipe, PhotoUrlPipe, NgIf, RouterLink, NgFor, CurrencyPrice],
 })
 export class MyListings implements OnInit, OnDestroy {
   user: User | null = null;
@@ -54,7 +55,8 @@ export class MyListings implements OnInit, OnDestroy {
 
   /** Admins, managers and agents can delete; the API only lets agents delete listings they uploaded. */
   get canDelete(): boolean {
-    return this.authService.isAdmin || this.authService.isCrmManager || this.authService.isAgent;
+    // Every listing here is the user's own (uploaded or offered as owner), so anyone signed in may delete it.
+    return this.authService.isLoggedIn;
   }
 
   get isStaff(): boolean {

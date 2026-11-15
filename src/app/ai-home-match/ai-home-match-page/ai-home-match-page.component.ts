@@ -1453,7 +1453,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         : this.profile.selectedMapArea
           ? 'Selected map area'
           : 'Tbilisi';
-    return `${places} · ${answerLabel(this.profile.propertyGoal)}`;
+    // In the page language, so a Georgian visitor gets "ვაკე, საბურთალო · ქირავდება".
+    const t = (text: string) => this.translation.translate(text);
+    const placeText = this.profile.districts.length && !this.profile.locationFlexible
+      ? this.profile.districts.slice(0, 2).map((district) => t(answerLabel(district))).join(", ")
+      : t(places);
+    return `${placeText} · ${t(answerLabel(this.profile.propertyGoal))}`;
   }
 
   /**

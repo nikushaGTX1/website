@@ -2473,6 +2473,13 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
   }
 
   get successDescription(): string {
+    // Owners (non-staff): edits go back to a manager before they are public again.
+    if (this.successModalEdited && this.authService.isPersonalAccount)
+      return this.uploadLocationText(
+        'Your changes were sent to a manager. The listing is public again once they approve them.',
+        'ცვლილებები გაეგზავნა მენეჯერს. დამტკიცების შემდეგ განცხადება ისევ გამოქვეყნდება.',
+        'Изменения отправлены менеджеру. После одобрения объявление снова будет опубликовано.',
+      );
     return this.successModalEdited
       ? this.uploadLocationText(
           'Your changes have been saved.',

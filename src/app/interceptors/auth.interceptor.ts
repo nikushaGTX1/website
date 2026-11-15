@@ -5,8 +5,9 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.getToken();
-  // Staff need their token on a single apartment: the API only returns the owner contact to them.
-  const staff = !!token && auth.hasAnyRole(['agent', 'manager', 'crm-manager', 'crm_manager', 'admin']);
+  // Signed-in users send their token on a single apartment: staff get the owner contact, and
+  // owners can open their own listing while it waits for approval (e.g. to edit it).
+  const staff = !!token;
 
   if (!token || isPublicReadRequest(req.method, req.url, staff)) {
     return next(req);

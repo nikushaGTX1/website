@@ -124,8 +124,6 @@ export class Discover implements OnInit, OnDestroy {
     }));
   }
 
-  renamingId: number | null = null;
-  renameValue = '';
   confirmDeleteId: number | null = null;
   busySearchId: number | null = null;
   actionError = '';
@@ -509,38 +507,6 @@ export class Discover implements OnInit, OnDestroy {
   }
 
   // ---------- Saved search actions ----------
-
-  startRename(search: SavedSearch): void {
-    this.renamingId = search.id;
-    this.renameValue = search.name;
-    this.confirmDeleteId = null;
-    window.setTimeout(() => {
-      // Focus with the whole name selected, scrolled to its start (not cut off on the left).
-      const input = document.getElementById(`rename-${search.id}`) as HTMLInputElement | null;
-      if (!input) return;
-      input.focus();
-      input.select();
-      input.scrollLeft = 0;
-    });
-  }
-
-  saveRename(search: SavedSearch): void {
-    const name = this.renameValue.trim();
-    if (!name || name === search.name) {
-      this.renamingId = null;
-      return;
-    }
-    this.busySearchId = search.id;
-    this.client.updateSearch(search.id, { name }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (saved) => {
-        search.name = saved.name;
-        this.renamingId = null;
-        this.busySearchId = null;
-        this.cdr.detectChanges();
-      },
-      error: () => this.failAction('Could not rename the search. Please try again.'),
-    });
-  }
 
   toggleNotifications(search: SavedSearch): void {
     if (this.busySearchId) return;

@@ -34,7 +34,7 @@
         <header class="listing-head">
           <a class="listing-photo" [routerLink]="['/apartments', listing.apartmentId]"><img [src]="(image(listing)) | photoUrl" alt="" loading="lazy" /></a>
           <div class="listing-copy">
-            <p class="listing-place">{{ listing.district }}<span *ngIf="listing.street"> · {{ listing.street }}</span></p>
+            <p class="listing-place">{{ listing.district | localizedAddress }}<span *ngIf="listing.street"> · {{ listing.street | localizedAddress }}</span></p>
             <h2><a [routerLink]="['/apartments', listing.apartmentId]">{{ titleSource(listing) | listingTitle }}</a></h2>
             <app-currency-price [usdPrice]="listing.price" [suffix]="isSale(listing) ? '' : '/ month'" [showApproximate]="false"></app-currency-price>
           </div>

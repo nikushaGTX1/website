@@ -36,7 +36,7 @@
             <h3>{{ request.apartment.title }}</h3>
             <strong><app-currency-price [usdPrice]="request.apartment.price"></app-currency-price></strong>
           </div>
-          <p class="address"><i class="fa-solid fa-location-dot"></i> {{ request.apartment.address || 'No address' }}</p>
+          <p class="address"><i class="fa-solid fa-location-dot"></i> {{ (request.apartment.address | localizedAddress) || 'No address' }}</p>
           <div class="facts">
             <span *ngIf="request.apartment.bedrooms"><i class="fa-solid fa-bed"></i> {{ request.apartment.bedrooms }}</span>
             <span *ngIf="request.apartment.bathrooms"><i class="fa-solid fa-bath"></i> {{ request.apartment.bathrooms }}</span>
@@ -70,7 +70,7 @@
             <h3>{{ apartment.title }}</h3>
             <strong><app-currency-price [usdPrice]="apartment.price"></app-currency-price></strong>
           </div>
-          <p class="address"><i class="fa-solid fa-location-dot"></i> {{ apartment.address || apartment.district || 'No address' }}</p>
+          <p class="address"><i class="fa-solid fa-location-dot"></i> {{ ((apartment.address || apartment.district) | localizedAddress) || 'No address' }}</p>
           <div class="facts">
             <span *ngIf="apartment.bedrooms"><i class="fa-solid fa-bed"></i> {{ apartment.bedrooms }}</span>
             <span *ngIf="apartment.bathrooms"><i class="fa-solid fa-bath"></i> {{ apartment.bathrooms }}</span>
@@ -111,7 +111,7 @@
             <h3>{{ apartment.title }}</h3>
             <strong><app-currency-price [usdPrice]="apartment.price"></app-currency-price></strong>
           </div>
-          <p class="address"><i class="fa-solid fa-location-dot"></i> {{ apartment.address || 'No address' }}</p>
+          <p class="address"><i class="fa-solid fa-location-dot"></i> {{ (apartment.address | localizedAddress) || 'No address' }}</p>
           <div class="facts">
             <span *ngIf="apartment.bedrooms"><i class="fa-solid fa-bed"></i> {{ apartment.bedrooms }}</span>
             <span *ngIf="apartment.bathrooms"><i class="fa-solid fa-bath"></i> {{ apartment.bathrooms }}</span>

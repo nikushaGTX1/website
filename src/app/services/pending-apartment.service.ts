@@ -50,18 +50,9 @@ export class PendingApartmentService {
   }
 
   refresh(): void {
-    const localItems = this.readAll();
-    this.pendingSubject.next(localItems);
-    if (!this.authService.isLoggedIn) {
-      return;
-    }
-
-    this.http.get<PendingApartment[]>(this.apiUrl).subscribe({
-      next: (remoteItems) => this.save(this.merge(remoteItems, localItems)),
-      error: () => {
-        // Retain the local copy while offline or when the user is signed out.
-      },
-    });
+    // The API has no approval-requests endpoint (listings are approved through /api/Apartments),
+    // so only the copy kept in this browser is read; asking the server returned 404 on every page.
+    this.pendingSubject.next(this.readAll());
   }
 
   getWaiting(): PendingApartment[] {

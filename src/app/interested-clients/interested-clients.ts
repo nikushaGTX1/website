@@ -1,3 +1,4 @@
+import { LocalizedAddressPipe } from '../shared/localized-address.pipe';
 import { ChangeDetectorRef, Component, DestroyRef, ElementRef, Input, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,7 +25,7 @@ enableFlagEmojis();
  */
 @Component({
   selector: 'app-interested-clients',
-  imports: [PhotoUrlPipe, CommonModule, RouterLink, ListingTitlePipe, CurrencyPrice],
+  imports: [LocalizedAddressPipe, PhotoUrlPipe, CommonModule, RouterLink, ListingTitlePipe, CurrencyPrice],
   templateUrl: './interested-clients.html',
   styleUrl: './interested-clients.css',
 })

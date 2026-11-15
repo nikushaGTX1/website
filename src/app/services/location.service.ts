@@ -46,6 +46,7 @@ export class LocationService {
   );
   private locations$?: Observable<ApiLocation[]>;
   private readonly georgianStreetNames = new Map<string, string>();
+  private readonly georgianDistrictNames = new Map<string, string>();
   private readonly streetTranslations: Array<{ english: string; georgian: string }> = [];
 
   constructor(private http: HttpClient) {}
@@ -357,6 +358,11 @@ export class LocationService {
   private indexApiStreetTranslations(locations: ApiLocation[]): void {
     this.georgianStreetNames.clear();
     this.streetTranslations.length = 0;
+    this.georgianDistrictNames.clear();
+    for (const location of locations) {
+      const georgian = this.districtName(location, 'ka');
+      if (georgian && georgian !== location.district) this.georgianDistrictNames.set(location.district.trim().toLowerCase(), georgian);
+    }
 
     for (const location of locations) {
       if (location.streets?.length) {
@@ -401,6 +407,28 @@ export class LocationService {
     const translated = georgian.trim();
     this.georgianStreetNames.set(this.streetKey(english), translated);
     this.streetTranslations.push({ english, georgian: translated });
+  }
+
+  /**
+   * "Aleksandre Akhvlediani Street, 3, Isani" in the page language: each comma part is looked up
+   * as a district or a street in the catalogue; parts it does not know stay as they are.
+   * Call ensureLoaded() once so the catalogue is in memory.
+   */
+  localizeAddress(text: string | null | undefined, language: AppLanguage): string {
+    if (!text || language !== 'ka') return text || '';
+    return text
+      .split(/(\s*[,·]\s*)/)
+      .map((part) => {
+        const key = part.trim();
+        if (!key || /^[,·\s]+$/.test(part) || !/[A-Za-z]/.test(key)) return part;
+        return this.georgianDistrictNames.get(key.toLowerCase()) || this.findGeorgianStreetName(key) || part;
+      })
+      .join('');
+  }
+
+  /** Loads the location catalogue (cached) so localizeAddress() can translate. */
+  ensureLoaded(): void {
+    this.getLocations().subscribe({ error: () => undefined });
   }
 
   private findGeorgianStreetName(english: string): string | undefined {

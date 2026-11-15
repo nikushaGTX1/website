@@ -94,7 +94,7 @@
             </div>
             <h1 [class.georgian-copy]="hasGeorgianText(title)">{{ title }}</h1>
             <p class="vp-address" [class.georgian-copy]="hasGeorgianText(address)">
-              <i class="fa-solid fa-location-dot"></i>{{ address }}
+              <i class="fa-solid fa-location-dot"></i>{{ address | localizedAddress }}
             </p>
             <p class="vp-last-confirmed" *ngIf="lastConfirmedLabel as confirmed">
               <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
@@ -198,7 +198,7 @@
                 <div>
                   <i class="fa-solid fa-location-dot"></i>
                   <p>
-                    <strong>{{ address }}</strong
+                    <strong>{{ address | localizedAddress }}</strong
                     ><span>Location saved with this listing</span>
                   </p>
                 </div>

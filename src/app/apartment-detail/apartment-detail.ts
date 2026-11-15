@@ -1,3 +1,4 @@
+import { LocalizedAddressPipe } from '../shared/localized-address.pipe';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PropertyCard } from '../shared/property-card/property-card';
 import { listingHomeType } from '../utils/listing-home-type';
@@ -92,7 +93,7 @@ interface ViewingInquiryForm {
   selector: 'app-apartment-detail',
   templateUrl: './apartment-detail.html',
   styleUrls: ['./apartment-detail.css', './apartment-detail.icons.css'],
-  imports: [PropertyCard, PhotoDotsComponent, PhotoUrlPipe, 
+  imports: [LocalizedAddressPipe, PropertyCard, PhotoDotsComponent, PhotoUrlPipe, 
     NgIf,
     RouterLink,
     PhotoCarouselComponent,
