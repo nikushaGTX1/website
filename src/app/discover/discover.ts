@@ -443,6 +443,8 @@ export class Discover implements OnInit, OnDestroy {
   }
 
   setTab(tab: DiscoverTab): void {
+    // A tab the user picks wins over an alert link (?apartment=…), which would jump back to that home.
+    this.highlightedApartmentId = null;
     this.tab = tab;
     this.syncUrl();
   }
