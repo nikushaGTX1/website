@@ -679,6 +679,7 @@
                   name="leadGoal"
                   value="rent"
                   [(ngModel)]="manualLeadForm.goal"
+                  (ngModelChange)="onLeadGoalChange()"
                   required
                 />
 
@@ -703,6 +704,7 @@
                   name="leadGoal"
                   value="buy"
                   [(ngModel)]="manualLeadForm.goal"
+                  (ngModelChange)="onLeadGoalChange()"
                   required
                 />
 

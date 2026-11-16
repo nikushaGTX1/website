@@ -101,8 +101,13 @@ export class CrmDashboard implements OnInit {
   preferredDistrictsText = '';
   leadMenu: 'budget' | 'property' | 'rooms' | 'bedrooms' | null = null;
   readonly leadBudgetMinimum = 0;
-  readonly leadBudgetMaximum = 5000;
-  readonly leadBudgetStep = 100;
+  /** Rent budgets are monthly (up to $20,000); buying budgets go up to $5,000,000. */
+  get leadBudgetMaximum(): number {
+    return this.manualLeadForm?.goal === 'rent' || !this.manualLeadForm?.goal ? 20000 : 5000000;
+  }
+  get leadBudgetStep(): number {
+    return this.manualLeadForm?.goal === 'rent' || !this.manualLeadForm?.goal ? 100 : 5000;
+  }
   readonly propertyTypes = ['Apartment', 'House', 'Commercial space', 'Country house', 'Land'];
   readonly roomOptions = [1, 2, 3, 4, 5, 6, 7, 8];
   readonly rentalPeriodOptions: Array<{ value: Exclude<ManualRentalPeriod, ''>; label: string }> = [
@@ -260,6 +265,18 @@ export class CrmDashboard implements OnInit {
     if (this.manualLeadForm.fromUploader) {
       this.manualLeadForm.source = 'referral';
       this.manualLeadForm.status = 'new';
+    }
+  }
+
+  /** Switching Rent / Buy moves the budget into that range (a $5,000 rent cap would block $100,000 to buy). */
+  onLeadGoalChange(): void {
+    const max = Number(this.manualLeadForm.budgetMax ?? 0);
+    if (this.manualLeadForm.goal === 'buy' && max <= 20000) {
+      this.manualLeadForm.budgetMin = 0;
+      this.manualLeadForm.budgetMax = 200000;
+    } else if (this.manualLeadForm.goal === 'rent' && max > 20000) {
+      this.manualLeadForm.budgetMin = 0;
+      this.manualLeadForm.budgetMax = 5000;
     }
   }
 
@@ -954,7 +971,7 @@ export class CrmDashboard implements OnInit {
       goal: '',
       currency: 'USD',
       budgetMin: this.leadBudgetMinimum,
-      budgetMax: this.leadBudgetMaximum,
+      budgetMax: 5000,
       assignedAgentId: null,
       preferredPropertyType: '',
       rentalPeriodMonths: '',
