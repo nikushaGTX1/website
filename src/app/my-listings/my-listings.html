@@ -90,6 +90,10 @@
       <h2>Published listings</h2>
       <small>{{ listings.length }} active</small>
     </div>
+    <div class="attention-banner" *ngIf="!loading && attentionCount" role="alert">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <span><b data-no-translate>{{ attentionCount }}</b>&ngsp;<span>rentals need your attention: check they are still available.</span></span>
+    </div>
 
     <div class="loading" *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading your listings...</div>
 
@@ -101,7 +105,7 @@
     </div>
 
     <div class="cards" *ngIf="!loading && listings.length > 0">
-      <article class="card" *ngFor="let apartment of listings">
+      <article class="card" *ngFor="let apartment of listings" [class.attention]="needsAttention(apartment)">
         <a class="photo" [routerLink]="['/apartments', apartment.id]">
           <img [src]="(apartment.imageUrls?.[0] || apartment.imageUrl || '/property-placeholder.svg') | photoUrl" [alt]="apartment.title" loading="lazy" decoding="async" />
           <span class="badge published">Published</span>
@@ -117,6 +121,14 @@
             <span *ngIf="apartment.bathrooms"><i class="fa-solid fa-bath"></i> {{ apartment.bathrooms }}</span>
             <span *ngIf="apartment.sizeSquareMeters"><i class="fa-solid fa-expand"></i> {{ apartment.sizeSquareMeters }} m²</span><span class="yard-area" *ngIf="apartment | landArea as yard"><i class="fa-solid fa-tree" aria-hidden="true"></i> <span>Yard</span> {{ yard }} m²</span>
             <span *ngIf="apartment.floor"><i class="fa-solid fa-stairs"></i> {{ apartment.floor }}/{{ apartment.totalFloors }}</span>
+          </div>
+          <div class="attention-note" *ngIf="needsAttention(apartment)">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <div>
+              <strong>Needs attention</strong>
+              <span><span>Not confirmed for</span> <b data-no-translate>{{ daysSinceConfirmed(apartment) }}</b> <span>days. Check the home is still available for rent.</span></span>
+            </div>
+            <button type="button" class="btn confirm" [disabled]="confirmingId === apartment.id" (click)="confirmAvailable(apartment)"><i class="fa-solid fa-check" aria-hidden="true"></i> Still available</button>
           </div>
           <div class="actions">
             <a class="btn primary" routerLink="/upload-apartment" [queryParams]="{ edit: apartment.id }"><i class="fa-solid fa-pen"></i> Edit</a>

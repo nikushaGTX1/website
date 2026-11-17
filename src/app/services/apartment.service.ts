@@ -182,6 +182,11 @@ export class ApartmentService {
   }
 
   /** The signed-in user's own uploads, published and awaiting review. Never cached. */
+  /** "Still available": resets the 6-day reminder on a rental. */
+  confirmAvailable(id: number): Observable<{ lastConfirmedAt: string }> {
+    return this.http.post<{ lastConfirmedAt: string }>(`${this.apiUrl}/${id}/confirm-available`, {});
+  }
+
   getMyApartments(): Observable<Apartment[]> {
     return this.http.get<Apartment[]>(`${this.apiUrl}/mine`);
   }

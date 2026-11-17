@@ -10,6 +10,7 @@ import { AuthService } from '../services/auth.service';
 import { PendingApartment, PendingApartmentService } from '../services/pending-apartment.service';
 import { NgIf, NgFor } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { isSaleListing } from '../utils/listing-deal';
 import { CurrencyPrice } from '../currency-price/currency-price';
 import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
@@ -54,6 +55,40 @@ export class MyListings implements OnInit, OnDestroy {
   }
 
   /** Admins, managers and agents can delete; the API only lets agents delete listings they uploaded. */
+  /** Rentals not confirmed for this many days are marked red. */
+  readonly staleDays = 6;
+  confirmingId: number | null = null;
+
+  /** Days since the rental was last confirmed (or published). 0 for sales. */
+  daysSinceConfirmed(apartment: Apartment): number {
+    if (isSaleListing(apartment)) return 0;
+    const stamp = apartment.lastConfirmedAt || apartment.publishedAt || apartment.createdAt;
+    const time = stamp ? new Date(stamp).getTime() : NaN;
+    return Number.isNaN(time) ? 0 : Math.floor((Date.now() - time) / 86_400_000);
+  }
+
+  needsAttention(apartment: Apartment): boolean {
+    return this.daysSinceConfirmed(apartment) >= this.staleDays;
+  }
+
+  get attentionCount(): number {
+    return this.listings.filter((apartment) => this.needsAttention(apartment)).length;
+  }
+
+  confirmAvailable(apartment: Apartment): void {
+    if (this.confirmingId) return;
+    this.confirmingId = apartment.id;
+    this.apartmentService.confirmAvailable(apartment.id).subscribe({
+      next: ({ lastConfirmedAt }) => {
+        apartment.lastConfirmedAt = lastConfirmedAt;
+        this.confirmingId = null;
+      },
+      error: () => {
+        this.confirmingId = null;
+      },
+    });
+  }
+
   get canDelete(): boolean {
     // Every listing here is the user's own (uploaded or offered as owner), so anyone signed in may delete it.
     return this.authService.isLoggedIn;
