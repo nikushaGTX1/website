@@ -685,6 +685,71 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.editUserPicturePreview = '';
   }
 
+  // ---------- Transfer apartments (e.g. an agent left) ----------
+  transferOpen = false;
+  transferFromId = '';
+  transferToId = '';
+  transferApartment: Apartment | null = null;
+  transferError = '';
+
+  /** Everyone who has uploaded live apartments, with how many (agents who left included). */
+  get apartmentOwners(): Array<{ userId: string; name: string; count: number; active: boolean }> {
+    const owners = new Map<string, { userId: string; name: string; count: number; active: boolean }>();
+    const activeIds = new Set(this.agents.map((agent) => (agent.userId || agent.id || '').toLowerCase()));
+    for (const apartment of this.apartments) {
+      const uploader = this.apartmentUploaders[apartment.id];
+      if (!uploader?.userId) continue;
+      const row = owners.get(uploader.userId) ?? { userId: uploader.userId, name: uploader.name || uploader.email || uploader.userId, count: 0, active: activeIds.has(uploader.userId.toLowerCase()) };
+      row.count += 1;
+      owners.set(uploader.userId, row);
+    }
+    return [...owners.values()].sort((a, b) => Number(a.active) - Number(b.active) || b.count - a.count);
+  }
+
+  openTransfer(apartment: Apartment | null = null): void {
+    if (!this.isAdmin) return;
+    this.transferApartment = apartment;
+    this.transferFromId = apartment ? this.apartmentUploaders[apartment.id]?.userId || '' : '';
+    this.transferToId = '';
+    this.transferError = '';
+    this.transferOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  closeTransfer(): void {
+    if (this.actionId === 'transfer') return;
+    this.transferOpen = false;
+  }
+
+  /** Agents who can receive (not the current owner). */
+  get transferReceivers(): Agent[] {
+    return this.agents.filter((agent) => (agent.userId || agent.id) && (agent.userId || agent.id) !== this.transferFromId);
+  }
+
+  confirmTransfer(): void {
+    if (!this.isAdmin || this.actionId) return;
+    if (!this.transferApartment && !this.transferFromId) { this.transferError = 'Choose whose apartments to move.'; return; }
+    if (!this.transferToId) { this.transferError = 'Choose the agent who receives the apartments.'; return; }
+    this.actionId = 'transfer';
+    this.transferError = '';
+    this.adminService.transferApartments({
+      toUserId: this.transferToId,
+      ...(this.transferApartment ? { apartmentId: this.transferApartment.id } : { fromUserId: this.transferFromId }),
+    }).subscribe({
+      next: (result) => {
+        this.actionId = '';
+        this.transferOpen = false;
+        this.successMessage = `${result.movedApartments} apartment(s)${result.movedLeads ? ` and ${result.movedLeads} open lead(s)` : ''} moved to ${result.toName || 'the new agent'}.`;
+        this.loadDashboard();
+      },
+      error: (err) => {
+        this.actionId = '';
+        this.transferError = err?.error?.message || 'Could not move the apartments. Please try again.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   // ---------- Remove agent: hand their apartments to someone else first ----------
   removingAgent: Agent | null = null;
   removeHoldings: { apartments: number; openLeads: number } | null = null;

@@ -354,6 +354,9 @@
         <button type="button" class="ev-refresh" (click)="refreshEvChargers()" [disabled]="!!actionId">
           <i class="fa-solid fa-charging-station"></i> {{ actionId === 'ev-chargers' ? 'Refreshing…' : 'Refresh EV chargers' }}
         </button>
+        <button type="button" class="ev-refresh transfer-btn" *ngIf="isAdmin" (click)="openTransfer()" [disabled]="!!actionId">
+          <i class="fa-solid fa-right-left"></i> Transfer apartments
+        </button>
         <span class="count-pill live">{{ filteredApartments.length }} live</span>
       </div>
     </div>
@@ -400,6 +403,7 @@
       <div class="listing-side">
         <strong class="listing-price"><app-currency-price [usdPrice]="apartment.price"></app-currency-price></strong>
         <a class="edit-listing" routerLink="/upload-apartment" [queryParams]="{ edit: apartment.id }" *ngIf="canOperateDashboard"><i class="fa-solid fa-pen"></i> Edit</a>
+        <button type="button" class="edit-listing" *ngIf="isAdmin" (click)="openTransfer(apartment)" [disabled]="!!actionId"><i class="fa-solid fa-right-left"></i> Change agent</button>
         <button type="button" class="danger" (click)="deleteApartment(apartment)" [disabled]="actionId === ('' + apartment.id)">
           <i class="fa-regular fa-trash-can"></i> Delete
         </button>
@@ -489,6 +493,41 @@
     <div class="remove-agent-actions">
       <button type="button" class="remove-agent-cancel" (click)="cancelRemoveAgent()">Cancel</button>
       <button type="button" class="remove-agent-confirm" [disabled]="!removeHoldings || !!actionId" (click)="confirmRemoveAgent()">Remove agent</button>
+    </div>
+  </div>
+}
+
+@if (transferOpen) {
+  <div class="remove-agent-backdrop" (click)="closeTransfer()"></div>
+  <div class="remove-agent-dialog" role="dialog" aria-modal="true" aria-labelledby="transfer-title">
+    <h2 id="transfer-title">{{ transferApartment ? 'Change agent' : 'Transfer apartments' }}</h2>
+    @if (transferApartment) {
+      <p class="remove-agent-name" data-no-translate>#{{ transferApartment.id }} · {{ transferApartment.title }}</p>
+    } @else {
+      <p class="remove-agent-note">Give every apartment of one agent (for example one who left) to another agent. Their open CRM leads move too.</p>
+      <label class="remove-agent-field">
+        <span>From</span>
+        <select [(ngModel)]="transferFromId" name="transferFromId">
+          <option value="" disabled>Choose whose apartments</option>
+          @for (owner of apartmentOwners; track owner.userId) {
+            <option [value]="owner.userId" data-no-translate>{{ owner.name }} — {{ owner.count }}{{ owner.active ? '' : ' (left)' }}</option>
+          }
+        </select>
+      </label>
+    }
+    <label class="remove-agent-field">
+      <span>To</span>
+      <select [(ngModel)]="transferToId" name="transferToId">
+        <option value="" disabled>Choose an agent</option>
+        @for (agent of transferReceivers; track agent.userId || agent.id) {
+          <option [value]="agent.userId || agent.id" data-no-translate>{{ agentLabel(agent) }}</option>
+        }
+      </select>
+    </label>
+    <p class="remove-agent-error" *ngIf="transferError" role="alert">{{ transferError }}</p>
+    <div class="remove-agent-actions">
+      <button type="button" class="remove-agent-cancel" (click)="closeTransfer()">Cancel</button>
+      <button type="button" class="remove-agent-confirm transfer" [disabled]="actionId === 'transfer'" (click)="confirmTransfer()">Move apartments</button>
     </div>
   </div>
 }

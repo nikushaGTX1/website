@@ -114,6 +114,11 @@ export class AdminService {
     return this.http.post<{ movedApartments?: number }>(`${this.adminUrl}/remove-agent/${userId}${query}`, {});
   }
 
+  /** Gives one apartment, or all apartments of an agent who left, to another agent. */
+  transferApartments(body: { fromUserId?: string; toUserId: string; apartmentId?: number }): Observable<{ movedApartments: number; movedLeads: number; toName?: string }> {
+    return this.http.post<{ movedApartments: number; movedLeads: number; toName?: string }>(`${this.adminUrl}/transfer-apartments`, body);
+  }
+
   /** Website apartments and open CRM leads an agent still has. */
   agentHoldings(userId: string): Observable<{ apartments: number; openLeads: number }> {
     return this.http.get<{ apartments: number; openLeads: number }>(`${this.adminUrl}/agents/${userId}/holdings`);

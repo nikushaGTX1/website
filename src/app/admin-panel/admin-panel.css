@@ -950,3 +950,6 @@ button:disabled {
 .remove-agent-cancel { background: #f3f4f6; color: #374151; }
 .remove-agent-confirm { background: #dc2626; color: #fff; }
 .remove-agent-confirm:disabled { opacity: 0.6; }
+
+.remove-agent-confirm.transfer { background: #4c1d95; }
+.transfer-btn { white-space: nowrap; }
