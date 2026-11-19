@@ -101,3 +101,12 @@ h1 em { color: #6330b2; font-style: normal; }
 .test-panel button {
   min-height: 36px; padding: 0 14px; border: 0; border-radius: 9px; background: #d48a00; color: #fff; font: inherit; font-weight: 700; cursor: pointer;
 }
+
+/* Tablets (iPad portrait and landscape): one column, a bigger frame, touch-friendly. */
+@media (min-width: 821px) and (max-width: 1366px) and (pointer: coarse) {
+  .play-page { grid-template-columns: 1fr; gap: 28px; max-width: 760px; padding: 32px 24px 56px; }
+  .stage { max-width: 520px; max-height: 82vh; margin: 0 auto; }
+}
+/* The game frame owns every touch: no page scroll, zoom or text selection while playing. */
+.stage, .stage iframe { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.stage.fullscreen { height: 100vh; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: #231f20; }

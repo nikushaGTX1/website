@@ -92,12 +92,15 @@ export class PlayGame implements OnInit, OnDestroy {
 
   play(): void {
     this.playing = true;
-    if (window.matchMedia('(max-width: 820px)').matches) this.enterFullscreen();
+    // Phones and tablets (iPad included): play full screen, the small frame is too cramped to touch.
+    if (window.matchMedia('(max-width: 820px), (pointer: coarse)').matches) this.enterFullscreen();
   }
 
   enterFullscreen(): void {
     this.fullscreen = true;
     document.body.style.overflow = 'hidden';
+    // Lift the game out of the page layer so the header and footer cannot draw over it.
+    document.documentElement.classList.add('velven-game-fullscreen');
     // Real fullscreen hides the browser bars (Android, desktop). iPhones do not allow it for
     // page elements, so there the game simply covers the page.
     this.stage?.nativeElement.requestFullscreen?.().catch(() => undefined);
@@ -106,6 +109,7 @@ export class PlayGame implements OnInit, OnDestroy {
   exitFullscreen(): void {
     this.fullscreen = false;
     document.body.style.overflow = '';
+    document.documentElement.classList.remove('velven-game-fullscreen');
     if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
   }
 
@@ -117,5 +121,6 @@ export class PlayGame implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     document.body.style.overflow = '';
+    document.documentElement.classList.remove('velven-game-fullscreen');
   }
 }

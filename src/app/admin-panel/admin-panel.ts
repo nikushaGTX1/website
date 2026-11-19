@@ -685,24 +685,73 @@ export class AdminPanel implements OnInit, OnDestroy {
     this.editUserPicturePreview = '';
   }
 
+  // ---------- Remove agent: hand their apartments to someone else first ----------
+  removingAgent: Agent | null = null;
+  removeHoldings: { apartments: number; openLeads: number } | null = null;
+  transferTargetId = '';
+
+  agentLabel(agent: Agent): string {
+    return agent.fullName || agent.userName || agent.email || agent.id || '';
+  }
+
+  /** Agents who can receive the apartments (everyone except the one being removed). */
+  get transferTargets(): Agent[] {
+    const removing = this.removingAgent && (this.removingAgent.userId || this.removingAgent.id);
+    return this.agents.filter((agent) => (agent.userId || agent.id) && (agent.userId || agent.id) !== removing);
+  }
+
   removeAgent(agent: Agent): void {
     if (!this.isAdmin) {
       this.errorMessage = 'Only admins can remove agents.';
       this.cdr.detectChanges();
       return;
     }
-
     const userId = agent.userId || agent.id;
     if (!userId || this.actionId) return;
+    this.removingAgent = agent;
+    this.removeHoldings = null;
+    this.transferTargetId = '';
+    this.cdr.detectChanges();
+    this.adminService.agentHoldings(userId).subscribe({
+      next: (holdings) => {
+        this.removeHoldings = holdings;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.removeHoldings = { apartments: 0, openLeads: 0 };
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cancelRemoveAgent(): void {
+    if (this.actionId) return;
+    this.removingAgent = null;
+  }
+
+  confirmRemoveAgent(): void {
+    const agent = this.removingAgent;
+    const userId = agent && (agent.userId || agent.id);
+    if (!agent || !userId || this.actionId) return;
+    const hasWork = !!this.removeHoldings && (this.removeHoldings.apartments > 0 || this.removeHoldings.openLeads > 0);
+    if (hasWork && !this.transferTargetId) {
+      this.errorMessage = 'Choose who receives this agent\'s apartments.';
+      this.cdr.detectChanges();
+      return;
+    }
 
     this.actionId = userId;
     this.successMessage = '';
     this.errorMessage = '';
     this.cdr.detectChanges();
 
-    this.adminService.removeAgent(userId).subscribe({
-      next: () => {
-        this.successMessage = 'Agent access removed.';
+    this.adminService.removeAgent(userId, this.transferTargetId || undefined).subscribe({
+      next: (result) => {
+        this.removingAgent = null;
+        const target = this.agents.find((item) => (item.userId || item.id) === this.transferTargetId);
+        this.successMessage = result?.movedApartments
+          ? `Agent access removed. ${result.movedApartments} apartment(s) moved to ${target ? this.agentLabel(target) : 'the new agent'}.`
+          : 'Agent access removed.';
         this.actionId = '';
         this.loadDashboard();
       },

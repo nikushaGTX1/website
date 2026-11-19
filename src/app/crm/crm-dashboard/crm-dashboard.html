@@ -1310,6 +1310,27 @@
       </form>
     </section>
   </div>
+@if (apptLead) {
+  <div class="appt-pop-backdrop" (click)="closeAppointment()"></div>
+  <div class="appt-pop" role="dialog" aria-modal="true" aria-labelledby="appt-pop-title">
+    <span class="appt-pop-icon" aria-hidden="true"><i [class]="apptMode === 'create' ? 'fa-solid fa-calendar-plus' : 'fa-solid fa-flag-checkered'"></i></span>
+    <h2 id="appt-pop-title">{{ apptMode === 'create' ? 'Add appointment' : 'How did the meeting go?' }}</h2>
+    <p class="appt-pop-name">{{ apptLead.fullName }}</p>
+    @if (apptMode === 'create') {
+      <label><span>Date and time</span><input type="datetime-local" [(ngModel)]="apptDate" name="apptDate" /></label>
+      <label><span>Link of the apartment you are going to</span><input type="url" [(ngModel)]="apptLink" name="apptLink" placeholder="https://velven.ge/apartments/…" /></label>
+    } @else {
+      <a class="appt-pop-link" *ngIf="safeLink(apptLead.openAppointment?.description) as url" [href]="url" target="_blank" rel="noopener" data-no-translate>{{ url }}</a>
+      <label><span>Your comment is added to this lead's comments.</span><textarea [(ngModel)]="apptComment" name="apptComment" rows="4" placeholder="E.g. client liked it, wants a second viewing on Friday"></textarea></label>
+    }
+    <p class="appt-pop-error" *ngIf="apptError" role="alert">{{ apptError }}</p>
+    <div class="appt-pop-actions">
+      <button type="button" class="appt-pop-cancel" (click)="closeAppointment()">Cancel</button>
+      <button type="button" class="appt-pop-save" [disabled]="apptSaving" (click)="saveAppointmentPopup()">{{ apptMode === 'create' ? 'Save appointment' : 'Save and finish' }}</button>
+    </div>
+  </div>
+}
+
 @if (lostLead) {
   <div class="lost-backdrop" (click)="closeLostDialog()">
     <div class="lost-dialog" role="dialog" aria-modal="true" aria-labelledby="lost-title" (click)="$event.stopPropagation()">

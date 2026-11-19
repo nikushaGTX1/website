@@ -109,8 +109,14 @@ export class AdminService {
     return this.http.post(`${this.adminUrl}/make-agent/${userId}`, {});
   }
 
-  removeAgent(userId: string): Observable<unknown> {
-    return this.http.post(`${this.adminUrl}/remove-agent/${userId}`, {});
+  removeAgent(userId: string, transferTo?: string): Observable<{ movedApartments?: number }> {
+    const query = transferTo ? `?transferTo=${encodeURIComponent(transferTo)}` : '';
+    return this.http.post<{ movedApartments?: number }>(`${this.adminUrl}/remove-agent/${userId}${query}`, {});
+  }
+
+  /** Website apartments and open CRM leads an agent still has. */
+  agentHoldings(userId: string): Observable<{ apartments: number; openLeads: number }> {
+    return this.http.get<{ apartments: number; openLeads: number }>(`${this.adminUrl}/agents/${userId}/holdings`);
   }
 
   setCrmRole(userId: string, role: string): Observable<unknown> {

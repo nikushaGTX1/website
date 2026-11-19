@@ -280,11 +280,90 @@ export class CrmDashboard implements OnInit {
     }
   }
 
-  /** Board card "Appointment" button: opens the lead with the appointment form ready. */
+  // ---------- Appointment popup on the board ----------
+  apptLead: CrmLead | null = null;
+  apptMode: 'create' | 'finish' = 'create';
+  apptDate = '';
+  apptLink = '';
+  apptComment = '';
+  apptError = '';
+  apptSaving = false;
+
+  /** Board card buttons: a popup in the middle of the page (set an appointment, or finish it). */
   openAppointment(lead: CrmLead, event: Event, finish = false): void {
     event.preventDefault();
     event.stopPropagation();
-    void this.router.navigate(['/crm/leads', lead.id], { queryParams: finish ? { finishMeeting: 1 } : { appointment: 1 } });
+    this.apptLead = lead;
+    this.apptMode = finish ? 'finish' : 'create';
+    this.apptError = '';
+    this.apptComment = '';
+    this.apptLink = '';
+    const soon = new Date(Date.now() + 60 * 60 * 1000);
+    soon.setMinutes(0, 0, 0);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    this.apptDate = `${soon.getFullYear()}-${pad(soon.getMonth() + 1)}-${pad(soon.getDate())}T${pad(soon.getHours())}:00`;
+    this.cdr.markForCheck();
+  }
+
+  closeAppointment(): void {
+    if (this.apptSaving) return;
+    this.apptLead = null;
+    this.cdr.markForCheck();
+  }
+
+  /** Plain http(s) link without user:password, or '' if it is not one. */
+  safeLink(value?: string | null): string {
+    const raw = (value || '').match(/https?:\/\/\S+/)?.[0];
+    if (!raw) return '';
+    try {
+      const url = new URL(raw);
+      return (url.protocol === 'https:' || url.protocol === 'http:') && !url.username && !url.password ? url.href : '';
+    } catch {
+      return '';
+    }
+  }
+
+  saveAppointmentPopup(): void {
+    const lead = this.apptLead;
+    if (!lead || this.apptSaving) return;
+    if (this.apptMode === 'create') {
+      const link = this.safeLink(this.apptLink.trim());
+      const due = new Date(this.apptDate);
+      if (!link) { this.apptError = 'Paste the link of the apartment you are going to.'; return; }
+      if (Number.isNaN(due.getTime())) { this.apptError = 'Choose the date and time of the appointment.'; return; }
+      this.apptSaving = true;
+      this.crmService.createTask(lead.id, { title: 'Appointment', type: 'viewing', description: link, dueAt: due.toISOString(), assignedAgentId: lead.assignedAgentId || null }).subscribe({
+        next: (task) => {
+          lead.openAppointment = task;
+          this.apptSaving = false;
+          this.apptLead = null;
+          this.cdr.markForCheck();
+        },
+        error: () => { this.apptSaving = false; this.apptError = 'Could not save the appointment. Please try again.'; this.cdr.markForCheck(); },
+      });
+      return;
+    }
+    const appointment = lead.openAppointment;
+    const comment = this.apptComment.trim();
+    if (!appointment) { this.apptLead = null; return; }
+    if (!comment) { this.apptError = 'Write a comment first.'; return; }
+    this.apptSaving = true;
+    const link = this.safeLink(appointment.description);
+    const body = `Meeting finished: ${comment}${link ? `\nApartment: ${link}` : ''}`;
+    this.crmService.createActivity(lead.id, { type: 'note', body }).subscribe({
+      next: () => {
+        this.crmService.updateTask(lead.id, appointment.id, { status: 'completed' }).subscribe({
+          next: () => {
+            lead.openAppointment = null;
+            this.apptSaving = false;
+            this.apptLead = null;
+            this.cdr.markForCheck();
+          },
+          error: () => { this.apptSaving = false; this.apptError = 'The comment was saved, but the appointment could not be closed. Please try again.'; this.cdr.markForCheck(); },
+        });
+      },
+      error: () => { this.apptSaving = false; this.apptError = 'Could not save the comment. Please try again.'; this.cdr.markForCheck(); },
+    });
   }
 
   clampLeadBudget(field: 'budgetMin' | 'budgetMax'): void {

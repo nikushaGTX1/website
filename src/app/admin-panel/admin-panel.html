@@ -458,3 +458,37 @@
     </article>
   </section>
 </section>
+
+@if (removingAgent) {
+  <div class="remove-agent-backdrop" (click)="cancelRemoveAgent()"></div>
+  <div class="remove-agent-dialog" role="dialog" aria-modal="true" aria-labelledby="remove-agent-title">
+    <h2 id="remove-agent-title">Remove agent</h2>
+    <p class="remove-agent-name" data-no-translate>{{ agentLabel(removingAgent) }}</p>
+    @if (!removeHoldings) {
+      <p class="remove-agent-note"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Checking their apartments…</p>
+    } @else {
+      @if (removeHoldings.apartments || removeHoldings.openLeads) {
+        <p class="remove-agent-note">
+          <span>This agent has</span> <b data-no-translate>{{ removeHoldings.apartments }}</b> <span>apartment(s) on the website and</span>
+          <b data-no-translate>{{ removeHoldings.openLeads }}</b> <span>open lead(s). Choose who gets them.</span>
+        </p>
+        <label class="remove-agent-field">
+          <span>Give their apartments to</span>
+          <select [(ngModel)]="transferTargetId" name="transferTargetId">
+            <option value="" disabled>Choose an agent</option>
+            @for (agent of transferTargets; track agent.userId || agent.id) {
+              <option [value]="agent.userId || agent.id" data-no-translate>{{ agentLabel(agent) }}</option>
+            }
+          </select>
+        </label>
+      } @else {
+        <p class="remove-agent-note">This agent has no apartments or open leads.</p>
+      }
+    }
+    <p class="remove-agent-error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+    <div class="remove-agent-actions">
+      <button type="button" class="remove-agent-cancel" (click)="cancelRemoveAgent()">Cancel</button>
+      <button type="button" class="remove-agent-confirm" [disabled]="!removeHoldings || !!actionId" (click)="confirmRemoveAgent()">Remove agent</button>
+    </div>
+  </div>
+}
