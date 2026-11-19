@@ -718,7 +718,9 @@ export class AdminPanel implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: () => {
-        this.removeHoldings = { apartments: 0, openLeads: 0 };
+        // Unknown count: keep the remove button disabled rather than assume there is nothing to move.
+        this.removeHoldings = null;
+        this.errorMessage = 'Could not check this agent\'s apartments. Close and try again.';
         this.cdr.detectChanges();
       },
     });

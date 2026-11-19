@@ -289,10 +289,17 @@ export class CrmDashboard implements OnInit {
   apptError = '';
   apptSaving = false;
 
+  /** Same rule as the lead page: managers, or the agent the lead is assigned to. */
+  canWorkLead(lead: CrmLead): boolean {
+    const userId = (this.authService.currentUser?.id || '').toLowerCase();
+    return this.isManager || (this.authService.isCrmAgent && !!userId && (lead.assignedAgentId || '').toLowerCase() === userId);
+  }
+
   /** Board card buttons: a popup in the middle of the page (set an appointment, or finish it). */
   openAppointment(lead: CrmLead, event: Event, finish = false): void {
     event.preventDefault();
     event.stopPropagation();
+    if (!this.canWorkLead(lead)) return;
     this.apptLead = lead;
     this.apptMode = finish ? 'finish' : 'create';
     this.apptError = '';
@@ -313,8 +320,8 @@ export class CrmDashboard implements OnInit {
 
   /** Plain http(s) link without user:password, or '' if it is not one. */
   safeLink(value?: string | null): string {
-    const raw = (value || '').match(/https?:\/\/\S+/)?.[0];
-    if (!raw) return '';
+    const raw = (value || '').trim().split(/\s/)[0];
+    if (!/^https?:\/\/[^\s\\]+$/i.test(raw) || /[\u0000-\u001f\u007f]/.test(raw)) return '';
     try {
       const url = new URL(raw);
       return (url.protocol === 'https:' || url.protocol === 'http:') && !url.username && !url.password ? url.href : '';
@@ -325,7 +332,7 @@ export class CrmDashboard implements OnInit {
 
   saveAppointmentPopup(): void {
     const lead = this.apptLead;
-    if (!lead || this.apptSaving) return;
+    if (!lead || this.apptSaving || !this.canWorkLead(lead)) return;
     if (this.apptMode === 'create') {
       const link = this.safeLink(this.apptLink.trim());
       const due = new Date(this.apptDate);

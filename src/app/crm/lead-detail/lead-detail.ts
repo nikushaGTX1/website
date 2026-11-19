@@ -257,8 +257,8 @@ export class CrmLeadDetail implements OnInit {
   /** The apartment link saved with the appointment. */
   appointmentUrl(description?: string): string {
     // Only a plain http(s) link with no user:password part becomes a clickable link.
-    const raw = (description || '').match(/https?:\/\/\S+/)?.[0];
-    if (!raw) return '';
+    const raw = (description || '').trim().split(/\s/)[0];
+    if (!/^https?:\/\/[^\s\\]+$/i.test(raw) || /[\u0000-\u001f\u007f]/.test(raw)) return '';
     try {
       const url = new URL(raw);
       if ((url.protocol !== 'https:' && url.protocol !== 'http:') || url.username || url.password) return '';

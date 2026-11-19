@@ -593,7 +593,7 @@
                   <button
                     type="button"
                     class="appointment-quick"
-                    *ngIf="!lead.openAppointment"
+                    *ngIf="!lead.openAppointment && canWorkLead(lead)"
                     (click)="openAppointment(lead, $event)"
                   >
                     <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
@@ -602,7 +602,7 @@
                   <button
                     type="button"
                     class="appointment-quick finish"
-                    *ngIf="lead.openAppointment"
+                    *ngIf="lead.openAppointment && canWorkLead(lead)"
                     (click)="openAppointment(lead, $event, true)"
                   >
                     <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>

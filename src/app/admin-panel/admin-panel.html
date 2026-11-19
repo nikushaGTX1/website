@@ -465,7 +465,7 @@
     <h2 id="remove-agent-title">Remove agent</h2>
     <p class="remove-agent-name" data-no-translate>{{ agentLabel(removingAgent) }}</p>
     @if (!removeHoldings) {
-      <p class="remove-agent-note"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Checking their apartments…</p>
+      <p class="remove-agent-note" *ngIf="!errorMessage"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Checking their apartments…</p>
     } @else {
       @if (removeHoldings.apartments || removeHoldings.openLeads) {
         <p class="remove-agent-note">
