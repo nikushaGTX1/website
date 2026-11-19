@@ -914,3 +914,9 @@
 .sign-in > span { display: block; line-height: 1.2; }
 /* Sign in never clips its Georgian label: size to the content */
 .nav-actions .sign-in { flex: none; width: auto; min-width: max-content; padding: 0 16px !important; overflow: visible; }
+
+/* Wide screens: more room between language, bell, profile and "List your property" */
+@media (min-width: 1241px) {
+  .nav-actions { gap: 18px !important; }
+  .nav-actions .list-property { margin-left: 6px; }
+}

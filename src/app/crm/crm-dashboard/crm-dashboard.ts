@@ -280,6 +280,13 @@ export class CrmDashboard implements OnInit {
     }
   }
 
+  /** Board card "Appointment" button: opens the lead with the appointment form ready. */
+  openAppointment(lead: CrmLead, event: Event, finish = false): void {
+    event.preventDefault();
+    event.stopPropagation();
+    void this.router.navigate(['/crm/leads', lead.id], { queryParams: finish ? { finishMeeting: 1 } : { appointment: 1 } });
+  }
+
   clampLeadBudget(field: 'budgetMin' | 'budgetMax'): void {
     const value = this.manualLeadForm[field];
     if (value === undefined || value === null || String(value).trim() === '') return;

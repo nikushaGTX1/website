@@ -256,7 +256,16 @@ export class CrmLeadDetail implements OnInit {
 
   /** The apartment link saved with the appointment. */
   appointmentUrl(description?: string): string {
-    return (description || '').match(/https?:\/\/\S+/)?.[0] ?? '';
+    // Only a plain http(s) link with no user:password part becomes a clickable link.
+    const raw = (description || '').match(/https?:\/\/\S+/)?.[0];
+    if (!raw) return '';
+    try {
+      const url = new URL(raw);
+      if ((url.protocol !== 'https:' && url.protocol !== 'http:') || url.username || url.password) return '';
+      return url.href;
+    } catch {
+      return '';
+    }
   }
 
   openAppointmentForm(): void {
@@ -270,9 +279,9 @@ export class CrmLeadDetail implements OnInit {
   }
 
   saveAppointment(): void {
-    if (!this.lead || this.appointmentSaving) return;
+    if (!this.canWorkLead || !this.lead || this.appointmentSaving) return;
     const link = this.appointmentLink.trim();
-    if (!/^https?:\/\/\S+$/i.test(link)) {
+    if (!/^https?:\/\/\S+$/i.test(link) || !this.appointmentUrl(link)) {
       this.appointmentError = 'Paste the link of the apartment you are going to.';
       return;
     }
@@ -310,7 +319,7 @@ export class CrmLeadDetail implements OnInit {
     this.meetingTouched = true;
     const appointment = this.openAppointment;
     const comment = this.meetingComment.trim();
-    if (!this.lead || !appointment || !comment || this.appointmentSaving) return;
+    if (!this.canWorkLead || !this.lead || !appointment || !comment || this.appointmentSaving) return;
     this.appointmentSaving = true;
     const lead = this.lead;
     const link = this.appointmentUrl(appointment.description);
@@ -995,6 +1004,15 @@ export class CrmLeadDetail implements OnInit {
 
             this.lead =
               lead;
+
+            // "Appointment" button on the board card: open the appointment form straight away.
+            if (this.route.snapshot.queryParamMap.get('appointment') === '1' && this.canWorkLead && !this.openAppointment)
+              this.openAppointmentForm();
+            // "Meeting finished" on the board card: ask how it went straight away.
+            if (this.route.snapshot.queryParamMap.get('finishMeeting') === '1' && this.canWorkLead && this.openAppointment) {
+              this.meetingDialogOpen = true;
+              this.meetingTouched = false;
+            }
 
 
             this.agents =
