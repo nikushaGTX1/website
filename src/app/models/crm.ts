@@ -83,6 +83,8 @@ export interface CrmLead {
   requestedViewingAt?: string;
   nextFollowUpAt?: string;
   nextTask?: CrmTask | null;
+  /** Open appointment (viewing task): the lead card is green until the meeting is finished. */
+  openAppointment?: CrmTask | null;
   lastActivityAt?: string;
   consentGiven?: boolean;
   consentGivenAt?: string;

@@ -393,6 +393,51 @@
 
         </div>
 
+        <!-- Appointment: the lead stays green on the board until the meeting is finished. -->
+        <section class="appt-card" [class.active]="!!openAppointment" aria-label="Appointment">
+          @if (openAppointment; as appt) {
+            <div class="appt-head">
+              <span class="appt-icon"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
+              <div class="appt-copy">
+                <strong>Appointment</strong>
+                <span data-no-translate>{{ appt.dueAt | date: 'd MMM y, HH:mm' }}</span>
+                <a *ngIf="appointmentUrl(appt.description) as url" [href]="url" target="_blank" rel="noopener" data-no-translate>{{ url }}</a>
+              </div>
+              <button type="button" class="appt-finish" (click)="meetingDialogOpen = true; meetingTouched = false">
+                <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i> Meeting finished
+              </button>
+            </div>
+          } @else if (appointmentFormOpen) {
+            <div class="appt-form">
+              <label><span>Date and time</span><input type="datetime-local" [(ngModel)]="appointmentDate" name="appointmentDate" /></label>
+              <label class="wide"><span>Link of the apartment you are going to</span><input type="url" [(ngModel)]="appointmentLink" name="appointmentLink" placeholder="https://velven.ge/apartments/…" /></label>
+              <div class="appt-actions">
+                <button type="button" class="appt-cancel" (click)="appointmentFormOpen = false">Cancel</button>
+                <button type="button" class="appt-save" [disabled]="appointmentSaving" (click)="saveAppointment()">Save appointment</button>
+              </div>
+            </div>
+          } @else {
+            <button type="button" class="appt-add" (click)="openAppointmentForm()">
+              <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i> Add appointment
+            </button>
+          }
+          <p class="appt-error" *ngIf="appointmentError" role="alert">{{ appointmentError }}</p>
+        </section>
+
+        @if (meetingDialogOpen) {
+          <div class="appt-backdrop" (click)="meetingDialogOpen = false"></div>
+          <div class="appt-dialog" role="dialog" aria-modal="true" aria-labelledby="meeting-title">
+            <h2 id="meeting-title">How did the meeting go?</h2>
+            <p>Your comment is added to this lead's comments.</p>
+            <textarea [(ngModel)]="meetingComment" name="meetingComment" rows="4" placeholder="E.g. client liked it, wants a second viewing on Friday"></textarea>
+            <p class="appt-error" *ngIf="meetingTouched && !meetingComment.trim()">Write a comment first.</p>
+            <div class="appt-actions">
+              <button type="button" class="appt-cancel" (click)="meetingDialogOpen = false">Cancel</button>
+              <button type="button" class="appt-save" [disabled]="appointmentSaving" (click)="finishMeeting()">Save and finish</button>
+            </div>
+          </div>
+        }
+
         <!-- Won lead: commission earned, counted on the CRM "Best agent" card. -->
         <section class="deal-card" *ngIf="currentLead.status === 'won'" aria-labelledby="deal-card-title">
           <header class="deal-head">

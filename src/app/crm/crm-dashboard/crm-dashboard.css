@@ -3315,3 +3315,9 @@ button.admin-shortcut {
   :host button, :host a[class*="btn"], :host select { min-height: 42px; }
   :host table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
+
+
+/* Lead with an open appointment: green until the meeting is finished */
+.lead-card.has-appointment { border-color: #22c55e !important; background: linear-gradient(180deg, #f0fdf4, #fff 60%) !important; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15) !important; }
+.appointment-badge { display: inline-flex; align-items: center; gap: 6px; width: fit-content; margin-bottom: 8px; padding: 5px 10px; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 800; }
+.appointment-badge small { font-weight: 600; opacity: 0.9; }

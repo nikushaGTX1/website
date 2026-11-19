@@ -476,3 +476,33 @@
   :host button, :host a[class*="btn"], :host select { min-height: 42px; }
   :host table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
+
+
+/* Appointment */
+.appt-card { margin: 16px 0; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; }
+.appt-card.active { border: 2px solid #22c55e; background: #f0fdf4; }
+.appt-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.appt-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: #16a34a; color: #fff; font-size: 18px; }
+.appt-copy { display: grid; flex: 1 1 200px; gap: 2px; min-width: 0; }
+.appt-copy strong { color: #15803d; font-size: 16px; }
+.appt-copy span { color: #166534; font-size: 13px; }
+.appt-copy a { overflow: hidden; color: #15803d; font-size: 13px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+.appt-finish, .appt-add, .appt-save, .appt-cancel { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border: 0; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.appt-finish, .appt-save { background: #16a34a; color: #fff; }
+.appt-add { background: #ecfdf3; color: #15803d; }
+.appt-cancel { background: #f3f4f6; color: #374151; }
+.appt-save:disabled { opacity: 0.6; }
+.appt-form { display: grid; grid-template-columns: 220px 1fr; gap: 12px; }
+.appt-form label { display: grid; gap: 6px; color: #374151; font-size: 13px; font-weight: 600; }
+.appt-form input { height: 42px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 10px; font: inherit; }
+.appt-actions { display: flex; justify-content: flex-end; gap: 8px; grid-column: 1 / -1; }
+.appt-error { margin: 8px 0 0; color: #b91c1c; font-size: 13px; font-weight: 600; }
+.appt-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(15, 23, 42, 0.45); }
+.appt-dialog { position: fixed; z-index: 1001; top: 50%; left: 50%; display: grid; gap: 10px; width: min(480px, calc(100vw - 32px)); padding: 22px; border-radius: 18px; background: #fff; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25); transform: translate(-50%, -50%); }
+.appt-dialog h2 { margin: 0; font-size: 19px; }
+.appt-dialog p { margin: 0; color: #6b7280; font-size: 14px; }
+.appt-dialog textarea { padding: 12px; border: 1px solid #d1d5db; border-radius: 12px; font: inherit; resize: vertical; }
+@media (max-width: 640px) {
+  .appt-form { grid-template-columns: 1fr; }
+  .appt-finish { width: 100%; justify-content: center; }
+}

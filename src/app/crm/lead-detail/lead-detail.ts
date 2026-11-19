@@ -238,6 +238,114 @@ export class CrmLeadDetail implements OnInit {
 
   /** "Lost" popup: reason is required before the stage changes. */
   lostDialogOpen = false;
+
+  // ---------- Appointment (green on the board until the meeting is finished) ----------
+  appointmentFormOpen = false;
+  appointmentDate = '';
+  appointmentLink = '';
+  appointmentSaving = false;
+  appointmentError = '';
+  meetingDialogOpen = false;
+  meetingComment = '';
+  meetingTouched = false;
+
+  /** The open appointment: an unfinished viewing task. */
+  get openAppointment() {
+    return (this.lead?.tasks || []).find((task) => task.type === 'viewing' && task.status !== 'completed') ?? null;
+  }
+
+  /** The apartment link saved with the appointment. */
+  appointmentUrl(description?: string): string {
+    return (description || '').match(/https?:\/\/\S+/)?.[0] ?? '';
+  }
+
+  openAppointmentForm(): void {
+    const soon = new Date(Date.now() + 60 * 60 * 1000);
+    soon.setMinutes(0, 0, 0);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    this.appointmentDate = `${soon.getFullYear()}-${pad(soon.getMonth() + 1)}-${pad(soon.getDate())}T${pad(soon.getHours())}:00`;
+    this.appointmentLink = '';
+    this.appointmentError = '';
+    this.appointmentFormOpen = true;
+  }
+
+  saveAppointment(): void {
+    if (!this.lead || this.appointmentSaving) return;
+    const link = this.appointmentLink.trim();
+    if (!/^https?:\/\/\S+$/i.test(link)) {
+      this.appointmentError = 'Paste the link of the apartment you are going to.';
+      return;
+    }
+    const due = new Date(this.appointmentDate);
+    if (Number.isNaN(due.getTime())) {
+      this.appointmentError = 'Choose the date and time of the appointment.';
+      return;
+    }
+    this.appointmentSaving = true;
+    this.appointmentError = '';
+    const lead = this.lead;
+    this.crmService.createTask(lead.id, {
+      title: 'Appointment',
+      type: 'viewing',
+      description: link,
+      dueAt: due.toISOString(),
+      assignedAgentId: lead.assignedAgentId || null,
+    }).subscribe({
+      next: (task) => {
+        if (this.lead) this.lead = { ...this.lead, tasks: [...(this.lead.tasks || []), task] };
+        this.appointmentSaving = false;
+        this.appointmentFormOpen = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.appointmentSaving = false;
+        this.appointmentError = 'Could not save the appointment. Please try again.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /** "Meeting finished": the comment is required and is written to the lead's comments. */
+  finishMeeting(): void {
+    this.meetingTouched = true;
+    const appointment = this.openAppointment;
+    const comment = this.meetingComment.trim();
+    if (!this.lead || !appointment || !comment || this.appointmentSaving) return;
+    this.appointmentSaving = true;
+    const lead = this.lead;
+    const link = this.appointmentUrl(appointment.description);
+    const body = `Meeting finished: ${comment}${link ? `\nApartment: ${link}` : ''}`;
+    this.crmService.createActivity(lead.id, { type: 'note', body }).subscribe({
+      next: (activity) => {
+        this.crmService.updateTask(lead.id, appointment.id, { status: 'completed' }).subscribe({
+          next: (task) => {
+            if (this.lead) {
+              this.lead = {
+                ...this.lead,
+                activities: [activity, ...(this.lead.activities || [])],
+                tasks: (this.lead.tasks || []).map((item) => (item.id === task.id ? task : item)),
+              };
+            }
+            this.appointmentSaving = false;
+            this.meetingDialogOpen = false;
+            this.meetingComment = '';
+            this.meetingTouched = false;
+            this.cdr.markForCheck();
+          },
+          error: () => {
+            this.appointmentSaving = false;
+            this.appointmentError = 'The comment was saved, but the appointment could not be closed. Please try again.';
+            this.cdr.markForCheck();
+          },
+        });
+      },
+      error: () => {
+        this.appointmentSaving = false;
+        this.appointmentError = 'Could not save the comment. Please try again.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
   lostReason = '';
   lostComment = '';
   lostTouched = false;
