@@ -3325,3 +3325,11 @@ button.admin-shortcut {
 .appointment-quick { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #bbf7d0; border-radius: 999px; background: #f0fdf4; color: #15803d; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
 .appointment-quick:hover { background: #16a34a; color: #fff; }
 .appointment-quick.finish { border-color: #16a34a; background: #16a34a; color: #fff; }
+
+/* Card footer: agent name on the left, small one-line appointment pill on the right */
+.lead-card footer { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 10px !important; }
+.lead-card footer > span:first-child { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.lead-card footer .appointment-quick { flex: none !important; width: auto !important; min-height: 0 !important; height: 30px !important; padding: 0 12px !important; border: 1px solid #bbf7d0 !important; border-radius: 999px !important; background: #f0fdf4 !important; color: #15803d !important; font-size: 12px !important; font-weight: 800 !important; line-height: 1 !important; white-space: nowrap !important; box-shadow: none !important; }
+.lead-card footer .appointment-quick i { color: inherit !important; font-size: 12px !important; }
+.lead-card footer .appointment-quick:hover { background: #16a34a !important; color: #fff !important; }
+.lead-card footer .appointment-quick.finish { border-color: #16a34a !important; background: #16a34a !important; color: #fff !important; }
