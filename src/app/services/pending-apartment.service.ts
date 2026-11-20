@@ -184,7 +184,11 @@ export class PendingApartmentService {
 
   private save(items: PendingApartment[]): void {
     const serialized = JSON.stringify(items);
-    localStorage.setItem(this.storageKey, serialized);
+    try {
+      localStorage.setItem(this.storageKey, serialized);
+    } catch {
+      // Storage full or blocked: keep the list in memory only.
+    }
     this.writeCookie(serialized);
     this.pendingSubject.next(items);
   }

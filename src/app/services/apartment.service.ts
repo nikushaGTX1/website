@@ -272,11 +272,24 @@ export class ApartmentService {
     }
   }
 
+  /**
+   * Keeps a copy for a faster next visit. It is only a speed-up: when the browser's storage is
+   * full (the list outgrew the ~5 MB limit) or blocked, the old copy is dropped and the page
+   * carries on with the list it already has instead of failing to load apartments.
+   */
   private persistApartments(apartments: Apartment[]): void {
-    localStorage.setItem(
-      this.persistedApartmentsKey,
-      JSON.stringify({ savedAt: Date.now(), apartments }),
-    );
+    try {
+      localStorage.setItem(
+        this.persistedApartmentsKey,
+        JSON.stringify({ savedAt: Date.now(), apartments }),
+      );
+    } catch {
+      try {
+        localStorage.removeItem(this.persistedApartmentsKey);
+      } catch {
+        // Storage blocked entirely: nothing to clean up.
+      }
+    }
   }
 
   private persistApartment(apartment: Apartment): void {
