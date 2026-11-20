@@ -46,7 +46,7 @@
           <div class="uploader">
             <span class="label">Uploaded by</span>
             <div class="person">
-              <img *ngIf="photo(item); else noPhoto" [src]="(photo(item)) | photoUrl:320" alt="" loading="lazy" />
+              <img *ngIf="photo(item) && !brokenPhotos.has(item.id); else noPhoto" [src]="(photo(item)) | photoUrl:320" alt="" loading="lazy" (error)="brokenPhotos.add(item.id)" />
               <ng-template #noPhoto><span class="initials" aria-hidden="true">{{ initials(item) }}</span></ng-template>
               <div>
                 <strong data-no-translate>{{ item.submittedByName || item.submittedByEmail || 'Unknown' }}</strong>

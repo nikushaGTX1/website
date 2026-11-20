@@ -110,6 +110,9 @@ export class ListingApprovals implements OnInit {
     return toMediaUrl(apartment.imageUrls?.[0] || apartment.imageUrl) || '/property-placeholder.svg';
   }
 
+  /** Photos that failed to load: initials are shown instead of a broken image. */
+  readonly brokenPhotos = new Set<unknown>();
+
   photo(item: PendingApartmentEntry): string {
     return item.submittedByPicture ? toMediaUrl(item.submittedByPicture) || item.submittedByPicture : '';
   }

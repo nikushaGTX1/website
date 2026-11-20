@@ -585,7 +585,12 @@ export class CrmDashboard implements OnInit {
     // Preserve the API/board order. A status update changes updatedAt and
     // lastActivityAt, so sorting here made a dropped card jump past another
     // card as soon as the server response arrived.
-    return this.filteredLeads.filter((lead) => this.pipelineStatus(lead) === status);
+    const leads = this.filteredLeads.filter((lead) => this.pipelineStatus(lead) === status);
+    // Green (open appointment) leads first, soonest appointment on top; the rest keep their order.
+    const withAppointment = leads
+      .filter((lead) => lead.openAppointment)
+      .sort((a, b) => new Date(a.openAppointment!.dueAt).getTime() - new Date(b.openAppointment!.dueAt).getTime());
+    return [...withAppointment, ...leads.filter((lead) => !lead.openAppointment)];
   }
 
   displayedLeadsForStatus(status: CrmLeadStatus): CrmLead[] {
