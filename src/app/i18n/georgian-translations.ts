@@ -1753,6 +1753,8 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['feels like you.', 'გერგებათ.'],
   ['Velven Match', 'Velven Match'],
   ['Find My Match', 'იპოვეთ თქვენი სახლი'],
+  ['Near this home', 'ამ ბინის ახლოს'],
+  ['Homes nearby', 'ახლომდებარე ბინები'],
   ['Transfer apartments', 'ბინების გადაცემა'],
   ['Change agent', 'აგენტის შეცვლა'],
   ['Give every apartment of one agent (for example one who left) to another agent. Their open CRM leads move too.', 'ერთი აგენტის (მაგ. წასულის) ყველა ბინა გადაეცით სხვა აგენტს. მისი ღია CRM ლიდებიც გადავა.'],

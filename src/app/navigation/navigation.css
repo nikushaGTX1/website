@@ -914,3 +914,9 @@
 .sign-in > span { display: block; line-height: 1.2; }
 /* Sign in never clips its Georgian label: size to the content */
 .nav-actions .sign-in { flex: none; width: auto; min-width: max-content; padding: 0 16px !important; overflow: visible; }
+
+/* English / Russian on wide screens: menu links fill the space between the logo and the buttons.
+   Georgian words are longer and already fill it (spreading them squeezed the Georgian button). */
+@media (min-width: 1241px) {
+  :host-context(html:not([lang="ka"])) .nav-links { justify-content: space-between !important; gap: clamp(28px, 2.6vw, 52px) !important; }
+}

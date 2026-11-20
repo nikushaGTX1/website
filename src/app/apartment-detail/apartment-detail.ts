@@ -129,24 +129,39 @@ export class ApartmentDetail implements OnInit, OnDestroy {
    */
   trackSuggested = (_: number, apartment: Apartment): number => apartment.id;
 
+  /**
+   * "Homes nearby": same deal (rent / sale), closest first by map position.
+   * Listings without coordinates fall back to the same district, type and price.
+   */
   private rankSuggestions(apartments: Apartment[], currentId: number): Apartment[] {
-    const current = apartments.find((apartment) => apartment.id === currentId);
+    const current = apartments.find((apartment) => apartment.id === currentId) ?? this.apartment ?? undefined;
     const sale = current ? isSaleListing(current) : false;
     const type = current ? listingHomeType(current) : null;
+    const point = (apartment: Apartment): [number, number] | null => {
+      const lat = Number(apartment.propertyLatitude ?? apartment.latitude);
+      const lng = Number(apartment.propertyLongitude ?? apartment.longitude);
+      return Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0 ? [lat, lng] : null;
+    };
+    const here = current ? point(current) : null;
+    const km = (apartment: Apartment): number => {
+      const there = point(apartment);
+      if (!here || !there) return Number.POSITIVE_INFINITY;
+      const rad = (deg: number) => (deg * Math.PI) / 180;
+      const h = Math.sin(rad(there[0] - here[0]) / 2) ** 2 + Math.cos(rad(here[0])) * Math.cos(rad(there[0])) * Math.sin(rad(there[1] - here[1]) / 2) ** 2;
+      return 2 * 6371 * Math.asin(Math.sqrt(h));
+    };
     const score = (apartment: Apartment): number => {
       if (!current) return 0;
       let points = 0;
-      if (type && listingHomeType(apartment) === type) points += 4;
       if (current.district && apartment.district === current.district) points += 3;
-      if (current.price && apartment.price && Math.abs(apartment.price - current.price) <= current.price * 0.3) points += 2;
-      if (current.bedrooms != null && apartment.bedrooms === current.bedrooms) points += 1;
+      if (type && listingHomeType(apartment) === type) points += 2;
+      if (current.price && apartment.price && Math.abs(apartment.price - current.price) <= current.price * 0.3) points += 1;
       return points;
     };
-    const time = (apartment: Apartment) => new Date(apartment.publishedAt || apartment.createdAt || 0).getTime();
     return apartments
       .filter((apartment) => apartment.id !== currentId && (!current || isSaleListing(apartment) === sale))
-      .map((apartment) => ({ apartment, points: score(apartment) }))
-      .sort((a, b) => b.points - a.points || time(b.apartment) - time(a.apartment))
+      .map((apartment) => ({ apartment, km: km(apartment), points: score(apartment) }))
+      .sort((a, b) => a.km - b.km || b.points - a.points)
       .slice(0, 2)
       .map((entry) => entry.apartment);
   }

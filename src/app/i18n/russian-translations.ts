@@ -382,6 +382,8 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['fits your life.', 'подходит вашей жизни.'],
   ['feels like you.', 'подходит именно вам.'],
   ['Find My Match', 'Найти мой вариант'],
+  ['Near this home', 'Рядом с этой квартирой'],
+  ['Homes nearby', 'Квартиры поблизости'],
   ['Transfer apartments', 'Передать объекты'],
   ['Change agent', 'Сменить агента'],
   ['Give every apartment of one agent (for example one who left) to another agent. Their open CRM leads move too.', 'Передайте все объекты одного агента (например, ушедшего) другому. Его открытые лиды CRM тоже перейдут.'],
