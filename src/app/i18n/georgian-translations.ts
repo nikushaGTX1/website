@@ -994,7 +994,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['Lease', 'იჯარა'],
   ['Daily rent', 'დღიური ქირა'],
   ['Status', 'სტატუსი'],
-  ['Old building', 'ძველი კორპუსი'],
+  ['Old building', 'ძველი შენობა'],
   ['New building', 'ახალი კორპუსი'],
   ['Under construction', 'მშენებარე'],
   ['Newly Renovated', 'ახალი გარემონტებული'],
