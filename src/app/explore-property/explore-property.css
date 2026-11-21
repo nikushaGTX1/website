@@ -3080,3 +3080,34 @@ svg {
   .results-pane .results-heading h1 { font-size: clamp(22px, 6.6vw, 28px); line-height: 1.2; }
   .results-pane .results-heading p { margin-top: 4px; }
 }
+
+/* Phones: "More filters" is the first chip */
+@media (max-width: 760px) {
+  .chip-scroll .more-filters-chip { order: -2; }
+}
+
+/* Phones: Rent / Buy switch on the left of the sort button, above the title */
+.deal-switch.mobile-only { display: none; }
+@media (max-width: 640px) {
+  .results-pane .results-heading { display: grid !important; grid-template-columns: auto 1fr; align-items: center; gap: 12px 10px; }
+  .results-pane .results-heading > div:not(.deal-switch) { grid-column: 1 / -1; grid-row: 2; }
+  .results-pane .results-heading .sort-trigger { grid-row: 1; grid-column: 2; justify-self: end; order: 0; }
+  .deal-switch.mobile-only { grid-row: 1; grid-column: 1; display: inline-grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 4px; border-radius: 999px; background: #f1edf8; box-shadow: inset 0 0 0 1px #e4dcf2; }
+  .deal-switch.mobile-only button { min-width: 0; height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: #5b5470; font: inherit; font-size: 13px; font-weight: 700; line-height: 1; white-space: nowrap; cursor: pointer; transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
+  .deal-switch.mobile-only button.active { background: #fff; color: #4c1d95; box-shadow: 0 2px 8px rgba(76, 29, 149, 0.18); }
+}
+@media (max-width: 640px) {
+  .results-pane .results-heading { grid-template-columns: auto minmax(0, 1fr) !important; }
+  .deal-switch.mobile-only button { padding: 0 12px; }
+  .results-pane .results-heading .sort-trigger { min-width: 0; max-width: 100%; overflow: hidden; }
+  .results-pane .results-heading .sort-trigger > span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+}
+/* Phones (final): switch on its own full-width row, sort under it at full width-free size, then the title */
+@media (max-width: 640px) {
+  .results-pane .results-heading { display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+  .deal-switch.mobile-only { order: -2; display: grid !important; grid-template-columns: 1fr 1fr; width: 100%; padding: 4px; border: 1px solid #e3dcef; border-radius: 14px; background: #fff; box-shadow: 0 4px 14px rgba(76, 29, 149, 0.06); }
+  .deal-switch.mobile-only button { height: 40px; padding: 0 8px !important; border-radius: 10px; background: transparent; color: #5b5470; font-size: 14.5px; font-weight: 700; box-shadow: none; }
+  .deal-switch.mobile-only button.active { background: #4c1d95 !important; color: #fff !important; box-shadow: 0 4px 12px rgba(76, 29, 149, 0.28) !important; }
+  .results-pane .results-heading .sort-trigger { order: -1; align-self: flex-end; max-width: none; overflow: visible; }
+  .results-pane .results-heading .sort-trigger > span { overflow: visible; text-overflow: clip; }
+}

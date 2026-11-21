@@ -1890,6 +1890,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
     });
   }
 
+  /** Rent / Buy switch in the phone filter row: same as the header Buy / Rent links. */
+  switchDeal(mode: 'rent' | 'buy', event: Event): void {
+    event.stopPropagation();
+    if ((mode === 'buy') === (this.selectedType === 'For Sale')) return;
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { mode }, queryParamsHandling: 'merge' });
+  }
+
   ngOnDestroy(): void {
     if (this.floorOpen) unlockPageScroll();
     if (this.sizeOpen) unlockPageScroll();
