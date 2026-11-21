@@ -1,5 +1,5 @@
 <section class="upload-page">
-  <header class="page-intro">
+  <header class="page-intro" *ngIf="selectedListingPlan">
     <div>
       <span class="page-eyebrow"><i class="fa-solid fa-shield-check"></i> CHOOSE YOUR PLAN</span>
       <h1>List <em>your</em> property your way.</h1>
@@ -23,15 +23,11 @@
         </div>
       </div>
       <ul>
-        <li *ngFor="let benefit of plan.benefits; let bi = index" [class.plan-extra]="bi >= 3" [hidden]="bi >= 3 && !expandedPlans.has(plan.id)">
+        <li *ngFor="let benefit of plan.benefits; let bi = index">
           <i class="fa-solid fa-check"></i>
           <span>{{ benefit }}</span>
         </li>
       </ul>
-      <button type="button" class="plan-more" *ngIf="plan.benefits.length > 3" [class.open]="expandedPlans.has(plan.id)" [attr.aria-expanded]="expandedPlans.has(plan.id)" (click)="togglePlanServices(plan.id)">
-        <span>{{ expandedPlans.has(plan.id) ? 'Show fewer services' : 'See all services' }}</span>
-        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-      </button>
       <button
         type="button"
         class="plan-select"
@@ -53,8 +49,6 @@
       <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
     </button>
   </div>
-
-  <button type="button" class="plan-compare" *ngIf="!selectedListingPlan" (click)="toggleCompare()">Compare services</button>
 
   <p class="plan-trust" *ngIf="!selectedListingPlan">
     <i class="fa-regular fa-shield-check"></i>
