@@ -10,7 +10,7 @@
   border: 1px solid #e5deee;
   border-radius: 18px;
   padding: 24px;
-  box-shadow: 0 6px 24px #451a8f08;
+  box-shadow: none;
 }
 header,
 .actions,

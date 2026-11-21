@@ -41,7 +41,7 @@
   background: linear-gradient(135deg, #451a8f, #7435d3);
   color: #fff;
   font-size: 20px;
-  box-shadow: 0 10px 22px rgba(69, 26, 143, 0.28);
+  box-shadow: none;
 }
 
 .intake-title {
@@ -88,7 +88,7 @@
   border: 0;
   background: #451a8f;
   color: #fff;
-  box-shadow: 0 8px 18px rgba(69, 26, 143, 0.25);
+  box-shadow: none;
 }
 
 .ghost-btn {

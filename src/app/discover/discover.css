@@ -479,7 +479,7 @@
 .tabs button.active {
   background: #451a8f;
   color: #fff;
-  box-shadow: 0 6px 14px rgba(69, 26, 143, 0.25);
+  box-shadow: none;
 }
 
 .count {
@@ -1101,7 +1101,7 @@
 .search-hero .search-character { order: 2; }
 
 .search-select { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 8px; margin: 0; padding: 0; }
-.search-goal { padding: 4px 10px; background: #fff; box-shadow: 0 1px 4px rgba(69, 26, 143, 0.12); font-size: 10.5px; }
+.search-goal { padding: 4px 10px; background: #fff; box-shadow: none; font-size: 10.5px; }
 .search-counts { align-items: baseline; gap: 5px; color: #5d566b; font-size: 12.5px; }
 .search-counts b { color: #14112a; font-size: 24px; font-weight: 800; line-height: 1; }
 
@@ -1182,14 +1182,14 @@
 }
 .search-card .search-goal {
   display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 99px;
-  background: rgba(255, 255, 255, 0.85); color: #5b21b6; font-size: 13px; font-weight: 800; box-shadow: 0 4px 12px rgba(91, 33, 182, 0.12);
+  background: rgba(255, 255, 255, 0.85); color: #5b21b6; font-size: 13px; font-weight: 800; box-shadow: none;
 }
 .search-card .search-goal::before { content: "\f015"; font-family: var(--fa-family, 'Font Awesome 7 Free'); font-weight: 900; font-size: 12px; color: #7c3aed; }
 .search-card .search-goal.buy::before { content: "\f02b"; }
 .search-card .search-counts b { color: #14112a; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
 .search-card .search-counts em { margin-left: 6px; padding: 3px 9px; border-radius: 99px; background: #22c55e; color: #fff; font-size: 11.5px; font-style: normal; font-weight: 800; }
 .search-card .search-title h3 { color: #14112a; font-weight: 800; }
-.search-card .search-title .icon-btn { border: 0; border-radius: 11px; background: rgba(255, 255, 255, 0.85); color: #5b21b6; box-shadow: 0 4px 12px rgba(91, 33, 182, 0.12); }
+.search-card .search-title .icon-btn { border: 0; border-radius: 11px; background: rgba(255, 255, 255, 0.85); color: #5b21b6; box-shadow: none; }
 
 .search-card .search-facts {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; margin: 18px 20px 0; padding: 14px 16px;
@@ -1315,11 +1315,11 @@
 
 
 /* Rename a saved search: wide field, save + cancel */
-.search-hero .rename-form { width: min(100%, 340px); gap: 8px; padding: 6px; border-radius: 16px; background: rgba(255, 255, 255, 0.85); box-shadow: 0 10px 28px rgba(76, 29, 149, 0.14); backdrop-filter: blur(6px); }
+.search-hero .rename-form { width: min(100%, 340px); gap: 8px; padding: 6px; border-radius: 16px; background: rgba(255, 255, 255, 0.85); box-shadow: none; backdrop-filter: blur(6px); }
 .search-hero .rename-form input { height: 44px; padding: 0 14px; border: 1.5px solid #d9c9f7; border-radius: 12px; background: #fff; color: #1f1530; font-size: 15.5px; font-weight: 700; transition: border-color 0.15s, box-shadow 0.15s; }
 .search-hero .rename-form input:focus { border-color: #6d2ee0; box-shadow: 0 0 0 4px rgba(109, 46, 224, 0.12); }
 .search-hero .rename-form .icon-btn { width: 44px; height: 44px; border-radius: 12px; }
-.search-hero .rename-form .icon-btn.solid { background: linear-gradient(135deg, #7c3aed, #4c1d95); color: #fff; border: 0; box-shadow: 0 6px 16px rgba(76, 29, 149, 0.3); }
+.search-hero .rename-form .icon-btn.solid { background: linear-gradient(135deg, #7c3aed, #4c1d95); color: #fff; border: 0; box-shadow: none; }
 .search-hero .rename-form .rename-cancel { border: 1.5px solid #e6def3; background: #fff; color: #6b5d85; }
 .search-hero .rename-form .rename-cancel:hover { background: #f6f2fd; }
 

@@ -145,7 +145,7 @@
   border-radius: 12px;
   color: #fff;
   background: #451a8f;
-  box-shadow: 0 8px 20px rgba(69, 26, 143, 0.22);
+  box-shadow: none;
   font-family: Georgia, serif;
   font-size: 20px;
   animation: map-loading-pulse 1s ease-in-out infinite alternate;

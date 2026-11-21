@@ -55,7 +55,7 @@
 }
 .dp-day.out { color: #c4bad3; font-weight: 500; }
 .dp-day.today:not(.selected) { box-shadow: inset 0 0 0 1.5px #7136be; color: #451a8f; }
-.dp-day.selected { background: linear-gradient(135deg, #451a8f, #7136be); color: #fff; box-shadow: 0 6px 14px rgba(69, 26, 143, .3); }
+.dp-day.selected { background: linear-gradient(135deg, #451a8f, #7136be); color: #fff; box-shadow: none; }
 .dp-day:active:not(:disabled) { transform: scale(.92); }
 .dp-day:disabled { color: #d9d3e3; cursor: not-allowed; text-decoration: line-through; text-decoration-color: rgba(0, 0, 0, .08); }
 

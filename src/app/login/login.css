@@ -460,7 +460,7 @@
 .tab-btn.active {
   background: #fff !important;
   color: #451a8f !important;
-  box-shadow: 0 4px 12px rgba(69, 26, 143, 0.12);
+  box-shadow: none;
 }
 
 /* Fields */
@@ -492,11 +492,11 @@
   background: linear-gradient(135deg, #451a8f, #6a3fd0) !important;
   font-size: 16px;
   font-weight: 800;
-  box-shadow: 0 14px 30px rgba(69, 26, 143, 0.28);
+  box-shadow: none;
   transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
 }
 @media (hover: hover) {
-.submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 18px 34px rgba(69, 26, 143, 0.34); }
+.submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: none; }
 }
 
 .divider { margin: clamp(14px, 2.5vh, 24px) 0; color: #9a93ab; }

@@ -41,7 +41,7 @@
   border: 1px solid #ebe4f6;
   border-radius: 14px;
   background: linear-gradient(180deg, #fbf9fe, #f6f2fd);
-  box-shadow: 0 10px 24px rgba(69, 26, 143, 0.08);
+  box-shadow: none;
   animation: panel-in 0.18s ease-out;
 }
 @keyframes panel-in { from { opacity: 0; transform: translateY(-4px); } }
@@ -79,7 +79,7 @@
 
 @media (hover: hover) {
   .links-toggle:hover { background: #f7f4fc; color: #451a8f; }
-  .link-item:not(:disabled):hover { border-color: #cdbdec; box-shadow: 0 6px 14px rgba(69, 26, 143, 0.1); transform: translateY(-1px); }
+  .link-item:not(:disabled):hover { border-color: #cdbdec; box-shadow: none; transform: translateY(-1px); }
   .link-item:not(:disabled):hover .link-state { color: #6330b2; }
 }
 @media (prefers-reduced-motion: reduce) {

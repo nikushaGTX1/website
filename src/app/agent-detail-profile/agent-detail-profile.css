@@ -876,7 +876,7 @@
     width: 38px;
     height: 38px;
     border-width: 3px;
-    box-shadow: 0 6px 16px rgba(69, 26, 143, 0.3);
+    box-shadow: none;
   }
   .profile-main {
     padding: 22px 20px 22px;
@@ -1040,7 +1040,7 @@
   background: rgba(69, 26, 143, 0.08);
   font-size: 11px;
 }
-.portfolio-filters button.active { background: #fff; color: #451a8f; box-shadow: 0 4px 12px rgba(69, 26, 143, 0.12); }
+.portfolio-filters button.active { background: #fff; color: #451a8f; box-shadow: none; }
 .portfolio-sort {
   display: inline-flex;
   align-items: center;
@@ -1099,7 +1099,7 @@
   flex: none;
   border-radius: 20px;
   object-fit: cover;
-  box-shadow: 0 10px 24px rgba(69, 26, 143, 0.18);
+  box-shadow: none;
 }
 .listings-agent h1 { margin: 8px 0 4px; font-size: clamp(22px, 2.4vw, 32px); color: #160f2b; }
 .listings-agent p { margin: 0; color: #5b6478; font-size: 14px; }
@@ -1149,7 +1149,7 @@ span.t {
 }
 .client-review:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 40px -30px rgba(69, 26, 143, 0.55);
+  box-shadow: none;
 }
 .client-review-stars {
   display: flex;

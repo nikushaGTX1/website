@@ -102,7 +102,7 @@ button:disabled {
 
 .stat.active {
   border-color: #451a8f;
-  box-shadow: 0 8px 22px rgba(69,26,143, 0.1);
+  box-shadow: none;
 }
 
 .stat span {
@@ -323,7 +323,7 @@ button:disabled {
 .role-control select:disabled{background:#f4f5f7;color:#8b93a2;cursor:not-allowed}
 .user-admin-actions .edit-user{display:flex;align-items:center;justify-content:center;gap:9px;height:42px;padding:0 13px;border:1px solid #ded7ee;border-radius:10px;background:#fff;color:#5420a5;box-shadow:0 2px 5px rgba(31,23,50,.04);font-size:12px;transition:all .18s ease}
 @media (hover: hover) {
-.user-admin-actions .edit-user:hover:not(:disabled){border-color:#6d28d9;background:#f8f5ff;box-shadow:0 5px 14px rgba(69,26,143,.11);transform:translateY(-1px)}
+.user-admin-actions .edit-user:hover:not(:disabled){border-color:#6d28d9;background:#f8f5ff;box-shadow: none;transform:translateY(-1px)}
 }
 .user-admin-actions .edit-user .arrow{margin-left:auto;font-size:9px;color:#9b8ab8}
 .user-editor-backdrop{position:fixed;z-index:1500;inset:0;padding:24px;display:grid;place-items:center;background:rgba(13,20,34,.64);backdrop-filter:blur(4px)}
@@ -853,7 +853,7 @@ button:disabled {
 .hdr-btn.ghost:hover { border-color: #c9bbea; color: #451a8f; }
 }
 .hdr-btn.ghost i { color: #6d4bc3; }
-.hdr-btn.primary { border: 0; background: #451a8f; color: #fff; box-shadow: 0 8px 20px rgba(69, 26, 143, 0.25); }
+.hdr-btn.primary { border: 0; background: #451a8f; color: #fff; box-shadow: none; }
 @media (hover: hover) {
 .hdr-btn.primary:hover:not(:disabled) { background: #3a1578; transform: translateY(-1px); }
 }
@@ -882,7 +882,7 @@ button:disabled {
 @media (hover: hover) {
 .admin-tabs button:hover { background: #f6f3fc; color: #2b2338; }
 }
-.admin-tabs button.active { background: #451a8f; color: #fff; box-shadow: 0 6px 16px rgba(69, 26, 143, 0.22); }
+.admin-tabs button.active { background: #451a8f; color: #fff; box-shadow: none; }
 .admin-tabs button.active i { color: #d9ccff; }
 .tab-count { min-width: 22px; padding: 1px 7px; border-radius: 999px; background: #efecf5; color: #5e576d; font-size: 11px; font-style: normal; font-weight: 800; text-align: center; }
 .tab-count.warn { background: #fff1d6; color: #9a6100; }

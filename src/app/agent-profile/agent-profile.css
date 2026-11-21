@@ -293,7 +293,7 @@
 .agent-card:hover {
   transform: translateY(-4px);
   border-color: #dbe6ff;
-  box-shadow: 0 16px 36px rgba(69,26,143, 0.1);
+  box-shadow: none;
 }
 }
 
@@ -305,7 +305,7 @@
   margin-bottom: 16px;
   background-color: #f1f5f9;
   border: 4px solid #ffffff;
-  box-shadow: 0 0 0 1px #ebe7f2, 0 8px 24px rgba(69, 26, 143, 0.12);
+  box-shadow: 0 0 0 1px #ebe7f2;
 }
 
 .avatar {
@@ -439,7 +439,7 @@
   background-color: #451a8f;
   border-color: #451a8f;
   transform: translateY(-2px);
-  box-shadow: 0 7px 15px rgba(69,26,143, 0.22);
+  box-shadow: none;
 }
 }
 
@@ -493,7 +493,7 @@
   background-color: #174dc9;
   color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(69,26,143, 0.24);
+  box-shadow: none;
 }
 }
 
@@ -560,7 +560,7 @@
   border-radius: 20px;
   color: #ffffff;
   background: linear-gradient(145deg, #4f7df0, #1d4ed8);
-  box-shadow: 0 12px 25px rgba(69,26,143, 0.27);
+  box-shadow: none;
 }
 
 .dialog-phone-icon svg {
@@ -635,7 +635,7 @@
 .call-now-btn:hover {
   background: #174dc9;
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(69,26,143, 0.24);
+  box-shadow: none;
 }
 }
 
@@ -710,7 +710,7 @@
 @media (hover: hover) {
 .trust-card:hover {
   border-color: #b9ccf3;
-  box-shadow: 0 12px 25px rgba(69,26,143,.1);
+  box-shadow: none;
   transform: translateY(-3px);
 }
 }
@@ -1075,7 +1075,7 @@
 .agents-search {
   display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) auto; align-items: center;
   margin-top: 10px; padding: 7px; border: 1px solid #e6def6; border-radius: 14px; background: #fff;
-  box-shadow: 0 14px 34px rgba(69, 26, 143, 0.12);
+  box-shadow: none;
 }
 .agents-search label { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; height: 46px; padding: 0 14px; }
 .agents-search-area { border-left: 1px solid #ece7f4; }
@@ -1175,7 +1175,7 @@
 .pd .dialog-close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 .pd-head { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 52px; }
 .pd-avatar { position: relative; width: 96px; height: 96px; margin-bottom: 10px; }
-.pd-avatar img { width: 100%; height: 100%; border: 4px solid #fff; border-radius: 50%; object-fit: cover; background: #f1ecfb; box-shadow: 0 10px 24px rgba(69, 26, 143, 0.25); }
+.pd-avatar img { width: 100%; height: 100%; border: 4px solid #fff; border-radius: 50%; object-fit: cover; background: #f1ecfb; box-shadow: none; }
 .pd-avatar-badge {
   position: absolute; right: -2px; bottom: 2px; display: grid; place-items: center; width: 32px; height: 32px;
   border: 3px solid #fff; border-radius: 50%; background: #22c55e;
@@ -1209,7 +1209,7 @@
 .pd-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
 .pd-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .pd-btn i { font-size: 20px; }
-.pd-btn.call { background: linear-gradient(180deg, #5b21b6, #451a8f); color: #fff; box-shadow: 0 10px 22px rgba(69, 26, 143, 0.28); }
+.pd-btn.call { background: linear-gradient(180deg, #5b21b6, #451a8f); color: #fff; box-shadow: none; }
 .pd-btn.whatsapp { background: #e9f9ef; color: #128c4a; }
 .pd-note { display: inline-flex; align-items: center; justify-content: center; gap: 7px; margin: 0; color: #6b6380; font-size: 13px; }
 .pd-note svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; }

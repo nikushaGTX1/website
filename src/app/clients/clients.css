@@ -477,13 +477,13 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(36px, 5vw, 68px); font-weigh
 .hero-art { position: relative; display: grid; place-items: center; min-width: 0; height: 270px; }
 .arch { position: absolute; inset: 0 12% 0; border: 8px solid #efe9f8; border-radius: 50% 50% 22px 22px; background: linear-gradient(135deg, #ebe2f9, #f7f3fd); }
 .hero-art app-velven-lifestyle-avatar { position: relative; width: 100%; max-width: 330px; }
-.art-label { position: absolute; right: 12%; bottom: 12px; padding: 9px 16px; border-radius: 12px; background: #fff; color: var(--brand); font-size: 12px; font-weight: 700; box-shadow: 0 8px 30px rgba(69, 26, 143, 0.12); }
+.art-label { position: absolute; right: 12%; bottom: 12px; padding: 9px 16px; border-radius: 12px; background: #fff; color: var(--brand); font-size: 12px; font-weight: 700; box-shadow: none; }
 
 /* Rent / Buy tabs */
 .goal-tabs { display: inline-flex; gap: 4px; margin: 0 0 14px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .goal-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 18px; border-radius: 10px; background: transparent; color: #5d566b; font-size: 14px; font-weight: 700; }
 .goal-tabs button i { font-size: 14px; }
-.goal-tabs button.active { background: var(--brand); color: #fff; box-shadow: 0 6px 16px rgba(69, 26, 143, 0.22); }
+.goal-tabs button.active { background: var(--brand); color: #fff; box-shadow: none; }
 @media (hover: hover) {
   .goal-tabs button:not(.active):hover { background: var(--soft); color: var(--brand); }
 }
@@ -516,7 +516,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(36px, 5vw, 68px); font-weigh
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   height: 52px; padding: 0 28px; border-radius: 12px;
   background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; font-size: 16px; font-weight: 700;
-  box-shadow: 0 10px 22px rgba(69, 26, 143, 0.22);
+  box-shadow: none;
 }
 
 /* Section heading */

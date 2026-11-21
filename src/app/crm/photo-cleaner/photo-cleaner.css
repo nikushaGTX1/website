@@ -18,7 +18,7 @@ button:disabled { cursor: default; opacity: .55; }
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 18px;
   border-radius: 12px; font-size: 14px; font-weight: 700;
 }
-.primary { border: 0; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; box-shadow: 0 8px 20px rgba(69, 26, 143, .22); }
+.primary { border: 0; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; box-shadow: none; }
 .primary em { min-width: 22px; padding: 1px 7px; border-radius: 99px; background: rgba(255, 255, 255, .22); font-style: normal; font-size: 12px; }
 .ghost { border: 1px solid var(--line); background: #fff; color: var(--ink); }
 @media (hover: hover) {

@@ -85,7 +85,7 @@
   border: 1px solid #451a8f;
   color: #fff;
   background: #451a8f;
-  box-shadow: 0 8px 18px rgba(69, 26, 143, 0.18);
+  box-shadow: none;
 }
 
 .refresh-button,
@@ -751,7 +751,7 @@ button:disabled {
   .lead-card:hover,
   .lead-card:focus-visible {
     border-color: #a995e0;
-    box-shadow: 0 9px 24px rgba(69, 26, 143, 0.1);
+    box-shadow: none;
     transform: translateY(-2px);
   }
 }
@@ -1115,7 +1115,7 @@ button:disabled {
   border-radius: 14px;
   color: #fff;
   background: linear-gradient(135deg, #7c3aed, #4c1d95);
-  box-shadow: 0 8px 22px rgba(109, 40, 217, 0.25);
+  box-shadow: none;
   font-size: 18px;
 }
 .lead-dialog h2 {
@@ -1179,7 +1179,7 @@ button:disabled {
   border: 1px solid #dfd2ef;
   border-radius: 20px;
   background: linear-gradient(135deg, #fff 0%, #f8f3fd 100%);
-  box-shadow: 0 8px 24px rgba(69, 26, 143, 0.07);
+  box-shadow: none;
 }
 .deal-type-field legend {
   padding: 0 7px;
@@ -2157,7 +2157,7 @@ button:disabled {
   .lead-card:hover,
   .lead-card:focus-visible {
     border-color: #c9bbea;
-    box-shadow: 0 12px 26px rgba(69, 26, 143, 0.1);
+    box-shadow: none;
   }
 }
 .lead-card-top {
@@ -2256,7 +2256,7 @@ button:disabled {
   border: 1px solid #ece6f6;
   border-radius: 18px;
   background: #fff;
-  box-shadow: 0 10px 30px -24px rgba(69, 26, 143, 0.5);
+  box-shadow: none;
 }
 .best-main {
   position: relative;
@@ -2572,7 +2572,7 @@ button:disabled {
 .best-runners li:hover {
   background: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px -18px rgba(69, 26, 143, 0.7);
+  box-shadow: none;
 }
 .runner-photo {
   position: relative;
@@ -2754,7 +2754,7 @@ button:disabled {
   border: 1px solid #ece6f6;
   border-radius: 26px;
   background: #fff;
-  box-shadow: 0 24px 50px -36px rgba(69, 26, 143, 0.55);
+  box-shadow: none;
   text-align: center;
 }
 .bc-head {
@@ -2823,7 +2823,7 @@ button:disabled {
   background: #6d3fd1;
   color: #fff;
   font-size: 15px;
-  box-shadow: 0 6px 14px -6px rgba(69, 26, 143, 0.8);
+  box-shadow: none;
 }
 .bc-name {
   color: #16121f;

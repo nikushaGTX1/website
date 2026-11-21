@@ -399,7 +399,7 @@ h3 { margin: 2px 0 12px; font-size: 18px; font-weight: 800; }
 .agent-name b { font-size: 14.5px; font-weight: 700; }
 .agent-name span { color: #7c7490; font-size: 12.5px; }
 .posted { align-self: flex-start; padding: 3px 8px; border-radius: 99px; background: #f4f1fa; color: #6b6380; font-size: 11.5px; font-weight: 600; }
-.primary-action { min-height: 46px; border-radius: 12px; box-shadow: 0 6px 16px rgba(69, 26, 143, 0.22); }
+.primary-action { min-height: 46px; border-radius: 12px; box-shadow: none; }
 .primary-action i { font-size: 14px; }
 .card-foot { margin-top: 10px; padding-top: 2px; }
 .not-for-me { padding: 6px 10px; border-radius: 8px; font-size: 13px; }

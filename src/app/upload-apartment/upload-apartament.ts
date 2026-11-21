@@ -193,6 +193,20 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     return this.authService.isAgent || this.authService.isAdmin || this.authService.isCrmManager;
   }
 
+  /** Plans whose full service list is open ("See all services"). */
+  expandedPlans = new Set<string>();
+
+  togglePlanServices(id: string): void {
+    if (this.expandedPlans.has(id)) this.expandedPlans.delete(id);
+    else this.expandedPlans.add(id);
+  }
+
+  /** "Compare services": open every plan's full list, or close them all. */
+  toggleCompare(): void {
+    const allOpen = this.listingPlans.every((plan) => this.expandedPlans.has(plan.id));
+    this.expandedPlans = allOpen ? new Set() : new Set(this.listingPlans.map((plan) => plan.id));
+  }
+
   /** Mobile plan carousel position, for the swipe dots and arrows. */
   planIndex = 0;
 

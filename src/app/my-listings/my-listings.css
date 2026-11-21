@@ -74,7 +74,7 @@
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 10px 22px rgba(69, 26, 143, 0.22);
+  box-shadow: none;
 }
 
 .hero-actions {

@@ -15,7 +15,7 @@
   border: 1px solid #e7e2f5;
   border-radius: 28px;
   background: #fff;
-  box-shadow: 0 24px 60px rgba(69, 26, 143, 0.08);
+  box-shadow: none;
 }
 .application-header {
   display: flex;
@@ -218,13 +218,13 @@ form footer {
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(69, 26, 143, 0.25);
+  box-shadow: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 @media (hover: hover) {
 .submit-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 34px rgba(69, 26, 143, 0.32);
+  box-shadow: none;
 }
 }
 .submit-button:disabled {

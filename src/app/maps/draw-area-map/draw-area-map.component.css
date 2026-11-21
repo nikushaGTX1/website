@@ -193,7 +193,7 @@ button {
   color: #fff;
   background: linear-gradient(135deg, #451a8f, #451a8f);
   font-weight: 800;
-  box-shadow: 0 8px 20px rgba(69, 26, 143, 0.22);
+  box-shadow: none;
 }
 .search-button i {
   margin-left: 9px;
@@ -563,7 +563,7 @@ h3 {
   border-radius: 12px;
   color: #fff;
   background: #451a8f;
-  box-shadow: 0 8px 20px rgba(69, 26, 143, 0.22);
+  box-shadow: none;
   font:
     20px Georgia,
     serif;
@@ -970,7 +970,7 @@ h3 {
   border-color: #5b21b6;
   background: #5b21b6;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(69, 26, 143, 0.28);
+  box-shadow: none;
 }
 .compact-map-shell {
   container-type: inline-size;

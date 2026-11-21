@@ -294,7 +294,7 @@ fieldset input,
   border: 3px solid #fff;
   border-radius: 50%;
   background: #6d32c9;
-  box-shadow: 0 0 0 2px #6d32c9, 0 3px 9px #451a8f3d;
+  box-shadow: 0 0 0 2px #6d32c9;
   cursor: grab;
   pointer-events: auto;
   appearance: none;
@@ -309,7 +309,7 @@ fieldset input,
   border: 3px solid #fff;
   border-radius: 50%;
   background: #6d32c9;
-  box-shadow: 0 0 0 2px #6d32c9, 0 3px 9px #451a8f3d;
+  box-shadow: 0 0 0 2px #6d32c9;
   cursor: grab;
   pointer-events: auto;
 }
@@ -1088,7 +1088,7 @@ fieldset button.selected {
 .household-step .options button.selected {
   border-color: var(--match-blue);
   background: linear-gradient(180deg, #fbfaff 0%, #f4f1ff 100%);
-  box-shadow: 0 0 0 1px var(--match-blue), 0 8px 20px rgba(69, 26, 143, 0.1);
+  box-shadow: 0 0 0 1px var(--match-blue);
 }
 
 @media (hover: hover) {
@@ -1198,7 +1198,7 @@ fieldset {
   border: 1px solid #d9ccf4;
   border-radius: 16px;
   background: linear-gradient(145deg, #fff, #f3edff);
-  box-shadow: 0 8px 20px rgba(69, 26, 143, 0.14);
+  box-shadow: none;
 }
 
 .profile-step-icon svg {
@@ -1947,7 +1947,7 @@ fieldset {
   border: 3px solid #fff;
   border-radius: 50%;
   background: #451a8f;
-  box-shadow: 0 3px 12px #451a8f4d;
+  box-shadow: none;
   pointer-events: auto;
   cursor: grab;
 }
@@ -1957,7 +1957,7 @@ fieldset {
   border: 3px solid #fff;
   border-radius: 50%;
   background: #451a8f;
-  box-shadow: 0 3px 12px #451a8f4d;
+  box-shadow: none;
   pointer-events: auto;
   cursor: grab;
 }
@@ -1992,9 +1992,9 @@ fieldset {
   transition: border-color .18s, box-shadow .18s, transform .18s;
 }
 @media (hover: hover) {
-.style-card:hover { border-color: #c9b8ff; box-shadow: 0 14px 30px rgba(69, 26, 143, .12); transform: translateY(-2px); }
+.style-card:hover { border-color: #c9b8ff; box-shadow: none; transform: translateY(-2px); }
 }
-.style-card.selected { border-color: #451a8f; box-shadow: 0 0 0 4px rgba(69, 26, 143, .12), 0 14px 30px rgba(69, 26, 143, .14); }
+.style-card.selected { border-color: #451a8f; box-shadow: 0 0 0 4px rgba(69, 26, 143, .12); }
 .style-art { display: block; margin-bottom: 10px; border-radius: 14px; overflow: hidden; }
 .style-art svg { display: block; width: 100%; height: auto; }
 .style-card strong { padding: 0 4px; font-size: 16px; font-weight: 800; }
@@ -2580,7 +2580,7 @@ fieldset input,
   border: 3px solid #fff;
   border-radius: 50%;
   background: #6d32c9;
-  box-shadow: 0 0 0 2px #6d32c9, 0 3px 9px #451a8f3d;
+  box-shadow: 0 0 0 2px #6d32c9;
   cursor: grab;
   pointer-events: auto;
   appearance: none;
@@ -2595,7 +2595,7 @@ fieldset input,
   border: 3px solid #fff;
   border-radius: 50%;
   background: #6d32c9;
-  box-shadow: 0 0 0 2px #6d32c9, 0 3px 9px #451a8f3d;
+  box-shadow: 0 0 0 2px #6d32c9;
   cursor: grab;
   pointer-events: auto;
 }
@@ -3374,7 +3374,7 @@ fieldset button.selected {
 .household-step .options button.selected {
   border-color: var(--match-blue);
   background: linear-gradient(180deg, #fbfaff 0%, #f4f1ff 100%);
-  box-shadow: 0 0 0 1px var(--match-blue), 0 8px 20px rgba(69, 26, 143, 0.1);
+  box-shadow: 0 0 0 1px var(--match-blue);
 }
 
 @media (hover: hover) {
@@ -3484,7 +3484,7 @@ fieldset {
   border: 1px solid #d9ccf4;
   border-radius: 16px;
   background: linear-gradient(145deg, #fff, #f3edff);
-  box-shadow: 0 8px 20px rgba(69, 26, 143, 0.14);
+  box-shadow: none;
 }
 
 .profile-step-icon svg {
@@ -4233,7 +4233,7 @@ fieldset {
   border: 3px solid #fff;
   border-radius: 50%;
   background: #451a8f;
-  box-shadow: 0 3px 12px #451a8f4d;
+  box-shadow: none;
   pointer-events: auto;
   cursor: grab;
 }
@@ -4243,7 +4243,7 @@ fieldset {
   border: 3px solid #fff;
   border-radius: 50%;
   background: #451a8f;
-  box-shadow: 0 3px 12px #451a8f4d;
+  box-shadow: none;
   pointer-events: auto;
   cursor: grab;
 }
@@ -4278,9 +4278,9 @@ fieldset {
   transition: border-color .18s, box-shadow .18s, transform .18s;
 }
 @media (hover: hover) {
-.style-card:hover { border-color: #c9b8ff; box-shadow: 0 14px 30px rgba(69, 26, 143, .12); transform: translateY(-2px); }
+.style-card:hover { border-color: #c9b8ff; box-shadow: none; transform: translateY(-2px); }
 }
-.style-card.selected { border-color: #451a8f; box-shadow: 0 0 0 4px rgba(69, 26, 143, .12), 0 14px 30px rgba(69, 26, 143, .14); }
+.style-card.selected { border-color: #451a8f; box-shadow: 0 0 0 4px rgba(69, 26, 143, .12); }
 .style-art { display: block; margin-bottom: 10px; border-radius: 14px; overflow: hidden; }
 .style-art svg { display: block; width: 100%; height: auto; }
 .style-card strong { padding: 0 4px; font-size: 16px; font-weight: 800; }
@@ -4702,19 +4702,19 @@ fieldset {
   margin-top: clamp(24px, 3.4vw, 36px); width: min(100%, 520px); min-height: 60px; border: 0; border-radius: 12px;
   background: linear-gradient(180deg, #5121a8 0%, #42188c 100%); color: #fff; font: inherit;
   font-size: clamp(17px, 1.8vw, 21px); font-weight: 700; cursor: pointer;
-  box-shadow: 0 14px 30px rgba(69, 26, 143, 0.28); transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: none; transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.vm-cta:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(69, 26, 143, 0.34); }
+.vm-cta:hover { transform: translateY(-2px); box-shadow: none; }
 .vm-cta:focus-visible, .vm-video:focus-visible { outline: 3px solid rgba(69, 26, 143, 0.35); outline-offset: 4px; }
 
 .vm-video {
   position: relative; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: center;
   gap: clamp(20px, 3.5vw, 44px); width: min(100%, 1030px); padding: clamp(12px, 1.8vw, 22px);
   border: 1px solid #dcd2f1; border-radius: 28px; background: linear-gradient(135deg, #fbf9ff 0%, #f3eefd 100%);
-  box-shadow: 0 18px 44px rgba(69, 26, 143, 0.08); font: inherit; text-align: left; cursor: pointer;
+  box-shadow: none; font: inherit; text-align: left; cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.vm-video:hover { transform: translateY(-2px); box-shadow: 0 24px 52px rgba(69, 26, 143, 0.13); }
+.vm-video:hover { transform: translateY(-2px); box-shadow: none; }
 .vm-video-thumb {
   position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; overflow: hidden;
   border-radius: 22px; background: linear-gradient(135deg, #ece4fb 0%, #ddd0f6 100%);
@@ -4743,13 +4743,13 @@ fieldset {
 .vm-step {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;
   padding: 44px clamp(16px, 2vw, 28px) 34px; border: 1px solid #ebe5f5; border-radius: 26px;
-  background: #fff; box-shadow: 0 14px 36px rgba(69, 26, 143, 0.07); text-align: center;
+  background: #fff; box-shadow: none; text-align: center;
 }
 .vm-step-num {
   position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); display: grid; place-items: center;
   width: 46px; height: 46px; border: 4px solid #fff; border-radius: 50%;
   background: linear-gradient(180deg, #6a35c7 0%, #4a1c99 100%); color: #fff; font-size: 18px; font-weight: 800;
-  box-shadow: 0 6px 16px rgba(69, 26, 143, 0.3);
+  box-shadow: none;
 }
 .vm-step-icon { display: grid; place-items: center; width: 92px; height: 88px; margin-bottom: 10px; border-radius: 18px; background: #f1ecfb; }
 .vm-step-icon svg, .vm-step-arrow { fill: none; stroke: #451a8f; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

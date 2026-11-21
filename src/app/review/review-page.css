@@ -28,7 +28,7 @@
   border: 1px solid var(--rv-line);
   border-radius: 28px;
   background: #fff;
-  box-shadow: 0 30px 70px -40px rgba(69, 26, 143, 0.45), 0 2px 6px rgba(27, 22, 38, 0.04);
+  box-shadow: 0 2px 6px rgba(27, 22, 38, 0.04);
   animation: rv-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
@@ -208,11 +208,11 @@ fieldset { min-width: 0; }
   font-weight: 800;
   cursor: pointer;
   opacity: 0.85;
-  box-shadow: 0 14px 28px -14px rgba(69, 26, 143, 0.8);
+  box-shadow: none;
   transition: transform 0.15s, opacity 0.2s, box-shadow 0.2s;
 }
 .submit.ready { opacity: 1; }
-.submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 18px 32px -14px rgba(69, 26, 143, 0.9); }
+.submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: none; }
 .submit:active:not(:disabled) { transform: translateY(1px); }
 .submit:disabled { cursor: progress; opacity: 0.7; }
 .submit i { margin-left: 6px; }

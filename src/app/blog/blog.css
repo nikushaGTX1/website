@@ -290,7 +290,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
-  box-shadow: 0 6px 16px rgba(69, 26, 143, 0.28);
+  box-shadow: none;
 }
 
 .newsletter-icon svg {

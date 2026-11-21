@@ -136,7 +136,7 @@ svg {
   border-radius: 50%;
   background: var(--purple);
   cursor: pointer;
-  box-shadow: 0 7px 17px rgba(69, 26, 143, 0.24);
+  box-shadow: none;
 }
 .search-submit svg {
   width: 20px;
@@ -603,7 +603,7 @@ svg {
   border: 3px solid #fff;
   border-radius: 50%;
   background: var(--purple);
-  box-shadow: 0 3px 12px #451a8f4d;
+  box-shadow: none;
   pointer-events: auto;
   cursor: grab;
 }
@@ -613,7 +613,7 @@ svg {
   border: 3px solid #fff;
   border-radius: 50%;
   background: var(--purple);
-  box-shadow: 0 3px 12px #451a8f4d;
+  box-shadow: none;
   pointer-events: auto;
   cursor: grab;
 }
@@ -648,7 +648,7 @@ svg {
   cursor: pointer;
 }
 .popover-actions > button:first-child i { margin-right: 5px; }
-.budget-apply { min-width: 170px; height: 46px; border-radius: 12px; font-size: 13px; box-shadow: 0 9px 20px rgba(69, 26, 143, .24); }
+.budget-apply { min-width: 170px; height: 46px; border-radius: 12px; font-size: 13px; box-shadow: none; }
 .popover-apply {
   height: 39px;
   padding: 0 18px;
@@ -2220,7 +2220,7 @@ svg {
 }
 .area-sheet-footer button { height: 52px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; touch-action: manipulation; }
 .area-sheet-cancel { color: #59627a; border: 1px solid #e3e0ea; background: #fff; }
-.area-sheet-apply { color: #fff; border: 0; background: #451a8f; box-shadow: 0 8px 20px rgba(69, 26, 143, 0.28); }
+.area-sheet-apply { color: #fff; border: 0; background: #451a8f; box-shadow: none; }
 @media (min-width: 781px) {
   .area-sheet-backdrop { align-items: center; }
   .area-sheet { border-radius: 24px; }
@@ -2333,7 +2333,7 @@ svg {
 @media (hover: hover) {
 .mf-dialog .mf-segment button:hover { background: #fff; }
 }
-.mf-dialog .mf-segment button.selected { border-color: #b9a6ea; background: #fff; color: #451a8f; box-shadow: 0 1px 3px rgba(69, 26, 143, 0.12); }
+.mf-dialog .mf-segment button.selected { border-color: #b9a6ea; background: #fff; color: #451a8f; box-shadow: none; }
 .mf-dialog .mf-segment.ev button.selected { border-color: #8fd6b3; color: #0f8f61; box-shadow: 0 1px 3px rgba(15, 143, 97, 0.14); }
 
 .mf-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
@@ -2362,7 +2362,7 @@ svg {
 
 .mf-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 12px; padding: 16px 22px 16px 34px; border-top: 1px solid #efedf3; }
 .mf-clear { border: 0; background: transparent; color: #1d1726; font: inherit; font-size: 15px; font-weight: 600; text-decoration: underline; cursor: pointer; }
-.mf-dialog .mf-apply { white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 30px; border: 0; border-radius: 12px; background: #451a8f; color: #fff; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(69, 26, 143, 0.28); }
+.mf-dialog .mf-apply { white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 30px; border: 0; border-radius: 12px; background: #451a8f; color: #fff; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: none; }
 @media (hover: hover) {
 .mf-apply:hover { background: #3a1578; }
 }
@@ -2457,7 +2457,7 @@ svg {
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.02em;
-  box-shadow: 0 6px 16px rgba(69, 26, 143, 0.35);
+  box-shadow: none;
   pointer-events: none;
 }
 .map-preview-gallery .verified-badge { top: 12px; left: 12px; }
@@ -3094,7 +3094,7 @@ svg {
   .results-pane .results-heading .sort-trigger { grid-row: 1; grid-column: 2; justify-self: end; order: 0; }
   .deal-switch.mobile-only { grid-row: 1; grid-column: 1; display: inline-grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 4px; border-radius: 999px; background: #f1edf8; box-shadow: inset 0 0 0 1px #e4dcf2; }
   .deal-switch.mobile-only button { min-width: 0; height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: #5b5470; font: inherit; font-size: 13px; font-weight: 700; line-height: 1; white-space: nowrap; cursor: pointer; transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
-  .deal-switch.mobile-only button.active { background: #fff; color: #4c1d95; box-shadow: 0 2px 8px rgba(76, 29, 149, 0.18); }
+  .deal-switch.mobile-only button.active { background: #fff; color: #4c1d95; box-shadow: none; }
 }
 @media (max-width: 640px) {
   .results-pane .results-heading { grid-template-columns: auto minmax(0, 1fr) !important; }
@@ -3105,9 +3105,9 @@ svg {
 /* Phones (final): switch on its own full-width row, sort under it at full width-free size, then the title */
 @media (max-width: 640px) {
   .results-pane .results-heading { display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
-  .deal-switch.mobile-only { order: -2; display: grid !important; grid-template-columns: 1fr 1fr; width: 100%; padding: 4px; border: 1px solid #e3dcef; border-radius: 14px; background: #fff; box-shadow: 0 4px 14px rgba(76, 29, 149, 0.06); }
+  .deal-switch.mobile-only { order: -2; display: grid !important; grid-template-columns: 1fr 1fr; width: 100%; padding: 4px; border: 1px solid #e3dcef; border-radius: 14px; background: #fff; box-shadow: none; }
   .deal-switch.mobile-only button { height: 40px; padding: 0 8px !important; border-radius: 10px; background: transparent; color: #5b5470; font-size: 14.5px; font-weight: 700; box-shadow: none; }
-  .deal-switch.mobile-only button.active { background: #4c1d95 !important; color: #fff !important; box-shadow: 0 4px 12px rgba(76, 29, 149, 0.28) !important; }
+  .deal-switch.mobile-only button.active { background: #4c1d95 !important; color: #fff !important; box-shadow: none !important; }
   .results-pane .results-heading .sort-trigger { order: -1; align-self: flex-end; max-width: none; overflow: visible; }
   .results-pane .results-heading .sort-trigger > span { overflow: visible; text-overflow: clip; }
 }

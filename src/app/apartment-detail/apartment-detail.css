@@ -654,7 +654,7 @@
   border: 0;
   background: linear-gradient(135deg, #612ab4, #451a8f);
   color: #fff;
-  box-shadow: 0 9px 20px #451a8f38;
+  box-shadow: none;
 }
 .vp-secondary {
   margin-top: 8px;
@@ -1032,7 +1032,7 @@
   border: 1px solid #e6e0eb;
   border-radius: 14px;
   background: white;
-  box-shadow: 0 18px 40px rgba(69, 26, 143, 0.16);
+  box-shadow: none;
 }
 .velven-calendar-head {
   display: flex;
@@ -1237,7 +1237,7 @@
   border: 1px solid #ebe5f5;
   border-radius: 22px;
   background: #fff;
-  box-shadow: 0 18px 50px rgba(69, 26, 143, 0.08);
+  box-shadow: none;
 }
 .mortgage-calculator > header {
   display: flex;
@@ -1371,7 +1371,7 @@
   border: 3px solid #fff;
   border-radius: 50%;
   background: #6d2ac2;
-  box-shadow: 0 0 0 2px #6d2ac2, 0 2px 7px rgba(69, 26, 143, 0.25);
+  box-shadow: 0 0 0 2px #6d2ac2;
   appearance: none;
   -webkit-appearance: none;
 }
@@ -1387,7 +1387,7 @@
   border: 3px solid #fff;
   border-radius: 50%;
   background: #6d2ac2;
-  box-shadow: 0 0 0 2px #6d2ac2, 0 2px 7px rgba(69, 26, 143, 0.25);
+  box-shadow: 0 0 0 2px #6d2ac2;
 }
 .mortgage-fields input.mortgage-range:focus-visible {
   outline: 3px solid rgba(69, 26, 143, 0.2);
@@ -1460,7 +1460,7 @@
   border-radius: 12px;
   color: #fff;
   background: linear-gradient(100deg, #4c1597, #7125bd);
-  box-shadow: 0 10px 24px rgba(69, 26, 143, 0.2);
+  box-shadow: none;
 }
 .mortgage-advisor i { margin-left: 14px; }
 .mortgage-toggle {
@@ -2465,7 +2465,7 @@
   border-radius: 26px;
   border: 1px solid #ece8f4;
   background: #fff;
-  box-shadow: 0 18px 46px rgba(69, 26, 143, 0.1);
+  box-shadow: none;
 }
 .vp-inquiry .vp-deal {
   display: block;

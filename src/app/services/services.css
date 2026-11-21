@@ -508,7 +508,7 @@
 .svc-hero-chart {
   position: absolute; left: 6%; top: 22%; display: flex; flex-direction: column; gap: 9px;
   width: 140px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px;
-  background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(6px); box-shadow: 0 18px 40px rgba(69, 26, 143, 0.14);
+  background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(6px); box-shadow: none;
   transform: rotate(-4deg);
 }
 .svc-chart-line { height: 5px; width: 70%; border-radius: 4px; background: #d9cdf3; }
@@ -535,7 +535,7 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 26px;
   border-radius: 10px; font-size: 15px; font-weight: 700; text-decoration: none; transition: transform 0.18s ease, background 0.18s ease;
 }
-.svc-btn.primary { background: linear-gradient(180deg, #5b21b6, #451a8f); color: #fff; box-shadow: 0 10px 24px rgba(69, 26, 143, 0.28); }
+.svc-btn.primary { background: linear-gradient(180deg, #5b21b6, #451a8f); color: #fff; box-shadow: none; }
 .svc-btn.ghost { border: 1.5px solid #451a8f; background: #fff; color: #451a8f; }
 .svc-btn.ghost svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .svc-btn:hover { transform: translateY(-2px); }

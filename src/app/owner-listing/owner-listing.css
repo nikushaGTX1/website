@@ -32,7 +32,7 @@ form { display: grid; gap: 16px; }
 .hero {
   position: relative; overflow: hidden; border-radius: 24px; padding: 28px;
   background: linear-gradient(135deg, #2f0f68 0%, var(--brand) 45%, var(--brand-2) 100%); color: #fff;
-  box-shadow: 0 20px 50px #451a8f40;
+  box-shadow: none;
 }
 .hero::after {
   content: ""; position: absolute; right: -80px; top: -80px; width: 260px; height: 260px; border-radius: 50%;
@@ -51,14 +51,14 @@ form { display: grid; gap: 16px; }
 .verified { color: #7cf0b9; }
 
 /* Progress */
-.progress-bar { position: sticky; top: 8px; z-index: 5; padding: 12px 16px; border-radius: 14px; background: #ffffffe6; border: 1px solid var(--line); backdrop-filter: blur(8px); box-shadow: 0 6px 20px #451a8f12; }
+.progress-bar { position: sticky; top: 8px; z-index: 5; padding: 12px 16px; border-radius: 14px; background: #ffffffe6; border: 1px solid var(--line); backdrop-filter: blur(8px); box-shadow: none; }
 .progress-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 7px; }
 .progress-label b { color: var(--brand); }
 .track { height: 7px; border-radius: 999px; background: var(--brand-soft); overflow: hidden; }
 .fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--brand), #9b5cf0); transition: width .35s ease; }
 
 /* Cards */
-.card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px #451a8f0b; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: none; }
 .card-head { display: flex; gap: 14px; align-items: center; margin-bottom: 20px; }
 .num { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 11px; background: var(--brand-soft); color: var(--brand); font-weight: 800; }
 .card-head h2 { margin: 0; font-size: 19px; letter-spacing: -.01em; }
@@ -153,7 +153,7 @@ textarea { resize: vertical; min-height: 110px; }
 /* Options share the row equally and sit centred, so no empty stretch is left on the right. */
 .segmented > button { flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; }
 .segmented button { border: 0; background: none; padding: 13px 16px; border-radius: 9px; font: inherit; font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; white-space: nowrap; }
-.segmented button.active { background: #fff; color: var(--brand); box-shadow: 0 2px 8px #451a8f1f; }
+.segmented button.active { background: #fff; color: var(--brand); box-shadow: none; }
 .hint { display: flex; gap: 8px; align-items: center; margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; background: #f6f2fc; color: var(--muted); font-size: 13px; }
 .hint i { color: var(--brand-2); }
 
@@ -207,16 +207,16 @@ textarea { resize: vertical; min-height: 110px; }
 .submit {
   display: inline-flex; justify-content: center; align-items: center; gap: 10px; width: 100%; border: 0; border-radius: 14px; padding: 18px;
   background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer;
-  box-shadow: 0 12px 28px #451a8f45; transition: transform .15s, box-shadow .15s;
+  box-shadow: none; transition: transform .15s, box-shadow .15s;
 }
 @media (hover: hover) {
-.submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 34px #451a8f55; }
+.submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: none; }
 }
 .submit:disabled { opacity: .7; cursor: wait; }
 .privacy { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
 
 /* States */
-.state-card, .success-card { max-width: 460px; margin: 14vh auto 0; padding: 40px 28px; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 20px 50px #451a8f14; }
+.state-card, .success-card { max-width: 460px; margin: 14vh auto 0; padding: 40px 28px; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 24px; box-shadow: none; }
 .state-card p, .success-card p { color: var(--muted); line-height: 1.55; }
 .state-card h1, .success-card h1 { margin: 16px 0 6px; font-size: 28px; }
 .state-icon { margin: auto; width: 72px; height: 72px; display: grid; place-items: center; border-radius: 50%; background: #fff0f3; color: var(--bad); font-size: 30px; }
@@ -322,7 +322,7 @@ textarea { resize: vertical; min-height: 110px; }
   background: #fff !important;
   color: var(--brand) !important;
   font-size: 11px !important;
-  box-shadow: 0 1px 2px rgba(69, 26, 143, 0.08);
+  box-shadow: none;
   transition: background .15s, color .15s, border-color .15s, transform .1s;
 }
 .stepper button:disabled { opacity: .35; box-shadow: none; }
