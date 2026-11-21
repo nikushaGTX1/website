@@ -5941,3 +5941,12 @@
   }
 }
 @media (max-width: 768px) { .home-page .search-fields .location-panel-trigger > .location-leading-icon { width: 20px !important; margin-right: 12px !important; } .home-page .search-fields .location-panel-trigger > .location-trigger-text { margin-left: 0 !important; padding-left: 0 !important; } }
+
+/* Homepage search: no purple shadows (flat card, tabs, Velven Match, search button). */
+.home-page .property-search,
+.home-page .property-search .search-tabs button,
+.home-page .property-search .ai-home-link,
+.home-page .search-submit,
+.home-page .search-submit:hover {
+  box-shadow: none !important;
+}
