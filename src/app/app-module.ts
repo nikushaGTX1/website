@@ -1,3 +1,4 @@
+import { MobileTabBar } from './mobile-tab-bar/mobile-tab-bar';
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -17,7 +18,7 @@ import { apiPerformanceInterceptor } from './interceptors/api-performance.interc
  */
 @NgModule({
   declarations: [App],
-  imports: [BrowserModule, AppRoutingModule, Navigation, Footer, CrmLinksMenu],
+  imports: [BrowserModule, AppRoutingModule, Navigation, Footer, CrmLinksMenu, MobileTabBar],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor, apiPerformanceInterceptor])),

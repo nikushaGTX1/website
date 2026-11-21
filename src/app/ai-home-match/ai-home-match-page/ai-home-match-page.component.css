@@ -2193,7 +2193,7 @@ fieldset {
 }
 .all-district-grid button span {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .district-radio {
   flex: 0 0 22px;
@@ -2231,7 +2231,7 @@ fieldset {
   min-height: 64px;
   flex-direction: row;
   gap: 10px;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .district-extra-options .option-icon {
   width: 26px;
@@ -4479,7 +4479,7 @@ fieldset {
 }
 .all-district-grid button span {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .district-radio {
   flex: 0 0 22px;
@@ -4517,7 +4517,7 @@ fieldset {
   min-height: 64px;
   flex-direction: row;
   gap: 10px;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .district-extra-options .option-icon {
   width: 26px;

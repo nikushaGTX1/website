@@ -611,3 +611,6 @@ i.fa-solid { font-weight: 900; }
   .trust-card h4 { font-size: 16px; }
   .trust-card p { font-size: 13.5px; line-height: 1.55; }
 }
+
+/* Buttons keep their words whole (e.g. Georgian "გამოწერა") */
+.btn-primary { flex: none; white-space: nowrap; }

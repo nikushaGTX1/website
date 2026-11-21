@@ -330,3 +330,7 @@
   color: #5b24a6;
   font-size: 23px;
 }
+
+/* Footer links keep whole words: "პარამეტრები" never breaks into two lines */
+.panel-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.panel-foot a { flex: none; white-space: nowrap; }

@@ -363,7 +363,7 @@
 
 .search-facts span {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .search-chips {
@@ -1343,3 +1343,15 @@
 /* Name: up to two full lines, the edit pencil sits right after it */
 .search-hero .search-title { width: 100%; }
 .search-hero .search-title h3 { flex: 0 1 auto; }
+
+/* Swipe rows (saved filters, tabs): no visible scrollbar, smooth finger scrolling */
+.saved-chips, .tabs, .tab-row, .my-space nav { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
+.saved-chips::-webkit-scrollbar, .tabs::-webkit-scrollbar, .tab-row::-webkit-scrollbar, .my-space nav::-webkit-scrollbar { display: none; }
+.saved-chips button { scroll-snap-align: start; }
+/* Saved page: rows stay inside the page width (no sideways overflow) */
+.saved-chips { max-width: 100%; }
+.saved-sort-menu { max-width: 100%; }
+.saved-sort-menu .sort-trigger { box-sizing: border-box; max-width: 100%; min-width: 0; }
+@media (max-width: 640px) {
+  .saved-sort-menu, .saved-sort-menu .sort-trigger { width: 100%; }
+}

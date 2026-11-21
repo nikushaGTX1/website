@@ -252,7 +252,7 @@
 }
 .vp-facts span {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -1793,7 +1793,7 @@
   }
 
   .vp-nearby strong {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 }
 
@@ -2205,7 +2205,7 @@
     font-size: 11px;
     line-height: 1.25;
     hyphens: auto;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
   .vp-nearby {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2227,7 +2227,7 @@
     align-items: center;
   }
   .vp-nearby strong {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
   .vp-service {
     padding: 24px;
@@ -2277,7 +2277,7 @@
   .vp-facts span,
   .vp-facts strong {
     min-width: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
   .viewer-nav.previous {
     left: 8px;
@@ -3381,7 +3381,7 @@ dialog.photo-viewer::backdrop { background: #111113; }
   }
   .vp-nearby-icon { width: 52px; height: 52px; border-radius: 15px; font-size: 21px; }
   .vp-nearby-text { align-items: center; width: 100%; text-align: center; }
-  .vp-nearby-text strong { font-size: 13.5px; white-space: normal; overflow-wrap: anywhere; }
+  .vp-nearby-text strong { font-size: 13.5px; white-space: normal; overflow-wrap: break-word; }
   .vp-nearby-text .nearby-place-name {
     display: -webkit-box; font-size: 12.5px; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   }
@@ -3459,3 +3459,9 @@ dialog.photo-viewer::backdrop { background: #111113; }
   .photo-tour, .photo-tour.closing { animation: none; }
   .photo-tour-item img { transition: none; opacity: 1; }
 }
+
+/* Phones: amenities in one column so long Georgian words ("ცხოველები", "სარეცხი") stay whole */
+@media (max-width: 480px) {
+  .vp-amenities { grid-template-columns: 1fr !important; gap: 10px !important; }
+}
+.vp-amenities p { min-width: 0; }

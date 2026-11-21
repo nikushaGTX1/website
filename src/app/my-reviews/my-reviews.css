@@ -258,7 +258,7 @@
 .review-stars { display: flex; align-items: center; gap: 3px; margin: 12px 0 8px; color: var(--mr-gold); }
 .review-stars .fa-regular { color: #ddd3ee; }
 .review-label { margin-left: 8px; color: var(--mr-muted); font-size: 13px; font-weight: 700; }
-.comment { margin: 0; white-space: pre-line; overflow-wrap: anywhere; line-height: 1.55; }
+.comment { margin: 0; white-space: pre-line; overflow-wrap: break-word; line-height: 1.55; }
 .comment.muted { color: #9a92ad; font-style: italic; }
 
 /* States ---------------------------------------------------------------- */

@@ -90,6 +90,12 @@ export class PlayGame implements OnInit, OnDestroy {
     this.reward = null;
   }
 
+  /** "Start playing" under the steps: starts the game and brings it into view. */
+  startFromIntro(): void {
+    this.play();
+    if (!this.fullscreen) this.stage?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   play(): void {
     this.playing = true;
     // Phones and tablets (iPad included): play full screen, the small frame is too cramped to touch.

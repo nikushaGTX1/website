@@ -441,8 +441,8 @@ svg {
   box-sizing: border-box;
 }
 .quick-locations button span { min-width: 0; display: block; }
-.quick-locations button b { display: block; color: #30263f; font-size: 13px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
-.quick-locations button small { display: block; margin-top: 4px; color: #7e748c; font-size: 11px; font-weight: 400; line-height: 1.4; letter-spacing: 0; text-transform: none; white-space: normal; overflow-wrap: anywhere; }
+.quick-locations button b { display: block; color: #30263f; font-size: 13px; font-weight: 700; line-height: 1.4; overflow-wrap: break-word; }
+.quick-locations button small { display: block; margin-top: 4px; color: #7e748c; font-size: 11px; font-weight: 400; line-height: 1.4; letter-spacing: 0; text-transform: none; white-space: normal; overflow-wrap: break-word; }
 .quick-locations button.quick-location-all {
   grid-column: 1 / -1;
   min-height: 56px;

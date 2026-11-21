@@ -46,7 +46,7 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
 .profile-attribute p, .profile-attribute small, .profile-attribute strong { display: block; }
 .profile-attribute p { min-width: 0; margin: 0; }
 .profile-attribute small { margin-bottom: 3px; color: #8a8295; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em; }
-.profile-attribute strong { overflow-wrap: anywhere; color: #282039; font-size: 13px; line-height: 1.3; }
+.profile-attribute strong { overflow-wrap: break-word; color: #282039; font-size: 13px; line-height: 1.3; }
 .attribute-goal { left: 4%; top: 10%; }
 .attribute-location { right: 4%; top: 9%; }
 .attribute-budget { left: 0; top: 35%; }
@@ -265,7 +265,7 @@ h1 { margin: 9px 0 8px; color: #17122d; font-family: Georgia, "Times New Roman",
   white-space: nowrap;
 }
 .answer-value {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   color: #221a3a;
   font-size: 14px;
   font-weight: 600;

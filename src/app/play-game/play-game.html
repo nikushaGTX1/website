@@ -15,7 +15,7 @@
         <button type="button" (click)="testNextFloor()">+1 floor</button>
       </div>
     }
-    <a class="browse" routerLink="/ExploreProperty">Browse homes <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    <button type="button" class="browse" (click)="startFromIntro()"><i class="fa-solid fa-play" aria-hidden="true"></i> Start playing</button>
   </section>
 
   <section class="stage" #stage [class.fullscreen]="fullscreen" aria-label="Game">

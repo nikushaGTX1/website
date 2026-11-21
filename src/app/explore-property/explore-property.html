@@ -387,10 +387,6 @@
           </h1>
           <p>{{ filteredApartments.length | number }} homes in this map area</p>
         </div>
-        <div class="deal-switch mobile-only" role="group" aria-label="Rent or buy">
-          <button type="button" [class.active]="selectedType === 'For Rent'" [attr.aria-pressed]="selectedType === 'For Rent'" (click)="switchDeal('rent', $event)">Rent</button>
-          <button type="button" [class.active]="selectedType === 'For Sale'" [attr.aria-pressed]="selectedType === 'For Sale'" (click)="switchDeal('buy', $event)">Buy</button>
-        </div>
         <button type="button" class="sort-trigger" [class.open]="filterMenu === 'sort'" [attr.aria-expanded]="filterMenu === 'sort'"
           aria-haspopup="listbox" (click)="toggleFilterMenu('sort', $event)">
           <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
@@ -753,6 +749,13 @@
 
       <div class="mf-body">
         <div class="mf-col">
+          <section class="mf-group">
+            <h3>Deal type</h3>
+            <div class="mf-segment">
+              <button type="button" [class.selected]="selectedType === 'For Rent'" [attr.aria-pressed]="selectedType === 'For Rent'" (click)="switchDeal('rent', $event)">Rent</button>
+              <button type="button" [class.selected]="selectedType === 'For Sale'" [attr.aria-pressed]="selectedType === 'For Sale'" (click)="switchDeal('buy', $event)">Buy</button>
+            </div>
+          </section>
           <section class="mf-group">
             <h3>Layout &amp; outdoor space</h3>
             <div class="mf-pills">

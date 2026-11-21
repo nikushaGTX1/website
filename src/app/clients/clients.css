@@ -288,7 +288,7 @@ select:focus-visible {
 .area-popular button.selected .area-check { opacity: 1; }
 .area-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .area-dialog .area-grid button { justify-content: space-between; min-height: 56px; padding: 0 14px 0 18px; font-size: 16px; }
-.area-grid span { min-width: 0; overflow-wrap: anywhere; }
+.area-grid span { min-width: 0; overflow-wrap: break-word; }
 .area-radio {
   flex: 0 0 30px;
   width: 30px;
@@ -557,7 +557,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(36px, 5vw, 68px); font-weigh
 .cc-rows > div { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 12px; align-items: start; }
 .cc-rows dt { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 15px; }
 .cc-rows dt i { flex: 0 0 18px; color: var(--brand-2); font-size: 16px; text-align: center; }
-.cc-rows dd { margin: 0; color: #24202f; font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+.cc-rows dd { margin: 0; color: #24202f; font-size: 15px; font-weight: 500; overflow-wrap: break-word; }
 .cc-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .cc-chips span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: #f6f3fb; color: #4f4762; font-size: 13px; font-weight: 600; }
 .cc-chips i { color: var(--brand-2); }

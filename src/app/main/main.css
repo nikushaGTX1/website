@@ -957,7 +957,7 @@
   font-weight: 750;
   line-height: 1.15;
   text-align: center;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   cursor: pointer;
 }
 .all-area-grid button i {
@@ -2795,7 +2795,7 @@
   .property-info .property-title,
   .property-info .property-address {
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .nearby-grid {

@@ -179,7 +179,7 @@ select:focus {
   display: block;
 }
 .upload-box strong {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   font-size: 14px;
 }
 .upload-box small {

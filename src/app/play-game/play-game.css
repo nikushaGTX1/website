@@ -110,3 +110,5 @@ h1 em { color: #6330b2; font-style: normal; }
 /* The game frame owns every touch: no page scroll, zoom or text selection while playing. */
 .stage, .stage iframe { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .stage.fullscreen { height: 100vh; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: #231f20; }
+
+.browse { border: 0; font: inherit; font-weight: 700; cursor: pointer; }

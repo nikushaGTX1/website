@@ -9,8 +9,8 @@
 :host(.detail-fit) .fit-grid { gap: 12px; }
 :host(.detail-fit) .fit-grid article { align-items: center; gap: 12px; padding: 16px; border-radius: 14px; background: #fff; }
 :host(.detail-fit) .fit-grid article > i { width: 36px; height: 36px; flex-basis: 36px; border-radius: 11px; font-size: 16px; }
-:host(.detail-fit) .fit-grid b { font-size: 14px; line-height: 1.65; font-weight: 600; overflow-wrap: anywhere; }
-:host(.detail-fit) .fit-grid span { margin-top: 4px; font-size: 12px; line-height: 1.6; color: #71677e; overflow-wrap: anywhere; }
+:host(.detail-fit) .fit-grid b { font-size: 14px; line-height: 1.65; font-weight: 600; overflow-wrap: break-word; }
+:host(.detail-fit) .fit-grid span { margin-top: 4px; font-size: 12px; line-height: 1.6; color: #71677e; overflow-wrap: break-word; }
 @media (max-width: 1100px) and (min-width: 741px) {
   :host(.detail-fit) .fit-grid { grid-template-columns: 1fr; }
 }

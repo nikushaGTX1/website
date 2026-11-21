@@ -80,7 +80,7 @@
   font-size: 14px;
   line-height: 1.55;
 }
-.cd-text b { color: #1b1626; word-break: break-all; }
+.cd-text b { color: #1b1626; word-break: normal; overflow-wrap: break-word; }
 
 .cd-digits {
   display: grid;

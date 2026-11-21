@@ -383,7 +383,7 @@ html[lang='ka'] body
 
   body :is(h1, h2, h3, h4, h5, h6, p, a, label, legend, li, small, strong) {
     max-width: 100%;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .route-content :is([role='dialog'], dialog) {
@@ -431,7 +431,7 @@ html[lang='ka'] body
  */
 html:lang(ka),
 html:lang(ru) {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 html:lang(ka) body {
@@ -546,7 +546,7 @@ body.draw-map-open app-navigation {
 
   html:lang(ka) :is(h1, h2),
   html:lang(ru) :is(h1, h2) {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 }
 
@@ -632,3 +632,13 @@ html.velven-game-fullscreen app-footer,
 html.velven-photo-tour app-navigation,
 html.velven-photo-tour app-footer { display: none !important; }
 html.velven-game-fullscreen, html.velven-game-fullscreen body { overflow: hidden !important; overscroll-behavior: none; }
+
+/* Phones: room at the bottom of every page for the Saved / List property / Profile bar */
+@media (max-width: 760px) {
+  body:has(app-mobile-tab-bar .tab-bar) { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  html.velven-game-fullscreen app-mobile-tab-bar, html.velven-photo-tour app-mobile-tab-bar { display: none !important; }
+}
+/* Phones: floating buttons sit above the bottom bar (e.g. Explore's map / list toggle) */
+@media (max-width: 760px) {
+  body:has(app-mobile-tab-bar .tab-bar) .mobile-toggle { bottom: calc(90px + env(safe-area-inset-bottom)) !important; }
+}

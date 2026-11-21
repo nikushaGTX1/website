@@ -254,7 +254,7 @@
 .badge[data-status='NoWatermark'] { background: #e7f6ec; color: #1e6b3a; }
 .badge[data-status='Failed'] { background: #fdecec; color: #a12626; }
 
-.err { color: #a12626; word-break: break-word; }
+.err { color: #a12626; word-break: normal; overflow-wrap: break-word; }
 .muted { color: #8a7f99; }
 
 .actions {

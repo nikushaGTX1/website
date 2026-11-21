@@ -41,7 +41,7 @@ h1 { margin: 0; font-size: clamp(32px, 4.4vw, 56px); font-weight: 800; line-heig
 .cc-rows > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px; }
 .cc-rows dt { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
 .cc-rows dt i { width: 16px; color: var(--brand-2); text-align: center; }
-.cc-rows dd { margin: 0; font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+.cc-rows dd { margin: 0; font-size: 14px; font-weight: 500; overflow-wrap: break-word; }
 .cc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .cc-chips span { padding: 6px 10px; border-radius: 9px; background: #f1edf8; color: #4f4762; font-size: 12.5px; font-weight: 600; }
 .cc-action {

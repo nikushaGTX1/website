@@ -250,7 +250,7 @@ td small {
     display: block;
     padding: 10px 8px;
     border: none;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
   tbody td:first-child,
   tbody td:nth-child(4),

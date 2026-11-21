@@ -997,7 +997,7 @@
 
   .hero-title {
     font-size: clamp(34px, 12vw, 44px);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .metrics-card {

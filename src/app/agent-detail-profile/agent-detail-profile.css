@@ -917,7 +917,7 @@
     background: #f5f3fb;
     color: #3f4664;
     font-size: 13px;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
   .agent-details i {
     width: auto;
@@ -1164,7 +1164,7 @@ span.t {
   color: #3a3448;
   line-height: 1.6;
   white-space: pre-line;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .client-review footer {
   display: flex;

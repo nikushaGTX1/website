@@ -502,7 +502,7 @@ h1 {
   font-size: clamp(30px, 4vw, 46px);
   line-height: 1.18;
   margin: 12px 0 16px;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .results-intro p {
   margin: 0;
@@ -909,7 +909,7 @@ h1 {
   color: #6b6480;
   font-size: 13px;
   line-height: 1.5;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .discover-save-actions {
   display: flex;

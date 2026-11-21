@@ -212,7 +212,7 @@
 .place-list small,
 .place-list b {
   display: block;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .place-list small {
   color: #777;

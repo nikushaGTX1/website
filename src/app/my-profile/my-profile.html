@@ -16,7 +16,7 @@
     <div class="profile-layout">
       <aside class="account-panel" aria-label="Account summary">
         <div class="identity-block">
-          <div class="initials-avatar" aria-hidden="true">{{ userInitials }}</div>
+          <div class="initials-avatar" aria-hidden="true">@if (profilePreview || profileImage) {<img [src]="profilePreview || profileImage" alt="" />} @else {{{ userInitials }}}</div>
           <div class="identity-copy">
             <h2>{{ user?.fullName || 'Your account' }}</h2>
             <p>{{ user?.email || 'Loading account…' }}</p>
@@ -36,28 +36,28 @@
 
         <nav class="account-links" aria-label="Account navigation">
           <a class="account-link active" routerLink="/my-profile" aria-current="page">
-            <span class="link-mark">01</span>
+            <span class="link-mark"><i class="fa-regular fa-id-card" aria-hidden="true"></i></span>
             <span>
               <strong>Personal details</strong>
               <small>Name and contact information</small>
             </span>
           </a>
           <a class="account-link" routerLink="/saved-listings">
-            <span class="link-mark">02</span>
+            <span class="link-mark"><i class="fa-regular fa-heart" aria-hidden="true"></i></span>
             <span>
               <strong>Saved homes</strong>
               <small>View your shortlisted properties</small>
             </span>
           </a>
           <a class="account-link" routerLink="/my-listings">
-            <span class="link-mark">03</span>
+            <span class="link-mark"><i class="fa-solid fa-house" aria-hidden="true"></i></span>
             <span>
               <strong>My listings</strong>
               <small>Manage your published properties</small>
             </span>
           </a>
           <a class="account-link" routerLink="/discover" *ngIf="isPersonalAccount">
-            <span class="link-mark">04</span>
+            <span class="link-mark"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
             <span>
               <strong>Velven Discover</strong>
               <small>Your saved searches and new matches</small>
@@ -66,8 +66,8 @@
         </nav>
 
         <button type="button" class="logout-button" aria-label="Log out" (click)="logout()">
+          <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
           <span>Log out</span>
-          <span aria-hidden="true">→</span>
         </button>
       </aside>
 

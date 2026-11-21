@@ -1097,3 +1097,75 @@
 @media (max-width: 620px) {
   .activity-row span { font-size: 11px; }
 }
+
+
+/* ================= Profile page redesign ================= */
+.profile-page { background: #f6f3fb !important; min-height: 100vh; }
+.profile-shell { max-width: 1120px !important; margin: 0 auto !important; padding: 32px 24px 64px !important; }
+
+/* Title: compact, not a poster */
+.page-heading { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; margin-bottom: 22px !important; padding: 0 !important; border: 0 !important; }
+.page-heading .eyebrow { margin: 0 0 4px !important; color: #7c3aed !important; font-size: 12px !important; font-weight: 800 !important; letter-spacing: 0.08em !important; }
+.page-heading h1 { margin: 0 !important; color: #1f1530 !important; font-family: inherit !important; font-size: clamp(24px, 3vw, 32px) !important; font-weight: 800 !important; line-height: 1.15 !important; letter-spacing: -0.01em !important; }
+.page-heading .heading-copy { margin: 6px 0 0 !important; color: #6b6280 !important; font-size: 14.5px !important; }
+.account-status { flex: none; padding: 7px 12px !important; border-radius: 999px !important; background: #e8f8ee !important; color: #15803d !important; font-size: 12.5px !important; font-weight: 700 !important; }
+
+.profile-layout { display: grid !important; grid-template-columns: 340px minmax(0, 1fr) !important; gap: 22px !important; align-items: start !important; }
+
+/* Left: profile card with a purple band */
+.account-panel { position: relative; overflow: hidden; padding: 0 0 18px !important; border: 1px solid #ebe4f6 !important; border-radius: 22px !important; background: #fff !important; box-shadow: 0 12px 34px rgba(40, 18, 80, 0.07) !important; }
+.account-panel::before { content: ""; display: block; height: 88px; background: radial-gradient(120% 140% at 0% 0%, #8b5cf6 0%, #5b21b6 60%, #3b0f80 100%); }
+.identity-block { display: grid !important; justify-items: center; gap: 10px !important; margin: -48px 20px 0 !important; padding: 0 !important; text-align: center; border: 0 !important; }
+.initials-avatar { display: grid !important; place-items: center; width: 96px !important; height: 96px !important; overflow: hidden; border: 4px solid #fff !important; border-radius: 50% !important; background: #efe7ff !important; color: #4c1d95 !important; font-size: 30px !important; font-weight: 800 !important; box-shadow: 0 10px 24px rgba(76, 29, 149, 0.22) !important; }
+.initials-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.identity-copy h2 { margin: 0 !important; color: #1f1530 !important; font-size: 19px !important; font-weight: 800 !important; }
+.identity-copy p { margin: 2px 0 0 !important; color: #6b6280 !important; font-size: 13.5px !important; word-break: normal; overflow-wrap: break-word; }
+.account-meta { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px !important; margin: 16px 18px 0 !important; padding: 0 !important; border: 0 !important; }
+.meta-row { display: grid !important; gap: 2px !important; padding: 10px 12px !important; border: 1px solid #f0ebf8 !important; border-radius: 14px !important; background: #fbf9ff !important; text-align: left; }
+.meta-row span { color: #7a7090 !important; font-size: 11.5px !important; font-weight: 600 !important; }
+.meta-row strong { overflow: hidden; color: #1f1530 !important; font-size: 13.5px !important; white-space: nowrap; text-overflow: ellipsis; }
+
+.account-links { display: grid !important; gap: 6px !important; margin: 16px 12px 0 !important; padding: 0 !important; border: 0 !important; }
+.account-link { display: flex !important; align-items: center !important; gap: 12px !important; padding: 10px 12px !important; border: 1px solid transparent !important; border-radius: 14px !important; background: transparent !important; color: #1f1530 !important; text-decoration: none !important; transition: background 0.15s, border-color 0.15s; }
+.account-link:hover { background: #f8f5ff !important; }
+.account-link.active { border-color: #e2d6f7 !important; background: #f5f0ff !important; }
+.link-mark { display: grid !important; place-items: center; flex: none; width: 40px !important; height: 40px !important; border-radius: 12px !important; background: #efe7ff !important; color: #5b21b6 !important; font-size: 16px !important; }
+.account-link.active .link-mark { background: #5b21b6 !important; color: #fff !important; }
+.account-link strong { display: block; color: #1f1530 !important; font-size: 14px !important; font-weight: 700 !important; }
+.account-link small { display: block; margin-top: 1px; color: #7a7090 !important; font-size: 12px !important; }
+.logout-button { display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; width: calc(100% - 24px) !important; min-height: 44px !important; margin: 14px 12px 0 !important; border: 1px solid #fecaca !important; border-radius: 12px !important; background: #fff5f5 !important; color: #b91c1c !important; font: inherit !important; font-size: 14px !important; font-weight: 700 !important; cursor: pointer; }
+.logout-button:hover { background: #fee2e2 !important; }
+
+/* Right: form cards */
+.settings-card { padding: 26px !important; border: 1px solid #ebe4f6 !important; border-radius: 22px !important; background: #fff !important; box-shadow: 0 12px 34px rgba(40, 18, 80, 0.06) !important; }
+.section-heading { display: flex !important; align-items: flex-end !important; justify-content: space-between !important; gap: 12px !important; margin-bottom: 20px !important; padding-bottom: 16px !important; border-bottom: 1px solid #f0ebf8 !important; }
+.section-kicker { margin: 0 0 4px !important; color: #7c3aed !important; font-size: 12px !important; font-weight: 800 !important; letter-spacing: 0.06em !important; }
+.section-heading h2 { margin: 0 !important; color: #1f1530 !important; font-family: inherit !important; font-size: 20px !important; font-weight: 800 !important; }
+.fields-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 16px !important; }
+.form-field label, .field-label { color: #3b2f52 !important; font-size: 13px !important; font-weight: 700 !important; }
+.form-field input, .prefixed-input { min-height: 48px !important; border: 1.5px solid #e4dcf0 !important; border-radius: 12px !important; background: #fff !important; font-size: 15px !important; transition: border-color 0.15s, box-shadow 0.15s; }
+.form-field input:focus, .prefixed-input:focus-within { border-color: #7c3aed !important; box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12) !important; outline: none !important; }
+.readonly-field input { background: #f8f6fc !important; color: #6b6280 !important; }
+.image-section { margin-top: 22px !important; padding: 18px !important; border: 1px dashed #dccff3 !important; border-radius: 16px !important; background: #fcfaff !important; }
+.form-actions { margin-top: 22px !important; padding-top: 18px !important; border-top: 1px solid #f0ebf8 !important; }
+.save-button { min-height: 46px !important; padding: 0 22px !important; border: 0 !important; border-radius: 12px !important; background: linear-gradient(135deg, #7c3aed, #4c1d95) !important; color: #fff !important; font-weight: 800 !important; box-shadow: 0 10px 22px rgba(76, 29, 149, 0.25) !important; }
+.secondary-button { min-height: 46px !important; padding: 0 18px !important; border: 1px solid #e4dcf0 !important; border-radius: 12px !important; background: #fff !important; color: #3b2f52 !important; font-weight: 700 !important; }
+
+@media (max-width: 900px) {
+  .profile-layout { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 640px) {
+  .profile-shell { padding: 18px 14px 40px !important; }
+  .page-heading { align-items: flex-start !important; }
+  .page-heading .heading-copy { display: none; }
+  .settings-card { padding: 18px !important; border-radius: 18px !important; }
+  .fields-grid { grid-template-columns: 1fr !important; }
+  .section-heading { flex-direction: column; align-items: flex-start !important; }
+}
+.profile-layout { margin-top: 0 !important; padding-top: 0 !important; }
+.page-heading { min-height: 0 !important; }
+.account-meta { grid-template-columns: 1fr !important; }
+.meta-row { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; }
+.meta-row strong { white-space: nowrap; text-overflow: clip; overflow: visible; }
+.account-panel { top: auto !important; position: relative !important; }
+@media (min-width: 901px) { .account-panel { position: sticky !important; top: 96px !important; } }

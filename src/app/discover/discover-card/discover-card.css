@@ -532,3 +532,12 @@ h3 {
 .terms .parking { padding: 4px 0; }
 /* No photo zoom on hover. */
 .discover-card .card-image img, .discover-card:hover .card-image img { transform: none !important; }
+
+/* Specs: each value stays on one line ("2 საძინებელი" never splits) */
+.specs > span { min-width: 0; white-space: nowrap; }
+.specs > span > span { overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 480px) {
+  .specs { font-size: 13px; }
+  .specs > span { gap: 7px; }
+  .specs > span:nth-child(even) { padding-left: 10px; }
+}

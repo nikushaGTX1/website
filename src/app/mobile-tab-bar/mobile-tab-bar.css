@@ -1,0 +1,35 @@
+:host { display: none; }
+
+@media (max-width: 760px) {
+  :host { display: block; }
+
+  .tab-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 900;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: end;
+    padding: 6px 12px calc(8px + env(safe-area-inset-bottom));
+    border-top: 1px solid #ece6f6;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+
+  .tab {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px;
+    min-height: 54px; padding: 4px 0; color: #6b6280; text-decoration: none;
+    font-size: 12px; font-weight: 700; line-height: 1.1; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab > i { font-size: 22px; transition: transform 0.15s ease; }
+  .tab.active { color: #4c1d95; }
+  .tab.active > i { font-weight: 900; }
+  .tab:active > i { transform: scale(0.9); }
+
+  /* Middle: raised purple circle */
+  .upload { color: #4c1d95; }
+  .upload-circle {
+    display: grid; place-items: center; width: 54px; height: 54px; margin-top: -26px;
+    border: 4px solid #fff; border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #4c1d95); color: #fff; font-size: 20px;
+    transition: transform 0.15s ease;
+  }
+  .upload:active .upload-circle { transform: scale(0.94); }
+}
