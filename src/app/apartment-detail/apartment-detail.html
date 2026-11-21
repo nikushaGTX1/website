@@ -28,12 +28,12 @@
           [alt]="title"
           [index]="activePhotoIndex"
           (indexChange)="selectPhoto($event)"
-          (photoTap)="openPhotoViewer()"
+          (photoTap)="openPhotoTour(activePhotoIndex)"
           (contextmenu)="preventImageAction($event)"
         ></app-photo-carousel>
         <button
           class="vp-gallery-main"
-          (click)="openPhotoViewerUnlessSwiped($event)"
+          (click)="openPhotoTour(0)"
           (touchstart)="touchGalleryStart($event)"
           (touchmove)="touchGalleryMove($event)"
           (touchend)="touchGalleryEnd()"
@@ -57,7 +57,7 @@
         </button>
         <button
           *ngFor="let image of galleryImages | slice: 1 : 5; let i = index"
-          (click)="selectPhoto(i + 1); openPhotoViewer()"
+          (click)="openPhotoTour(i + 1)"
         >
           <img
             [src]="image"
@@ -78,9 +78,12 @@
         <button
           class="vp-gallery-fallback"
           *ngFor="let slot of [1, 2, 3, 4] | slice: galleryImages.length - 1"
-          (click)="openPhotoViewer()"
+          (click)="openPhotoTour(0)"
         >
           <img [src]="activePhoto" alt="" width="600" height="400" loading="lazy" decoding="async" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
+        </button>
+        <button type="button" class="vp-tour-button" *ngIf="galleryImages.length > 1" (click)="openPhotoTour(0)">
+          <i class="fa-solid fa-grip" aria-hidden="true"></i> <span>Show all photos</span>
         </button>
         <span class="vp-photo-count" data-no-translate *ngIf="galleryImages.length > 1">{{ activePhotoIndex + 1 }} / {{ galleryImages.length }}</span>
         <app-photo-dots class="vp-photo-dots" *ngIf="galleryImages.length > 1" [count]="galleryImages.length" [index]="activePhotoIndex"></app-photo-dots>
@@ -345,6 +348,28 @@
         </section>
         </aside>
       </div>
+      <div class="photo-tour" *ngIf="photoTourOpen" [class.closing]="photoTourClosing" role="dialog" aria-modal="true" aria-label="All photos" data-protected-image>
+        <header class="photo-tour-bar">
+          <button type="button" class="photo-tour-back" aria-label="Close photos" (click)="closePhotoTour()">
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+          </button>
+          <span class="photo-tour-count" data-no-translate>{{ photoCount }} <span>photos</span></span>
+        </header>
+        <div class="photo-tour-grid">
+          <button
+            type="button"
+            *ngFor="let image of galleryImages; let i = index"
+            [id]="'tour-photo-' + i"
+            class="photo-tour-item"
+            [class.wide]="i % 3 === 0"
+            (click)="openTourPhoto(i)"
+            [attr.aria-label]="'Open photo ' + (i + 1)"
+          >
+            <img [src]="image" [alt]="title + ' photo ' + (i + 1)" [attr.loading]="i < 4 ? 'eager' : 'lazy'" decoding="async" draggable="false" (load)="$any($event.target).classList.add('loaded')" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
+          </button>
+        </div>
+      </div>
+
       <dialog #photoViewer class="photo-viewer" *ngIf="photoViewerOpen" aria-modal="true" aria-label="Property photos" (click)="closePhotoViewer()">
         <button class="viewer-back" type="button" (click)="$event.stopPropagation(); closePhotoViewer()">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Back</span>

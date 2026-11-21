@@ -194,6 +194,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
   activePhotoIndex = 0;
   photoViewerOpen = false;
+  /** Photo tour: every photo in one scrolling page (one wide, then two side by side). */
+  photoTourOpen = false;
+  photoTourClosing = false;
   favorite = false;
   phoneRevealed = false;
   descriptionExpanded = false;
@@ -787,6 +790,37 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     });
   }
 
+  openPhotoTour(scrollTo = 0): void {
+    this.photoTourOpen = true;
+    document.documentElement.classList.add('velven-photo-tour');
+    lockPageScroll();
+    this.cdr.detectChanges();
+    // Jump straight to the tapped photo (no visible scroll) while the page slides in.
+    if (scrollTo > 0) document.getElementById(`tour-photo-${scrollTo}`)?.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior });
+  }
+
+  closePhotoTour(): void {
+    if (!this.photoTourOpen || this.photoTourClosing) return;
+    // Slide out first, then remove.
+    this.photoTourClosing = true;
+    this.cdr.detectChanges();
+    setTimeout(() => this.finishClosePhotoTour(), 220);
+  }
+
+  private finishClosePhotoTour(): void {
+    this.photoTourClosing = false;
+    this.photoTourOpen = false;
+    document.documentElement.classList.remove('velven-photo-tour');
+    unlockPageScroll();
+    this.cdr.detectChanges();
+  }
+
+  /** A photo in the tour opens the dark full-screen viewer on that photo. */
+  openTourPhoto(index: number): void {
+    this.selectPhoto(index);
+    this.openPhotoViewer();
+  }
+
   closePhotoViewer(): void {
     this.photoViewerOpen = false;
     document.body.classList.remove('photo-viewer-active');
@@ -797,6 +831,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.photoTourOpen) this.finishClosePhotoTour();
     document.body.classList.remove('photo-viewer-active');
     unlockPageScroll();
     window.clearTimeout(this.gallerySlideResetTimer);
@@ -1374,6 +1409,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     if (this.photoViewerOpen && event.key === 'Escape') {
       event.preventDefault();
       this.closePhotoViewer();
+      return;
+    }
+    if (this.photoTourOpen && event.key === 'Escape') {
+      event.preventDefault();
+      this.closePhotoTour();
       return;
     }
     if (this.photoViewerOpen && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {

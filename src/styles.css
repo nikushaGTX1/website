@@ -626,7 +626,9 @@ input[type='tel'].phone-invalid { border-color: #c4284a !important; box-shadow: 
 img { -webkit-user-drag: none; -webkit-touch-callout: none; user-select: none; }
 
 /* Game in full screen (iPad / phones): no page layer may trap it under the header or footer. */
-html.velven-game-fullscreen .route-content { animation: none !important; isolation: auto !important; z-index: auto !important; transform: none !important; filter: none !important; }
+html.velven-game-fullscreen .route-content, html.velven-photo-tour .route-content { animation: none !important; isolation: auto !important; z-index: auto !important; transform: none !important; filter: none !important; }
 html.velven-game-fullscreen app-navigation,
-html.velven-game-fullscreen app-footer { display: none !important; }
+html.velven-game-fullscreen app-footer,
+html.velven-photo-tour app-navigation,
+html.velven-photo-tour app-footer { display: none !important; }
 html.velven-game-fullscreen, html.velven-game-fullscreen body { overflow: hidden !important; overscroll-behavior: none; }

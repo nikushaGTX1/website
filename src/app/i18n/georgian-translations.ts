@@ -1753,6 +1753,7 @@ const GEORGIAN_TRANSLATIONS = new Map<string, string>([
   ['feels like you.', 'გერგებათ.'],
   ['Velven Match', 'Velven Match'],
   ['Find My Match', 'იპოვეთ თქვენი სახლი'],
+  ['photos', 'ფოტო'],
   ['Near this home', 'ამ ბინის ახლოს'],
   ['Homes nearby', 'ახლომდებარე ბინები'],
   ['Transfer apartments', 'ბინების გადაცემა'],
