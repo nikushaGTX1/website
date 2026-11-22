@@ -814,8 +814,27 @@ async function assertSignedImageLink(source) {
   const check = await fetch(imageUrl, { headers: { Range: 'bytes=0-0' } });
   try { await check.body?.cancel(); } catch {}
   if (!(check.ok || check.status === 206)) throw new Error('Apartment image link is not valid.');
-  checkedImageLinks.set(href, Date.now() + 10 * 60_000);
-  if (checkedImageLinks.size > 5000) checkedImageLinks.delete(checkedImageLinks.keys().next().value);
+  rememberCheckedImageLink(imageUrl);
+}
+
+/** A link storage accepted stays trusted until its own expiry (read from the signed token). */
+function rememberCheckedImageLink(imageUrl) {
+  let until = Date.now() + 10 * 60_000;
+  try {
+    const payload = JSON.parse(Buffer.from(imageUrl.searchParams.get('token').split('.')[1], 'base64url').toString('utf8'));
+    if (Number(payload?.exp) > 0) until = Math.min(Number(payload.exp) * 1000, Date.now() + 7 * 24 * 60 * 60_000);
+  } catch {
+    // Not a readable token: keep the short default.
+  }
+  checkedImageLinks.set(imageUrl.href, until);
+  if (checkedImageLinks.size > 20000) checkedImageLinks.delete(checkedImageLinks.keys().next().value);
+}
+
+/** True when a copy of this photo is cached or being fetched, so serving it needs a link check. */
+function hasCachedApartmentImage(imageUrl, width) {
+  const path = imageUrl.pathname;
+  return apartmentImageCache.has(path) || apartmentImageRequests.has(path)
+    || resizedImageCache.has(`${path}@${width}`) || resizedImageRequests.has(`${path}@${width}`);
 }
 
 async function resizedApartmentImage(source, width) {
@@ -846,10 +865,16 @@ app.get(['/media/apartment-image', '/media/apartment-image.jpg'], async (request
   try {
     const source = String(request.query.url || '');
     const width = Number(request.query.w);
-    await assertSignedImageLink(source);
+    const imageUrl = validateApartmentImageUrl(source);
+    if (!imageUrl.searchParams.get('token')) throw new Error('Unsigned apartment image URL.');
+    // A cached copy is only handed out for a link storage accepts (checked once per link).
+    // Without a cached copy the download from storage itself proves the link, so no extra trip.
+    const needsCheck = hasCachedApartmentImage(imageUrl, width);
+    if (needsCheck) await assertSignedImageLink(source);
     const image = allowedImageWidths.has(width)
       ? await resizedApartmentImage(source, width)
       : await fetchApartmentImage(source);
+    if (!needsCheck) rememberCheckedImageLink(imageUrl);
     response.setHeader('Content-Type', image.contentType);
     // Listing photos are stable per object path (the proxy cache key strips
     // rotating signed-URL tokens), so browsers can keep them for a day.
