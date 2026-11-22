@@ -60,7 +60,13 @@ export class ApartmentService {
   private readonly persistedApartmentsKey = 'white-tower-apartments-cache-v2';
   private readonly persistedApartmentsLifetimeMs = 15 * 60 * 1000;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Signed-out: forget listings loaded with the previous account's rights.
+    window.addEventListener('velven:logout', () => {
+      this.apartmentsCache$ = undefined;
+      this.apartmentsCacheCreatedAt = 0;
+    });
+  }
 
   getApartments(): Observable<Apartment[]> {
     const cacheExpired =

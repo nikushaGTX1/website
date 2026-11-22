@@ -511,6 +511,10 @@
             </div>
           </div>
 
+          <label class="vd-consent">
+            <input type="checkbox" name="consentToContact" [(ngModel)]="inquiryForm.consentToContact" />
+            <span>I agree that Velven may store my details and contact me about this request.</span>
+          </label>
           <p class="viewing-error vd-error" *ngIf="inquiryError">{{ inquiryError }}</p>
           <input class="viewing-honeypot" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="inquiryForm.website" />
 

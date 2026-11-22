@@ -77,9 +77,9 @@ export class MyProfile implements OnInit, OnDestroy {
 
   submitPasswordChange(): void {
     if (this.passwordBusy) return;
-    if (this.newPassword.length < 6) {
+    if ((this.newPassword.length < 8 || !/[0-9]/.test(this.newPassword))) {
       this.passwordError = true;
-      this.passwordMessage = 'Password must be at least 6 characters.';
+      this.passwordMessage = 'Password must be at least 8 characters and include a number.';
       return;
     }
     this.passwordBusy = true;

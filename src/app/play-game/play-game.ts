@@ -97,6 +97,7 @@ export class PlayGame implements OnInit, OnDestroy {
   }
 
   play(): void {
+    if (!this.playing) this.couponService.startGame();
     this.playing = true;
     // Phones and tablets (iPad included): play full screen, the small frame is too cramped to touch.
     if (window.matchMedia('(max-width: 820px), (pointer: coarse)').matches) this.enterFullscreen();

@@ -23,7 +23,13 @@ export class FavoriteService {
   constructor(
     private http: HttpClient,
     private authService: AuthService,
-  ) {}
+  ) {
+    // Signed-out: the next person must not see the previous account's saved homes.
+    window.addEventListener('velven:logout', () => {
+      this.loadRequest$ = undefined;
+      this.favoriteIdsSubject.next(new Set());
+    });
+  }
 
   isFavorite(apartmentId: number): boolean {
     return this.favoriteIdsSubject.value.has(apartmentId);

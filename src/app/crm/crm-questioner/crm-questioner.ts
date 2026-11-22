@@ -14,6 +14,7 @@ import { LocationService } from '../../services/location.service';
 import { TranslationService } from '../../services/translation.service';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { API_URL } from '../../utils/api-config';
 enableFlagEmojis();
 
 type AppLanguage = 'ka' | 'en' | 'ru';
@@ -267,7 +268,10 @@ export class CrmQuestioner implements OnInit {
     }
   }
 
-  private readonly apiBaseUrl = 'https://websiteapi-production-c970.up.railway.app/api/Crm';
+  // Same API as the rest of the site (through this site's /api proxy), so test copies never write to production.
+  private readonly apiBaseUrl = `${API_URL}/Crm`;
+  /** Ticked by the visitor on the last step; nothing is sent without it. */
+  consentGiven = false;
 
   agentToken: string | null = null;
   invalidAgentLink = false;
@@ -2614,10 +2618,9 @@ export class CrmQuestioner implements OnInit {
 
       assignedAgentId: null,
 
-      consentGiven: true,
+      consentGiven: this.consentGiven,
     };
 
-    console.log('QUESTIONNAIRE LEAD PAYLOAD:', payload);
 
     this.http
       .post(submitUrl, payload, {

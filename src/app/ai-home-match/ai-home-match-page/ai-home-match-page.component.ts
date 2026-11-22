@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild, inject } from '@angular/core';
+import { CurrencyService } from '../../services/currency.service';
 import { OfficeMapPickerComponent } from '../office-map-picker/office-map-picker.component';
 import {
   FormControl,
@@ -325,6 +326,30 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   saving = false;
   loadingMessage = 'Understanding your lifestyle...';
   private loadingTimer?: number;
+  private readonly currencyRates = inject(CurrencyService);
+  budgetAmountsCurrencyBefore = 'USD';
+
+  /**
+   * The visitor picked another currency: convert the chosen amounts at the live rate instead of
+   * keeping the same numbers (1,000 USD must not become 1,000 GEL). Only the visitor's own
+   * switch converts; restoring a saved profile sets amounts and currency together.
+   */
+  onBudgetCurrencyChange(previous: string): void {
+    const from = previous as 'USD' | 'GEL' | 'EUR';
+    const to = this.budgetForm.controls.currency.value;
+    // Keyboard users may switch again without leaving the field.
+    this.budgetAmountsCurrencyBefore = to;
+    if (from === to) return;
+    const { usdGel, usdEur } = this.currencyRates.rates;
+    const toUsd = (value: number) => (from === 'GEL' ? value / usdGel : from === 'EUR' ? value / usdEur : value);
+    const fromUsd = (value: number) => (to === 'GEL' ? value * usdGel : to === 'EUR' ? value * usdEur : value);
+    const step = this.budgetSliderStep;
+    const convert = (value: number) => Math.max(0, Math.round(fromUsd(toUsd(Number(value) || 0)) / step) * step);
+    const max = Math.min(this.budgetSliderMax, convert(this.budgetForm.controls.max.value));
+    const min = Math.min(convert(this.budgetForm.controls.min.value), max);
+    this.budgetForm.patchValue({ min, max });
+  }
+
   budgetForm = new FormGroup({
     min: new FormControl(0, {
       nonNullable: true,

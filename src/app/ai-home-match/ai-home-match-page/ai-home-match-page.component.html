@@ -397,7 +397,7 @@
             ><label>Max price<input type="number" min="0" formControlName="max" /></label>
           </div
           ><label
-            >Currency<select formControlName="currency">
+            >Currency<select formControlName="currency" #currencySelect (focus)="budgetAmountsCurrencyBefore = currencySelect.value" (change)="onBudgetCurrencyChange(budgetAmountsCurrencyBefore)">
               <option>USD</option>
               <option>GEL</option>
               <option>EUR</option>

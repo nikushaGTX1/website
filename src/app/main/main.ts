@@ -7,8 +7,7 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectorRef,
-  HostListener,
-} from '@angular/core';
+  HostListener, inject } from '@angular/core';
 import { ApartmentService, GeoJsonPolygon } from '../services/apartment.service';
 import { FavoriteService } from '../services/favorite.service';
 import { AuthService } from '../services/auth.service';
@@ -35,6 +34,7 @@ import { FormsModule } from '@angular/forms';
 import { CurrencyPrice } from '../currency-price/currency-price';
 import { DrawAreaMapComponent } from '../maps/draw-area-map/draw-area-map.component';
 import { ListingTitlePipe } from '../shared/listing-title.pipe';
+import { CurrencyService } from '../services/currency.service';
 
 @Component({
   selector: 'app-main',
@@ -1333,6 +1333,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
 
   private toUsd(value: number | null): number | null {
     if (value == null) return null;
-    return this.budgetCurrency === 'GEL' ? Math.round(value / 2.7) : value;
+    return this.budgetCurrency === 'GEL' ? Math.round(value / this.currencyRates.rates.usdGel) : value;
   }
+  private readonly currencyRates = inject(CurrencyService);
 }

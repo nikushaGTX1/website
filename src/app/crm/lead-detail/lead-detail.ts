@@ -834,7 +834,8 @@ export class CrmLeadDetail implements OnInit {
 
 
   get canDeleteLead(): boolean {
-    return !!this.lead && this.canWorkLead;
+    // Deleting erases notes, tasks and the client profile: managers only (same rule as the API).
+    return !!this.lead && this.isManager;
   }
 
 

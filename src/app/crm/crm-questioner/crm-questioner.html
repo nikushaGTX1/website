@@ -1880,6 +1880,11 @@
         </button>
 
 
+        <label class="questionnaire-consent" *ngIf="currentStep === totalSteps && !submitSuccess">
+          <input type="checkbox" [(ngModel)]="consentGiven" />
+          <span>I agree that Velven may store my details and contact me about this request.</span>
+        </label>
+
         <button
           *ngIf="
             currentStep === totalSteps &&
@@ -1889,6 +1894,7 @@
           class="continue-button finish-button"
           [disabled]="
             !canContinue ||
+            !consentGiven ||
             isSubmitting
           "
           (click)="

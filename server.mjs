@@ -111,15 +111,17 @@ const routeSeo = new Map([
     description: 'Explore professional property search, listing and real estate support services for renters, buyers and owners in Tbilisi.',
   }],
 ]);
-const privateRoutePattern = /^\/(?:admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|owner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|register|discover|premium|balance|payment-methods|my-business|my-viewings|my-reviews|my-coupons|interested-clients)/;
+const privateRoutePattern = /^\/(?:submit-apartment|admin|crm(?:\/|$)|crm-questioner(?:\/|$)|questions(?:\/|$)|owner(?:\/|$)|my-profile|my-listings|saved-listings|upload-apartment|login|register|discover|premium|balance|payment-methods|my-business|my-viewings|my-reviews|my-coupons|interested-clients)/;
 let sitemapCache;
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://cdnjs.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com https://cdnjs.cloudflare.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
   "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
-  `img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://${supabaseHost}`,
-  `connect-src 'self' https://*.googleapis.com https://api.frankfurter.dev ${apiOrigin} https://${supabaseHost}`,
+  `img-src 'self' data: blob: ${canonicalOrigin} https://images.unsplash.com https://*.googleapis.com https://*.gstatic.com https://${supabaseHost}`,
+  // Google Maps draws in a web worker.
+  "worker-src 'self' blob:",
+  `connect-src 'self' data: blob: https://*.googleapis.com https://api.frankfurter.dev ${apiOrigin} https://${supabaseHost}`,
   "frame-src 'self' https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",
@@ -151,7 +153,7 @@ async function questionnaireLinkIsLive(pathname) {
 
 function crmQuestionnaireSeo(pathname) {
   const isLegacyPath = /^\/(?:crm-questioner|questions)\/(?:agent-)?[a-z0-9-]+$/i.test(pathname);
-  const reservedShortPath = /^\/(?:main|ExploreProperty|property|find-my-home|ai-home-match|clients|about|careers|services|apartment-detail|agent-profile|login|register|discover|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business|my-viewings|my-reviews|my-coupons|play|interested-clients|careers)$/i.test(pathname);
+  const reservedShortPath = /^\/(?:submit-apartment|main|ExploreProperty|property|find-my-home|ai-home-match|clients|about|careers|services|apartment-detail|agent-profile|login|register|discover|blog|upload-apartment|admin|crm|my-profile|my-listings|saved-listings|premium|balance|payment-methods|my-business|my-viewings|my-reviews|my-coupons|play|interested-clients|careers)$/i.test(pathname);
   const isShortPath = /^\/(?:agent-)?[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(pathname)
     && !reservedShortPath;
   if (!isLegacyPath && !isShortPath) return undefined;
@@ -180,7 +182,9 @@ app.use((request, response, next) => {
 
   if (request.method === 'GET' && request.path.length > 1 && request.path.endsWith('/')) {
     const query = request.originalUrl.slice(request.path.length);
-    response.redirect(301, `${request.path.replace(/\/+$/, '')}${query}`);
+    // Collapse leading slashes too: "//evil.example/" would otherwise redirect off-site.
+    const cleanPath = `/${request.path.replace(/^[\/\\]+/, '').replace(/\/+$/, '')}`;
+    response.redirect(301, `${cleanPath}${query}`);
     return;
   }
 
@@ -201,9 +205,8 @@ app.use((request, response, next) => {
   // Also turn on HSTS in Cloudflare (SSL/TLS > Edge Certificates): it covers the http:// redirect too.
   response.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   response.setHeader('X-Frame-Options', isGame ? 'SAMEORIGIN' : 'DENY');
-  // Report-only for now: violations show in the browser console, nothing is blocked.
-  // Rename the header to Content-Security-Policy once the console stays clean.
-  response.setHeader('Content-Security-Policy-Report-Only', isGame ? gameContentSecurityPolicy : contentSecurityPolicy);
+  // Enforced: anything outside the lists above is blocked by the browser.
+  response.setHeader('Content-Security-Policy', isGame ? gameContentSecurityPolicy : contentSecurityPolicy);
   next();
 });
 
@@ -797,6 +800,24 @@ async function loadSharp() {
   return sharpModule;
 }
 
+/**
+ * Photos are cached by storage path, so a cached copy must not be handed to someone whose
+ * link is invalid or expired. Each signed link is checked once against storage (a 1-byte
+ * request) and remembered for 10 minutes; without a valid signature, no photo is served.
+ */
+const checkedImageLinks = new Map();
+async function assertSignedImageLink(source) {
+  const imageUrl = validateApartmentImageUrl(source);
+  if (!imageUrl.searchParams.get('token')) throw new Error('Unsigned apartment image URL.');
+  const href = imageUrl.href;
+  if ((checkedImageLinks.get(href) ?? 0) > Date.now()) return;
+  const check = await fetch(imageUrl, { headers: { Range: 'bytes=0-0' } });
+  try { await check.body?.cancel(); } catch {}
+  if (!(check.ok || check.status === 206)) throw new Error('Apartment image link is not valid.');
+  checkedImageLinks.set(href, Date.now() + 10 * 60_000);
+  if (checkedImageLinks.size > 5000) checkedImageLinks.delete(checkedImageLinks.keys().next().value);
+}
+
 async function resizedApartmentImage(source, width) {
   const key = `${validateApartmentImageUrl(source).pathname}@${width}`;
   const cached = resizedImageCache.get(key);
@@ -825,6 +846,7 @@ app.get(['/media/apartment-image', '/media/apartment-image.jpg'], async (request
   try {
     const source = String(request.query.url || '');
     const width = Number(request.query.w);
+    await assertSignedImageLink(source);
     const image = allowedImageWidths.has(width)
       ? await resizedApartmentImage(source, width)
       : await fetchApartmentImage(source);
@@ -1368,7 +1390,7 @@ async function apartmentSeo(pathname) {
 }
 
 async function agentSeo(pathname) {
-  const match = /^\/agent-profile\/([^/]+)$/.exec(pathname);
+  const match = /^\/agent-profile\/([^/]+)(?:\/listings)?$/.exec(pathname);
   if (!match) return undefined;
   const agentId = encodeURIComponent(match[1]);
   const apiResponse = await fetchPublicApi(`/api/Agents/${agentId}`, false);

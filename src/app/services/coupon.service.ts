@@ -56,8 +56,18 @@ export class CouponService {
     return this.http.get<ClientCoupon[]>(this.apiUrl);
   }
 
-  claimGameReward(floor: number): Observable<{ created: boolean; coupon: ClientCoupon }> {
-    return this.http.post<{ created: boolean; coupon: ClientCoupon }>(`${this.apiUrl}/game-reward`, { floor });
+  /** Signed start time from the server; a win only counts with it. */
+  private gameTicket: string | null = null;
+
+  startGame(): void {
+    this.http.post<{ ticket: string }>(`${this.apiUrl}/game-start`, {}).subscribe({
+      next: ({ ticket }) => (this.gameTicket = ticket),
+      error: () => (this.gameTicket = null),
+    });
+  }
+
+  claimGameReward(floor: number, ticket: string | null = this.gameTicket): Observable<{ created: boolean; coupon: ClientCoupon }> {
+    return this.http.post<{ created: boolean; coupon: ClientCoupon }>(`${this.apiUrl}/game-reward`, { floor, ticket });
   }
 
   // ---------- Managers (CRM) ----------
@@ -80,18 +90,20 @@ export class CouponService {
 
   rememberPendingWin(floor: number): void {
     try {
-      localStorage.setItem(PENDING_WIN_KEY, String(floor));
+      localStorage.setItem(PENDING_WIN_KEY, JSON.stringify({ floor, ticket: this.gameTicket }));
     } catch {
       // Private mode: the win just is not kept.
     }
   }
 
-  takePendingWin(): number | null {
+  takePendingWin(): { floor: number; ticket: string | null } | null {
     try {
-      const floor = Number(localStorage.getItem(PENDING_WIN_KEY));
+      const raw = localStorage.getItem(PENDING_WIN_KEY);
       localStorage.removeItem(PENDING_WIN_KEY);
-      // The server checks the floor against its own (possibly lowered) reward floor.
-      return floor > 0 ? floor : null;
+      const saved = JSON.parse(raw || 'null') as { floor?: number; ticket?: string | null } | number | null;
+      // The server checks the floor and the ticket's play time itself.
+      const floor = typeof saved === 'number' ? saved : Number(saved?.floor);
+      return floor > 0 ? { floor, ticket: typeof saved === 'object' ? saved?.ticket ?? null : null } : null;
     } catch {
       return null;
     }

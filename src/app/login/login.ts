@@ -89,8 +89,8 @@ export class Login {
       this.errorMessage = 'Please choose your nationality.';
       return;
     }
-    if (this.registerData.password.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters.';
+    if ((this.registerData.password.length < 8 || !/[0-9]/.test(this.registerData.password))) {
+      this.errorMessage = 'Password must be at least 8 characters and include a number.';
       return;
     }
     if (this.registerData.password !== this.registerData.confirmPassword) {
@@ -300,9 +300,9 @@ export class Login {
   submitReset(code: string, password: string): void {
     this.code = code;
     this.newPassword = password;
-    if (this.isSubmitting || !this.code.trim() || this.newPassword.length < 6) {
-      if (this.newPassword && this.newPassword.length < 6)
-        this.errorMessage = 'Password must be at least 6 characters.';
+    if (this.isSubmitting || !this.code.trim() || this.newPassword.length < 8 || !/[0-9]/.test(this.newPassword)) {
+      if (this.newPassword && (this.newPassword.length < 8 || !/[0-9]/.test(this.newPassword)))
+        this.errorMessage = 'Password must be at least 8 characters and include a number.';
       return;
     }
     this.isSubmitting = true;

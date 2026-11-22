@@ -3726,3 +3726,7 @@ h1 {
   :host button, :host a[class*="btn"], :host select { min-height: 42px; }
   :host table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
+
+/* Last step: explicit consent */
+.questionnaire-consent { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 12px; color: #4a4160; font-size: 13px; line-height: 1.45; cursor: pointer; }
+.questionnaire-consent input { flex: none; width: 18px; height: 18px; margin-top: 1px; accent-color: #451a8f; }

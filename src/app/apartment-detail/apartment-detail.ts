@@ -1043,6 +1043,10 @@ export class ApartmentDetail implements OnInit, OnDestroy {
       this.inquiryError = 'Please enter a valid phone number.';
       return;
     }
+    if (!this.inquiryForm.consentToContact) {
+      this.inquiryError = 'Please tick the box to agree to be contacted.';
+      return;
+    }
     if (!requestedViewingAt || Date.parse(requestedViewingAt) <= Date.now()) {
       this.inquiryError = 'Choose a future date and time for the viewing.';
       return;
@@ -1060,7 +1064,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         message: [this.inquiryForm.message.trim(), `Preferred time: ${this.viewingTimeLabel}`]
           .filter(Boolean)
           .join(' | '),
-        consentToContact: true, // the form states that an agent will contact the customer
+        consentToContact: this.inquiryForm.consentToContact, // ticked by the visitor
         website: this.inquiryForm.website,
       })
       .subscribe({

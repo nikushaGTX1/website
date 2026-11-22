@@ -45,3 +45,8 @@ Thumbs.db
 
 # Local portrait previews (not part of the site)
 /output/
+
+# Local logs and QA files (not part of the site)
+*.log
+*.xlsx
+/agent icon svg.svg

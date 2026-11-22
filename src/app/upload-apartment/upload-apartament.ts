@@ -9,8 +9,7 @@ import {
   HostListener,
   NgZone,
   OnDestroy,
-  OnInit,
-} from '@angular/core';
+  OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, Subscription, timeout, TimeoutError } from 'rxjs';
@@ -56,6 +55,7 @@ import {
 import { NgIf, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PropertyPointPickerComponent } from '../maps/property-point-picker/property-point-picker.component';
+import { CurrencyService } from '../services/currency.service';
 
 type ListingCopyLanguage = 'ka' | 'en' | 'ru';
 type ListingCopy = { title: string; description: string };
@@ -1611,8 +1611,10 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
   private toUsdPrice(): number {
     const price = Number(this.form.totalPrice || 0);
     if (!price) return 0;
-    return this.form.currency === 'GEL' ? price / 2.7 : price;
+    // Live GEL rate, the same one every price on the site uses.
+    return this.form.currency === 'GEL' ? price / this.currencyRates.rates.usdGel : price;
   }
+  private readonly currencyRates = inject(CurrencyService);
 
   private findDuplicate(
     apartments: import('../models/apartment').Apartment[],

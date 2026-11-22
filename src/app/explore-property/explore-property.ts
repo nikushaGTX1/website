@@ -561,6 +561,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
   propertiesPlaceholder = new Array(6);
   currentSort = 'newest';
   currentPage = 1;
+  /** Page number from the URL, used once when the first results load (refresh, Back, shared link). */
+  private pageFromUrl: number | null = null;
   pageSize = 20;
   /** Cards whose full photo gallery is fetched up front; the rest load when hovered. */
   private readonly galleryPrefetchCount = 6;
@@ -2196,6 +2198,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
     this.applySorting();
     this.currentPage = 1;
+    if (this.pageFromUrl && this.filteredApartments.length) {
+      this.currentPage = Math.min(Math.max(Math.floor(this.pageFromUrl), 1), this.totalPages);
+      this.pageFromUrl = null;
+    }
     this.updateVisibleApartments();
 
     if (this.visibleApartments.length === 0) {
@@ -2216,8 +2222,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
       return raw != null && raw !== '' && Number.isFinite(+raw) && +raw >= 0 ? +raw : null;
     };
     const list = (key: string): string[] => (params.get(key) || '').split(',').filter(Boolean);
-    this.appliedBudgetMin = this.budgetMin = num('budgetMin');
-    this.appliedBudgetMax = this.budgetMax = num('budget');
+    let budgetMin = num('budgetMin');
+    let budgetMax = num('budget');
+    if (budgetMin != null && budgetMax != null && budgetMin > budgetMax) [budgetMin, budgetMax] = [budgetMax, budgetMin];
+    this.appliedBudgetMin = this.budgetMin = budgetMin;
+    this.appliedBudgetMax = this.budgetMax = budgetMax;
+    // Page from the link, applied once the results are filtered.
+    this.pageFromUrl = num('page');
     this.selectedMinArea = num('minArea') ?? 0;
     this.selectedMaxArea = num('maxArea');
     this.selectedMinFloor = num('minFloor') ?? 0;
@@ -2236,7 +2247,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
       evChargerMinutes: num('evMin') ?? 0,
       leaseMonths: num('lease') ?? 0,
       noDeposit: params.get('noDeposit') === '1',
-      moveInDate: /^d{4}-d{2}-d{2}$/.test(moveIn) ? moveIn : '',
+      moveInDate: /^\d{4}-\d{2}-\d{2}$/.test(moveIn) ? moveIn : '',
       conditions: list('moreConditions'),
     };
     const streets = (params.get('streets') || '')
@@ -2304,6 +2315,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
           bedrooms: this.headerBedrooms || null,
           rooms: this.headerRooms || null,
           sort: this.currentSort !== 'newest' ? this.currentSort : null,
+          page: this.currentPage > 1 ? this.currentPage : null,
           ...this.moreFiltersQuery(),
           ...this.locationQuery(),
         },
@@ -2405,6 +2417,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
     this.updateVisibleApartments();
     this.selectedApartment = this.visibleApartments[0] ?? null;
+    // Keep the page in the link, so Back from a listing returns to it.
+    this.syncFiltersToUrl();
     // New page starts at its first card (scroll-margin-top keeps it below the sticky bars).
     this.resultsPane?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }

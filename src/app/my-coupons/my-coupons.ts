@@ -24,7 +24,7 @@ export class MyCoupons implements OnInit {
     // A win made before logging in is saved now.
     const pending = this.couponService.takePendingWin();
     if (pending) {
-      this.couponService.claimGameReward(pending).subscribe({ next: () => this.load(), error: () => this.load() });
+      this.couponService.claimGameReward(pending.floor, pending.ticket).subscribe({ next: () => this.load(), error: () => this.load() });
     } else {
       this.load();
     }

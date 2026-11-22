@@ -101,7 +101,7 @@
                 <span class="cc-match">Velven Match <i class="fa-solid fa-check" aria-hidden="true"></i></span>
               </div>
               <p class="cc-price"><strong>{{ currencySymbol(client.profile.currency) }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></p>
-              <div class="cc-nationality">
+              <div class="cc-nationality" *ngIf="client.nationality">
                 <span>Nationality</span>
                 <b><em class="cc-flag" *ngIf="flag(client.nationality) as f" aria-hidden="true">{{ f }}</em><span data-no-translate>{{ countryName(client.nationality) }}</span></b>
               </div>

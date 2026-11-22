@@ -125,7 +125,12 @@ export class AuthService {
   }
 
   changePassword(code: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/change-password`, { code, newPassword });
+    // The server ends older sessions and sends a fresh login for this device.
+    return this.http.post<{ token?: string }>(`${this.apiUrl}/change-password`, { code, newPassword }).pipe(
+      tap((response) => {
+        if (response?.token) localStorage.setItem('token', response.token);
+      }),
+    );
   }
 
   login(data: LoginRequest): Observable<AuthResponse> {
@@ -187,9 +192,10 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearSignedInData();
     this.currentUserSubject.next(null);
+    // Services holding listings or saved homes in memory drop them too.
+    window.dispatchEvent(new Event('velven:logout'));
   }
 
   getToken(): string | null {
@@ -289,5 +295,28 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+}
+
+/** Browser data that is not tied to an account and may survive sign-out. */
+const KEPT_AFTER_SIGN_OUT = new Set(['velven-language', 'velven-geocode-cache-v1', 'velven-stale-build-reload']);
+
+/**
+ * Sign-out removes everything the app stored for the account: login, cached listings (staff
+ * copies include owner phones), upload drafts, saved searches, pending game wins. Only the
+ * language and public map caches stay, so a shared computer keeps nothing personal.
+ */
+function clearSignedInData(): void {
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (!KEPT_AFTER_SIGN_OUT.has(key)) localStorage.removeItem(key);
+    }
+  } catch {
+    // Storage blocked: nothing was stored either.
+  }
+  try {
+    sessionStorage.clear();
+  } catch {
+    // Same as above.
   }
 }

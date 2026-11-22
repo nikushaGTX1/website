@@ -3476,3 +3476,7 @@ dialog.photo-viewer::backdrop { background: #111113; }
   .vp-amenities > div p { font-size: 12px !important; line-height: 1.25 !important; }
   .vp-amenities > div p small { font-size: 11px !important; }
 }
+
+/* Viewing request: explicit consent */
+.vd-consent { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 10px; color: #4a4160; font-size: 13px; line-height: 1.45; cursor: pointer; }
+.vd-consent input { flex: none; width: 18px; height: 18px; margin-top: 1px; accent-color: #451a8f; }

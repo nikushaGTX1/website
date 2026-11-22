@@ -135,14 +135,8 @@ const routes: Routes = [
     title: 'Apartment Details | Velven',
   },
 
-  {
-    path: 'find-my-home',
-    loadComponent: () =>
-      import('./ai-property-concierge/ai-concierge-page/ai-concierge-page.component').then(
-        (m) => m.AiConciergePageComponent,
-      ),
-    title: 'Find My Home | Velven',
-  },
+  // The old "Find my home" page called an API that no longer exists; Velven Match replaced it.
+  { path: 'find-my-home', redirectTo: 'ai-home-match', pathMatch: 'full' },
 
   {
     path: 'ai-home-match',
