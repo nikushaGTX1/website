@@ -184,6 +184,19 @@
             </button>
           </div>
         </div>
+        <div *ngSwitchCase="15">
+          <div class="options condition-options">
+            <button
+              type="button"
+              *ngFor="let option of buildingOptions; trackBy: trackOption"
+              [class.selected]="buildingSelected(option.value)"
+              [attr.aria-pressed]="buildingSelected(option.value)"
+              (click)="toggleBuilding(option.value)"
+            >
+              <i class="condition-icon" [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
+            </button>
+          </div>
+        </div>
         <div class="style-options" *ngSwitchCase="12">
           <!-- Modern: big window, low sofa, floor lamp -->
           <button type="button" class="style-card" [class.selected]="profile.apartmentStyle === 'Modern'" [attr.aria-pressed]="profile.apartmentStyle === 'Modern'" (click)="choose('apartmentStyle', 'Modern')">
@@ -362,7 +375,7 @@
         <form class="budget" *ngSwitchCase="3" [formGroup]="budgetForm">
           <div class="budget-picker">
             <h3 class="budget-title">Price range</h3>
-            <p class="budget-caption">Choose the monthly price that works for you</p>
+            <p class="budget-caption">{{ profile.propertyGoal === 'Buy' ? 'Choose the total price you want to pay' : 'Choose the monthly price that works for you' }}</p>
             <!-- Clicking (or dragging) anywhere on the chart moves the nearest handle there. -->
             <div class="budget-click-area" (pointerdown)="pickBudgetAt($event)">
             <div class="budget-chart" aria-hidden="true">

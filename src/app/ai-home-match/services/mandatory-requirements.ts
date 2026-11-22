@@ -385,6 +385,13 @@ export function evaluateMandatoryRequirements(
       mismatches.push('The apartment condition does not meet your requirement.');
   }
 
+  if (profile.propertyGoal === 'Buy' && profile.buildingTypes?.length && !profile.buildingTypes.includes('Any')) {
+    const status = (apartment.description || '').match(/(?:^|[|\r\n])\s*Status:\s*([^|\r\n]+)/i)?.[1]?.trim().replace(/\.$/, '').toLowerCase();
+    const statuses: Record<string, string> = { NewBuilding: 'new building', UnderConstruction: 'under construction', OldBuilding: 'old building' };
+    if (status && !profile.buildingTypes.some((code) => statuses[code] === status))
+      mismatches.push('The building type does not meet your requirement.');
+  }
+
   // Type of home (follow-up to Rent/Buy): a private house never matches "apartment", and back.
   const homeType = listingHomeType(apartment);
   const wantedTypes = wantedHomeTypes(profile);

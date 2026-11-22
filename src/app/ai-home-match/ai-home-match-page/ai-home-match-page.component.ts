@@ -117,6 +117,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     { title: 'What style of apartment do you like?' },
     { title: 'What condition should the property be in?', subtitle: 'Choose one or more.' },
     { title: 'What is your nationality?', subtitle: 'Choose the country whose nationality you hold.' },
+    { title: 'What kind of building?', subtitle: 'Choose one or more.' },
   ];
   /**
    * Countries shown first. Every other country follows alphabetically, and the search
@@ -175,6 +176,25 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         ? current.filter((item) => item !== value)
         : [...current.filter((item) => item !== 'Any'), value];
     this.persist();
+  }
+  /** Buyers only (question 15). "Any" stands alone. */
+  readonly buildingOptions = [
+    { value: 'NewBuilding', label: 'New building', icon: 'fa-solid fa-building-circle-check' },
+    { value: 'UnderConstruction', label: 'Under construction', icon: 'fa-solid fa-helmet-safety' },
+    { value: 'OldBuilding', label: 'Old building', icon: 'fa-solid fa-landmark' },
+    { value: 'Any', label: 'Any building', icon: 'fa-solid fa-check-double' },
+  ];
+  toggleBuilding(value: string): void {
+    const current = this.profile.buildingTypes ?? [];
+    this.profile.buildingTypes = value === 'Any'
+      ? (current.includes('Any') ? [] : ['Any'])
+      : current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current.filter((item) => item !== 'Any'), value];
+    this.persist();
+  }
+  buildingSelected(value: string): boolean {
+    return (this.profile.buildingTypes ?? []).includes(value);
   }
   conditionSelected(value: string): boolean {
     return (this.profile.propertyConditions ?? []).includes(value);
@@ -323,10 +343,14 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     100, 82, 63, 49, 55, 41, 30, 22, 18, 28,
   ];
   get budgetSliderMax(): number {
-    return this.budgetForm.controls.currency.value === 'GEL' ? 13500 : 5000;
+    const gel = this.budgetForm.controls.currency.value === 'GEL';
+    if (this.profile.propertyGoal === 'Buy') return gel ? 5_400_000 : 2_000_000;
+    return gel ? 13500 : 5000;
   }
   get budgetSliderStep(): number {
-    return this.budgetForm.controls.currency.value === 'GEL' ? 100 : 50;
+    const gel = this.budgetForm.controls.currency.value === 'GEL';
+    if (this.profile.propertyGoal === 'Buy') return gel ? 10_000 : 5_000;
+    return gel ? 100 : 50;
   }
   get budgetSymbol(): string {
     const currency = this.budgetForm.controls.currency.value;
@@ -527,10 +551,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   get visibleSteps(): number[] {
     // Question 14 (nationality) opens the flow; 12 (apartment style) follows Rent/Buy.
     // 13 (property condition) is for buyers only, right after bedrooms.
-    return [14, 1, 12, 0, 2, 3, 4, 5, 6, 13, 7, 8, 9, 10, 11].filter(
+    return [14, 1, 12, 0, 2, 3, 4, 5, 6, 13, 15, 7, 8, 9, 10, 11].filter(
       (step) =>
-        !(this.profile.propertyGoal === 'Buy' && [3, 4, 5, 10].includes(step)) &&
-        !(step === 13 && this.profile.propertyGoal !== 'Buy') &&
+        !(this.profile.propertyGoal === 'Buy' && [4, 5, 10].includes(step)) &&
+        !([13, 15].includes(step) && this.profile.propertyGoal !== 'Buy') &&
         !(step === 5 && this.fixedHousehold) &&
         // Nationality already saved on the account at sign-up.
         !(step === 14 && !!this.accountNationality),
@@ -543,7 +567,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     // Use the question ID as the source of truth so phase labels cannot drift.
     if (this.step === 14 || this.step === 1 || this.step === 12 || this.step === 0) return 0;
     if (this.step === 2) return 1;
-    if ([4, 5, 6, 13, 7].includes(this.step)) return 2;
+    if ([4, 5, 6, 13, 15, 7].includes(this.step)) return 2;
     if ([8, 9, 10].includes(this.step)) return 3;
     if (this.step === 3) return 4;
     if (this.step === 11) return 5;
@@ -1198,6 +1222,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return !!this.profile.apartmentStyle;
       case 13:
         return (this.profile.propertyConditions?.length ?? 0) > 0;
+      case 15:
+        return (this.profile.buildingTypes?.length ?? 0) > 0;
       default:
         return false;
     }
@@ -1280,6 +1306,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['apartmentStyle'],
       ['propertyConditions'],
       ['nationality'],
+      ['buildingTypes'],
     ];
     for (const key of fields[step]) {
       const value = EMPTY_HOME_MATCH_PROFILE[key];

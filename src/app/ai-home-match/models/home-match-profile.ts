@@ -63,6 +63,8 @@ export interface HomeMatchProfile {
   apartmentStyle?: 'Modern' | 'Vintage' | 'Other' | '';
   /** Buyers: acceptable conditions (WhiteFrame = თეთრი კარკასი ...). ['Any'] = no preference. */
   propertyConditions?: string[];
+  /** Buyers: accepted building types (NewBuilding, UnderConstruction, OldBuilding). ['Any'] = no preference. */
+  buildingTypes?: string[];
 }
 
 export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
@@ -93,4 +95,5 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   petCount: 1,
   topPriorities: [],
   propertyConditions: [],
+  buildingTypes: [],
 };

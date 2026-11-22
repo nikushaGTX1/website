@@ -92,6 +92,14 @@ export class HomeProfileSummaryComponent {
             icon: 'fa-trowel-bricks',
           }
         : null,
+      p.propertyGoal === 'Buy' && p.buildingTypes?.length
+        ? {
+            step: 15,
+            label: 'Building',
+            value: p.buildingTypes.map((code) => (code === 'Any' ? 'Any building' : this.label(code))).join(', '),
+            icon: 'fa-building',
+          }
+        : null,
       {
         step: 2,
         label: 'Location',

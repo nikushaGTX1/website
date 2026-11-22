@@ -10,6 +10,10 @@ const ANSWER_LABELS: Record<string, string> = {
   BlackFrame: 'Black frame',
   GreenFrame: 'Green frame',
   NeedsRenovation: 'Needs renovation',
+  // Building type (buyers)
+  NewBuilding: 'New building',
+  UnderConstruction: 'Under construction',
+  OldBuilding: 'Old building',
   // Goal / gender
   Rent: 'Rent',
   Buy: 'Buy',

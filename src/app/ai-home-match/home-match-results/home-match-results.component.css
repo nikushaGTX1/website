@@ -987,3 +987,10 @@ h1 {
 .answer-chips-reset:hover { border-color: #d2c7e6; color: #2b2340; }
 .answer-chips-confirm { display: inline-flex; flex-wrap: wrap; gap: 8px; }
 .answer-chips-confirm .danger { border-color: #f3c7c1; background: #fff5f4; color: #b42318; }
+
+
+/* Buyers: price per m² and building / condition chips */
+.mc-per-sqm { display: block; margin-top: 2px; color: #6b6280; font-size: 12.5px; font-weight: 600; }
+.mc-buy-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.mc-buy-tags span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; background: #f3eefc; color: #451a8f; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.mc-buy-tags i { font-size: 12px; }

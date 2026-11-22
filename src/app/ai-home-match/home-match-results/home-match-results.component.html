@@ -149,7 +149,14 @@
         </div>
         <div class="mc-price">
           <app-currency-price [usdPrice]="result.apartment.price" [suffix]="profile.propertyGoal === 'Buy' ? '' : '/mo'"></app-currency-price>
+          <small class="mc-per-sqm" *ngIf="profile.propertyGoal === 'Buy' && result.apartment.sizeSquareMeters && result.apartment.price">
+            <app-currency-price [usdPrice]="result.apartment.price / result.apartment.sizeSquareMeters" suffix="/m²"></app-currency-price>
+          </small>
         </div>
+      </div>
+
+      <div class="mc-buy-tags" *ngIf="profile.propertyGoal === 'Buy' && buyTags(result).length">
+        <span *ngFor="let tag of buyTags(result)"><i [class]="tag.icon" aria-hidden="true"></i> {{ tag.label }}</span>
       </div>
 
       <div class="mc-facts">

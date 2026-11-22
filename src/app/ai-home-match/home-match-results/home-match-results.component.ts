@@ -64,6 +64,24 @@ export type SearchSaveState = 'saving' | 'saved' | 'updated' | 'duplicate' | 'fa
   ],
 })
 export class HomeMatchResultsComponent implements OnChanges {
+  /** Buyers: building status and condition read from the listing's upload-form tags. */
+  buyTags(result: HomeMatchResult): Array<{ label: string; icon: string }> {
+    const text = result.apartment.description || '';
+    const tag = (name: string) =>
+      text.match(new RegExp('(?:^|[|\\r\\n])\\s*' + name + ':\\s*([^|\\r\\n]+)', 'i'))?.[1]?.trim().replace(/\.$/, '');
+    const icons: Record<string, string> = {
+      'new building': 'fa-solid fa-building-circle-check',
+      'under construction': 'fa-solid fa-helmet-safety',
+      'old building': 'fa-solid fa-landmark',
+    };
+    const tags: Array<{ label: string; icon: string }> = [];
+    const status = tag('Status');
+    if (status) tags.push({ label: status, icon: icons[status.toLowerCase()] || 'fa-solid fa-building' });
+    const condition = tag('Condition');
+    if (condition) tags.push({ label: condition, icon: 'fa-solid fa-paint-roller' });
+    return tags;
+  }
+
   /** District picture next to the map, same style as the area pickers. */
   readonly districtIcon = districtIcon;
 
