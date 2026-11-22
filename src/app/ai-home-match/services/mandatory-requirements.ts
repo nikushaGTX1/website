@@ -388,7 +388,8 @@ export function evaluateMandatoryRequirements(
   if (profile.propertyGoal === 'Buy' && profile.buildingTypes?.length && !profile.buildingTypes.includes('Any')) {
     const status = (apartment.description || '').match(/(?:^|[|\r\n])\s*Status:\s*([^|\r\n]+)/i)?.[1]?.trim().replace(/\.$/, '').toLowerCase();
     const statuses: Record<string, string> = { NewBuilding: 'new building', UnderConstruction: 'under construction', OldBuilding: 'old building' };
-    if (status && !profile.buildingTypes.some((code) => statuses[code] === status))
+    if (!status) confirmations.push('Building type is not specified in the listing');
+    else if (!profile.buildingTypes.some((code) => statuses[code] === status))
       mismatches.push('The building type does not meet your requirement.');
   }
 

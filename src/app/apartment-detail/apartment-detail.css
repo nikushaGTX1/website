@@ -3460,8 +3460,19 @@ dialog.photo-viewer::backdrop { background: #111113; }
   .photo-tour-item img { transition: none; opacity: 1; }
 }
 
-/* Phones: amenities in one column so long Georgian words ("ცხოველები", "სარეცხი") stay whole */
+/* Phones: amenities as square tiles, two per row; words wrap whole, never split */
 @media (max-width: 480px) {
-  .vp-amenities { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .vp-amenities { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  .vp-amenities > * { aspect-ratio: 1 / 1; padding: 12px 8px !important; }
+  .vp-amenities p, .vp-amenities span, .vp-amenities strong { font-size: 13px; word-break: normal; overflow-wrap: normal; hyphens: none; }
 }
 .vp-amenities p { min-width: 0; }
+
+/* Phones: compact amenity tiles, three per row */
+@media (max-width: 480px) {
+  .vp-amenities { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; }
+  .vp-amenities > div { aspect-ratio: auto !important; min-height: 0 !important; padding: 10px 6px !important; gap: 6px !important; border-radius: 14px !important; }
+  .vp-amenities > div > span { width: 34px !important; height: 34px !important; font-size: 14px !important; border-radius: 10px !important; }
+  .vp-amenities > div p { font-size: 12px !important; line-height: 1.25 !important; }
+  .vp-amenities > div p small { font-size: 11px !important; }
+}

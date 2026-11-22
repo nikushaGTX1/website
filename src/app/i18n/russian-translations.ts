@@ -382,6 +382,7 @@ const RUSSIAN_TRANSLATIONS = new Map<string, string>([
   ['fits your life.', 'подходит вашей жизни.'],
   ['feels like you.', 'подходит именно вам.'],
   ['Find My Match', 'Найти мой вариант'],
+  ['Building type is not specified in the listing', 'Тип здания в объявлении не указан'],
   ['What kind of building?', 'Какое здание вам подходит?'],
   ['Any building', 'Любое здание'],
   ['Building', 'Здание'],

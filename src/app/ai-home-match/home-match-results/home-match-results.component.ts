@@ -69,15 +69,21 @@ export class HomeMatchResultsComponent implements OnChanges {
     const text = result.apartment.description || '';
     const tag = (name: string) =>
       text.match(new RegExp('(?:^|[|\\r\\n])\\s*' + name + ':\\s*([^|\\r\\n]+)', 'i'))?.[1]?.trim().replace(/\.$/, '');
-    const icons: Record<string, string> = {
-      'new building': 'fa-solid fa-building-circle-check',
-      'under construction': 'fa-solid fa-helmet-safety',
-      'old building': 'fa-solid fa-landmark',
+    // Only known upload-form values become tags; anything else in the text is ignored.
+    const statuses: Record<string, { label: string; icon: string }> = {
+      'new building': { label: 'New building', icon: 'fa-solid fa-building-circle-check' },
+      'under construction': { label: 'Under construction', icon: 'fa-solid fa-helmet-safety' },
+      'old building': { label: 'Old building', icon: 'fa-solid fa-landmark' },
+    };
+    const conditions: Record<string, string> = {
+      'newly renovated': 'Newly renovated', 'old renovated': 'Old renovated', 'white frame': 'White frame',
+      'white plus': 'White plus', 'black frame': 'Black frame', 'green frame': 'Green frame',
+      'current renovation': 'Current renovation', repairing: 'Needs renovation',
     };
     const tags: Array<{ label: string; icon: string }> = [];
-    const status = tag('Status');
-    if (status) tags.push({ label: status, icon: icons[status.toLowerCase()] || 'fa-solid fa-building' });
-    const condition = tag('Condition');
+    const status = statuses[tag('Status')?.toLowerCase() ?? ''];
+    if (status) tags.push(status);
+    const condition = conditions[tag('Condition')?.toLowerCase() ?? ''];
     if (condition) tags.push({ label: condition, icon: 'fa-solid fa-paint-roller' });
     return tags;
   }
