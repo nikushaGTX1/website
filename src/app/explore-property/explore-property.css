@@ -3111,3 +3111,7 @@ svg {
   .results-pane .results-heading .sort-trigger { order: -1; align-self: flex-end; max-width: none; overflow: visible; }
   .results-pane .results-heading .sort-trigger > span { overflow: visible; text-overflow: clip; }
 }
+
+/* Card photo swipe: Airbnb-like settle */
+.card-photo-track { transition: transform 380ms cubic-bezier(0.25, 0.8, 0.25, 1); will-change: transform; }
+.photo-wrap { touch-action: pan-y; }

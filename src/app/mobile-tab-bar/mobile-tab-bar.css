@@ -33,3 +33,11 @@
   }
   .upload:active .upload-circle { transform: scale(0.94); }
 }
+
+@media (max-width: 760px) {
+  .upload-circle {
+    width: 46px; height: 34px; margin-top: 0; border: 0; border-radius: 12px; font-size: 17px;
+    background: #451a8f;
+  }
+  .upload { gap: 6px; }
+}

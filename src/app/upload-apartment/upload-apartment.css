@@ -2495,3 +2495,13 @@ select:focus {
   .plan-choice .plan-card { width: auto !important; min-width: 0 !important; }
   .plan-swipe-nav { display: none !important; }
 }
+
+/* Exclusive plan: filled purple check marks */
+.plan-card.exclusive li > i { background: linear-gradient(135deg, #7c3aed, #451a8f) !important; color: #fff !important; }
+
+/* Symmetric plan cards: same header space on both, lists start at the same line */
+.plan-card .plan-card-head { padding-top: 22px !important; }
+@media (min-width: 761px) {
+  .plan-choice { align-items: stretch !important; }
+  .plan-card .plan-card-head { min-height: 132px; }
+}

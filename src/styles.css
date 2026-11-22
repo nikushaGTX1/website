@@ -642,3 +642,14 @@ html.velven-game-fullscreen, html.velven-game-fullscreen body { overflow: hidden
 @media (max-width: 760px) {
   body:has(app-mobile-tab-bar .tab-bar) .mobile-toggle { bottom: calc(90px + env(safe-area-inset-bottom)) !important; }
 }
+
+/* Phone bottom bar hides while a bottom sheet or dialog is open, so it never covers the sheet. */
+body:has(.picker-sheet-backdrop, .location-dialog-open, dialog[open]) app-mobile-tab-bar {
+  display: none !important;
+}
+/* Any popup that locks page scroll also hides the phone bottom bar. */
+body[style*="position: fixed"] app-mobile-tab-bar,
+body:has([class*="backdrop"]:not([hidden])) app-mobile-tab-bar,
+body:has([role="dialog"][aria-modal="true"]) app-mobile-tab-bar {
+  display: none !important;
+}

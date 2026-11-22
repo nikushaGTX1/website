@@ -775,7 +775,20 @@ export class ExploreProperty implements OnInit, OnDestroy {
       count: this.cardImages(apartment).length,
       axis: null,
     };
+    // Finger moves run outside Angular and move the strip directly: no page re-render per frame.
+    const wrap = event.currentTarget as HTMLElement;
+    this.cardTrack = wrap.querySelector<HTMLElement>('.card-photo-track');
+    this.cardMoveCleanup?.();
+    const onMove = (moveEvent: PointerEvent): void => this.moveCardSwipe(moveEvent, apartment);
+    this.zone.runOutsideAngular(() => wrap.addEventListener('pointermove', onMove));
+    this.cardMoveCleanup = () => wrap.removeEventListener('pointermove', onMove);
   }
+
+  private cardTrack: HTMLElement | null = null;
+  private cardMoveCleanup?: () => void;
+  private cardLastX = 0;
+  private cardLastTime = 0;
+  private cardVelocity = 0;
 
   moveCardSwipe(event: PointerEvent, apartment: Apartment): void {
     const gesture = this.cardGesture;
@@ -788,12 +801,19 @@ export class ExploreProperty implements OnInit, OnDestroy {
     }
     if (gesture.axis !== 'x') return;
     event.preventDefault();
-    this.cardDraggingId = gesture.id;
+    const now = performance.now();
+    if (this.cardLastTime) this.cardVelocity = (event.clientX - this.cardLastX) / Math.max(1, now - this.cardLastTime);
+    this.cardLastX = event.clientX;
+    this.cardLastTime = now;
     // Past the first/last photo the strip resists instead of stopping dead.
     const atEdge =
       (gesture.index === 0 && dx > 0) || (gesture.index >= gesture.count - 1 && dx < 0);
     this.cardDragOffset = atEdge ? dx * 0.3 : Math.max(-gesture.width, Math.min(gesture.width, dx));
     this.suppressCardClickUntil = Date.now() + 600;
+    if (this.cardTrack) {
+      this.cardTrack.style.transition = 'none';
+      this.cardTrack.style.transform = `translate3d(calc(${-100 * gesture.index}% + ${this.cardDragOffset}px), 0, 0)`;
+    }
   }
 
   finishCardSwipe(event: PointerEvent, apartment: Apartment, cancelled = false): void {
@@ -802,9 +822,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (gesture.axis === 'x') {
       const dx = this.cardDragOffset;
       const elapsed = Math.max(1, performance.now() - gesture.started);
+      const flick = Math.abs(this.cardVelocity) > 0.35 && Math.sign(this.cardVelocity) === Math.sign(dx);
       if (
         !cancelled &&
-        (Math.abs(dx) > gesture.width * 0.2 || (Math.abs(dx) > 25 && Math.abs(dx) / elapsed > 0.45))
+        (Math.abs(dx) > gesture.width * 0.2 || flick || (Math.abs(dx) > 25 && Math.abs(dx) / elapsed > 0.45))
       ) {
         const next = this.cardImageIndex(apartment) + (dx < 0 ? 1 : -1);
         if (dx < 0 && this.cardImages(apartment).length <= 1 && this.cardGalleryRequests.has(apartment.id))
@@ -816,6 +837,16 @@ export class ExploreProperty implements OnInit, OnDestroy {
       }
       this.suppressCardClickUntil = Date.now() + 600;
     }
+    this.cardMoveCleanup?.();
+    this.cardMoveCleanup = undefined;
+    if (this.cardTrack) {
+      // Settle with an ease-out from where the finger let go.
+      this.cardTrack.style.transition = '';
+      this.cardTrack.style.transform = `translate3d(${-100 * this.cardImageIndex(apartment)}%, 0, 0)`;
+    }
+    this.cardTrack = null;
+    this.cardLastTime = 0;
+    this.cardVelocity = 0;
     this.cardGesture = null;
     this.cardDraggingId = null;
     this.cardDragOffset = 0;

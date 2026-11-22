@@ -5950,3 +5950,32 @@
 .home-page .search-submit:hover {
   box-shadow: none !important;
 }
+
+
+/* ===== Testimonials redesign (purple stars, cleaner cards) ===== */
+.home-page .testimonials .testimonial-grid > article {
+  position: relative; display: flex; flex-direction: column; gap: 14px;
+  padding: 26px 24px 22px; border: 1px solid #ece6f6; border-radius: 20px;
+  background: #fff; box-shadow: none; overflow: hidden;
+}
+.home-page .testimonials .testimonial-grid > article::before {
+  content: "“"; position: absolute; top: -18px; right: 18px;
+  color: #f1ebfc; font-family: Georgia, serif; font-size: 120px; line-height: 1; pointer-events: none;
+}
+.home-page .testimonials .t-stars { position: relative; display: flex; gap: 4px; color: #6d28d9; font-size: 15px; }
+.home-page .testimonials .testimonial-grid > article q {
+  position: relative; display: block; margin: 0; quotes: none;
+  color: #2a2140; font-size: 16px; font-weight: 500; line-height: 1.6;
+}
+.home-page .testimonials .testimonial-grid > article q::before,
+.home-page .testimonials .testimonial-grid > article q::after { content: none; }
+.home-page .testimonials .testimonial-grid > article > div:last-child {
+  display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 16px; border-top: 1px solid #f2eef9;
+}
+.home-page .testimonials .testimonial-grid > article img {
+  flex: none; width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #efe7ff;
+}
+.home-page .testimonials .testimonial-grid > article p { display: grid; gap: 2px; margin: 0; }
+.home-page .testimonials .testimonial-grid > article p strong { color: #1f1530; font-size: 15px; font-weight: 800; }
+.home-page .testimonials .testimonial-grid > article p span { color: #6b6280; font-size: 13px; font-weight: 600; }
+.home-page .testimonials .testimonial-grid > article p span i { color: #7c3aed; font-size: 12px; margin-right: 3px; }
