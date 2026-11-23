@@ -50,3 +50,44 @@
 @media (max-width: 680px) {
   .fit-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== Listing page: "Why this home fits you" redesign (full width, centred, cleaner) ===== */
+:host(.detail-fit) { width: 100%; max-width: 100%; box-sizing: border-box; margin-left: auto; margin-right: auto; }
+:host(.detail-fit) .lifestyle-fit {
+  position: relative; overflow: hidden; width: 100%; box-sizing: border-box;
+  padding: 0; border: 1px solid #e6def5; border-radius: 22px; background: #fff;
+}
+:host(.detail-fit) .fit-heading {
+  margin: 0; padding: 20px 22px 18px; gap: 14px;
+  background: linear-gradient(135deg, #451a8f 0%, #6d2ac2 100%); color: #fff;
+}
+:host(.detail-fit) .fit-heading > span {
+  width: 44px; height: 44px; flex-basis: 44px; border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16); color: #fff; font-size: 20px;
+}
+:host(.detail-fit) .fit-heading small { color: rgba(255, 255, 255, 0.78); font-size: 11px; letter-spacing: 0.08em; }
+:host(.detail-fit) .fit-heading h3 { margin-top: 3px; color: #fff; font-size: 20px; font-weight: 800; line-height: 1.25; }
+:host(.detail-fit) .fit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 6px 10px 10px; }
+:host(.detail-fit) .fit-grid article {
+  align-items: center; gap: 14px; padding: 14px 12px; border: 0; border-radius: 14px;
+  background: transparent; transition: background 0.15s;
+}
+:host(.detail-fit) .fit-grid article:hover { background: #f8f5fd; }
+:host(.detail-fit) .fit-grid article > i {
+  width: 42px; height: 42px; flex-basis: 42px; border-radius: 12px;
+  background: #f1eafc; color: #451a8f; font-size: 17px;
+}
+:host(.detail-fit) .fit-grid b { color: #1f1530; font-size: 15px; font-weight: 700; line-height: 1.35; }
+:host(.detail-fit) .fit-grid span { margin-top: 3px; color: #6b6280; font-size: 13px; line-height: 1.4; }
+:host(.detail-fit) .fit-grid .fit-meta { padding: 6px 11px; background: #451a8f; color: #fff; font-size: 12px; }
+@media (max-width: 1100px) {
+  :host(.detail-fit) .fit-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 740px) {
+  :host(.detail-fit) .lifestyle-fit { border-radius: 18px; }
+  :host(.detail-fit) .fit-heading { padding: 16px; gap: 12px; }
+  :host(.detail-fit) .fit-heading h3 { font-size: 18px; }
+  :host(.detail-fit) .fit-grid { padding: 4px 6px 6px; }
+  :host(.detail-fit) .fit-grid article { padding: 12px 10px; }
+  :host(.detail-fit) .fit-grid article + article { border-top: 1px solid #f1ecf8; border-radius: 0; }
+}

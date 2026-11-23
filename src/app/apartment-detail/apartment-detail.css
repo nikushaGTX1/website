@@ -3517,3 +3517,10 @@ dialog.photo-viewer::backdrop { background: #111113; }
 
 .photo-tour-sub { display: inline-flex; gap: 4px; }
 .photo-tour-sub b { font-weight: 700; }
+
+/* Phones and touch screens: no arrows in the photo viewer, just the finger swipe.
+   The photo uses the full width so the swipe feels direct. */
+@media (max-width: 740px), (pointer: coarse) {
+  .photo-viewer .viewer-nav { display: none !important; }
+  .photo-viewer .photo-viewer-carousel { left: 0 !important; right: 0 !important; width: 100% !important; margin-inline: 0 !important; }
+}
