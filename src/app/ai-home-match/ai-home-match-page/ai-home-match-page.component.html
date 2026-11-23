@@ -168,6 +168,19 @@
                 <small>A house with its own entrance and yard</small>
                 <i class="fa-solid fa-circle-check fuel-check"></i>
               </button>
+              <button
+                type="button"
+                class="fuel-card home-card"
+                *ngIf="profile.propertyGoal === 'Buy'"
+                [class.selected]="isHomeTypeSelected('Commercial')"
+                [attr.aria-pressed]="isHomeTypeSelected('Commercial')"
+                (click)="pickHomeType('Commercial')"
+              >
+                <span class="home-art"><svg viewBox="0 0 96 80" aria-hidden="true"><rect x="6" y="70" width="84" height="4" rx="2" fill="#e4daf7" /><rect x="14" y="26" width="68" height="46" rx="4" fill="#ede5fc" stroke="#451a8f" stroke-width="2.5" /><path d="M10 26h76l-6-14H16z" fill="#451a8f" /><g fill="#fff" stroke="#7a52d6" stroke-width="2"><rect x="22" y="36" width="22" height="16" rx="2" /><rect x="52" y="36" width="22" height="16" rx="2" /></g><rect x="40" y="56" width="16" height="16" rx="2" fill="#451a8f" /></svg></span>
+                <strong>Commercial property</strong>
+                <small>Shop, office or other business space</small>
+                <i class="fa-solid fa-circle-check fuel-check"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -192,6 +205,67 @@
               [class.selected]="buildingSelected(option.value)"
               [attr.aria-pressed]="buildingSelected(option.value)"
               (click)="toggleBuilding(option.value)"
+            >
+              <i class="condition-icon" [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
+            </button>
+          </div>
+        </div>
+        <div *ngSwitchCase="16">
+          <div class="options condition-options purpose-options">
+            <button
+              type="button"
+              *ngFor="let option of purposeOptions; trackBy: trackOption"
+              [class.selected]="profile.purchasePurpose === option.value"
+              [attr.aria-pressed]="profile.purchasePurpose === option.value"
+              (click)="setPurchaseField('purchasePurpose', option.value)"
+            >
+              <i class="condition-icon" [class]="option.icon" aria-hidden="true"></i>{{ option.label }}<small class="option-hint" *ngIf="option.hint">{{ option.hint }}</small>
+            </button>
+          </div>
+        </div>
+        <div *ngSwitchCase="17">
+          <div class="options condition-options">
+            <button
+              type="button"
+              *ngFor="let option of dailyPriorityOptions; trackBy: trackOption"
+              [class.selected]="listHas('topPriorities', option.value)"
+              [attr.aria-pressed]="listHas('topPriorities', option.value)"
+              (click)="toggleListField('topPriorities', option.value)"
+            >
+              <i class="condition-icon" [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
+            </button>
+          </div>
+        </div>
+        <div *ngSwitchCase="18">
+          <div class="options condition-options">
+            <button
+              type="button"
+              *ngFor="let option of futureOptions; trackBy: trackOption"
+              [class.selected]="profile.futureNeeds === option.value"
+              [attr.aria-pressed]="profile.futureNeeds === option.value"
+              (click)="setPurchaseField('futureNeeds', option.value)"
+            >
+              <i class="condition-icon" [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
+            </button>
+          </div>
+        </div>
+        <div *ngSwitchCase="19" class="size-step">
+          <div class="budget-fields">
+            <label>From (m²)<input type="number" min="0" inputmode="numeric" [value]="profile.minSize ?? ''" (input)="setSize('minSize', $any($event.target).value)" placeholder="No minimum" /></label
+            ><label>To (m²)<input type="number" min="0" inputmode="numeric" [value]="profile.maxSize ?? ''" (input)="setSize('maxSize', $any($event.target).value)" placeholder="No maximum" /></label>
+          </div>
+          <p class="validation" *ngIf="profile.minSize && profile.maxSize && profile.maxSize < profile.minSize">
+            Maximum must be greater than or equal to minimum.
+          </p>
+        </div>
+        <div *ngSwitchCase="20">
+          <div class="options condition-options">
+            <button
+              type="button"
+              *ngFor="let option of featureOptions; trackBy: trackOption"
+              [class.selected]="listHas('mustHaveFeatures', option.value)"
+              [attr.aria-pressed]="listHas('mustHaveFeatures', option.value)"
+              (click)="toggleListField('mustHaveFeatures', option.value)"
             >
               <i class="condition-icon" [class]="option.icon" aria-hidden="true"></i>{{ option.label }}
             </button>
@@ -414,7 +488,7 @@
           <div class="options">
             <button
               type="button"
-              *ngFor="let option of household; trackBy: trackOption"
+              *ngFor="let option of householdChoices; trackBy: trackOption"
               [class.selected]="profile.householdType === option.value"
               [attr.aria-pressed]="profile.householdType === option.value"
               (click)="choose('householdType', option.value)"
@@ -586,20 +660,8 @@
                 type="button"
                 *ngFor="
                   let option of opts(
-                    [
-                      'Immediately',
-                      'Within 1–3 months',
-                      'Within 3–6 months',
-                      'More than 6 months from now',
-                      'I am only exploring the market',
-                    ],
-                    [
-                      'Immediately',
-                      'WithinOneToThreeMonths',
-                      'WithinThreeToSixMonths',
-                      'MoreThanSixMonths',
-                      'Exploring',
-                    ]
+                    ['Immediately', 'Within 1–3 months', 'Later'],
+                    ['Immediately', 'WithinOneToThreeMonths', 'MoreThanSixMonths']
                   ); trackBy: trackOption
                 "
                 [class.selected]="profile.purchaseTiming === option.value"
@@ -608,6 +670,17 @@
                 <svg class="option-icon small" aria-hidden="true">
                   <use href="/ai-match-icons.svg#calendar"></use></svg
                 >{{ option.label }}
+              </button>
+            </fieldset
+            ><fieldset>
+              <legend>How will you pay?</legend>
+              <button
+                type="button"
+                *ngFor="let option of paymentOptions; trackBy: trackOption"
+                [class.selected]="profile.paymentMethod === option.value"
+                (click)="setPurchaseField('paymentMethod', option.value)"
+              >
+                {{ option.label }}
               </button>
             </fieldset></ng-template
           >
@@ -667,7 +740,7 @@
         <div class="options" *ngSwitchCase="9">
           <button
             type="button"
-            *ngFor="let option of lifestyles; trackBy: trackOption"
+            *ngFor="let option of lifestyleChoices; trackBy: trackOption"
             [class.selected]="selected('lifestyles', option.value)"
             [attr.aria-pressed]="selected('lifestyles', option.value)"
             [disabled]="!selected('lifestyles', option.value) && profile.lifestyles.length >= 3"

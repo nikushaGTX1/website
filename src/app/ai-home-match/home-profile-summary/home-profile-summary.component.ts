@@ -167,8 +167,8 @@ export class HomeProfileSummaryComponent {
         ? { step: 10, label: 'Pet', value: this.petValue, icon: 'fa-paw' }
         : null,
       {
-        step: 11,
-        label: 'Top 5 priorities',
+        step: this.profile.propertyGoal === 'Buy' ? 17 : 11,
+        label: this.profile.propertyGoal === 'Buy' ? 'Daily priorities' : 'Top 5 priorities',
         value: this.priorityList,
         icon: 'fa-list-ol',
       },
@@ -292,7 +292,7 @@ export class HomeProfileSummaryComponent {
           }
         : null,
       {
-        step: 11,
+        step: this.profile.propertyGoal === 'Buy' ? 17 : 11,
         label: 'Top 5 priorities',
         value: this.priorityList,
         icon: 'fa-list-ol',

@@ -1,5 +1,5 @@
 /** Velven Match "type of home" answer: a flat in a building or a private house. */
-export type HomeType = 'Apartment' | 'House';
+export type HomeType = 'Apartment' | 'House' | 'Commercial';
 
 /**
  * What kind of property a listing is, read from its "Type: Private house | Deal: ..." meta
@@ -17,7 +17,9 @@ export function listingHomeType(apartment: { title?: string | null; description?
     .toLowerCase();
   const text = type || (apartment.title || '').toLowerCase();
   if (!text) return null;
-  if (/commercial|office|shop|store|plot|land|hotel|კომერციულ|ფართი|მიწ|სასტუმრო|коммерч|участ|гостиниц/.test(text)) return 'Other';
+  // Shops and offices match buyers who want commercial space; plots and hotels never match.
+  if (/commercial|office|shop|store|კომერციულ|ფართი|коммерч/.test(text)) return 'Commercial';
+  if (/plot|land|hotel|მიწ|სასტუმრო|участ|гостиниц/.test(text)) return 'Other';
   if (/house|cottage|villa|სახლი|აგარაკი|дом|коттедж/.test(text)) return 'House';
   if (/apartment|apartament|flat|ბინა|квартир/.test(text)) return 'Apartment';
   return type ? 'Other' : null;

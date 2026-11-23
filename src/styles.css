@@ -653,3 +653,18 @@ body:has([class*="backdrop"]:not([hidden])) app-mobile-tab-bar,
 body:has([role="dialog"][aria-modal="true"]) app-mobile-tab-bar {
   display: none !important;
 }
+
+/* Velven Match on phones: the Back / Continue bar is fixed at the bottom, but it sits inside the
+   page layer, so the footer below could draw over it. Hide the footer while a question is open. */
+@media (max-width: 900px) {
+  body:has(.wizard-shell .question > .actions) app-footer { display: none !important; }
+}
+
+/* Explore on phones, map open: the map gets the whole screen. No footer drawn over it, no
+   bottom bar under it, and the "Show list" button goes back to its own spot below the
+   "find your area" button instead of covering it. */
+@media (max-width: 780px) {
+  body:has(.property-explorer.show-map) app-footer,
+  body:has(.property-explorer.show-map) app-mobile-tab-bar { display: none !important; }
+  body:has(.property-explorer.show-map) .mobile-toggle { bottom: calc(18px + env(safe-area-inset-bottom)) !important; }
+}

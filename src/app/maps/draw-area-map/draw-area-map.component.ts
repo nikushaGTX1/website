@@ -2198,12 +2198,22 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     (priceRow.querySelector('strong') as HTMLElement).style.cssText =
       'color:#17131c;font-size:16px;font-weight:800';
 
-    // Every photo is its own stacked <img>; arrows only switch opacity so changing photo never waits.
+    // Photos sit side by side on a strip that follows the finger and settles with an ease-out,
+    // like the listing cards. Arrows slide the same strip.
     let images: string[] = [];
     let imageIndex = 0;
     const slides: HTMLImageElement[] = [];
+    const track = document.createElement('div');
+    track.style.cssText =
+      'position:absolute;inset:0;display:flex;will-change:transform;transition:transform 380ms cubic-bezier(0.25,0.8,0.25,1)';
+    gallery.insertBefore(track, close);
+    gallery.style.touchAction = 'pan-y';
+    const moveTrack = (offset = 0, animate = true) => {
+      track.style.transition = animate ? 'transform 380ms cubic-bezier(0.25,0.8,0.25,1)' : 'none';
+      track.style.transform = `translate3d(calc(${-100 * imageIndex}% + ${offset}px),0,0)`;
+    };
     const paint = () => {
-      slides.forEach((slide, i) => (slide.style.opacity = i === imageIndex ? '1' : '0'));
+      moveTrack();
       previous.style.display = imageIndex > 0 ? 'flex' : 'none';
       next.style.display = imageIndex < images.length - 1 ? 'flex' : 'none';
       dots.innerHTML =
@@ -2229,13 +2239,14 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         slide.loading = 'eager';
         slide.setAttribute('fetchpriority', i === 0 ? 'high' : 'low');
         slide.style.cssText =
-          'position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;pointer-events:none;transition:opacity .2s ease';
+          'flex:0 0 100%;width:100%;height:100%;display:block;object-fit:cover;pointer-events:none;user-select:none';
+        slide.draggable = false;
         slide.addEventListener('error', () => {
           if (slide.getAttribute('src') !== '/property-placeholder.svg')
             slide.src = '/property-placeholder.svg';
         });
         slide.src = url;
-        gallery.insertBefore(slide, close);
+        track.appendChild(slide);
         slides.push(slide);
       });
       paint();
@@ -2247,6 +2258,60 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     };
     previous.addEventListener('click', (event) => step(event, -1));
     next.addEventListener('click', (event) => step(event, 1));
+
+    // Finger / mouse swipe on the photo. The map underneath must not pan while swiping.
+    let drag: { id: number; x: number; y: number; axis: 'x' | 'y' | null; dx: number; lastX: number; lastT: number; v: number } | null = null;
+    let suppressClickUntil = 0;
+    const stop = (event: Event) => event.stopPropagation();
+    ['touchstart', 'touchmove', 'mousedown', 'wheel', 'dblclick'].forEach((type) => gallery.addEventListener(type, stop, { passive: true }));
+    gallery.addEventListener('pointerdown', (event: PointerEvent) => {
+      event.stopPropagation();
+      if ((event.target as HTMLElement).closest('button') || images.length < 2) return;
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, axis: null, dx: 0, lastX: event.clientX, lastT: performance.now(), v: 0 };
+    });
+    gallery.addEventListener('pointermove', (event: PointerEvent) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      event.stopPropagation();
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
+      if (!drag.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 6) {
+        drag.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+        if (drag.axis === 'x') gallery.setPointerCapture(event.pointerId);
+      }
+      if (drag.axis !== 'x') return;
+      event.preventDefault();
+      const now = performance.now();
+      drag.v = (event.clientX - drag.lastX) / Math.max(1, now - drag.lastT);
+      drag.lastX = event.clientX;
+      drag.lastT = now;
+      const atEdge = (imageIndex === 0 && dx > 0) || (imageIndex === images.length - 1 && dx < 0);
+      drag.dx = atEdge ? dx * 0.3 : dx;
+      moveTrack(drag.dx, false);
+    });
+    const endDrag = (event: PointerEvent) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      event.stopPropagation();
+      if (drag.axis === 'x') {
+        const width = gallery.clientWidth || 1;
+        const flick = Math.abs(drag.v) > 0.35 && Math.sign(drag.v) === Math.sign(drag.dx);
+        if (Math.abs(drag.dx) > width * 0.2 || flick) {
+          imageIndex = Math.max(0, Math.min(images.length - 1, imageIndex + (drag.dx < 0 ? 1 : -1)));
+        }
+        suppressClickUntil = Date.now() + 400;
+        paint();
+      }
+      if (gallery.hasPointerCapture(event.pointerId)) gallery.releasePointerCapture(event.pointerId);
+      drag = null;
+    };
+    gallery.addEventListener('pointerup', endDrag);
+    gallery.addEventListener('pointercancel', endDrag);
+    // A swipe must not also open the listing.
+    gallery.addEventListener('click', (event) => {
+      if (Date.now() < suppressClickUntil) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
+    }, true);
     close.addEventListener('click', (event) => {
       event.stopPropagation();
       this.zone.run(() => this.clearPropertyPreview());

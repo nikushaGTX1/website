@@ -119,6 +119,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     { title: 'What condition should the property be in?', subtitle: 'Choose one or more.' },
     { title: 'What is your nationality?', subtitle: 'Choose the country whose nationality you hold.' },
     { title: 'What kind of building?', subtitle: 'Choose one or more.' },
+    { title: 'Why are you buying?' },
+    { title: 'What matters most to you in your daily life?', subtitle: 'Choose one or more.' },
+    { title: 'What will be important to you in the future?' },
+    { title: 'What size are you looking for?', subtitle: 'Area in m². Leave empty if it does not matter.' },
+    { title: 'Which additional features are important to you?', subtitle: 'Choose any that matter.' },
   ];
   /**
    * Countries shown first. Every other country follows alphabetically, and the search
@@ -159,16 +164,81 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   get nationalityLabel(): string {
     return localizedCountryName(this.profile.nationality, this.translation.language$.value);
   }
-  /** Buyers only (question 13). "Any" stands alone. */
+  /** Buyers only (question 13). */
   readonly conditionOptions = [
-    { value: 'MoveInReady', label: 'Move-in ready', icon: 'fa-solid fa-couch' },
-    { value: 'Renovated', label: 'Renovated', icon: 'fa-solid fa-paint-roller' },
-    { value: 'WhiteFrame', label: 'White frame', icon: 'fa-regular fa-square' },
-    { value: 'BlackFrame', label: 'Black frame', icon: 'fa-solid fa-square' },
-    { value: 'GreenFrame', label: 'Green frame', icon: 'fa-solid fa-seedling' },
+    { value: 'NewlyRenovated', label: 'Newly renovated', icon: 'fa-solid fa-couch' },
+    { value: 'OldRenovated', label: 'Previously renovated', icon: 'fa-solid fa-paint-roller' },
     { value: 'NeedsRenovation', label: 'Needs renovation', icon: 'fa-solid fa-trowel-bricks' },
-    { value: 'Any', label: 'Any condition', icon: 'fa-solid fa-check-double' },
+    { value: 'WhiteFrame', label: 'White/green frame', icon: 'fa-regular fa-square' },
   ];
+  /** Buyers only (question 16). */
+  readonly purposeOptions = [
+    { value: 'Living', label: 'To live in', hint: 'A home for you and your family', icon: 'fa-solid fa-house-chimney' },
+    { value: 'Investment', label: 'For investment', hint: 'To resell at a higher price later', icon: 'fa-solid fa-arrow-trend-up' },
+    { value: 'RentalIncome', label: 'To rent out', hint: 'Income from long-term rent', icon: 'fa-solid fa-key' },
+  ];
+  /** Buyers only (question 17): saved as priorities, so the match scoring uses them. */
+  readonly dailyPriorityOptions = [
+    { value: 'QuietStreet', label: 'Peace and quiet', icon: 'fa-solid fa-leaf' },
+    { value: 'OfficeNearby', label: 'Close to work', icon: 'fa-solid fa-briefcase' },
+    { value: 'SchoolNearby', label: 'Schools and kindergartens', icon: 'fa-solid fa-school' },
+    { value: 'PublicTransportNearby', label: 'Public transport', icon: 'fa-solid fa-bus' },
+    { value: 'ParkNearby', label: 'Parks', icon: 'fa-solid fa-tree' },
+    { value: 'EntertainmentNearby', label: 'Places to go out', icon: 'fa-solid fa-champagne-glasses' },
+  ];
+  /** Buyers only (question 18). */
+  readonly futureOptions = [
+    { value: 'GrowingFamily', label: 'Growing family', icon: 'fa-solid fa-baby' },
+    { value: 'ExtraWorkspace', label: 'More room to work', icon: 'fa-solid fa-laptop-house' },
+    { value: 'NoChanges', label: 'My needs will stay the same', icon: 'fa-solid fa-equals' },
+    { value: 'NotSure', label: 'Not sure yet', icon: 'fa-regular fa-circle-question' },
+  ];
+  /** Buyers only (question 20). */
+  readonly featureOptions = [
+    { value: 'Balcony', label: 'Balcony', icon: 'fa-solid fa-door-open' },
+    { value: 'View', label: 'View', icon: 'fa-solid fa-mountain-sun' },
+    { value: 'Parking', label: 'Parking', icon: 'fa-solid fa-square-parking' },
+    { value: 'Elevator', label: 'Elevator', icon: 'fa-solid fa-elevator' },
+    { value: 'SecuredYard', label: 'Secured courtyard', icon: 'fa-solid fa-shield-halved' },
+    { value: 'NaturalLight', label: 'Natural light', icon: 'fa-solid fa-sun' },
+  ];
+  readonly paymentOptions = [
+    { value: 'OwnFunds', label: 'Own funds' },
+    { value: 'Mortgage', label: 'Mortgage' },
+    { value: 'Installment', label: 'Installment plan' },
+  ];
+  /** Buyers see the four households that fit a purchase; renters see all of them. */
+  get householdChoices() {
+    return this.profile.propertyGoal === 'Buy'
+      ? this.household.filter((option) => ['JustMe', 'Couple', 'FamilyWithChildren', 'Relatives'].includes(option.value))
+      : this.household;
+  }
+  /** Buyers pick from the six lifestyles in their questionnaire. */
+  get lifestyleChoices() {
+    return this.profile.propertyGoal === 'Buy'
+      ? this.lifestyles.filter((option) => !['Student', 'SocialLifestyle'].includes(option.value))
+          .concat({ label: 'I travel often', value: 'FrequentTraveler' })
+      : this.lifestyles;
+  }
+  setPurchaseField(key: 'purchasePurpose' | 'futureNeeds' | 'paymentMethod', value: string): void {
+    (this.profile as unknown as Record<string, string>)[key] = value;
+    this.persist();
+  }
+  toggleListField(key: 'topPriorities' | 'mustHaveFeatures', value: string): void {
+    const current = (this.profile[key] as string[] | undefined) ?? [];
+    (this.profile as unknown as Record<string, string[]>)[key] = current.includes(value)
+      ? current.filter((item) => item !== value)
+      : [...current, value];
+    this.persist();
+  }
+  listHas(key: 'topPriorities' | 'mustHaveFeatures', value: string): boolean {
+    return ((this.profile[key] as string[] | undefined) ?? []).includes(value);
+  }
+  setSize(key: 'minSize' | 'maxSize', value: string): void {
+    const number = Math.round(Number(value));
+    this.profile[key] = value === '' || !Number.isFinite(number) || number <= 0 ? undefined : Math.min(number, 10000);
+    this.persist();
+  }
   toggleCondition(value: string): void {
     const current = this.profile.propertyConditions ?? [];
     this.profile.propertyConditions = value === 'Any'
@@ -176,7 +246,22 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       : current.includes(value)
         ? current.filter((item) => item !== value)
         : [...current.filter((item) => item !== 'Any'), value];
+    // Frame only: the style question is skipped, and the saved answer is "no preference"
+    // (the profile still needs one). Wanting a finished home again asks the question afresh.
+    if (!this.buyerWantsFinishedHome) {
+      this.profile.apartmentStyle = 'Other';
+      this.styleSetAutomatically = true;
+    } else if (this.styleSetAutomatically) {
+      this.profile.apartmentStyle = '';
+      this.styleSetAutomatically = false;
+    }
     this.persist();
+  }
+  private styleSetAutomatically = false;
+  /** Buyer accepts a ready or renovated home (or any condition), so interior style matters. */
+  get buyerWantsFinishedHome(): boolean {
+    const conditions = this.profile.propertyConditions ?? [];
+    return conditions.length === 0 || conditions.some((code) => ['NewlyRenovated', 'OldRenovated', 'MoveInReady', 'Renovated', 'Any'].includes(code));
   }
   /** Buyers only (question 15). "Any" stands alone. */
   readonly buildingOptions = [
@@ -576,10 +661,17 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   get visibleSteps(): number[] {
     // Question 14 (nationality) opens the flow; 12 (apartment style) follows Rent/Buy.
     // 13 (property condition) is for buyers only, right after bedrooms.
-    return [14, 1, 12, 0, 2, 3, 4, 5, 6, 13, 15, 7, 8, 9, 10, 11].filter(
+    // Buyers answer the style question after the condition one, and only when they want a
+    // finished home: a white, black or green frame has no interior style to choose.
+    const buyer = this.profile.propertyGoal === 'Buy';
+    // Buyers: service, property type and purpose first, then who lives there and how,
+    // then location, budget and the home itself, and finally timing and payment.
+    const order = buyer
+      ? [14, 1, 16, 0, 4, 5, 10, 9, 17, 18, 2, 3, 6, 19, 13, 12, 15, 20, 7]
+      : [14, 1, 12, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    return order.filter(
       (step) =>
-        !(this.profile.propertyGoal === 'Buy' && [4, 5, 10].includes(step)) &&
-        !([13, 15].includes(step) && this.profile.propertyGoal !== 'Buy') &&
+        !(buyer && step === 12 && !this.buyerWantsFinishedHome) &&
         !(step === 5 && this.fixedHousehold) &&
         // Nationality already saved on the account at sign-up.
         !(step === 14 && !!this.accountNationality),
@@ -590,9 +682,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   get currentPhase(): number {
     // Use the question ID as the source of truth so phase labels cannot drift.
+    // Buyers meet the style question next to the condition one, in the home phase.
+    if (this.step === 12 && this.profile.propertyGoal === 'Buy') return 2;
     if (this.step === 14 || this.step === 1 || this.step === 12 || this.step === 0) return 0;
     if (this.step === 2) return 1;
     if ([4, 5, 6, 13, 15, 7].includes(this.step)) return 2;
+    if ([16, 17, 18].includes(this.step)) return 3;
+    if ([19, 20].includes(this.step)) return 2;
     if ([8, 9, 10].includes(this.step)) return 3;
     if (this.step === 3) return 4;
     if (this.step === 11) return 5;
@@ -957,7 +1053,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
 
   /** Apartment, private house or both: each card toggles. */
-  pickHomeType(type: 'Apartment' | 'House'): void {
+  pickHomeType(type: 'Apartment' | 'House' | 'Commercial'): void {
     const current = this.profile.homeTypes ?? [];
     const next = current.includes(type) ? current.filter((value) => value !== type) : [...current, type];
     this.profile.homeTypes = next;
@@ -966,7 +1062,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.persist();
   }
 
-  isHomeTypeSelected(type: 'Apartment' | 'House'): boolean {
+  isHomeTypeSelected(type: 'Apartment' | 'House' | 'Commercial'): boolean {
     return (this.profile.homeTypes ?? []).includes(type) || (!this.profile.homeTypes?.length && this.profile.homeType === type);
   }
 
@@ -986,7 +1082,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     (this.profile as Record<typeof key, string | undefined>)[key] = value;
     if (key === 'proximityTarget') this.proximitySuggestOpen = false;
     if (key === 'propertyGoal') {
-      for (const step of [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) this.clearStep(step);
+      for (const step of [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20]) this.clearStep(step);
       if (value === 'Buy') {
         this.profile.budgetMin = 0;
         this.profile.budgetMax = 2_000_000;
@@ -1220,7 +1316,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
               !!this.profile.moveInTiming &&
               (this.profile.moveInTiming !== 'SpecificDate' ||
                 (!!this.profile.moveInDate && !isPastDate(this.profile.moveInDate)))
-          : !!this.profile.purchaseTiming;
+          : !!this.profile.purchaseTiming && !!this.profile.paymentMethod;
       case 8:
         return (
           !!this.profile.transportation.length &&
@@ -1249,6 +1345,16 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return (this.profile.propertyConditions?.length ?? 0) > 0;
       case 15:
         return (this.profile.buildingTypes?.length ?? 0) > 0;
+      case 16:
+        return !!this.profile.purchasePurpose;
+      case 17:
+        return this.profile.topPriorities.length > 0;
+      case 18:
+        return !!this.profile.futureNeeds;
+      case 19:
+        return !(this.profile.minSize && this.profile.maxSize && this.profile.maxSize < this.profile.minSize);
+      case 20:
+        return true;
       default:
         return false;
     }
@@ -1332,6 +1438,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       ['propertyConditions'],
       ['nationality'],
       ['buildingTypes'],
+      ['purchasePurpose'],
+      ['topPriorities'],
+      ['futureNeeds'],
+      ['minSize', 'maxSize'],
+      ['mustHaveFeatures'],
     ];
     for (const key of fields[step]) {
       const value = EMPTY_HOME_MATCH_PROFILE[key];

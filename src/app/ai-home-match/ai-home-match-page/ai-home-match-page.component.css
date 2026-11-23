@@ -4866,3 +4866,17 @@ fieldset {
 @media (max-width: 420px) {
   .condition-options button { min-height: 104px !important; padding: 14px !important; font-size: 14px !important; }
 }
+
+
+/* Buyer questions: hint under an option, size inputs */
+.condition-options .option-hint { display: block; margin-top: -8px; color: #6b6280; font-size: 12.5px; font-weight: 500; line-height: 1.35; }
+.size-step .budget-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Purpose: three equal cards in one row (stacked on phones), text from the same line */
+.condition-options.purpose-options { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.condition-options.purpose-options button { justify-content: flex-start !important; }
+.condition-options.purpose-options .condition-icon { margin-bottom: 6px; }
+@media (max-width: 640px) {
+  .condition-options.purpose-options { grid-template-columns: 1fr !important; }
+  .condition-options.purpose-options button { min-height: 0 !important; }
+}

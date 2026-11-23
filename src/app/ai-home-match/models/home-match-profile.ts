@@ -13,9 +13,9 @@ export interface HomeMatchProfile {
   budgetConversion?: { currency: Currency; min: number; max: number; usdGel: number; usdEur: number };
   propertyGoal: PropertyGoal | '';
   /** Follow-up to Rent/Buy: a flat or a private house. Missing on older searches (= Apartment). */
-  homeType?: 'Apartment' | 'House' | '';
-  /** Every type of home the client accepts (apartment, private house or both). Replaces homeType. */
-  homeTypes?: Array<'Apartment' | 'House'>;
+  homeType?: 'Apartment' | 'House' | 'Commercial' | '';
+  /** Every type of property the client accepts (apartment, private house, commercial). Replaces homeType. */
+  homeTypes?: Array<'Apartment' | 'House' | 'Commercial'>;
   districts: string[];
   locationFlexible: boolean;
   selectedMapArea?: GeoJsonPolygon;
@@ -65,6 +65,16 @@ export interface HomeMatchProfile {
   propertyConditions?: string[];
   /** Buyers: accepted building types (NewBuilding, UnderConstruction, OldBuilding). ['Any'] = no preference. */
   buildingTypes?: string[];
+  /** Buyers: Living, Investment (resell later) or RentalIncome (long-term rent). */
+  purchasePurpose?: 'Living' | 'Investment' | 'RentalIncome' | '';
+  /** Buyers: GrowingFamily, ExtraWorkspace, NoChanges or NotSure. */
+  futureNeeds?: string;
+  /** Buyers: OwnFunds, Mortgage or Installment. */
+  paymentMethod?: string;
+  /** Buyers: Balcony, View, Parking, Elevator, SecuredYard, NaturalLight. */
+  mustHaveFeatures?: string[];
+  /** Buyers: largest area wanted (m²). */
+  maxSize?: number;
 }
 
 export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
@@ -96,4 +106,8 @@ export const EMPTY_HOME_MATCH_PROFILE: HomeMatchProfile = {
   topPriorities: [],
   propertyConditions: [],
   buildingTypes: [],
+  purchasePurpose: '',
+  futureNeeds: '',
+  paymentMethod: '',
+  mustHaveFeatures: [],
 };

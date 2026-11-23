@@ -151,7 +151,7 @@ export class HomeMatchResultsComponent implements OnChanges {
         : null,
       p.topPriorities.length
         ? {
-            step: 11,
+            step: p.propertyGoal === 'Buy' ? 17 : 11,
             label: 'Top 5 priorities',
             // " · ", not ", ": one priority itself contains a comma, which kept the list untranslated.
             value: p.topPriorities.map(answerLabel).join(' · '),

@@ -373,13 +373,17 @@ export function evaluateMandatoryRequirements(
     mismatches.push('The apartment is in another city.');
   if (profile.minSize && (apartment.sizeSquareMeters || 0) < profile.minSize)
     mismatches.push('Apartment area is below your minimum.');
+  if (profile.maxSize && (apartment.sizeSquareMeters || 0) > profile.maxSize)
+    mismatches.push('Apartment area is above your maximum.');
   if (apartment.maxOccupants != null && apartment.maxOccupants < profile.adults + profile.children)
     mismatches.push('The apartment does not allow enough residents.');
   if (profile.propertyGoal === 'Buy' && profile.propertyConditions?.length && !profile.propertyConditions.includes('Any')) {
     const condition = (apartment.description || '').match(/(?:^|[|\r\n])\s*Condition:\s*([^|\r\n]+)/i)?.[1]?.trim().replace(/\.$/, '').toLowerCase();
     const conditions: Record<string, string[]> = {
       MoveInReady: ['newly renovated', 'old renovated'], Renovated: ['newly renovated', 'old renovated'],
-      WhiteFrame: ['white frame', 'white plus'], BlackFrame: ['black frame'], GreenFrame: ['green frame'], NeedsRenovation: ['current renovation', 'repairing'],
+      NewlyRenovated: ['newly renovated'], OldRenovated: ['old renovated'],
+      // The buyer option is "white/green frame".
+      WhiteFrame: ['white frame', 'white plus', 'green frame'], BlackFrame: ['black frame'], GreenFrame: ['green frame'], NeedsRenovation: ['current renovation', 'repairing'],
     };
     if (!condition || !profile.propertyConditions.some(code => conditions[code]?.includes(condition)))
       mismatches.push('The apartment condition does not meet your requirement.');
