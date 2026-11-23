@@ -846,10 +846,17 @@ async function resizedApartmentImage(source, width) {
     const original = await fetchApartmentImage(source);
     const sharp = await loadSharp();
     if (!sharp) return original;
+    // A photo already narrower than asked is sent as stored: compressing it again only loses detail.
+    const meta = await sharp(original.body).metadata().catch(() => ({}));
+    const storedWidth = (meta.orientation >= 5 ? meta.height : meta.width) || 0;
+    if (storedWidth && storedWidth <= width) {
+      resizedImageCache.set(key, original);
+      return original;
+    }
     const body = await sharp(original.body)
       .rotate()
       .resize({ width, withoutEnlargement: true })
-      .webp({ quality: 74, effort: 4 })
+      .webp({ quality: 86, effort: 4, smartSubsample: true })
       .toBuffer();
     const image = { body, contentType: 'image/webp', etag: null };
     resizedImageCache.set(key, image);

@@ -2710,7 +2710,8 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
 
         image.onerror = () => reject(new Error('Could not load image.'));
         image.onload = () => {
-          const maxSize = 1280;
+          // 2560px keeps photos sharp on large and high-density screens.
+          const maxSize = 2560;
           const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
           const width = Math.max(1, Math.round(image.width * scale));
           const height = Math.max(1, Math.round(image.height * scale));
@@ -2743,7 +2744,7 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
               });
             },
             'image/jpeg',
-            0.82,
+            0.9,
           );
         };
 

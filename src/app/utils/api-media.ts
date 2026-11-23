@@ -56,8 +56,10 @@ export function toMediaUrl(value?: string | null): string {
         // w=960: a resized WebP (~3x smaller than the 1280px original) — enough for cards,
         // the map preview and the listing page. fullSizeImage() drops it for the photo viewer.
         // Profile photos are only shown as small avatars: 320px is plenty and ~10x smaller.
-        const width = mediaUrl.pathname.includes('/apartments/profiles/') ? 320 : 960;
-        return `/media/apartment-image.jpg?url=${encodeURIComponent(normalizedValue)}&w=${width}`;
+        // Profile photos: 640px so team cards and agent pages stay sharp on high-density screens.
+        const width = mediaUrl.pathname.includes('/apartments/profiles/') ? 640 : 960;
+        // v=2: sharper photos (higher quality, no second compression); new links so browsers fetch them again.
+        return `/media/apartment-image.jpg?url=${encodeURIComponent(normalizedValue)}&v=2&w=${width}`;
       }
     } catch {
       return '';
