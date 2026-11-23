@@ -361,7 +361,7 @@
         <div class="photo-tour-grid">
           <button
             type="button"
-            *ngFor="let image of galleryImages; let i = index"
+            *ngFor="let image of viewerImages; let i = index"
             [id]="'tour-photo-' + i"
             class="photo-tour-item"
             [class.wide]="i % 3 === 0"
