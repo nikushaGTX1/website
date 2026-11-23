@@ -2575,6 +2575,35 @@ export class ExploreProperty implements OnInit, OnDestroy {
     );
   }
 
+  guardMapPreviewClick(event: MouseEvent): void {
+    if (Date.now() < this.suppressCardClickUntil) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }
+
+  /** Map card photos: a swipe moves one photo, like the listing cards. */
+  mapPreviewSwipe: { x: number; y: number; t: number } | null = null;
+  startMapPreviewSwipe(event: PointerEvent): void {
+    if ((event.target as HTMLElement).closest('button')) return;
+    // Only swipes that start on the photo (the card link lies on top of it).
+    const gallery = (event.currentTarget as HTMLElement).querySelector('.map-preview-gallery')?.getBoundingClientRect();
+    if (!gallery || event.clientY > gallery.bottom || event.clientY < gallery.top) return;
+    this.mapPreviewSwipe = { x: event.clientX, y: event.clientY, t: performance.now() };
+  }
+  endMapPreviewSwipe(event: PointerEvent, apartment: Apartment): void {
+    const start = this.mapPreviewSwipe;
+    this.mapPreviewSwipe = null;
+    if (!start) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    const fast = Math.abs(dx) / Math.max(1, performance.now() - start.t) > 0.35;
+    if (Math.abs(dx) < Math.abs(dy) || (Math.abs(dx) < 40 && !(fast && Math.abs(dx) > 15))) return;
+    this.changeMapPreviewImage(event, dx < 0 ? 1 : -1, apartment);
+    // The swipe must not also open the listing.
+    this.suppressCardClickUntil = Date.now() + 400;
+  }
+
   setMapPreviewImage(event: Event, index: number): void {
     event.stopPropagation();
     this.mapPreviewImageIndex = index;

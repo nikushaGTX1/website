@@ -597,9 +597,10 @@
           </button>
         </div>
       </div>
-      <div class="map-preview" *ngIf="mapPreviewApartment as apartment" [style.left.px]="mapPreviewPosition.left" [style.top.px]="mapPreviewPosition.top">
-        <a class="map-preview-link" [routerLink]="['/apartments', apartment.id]" [attr.aria-label]="apartment | listingTitle"></a>
+      <div class="map-preview" *ngIf="mapPreviewApartment as apartment" (pointerdown)="startMapPreviewSwipe($event)" (pointerup)="endMapPreviewSwipe($event, apartment)" (pointercancel)="mapPreviewSwipe = null" [style.left.px]="mapPreviewPosition.left" [style.top.px]="mapPreviewPosition.top">
+        <a class="map-preview-link" draggable="false" (dragstart)="$event.preventDefault()" [routerLink]="['/apartments', apartment.id]" [attr.aria-label]="apartment | listingTitle" (click)="guardMapPreviewClick($event)"></a>
         <div class="map-preview-gallery" data-protected-image>
+          <div class="map-preview-track" [style.transform]="'translate3d(' + (-100 * mapPreviewImageIndex) + '%,0,0)'">
           <img
             *ngFor="let image of getMapPreviewImages(apartment); let imageIndex = index; trackBy: trackMapPreviewImage"
             class="map-preview-image"
@@ -613,6 +614,7 @@
             decoding="async"
             (error)="onApartmentImageError($event)"
           />
+          </div>
           <span class="verified-badge" *ngIf="isVerifiedListing(apartment)" title="A Velven agent has checked this property in person."
             ><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span
           >

@@ -13,7 +13,8 @@ import {
 } from '@angular/core';
 import { NgIf } from '@angular/common';
 
-const OUTPUT_SIZE = 512;
+// 1024px so agent profile pages stay sharp on high-density screens.
+const OUTPUT_SIZE = 1024;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
 

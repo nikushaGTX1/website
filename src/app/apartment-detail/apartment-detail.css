@@ -3480,3 +3480,40 @@ dialog.photo-viewer::backdrop { background: #111113; }
 /* Viewing request: explicit consent */
 .vd-consent { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 10px; color: #4a4160; font-size: 13px; line-height: 1.45; cursor: pointer; }
 .vd-consent input { flex: none; width: 18px; height: 18px; margin-top: 1px; accent-color: #451a8f; }
+
+/* The site-wide [role="dialog"] rule caps dialog height; the photo tour must fill the screen. */
+.photo-tour[role='dialog'] { max-height: none !important; max-width: none !important; width: auto !important; height: auto !important; margin: 0 !important; border-radius: 0 !important; }
+
+/* "Show all photos": small white button on the gallery's bottom-right corner. The general
+   ".vp-gallery > button" tile rule was stretching it into a grey bar. */
+.vp-gallery > .vp-tour-button {
+  position: absolute !important; right: 18px; bottom: 18px; z-index: 3;
+  display: inline-flex; align-items: center; gap: 8px; width: auto; height: 36px; padding: 0 14px !important;
+  overflow: visible; border: 1px solid #222 !important; border-radius: 8px; background: #fff !important; color: #222;
+  font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+.vp-gallery > .vp-tour-button:hover { background: #f7f7f7 !important; }
+@media (max-width: 740px) { .vp-gallery > .vp-tour-button { display: none; } }
+
+
+/* Photo tour: soft Velven background, title on the left, clear Close button on the right */
+.photo-tour { background: linear-gradient(180deg, #f7f4fd 0%, #f2eefa 100%) !important; }
+.photo-tour-bar { justify-content: space-between; height: 72px !important; padding: 0 max(24px, env(safe-area-inset-left)) !important; background: rgba(247, 244, 253, 0.92) !important; border-bottom: 1px solid #e6def5 !important; }
+.photo-tour-title { display: grid; gap: 1px; }
+.photo-tour-title strong { color: #1f1530; font-size: 17px; font-weight: 800; }
+.photo-tour-title > span { color: #6b6280; font-size: 13px; font-weight: 600; }
+.photo-tour-close { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid #ddd2f2; border-radius: 999px; background: #fff; color: #451a8f; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.photo-tour-close:hover { background: #f3eefc; border-color: #c9b8ef; }
+.photo-tour-close i { font-size: 16px; }
+.photo-tour-grid { gap: 10px !important; }
+.photo-tour-item { border-radius: 14px; }
+@media (max-width: 740px) {
+  .photo-tour-bar { height: 60px !important; padding: 0 14px !important; }
+  .photo-tour-grid { gap: 6px !important; width: calc(100% - 12px) !important; margin: 8px auto 32px !important; }
+  .photo-tour-item { border-radius: 10px; }
+  .photo-tour-close span { display: none; }
+  .photo-tour-close { width: 40px; padding: 0; justify-content: center; }
+}
+
+.photo-tour-sub { display: inline-flex; gap: 4px; }
+.photo-tour-sub b { font-weight: 700; }

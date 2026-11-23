@@ -101,11 +101,8 @@
                 <span class="cc-match">Velven Match <i class="fa-solid fa-check" aria-hidden="true"></i></span>
               </div>
               <p class="cc-price"><strong>{{ currencySymbol(client.profile.currency) }}{{ client.profile.budgetMin | number }}–{{ client.profile.budgetMax | number }}</strong><span *ngIf="goal !== 'Buy'">/ month</span></p>
-              <div class="cc-nationality" *ngIf="client.nationality">
-                <span>Nationality</span>
-                <b><em class="cc-flag" *ngIf="flag(client.nationality) as f" aria-hidden="true">{{ f }}</em><span data-no-translate>{{ countryName(client.nationality) }}</span></b>
-              </div>
               <dl class="cc-rows">
+                <div *ngIf="client.nationality"><dt><i class="fa-solid fa-earth-europe" aria-hidden="true"></i><span>Nationality</span></dt><dd class="cc-nation"><em class="cc-flag" *ngIf="flag(client.nationality) as f" aria-hidden="true">{{ f }}</em><span data-no-translate>{{ countryName(client.nationality) }}</span></dd></div>
                 <div><dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Preferred area</span></dt><dd>
                   @for (district of shownDistricts(client); track district) {@if ($index) {<span> · </span>}<span>{{ label(district) }}</span>}
                   <button type="button" class="more-areas" *ngIf="hiddenDistrictCount(client) as more" (click)="expandedClients.add(client)" data-no-translate>+{{ more }}</button>

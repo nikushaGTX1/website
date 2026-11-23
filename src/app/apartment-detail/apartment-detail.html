@@ -28,12 +28,12 @@
           [alt]="title"
           [index]="activePhotoIndex"
           (indexChange)="selectPhoto($event)"
-          (photoTap)="openPhotoTour(activePhotoIndex)"
+          (photoTap)="openPhotoViewer()"
           (contextmenu)="preventImageAction($event)"
         ></app-photo-carousel>
         <button
           class="vp-gallery-main"
-          (click)="openPhotoTour(0)"
+          (click)="openPhotoViewerUnlessSwiped($event)"
           (touchstart)="touchGalleryStart($event)"
           (touchmove)="touchGalleryMove($event)"
           (touchend)="touchGalleryEnd()"
@@ -57,7 +57,7 @@
         </button>
         <button
           *ngFor="let image of galleryImages | slice: 1 : 5; let i = index"
-          (click)="openPhotoTour(i + 1)"
+          (click)="selectPhoto(i + 1); openPhotoViewer()"
         >
           <img
             [src]="image"
@@ -78,7 +78,7 @@
         <button
           class="vp-gallery-fallback"
           *ngFor="let slot of [1, 2, 3, 4] | slice: galleryImages.length - 1"
-          (click)="openPhotoTour(0)"
+          (click)="openPhotoViewer()"
         >
           <img [src]="activePhoto" alt="" width="600" height="400" loading="lazy" decoding="async" draggable="false" (contextmenu)="preventImageAction($event)" (dragstart)="preventImageAction($event)" />
         </button>
@@ -350,10 +350,13 @@
       </div>
       <div class="photo-tour" *ngIf="photoTourOpen" [class.closing]="photoTourClosing" role="dialog" aria-modal="true" aria-label="All photos" data-protected-image>
         <header class="photo-tour-bar">
-          <button type="button" class="photo-tour-back" aria-label="Close photos" (click)="closePhotoTour()">
-            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+          <div class="photo-tour-title">
+            <strong>All photos</strong>
+            <span class="photo-tour-sub"><b data-no-translate>{{ photoCount }}</b><span>photos</span></span>
+          </div>
+          <button type="button" class="photo-tour-close" aria-label="Close photos" (click)="closePhotoTour()">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i><span>Close</span>
           </button>
-          <span class="photo-tour-count" data-no-translate>{{ photoCount }} <span>photos</span></span>
         </header>
         <div class="photo-tour-grid">
           <button

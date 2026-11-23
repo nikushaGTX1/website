@@ -622,3 +622,7 @@ h1 { margin: 0; color: var(--ink); font-size: clamp(36px, 5vw, 68px); font-weigh
 /* Rent and Buy tabs: same width, whatever the label length. */
 .goal-tabs { display: inline-grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .goal-tabs button { justify-content: center; min-width: 150px; padding-left: 22px; padding-right: 22px; white-space: nowrap; }
+
+/* Nationality row: flag before the country name */
+.cc-nation { display: inline-flex; align-items: center; gap: 8px; }
+.cc-nation .cc-flag { font-style: normal; font-size: 18px; line-height: 1; }
