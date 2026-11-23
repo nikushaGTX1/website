@@ -610,7 +610,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       max: this.profile.budgetMax,
       currency: this.profile.currency,
     });
-    if (restored) {
+    if (restored && this.auth.isLoggedIn) {
       // Resume the saved profile: its summary when complete, else the first unanswered question.
       this.quizStarted = true;
       const missing = this.firstIncompleteStep();
@@ -775,6 +775,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   };
 
   scrollToMatcher(): void {
+    // Velven Match needs an account: signed-out visitors sign in first and come back here.
+    if (!this.auth.isLoggedIn) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: '/ai-home-match' } });
+      return;
+    }
     if (!this.quizStarted) {
       // Start on the first question in the current order (nationality), not the old default.
       this.step = this.firstIncompleteStep() ?? this.visibleSteps[0] ?? this.step;
