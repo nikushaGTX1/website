@@ -115,13 +115,13 @@ const privateRoutePattern = /^\/(?:submit-apartment|admin|crm(?:\/|$)|crm-questi
 let sitemapCache;
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com https://cdnjs.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
   "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
   `img-src 'self' data: blob: ${canonicalOrigin} https://images.unsplash.com https://*.googleapis.com https://*.gstatic.com https://${supabaseHost}`,
   // Google Maps draws in a web worker.
   "worker-src 'self' blob:",
-  `connect-src 'self' data: blob: https://*.googleapis.com https://api.frankfurter.dev ${apiOrigin} https://${supabaseHost}`,
+  `connect-src 'self' data: blob: https://cloudflareinsights.com https://*.googleapis.com https://api.frankfurter.dev ${apiOrigin} https://${supabaseHost}`,
   "frame-src 'self' https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",

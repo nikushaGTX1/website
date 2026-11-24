@@ -170,7 +170,10 @@ export class Login {
           );
           return;
         }
-        this.errorMessage = 'Invalid email or password.';
+        // 429: too many wrong passwords, the account is locked for a while.
+        this.errorMessage = err?.status === 429
+          ? err.error?.message || 'Too many wrong passwords. Try again in 15 minutes.'
+          : 'Invalid email or password.';
       },
     });
   }
