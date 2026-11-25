@@ -409,8 +409,16 @@
             </div>
           } @else if (appointmentFormOpen) {
             <div class="appt-form">
-              <label><span>Date and time</span><input type="datetime-local" [(ngModel)]="appointmentDate" name="appointmentDate" /></label>
+              <div class="appt-when">
+        <label><span>Date</span><app-date-picker name="leadDay" placeholder="Choose a date" [(ngModel)]="appointmentDay"></app-date-picker></label>
+        <label><span>Time</span><select name="leadTime" [(ngModel)]="appointmentTime"><option *ngFor="let t of appointmentTimes" [value]="t">{{ t }}</option></select></label>
+      </div>
               <label class="wide"><span>Link of the apartment you are going to</span><input type="url" [(ngModel)]="appointmentLink" name="appointmentLink" placeholder="https://velven.ge/apartments/…" /></label>
+              <div class="appt-phones">
+        <label><span>Owner's phone number</span><input type="tel" inputmode="tel" [(ngModel)]="appointmentOwnerPhone" name="leadOwner" placeholder="+995 5XX XX XX XX" /></label>
+        <label><span>Client's phone number</span><input type="tel" inputmode="tel" [(ngModel)]="appointmentClientPhone" data-phone-international name="leadClient" placeholder="+995 5XX XX XX XX" /></label>
+      </div>
+      <p class="appt-note">Clients will automatically receive feedback links through the system.</p>
               <div class="appt-actions">
                 <button type="button" class="appt-cancel" (click)="appointmentFormOpen = false">Cancel</button>
                 <button type="button" class="appt-save" [disabled]="appointmentSaving" (click)="saveAppointment()">Save appointment</button>

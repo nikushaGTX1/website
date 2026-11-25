@@ -1317,8 +1317,16 @@
     <h2 id="appt-pop-title">{{ apptMode === 'create' ? 'Add appointment' : 'How did the meeting go?' }}</h2>
     <p class="appt-pop-name">{{ apptLead.fullName }}</p>
     @if (apptMode === 'create') {
-      <label><span>Date and time</span><input type="datetime-local" [(ngModel)]="apptDate" name="apptDate" /></label>
+      <div class="appt-when">
+        <label><span>Date</span><app-date-picker name="apptDay" placeholder="Choose a date" [(ngModel)]="apptDay"></app-date-picker></label>
+        <label><span>Time</span><select name="apptTime" [(ngModel)]="apptTime"><option *ngFor="let t of appointmentTimes" [value]="t">{{ t }}</option></select></label>
+      </div>
       <label><span>Link of the apartment you are going to</span><input type="url" [(ngModel)]="apptLink" name="apptLink" placeholder="https://velven.ge/apartments/…" /></label>
+      <div class="appt-phones">
+        <label><span>Owner's phone number</span><input type="tel" inputmode="tel" [(ngModel)]="apptOwnerPhone" name="apptOwner" placeholder="+995 5XX XX XX XX" /></label>
+        <label><span>Client's phone number</span><input type="tel" inputmode="tel" [(ngModel)]="apptClientPhone" data-phone-international name="apptClient" placeholder="+995 5XX XX XX XX" /></label>
+      </div>
+      <p class="appt-note">Clients will automatically receive feedback links through the system.</p>
     } @else {
       <a class="appt-pop-link" *ngIf="safeLink(apptLead.openAppointment?.description) as url" [href]="url" target="_blank" rel="noopener" data-no-translate>{{ url }}</a>
       <label><span>Your comment is added to this lead's comments.</span><textarea [(ngModel)]="apptComment" name="apptComment" rows="4" placeholder="E.g. client liked it, wants a second viewing on Friday"></textarea></label>

@@ -30,6 +30,7 @@ import { AuthService } from '../../services/auth.service';
 import { CrmService, CrmBestAgent } from '../../services/crm.service';
 import { OwnerDealType, OwnerListingService } from '../../services/owner-listing.service';
 import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
+import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
 
 type StatusFilter = 'all' | CrmLeadStatus;
 type ManualRentalPeriod = '' | '6' | '12' | '12+';
@@ -46,7 +47,7 @@ interface ManualLeadForm extends CreateCrmLeadRequest {
 @Component({
   selector: 'app-crm-dashboard',
   standalone: true,
-  imports: [PhotoUrlPipe, ClientIntakeCard, MyHomeVerification, CommonModule, FormsModule, RouterModule],
+  imports: [PhotoUrlPipe, ClientIntakeCard, MyHomeVerification, CommonModule, FormsModule, RouterModule, DatePickerComponent],
   templateUrl: './crm-dashboard.html',
   styleUrl: './crm-dashboard.css',
 })
@@ -284,7 +285,13 @@ export class CrmDashboard implements OnInit {
   apptLead: CrmLead | null = null;
   apptMode: 'create' | 'finish' = 'create';
   apptDate = '';
+  apptDay = '';
+  apptTime = '10:00';
+  apptOwnerPhone = '';
+  apptClientPhone = '';
   apptLink = '';
+  /** Half-hour slots for appointments, 08:00 to 22:00. */
+  readonly appointmentTimes = Array.from({ length: 29 }, (_, i) => `${String(8 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
   apptComment = '';
   apptError = '';
   apptSaving = false;
@@ -309,6 +316,10 @@ export class CrmDashboard implements OnInit {
     soon.setMinutes(0, 0, 0);
     const pad = (n: number) => String(n).padStart(2, '0');
     this.apptDate = `${soon.getFullYear()}-${pad(soon.getMonth() + 1)}-${pad(soon.getDate())}T${pad(soon.getHours())}:00`;
+    this.apptDay = this.apptDate.slice(0, 10);
+    this.apptTime = this.appointmentTimes.includes(this.apptDate.slice(11, 16)) ? this.apptDate.slice(11, 16) : '10:00';
+    this.apptOwnerPhone = '';
+    this.apptClientPhone = (lead as { phoneNumber?: string; phone?: string }).phoneNumber || (lead as { phone?: string }).phone || '';
     this.cdr.markForCheck();
   }
 
@@ -335,11 +346,15 @@ export class CrmDashboard implements OnInit {
     if (!lead || this.apptSaving || !this.canWorkLead(lead)) return;
     if (this.apptMode === 'create') {
       const link = this.safeLink(this.apptLink.trim());
-      const due = new Date(this.apptDate);
+      const due = new Date(`${this.apptDay}T${this.apptTime}`);
       if (!link) { this.apptError = 'Paste the link of the apartment you are going to.'; return; }
       if (Number.isNaN(due.getTime())) { this.apptError = 'Choose the date and time of the appointment.'; return; }
       this.apptSaving = true;
-      this.crmService.createTask(lead.id, { title: 'Appointment', type: 'viewing', description: link, dueAt: due.toISOString(), assignedAgentId: lead.assignedAgentId || null }).subscribe({
+      // The link stays first (it is read back as the appointment's apartment); phones follow.
+      const description = [link,
+        this.apptOwnerPhone.trim() && `Owner phone: ${this.apptOwnerPhone.trim()}`,
+        this.apptClientPhone.trim() && `Client phone: ${this.apptClientPhone.trim()}`].filter(Boolean).join('\n');
+      this.crmService.createTask(lead.id, { title: 'Appointment', type: 'viewing', description, dueAt: due.toISOString(), assignedAgentId: lead.assignedAgentId || null }).subscribe({
         next: (task) => {
           lead.openAppointment = task;
           this.apptSaving = false;

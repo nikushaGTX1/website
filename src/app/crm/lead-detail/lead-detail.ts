@@ -34,6 +34,7 @@ import {
 import { AgentService } from '../../services/agent.service';
 import { AuthService } from '../../services/auth.service';
 import { CrmService } from '../../services/crm.service';
+import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
 
 
 /* =========================================================
@@ -144,6 +145,7 @@ interface ManualLifestyleDetails {
     CommonModule,
     FormsModule,
     RouterModule,
+    DatePickerComponent,
   ],
 
   templateUrl: './lead-detail.html',
@@ -242,7 +244,13 @@ export class CrmLeadDetail implements OnInit {
   // ---------- Appointment (green on the board until the meeting is finished) ----------
   appointmentFormOpen = false;
   appointmentDate = '';
+  appointmentDay = '';
+  appointmentTime = '10:00';
+  appointmentOwnerPhone = '';
+  appointmentClientPhone = '';
   appointmentLink = '';
+  /** Half-hour slots for appointments, 08:00 to 22:00. */
+  readonly appointmentTimes = Array.from({ length: 29 }, (_, i) => `${String(8 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
   appointmentSaving = false;
   appointmentError = '';
   meetingDialogOpen = false;
@@ -273,6 +281,10 @@ export class CrmLeadDetail implements OnInit {
     soon.setMinutes(0, 0, 0);
     const pad = (n: number) => String(n).padStart(2, '0');
     this.appointmentDate = `${soon.getFullYear()}-${pad(soon.getMonth() + 1)}-${pad(soon.getDate())}T${pad(soon.getHours())}:00`;
+    this.appointmentDay = this.appointmentDate.slice(0, 10);
+    this.appointmentTime = this.appointmentTimes.includes(this.appointmentDate.slice(11, 16)) ? this.appointmentDate.slice(11, 16) : '10:00';
+    this.appointmentOwnerPhone = '';
+    this.appointmentClientPhone = (this.lead as { phoneNumber?: string } | null)?.phoneNumber || '';
     this.appointmentLink = '';
     this.appointmentError = '';
     this.appointmentFormOpen = true;
@@ -285,7 +297,7 @@ export class CrmLeadDetail implements OnInit {
       this.appointmentError = 'Paste the link of the apartment you are going to.';
       return;
     }
-    const due = new Date(this.appointmentDate);
+    const due = new Date(`${this.appointmentDay}T${this.appointmentTime}`);
     if (Number.isNaN(due.getTime())) {
       this.appointmentError = 'Choose the date and time of the appointment.';
       return;
@@ -296,7 +308,10 @@ export class CrmLeadDetail implements OnInit {
     this.crmService.createTask(lead.id, {
       title: 'Appointment',
       type: 'viewing',
-      description: link,
+      // The link stays first (it is read back as the appointment's apartment); phones follow.
+      description: [link,
+        this.appointmentOwnerPhone.trim() && `Owner phone: ${this.appointmentOwnerPhone.trim()}`,
+        this.appointmentClientPhone.trim() && `Client phone: ${this.appointmentClientPhone.trim()}`].filter(Boolean).join('\n'),
       dueAt: due.toISOString(),
       assignedAgentId: lead.assignedAgentId || null,
     }).subscribe({

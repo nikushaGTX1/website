@@ -920,3 +920,26 @@
 @media (min-width: 1241px) {
   :host-context(html:not([lang="ka"])) .nav-links { justify-content: space-between !important; gap: clamp(24px, 2.1vw, 42px) !important; }
 }
+
+/* English / Russian header: even spacing that never pushes "List your property" off screen.
+   Signed in there is one more button (the profile), so the links sit closer together. */
+@media (min-width: 1241px) {
+  :host-context(html:not([lang="ka"])) .nav-links { justify-content: center !important; gap: clamp(18px, 1.9vw, 38px) !important; min-width: 0; }
+  :host-context(html:not([lang="ka"])) .navigation.logged-in .nav-links { gap: clamp(12px, 1.35vw, 30px) !important; }
+  :host-context(html:not([lang="ka"])) .nav-links a { font-size: 15px; letter-spacing: -0.005em; white-space: nowrap; }
+  :host-context(html:not([lang="ka"])) .nav-actions { flex: none; gap: 10px; }
+}
+@media (min-width: 1241px) and (max-width: 1400px) {
+  :host-context(html:not([lang="ka"])) .navigation.logged-in .nav-links a { font-size: 14px; }
+}
+
+/* English / Russian: links spread evenly across the free space, with the same moderate margin
+   to the logo on the left and to the buttons on the right (no large empty blocks at either end). */
+@media (min-width: 1241px) {
+  :host-context(html:not([lang="ka"])) .nav-links {
+    justify-content: space-between !important;
+    padding-inline: clamp(14px, 1.6vw, 36px) !important;
+    max-width: 1060px;
+    margin-inline: auto;
+  }
+}

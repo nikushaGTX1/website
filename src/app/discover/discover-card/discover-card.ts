@@ -126,7 +126,8 @@ export class DiscoverCard implements OnInit {
     if (!this.matched && a.isFurnished) lines.push({ text: 'Furnished, with appliances' });
     if (a.isPetFriendly) lines.push({ text: 'Pets accepted' });
     if (a.parkDistanceMinutes) lines.push({ lead: String(a.parkDistanceMinutes), text: 'min walk to a park' });
-    else if (a.metroDistanceMinutes) lines.push({ lead: String(a.metroDistanceMinutes), text: 'min walk to the metro' });
+    // Metro only when it is a short walk (under 18 min).
+    else if (a.metroDistanceMinutes && a.metroDistanceMinutes < 18) lines.push({ lead: String(a.metroDistanceMinutes), text: 'min walk to the metro' });
     if (a.availableFrom) {
       const date = new Date(a.availableFrom);
       if (!Number.isNaN(date.getTime())) {
@@ -134,6 +135,14 @@ export class DiscoverCard implements OnInit {
         else lines.push({ text: 'Available by', tail: date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) });
       }
     }
+    // Always three lines when the listing has them: fill with more facts.
+    const more: FitLine[] = [];
+    if (a.parkDistanceMinutes && a.metroDistanceMinutes && a.metroDistanceMinutes < 18) more.push({ lead: String(a.metroDistanceMinutes), text: 'min walk to the metro' });
+    if (a.hasParking) more.push({ text: 'Parking available' });
+    if (a.hasBalcony) more.push({ text: 'Balcony' });
+    if (a.hasElevator) more.push({ text: 'Elevator' });
+    if (a.hasAirConditioning) more.push({ text: 'Air conditioning' });
+    for (const line of more) if (lines.length < 3) lines.push(line);
     return lines.slice(0, 3);
   }
 

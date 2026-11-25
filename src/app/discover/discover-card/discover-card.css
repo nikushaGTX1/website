@@ -541,3 +541,10 @@ h3 {
   .specs > span { gap: 7px; }
   .specs > span:nth-child(even) { padding-left: 10px; }
 }
+
+/* "Why it fits you" lines: wrap whole words instead of being cut at the card edge
+   (long Georgian lines like "თქვენ მიერ არჩეულ ადგილთან ახლოს"). */
+.why li { align-items: flex-start; }
+.why li > i { margin-top: 3px; }
+.why li span { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: break-word; word-break: normal; }
+.why li > span { min-width: 0; }

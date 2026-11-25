@@ -506,3 +506,17 @@
   .appt-form { grid-template-columns: 1fr; }
   .appt-finish { width: 100%; justify-content: center; }
 }
+
+
+/* Appointment form: site calendar + time, phone numbers, note */
+.appt-when { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 10px; }
+.appt-when label, .appt-phones label { display: grid; gap: 6px; min-width: 0; }
+.appt-when select { height: 46px; padding: 0 12px; border: 1px solid #ddd6ea; border-radius: 10px; background: #fff; font: inherit; font-size: 14px; color: #1f1530; }
+.appt-phones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.appt-phones input { height: 46px; padding: 0 12px; border: 1px solid #ddd6ea; border-radius: 10px; font: inherit; font-size: 14px; }
+.appt-note { margin: 2px 0 0; color: #7a7090; font-size: 12px; line-height: 1.4; }
+@media (max-width: 560px) { .appt-phones { grid-template-columns: 1fr; } }
+
+/* Phone fields line up even when one shows an error under it */
+.appt-phones { align-items: start; }
+.appt-phones label > span { min-height: 20px; }

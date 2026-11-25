@@ -1,5 +1,5 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { isValidPhone } from './utils/phone';
+import { isValidPhone, isValidAnyPhone } from './utils/phone';
 import { combineLatest, filter, forkJoin, of, startWith, switchMap, timer, catchError } from 'rxjs';
 import { OwnerListingService } from './services/owner-listing.service';
 import { ApartmentService } from './services/apartment.service';
@@ -175,7 +175,8 @@ export class App implements AfterViewInit {
     // Fields with their own country picker check the number for that country themselves.
     if (input.hasAttribute('data-phone-country')) return;
     const value = input.value.trim();
-    const invalid = value !== '' && !isValidPhone(value);
+    // data-phone-international: any country (foreign clients); otherwise Georgian numbers only.
+    const invalid = value !== '' && !(input.hasAttribute('data-phone-international') ? isValidAnyPhone(value) : isValidPhone(value));
     input.classList.toggle('phone-invalid', invalid);
     if (invalid) input.setAttribute('aria-invalid', 'true');
     else input.removeAttribute('aria-invalid');
