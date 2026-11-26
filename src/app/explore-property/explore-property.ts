@@ -2575,6 +2575,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
     );
   }
 
+  /** One building only when the listings agree on floors, street and building number. */
+  sameBuilding(group: Apartment[]): boolean {
+    const distinct = (values: unknown[]) => new Set(values.filter((v) => v !== null && v !== undefined && v !== '' && v !== 0).map((v) => String(v).trim().toLowerCase())).size;
+    return distinct(group.map((a) => a.totalFloors)) <= 1 && distinct(group.map((a) => a.street)) <= 1 &&
+      distinct(group.map((a) => (a as { buildingNumber?: string }).buildingNumber)) <= 1;
+  }
+
   guardMapPreviewClick(event: MouseEvent): void {
     if (Date.now() < this.suppressCardClickUntil) {
       event.preventDefault();

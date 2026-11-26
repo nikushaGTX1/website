@@ -574,7 +574,7 @@
         <header>
           <span class="map-group-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></span>
           <span class="map-group-heading">
-            <strong>{{ group.length }} homes in this building</strong>
+            <strong>{{ group.length }} <span>{{ sameBuilding(group) ? 'homes in this building' : 'homes at this spot' }}</span></strong>
             <small *ngIf="getApartmentLocation(group[0]) as place">{{ place }}</small>
           </span>
           <button type="button" class="map-group-close" aria-label="Close" (click)="closeMapPreview()"><i class="fa-solid fa-xmark"></i></button>

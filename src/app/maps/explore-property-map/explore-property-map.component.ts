@@ -580,7 +580,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     position: google.maps.LatLngLiteral,
   ): void {
     if (!this.index || !this.map) return;
-    if (isBuilding) {
+    // Homes at one spot that zooming cannot separate: open their list (even when they are
+    // not one building), instead of a click that does nothing at the maximum zoom.
+    const cannotSplit = this.index.getClusterExpansionZoom(clusterId) > 20 || (this.map.getZoom() || 0) >= 20;
+    if (isBuilding || cannotSplit) {
       const ids = this.index
         .getLeaves(clusterId, Infinity)
         .map((leaf) => (leaf.properties as { id: number }).id);
