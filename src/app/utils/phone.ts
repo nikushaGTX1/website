@@ -10,9 +10,11 @@ export function isValidPhone(value: string | null | undefined): boolean {
   const text = (value || '').trim();
   if (!text || /[a-z]/i.test(text)) return false;
   const parsed = parsePhoneNumberFromString(text, 'GE');
-  if (parsed?.isValid() || parsed?.isPossible()) return true;
+  if (parsed?.isValid()) return true;
+  // Foreign numbers (with +): accept when plausible, even if the library does not know the format.
+  if (!text.startsWith('+')) return false;
   const digits = text.replace(/D/g, '');
-  return text.startsWith('+') && digits.length >= 7 && digits.length <= 15;
+  return !!parsed?.isPossible() || (digits.length >= 7 && digits.length <= 15);
 }
 
 /** Same rule as isValidPhone (kept for fields that were already international). */

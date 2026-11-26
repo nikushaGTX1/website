@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import { isValidPhone, whatsappDigits } from './phone';
 
 // VELVEN-029: the upload form accepted any text as the owner/agent phone.
-test('accepts Georgian mobile numbers with or without the country code', () => {
+test('accepts Georgian numbers with or without the code, and foreign numbers with +', () => {
   assert.equal(isValidPhone('555 12 34 56'), true);
   assert.equal(isValidPhone('555123456'), true);
   assert.equal(isValidPhone('+995 555 12 34 56'), true);
-  assert.equal(isValidPhone('+1 202 555 0143'), false); // Georgian numbers only
+  assert.equal(isValidPhone('+1 202 555 0143'), true); // any country with its + code
+  assert.equal(isValidPhone('+63936939572'), true);
 });
 
 test('rejects text, short numbers and empty values', () => {

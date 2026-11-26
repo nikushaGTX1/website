@@ -1,4 +1,4 @@
-<article class="discover-card" [class.compact]="compact" [class.highlighted]="highlighted" [attr.id]="'match-' + apartment.id">
+<article class="discover-card" [class.compact]="compact" [class.highlighted]="highlighted" [class.liked]="liked" [class.disliked]="disliked" [class.like-pop]="likePop" [attr.id]="'match-' + apartment.id">
   <a class="card-image" [routerLink]="['/apartments', apartment.id]" [queryParams]="{ matchSearch: searchId }" (click)="opened.emit(apartment)" data-protected-image>
     <img [src]="(image) | photoUrl" [alt]="(apartment | listingTitle) || 'Property in Tbilisi'" loading="lazy" decoding="async" (error)="onImageError($event)" />
     <span class="card-badges">
@@ -29,7 +29,7 @@
       <span *ngIf="apartment.rooms"><i class="fa-solid fa-door-open" aria-hidden="true"></i>{{ apartment.rooms }} <span>rooms</span></span>
       <span><i class="fa-solid fa-bed" aria-hidden="true"></i>{{ apartment.bedrooms || '—' }} <span>bedrooms</span></span>
       <span *ngIf="apartment.sizeSquareMeters"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>{{ apartment.sizeSquareMeters }} m²</span><span class="yard-area" *ngIf="apartment | landArea as yard"><i class="fa-solid fa-tree" aria-hidden="true"></i> <span>Yard</span> {{ yard }} m²</span>
-      <span *ngIf="apartment.floor != null"><i class="fa-regular fa-building" aria-hidden="true"></i><span>Floor</span>&nbsp;{{ apartment.floor }}</span>
+      <span *ngIf="apartment.floor != null"><i class="fa-solid fa-stairs" aria-hidden="true"></i><span>Floor</span>&nbsp;{{ apartment.floor }}</span>
     </div>
 
 
@@ -37,13 +37,15 @@
       <p class="why-title" *ngIf="matched"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Why it fits you</span></p>
       <p class="why-title" *ngIf="!matched"><i class="fa-solid fa-house" aria-hidden="true"></i><span>About the home</span></p>
       <ul>
-        <li *ngFor="let line of whyItFits"><i class="fa-solid fa-check" aria-hidden="true"></i><span><span *ngIf="line.lead" data-no-translate>{{ line.lead }}&nbsp;</span><span>{{ line.text }}</span><span *ngIf="line.tail" data-no-translate>&nbsp;{{ line.tail }}</span></span></li>
+        <li *ngFor="let line of whyItFits"><i class="fa-solid fa-check" aria-hidden="true"></i><span><span *ngIf="line.lead" data-no-translate>{{ line.lead }}&nbsp;</span><span>{{ line.text }}</span><span *ngIf="line.tail" data-no-translate>&nbsp;{{ line.tail }}</span><small class="why-reason" *ngIf="line.why"><span>{{ line.why }}</span></small></span></li>
       </ul>
       <a class="why-all" *ngIf="matched" [routerLink]="['/apartments', apartment.id]" [queryParams]="{ matchSearch: searchId }" (click)="opened.emit(apartment)">See all reasons <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </div>
 
     <div class="terms">
-      <p class="parking"><i class="fa-solid fa-car" aria-hidden="true"></i><span><span>Parking</span>: <b>{{ parkingType || parkingText }}</b><ng-container *ngIf="parkingType && parkingCost"> · <b>{{ parkingCost }}</b></ng-container></span></p>
+      <p class="card-flag pets" *ngIf="needsCheck"><i class="fa-solid fa-paw" aria-hidden="true"></i><span>Check with the agent about pets</span></p>
+      <p class="card-flag later" *ngIf="availableFrom"><i class="fa-regular fa-calendar" aria-hidden="true"></i><span><span>Available from</span> <b data-no-translate>{{ availableFrom }}</b></span></p>
+      <p class="parking" *ngIf="showParking"><i class="fa-solid fa-car" aria-hidden="true"></i><span><span>Parking</span>: <b>{{ parkingType || parkingText }}</b><ng-container *ngIf="parkingType && parkingCost"> · <b>{{ parkingCost }}</b></ng-container></span></p>
       <!-- Kept on every card (hidden when none) so the rows stay level. -->
       <p class="deposit" [class.placeholder]="!deposit" [attr.aria-hidden]="deposit ? null : true">
         <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
@@ -70,7 +72,14 @@
     </a>
     <div class="card-foot">
       <a class="view-details" [routerLink]="['/apartments', apartment.id]" [queryParams]="{ matchSearch: searchId }" (click)="opened.emit(apartment)">View details <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-      <button type="button" class="not-for-me" *ngIf="matched && !savedView" (click)="notForMe.emit(apartment)">Not for me</button>
+      <div class="react" *ngIf="matched && !savedView">
+        <button type="button" class="react-btn like" [class.on]="liked" [attr.aria-pressed]="liked" (click)="like.emit(apartment)">
+          <i [class]="liked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up'" aria-hidden="true"></i><span>{{ liked ? 'Liked' : 'Like' }}</span>
+        </button>
+        <button type="button" class="react-btn dislike" [class.on]="disliked" [attr.aria-pressed]="disliked" (click)="notForMe.emit(apartment)">
+          <i [class]="disliked ? 'fa-solid fa-thumbs-down' : 'fa-regular fa-thumbs-down'" aria-hidden="true"></i><span>Don't like</span>
+        </button>
+      </div>
     </div>
     </div>
   </div>

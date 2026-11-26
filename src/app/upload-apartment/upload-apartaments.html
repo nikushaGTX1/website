@@ -417,6 +417,25 @@
               <i [class]="option.icon"></i><span>{{ option.label }}</span><b><i class="fa-solid fa-check"></i></b>
             </button>
           </div>
+          <div class="pet-rules" *ngIf="form.isPetFriendly">
+            <div class="pet-rules-row">
+              <span class="pet-rules-label">Which pets are allowed?</span>
+              <div class="pet-rules-options">
+                <button type="button" *ngFor="let option of petKindOptions" [class.selected]="form.petKinds.includes(option.value)" [attr.aria-pressed]="form.petKinds.includes(option.value)" (click)="togglePetOption('petKinds', option.value)">
+                  <i [class]="option.icon" aria-hidden="true"></i><span>{{ option.label }}</span>
+                </button>
+              </div>
+            </div>
+            <div class="pet-rules-row">
+              <span class="pet-rules-label">Allowed pet size</span>
+              <div class="pet-rules-options">
+                <button type="button" *ngFor="let option of petSizeOptions" [class.selected]="form.petSizes.includes(option.value)" [attr.aria-pressed]="form.petSizes.includes(option.value)" (click)="togglePetOption('petSizes', option.value)">
+                  <span>{{ option.label }}</span>
+                </button>
+              </div>
+            </div>
+            <p class="pet-rules-hint" *ngIf="!form.petKinds.length || !form.petSizes.length">Choose the pets and sizes the owner accepts. Velven Match only shows this home to clients whose pet fits.</p>
+          </div>
           <p class="quiet-street-definition">
             <i class="fa-solid fa-volume-low" aria-hidden="true"></i>
             Mark “Quiet street” only when the street is not on or directly connected to a main avenue.
@@ -463,7 +482,7 @@
               <button type="button" role="radio" [attr.aria-checked]="form.parkingCost === 'PaidUnknown'" [class.selected]="form.parkingCost === 'PaidUnknown'" (click)="form.parkingCost = 'PaidUnknown'; form.parkingPrice = null">Paid — price unknown</button>
             </div>
             <label class="parking-price-input" *ngIf="form.parkingCost === 'Paid'">
-              <span>Monthly parking price ({{ form.currency === 'GEL' ? '₾' : '$' }})</span>
+              <span>{{ isRentDeal ? 'Monthly parking price' : 'Parking price (one-time purchase)' }} ({{ form.currency === 'GEL' ? '₾' : '$' }})</span>
               <input type="number" name="parkingPrice" min="1" step="1" inputmode="numeric" placeholder="e.g. 100" [(ngModel)]="form.parkingPrice" />
             </label>
             <small class="parking-cost-hint">Shown on the listing as {{ form.parkingCost === 'Free' ? '“Free”' : form.parkingCost === 'PaidUnknown' ? '“Paid”' : form.parkingCost === 'Paid' ? '“+' + (form.currency === 'GEL' ? '₾' : '$') + (form.parkingPrice || '…') + '”' : 'nothing extra' }}.</small>

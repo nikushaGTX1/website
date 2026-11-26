@@ -186,6 +186,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     { value: 'ParkNearby', label: 'Parks', icon: 'fa-solid fa-tree' },
     { value: 'EntertainmentNearby', label: 'Places to go out', icon: 'fa-solid fa-champagne-glasses' },
   ];
+  /** Daily priorities without public transport when the chosen districts have no metro. */
+  get dailyPriorityChoices() {
+    return this.chosenDistrictsHaveNoMetro
+      ? this.dailyPriorityOptions.filter((option) => option.value !== 'PublicTransportNearby')
+      : this.dailyPriorityOptions;
+  }
   /** Buyers only (question 18). */
   readonly futureOptions = [
     { value: 'GrowingFamily', label: 'Growing family', icon: 'fa-solid fa-baby' },
@@ -667,11 +673,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     // Buyers: service, property type and purpose first, then who lives there and how,
     // then location, budget and the home itself, and finally timing and payment.
     const order = buyer
-      ? [14, 1, 16, 0, 4, 5, 10, 9, 17, 18, 2, 3, 6, 19, 13, 12, 15, 20, 7]
+      ? [14, 1, 16, 0, 4, 5, 9, 17, 18, 2, 3, 6, 19, 13, 12, 10, 15, 20, 7]
       : [14, 1, 12, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
     return order.filter(
       (step) =>
-        !(buyer && step === 12 && !this.buyerWantsFinishedHome) &&
+        // A frame or a home to renovate: no interior style, pet or furniture questions.
+        !(buyer && (step === 12 || step === 10) && !this.buyerWantsFinishedHome) &&
         !(step === 5 && this.fixedHousehold) &&
         // Nationality already saved on the account at sign-up.
         !(step === 14 && !!this.accountNationality),
@@ -1691,6 +1698,15 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   persist(): void {
     this.service.update({ ...this.profile });
   }
+  /** Tbilisi districts without a metro station nearby. */
+  private static readonly NO_METRO_DISTRICTS = new Set(['Vake', 'Vera', 'Bagebi', 'Vashlijvari', 'Krtsanisi', 'DidiDighomi', 'Mtatsminda']);
+
+  private get chosenDistrictsHaveNoMetro(): boolean {
+    if (this.profile.locationFlexible || this.profile.selectedMapArea) return false;
+    const districts = this.profile.districts.filter((d) => d !== 'SelectOnMap');
+    return districts.length > 0 && districts.every((d) => AiHomeMatchPageComponent.NO_METRO_DISTRICTS.has(d));
+  }
+
   private generateSuggestedPriorities(): HomeMatchOption[] {
     const suggestions = new Map<string, HomeMatchOption>();
     // These all say "near cafés" in slightly different words; offering two of them looked
@@ -1704,6 +1720,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     ]);
     const add = (label: string, value: string, strongest = false): void => {
       if (suggestions.has(value)) return;
+      // Metro is not offered when every chosen district has no metro station (e.g. only Vake);
+      // with Saburtalo or another metro district among them it stays.
+      if ((value === 'MetroNearby' || value === 'PublicTransportNearby') && this.chosenDistrictsHaveNoMetro) return;
       if (cafeOptions.has(value) && [...suggestions.keys()].some((key) => cafeOptions.has(key)))
         return;
       const option = { label, value };

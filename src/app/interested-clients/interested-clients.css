@@ -237,3 +237,11 @@ h1 { margin: 0; font-size: clamp(32px, 4.4vw, 56px); font-weight: 800; line-heig
   .client-card .cc-rows dt { gap: 8px !important; font-size: 13.5px !important; }
   .client-card .cc-rows dd { font-size: 13.5px !important; }
 }
+
+/* Wide screens: cards fill the row instead of leaving one narrow card and empty space.
+   A listing with a single client shows that client full width, details in two columns. */
+@media (min-width: 761px) {
+  .client-grid { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)) !important; }
+  .client-grid:has(> :only-child) > * { max-width: none; }
+  .client-grid:has(> :only-child) .cc-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+}

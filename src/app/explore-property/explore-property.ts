@@ -2746,8 +2746,6 @@ export class ExploreProperty implements OnInit, OnDestroy {
       .join(' ')
       .toLowerCase();
 
-    if (propertyLocation.includes(location)) return true;
-
     const selectedArea = this.locationEntries.find(
       (entry) =>
         entry.city === 'Tbilisi' &&
@@ -2756,8 +2754,15 @@ export class ExploreProperty implements OnInit, OnDestroy {
     );
 
     if (selectedArea) {
-      if (apartment.district?.trim().toLowerCase() === selectedArea.district.trim().toLowerCase()) {
-        return true;
+      // A listing that names its district belongs to that district only. Matching on address
+      // text or on street names let Saburtalo and Bagebi listings into a Vake search (streets
+      // such as Chavchavadze run through several districts, and descriptions mention "Vake").
+      const listingDistrict = apartment.district?.trim().toLowerCase();
+      if (listingDistrict) {
+        return (
+          listingDistrict === selectedArea.district.trim().toLowerCase() ||
+          listingDistrict === this.locationService.districtName(selectedArea, 'ka').trim().toLowerCase()
+        );
       }
 
       const georgianDistrict = this.locationService.districtName(selectedArea, 'ka').toLowerCase();
@@ -2765,6 +2770,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
         return true;
       }
 
+      if (propertyLocation.includes(location)) return true;
       return this.locationService
         .streetNames(selectedArea, 'ka')
         .some(
@@ -2773,6 +2779,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
             propertyLocation.includes(street.label.toLowerCase()),
         );
     }
+
+    if (propertyLocation.includes(location)) return true;
 
     for (const entry of this.locationEntries.filter((item) => item.city === 'Tbilisi')) {
       const selectedStreet = this.locationService

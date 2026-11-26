@@ -227,7 +227,7 @@
           <div class="options condition-options">
             <button
               type="button"
-              *ngFor="let option of dailyPriorityOptions; trackBy: trackOption"
+              *ngFor="let option of dailyPriorityChoices; trackBy: trackOption"
               [class.selected]="listHas('topPriorities', option.value)"
               [attr.aria-pressed]="listHas('topPriorities', option.value)"
               (click)="toggleListField('topPriorities', option.value)"

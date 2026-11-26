@@ -11,7 +11,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription, catchError, forkJoin, of, timer } from 'rxjs';
 import { Apartment } from '../models/apartment';
 import { SavedSearch, SavedSearchMatchRecord } from '../models/client';
-import { HomeMatchProfile } from '../ai-home-match/models/home-match-profile';
+import { EMPTY_HOME_MATCH_PROFILE, HomeMatchProfile } from '../ai-home-match/models/home-match-profile';
 import { HomeMatchResult } from '../ai-home-match/models/home-match-result';
 import { HomeMatchService } from '../ai-home-match/services/home-match.service';
 import { answerLabel, answerList, bedroomsLabel } from '../ai-home-match/services/answer-labels';
@@ -24,6 +24,7 @@ import { FavoriteService } from '../services/favorite.service';
 import { TranslationService } from '../services/translation.service';
 import { DiscoverCard } from './discover-card/discover-card';
 import { VelvenLifestyleAvatarComponent } from '../ai-home-match/lifestyle-avatar/lifestyle-avatar.component';
+import { ListingInterestService } from '../services/listing-interest.service';
 
 type DiscoverTab = 'new' | 'all' | 'saved' | 'clients';
 type SortOrder = 'best' | 'newest' | 'price-low' | 'price-high';
@@ -35,6 +36,8 @@ interface DiscoverItem {
   /** Lifestyle ranking from Velven Match (higher is better). */
   score: number;
   needsCheck: boolean;
+  /** "18 December" when the home is not free by the client's move-in date. */
+  availableFrom?: string;
   /** Position in the Velven Match results for this search (0 = first). */
   order: number;
   isNew: boolean;
@@ -193,7 +196,8 @@ export class Discover implements OnInit, OnDestroy {
     this.loadSubscription = forkJoin({
       searches: this.client.getSearches(),
       records: this.client.getMatches(),
-      catalogue: this.apartments.getApartments(),
+      // Always fresh: an agent's edit (price, parking, pets...) must show at once.
+      catalogue: this.apartments.getApartmentsFresh(),
       favorites: this.favorites.loadFavorites(true),
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ searches, records, catalogue }) => {
@@ -202,6 +206,10 @@ export class Discover implements OnInit, OnDestroy {
         this.searches = searches.map((search) => ({ search, matches: [], failed: false }));
         if (this.selectedSearchId && !searches.some((search) => search.id === this.selectedSearchId))
           this.selectedSearchId = null;
+        // Searches are not mixed: Discover opens on the newest search unless the visitor
+        // picked "every search" or arrived from a link to one listing.
+        if (!this.selectedSearchId && !this.showEverySearch && !this.highlightedApartmentId && searches.length)
+          this.selectedSearchId = this.newestSearchId(searches);
         this.loading = false;
         this.cdr.detectChanges();
         this.loadMatches();
@@ -249,7 +257,11 @@ export class Discover implements OnInit, OnDestroy {
     view.matches = results
       .map((result) => ({
         result,
-        ...(({ status, confirmations }) => ({ status, petsUnconfirmed: confirmations.some((note) => note.startsWith("Pets:")) }))(
+        ...(({ status, confirmations }) => ({
+          status,
+          petsUnconfirmed: confirmations.some((note) => note.startsWith("Pets:")),
+          availableFrom: confirmations.find((note) => note.startsWith('Available from '))?.slice('Available from '.length),
+        }))(
           evaluateMandatoryRequirements(result.apartment, profile, this.currency.rates),
         ),
       }))
@@ -261,7 +273,7 @@ export class Discover implements OnInit, OnDestroy {
         { status: b.status, apartment: b.result.apartment, score: b.result.rankingScore ?? b.result.matchScore ?? 0 },
         profile,
       ))
-      .map(({ result, petsUnconfirmed }, order): DiscoverItem | null => {
+      .map(({ result, petsUnconfirmed, availableFrom }, order): DiscoverItem | null => {
         const apartment = this.catalogue.get(result.apartment.id) ?? (result.apartment as unknown as Apartment);
         if (!apartment) return null;
         const record = newIds.get(result.apartment.id);
@@ -272,6 +284,7 @@ export class Discover implements OnInit, OnDestroy {
           order,
           // Only pets are called out on the card; other open details stay on the property page.
           needsCheck: petsUnconfirmed,
+          availableFrom,
           isNew: !!record && !record.seenAt,
           matchedAt: record?.matchedAt,
           // Same "Why it fits" as the property page: pets, then ranked priorities, then lifestyle.
@@ -384,19 +397,54 @@ export class Discover implements OnInit, OnDestroy {
     }
   }
 
+  /** "Don't like" toggles: the home stays in the list but moves to the end of its search. */
   onNotForMe(apartment: Apartment): void {
-    this.notForMe.add(apartment.id);
+    if (this.notForMe.has(apartment.id)) this.notForMe.delete(apartment.id);
+    else { this.notForMe.add(apartment.id); this.liked.delete(apartment.id); this.saveLiked(); }
     try {
       localStorage.setItem("velven.discover.notForMe", JSON.stringify([...this.notForMe]));
     } catch {
-      /* Storage blocked: the card stays hidden for this visit only. */
+      /* Storage blocked: kept for this visit only. */
     }
+  }
+
+  /** Homes the client liked (kept in this browser; the agent is notified once per home). */
+  private readonly interest = inject(ListingInterestService);
+  liked = new Set<number>(Discover.readIds("velven.discover.liked"));
+  /** The card that just got a like, for its short lift animation. */
+  likePopId: number | null = null;
+
+  private static readIds(key: string): number[] {
+    try {
+      const ids = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(ids) ? ids.filter((id) => typeof id === "number") : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private saveLiked(): void {
+    try { localStorage.setItem("velven.discover.liked", JSON.stringify([...this.liked])); } catch { /* blocked */ }
+  }
+
+  onLike(item: DiscoverItem): void {
+    const id = item.apartment.id;
+    if (this.liked.has(id)) { this.liked.delete(id); this.saveLiked(); return; }
+    this.liked.add(id);
+    this.notForMe.delete(id);
+    this.saveLiked();
+    try { localStorage.setItem("velven.discover.notForMe", JSON.stringify([...this.notForMe])); } catch { /* blocked */ }
+    this.likePopId = id;
+    this.subscriptions.add(timer(700).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.likePopId === id) this.likePopId = null;
+      this.cdr.markForCheck();
+    }));
+    this.interest.like(id, item.searchId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
   }
 
   private unique(items: DiscoverItem[]): DiscoverItem[] {
     const byId = new Map<number, DiscoverItem>();
     for (const item of items) {
-      if (this.notForMe.has(item.apartment.id)) continue;
       const current = byId.get(item.apartment.id);
       if (!current || (item.isNew && !current.isNew) || (item.isNew === current.isNew && item.score > current.score)) byId.set(item.apartment.id, item);
     }
@@ -415,10 +463,18 @@ export class Discover implements OnInit, OnDestroy {
     const order = newestFirst && this.sort === 'best' ? 'newest' : this.sort;
     const time = (item: DiscoverItem) =>
       new Date(item.matchedAt || item.apartment.createdAt || 0).getTime();
+    const disliked = (item: DiscoverItem) => (this.notForMe.has(item.apartment.id) ? 1 : 0);
     return [...items].sort((a, b) => {
+      // "Don't like" moves a home to the end of the list instead of removing it.
+      if (disliked(a) !== disliked(b)) return disliked(a) - disliked(b);
+      // Liked homes rise to the top of their list.
+      const liked = (item: DiscoverItem) => (this.liked.has(item.apartment.id) ? 0 : 1);
+      if (liked(a) !== liked(b)) return liked(a) - liked(b);
       if (order === 'price-low') return a.apartment.price - b.apartment.price;
       if (order === 'price-high') return b.apartment.price - a.apartment.price;
       if (order === 'newest') return time(b) - time(a);
+      if (!this.selectedSearchId && a.searchId !== b.searchId)
+        return this.searchRecency(a.searchId) - this.searchRecency(b.searchId);
       return a.order - b.order || b.score - a.score;
     });
   }
@@ -434,7 +490,24 @@ export class Discover implements OnInit, OnDestroy {
 
   // ---------- Selection and deep links ----------
 
+  /** True when the visitor chose to see every search together. */
+  private showEverySearch = false;
+
+  private newestSearchId(searches: SavedSearch[]): number {
+    const time = (search: SavedSearch) => new Date(search.updatedAt || search.createdAt || 0).getTime();
+    return [...searches].sort((a, b) => time(b) - time(a) || b.id - a.id)[0].id;
+  }
+
+  /** Newest search first (0), older ones after: used to keep older searches' homes lower. */
+  private searchRecency(searchId: number): number {
+    const time = (search: SavedSearch) => new Date(search.updatedAt || search.createdAt || 0).getTime();
+    const order = [...this.searches].map((view) => view.search).sort((a, b) => time(b) - time(a) || b.id - a.id);
+    const index = order.findIndex((search) => search.id === searchId);
+    return index < 0 ? order.length : index;
+  }
+
   selectSearch(id: number | null): void {
+    this.showEverySearch = id === null;
     this.selectedSearchId = id;
     this.highlightedApartmentId = null;
     this.syncUrl();
@@ -571,6 +644,29 @@ export class Discover implements OnInit, OnDestroy {
     const target = () => document.getElementById('searches-title');
     if (!target()) this.setTab('all');
     setTimeout(() => target()?.scrollIntoView({ behavior: 'smooth', block: 'start' }), target() ? 0 : 120);
+  }
+
+  /** The same character on every saved-search card. */
+  readonly searchCardCharacter: HomeMatchProfile = {
+    ...EMPTY_HOME_MATCH_PROFILE,
+    gender: 'Female',
+    householdType: 'Couple',
+    adults: 2,
+    petTypes: [],
+    petType: 'None',
+    hasPet: false,
+    lifestyles: [],
+  };
+
+  /**
+   * Card title from the search's answers (areas, then Rent/Buy), each piece in its own
+   * element so the site translation shows them all in the visitor's language. The stored
+   * name was saved in whatever language was active then ("ვაკე · Rent" next to "Vake · Rent").
+   */
+  searchTitleParts(profile: HomeMatchProfile): string[] {
+    const areas = (profile.districts || []).filter((d) => d !== 'SelectOnMap').map((d) => answerLabel(d));
+    const where = areas.length ? areas : [profile.selectedMapArea ? 'Selected map area' : 'Flexible location'];
+    return [...where, profile.propertyGoal === 'Buy' ? 'Buy' : 'Rent'];
   }
 
   goalLabel(profile: HomeMatchProfile): string {

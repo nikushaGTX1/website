@@ -105,6 +105,9 @@ type UploadForm = {
   hasAirConditioning: boolean;
   hasDishwasher: boolean;
   isPetFriendly: boolean;
+  /** When pet friendly: which pets (Dog, Cat) and which sizes (Small, Medium, Large) are allowed. */
+  petKinds: string[];
+  petSizes: string[];
   hasHomeOfficeSpace: boolean;
   hasLargeKitchen: boolean;
   hasView: boolean;
@@ -226,6 +229,20 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     const card = scroller?.children[this.planIndex + direction] as HTMLElement | undefined;
     if (!scroller || !card) return;
     scroller.scrollTo({ left: card.offsetLeft - scroller.offsetLeft, behavior: 'smooth' });
+  }
+
+  readonly petKindOptions = [
+    { value: 'Dog', label: 'Dog', icon: 'fa-solid fa-dog' },
+    { value: 'Cat', label: 'Cat', icon: 'fa-solid fa-cat' },
+  ];
+  readonly petSizeOptions = [
+    { value: 'Small', label: 'Small' },
+    { value: 'Medium', label: 'Medium' },
+    { value: 'Large', label: 'Large' },
+  ];
+  togglePetOption(list: 'petKinds' | 'petSizes', value: string): void {
+    const current = this.form[list];
+    this.form[list] = current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
   }
 
   readonly maxImages = 15;
@@ -426,6 +443,8 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     hasAirConditioning: false,
     hasDishwasher: false,
     isPetFriendly: false,
+    petKinds: [],
+    petSizes: [],
     hasHomeOfficeSpace: false,
     hasLargeKitchen: false,
     hasView: false,
@@ -444,7 +463,8 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     hasIsolatedBedrooms: false,
     isAwayFromNightlife: false,
     hasCompanyLease: false,
-    apartmentStyle: 'Modern',
+    // No preselected style: the agent must pick Modern, Vintage or Other on purpose.
+    apartmentStyle: '',
     imageUrl: '',
     imageUrls: [],
     contactName: '',
@@ -852,6 +872,8 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     f.realEstateType = tag('Type') || f.realEstateType;
     f.dealType = tag('Deal') || f.dealType;
     f.buildingStatus = tag('Status') || f.buildingStatus;
+    f.petKinds = tag('Pets allowed').split(',').map((item) => item.trim()).filter((item) => ['Dog', 'Cat'].includes(item));
+    f.petSizes = tag('Pet sizes').split(',').map((item) => item.trim()).filter((item) => ['Small', 'Medium', 'Large'].includes(item));
     f.condition = tag('Condition') || source.condition || f.condition;
     this.selectedListingPlan = /Basic/i.test(tag('Listing plan')) ? 'basic' : 'exclusive';
     f.area = num(source.sizeSquareMeters) ?? num(tag('Area').replace(/[^0-9.]/g, ''));
@@ -2368,6 +2390,14 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
         'მიუთითეთ მესაკუთრის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.',
         'Укажите корректный телефон собственника, например 555 12 34 56.',
       );
+    if (!this.form.apartmentStyle)
+      add(
+        'apartmentStyle',
+        2,
+        'Choose the apartment style (Modern, Vintage or Other).',
+        'აირჩიეთ ბინის სტილი (თანამედროვე, ვინტაჟური ან სხვა).',
+        'Выберите стиль квартиры (современный, винтажный или другой).',
+      );
     if (!this.isOwnerUpload && !this.form.agentName.trim())
       add(
         'agentName',
@@ -2570,6 +2600,8 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
       this.form.bathrooms ? `Bathrooms: ${this.form.bathrooms}` : '',
       this.form.floor ? `Floor: ${this.form.floor}/${this.form.totalFloors || '?'}` : '',
       `Currency: ${this.form.currency}`,
+      this.form.isPetFriendly && this.form.petKinds.length ? `Pets allowed: ${this.form.petKinds.join(', ')}` : '',
+      this.form.isPetFriendly && this.form.petSizes.length ? `Pet sizes: ${this.form.petSizes.join(', ')}` : '',
       this.form.sqPrice ? `Sq. price: ${this.form.sqPrice}` : '',
       this.form.exchangePossible ? 'Exchange possible' : '',
       this.form.hasParking && this.form.parkingCondition

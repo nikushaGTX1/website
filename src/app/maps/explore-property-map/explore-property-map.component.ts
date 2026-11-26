@@ -416,14 +416,30 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
   /** True when a cluster cannot be separated by zooming: same coordinates or the same building. */
   private isSameBuilding(clusterId: number): boolean {
     if (!this.index) return false;
-    if (this.index.getClusterExpansionZoom(clusterId) > 20) return true;
     const leaves = this.index.getLeaves(clusterId, 60);
+    // Homes at one spot are only "one building" when the listings agree: same number of
+    // floors and the same street and building number where they are given.
+    if (!this.listingsAgreeOnBuilding(leaves)) return false;
+    if (this.index.getClusterExpansionZoom(clusterId) > 20) return true;
     if (leaves.length < 2) return false;
     const [firstLng, firstLat] = leaves[0].geometry.coordinates;
     return leaves.every((leaf) => {
       const [lng, lat] = leaf.geometry.coordinates;
       return this.distanceMeters(firstLat, firstLng, lat, lng) <= SAME_BUILDING_METERS;
     });
+  }
+
+  private listingsAgreeOnBuilding(leaves: Array<{ properties: { id?: number } }>): boolean {
+    const homes = leaves
+      .map((leaf) => (leaf.properties.id !== undefined ? this.pointById(leaf.properties.id)?.apartment : undefined))
+      .filter((home): home is NonNullable<typeof home> => !!home);
+    const distinct = (values: Array<string | number | null | undefined>) =>
+      new Set(values.filter((value) => value !== null && value !== undefined && value !== '' && value !== 0).map((value) => String(value).trim().toLowerCase())).size;
+    return (
+      distinct(homes.map((home) => home.totalFloors)) <= 1 &&
+      distinct(homes.map((home) => home.buildingNumber)) <= 1 &&
+      distinct(homes.map((home) => home.street)) <= 1
+    );
   }
 
   private distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {

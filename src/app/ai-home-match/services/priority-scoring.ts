@@ -2,6 +2,7 @@ import { normalizeApartmentStyle } from '../../utils/apartment-style';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchApartment, HomeMatchResult } from '../models/home-match-result';
 import { listedUniversityMinutes } from '../../utils/universities';
+import { budgetRangeUsd } from './mandatory-requirements';
 
 const PRIORITY_MULTIPLIERS = [5, 4, 3, 2, 1] as const;
 const PRIORITY_LABELS: Record<string, string> = {
@@ -182,8 +183,9 @@ export function scorePriority(priority: string, apartment: HomeMatchApartment, p
     case 'OfficeNearby': {
       const minutes = walkingMinutesTo(apartment, profile.proximityLatitude, profile.proximityLongitude);
       if (minutes !== undefined) return walkingDistanceScore(minutes);
-      const district = (apartment.district || apartment.address || '').toLowerCase();
-      return profile.districts.some((d) => district.includes(d.toLowerCase())) ? 5 : 0;
+      // No pinned place: no points. Being in the chosen district is already a hard filter and
+      // must not count again as "near the place you chose".
+      return 0;
     }
   }
   const field = DISTANCE_FIELDS[priority];
@@ -222,7 +224,7 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
     const style = normalizeApartmentStyle(apartment.apartmentStyle);
     if (style) points += style === profile.apartmentStyle ? 8 : -4;
   }
-  if (profile.hasPet) points += apartment.isPetFriendly || hasTag(apartment, 'Pet friendly') ? 8 : -12;
+  // Pets are a hard filter (mandatory-requirements.ts), not a ranking factor.
   if (profile.transportation.includes('Car')) points += parkingScore(apartment) >= 3 ? 6 : parkingScore(apartment) === 0 ? -6 : 0;
   // Electric car owners: an EV charger within a 10-minute walk earns 3 points.
   if (
@@ -274,6 +276,31 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
   return points;
 }
 
+/**
+ * Value for money inside the client's budget: a home well under the maximum earns points,
+ * one at the very top earns few. Two homes that fit equally well are then ordered so the
+ * cheaper one wins (#762 at $1,200 over #696 at $1,800 with the same fit).
+ *   price <= 60% of max: +15 · <= 75%: +11 · <= 90%: +6 · <= 100%: +2 · above max: -10
+ */
+export function valueScore(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
+  const price = Number(apartment.price);
+  const { max } = budgetRangeUsd(profile);
+  if (!price || !max) return 0;
+  const ratio = price / max;
+  return ratio <= 0.6 ? 15 : ratio <= 0.75 ? 11 : ratio <= 0.9 ? 6 : ratio <= 1 ? 2 : -10;
+}
+
+/**
+ * Velven Match ranking. Hard filters (deal type, budget ceiling, district, bedrooms, pets,
+ * lease term) are applied before this in mandatory-requirements.ts; this only orders the
+ * homes that pass them. Every part is measurable and shows up in "Why it fits you":
+ *   priorities  top-5 answers, walking-distance score 0-5 x weight 5/4/3/2/1   (0-75)
+ *   coverage    +3/+6/+10/+15 when 2/3/4/5 priorities are met                   (0-15)
+ *   lifestyle   lifestyle, car/parking, metro, style, household space, half weight (about -15..+20)
+ *   value       price against the budget maximum (valueScore)                   (-10..+15)
+ *   base        the API's general fit score, at a quarter weight so it cannot
+ *               outweigh the client's own priorities                             (0-25)
+ */
 export function applyPriorityScoring(result: HomeMatchResult, profile: HomeMatchProfile): HomeMatchResult {
   const rawScores = profile.topPriorities.slice(0, 5).map((priority) =>
     priority === 'UniversityNearby' && !profile.transportation.includes('Walking')
@@ -286,7 +313,9 @@ export function applyPriorityScoring(result: HomeMatchResult, profile: HomeMatch
   );
   const satisfied = rawScores.filter((score) => score > 0).length;
   const coverageBonus = satisfied === 5 ? 15 : satisfied === 4 ? 10 : satisfied === 3 ? 6 : satisfied === 2 ? 3 : 0;
-  const priorityScore = weightedScore + coverageBonus + lifestyleAdjustment(result.apartment, profile);
+  const value = valueScore(result.apartment, profile);
+  // The client's top-5 priorities lead; lifestyle answers only fine-tune (half weight).
+  const priorityScore = weightedScore + coverageBonus + Math.round(lifestyleAdjustment(result.apartment, profile) * 0.5) + value;
   const priorityBreakdown = profile.topPriorities.slice(0, 5).map((priority, index) => ({
     priority: PRIORITY_LABELS[priority] || priority.replace(/([a-z])([A-Z])/g, '$1 $2'),
     rank: index + 1,
@@ -297,7 +326,7 @@ export function applyPriorityScoring(result: HomeMatchResult, profile: HomeMatch
   return {
     ...result,
     priorityScore,
-    rankingScore: result.matchScore + priorityScore,
+    rankingScore: Math.round((result.matchScore || 0) * 0.25) + priorityScore,
     priorityBreakdown,
     priorityCoverageBonus: coverageBonus,
   };

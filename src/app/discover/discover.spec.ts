@@ -1,3 +1,4 @@
+import { ListingInterestService } from '../services/listing-interest.service';
 import '@angular/compiler';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,7 +13,7 @@ import { DestroyRef, Injector, runInInjectionContext } from '@angular/core';
 
 test('notification query changes update an already open Discover page', () => {
   const query = new BehaviorSubject(convertToParamMap({ search: '1' }));
-  const injector = Injector.create({ providers: [{ provide: DestroyRef, useValue: { onDestroy() { return () => {}; } } }] });
+  const injector = Injector.create({ providers: [{ provide: DestroyRef, useValue: { onDestroy() { return () => {}; } } }, { provide: ListingInterestService, useValue: { like: () => of(null) } }] });
   const page = runInInjectionContext(injector, () => new Discover({} as any, {} as any, {} as any,
     { favoriteIds$: of(new Set()) } as any, {} as any, {} as any,
     { queryParamMap: query } as any, {} as any, { markForCheck() {} } as any, {} as any));

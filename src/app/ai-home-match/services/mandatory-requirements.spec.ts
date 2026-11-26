@@ -53,12 +53,12 @@ test('match explanations connect confirmed pet permission and park access to the
   const p = profile({ hasPet: true, petType: 'Dog', petTypes: ['Dog'] });
   const friendly = apartment({ parkDistanceMinutes: 5 });
   const insights = explainHomeMatch(friendly, p, rates, evaluateMandatoryRequirements(friendly, p, rates));
-  assert.ok(insights.some(item => item.title === 'Pet-friendly home' && item.reason === 'dog'));
-  assert.ok(insights.some(item => item.reason === 'Great for walking your dog' && item.meta === '5 min'));
+  assert.ok(insights.some(item => item.title === 'Pet-friendly home' && item.reason === 'Your dog is welcome'));
+  assert.ok(insights.some(item => item.reason === 'To walk your dog' && item.meta === '5 min'));
 
   const unconfirmed = apartment({ isPetFriendly: false, parkDistanceMinutes: 5 });
   const otherInsights = explainHomeMatch(unconfirmed, p, rates, evaluateMandatoryRequirements(unconfirmed, p, rates));
-  assert.ok(!otherInsights.some(item => item.title === 'Pet-friendly home' || item.reason === 'Great for walking your dog'));
+  assert.ok(!otherInsights.some(item => item.title === 'Pet-friendly home' || item.reason === 'To walk your dog'));
 });
 
 // VELVEN-002: a GEL budget must be converted before comparing with USD prices.
@@ -87,11 +87,11 @@ test('VELVEN-016: $1,400 home is an exact match for a $1,300–1,500 budget', ()
 });
 
 // VELVEN-001: a dog owner never gets a not-pet-friendly home as an exact match.
-test('VELVEN-001: not-pet-friendly home is not exact for a dog owner', () => {
+test('VELVEN-001: not-pet-friendly home is excluded for a dog owner', () => {
   const p = profile({ hasPet: true, petType: 'Dog' });
   const result = evaluateMandatoryRequirements(apartment({ isPetFriendly: false }), p, rates);
-  assert.notEqual(result.status, 'exact');
-  assert.ok(result.confirmations.some((note) => note.startsWith('Pets')));
+  assert.equal(result.status, 'alternative');
+  assert.ok(result.mismatches.some((note) => note.startsWith('Pets')));
 });
 
 test('VELVEN-001: pet-friendly home stays exact for a dog owner', () => {
@@ -149,16 +149,24 @@ test('dog and cat: a "no cats" listing is prohibited', () => {
 test('large dog: "small dogs only" is prohibited, small dog is allowed', () => {
   const listing = apartment({ description: 'Small dogs only', isPetFriendly: true });
   assert.equal(petPermission(listing, ['Dog'], 'Large'), 'prohibited');
-  assert.equal(petPermission(listing, ['Dog'], 'Small'), 'allowed');
+  // No "Pet sizes" line: the size has to be confirmed with the agent.
+  assert.equal(petPermission(listing, ['Dog'], 'Small'), 'unconfirmed');
+  const sized = apartment({ description: 'Small dogs only | Pet sizes: Small', isPetFriendly: true });
+  assert.equal(petPermission(sized, ['Dog'], 'Small'), 'allowed');
 });
 
-test('unticked pet-friendly box is unconfirmed, not prohibited', () => {
+test('unticked pet-friendly box means pets are not allowed (shown as "Pets: No")', () => {
   const p = profile({ hasPet: true, petType: 'Cat', petTypes: ['Cat'] });
   const listing = apartment({ isPetFriendly: false });
-  assert.equal(petsExplicitlyProhibited(listing, p), false);
-  const result = evaluateMandatoryRequirements(listing, p, rates);
-  assert.equal(result.status, 'confirm');
-  assert.ok(result.confirmations.some((note) => note.startsWith('Pets: the listing does not confirm')));
+  assert.equal(petsExplicitlyProhibited(listing, p), true);
+  assert.equal(evaluateMandatoryRequirements(listing, p, rates).status, 'alternative');
+});
+
+test('pet type and size lines from the upload form decide who matches', () => {
+  const listing = apartment({ isPetFriendly: true, description: 'Deal: For Rent | Pets allowed: Dog | Pet sizes: Small, Medium' });
+  assert.equal(petPermission(listing, ['Dog'], 'Medium'), 'allowed');
+  assert.equal(petPermission(listing, ['Dog'], 'Large'), 'prohibited');
+  assert.equal(petPermission(listing, ['Cat']), 'prohibited');
 });
 
 test('no pets: pet rules do not apply', () => {
@@ -195,7 +203,10 @@ test('"Immediately" accepts a home that is free within the next week, not later'
   const p = profile({ moveInTiming: 'Immediately' });
   assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: inDays(1) }), p, rates).status, 'exact');
   assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: inDays(6) }), p, rates).status, 'exact');
-  assert.equal(evaluateMandatoryRequirements(apartment({ availableFrom: inDays(20) }), p, rates).status, 'alternative');
+  // Free later: still listed (not hidden), below homes that are free now, labelled with the date.
+  const later = evaluateMandatoryRequirements(apartment({ availableFrom: inDays(20) }), p, rates);
+  assert.equal(later.status, 'confirm');
+  assert.ok(later.confirmations.some((note) => note.startsWith('Available from ')));
 });
 
 test('flexible dates accept stated availability while area and occupant limits stay mandatory', () => {

@@ -147,6 +147,11 @@ export class ListingInterestService {
     return this.http.get<ListingInterest[]>(this.apiUrl);
   }
 
+  /** Client liked a home in Velven Discover: the listing's agent is notified. */
+  like(apartmentId: number, savedSearchId: number): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/like`, { apartmentId, savedSearchId });
+  }
+
   getNotifications(page = 1, pageSize = 10): Observable<ClientNotificationPage> {
     return this.http
       .get<ClientNotificationPage>(this.notificationsUrl, { params: { page, pageSize } })

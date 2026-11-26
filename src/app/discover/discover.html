@@ -109,38 +109,8 @@
             Saved <span class="count">{{ savedApartments.length }}</span>
           </button>
         </div>
-        <div class="toolbar" *ngIf="tab !== 'saved'">
-          <div class="sort-menu" [class.open]="sortOpen">
-            <button
-              type="button"
-              class="sort-trigger"
-              aria-haspopup="listbox"
-              [attr.aria-expanded]="sortOpen"
-              (click)="sortOpen = !sortOpen"
-            >
-              <i class="fa-solid fa-arrow-down-wide-short sort-icon" aria-hidden="true"></i>
-              <span class="sort-text">
-                <small>Sort by</small>
-                <b>{{ sortLabel }}</b>
-              </span>
-              <i class="fa-solid fa-chevron-down sort-chevron" aria-hidden="true"></i>
-            </button>
-            <ul class="sort-options" role="listbox" aria-label="Sort by" *ngIf="sortOpen">
-              <li *ngFor="let option of sortOptions">
-                <button
-                  type="button"
-                  role="option"
-                  [class.active]="sort === option.value"
-                  [attr.aria-selected]="sort === option.value"
-                  (click)="chooseSort(option.value)"
-                >
-                  <i [class]="option.icon" aria-hidden="true"></i>
-                  <span>{{ option.label }}</span>
-                  <i class="fa-solid fa-check sort-check" *ngIf="sort === option.value" aria-hidden="true"></i>
-                </button>
-              </li>
-            </ul>
-          </div>
+        <!-- Sorting removed (client request): results always use Velven Match order. -->
+        <div class="toolbar" *ngIf="tab === 'new' && unseenCount">
           <button type="button" class="link-btn" *ngIf="tab === 'new' && unseenCount" (click)="markAllSeen()">Mark all as seen</button>
         </div>
       </div>
@@ -173,6 +143,7 @@
               [isNew]="item.isNew"
               [rank]="null"
               [needsCheck]="item.needsCheck"
+              [availableFrom]="item.availableFrom || ''"
               [highlighted]="highlightedApartmentId === item.apartment.id"
               [searchName]="searchName(item)"
               [reasons]="item.reasons"
@@ -180,6 +151,10 @@
               [searchId]="item.searchId"
               (opened)="onOpened($event)"
               (notForMe)="onNotForMe($event)"
+              (like)="onLike(item)"
+              [liked]="liked.has(item.apartment.id)"
+              [disliked]="notForMe.has(item.apartment.id)"
+              [likePop]="likePopId === item.apartment.id"
             ></app-discover-card>
           </div>
           <div class="state-card soft" *ngIf="!newItems.length && !hasFailedSearch">
@@ -201,6 +176,7 @@
               [isNew]="item.isNew"
               [rank]="sort === 'best' ? i + 1 : null"
               [needsCheck]="item.needsCheck"
+              [availableFrom]="item.availableFrom || ''"
               [highlighted]="highlightedApartmentId === item.apartment.id"
               [searchName]="searchName(item)"
               [reasons]="item.reasons"
@@ -208,6 +184,10 @@
               [searchId]="item.searchId"
               (opened)="onOpened($event)"
               (notForMe)="onNotForMe($event)"
+              (like)="onLike(item)"
+              [liked]="liked.has(item.apartment.id)"
+              [disliked]="notForMe.has(item.apartment.id)"
+              [likePop]="likePopId === item.apartment.id"
             ></app-discover-card>
           </div>
           <div class="state-card soft" *ngIf="!allItems.length && !hasFailedSearch">
@@ -261,6 +241,7 @@
                 [rank]="null"
                 [matched]="true"
                 [needsCheck]="match.needsCheck"
+                [availableFrom]="match.availableFrom || ''"
                 [reasons]="match.reasons"
                 [searchId]="match.searchId"
                 (opened)="onOpened($event)"
@@ -291,9 +272,10 @@
           *ngFor="let view of searches; trackBy: trackSearch"
           [class.selected]="selectedSearchId === view.search.id"
         >
-          <div class="search-hero" [class.with-character]="view.search.profile.gender">
-          <div class="search-character" *ngIf="view.search.profile.gender" aria-hidden="true">
-            <app-velven-lifestyle-avatar [profile]="view.search.profile"></app-velven-lifestyle-avatar>
+          <div class="search-hero with-character">
+          <!-- One fixed Velven character on every search card (not one per search). -->
+          <div class="search-character" aria-hidden="true">
+            <app-velven-lifestyle-avatar [profile]="searchCardCharacter"></app-velven-lifestyle-avatar>
           </div>
           <div class="search-hero-text">
           <button
@@ -311,7 +293,7 @@
           </button>
 
           <div class="search-title">
-            <h3>{{ view.search.name }}</h3>
+            <h3>@for (part of searchTitleParts(view.search.profile); track $index) {@if ($index) {<span>{{ $last ? ' · ' : ', ' }}</span>}<span>{{ part }}</span>}</h3>
             <button type="button" class="icon-btn" aria-label="Edit preferences" title="Edit preferences" (click)="editPreferences(view.search)">
               <i class="fa-solid fa-pen" aria-hidden="true"></i>
             </button>

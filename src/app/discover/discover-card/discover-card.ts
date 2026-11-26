@@ -23,7 +23,7 @@ interface AgentContact { photo: string; phone: string }
 let agentPhotos$: Observable<Map<string, AgentContact>> | undefined;
 
 /** One line under "Why it fits": lead and tail are numbers/dates kept out of translation. */
-export interface FitLine { lead?: string; text: string; tail?: string }
+export interface FitLine { lead?: string; text: string; tail?: string; /** Why it matters to this client ("To walk your dog"). */ why?: string }
 
 /** A listing card in Velven Discover, styled like the Saved Listings cards. */
 @Component({
@@ -40,6 +40,8 @@ export class DiscoverCard implements OnInit {
   @Input() rank: number | null = null;
   /** Nothing fails, but something still needs confirming with the agent (e.g. pets). */
   @Input() needsCheck = false;
+  /** Shown when the home is not free by the client's move-in date ("18 December"). */
+  @Input() availableFrom = '';
   /** Opened from an alert: briefly outlined so it is easy to find. */
   @Input() highlighted = false;
   /** Name of the saved search it matches, when the list shows several searches. */
@@ -54,8 +56,14 @@ export class DiscoverCard implements OnInit {
   /** Small card (property page suggestions): photo, price, title, specs and a link only. */
   @Input() compact = false;
   @Output() opened = new EventEmitter<Apartment>();
-  /** Client tapped "Not for me": the list hides this home. */
+  /** Client tapped "Don't like": the home moves lower in this search (not removed). */
   @Output() notForMe = new EventEmitter<Apartment>();
+  /** Client tapped "Like": the agent is notified. */
+  @Output() like = new EventEmitter<Apartment>();
+  @Input() liked = false;
+  @Input() disliked = false;
+  /** Short lift animation right after a like. */
+  @Input() likePop = false;
 
   agentPhoto = '';
   /** Phone from the agent's Velven profile, used when the listing has none. */
@@ -121,6 +129,7 @@ export class DiscoverCard implements OnInit {
       return this.reasons.slice(0, 3).map((item) => ({
         text: item.title,
         tail: item.meta ? '· ' + item.meta.replace('min', unit) : undefined,
+        why: item.reason && item.reason !== 'One of your top priorities' ? item.reason : undefined,
       }));
     }
     if (!this.matched && a.isFurnished) lines.push({ text: 'Furnished, with appliances' });
@@ -187,9 +196,17 @@ export class DiscoverCard implements OnInit {
     return cost === "Building parking" ? "" : cost;
   }
 
+  /**
+   * What parking there is ("Garage · Extra $300", "Private courtyard parking · Free",
+   * "Street parking"). Never "Not included": with no parking info the row is hidden.
+   */
   get parkingText(): string {
-    if (!this.apartment.hasParking) return 'Not included';
-    return parkingCostLabel(this.apartment) || 'Included';
+    if (!this.apartment.hasParking) return this.parkingType === 'Street parking' ? 'Street parking' : '';
+    return parkingCostLabel(this.apartment) || 'Available';
+  }
+
+  get showParking(): boolean {
+    return !!(this.parkingType || this.parkingText);
   }
 
   toggleFavorite(event: Event): void {

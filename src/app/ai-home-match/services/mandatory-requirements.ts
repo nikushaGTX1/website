@@ -183,10 +183,54 @@ function requestedMoveInDate(profile: HomeMatchProfile): string | null {
   }
 }
 
+const MONTHS: Record<string, number> = {
+  january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+  jan: 1, feb: 2, mar: 3, apr: 4, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12,
+  იანვ: 1, თებერვ: 2, მარტ: 3, აპრილ: 4, მაის: 5, ივნის: 6, ივლის: 7, აგვისტ: 8, სექტემბ: 9, ოქტომბ: 10, ნოემბ: 11, დეკემბ: 12,
+};
+
+/**
+ * When the home is free (yyyy-mm-dd): the listing's date field, else the upload form's
+ * "Available from:" tag, else a date written in the description ("free from 18 December",
+ * "18 დეკემბრიდან"). Null when nothing says, which counts as available now.
+ */
+export function listingAvailableFrom(apartment: HomeMatchApartment): string | null {
+  const field = apartment.availableFrom?.trim();
+  if (field) return field.slice(0, 10);
+  const text = `${apartment.description || ''}`;
+  const tag = text.match(/(?:^|[|\r\n])\s*Available from:\s*(\d{4}-\d{2}-\d{2})/i)?.[1];
+  if (tag) return tag;
+  const written =
+    text.match(/(?:available|free|vacant)\s+(?:from|after|since)\s+(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?([a-z]+)/i) ||
+    text.match(/(\d{1,2})\s+(იანვ|თებერვ|მარტ|აპრილ|მაის|ივნის|ივლის|აგვისტ|სექტემბ|ოქტომბ|ნოემბ|დეკემბ)\S*\s*(?:დან|-დან)/);
+  if (!written) return null;
+  const day = Number(written[1]);
+  const key = Object.keys(MONTHS).find((name) => written[2].toLowerCase().startsWith(name));
+  if (!key || day < 1 || day > 31) return null;
+  const month = MONTHS[key];
+  const now = new Date();
+  // A month already past this year means next year.
+  const year = month < now.getMonth() + 1 ? now.getFullYear() + 1 : now.getFullYear();
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/** "18 December" for labels. */
+export function availableFromLabel(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? isoDate : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+}
+
+/** Not free by the client's move-in date: shown after homes that are, the soonest first. */
+export function availabilityRank(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
+  if (checkAvailability(apartment, profile) !== 'fail') return 0;
+  const from = listingAvailableFrom(apartment);
+  return from ? new Date(`${from}T00:00:00`).getTime() : Number.MAX_SAFE_INTEGER;
+}
+
 function checkAvailability(apartment: HomeMatchApartment, profile: HomeMatchProfile): Check {
   if (profile.propertyGoal !== 'Rent') return 'pass';
   if (profile.moveInTiming === 'Flexible') return 'pass';
-  const availableFrom = apartment.availableFrom?.trim();
+  const availableFrom = listingAvailableFrom(apartment);
   if (!availableFrom) return 'pass'; // no stated availability date: assumed available now
   const requested = requestedMoveInDate(profile);
   if (!requested) return 'unknown';
@@ -291,6 +335,7 @@ export function compareMatchOrder(
     group(a.status) - group(b.status) ||
     locationRank(a.apartment, profile) - locationRank(b.apartment, profile) ||
     petConfirmationRank(a.apartment, profile) - petConfirmationRank(b.apartment, profile) ||
+    availabilityRank(a.apartment, profile) - availabilityRank(b.apartment, profile) ||
     b.score - a.score
   );
 }
@@ -301,7 +346,37 @@ export function compareMatchOrder(
  */
 export function locationRank(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
   const check = checkLocation(apartment, { ...profile, locationFlexible: false });
-  return check === 'pass' ? 0 : check === 'unknown' ? 1 : 2;
+  if (check === 'pass') return 0;
+  if (check === 'unknown') return 1;
+  // Outside the chosen districts: the closer to them, the higher (Didube first, then
+  // Saburtalo before Lisi), not in an arbitrary order.
+  const km = distanceToChosenDistricts(apartment, profile);
+  return 2 + (km === undefined ? 0.99 : Math.min(km, 98) / 100);
+}
+
+/** Approximate centres of Tbilisi districts (lat, lng). */
+const DISTRICT_CENTRES: Record<string, [number, number]> = {
+  vake: [41.7105, 44.7585], saburtalo: [41.7275, 44.7524], vera: [41.7085, 44.7765], mtatsminda: [41.6955, 44.7895],
+  bagebi: [41.7025, 44.7385], digomi: [41.7615, 44.7525], 'didi digomi': [41.7845, 44.7535], didube: [41.7445, 44.7795],
+  chugureti: [41.7245, 44.8015], avlabari: [41.6935, 44.8135], isani: [41.6905, 44.8315], gldani: [41.7905, 44.8125],
+  nadzaladevi: [41.7535, 44.7935], krtsanisi: [41.6735, 44.8055], vashlijvari: [41.7315, 44.7395], sololaki: [41.6915, 44.7985],
+  samgori: [41.6925, 44.8645], ortachala: [41.6815, 44.8215], lisi: [41.7395, 44.7215], nutsubidze: [41.7215, 44.7305],
+};
+
+function distanceToChosenDistricts(apartment: HomeMatchApartment, profile: HomeMatchProfile): number | undefined {
+  const lat = Number(apartment.propertyLatitude ?? apartment.latitude);
+  const lng = Number(apartment.propertyLongitude ?? apartment.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || (!lat && !lng)) return undefined;
+  const centres = profile.districts
+    .filter((d) => d !== 'SelectOnMap')
+    .map((d) => DISTRICT_CENTRES[normalizeProfileDistrict(d).replace(/dighomi/g, 'digomi')] || DISTRICT_CENTRES[d.toLowerCase()])
+    .filter((c): c is [number, number] => !!c);
+  if (!centres.length) return undefined;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  return Math.min(...centres.map(([cLat, cLng]) => {
+    const h = Math.sin(rad(cLat - lat) / 2) ** 2 + Math.cos(rad(lat)) * Math.cos(rad(cLat)) * Math.sin(rad(cLng - lng) / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }));
 }
 
 export function petConfirmationRank(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
@@ -332,7 +407,28 @@ export function petPermission(apartment: HomeMatchApartment, pets: PetKind[], do
     if (dogSize === 'Large' && NO_LARGE_DOGS.test(text)) return 'prohibited';
   }
   if (pets.includes('Cat') && NO_CATS.test(text)) return 'prohibited';
-  return apartment.isPetFriendly === true || PETS_ALLOWED.test(text) ? 'allowed' : 'unconfirmed';
+  const saysAllowed = apartment.isPetFriendly === true || PETS_ALLOWED.test(text);
+  // An unticked "Pet friendly" box is shown on the listing as "Pets: No", so it is a "no".
+  if (apartment.isPetFriendly === false && !saysAllowed) return 'prohibited';
+  if (!saysAllowed) return 'unconfirmed';
+  // The agent says which pets and sizes are welcome ("Pets allowed: Dog, Cat | Pet sizes: Small").
+  const kinds = listTag(text, 'Pets allowed');
+  const sizes = listTag(text, 'Pet sizes');
+  if (kinds.length && pets.some((pet) => (pet === 'Dog' || pet === 'Cat') && !kinds.includes(pet))) return 'prohibited';
+  if (pets.includes('Dog') && dogSize) {
+    if (sizes.length && !sizes.includes(dogSize)) return 'prohibited';
+    // Pet friendly, but the dog size accepted is not stated: ask the agent, list it last.
+    if (!sizes.length) return 'unconfirmed';
+  }
+  if (pets.includes('Other') && !kinds.length) return 'unconfirmed';
+  return 'allowed';
+}
+
+/** "Pets allowed: Dog, Cat" style tag from the upload form, as a list. */
+function listTag(text: string, name: string): string[] {
+  const match = text.match(new RegExp('(?:^|[|\\r\\n])\\s*' + name + ':\\s*([^|\\r\\n]+)', 'i'));
+  return (match?.[1] || '').split(',').map((item) => item.trim()).filter(Boolean)
+    .map((item) => item.charAt(0).toUpperCase() + item.slice(1).toLowerCase());
 }
 
 /** Hard filter: the listing's deal type ("Deal: For Rent" tag, else its text) must fit Rent / Buy. */
@@ -435,9 +531,7 @@ export function evaluateMandatoryRequirements(
 
   const availability = checkAvailability(apartment, profile);
   if (availability === 'fail') {
-    mismatches.push(
-      `Availability: not free until ${apartment.availableFrom!.slice(0, 10)}, after your move-in date`,
-    );
+    confirmations.push(`Available from ${availableFromLabel(listingAvailableFrom(apartment)!)}`);
   } else if (availability === 'unknown') {
     confirmations.push('Confirm this listing is available by your move-in date');
   }
