@@ -1653,17 +1653,16 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.saveState = 'saving';
     const profile = { ...this.profile };
     const name = this.defaultSearchName();
-    // Editing replaces the old search. Without an edit id, a saved search with the same
-    // name (same places and Rent/Buy) is updated too, so the list never shows two versions.
+    // A client has one preference: finishing Velven Match again edits it, never adds a second.
+    // The API keeps only one too (POST updates the existing preference).
     const request: import('rxjs').Observable<{ id: number; name: string }> = this.editSearchId
-      ? this.clientService.updateSearch(this.editSearchId, { profile })
+      ? this.clientService.updateSearch(this.editSearchId, { profile, name })
       : this.clientService.getSearches().pipe(
           catchError(() => of([])),
           switchMap((searches) => {
-            const same = searches.find((search) => search.name.trim().toLowerCase() === name.trim().toLowerCase());
-            if (!same) return this.clientService.saveSearch(profile, name);
-            this.editSearchId = same.id;
-            return this.clientService.updateSearch(same.id, { profile });
+            if (!searches.length) return this.clientService.saveSearch(profile, name);
+            this.editSearchId = searches[0].id;
+            return this.clientService.saveSearch(profile, name);
           }),
         );
     request.subscribe({

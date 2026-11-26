@@ -264,7 +264,7 @@
     <section class="searches" aria-labelledby="searches-title" *ngIf="searches.length">
       <div class="section-head">
         <h2 id="searches-title">My preferences</h2>
-        <button type="button" class="link-btn" *ngIf="selectedSearchId" (click)="selectSearch(null)">Show all searches</button>
+        <button type="button" class="link-btn" *ngIf="selectedSearchId && searches.length > 1" (click)="selectSearch(null)">Show all searches</button>
       </div>
       <div class="search-list">
         <article
@@ -273,9 +273,9 @@
           [class.selected]="selectedSearchId === view.search.id"
         >
           <div class="search-hero with-character">
-          <!-- One fixed Velven character on every search card (not one per search). -->
+          <!-- The client's own household from this search: people, children and pets they chose. -->
           <div class="search-character" aria-hidden="true">
-            <app-velven-lifestyle-avatar [profile]="searchCardCharacter"></app-velven-lifestyle-avatar>
+            <app-velven-lifestyle-avatar [profile]="characterFor(view.search.profile)"></app-velven-lifestyle-avatar>
           </div>
           <div class="search-hero-text">
           <button
@@ -307,7 +307,7 @@
             <li><i class="fa-solid fa-bed" aria-hidden="true"></i><span>{{ bedroomsText(view.search.profile) }}</span></li>
           </ul>
           <div class="search-chips" *ngIf="preferenceChips(view.search.profile).length">
-            <span *ngFor="let chip of preferenceChips(view.search.profile)">{{ chip }}</span>
+            <span *ngFor="let chip of preferenceChips(view.search.profile)"><i class="fa-solid {{ chip.icon }}" aria-hidden="true"></i>{{ chip.label }}</span>
           </div>
           <p class="search-updated">Last updated <span data-no-translate>{{ relativeTime(view.search.updatedAt) }}</span></p>
           <p *ngIf="view.failed" role="alert">Could not load matches. <button type="button" class="text-btn" (click)="load()">Try again</button></p>

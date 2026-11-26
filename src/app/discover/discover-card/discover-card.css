@@ -599,3 +599,18 @@ h3 {
 /* Heart button: icon exactly in the middle */
 .card-heart { display: grid !important; place-items: center !important; padding: 0 !important; line-height: 1 !important; }
 .card-heart i, .card-heart svg { display: block; margin: 0 !important; }
+
+/* Free-from date: same look as the parking row; the two share one box. */
+.available-row:has(+ .parking) { margin-bottom: 0; border-radius: 10px 10px 0 0; padding-bottom: 4px; }
+.available-row + .parking { margin-top: 0; border-radius: 0 0 10px 10px; padding-top: 4px; }
+
+/* Like / Don't like: one centred two-part bar under "View details". */
+.card-foot .react { flex: 1 1 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 4px; border: 1px solid #ebe5f4; border-radius: 14px; overflow: hidden; background: #faf8fd; }
+.card-foot .react-btn { justify-content: center; height: 44px; padding: 0 10px; border: 0; border-radius: 0; background: transparent; font-size: 13.5px; }
+.card-foot .react-btn + .react-btn { border-left: 1px solid #ebe5f4; }
+.card-foot .react-btn i { font-size: 15px; }
+.card-foot .react-btn:hover { background: #f2edfa; color: #451a8f; }
+.card-foot .react-btn:active { transform: none; background: #ebe3f8; }
+.card-foot .react-btn.like.on { background: #451a8f; color: #fff; }
+.card-foot .react-btn.dislike.on { background: #eeebf2; color: #3d3650; }
+.card-foot .react-btn:focus-visible { outline: 2px solid #7c4ddb; outline-offset: -2px; }

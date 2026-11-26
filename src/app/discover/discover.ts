@@ -691,14 +691,32 @@ export class Discover implements OnInit, OnDestroy {
     return bedroomsLabel(profile);
   }
 
-  /** Up to three of the most telling extra answers (pets, lifestyle, top priority). */
-  preferenceChips(profile: HomeMatchProfile): string[] {
-    const chips: string[] = [];
-    const pets = profile.propertyGoal === 'Rent' ? selectedPets(profile) : [];
-    if (pets.length) chips.push(answerList(pets));
-    for (const lifestyle of profile.lifestyles || []) chips.push(answerLabel(lifestyle));
-    for (const priority of profile.topPriorities || []) chips.push(answerLabel(priority));
-    return [...new Set(chips)].slice(0, 3);
+  /** Character for a search card: the household the client chose, else the default couple. */
+  characterFor(profile: HomeMatchProfile): HomeMatchProfile {
+    return profile?.gender ? profile : this.searchCardCharacter;
+  }
+
+  /**
+   * Every extra answer the client gave in Velven Match, each as one chip with an icon:
+   * household, pets, lifestyle, transport, priorities, lease, move-in, style.
+   * (Location, budget and bedrooms already have their own rows above.)
+   */
+  preferenceChips(profile: HomeMatchProfile): Array<{ icon: string; label: string }> {
+    const chips: Array<{ icon: string; label: string }> = [];
+    const add = (icon: string, label: string | undefined | null) => {
+      if (label && !chips.some((chip) => chip.label === label)) chips.push({ icon, label });
+    };
+    if (profile.householdType) add('fa-user-group', answerLabel(profile.householdType));
+    for (const pet of selectedPets(profile)) add(pet === 'Cat' ? 'fa-cat' : pet === 'Dog' ? 'fa-dog' : 'fa-paw', answerLabel(pet));
+    for (const lifestyle of profile.lifestyles || []) add('fa-heart', answerLabel(lifestyle));
+    for (const way of profile.transportation || []) add(way === 'Car' ? 'fa-car' : way === 'Metro' ? 'fa-train-subway' : 'fa-person-walking', answerLabel(way));
+    if (profile.carFuelType === 'Electric') add('fa-charging-station', answerLabel('Electric'));
+    for (const priority of profile.topPriorities || []) add('fa-star', answerLabel(priority));
+    if (profile.propertyGoal === 'Rent' && profile.rentalDuration) add('fa-file-signature', answerLabel(profile.rentalDuration));
+    const timing = profile.propertyGoal === 'Buy' ? profile.purchaseTiming : profile.moveInTiming;
+    if (timing) add('fa-calendar', timing === 'SpecificDate' && profile.moveInDate ? profile.moveInDate : answerLabel(timing));
+    if (profile.apartmentStyle && profile.apartmentStyle !== 'Other') add('fa-couch', profile.apartmentStyle);
+    return chips;
   }
 
   /** "5 minutes ago" / "2 days ago" in the page language. */

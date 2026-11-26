@@ -1370,3 +1370,9 @@
 .toolbar { display: flex; justify-content: flex-end; }
 .toolbar .link-btn { white-space: nowrap; }
 @media (max-width: 640px) { .toolbar { justify-content: flex-start; margin-top: 4px; } }
+
+/* Search card answers: every choice from Velven Match, icon + label. */
+.search-card .search-chips span { display: inline-flex; align-items: center; gap: 6px; }
+.search-card .search-chips span i { font-size: 11px; opacity: 0.75; }
+.search-card .search-chips span { max-width: 100%; padding: 6px 11px; font-size: 12px; line-height: 1.3; white-space: normal; text-overflow: clip; overflow: visible; }
+.search-card .search-chips span i { flex: none; }

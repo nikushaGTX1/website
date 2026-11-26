@@ -15,7 +15,7 @@ const result = (id: number, allowed: boolean, score: number): HomeMatchResult =>
   matchScore: score,
 });
 
-test('a dog owner never gets homes that do not allow pets; unknown dog size comes last', () => {
+test('a dog owner never gets homes that do not allow pets; no size limit means any size', () => {
   const service = new HomeMatchService({} as any, { rates: { usdGel: 2.7, usdEur: .92 } } as any);
   // 7 pet-friendly homes, 9 with the "Pet friendly" box unticked (shown as "Pets: No").
   const homes = Array.from({ length: 16 }, (_, i) => result(i + 1, i < 7, i < 7 ? 30 + i : 90 + i));
@@ -29,9 +29,8 @@ test('a dog owner never gets homes that do not allow pets; unknown dog size come
   const sized = result(20, true, 10);
   sized.apartment.description += ' | Pets allowed: Dog | Pet sizes: Medium';
   const unknownSize = result(21, true, 99);
-  const ordered = service.rankMatches([unknownSize, sized], medium);
-  assert.deepEqual(ordered.map(home => home.apartment.id), [20, 21]);
-  assert.equal(evaluateMandatoryRequirements(unknownSize.apartment, medium).status, 'confirm');
+  assert.equal(service.rankMatches([unknownSize, sized], medium).length, 2);
+  assert.equal(evaluateMandatoryRequirements(unknownSize.apartment, medium).status, 'exact');
 });
 
 test('loads every response page before ranking', async () => {

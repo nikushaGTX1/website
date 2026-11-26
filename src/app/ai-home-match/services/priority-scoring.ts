@@ -3,6 +3,7 @@ import { HomeMatchProfile } from '../models/home-match-profile';
 import { HomeMatchApartment, HomeMatchResult } from '../models/home-match-result';
 import { listedUniversityMinutes } from '../../utils/universities';
 import { budgetRangeUsd } from './mandatory-requirements';
+import { parkingTypeLabel } from '../../utils/parking-cost';
 
 const PRIORITY_MULTIPLIERS = [5, 4, 3, 2, 1] as const;
 const PRIORITY_LABELS: Record<string, string> = {
@@ -76,6 +77,16 @@ export function parkingScore(apartment: HomeMatchApartment): number {
   const matchedType = Object.keys(scores).find((type) => condition.includes(type));
   if (matchedType) return scores[matchedType];
   return 0;
+}
+
+/**
+ * The home has its own parking (garage, courtyard, private spot). Street parking or
+ * "parking is difficult" is not parking that comes with the home, even with the box ticked.
+ */
+export function hasPrivateParking(apartment: HomeMatchApartment): boolean {
+  const type = parkingTypeLabel({ description: apartment.description ?? '', parkingCondition: apartment.parkingCondition ?? '' });
+  if (type === 'Street parking' || type === 'Parking is difficult') return false;
+  return !!apartment.hasParking || parkingScore(apartment) >= 3;
 }
 
 const CITY_CENTER = { lat: 41.6938, lng: 44.8015 };

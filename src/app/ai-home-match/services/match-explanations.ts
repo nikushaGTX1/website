@@ -9,7 +9,7 @@ import {
   type BudgetRates,
   type RequirementEvaluation,
 } from './mandatory-requirements';
-import { parkingScore, scorePriority, hasWorkspace, officeDistanceKm, officeDistancePoints } from './priority-scoring';
+import { hasPrivateParking, scorePriority, hasWorkspace, officeDistanceKm, officeDistancePoints } from './priority-scoring';
 import { parseParkingCost } from '../../utils/parking-cost';
 import { listedUniversityMinutes } from '../../utils/universities';
 
@@ -59,7 +59,7 @@ export function explainHomeMatch(
     return { title, reason, icon, meta: `${Math.round(value)} min` };
   };
   const parking = (reason: string): LifestyleInsight | undefined =>
-    apartment.hasParking || parkingScore(apartment) > 0
+    hasPrivateParking(apartment)
       ? {
           title: 'Parking for your car',
           reason: parseParkingCost(apartment.description || '').cost === 'Paid' ? 'Paid parking' : reason,

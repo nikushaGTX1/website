@@ -5979,3 +5979,22 @@
 .home-page .testimonials .testimonial-grid > article p strong { color: #1f1530; font-size: 15px; font-weight: 800; }
 .home-page .testimonials .testimonial-grid > article p span { color: #6b6280; font-size: 13px; font-weight: 600; }
 .home-page .testimonials .testimonial-grid > article p span i { color: #7c3aed; font-size: 12px; margin-right: 3px; }
+
+/* Velven Match banner without the family picture: copy, lifestyle flow and match card share the width. */
+@media (min-width: 651px) {
+  .ai-match {
+    grid-template-columns: minmax(220px, 0.9fr) minmax(260px, 1.6fr) minmax(220px, 0.8fr);
+    gap: clamp(16px, 2.6vw, 44px);
+    padding: 0 clamp(20px, 2.6vw, 36px);
+    background:
+      radial-gradient(circle at 46% 50%, rgba(124, 77, 219, 0.09), transparent 55%),
+      linear-gradient(110deg, #f8fbff, #eef6ff 52%, #fff);
+  }
+  .ai-copy { padding-left: 0; }
+  .ai-lifestyle-flow { justify-self: center; width: 112%; max-width: 680px; margin-inline: -6%; }
+  .ai-match-card { box-shadow: 0 10px 30px rgba(69, 26, 143, 0.08); }
+}
+@media (max-width: 650px) {
+  .ai-match { grid-template-columns: minmax(0, 1fr); padding: 24px 18px 0; }
+  .ai-copy { padding-bottom: 8px; }
+}

@@ -42,6 +42,27 @@ export class DiscoverCard implements OnInit {
   @Input() needsCheck = false;
   /** Shown when the home is not free by the client's move-in date ("18 December"). */
   @Input() availableFrom = '';
+
+  /**
+   * "Free from: 10 January" in the page language, split into label and date so the row
+   * looks like the parking row. Georgian needs the month in its "-დან" form.
+   */
+  get available(): { label: string; date: string } {
+    const [day, monthName] = this.availableFrom.trim().split(/\s+/);
+    const month = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+      .indexOf((monthName || '').toLowerCase());
+    const lang = typeof document === 'undefined' ? 'ka' : document.documentElement.lang;
+    const known = month >= 0 && /^\d+$/.test(day);
+    if (lang === 'ka') {
+      const ka = ['იანვრიდან', 'თებერვლიდან', 'მარტიდან', 'აპრილიდან', 'მაისიდან', 'ივნისიდან', 'ივლისიდან', 'აგვისტოდან', 'სექტემბრიდან', 'ოქტომბრიდან', 'ნოემბრიდან', 'დეკემბრიდან'];
+      return { label: 'თავისუფალია', date: known ? day + ' ' + ka[month] : this.availableFrom };
+    }
+    if (lang === 'ru') {
+      const ru = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+      return { label: 'Свободна', date: known ? 'с ' + day + ' ' + ru[month] : this.availableFrom };
+    }
+    return { label: 'Available', date: 'from ' + this.availableFrom };
+  }
   /** Opened from an alert: briefly outlined so it is easy to find. */
   @Input() highlighted = false;
   /** Name of the saved search it matches, when the list shows several searches. */
@@ -190,19 +211,20 @@ export class DiscoverCard implements OnInit {
     return parkingTypeLabel(this.apartment);
   }
 
-  /** Cost next to a known parking type ("Free", "Extra   get parkingText(): string {00"); "" when nothing to add. */
+  /**
+   * Price next to the parking type, only when parking costs extra ("Garage · Extra $100").
+   * Free parking shows just the type ("Garage"), never the word "Free".
+   */
   get parkingCost(): string {
-    const cost = this.apartment.hasParking ? parkingCostLabel(this.apartment) : "";
-    return cost === "Building parking" ? "" : cost;
+    const cost = this.apartment.hasParking ? parkingCostLabel(this.apartment) : '';
+    return cost === 'Building parking' || cost === 'Free' ? '' : cost;
   }
 
-  /**
-   * What parking there is ("Garage · Extra $300", "Private courtyard parking · Free",
-   * "Street parking"). Never "Not included": with no parking info the row is hidden.
-   */
+  /** Parking row text when the type is unknown ("Extra $300", "Street parking", "Available"). */
   get parkingText(): string {
     if (!this.apartment.hasParking) return this.parkingType === 'Street parking' ? 'Street parking' : '';
-    return parkingCostLabel(this.apartment) || 'Available';
+    const cost = parkingCostLabel(this.apartment);
+    return cost && cost !== 'Free' ? cost : 'Available';
   }
 
   get showParking(): boolean {

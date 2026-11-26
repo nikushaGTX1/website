@@ -149,8 +149,8 @@ test('dog and cat: a "no cats" listing is prohibited', () => {
 test('large dog: "small dogs only" is prohibited, small dog is allowed', () => {
   const listing = apartment({ description: 'Small dogs only', isPetFriendly: true });
   assert.equal(petPermission(listing, ['Dog'], 'Large'), 'prohibited');
-  // No "Pet sizes" line: the size has to be confirmed with the agent.
-  assert.equal(petPermission(listing, ['Dog'], 'Small'), 'unconfirmed');
+  // Pet friendly with no "Pet sizes" line: every size is welcome.
+  assert.equal(petPermission(listing, ['Dog'], 'Small'), 'allowed');
   const sized = apartment({ description: 'Small dogs only | Pet sizes: Small', isPetFriendly: true });
   assert.equal(petPermission(sized, ['Dog'], 'Small'), 'allowed');
 });

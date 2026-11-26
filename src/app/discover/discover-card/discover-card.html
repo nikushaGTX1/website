@@ -43,8 +43,7 @@
     </div>
 
     <div class="terms">
-      <p class="card-flag pets" *ngIf="needsCheck"><i class="fa-solid fa-paw" aria-hidden="true"></i><span>Check with the agent about pets</span></p>
-      <p class="card-flag later" *ngIf="availableFrom"><i class="fa-regular fa-calendar" aria-hidden="true"></i><span><span>Available from</span> <b data-no-translate>{{ availableFrom }}</b></span></p>
+      <p class="parking available-row" *ngIf="availableFrom" data-no-translate><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>{{ available.label }}: <b>{{ available.date }}</b></span></p>
       <p class="parking" *ngIf="showParking"><i class="fa-solid fa-car" aria-hidden="true"></i><span><span>Parking</span>: <b>{{ parkingType || parkingText }}</b><ng-container *ngIf="parkingType && parkingCost"> · <b>{{ parkingCost }}</b></ng-container></span></p>
       <!-- Kept on every card (hidden when none) so the rows stay level. -->
       <p class="deposit" [class.placeholder]="!deposit" [attr.aria-hidden]="deposit ? null : true">

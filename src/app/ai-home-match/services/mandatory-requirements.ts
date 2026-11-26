@@ -415,12 +415,8 @@ export function petPermission(apartment: HomeMatchApartment, pets: PetKind[], do
   const kinds = listTag(text, 'Pets allowed');
   const sizes = listTag(text, 'Pet sizes');
   if (kinds.length && pets.some((pet) => (pet === 'Dog' || pet === 'Cat') && !kinds.includes(pet))) return 'prohibited';
-  if (pets.includes('Dog') && dogSize) {
-    if (sizes.length && !sizes.includes(dogSize)) return 'prohibited';
-    // Pet friendly, but the dog size accepted is not stated: ask the agent, list it last.
-    if (!sizes.length) return 'unconfirmed';
-  }
-  if (pets.includes('Other') && !kinds.length) return 'unconfirmed';
+  // Pet friendly with no size limit given: every size is welcome.
+  if (pets.includes('Dog') && dogSize && sizes.length && !sizes.includes(dogSize)) return 'prohibited';
   return 'allowed';
 }
 

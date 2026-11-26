@@ -68,14 +68,13 @@ test('hard filters: no pets, wrong district, wrong dog size and over budget are 
   assert.deepEqual(ids, [1]);
 });
 
-test('ordering: confirmed pets first, unknown dog size and later availability after', () => {
+test('ordering: free now first, later availability after', () => {
   const later = new Date(); later.setDate(later.getDate() + 30);
   const ids = rank([
-    home(10, { description: 'Deal: For Rent' }), // pet friendly, size not stated
     home(11, { availableFrom: later.toISOString().slice(0, 10) }),
     home(12),
   ]);
-  assert.deepEqual(ids, [12, 11, 10]);
+  assert.deepEqual(ids, [12, 11]);
 });
 
 test('value: with the same fit, the cheaper home ranks first (#762 $1,200 over #696 $1,800)', () => {
@@ -100,4 +99,11 @@ test('explanations: priorities say why they matter, metro is included, a distric
     { ...persona, topPriorities: ['SelectedLocationNearby'], proximityTarget: 'your office', proximityLatitude: 41.7175, proximityLongitude: 44.7300 },
   );
   assert.match(pinned[0].title, /^\d+ min walk to your office$/);
+});
+
+test('street parking is not "Parking for your car"', () => {
+  const street = home(1, { hasParking: true, parkingCondition: 'StreetParking' });
+  assert.ok(!explainHomeMatch(street, persona).some((item) => item.title === 'Parking for your car'));
+  const garage = home(2, { hasParking: false, parkingCondition: 'Garage' });
+  assert.ok(explainHomeMatch(garage, persona).some((item) => item.title === 'Parking for your car'));
 });
