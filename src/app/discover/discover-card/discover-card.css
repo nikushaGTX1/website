@@ -614,3 +614,7 @@ h3 {
 .card-foot .react-btn.like.on { background: #451a8f; color: #fff; }
 .card-foot .react-btn.dislike.on { background: #eeebf2; color: #3d3650; }
 .card-foot .react-btn:focus-visible { outline: 2px solid #7c4ddb; outline-offset: -2px; }
+
+/* "Don't like" pressed: solid dark grey, clearly different from a card nobody reacted to. */
+.card-foot .react-btn.dislike.on { background: #3f3a4a; color: #fff; }
+.card-foot .react-btn.dislike.on:hover { background: #2f2b38; color: #fff; }

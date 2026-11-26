@@ -106,8 +106,8 @@ test('VELVEN-028: Vake home is an alternative when Saburtalo was chosen', () => 
   assert.ok(result.mismatches.some((note) => note.startsWith('Location')));
 });
 
-// Rental tolerance: none up to $1,000; above that, up to 25% over the maximum.
-for (const [max, ceiling] of [[1000, 1000], [1001, 1251.25], [1400, 1750], [2000, 2500], [3000, 3750]]) {
+// Rental tolerance: fixed dollars above the maximum, at most $300.
+for (const [max, ceiling] of [[400, 500], [600, 750], [1000, 1200], [1400, 1650], [2000, 2250], [2450, 2750], [3000, 3300]]) {
   test(`budget $${max}: ceiling is $${ceiling}`, () => {
     assert.equal(maxRecommendedPriceUsd(max, 'Rent'), ceiling);
     const p = profile({ budgetMin: 0, budgetMax: max });
@@ -121,8 +121,9 @@ test('purchases get no tolerance', () => {
   assert.equal(withinBudgetCeiling(300001, profile({ propertyGoal: 'Buy', budgetMin: 0, budgetMax: 300000 }), rates), false);
 });
 
-test('GEL budget equal to $1,000 gets no tolerance', () => {
-  assert.equal(withinBudgetCeiling(1001, profile({ currency: 'GEL', budgetMin: 0, budgetMax: 2700 }), rates), false);
+test('GEL budget equal to $1,000 gets the $200 tolerance', () => {
+  assert.equal(withinBudgetCeiling(1200, profile({ currency: 'GEL', budgetMin: 0, budgetMax: 2700 }), rates), true);
+  assert.equal(withinBudgetCeiling(1201, profile({ currency: 'GEL', budgetMin: 0, budgetMax: 2700 }), rates), false);
 });
 
 test('over-budget rental is not exact and reports the extra monthly amount', () => {

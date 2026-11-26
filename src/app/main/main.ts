@@ -418,11 +418,18 @@ export class Main implements OnInit, OnDestroy, DoCheck {
             this.budgetCap,
             Math.max(0, Math.round(value / this.budgetStep) * this.budgetStep),
           );
-    let min = tidy(this.budgetMin);
-    let max = tidy(this.budgetMax);
-    if (min != null && max != null && min > max) [min, max] = [max, min];
-    this.budgetMin = min;
-    this.budgetMax = max;
+    // Min above max is not swapped: the visitor sees a message and fixes it.
+    this.budgetMin = tidy(this.budgetMin);
+    this.budgetMax = tidy(this.budgetMax);
+  }
+
+  /** Commercial space search: no bedrooms. */
+  get isCommercialSearch(): boolean {
+    return /^commercial place$/i.test(this.searchPropertyType);
+  }
+
+  get budgetRangeInvalid(): boolean {
+    return this.budgetMin != null && this.budgetMax != null && this.budgetMin > this.budgetMax;
   }
 
   get bedroomSummary(): string {
@@ -520,6 +527,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
 
   applyBudget(): void {
     this.finishBudgetTyping();
+    if (this.budgetRangeInvalid) return;
     this.appliedBudgetMin = this.normalizeBudget(this.budgetMin);
     this.appliedBudgetMax = this.normalizeBudget(this.budgetMax);
     this.searchBudget = this.appliedBudgetMax?.toString() || '';
@@ -554,6 +562,12 @@ export class Main implements OnInit, OnDestroy, DoCheck {
 
   selectPropertyType(value: string): void {
     this.searchPropertyType = value;
+    // Commercial spaces have no bedrooms: clear that choice (the picker is hidden too).
+    if (/^commercial place$/i.test(value)) {
+      this.searchBedrooms = '';
+      this.bedroomTouched = false;
+      this.bedroomOpen = false;
+    }
     this.propertyTypeOpen = false;
   }
 
@@ -1258,7 +1272,7 @@ export class Main implements OnInit, OnDestroy, DoCheck {
         budget: this.toUsd(this.appliedBudgetMax),
         budgetMin: this.toUsd(this.appliedBudgetMin),
         budgetCurrency: this.budgetCurrency,
-        bedrooms: this.searchBedrooms || null,
+        bedrooms: this.isCommercialSearch ? null : this.searchBedrooms || null,
       },
     });
   }

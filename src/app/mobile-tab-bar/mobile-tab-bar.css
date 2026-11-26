@@ -41,3 +41,24 @@
   }
   .upload { gap: 6px; }
 }
+
+/* Narrow phones (~340px): three equal columns that may shrink, labels wrap to two lines
+   instead of running into each other, and all three icons sit on one line. */
+@media (max-width: 760px) {
+  .tab-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 4px; align-items: start; }
+  .tab {
+    min-width: 0; justify-content: flex-start; padding: 6px 2px 2px;
+    white-space: normal; text-align: center; overflow-wrap: anywhere;
+  }
+  .tab > i, .tab > .upload-circle { flex: none; height: 34px; display: grid; place-items: center; }
+  .tab > span:last-child { max-width: 100%; line-height: 1.15; }
+}
+@media (max-width: 380px) {
+  .tab { font-size: 11px; }
+}
+@media (max-width: 760px) and (max-height: 480px) {
+  .tab-bar { align-items: center; padding: 4px 10px calc(4px + env(safe-area-inset-bottom)); }
+  .tab { flex-direction: row; justify-content: center; align-items: center; gap: 6px; min-height: 38px; padding: 0 2px; }
+  .tab > i, .tab > .upload-circle { height: 28px; font-size: 17px; }
+  .upload-circle { width: 34px; height: 28px; font-size: 14px; }
+}

@@ -42,11 +42,9 @@
       <a class="why-all" *ngIf="matched" [routerLink]="['/apartments', apartment.id]" [queryParams]="{ matchSearch: searchId }" (click)="opened.emit(apartment)">See all reasons <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </div>
 
-    <div class="terms">
+    <div class="terms" *ngIf="availableFrom || deposit">
       <p class="parking available-row" *ngIf="availableFrom" data-no-translate><i class="fa-regular fa-calendar" aria-hidden="true"></i><span>{{ available.label }}: <b>{{ available.date }}</b></span></p>
-      <p class="parking" *ngIf="showParking"><i class="fa-solid fa-car" aria-hidden="true"></i><span><span>Parking</span>: <b>{{ parkingType || parkingText }}</b><ng-container *ngIf="parkingType && parkingCost"> · <b>{{ parkingCost }}</b></ng-container></span></p>
-      <!-- Kept on every card (hidden when none) so the rows stay level. -->
-      <p class="deposit" [class.placeholder]="!deposit" [attr.aria-hidden]="deposit ? null : true">
+      <p class="deposit" *ngIf="deposit">
         <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
         <span><span>Refundable Deposit</span>:&ngsp;<b *ngIf="depositInGel" data-no-translate>₾{{ deposit | number: '1.0-0' }}</b><b *ngIf="!depositInGel"><app-currency-price [usdPrice]="deposit" [showApproximate]="false"></app-currency-price></b></span>
       </p>

@@ -102,9 +102,15 @@ function houseDriveMinutes(apartment: Apartment, key: string, driving: Record<st
   return walked > 0 && Number.isFinite(walked) ? Math.round(walked / 5) + 1 : null;
 }
 
+/** A house in town: places within this walk are shown as a walk, like on apartment cards. */
+const HOUSE_WALK_MINUTES = 15;
+
 function houseNearbyPlaces(apartment: Apartment, count: number, parkingDetail?: string): NearbyPlace[] {
   const driving = nearbyDriveMinutes(apartment);
   const drive = (key: string): string | null => {
+    const walked = Number(key === 'universityDistanceMinutes' ? listedUniversityMinutes(apartment) : apartment[key as keyof Apartment]);
+    // The metro filter and the listing page count walking minutes: the card must agree.
+    if (walked > 0 && Number.isFinite(walked) && walked <= HOUSE_WALK_MINUTES) return `${walked} min walk`;
     const minutes = houseDriveMinutes(apartment, key, driving);
     return minutes != null && minutes <= MAX_DRIVE_MINUTES ? `${minutes} min drive` : null;
   };

@@ -5998,3 +5998,71 @@
   .ai-match { grid-template-columns: minmax(0, 1fr); padding: 24px 18px 0; }
   .ai-copy { padding-bottom: 8px; }
 }
+
+.main-budget-error { margin: 8px 0 0; color: #b42318; font-size: 12.5px; font-weight: 600; }
+.main-budget-apply:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Tablet (601-900px) location window: header and actions always visible, only the middle
+   scrolls; the area list uses the full width (it used half, with an empty column beside it). */
+@media (min-width: 601px) and (max-width: 900px) {
+  .location-picker-dialog {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 20px);
+    max-height: calc(100dvh - 20px);
+    overflow: hidden;
+  }
+  .location-modal-header { flex: none; min-height: 0; padding-bottom: 14px; }
+  .location-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .location-modal-body.has-street-column { grid-template-columns: minmax(0, 1fr); }
+  .location-modal-body > * + * { border-left: 0 !important; border-top: 1px solid #eceef2; }
+  .area-picker-column { max-height: none; overflow: visible; }
+  .featured-area-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .location-map-preview { min-height: 280px; }
+  .location-modal-footer { flex: none; flex-direction: row; align-items: center; }
+}
+
+/* Phones: a short headline above the search tells new visitors what the page is for. */
+@media (max-width: 640px) {
+  .home-page > .hero .hero-copy h1 {
+    display: block !important;
+    margin: 0 0 14px;
+    font-size: clamp(22px, 6.4vw, 26px);
+    line-height: 1.2;
+  }
+  .home-page > .hero .hero-copy h1 br { display: none; }
+}
+
+/* Phones: offers swipe sideways; the next card peeks in so it is clear there are more. */
+@media (max-width: 650px) {
+  .property-grid { gap: 12px; scroll-padding-inline: 0; }
+  .property-grid > * { flex: 0 0 86% !important; max-width: 86% !important; scroll-snap-align: start !important; }
+}
+
+/* Short phone windows (~312px tall): the price filter opens full screen with its own close
+   button; the chart and fields scroll, Reset / Apply stay pinned at the bottom. */
+@media (max-width: 650px) and (max-height: 520px) {
+  .main-budget-popover {
+    top: 0 !important; right: 0 !important; bottom: 0 !important; left: 0 !important;
+    width: 100% !important; max-height: none !important; height: 100dvh;
+    transform: none !important; border-radius: 0 !important;
+    display: flex; flex-direction: column; padding: 16px 18px 0 !important; overflow-y: auto;
+  }
+  .main-budget-popover .main-budget-actions {
+    position: sticky; bottom: 0; margin-top: auto; padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    background: #fff; border-top: 1px solid #eee8f6;
+  }
+}
+@media (max-width: 650px) and (max-height: 520px) {
+  .main-budget-popover > .mobile-popover-close { display: grid !important; top: 8px !important; right: 10px !important; }
+  .main-budget-popover > h3 { margin-right: 52px !important; }
+}
+@media (max-width: 640px) {
+  .home-page > .hero .hero-copy h1 { font-size: clamp(22px, 6.4vw, 26px) !important; margin-bottom: 14px !important; }
+}

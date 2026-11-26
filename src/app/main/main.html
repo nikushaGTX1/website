@@ -169,7 +169,7 @@
           </div>
         </div>
         <label class="property-type-filter" (click)="$event.stopPropagation()">
-          <span>Property Type</span>
+          <span>Type of property</span>
           <button
             class="property-type-trigger"
             type="button"
@@ -294,15 +294,16 @@
                   (blur)="finishBudgetTyping()"
               /></label>
             </div>
+            <p class="main-budget-error" role="alert" *ngIf="budgetRangeInvalid">Minimum price cannot be more than maximum</p>
             <div class="main-budget-actions">
               <button class="main-budget-reset" type="button" (click)="resetBudget()">
                 <i class="fa-solid fa-rotate-left"></i> Reset
               </button>
-              <button class="main-budget-apply" type="button" (click)="applyBudget()">Apply</button>
+              <button class="main-budget-apply" type="button" [disabled]="budgetRangeInvalid" (click)="applyBudget()">Apply</button>
             </div>
           </div>
         </label>
-        <label class="main-bedrooms" (click)="$event.stopPropagation()">
+        <label class="main-bedrooms" *ngIf="!isCommercialSearch" (click)="$event.stopPropagation()">
           <span>Bedrooms</span>
           <button
             class="main-bedroom-trigger"
@@ -355,7 +356,7 @@
         <span class="eyebrow">Handpicked for you</span>
         <h2>Featured Properties</h2>
       </div>
-      <a routerLink="/ExploreProperty">View all properties <span>→</span></a>
+      <a routerLink="/ExploreProperty" [queryParams]="{ mode: searchMode }">View all properties <span>→</span></a>
     </div>
 
     <div class="property-grid">
@@ -371,6 +372,7 @@
         class="property-card"
         *ngFor="let apartment of topApartments; let index = index"
         [routerLink]="['/apartments', apartment.id]"
+        tabindex="-1"
       >
         <div class="property-image" data-protected-image>
           <span class="property-badge verified" *ngIf="isVerifiedListing(apartment)" title="A Velven agent has checked this property in person."
@@ -432,7 +434,7 @@
               >
             </div>
           </div>
-          <span class="view-details">View details <i class="fa-solid fa-arrow-right"></i></span>
+          <a class="view-details" [routerLink]="['/apartments', apartment.id]" (click)="$event.stopPropagation()">View details <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
       </article>
     </div>

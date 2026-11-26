@@ -75,7 +75,7 @@ test('agent languages default to Georgian, English, Russian and keep display ord
   assert.equal(languageNameList([], 'ru'), 'Грузинский, Английский, Русский');
 });
 
-test('house cards show drive times: measured when saved, else worked out from the walk', () => {
+test('house cards: a short walk stays a walk (matches the metro filter), farther places show drive time', () => {
   const house = apartment({
     description: 'Listing plan: Basic List | Type: Private house | Deal: For rent | Parking type: Garage',
     parkDistanceMinutes: 17,
@@ -85,8 +85,8 @@ test('house cards show drive times: measured when saved, else worked out from th
   });
   assert.deepEqual(cardNearbyPlaces(house).map((place) => `${place.label}: ${place.detail}`), [
     'Park: 4 min drive',
-    'Fitness: 5 min drive',
-    'Grocery: 1 min drive',
+    'Fitness: 8 min walk',
+    'Grocery: 2 min walk',
   ]);
   // "Parking type:" or "View type:" never makes a flat look like a house.
   const flat = apartment({ description: 'Type: Apartment | Parking type: Private house garage', parkDistanceMinutes: 4 });

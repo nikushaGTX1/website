@@ -194,6 +194,31 @@ const MONTHS: Record<string, number> = {
  * "Available from:" tag, else a date written in the description ("free from 18 December",
  * "18 დეკემბრიდან"). Null when nothing says, which counts as available now.
  */
+const RU_MONTHS: Record<string, number> = {
+  январ: 1, феврал: 2, март: 3, апрел: 4, ма: 5, июн: 6, июл: 7, август: 8, сентябр: 9, октябр: 10, ноябр: 11, декабр: 12,
+};
+
+/**
+ * Only a month is written ("ბინა თავისუფლდება იანვარში", "available in January",
+ * "освобождается в январе"): the home counts as free from the 1st of that month.
+ */
+function monthOnlyAvailability(text: string): string | null {
+  let month: number | undefined;
+  const ka = text.match(/(?:თავისუფლდება|გათავისუფლდება|თავისუფალი(?:ა| იქნება)|ხელმისაწვდომი(?:ა| იქნება))[^.!?\n|]{0,20}?(იანვ|თებერვ|მარტ|აპრილ|მაის|ივნის|ივლის|აგვისტ|სექტემბ|ოქტომბ|ნოემბ|დეკემბ)/)
+    || text.match(/(იანვ|თებერვ|მარტ|აპრილ|მაის|ივნის|ივლის|აგვისტ|სექტემბ|ოქტომბ|ნოემბ|დეკემბ)\S*\s+(?:თავისუფლდება|გათავისუფლდება)/);
+  if (ka) month = MONTHS[ka[1]];
+  const en = !month && text.match(/(?:available|free|vacant)\s+(?:from|in|after|since|starting)\s+(?:early\s+|mid[- ]|late\s+)?(january|february|march|april|may|june|july|august|september|october|november|december)\b/i);
+  if (en) month = MONTHS[en[1].toLowerCase()];
+  const ru = !month && text.match(/(?:освобо[жд]\S*|свободн\S*|доступн\S*)\s+(?:с|в)\s+(январ|феврал|март|апрел|ма|июн|июл|август|сентябр|октябр|ноябр|декабр)[а-яё]*/i);
+  if (ru) month = RU_MONTHS[ru[1].toLowerCase()];
+  if (!month) return null;
+  const now = new Date();
+  // This month means now; a month already past this year means next year.
+  if (month === now.getMonth() + 1) return null;
+  const year = month < now.getMonth() + 1 ? now.getFullYear() + 1 : now.getFullYear();
+  return year + '-' + String(month).padStart(2, '0') + '-01';
+}
+
 export function listingAvailableFrom(apartment: HomeMatchApartment): string | null {
   const field = apartment.availableFrom?.trim();
   if (field) return field.slice(0, 10);
@@ -203,7 +228,7 @@ export function listingAvailableFrom(apartment: HomeMatchApartment): string | nu
   const written =
     text.match(/(?:available|free|vacant)\s+(?:from|after|since)\s+(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?([a-z]+)/i) ||
     text.match(/(\d{1,2})\s+(იანვ|თებერვ|მარტ|აპრილ|მაის|ივნის|ივლის|აგვისტ|სექტემბ|ოქტომბ|ნოემბ|დეკემბ)\S*\s*(?:დან|-დან)/);
-  if (!written) return null;
+  if (!written) return monthOnlyAvailability(text);
   const day = Number(written[1]);
   const key = Object.keys(MONTHS).find((name) => written[2].toLowerCase().startsWith(name));
   if (!key || day < 1 || day > 31) return null;
@@ -249,19 +274,21 @@ export interface BudgetRates {
 export const DEFAULT_BUDGET_RATES: BudgetRates = { usdGel: 2.7, usdEur: 0.92 };
 
 /**
- * Rental budget tolerance. Up to $1,000/month nothing above the maximum is recommended;
- * above $1,000, homes up to 25% over the maximum may be shown (as over-budget options).
- * Purchases never get a tolerance. The API applies the same rule (RentalBudgetPolicy).
+ * Rental budget tolerance: a fixed number of dollars above the maximum, never more than $300.
+ *   max <= $450: +$100 · <= $750: +$150 · <= $1,200: +$200 · <= $2,000: +$250 · above: +$300
+ * (a $2,450 budget never gets a $3,000 home). Over-budget homes are shown as such, never as
+ * "within your budget". Purchases get no tolerance. The API applies the same rule (RentalBudgetPolicy).
  */
-export const RENT_TOLERANCE_THRESHOLD_USD = 1000;
-export const RENT_TOLERANCE_RATE = 0.25;
+export function rentToleranceUsd(maxUsd: number): number {
+  return maxUsd <= 450 ? 100 : maxUsd <= 750 ? 150 : maxUsd <= 1200 ? 200 : maxUsd <= 2000 ? 250 : 300;
+}
 
 /** Highest price (USD) Velven Match may recommend for a maximum budget (USD). */
 export function maxRecommendedPriceUsd(maxUsd: number, goal: HomeMatchProfile['propertyGoal']): number {
   // Cents precision, so a GEL budget converting to exactly $1,000 is not read as $1,000.0001.
   const max = Math.round(maxUsd * 100) / 100;
-  if (goal !== 'Rent' || max <= RENT_TOLERANCE_THRESHOLD_USD) return max;
-  return max * (1 + RENT_TOLERANCE_RATE);
+  if (goal !== 'Rent' || max <= 0) return max;
+  return max + rentToleranceUsd(max);
 }
 
 /** Converts an amount in the profile's currency to USD. */

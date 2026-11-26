@@ -3143,3 +3143,60 @@ svg {
 .photo-wrap .heart svg, .map-preview-heart svg {
   display: block; margin: 0 !important; width: 22px; height: 22px;
 }
+
+/* Tablet / small laptop (781-1100px): the desktop minimums (560px list + 440px map + margins)
+   are wider than the screen and cut off the map's right edge and zoom buttons. Both columns
+   shrink here, so the whole map, with its controls, stays on screen. */
+@media (min-width: 781px) and (max-width: 1100px) {
+  .explorer {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 44%);
+  }
+  .results-pane {
+    padding: 20px 16px 70px 20px;
+  }
+  .map-pane {
+    min-width: 0;
+    margin: 14px 16px 14px 4px;
+  }
+  .cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 24px 16px;
+  }
+}
+
+/* Tablet: the fixed 150px filter chips are wider than the row (centred, so both ends were
+   cut). Chips size to their text; a row that is still too wide scrolls sideways from the start. */
+@media (min-width: 781px) and (max-width: 1240px) {
+  .chip-scroll {
+    justify-content: safe center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-inline: 16px;
+  }
+  .chip-scroll > .chip,
+  .chip-scroll > .condition-filter {
+    width: auto;
+    flex: 0 0 auto;
+  }
+}
+/* The search bar may shrink below its desktop minimum so the search button stays on screen. */
+@media (min-width: 781px) and (max-width: 1100px) {
+  .search-box {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+}
+@media (min-width: 781px) and (max-width: 1100px) {
+  .search-box > .search-field {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+  .search-box > .search-submit {
+    flex: none;
+  }
+}
+
+/* Active homepage lifestyle filter ("Great views"): visible and removable. */
+.feature-pill { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 6px 12px; min-height: 0; border: 1px solid #d9cdf1; border-radius: 999px; background: #f4effc; color: #451a8f; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.feature-pill i { font-size: 12px; }
+.feature-pill:hover { background: #ebe2fa; }

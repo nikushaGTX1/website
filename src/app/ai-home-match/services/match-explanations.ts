@@ -11,6 +11,14 @@ import {
 } from './mandatory-requirements';
 import { hasPrivateParking, scorePriority, hasWorkspace, officeDistanceKm, officeDistancePoints } from './priority-scoring';
 import { parseParkingCost } from '../../utils/parking-cost';
+
+/** "Included in the price", "Extra $100" or "Paid parking"; '' when the listing does not say. */
+function parkingCostReason(apartment: HomeMatchApartment): string {
+  const { cost, price, currency } = parseParkingCost(apartment.description || '');
+  if (cost === 'Free') return 'Included in the price';
+  if (cost === 'Paid') return price == null ? 'Paid parking' : 'Extra ' + (currency === 'GEL' ? '₾' : '$') + price.toLocaleString('en-US');
+  return '';
+}
 import { listedUniversityMinutes } from '../../utils/universities';
 
 export interface LifestyleInsight {
@@ -62,7 +70,7 @@ export function explainHomeMatch(
     hasPrivateParking(apartment)
       ? {
           title: 'Parking for your car',
-          reason: parseParkingCost(apartment.description || '').cost === 'Paid' ? 'Paid parking' : reason,
+          reason: parkingCostReason(apartment) || reason,
           icon: 'fa-square-parking',
         }
       : undefined;

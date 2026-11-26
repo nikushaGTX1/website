@@ -481,8 +481,8 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     isBuilding: boolean,
     position: google.maps.LatLngLiteral,
   ): PropertyMarker {
-    // Bigger clusters get a bigger disc; 44px is the minimum comfortable touch target.
-    const size = Math.round(Math.min(66, 44 + Math.log10(Math.max(count, 1)) * 12));
+    // Compact discs that leave the map readable: 30px for a few homes, up to 40px for hundreds.
+    const size = Math.round(Math.min(40, 30 + Math.log10(Math.max(count, 1)) * 4.5));
     const wrapper = document.createElement('div');
     wrapper.style.position = 'relative';
     const button = document.createElement('button');
@@ -494,27 +494,30 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     if (isBuilding) {
       // One pill per building: building icon + the real number of listings in it.
       button.innerHTML =
-        '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="flex:none">' +
+        '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true" style="flex:none">' +
         '<path d="M6 2h12a1 1 0 0 1 1 1v18h-5v-4h-4v4H5V3a1 1 0 0 1 1-1Zm2.5 3.5v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Z"/></svg>' +
         '<span></span>';
       (button.querySelector('span') as HTMLSpanElement).textContent =
         count + (count === 1 ? ' unit' : ' units');
       Object.assign(button.style, {
         width: 'auto',
-        minWidth: '44px',
-        height: '44px',
-        padding: '0 16px',
+        minWidth: '32px',
+        height: '30px',
+        minHeight: '30px',
+        padding: '0 11px',
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '8px',
-        border: '2px solid rgba(255,255,255,.95)',
+        gap: '6px',
+        border: '1.5px solid #fff',
         borderRadius: '999px',
-        background: '#5b21d1',
+        background: '#451a8f',
         color: '#fff',
-        boxShadow: '0 8px 22px rgba(69, 26, 143, .38)',
+        boxShadow: '0 0 0 4px rgba(69, 26, 143, .14), 0 4px 12px rgba(31, 20, 61, .22)',
         fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
-        fontSize: '15px',
-        fontWeight: '800',
+        fontSize: '12.5px',
+        fontWeight: '700',
+        fontVariantNumeric: 'tabular-nums',
+        letterSpacing: '.01em',
         lineHeight: '1',
         whiteSpace: 'nowrap',
         cursor: 'pointer',
@@ -541,16 +544,27 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     Object.assign(button.style, {
       width: size + 'px',
       height: size + 'px',
+      // A perfect circle: no browser button padding, border counted inside the size.
+      padding: '0',
+      boxSizing: 'border-box',
+      aspectRatio: '1 / 1',
+      minWidth: size + 'px',
+      minHeight: size + 'px',
+      maxHeight: size + 'px',
+      flex: 'none',
       display: 'grid',
       placeItems: 'center',
-      border: '3px solid rgba(255,255,255,.95)',
-      borderRadius: isBuilding ? '14px' : '50%',
+      border: '1.5px solid #fff',
+      borderRadius: isBuilding ? '12px' : '50%',
       background: isBuilding ? '#171421' : '#451a8f',
       color: '#fff',
-      boxShadow: '0 6px 18px rgba(25, 16, 31, .32)',
+      // Thin white ring plus a soft purple halo: reads on any map colour without a heavy disc.
+      boxShadow: '0 0 0 4px rgba(69, 26, 143, .14), 0 4px 12px rgba(31, 20, 61, .22)',
       fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
-      fontSize: count > 99 ? '14px' : '16px',
-      fontWeight: '800',
+      fontSize: count > 99 ? '12px' : '13px',
+      fontWeight: '700',
+      fontVariantNumeric: 'tabular-nums',
+      letterSpacing: '.01em',
       lineHeight: '1',
       cursor: 'pointer',
       outline: 'none',
@@ -835,12 +849,12 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
         );
         inside = item.leafIds.has(id);
       }
-      const base = item.kind === 'group' ? '0 8px 22px rgba(69, 26, 143, .38)' : '0 6px 18px rgba(25, 16, 31, .32)';
-      item.button.style.transform = inside ? 'translateY(-6px) scale(1.18)' : '';
+      const base = '0 0 0 4px rgba(69, 26, 143, .14), 0 4px 12px rgba(31, 20, 61, .22)';
+      item.button.style.transform = inside ? 'translateY(-4px) scale(1.15)' : '';
       item.button.style.boxShadow = inside
-        ? '0 0 0 5px rgba(155, 108, 240, .45), 0 14px 30px rgba(69, 26, 143, .5)'
+        ? '0 0 0 5px rgba(155, 108, 240, .4), 0 10px 22px rgba(69, 26, 143, .4)'
         : base;
-      item.button.style.background = inside ? '#6d28d9' : item.kind === 'group' ? '#5b21d1' : '#451a8f';
+      item.button.style.background = inside ? '#6d28d9' : '#451a8f';
       item.marker.zIndex = inside ? 200 : 5;
     }
   }

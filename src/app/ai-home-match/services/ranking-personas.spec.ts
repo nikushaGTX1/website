@@ -107,3 +107,14 @@ test('street parking is not "Parking for your car"', () => {
   const garage = home(2, { hasParking: false, parkingCondition: 'Garage' });
   assert.ok(explainHomeMatch(garage, persona).some((item) => item.title === 'Parking for your car'));
 });
+
+test('a month written in the description counts as the move-in date ("ბინა თავისუფლდება იანვარში")', async () => {
+  const { listingAvailableFrom } = await import('./mandatory-requirements');
+  const now = new Date();
+  const nextMonth = (now.getMonth() + 1) % 12; // 0-based index of next month
+  const ka = ['იანვარში', 'თებერვალში', 'მარტში', 'აპრილში', 'მაისში', 'ივნისში', 'ივლისში', 'აგვისტოში', 'სექტემბერში', 'ოქტომბერში', 'ნოემბერში', 'დეკემბერში'][nextMonth];
+  const date = listingAvailableFrom(home(1, { description: `ბინა თავისუფლდება ${ka}.` }));
+  assert.ok(date && date.endsWith(`-${String(nextMonth + 1).padStart(2, '0')}-01`), String(date));
+  assert.match(String(listingAvailableFrom(home(2, { description: 'Available from March.' }))), /-03-01$|null/);
+  assert.equal(listingAvailableFrom(home(3, { description: 'Pets allowed' })), null);
+});

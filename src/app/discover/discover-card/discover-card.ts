@@ -16,6 +16,8 @@ import { parkingCostLabel, parkingTypeLabel } from '../../utils/parking-cost';
 import { PhotoUrlPipe } from '../../shared/photo-url.pipe';
 import { listingDeposit, listingDepositInGel } from '../../utils/listing-deposit';
 import { DecimalPipe } from '@angular/common';
+import { hasPrivateParking } from '../../ai-home-match/services/priority-scoring';
+import type { HomeMatchApartment } from '../../ai-home-match/models/home-match-result';
 
 interface AgentContact { photo: string; phone: string }
 
@@ -147,7 +149,11 @@ export class DiscoverCard implements OnInit {
       // Velven Match: only what fits this user, in their priority order.
       const language = this.translation.language$.value;
       const unit = language === 'ka' ? 'წთ' : language === 'ru' ? 'мин' : 'min';
-      return this.reasons.slice(0, 3).map((item) => ({
+      // Private parking is always one of the lines when the home has it (it replaces the third).
+      const top = this.reasons.slice(0, 3);
+      const parking = this.reasons.find((item) => item.title === 'Parking for your car');
+      if (parking && !top.includes(parking)) top.splice(2, 1, parking);
+      return top.map((item) => ({
         text: item.title,
         tail: item.meta ? '· ' + item.meta.replace('min', unit) : undefined,
         why: item.reason && item.reason !== 'One of your top priorities' ? item.reason : undefined,
@@ -168,7 +174,7 @@ export class DiscoverCard implements OnInit {
     // Always three lines when the listing has them: fill with more facts.
     const more: FitLine[] = [];
     if (a.parkDistanceMinutes && a.metroDistanceMinutes && a.metroDistanceMinutes < 18) more.push({ lead: String(a.metroDistanceMinutes), text: 'min walk to the metro' });
-    if (a.hasParking) more.push({ text: 'Parking available' });
+    if (hasPrivateParking(a as unknown as HomeMatchApartment)) more.push({ text: 'Private parking' });
     if (a.hasBalcony) more.push({ text: 'Balcony' });
     if (a.hasElevator) more.push({ text: 'Elevator' });
     if (a.hasAirConditioning) more.push({ text: 'Air conditioning' });

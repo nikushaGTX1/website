@@ -31,6 +31,8 @@ import { FormsModule } from '@angular/forms';
 import { CurrencyPrice } from '../currency-price/currency-price';
 import { DatePickerComponent } from '../shared/date-picker/date-picker.component';
 import { ListingTitlePipe } from '../shared/listing-title.pipe';
+import { listingAvailableFrom } from '../ai-home-match/services/mandatory-requirements';
+import type { HomeMatchApartment } from '../ai-home-match/models/home-match-result';
 
 @Component({
   selector: 'app-explore-property',
@@ -310,6 +312,16 @@ export class ExploreProperty implements OnInit, OnDestroy {
   headerBedroomsTouched = false;
   headerRooms = '';
   featureFilter = '';
+  /** Label of a homepage lifestyle filter that has no chip here ("Great views"), shown as a removable pill. */
+  get featureFilterLabel(): string {
+    return ({ view: 'Great views', metro: 'Near metro', family: 'Family homes' } as Record<string, string>)[this.featureFilter] || '';
+  }
+
+  clearFeatureFilter(): void {
+    this.featureFilter = '';
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { feature: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    this.onSearch();
+  }
   drawnAreaActive = false;
   drawAreaOpen = false;
   drawAreaInitialized = false;
@@ -563,6 +575,8 @@ export class ExploreProperty implements OnInit, OnDestroy {
   currentPage = 1;
   /** Page number from the URL, used once when the first results load (refresh, Back, shared link). */
   private pageFromUrl: number | null = null;
+  /** Ids of the last search results, to tell a real filter change from a repeat. */
+  private lastResultKey = '';
   pageSize = 20;
   /** Cards whose full photo gallery is fetched up front; the rest load when hovered. */
   private readonly galleryPrefetchCount = 6;
@@ -1092,6 +1106,14 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   selectHeaderPropertyType(value: string): void {
     this.homeType = value;
+    // Commercial spaces have no bedrooms: drop that filter (its picker is hidden too).
+    if (value === 'Commercial place') {
+      this.headerBedrooms = '';
+      this.headerRooms = '';
+      this.headerBedroomsTouched = false;
+      this.selectedBedrooms = [];
+      this.bedroomOpen = false;
+    }
     this.homeTypeTouched = true;
     this.propertyTypeOpen = false;
     this.onSearch();
@@ -1268,8 +1290,12 @@ export class ExploreProperty implements OnInit, OnDestroy {
             !query ||
             entry.district.toLowerCase().includes(query) ||
             entry.region.toLowerCase().includes(query) ||
-            this.locationService.districtName(entry, language).toLowerCase().includes(query) ||
-            this.locationService.regionName(entry, language).toLowerCase().includes(query),
+            // Any spelling finds the area: "Vake" in the Georgian site, "ვაკე" in the English one.
+            (['ka', 'en', 'ru'] as const).some(
+              (lang) =>
+                this.locationService.districtName(entry, lang).toLowerCase().includes(query) ||
+                this.locationService.regionName(entry, lang).toLowerCase().includes(query),
+            ),
         )
         .sort(
           (left, right) =>
@@ -1888,9 +1914,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
     // Values from the homepage/URL are active filters: show them, not the "Select" placeholder.
     this.homeType = ExploreProperty.normalizeHomeType(params.get('propertyType') || '');
     this.homeTypeTouched = !!this.homeType;
-    this.headerBedrooms = params.get('bedrooms') || '';
+    // Commercial spaces have no bedrooms: a link with both ignores the bedrooms.
+    const commercial = this.homeType === 'Commercial place';
+    this.headerBedrooms = commercial ? '' : params.get('bedrooms') || '';
     this.headerBedroomsTouched = !!this.headerBedrooms;
-    this.headerRooms = params.get('rooms') || '';
+    this.headerRooms = commercial ? '' : params.get('rooms') || '';
     this.featureFilter = params.get('feature') || '';
     this.drawnAreaActive = params.get('area') === 'drawn';
     this.selectedStreetId = Number(params.get('street_id')) || null;
@@ -2197,7 +2225,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
     });
 
     this.applySorting();
-    this.currentPage = 1;
+    // A search that gives the same homes (e.g. re-run when the location list arrives) keeps
+    // the page; a real filter change starts again at page 1.
+    const resultKey = this.filteredApartments.map((apartment) => apartment.id).join(",");
+    const sameResults = resultKey === this.lastResultKey;
+    this.lastResultKey = resultKey;
+    const keptPage = this.currentPage;
+    this.currentPage = sameResults ? Math.min(Math.max(keptPage, 1), this.totalPages || 1) : 1;
     if (this.pageFromUrl && this.filteredApartments.length) {
       this.currentPage = Math.min(Math.max(Math.floor(this.pageFromUrl), 1), this.totalPages);
       this.pageFromUrl = null;
@@ -2951,6 +2985,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
       conditions: [...this.moreFilters.conditions],
     };
     this.conditionSectionOpen = this.moreFilters.conditions.length > 0;
+    this.clearAllOnApply = false;
     this.moreFiltersOpen = true;
     lockPageScroll();
     document.documentElement.style.overflow = 'hidden';
@@ -2994,14 +3029,23 @@ export class ExploreProperty implements OnInit, OnDestroy {
       : [...list, condition];
   }
 
+  /** "Clear all" in the More filters dialog: on "Show homes" every filter goes, not only the dialog ones. */
+  private clearAllOnApply = false;
+
   clearMoreFilters(): void {
     this.moreFiltersDraft = this.emptyMoreFilters();
+    this.clearAllOnApply = true;
   }
 
   applyMoreFilters(): void {
     this.moreFilters = this.moreFiltersDraft;
+    // Picking something again after "Clear all" means the visitor wants those filters.
+    const clearAll = this.clearAllOnApply && this.moreFiltersCount === 0;
+    this.clearAllOnApply = false;
     this.closeMoreFilters();
-    this.onSearch();
+    // Floor, size, price, bedrooms, amenities... are cleared too (the deal type stays).
+    if (clearAll) this.clearFilters();
+    else this.onSearch();
   }
 
   /** Words a listing's title/description/tags may use for features without a stored field. */
@@ -3071,12 +3115,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
         if (months && months > f.leaseMonths) return false;
       }
       if (f.noDeposit && !said('noDeposit')) return false;
-      if (
-        f.moveInDate &&
-        apartment.availableFrom &&
-        apartment.availableFrom.slice(0, 10) > f.moveInDate
-      )
-        return false;
+      if (f.moveInDate) {
+        // Date field, "Available from:" tag, or a date/month written in the description.
+        const freeFrom = listingAvailableFrom(apartment as unknown as HomeMatchApartment);
+        if (freeFrom && freeFrom > f.moveInDate) return false;
+      }
     }
     if (f.conditions.length && this.selectedType === 'For Sale') {
       const value = (apartment.condition || '').trim().toLowerCase();
@@ -3135,6 +3178,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   private matchesQuickFeature(apartment: Apartment): boolean {
     switch (this.featureFilter) {
+      case 'view': {
+        // Upload form: "View type: City View, Nature View" ("No View" does not count).
+        const view = /(?:^|[|\r\n])\s*View type:\s*([^|\r\n]+)/i.exec(apartment.description || '')?.[1] || '';
+        return /city view|nature view|mountain|panoram|sea view|ხედ/i.test(view) && !/^\s*no view\s*$/i.test(view);
+      }
       case 'parking':
         return !!apartment.hasParking;
       case 'pets':
