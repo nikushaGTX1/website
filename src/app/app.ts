@@ -134,8 +134,8 @@ export class App implements AfterViewInit {
     const input = event.target;
     if (!(input instanceof HTMLInputElement) || input.type !== 'tel' || (event as { phoneCleaned?: boolean }).phoneCleaned) return;
     let cleaned = input.value.replace(/[^\d+\s()-]/g, '').replace(/(?!^)\+/g, '');
-    // Georgian numbers: +995 5XX XX XX XX is 12 digits, so nothing longer is accepted.
-    const maxDigits = 12;
+    // International numbers are at most 15 digits (E.164), Georgian ones 12.
+    const maxDigits = 15;
     let digits = 0;
     cleaned = [...cleaned].filter((char) => !/\d/.test(char) || ++digits <= maxDigits).join('');
     if (cleaned !== input.value) {

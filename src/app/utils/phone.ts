@@ -1,21 +1,23 @@
 import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
 
 /**
- * A real Georgian phone number: "+995 555 12 34 56", "995555123456" or "555 12 34 56".
- * Velven only works with Georgian numbers; letters, short digit runs and other countries fail.
+ * A phone number from any country. Georgian numbers can be typed without the code
+ * ("555 12 34 56"); others need their + country code ("+34 633 22 73 49").
+ * Accepted when the number is valid, or at least plausible (7-15 digits after the +), so
+ * foreign numbers whose exact format the library does not know are not refused.
  */
 export function isValidPhone(value: string | null | undefined): boolean {
   const text = (value || '').trim();
   if (!text || /[a-z]/i.test(text)) return false;
   const parsed = parsePhoneNumberFromString(text, 'GE');
-  return !!parsed && parsed.isValid() && parsed.country === 'GE';
+  if (parsed?.isValid() || parsed?.isPossible()) return true;
+  const digits = text.replace(/D/g, '');
+  return text.startsWith('+') && digits.length >= 7 && digits.length <= 15;
 }
 
-/** A real phone number from any country (needs the + country code for numbers outside Georgia). */
+/** Same rule as isValidPhone (kept for fields that were already international). */
 export function isValidAnyPhone(value: string | null | undefined): boolean {
-  const text = (value || '').trim();
-  if (!text || /[a-z]/i.test(text)) return false;
-  return !!parsePhoneNumberFromString(text, 'GE')?.isValid();
+  return isValidPhone(value);
 }
 
 /** Digits for a wa.me link, with Georgia's +995 added to local numbers ("558 45 58 32"). */
