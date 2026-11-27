@@ -5061,3 +5061,8 @@ fieldset {
 .student-dialog > .student-dialog-sub,
 .student-dialog > .student-options { flex: none; }
 .student-dialog > .student-search { height: 50px; min-height: 50px; }
+/* Phones: the student sheet fills the full width, also under a visible page scrollbar. */
+@media (max-width: 600px) {
+  .student-backdrop { right: auto; width: 100vw; }
+  .student-dialog { width: 100vw !important; max-width: none !important; justify-self: stretch; margin: 0; }
+}
