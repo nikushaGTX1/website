@@ -145,6 +145,15 @@ export class AuthService {
     );
   }
 
+  /** Saves only the nationality on the account (other profile fields stay as they are). */
+  updateNationality(nationality: string): Observable<User> {
+    const formData = new FormData();
+    formData.append('Nationality', nationality);
+    return this.http.put<ProfileSettingsResponse>(`${this.profileUrl}/settings`, formData).pipe(
+      switchMap(() => this.getProfile())
+    );
+  }
+
   updateProfileSettings(data: ProfileSettingsRequest): Observable<User> {
     const formData = new FormData();
     formData.append('FullName', data.fullName);

@@ -159,6 +159,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.profile.nationality = name;
     this.nationalitySearch = '';
     this.persist();
+    // Signed in: the nationality is saved on the account too (profile page, next searches).
+    if (this.auth.isLoggedIn && name && name !== this.auth.currentUser?.nationality) {
+      this.auth.updateNationality(name).subscribe({ error: () => undefined });
+    }
   }
   /** The chosen nationality as the client sees it, in the site language. */
   get nationalityLabel(): string {
