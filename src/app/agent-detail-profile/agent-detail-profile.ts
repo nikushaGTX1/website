@@ -16,6 +16,7 @@ import { AuthService } from '../services/auth.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { whatsappDigits } from '../utils/phone';
 import { districtKey, districtLabel, whatsappChatUrl } from '../utils/agent-areas';
+import { demoAgentStats } from '../utils/demo-agent-stats';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { NgIf, NgTemplateOutlet, NgFor, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -207,13 +208,18 @@ export class AgentDetailProfile implements OnInit {
     );
   }
 
+  /** Localhost only: test numbers (velven.ge always shows the real ones). */
+  private get demo() {
+    return demoAgentStats(this.agent?.id || this.agent?.userId);
+  }
+
   get rating(): number {
-    return this.agent?.averageRating || this.agent?.rating || 0;
+    return this.demo?.rating ?? (this.agent?.averageRating || this.agent?.rating || 0);
   }
 
   /** Number of client ratings; with none, the profile says "No reviews yet" instead of 0.0 / 100%. */
   get ratingCount(): number {
-    return this.agent?.ratingCount || this.reviews.length || 0;
+    return this.demo?.ratingCount ?? (this.agent?.ratingCount || this.reviews.length || 0);
   }
 
   /** Districts of this agent's listings, most listings first ("Areas of expertise"). */
@@ -344,7 +350,7 @@ export class AgentDetailProfile implements OnInit {
   }
 
   get closedDeals(): number {
-    return this.agent?.closedDeals ?? this.crmWonDeals ?? this.listings.length;
+    return this.demo?.closedDeals ?? this.agent?.closedDeals ?? this.crmWonDeals ?? this.listings.length;
   }
 
   get contactPhone(): string {

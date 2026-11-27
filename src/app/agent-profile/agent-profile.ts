@@ -6,6 +6,7 @@ import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApartmentService } from '../services/apartment.service';
 import { agentDistricts, districtKey, searchKey, whatsappChatUrl } from '../utils/agent-areas';
+import { demoAgentStats } from '../utils/demo-agent-stats';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { whatsappDigits } from '../utils/phone';
 import { languageShortList } from '../utils/agent-languages';
@@ -292,15 +293,17 @@ export class AgentProfile implements OnInit {
   }
 
   private toAgentCard(agent: ApiAgent): AgentCard {
+    // Localhost only: test ratings and deals (velven.ge always shows the real numbers).
+    const demo = demoAgentStats(agent.id || agent.userId);
     return {
       id: agent.id || agent.userId || agent.email || agent.userName || '',
       name: agent.fullName || agent.name || agent.userName || 'Agent',
       role: 'Real Estate Professional',
       // Never the e-mail address: the listings' districts replace this once loaded.
       location: agent.location || 'Tbilisi',
-      closedDeals: agent.closedDeals || 0,
-      rating: agent.averageRating || agent.rating || 0,
-      ratingCount: agent.ratingCount || 0,
+      closedDeals: demo?.closedDeals ?? (agent.closedDeals || 0),
+      rating: demo?.rating ?? (agent.averageRating || agent.rating || 0),
+      ratingCount: demo?.ratingCount ?? (agent.ratingCount || 0),
       avatarUrl:
         toMediaUrl(agent.profilePictureUrl || agent.profilePicture || agent.avatarUrl) ||
         '/agent1.jpg',
