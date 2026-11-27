@@ -16,6 +16,8 @@ import { HomeMatchResult } from '../ai-home-match/models/home-match-result';
 import { HomeMatchService } from '../ai-home-match/services/home-match.service';
 import { answerLabel, answerList, bedroomsLabel } from '../ai-home-match/services/answer-labels';
 import { compareMatchOrder, evaluateMandatoryRequirements, selectedPets } from '../ai-home-match/services/mandatory-requirements';
+import { hasPrivateParking } from '../ai-home-match/services/priority-scoring';
+import type { HomeMatchApartment } from '../ai-home-match/models/home-match-result';
 import { ApartmentService } from '../services/apartment.service';
 import { AuthService } from '../services/auth.service';
 import { ClientService } from '../services/client.service';
@@ -158,6 +160,7 @@ export class Discover implements OnInit, OnDestroy {
     this.selectedSearchId = Number(query.get('search')) || null;
     this.highlightedApartmentId = Number(query.get('apartment')) || null;
     this.justSaved = query.get('saved') === '1';
+    this.refine = { parking: query.get('parking') === '1', petFriendly: query.get('pets') === '1' };
     const tab = query.get('tab');
     if (tab === 'all' || tab === 'saved' || tab === 'new' || tab === 'clients') this.tab = tab;
     // A "client interested" notification links to one listing: open Clients for you.
@@ -454,7 +457,7 @@ export class Discover implements OnInit, OnDestroy {
   private passesRefine(item: DiscoverItem): boolean {
     const apartment = item.apartment;
     return (
-      (!this.refine.parking || !!apartment.hasParking) &&
+      (!this.refine.parking || hasPrivateParking(apartment as unknown as HomeMatchApartment)) &&
       (!this.refine.petFriendly || !!apartment.isPetFriendly)
     );
   }
@@ -529,9 +532,19 @@ export class Discover implements OnInit, OnDestroy {
         search: this.selectedSearchId ?? null,
         tab: this.tab === 'new' ? null : this.tab,
         apartment: this.highlightedApartmentId ?? null,
+        parking: this.refine.parking ? 1 : null,
+        pets: this.refine.petFriendly ? 1 : null,
         saved: null,
       },
+    }).then(() => {
+      // "Back to results" on a listing returns to this exact view (search, tab, filters).
+      try { sessionStorage.setItem('velven.discover.lastUrl', this.router.url); } catch { /* storage blocked */ }
     });
+  }
+
+  toggleRefine(key: 'parking' | 'petFriendly'): void {
+    this.refine = { ...this.refine, [key]: !this.refine[key] };
+    this.syncUrl();
   }
 
   /** Alert deep link: open the tab that holds the home, scroll to it and mark it seen. */

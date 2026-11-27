@@ -113,7 +113,7 @@ export class ApartmentDetail implements OnInit, OnDestroy {
   private readonly currency = inject(CurrencyService);
   matchInsights: LifestyleInsight[] = [];
   exactMatch = false;
-  discoverBackQuery: { search: number; tab: 'all' } | null = null;
+  discoverBackQuery: Record<string, string | number> | null = null;
   @ViewChild('photoViewer') private photoViewer?: ElementRef<HTMLDialogElement>;
   @ViewChild('viewingDialog') private viewingDialog?: ElementRef<HTMLElement>;
 
@@ -270,9 +270,26 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     });
   }
 
+  /** Filters (Parking, Pet friendly, tab) the client had on in Discover for this search. */
+  private static lastDiscoverFilters(searchId: number): Record<string, string> {
+    try {
+      const url = sessionStorage.getItem('velven.discover.lastUrl') || '';
+      const query = new URLSearchParams(url.split('?')[1] || '');
+      if (Number(query.get('search')) !== searchId) return {};
+      const kept: Record<string, string> = {};
+      for (const key of ['tab', 'parking', 'pets']) {
+        const value = query.get(key);
+        if (value) kept[key] = value;
+      }
+      return kept;
+    } catch {
+      return {};
+    }
+  }
+
   private init(): void {
     const searchId = this.discoverSearchId;
-    if (searchId) this.discoverBackQuery = { search: searchId, tab: 'all' };
+    if (searchId) this.discoverBackQuery = { search: searchId, tab: 'all', ...ApartmentDetail.lastDiscoverFilters(searchId) };
     const apartmentId = Number(
       this.route.snapshot.paramMap.get('id') || this.route.snapshot.queryParamMap.get('id') || 0,
     );

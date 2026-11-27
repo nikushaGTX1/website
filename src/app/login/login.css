@@ -471,7 +471,7 @@
   border: 1.5px solid #e3dfea !important;
   border-radius: 14px !important;
   background: #fbfaff !important;
-  font-size: 15px;
+  font-size: 16px; /* 16px or iPhone Safari zooms in when the field is tapped */
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 @media (hover: hover) {

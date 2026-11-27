@@ -39,6 +39,13 @@ const GEORGIAN_DISTRICTS: Record<string, string> = {
   'ავლაბარი': 'avlabari',
   'სოლოლაკი': 'sololaki',
   'ვაშლიჯვარი': 'vashlijvari',
+  'ლისი': 'lisi',
+  'ბაგები': 'bagebi',
+  'წყნეთი': 'tskneti',
+  'ნუცუბიძე': 'nutsubidze',
+  'დიღმის მასივი': 'digomi massive',
+  'გლდანულა': 'gldanula',
+  'ვარკეთილი': 'varketili',
 };
 
 function normalizeDistrict(value: string | undefined | null): string {
@@ -46,6 +53,8 @@ function normalizeDistrict(value: string | undefined | null): string {
   if (!raw) return '';
   const georgian = GEORGIAN_DISTRICTS[raw];
   if (georgian) return georgian;
+  // Georgian names not in the list above stay readable instead of turning into "".
+  if (/[Ⴀ-ჿ]/.test(raw)) return 'ka:' + raw;
   return raw
     .replace(/dighomi/g, 'digomi')
     .replace(/([a-z])([A-Z])/g, '$1 $2')
@@ -87,6 +96,7 @@ function checkLocation(apartment: HomeMatchApartment, profile: HomeMatchProfile)
 
   const district = normalizeDistrict(apartment.district);
   if (district && wanted.includes(district)) return 'pass';
+  // A listing in another named area (e.g. "ლისი" for a Vake search) is outside the search.
 
   if (polygon?.coordinates?.[0]?.length) {
     const lat = Number(apartment.propertyLatitude ?? apartment.latitude);

@@ -66,7 +66,7 @@ export interface HomeMatchProfile {
   /** Buyers: accepted building types (NewBuilding, UnderConstruction, OldBuilding). ['Any'] = no preference. */
   buildingTypes?: string[];
   /** Buyers: Living, Investment (resell later) or RentalIncome (long-term rent). */
-  purchasePurpose?: 'Living' | 'Investment' | 'RentalIncome' | '';
+  purchasePurpose?: 'Living' | 'Investment' | 'RentalIncome' | 'OwnBusiness' | '';
   /** Buyers: GrowingFamily, ExtraWorkspace, NoChanges or NotSure. */
   futureNeeds?: string;
   /** Buyers: OwnFunds, Mortgage or Installment. */

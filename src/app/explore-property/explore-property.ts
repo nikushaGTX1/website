@@ -336,6 +336,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
     'Renovated',
     'White frame',
     'Green frame',
+    'Black frame',
     'Needs renovation',
   ];
   selectedConditions: string[] = [];
@@ -1004,6 +1005,18 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.propertyTypeOpen = false;
     this.locationOpen = false;
     this.conditionOpen = false;
+  }
+
+  /** Icon for each condition in the Condition sheet. */
+  conditionIcon(condition: string): string {
+    return ({
+      'Move-in ready': 'fa-house-circle-check',
+      Renovated: 'fa-paint-roller',
+      'White frame': 'fa-border-none',
+      'Green frame': 'fa-seedling',
+      'Black frame': 'fa-trowel-bricks',
+      'Needs renovation': 'fa-screwdriver-wrench',
+    } as Record<string, string>)[condition] || 'fa-house';
   }
 
   toggleConditionMenu(): void {
@@ -1891,6 +1904,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    document.addEventListener('touchstart', this.onPhotoTouchStart, { passive: true });
+    document.addEventListener('touchmove', this.onPhotoTouchMove, { passive: false });
+    document.addEventListener('touchend', this.onPhotoTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', this.onPhotoTouchEnd, { passive: true });
     // Outside Angular: wheel events change no bound state, so they must not run change
     // detection over twenty cards on every tick.
     this.zone.runOutsideAngular(() =>
@@ -1958,7 +1975,34 @@ export class ExploreProperty implements OnInit, OnDestroy {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { mode }, queryParamsHandling: 'merge' });
   }
 
+  /**
+   * iPhone Safari: a sideways drag on a card photo could move the whole page instead of the
+   * photos. Once a touch on a photo is clearly sideways, the page is told not to scroll.
+   */
+  private photoTouchStart: { x: number; y: number; axis: 'x' | 'y' | null } | null = null;
+  private readonly onPhotoTouchStart = (event: TouchEvent): void => {
+    const touch = event.touches[0];
+    const onPhoto = (event.target as HTMLElement | null)?.closest('.photo-wrap, .map-preview-gallery');
+    this.photoTouchStart = onPhoto && touch && event.touches.length === 1 ? { x: touch.clientX, y: touch.clientY, axis: null } : null;
+  };
+  private readonly onPhotoTouchMove = (event: TouchEvent): void => {
+    const start = this.photoTouchStart;
+    const touch = event.touches[0];
+    if (!start || !touch) return;
+    const dx = Math.abs(touch.clientX - start.x);
+    const dy = Math.abs(touch.clientY - start.y);
+    if (!start.axis && Math.max(dx, dy) > 4) start.axis = dx > dy ? 'x' : 'y';
+    if (start.axis === 'x' && event.cancelable) event.preventDefault();
+  };
+  private readonly onPhotoTouchEnd = (): void => {
+    this.photoTouchStart = null;
+  };
+
   ngOnDestroy(): void {
+    document.removeEventListener('touchstart', this.onPhotoTouchStart);
+    document.removeEventListener('touchmove', this.onPhotoTouchMove);
+    document.removeEventListener('touchend', this.onPhotoTouchEnd);
+    document.removeEventListener('touchcancel', this.onPhotoTouchEnd);
     if (this.floorOpen) unlockPageScroll();
     if (this.sizeOpen) unlockPageScroll();
     window.removeEventListener('wheel', this.guardWheel, true);
@@ -2371,7 +2415,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
   private matchesConditionFilter(apartment: Apartment): boolean {
     if (this.selectedType !== 'For Sale' || !this.selectedConditions.length) return true;
 
-    const value = (apartment.condition || '').trim().toLowerCase();
+    // The upload form saves the condition in the description ("Condition: Newly Renovated");
+    // the condition field is often empty.
+    const fromText = /(?:^|[|\r\n])\s*Condition:\s*([^|\r\n]+)/i.exec(apartment.description || '')?.[1];
+    const value = (apartment.condition || fromText || '').trim().toLowerCase();
     if (!value) return false;
 
     const aliases: Record<string, string[]> = {
@@ -2379,6 +2426,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
       renovated: ['renovated', 'old renovated', 'current renovation'],
       'white frame': ['white frame', 'white plus'],
       'green frame': ['green frame'],
+      'black frame': ['black frame'],
       'needs renovation': ['needs renovation', 'repairing', 'to be renovated'],
     };
 

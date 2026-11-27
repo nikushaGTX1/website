@@ -692,3 +692,38 @@ body.location-picker-open app-navigation { visibility: hidden; }
 @media (max-width: 650px) and (max-height: 520px) {
   body:has(.main-budget-popover) app-navigation { visibility: hidden; }
 }
+
+
+/* Burger menu open: the header layer goes above every page layer (Velven Match, Explore and
+   others use z-index above 1000 on tablets, which drew the page over the open menu). */
+app-navigation:has(.mobile-menu) { z-index: 30000 !important; }
+
+/* Explore on phones: while the home type sheet is open, the bottom bar and map button step aside. */
+@media (max-width: 780px) {
+  body:has(.property-type-popover) app-mobile-tab-bar,
+  body:has(.property-type-popover) .mobile-toggle { display: none !important; }
+}
+@media (max-width: 780px) {
+  body:has(.search-popover:not(.location-popover), .chip-popover, .size-backdrop) app-mobile-tab-bar,
+  body:has(.search-popover:not(.location-popover), .chip-popover, .size-backdrop) .mobile-toggle { display: none !important; }
+}
+
+/* Explore on phones: an open filter sheet dims the whole screen, also the header and the
+   search bar (they sit on their own layers above the page). */
+@media (max-width: 780px) {
+  body:has(.search-popover:not(.location-popover), .chip-popover) app-navigation::after,
+  body .explore-sticky-head:has(.chip-bar .search-popover:not(.location-popover), .chip-bar .chip-popover) > .search-row::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    background: rgba(20, 15, 40, 0.45);
+  }
+  body:has(.search-popover:not(.location-popover), .chip-popover) .explore-sticky-head > .search-row { position: relative; }
+  /* Cover the bar borders too (a light line showed between the search and the chips). */
+  body .explore-sticky-head:has(.chip-bar .search-popover:not(.location-popover), .chip-bar .chip-popover) > .search-row::after { inset: 0; }
+  body:has(.search-popover:not(.location-popover), .chip-popover) .explore-sticky-head > .search-row,
+  body:has(.search-popover:not(.location-popover), .chip-popover) .explore-sticky-head > .chip-bar { border-color: transparent !important; }
+  /* The search bar background showed through its own (now invisible) bottom border as a light line. */
+  body:has(.search-popover:not(.location-popover), .chip-popover) .explore-sticky-head > .search-row { background-clip: padding-box !important; box-shadow: none !important; }
+}

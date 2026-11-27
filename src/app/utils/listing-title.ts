@@ -187,7 +187,8 @@ export function localizeListingTitle(
 ): string {
   const item: ListingTitleSource = typeof listing === 'string' ? { title: listing } : (listing ?? {});
   const saved = language === 'ka' ? item.titleKa : language === 'ru' ? item.titleRu : item.titleEn;
-  if (saved?.trim()) return withoutPrice(saved);
+  // A saved English/Russian title that is really Georgian (bad data, e.g. #779) is ignored.
+  if (saved?.trim() && (language === 'ka' || !GEORGIAN.test(saved))) return withoutPrice(saved);
 
   const source = withoutPrice(item.title ?? '');
   if (!source) return '';

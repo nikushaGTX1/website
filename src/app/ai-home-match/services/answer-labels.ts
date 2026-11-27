@@ -15,6 +15,7 @@ const ANSWER_LABELS: Record<string, string> = {
   Living: 'To live in',
   Investment: 'For investment',
   RentalIncome: 'To rent out',
+  OwnBusiness: 'For my own business',
   GrowingFamily: 'Growing family',
   ExtraWorkspace: 'More room to work',
   NoChanges: 'My needs will stay the same',

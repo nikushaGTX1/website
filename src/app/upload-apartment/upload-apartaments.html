@@ -640,7 +640,7 @@
           <label class="field-label"><i class="fa-solid fa-lock"></i> Your name and phone <span class="req">*</span> <small>Private — shown only to your Velven agent</small></label>
           <div class="input-row contact-fields">
             <input type="text" name="contactName" placeholder="Your full name" required autocomplete="name" [(ngModel)]="form.contactName" />
-            <input type="tel" name="contactPhone" placeholder="+995 5XX XX XX XX" autocomplete="tel" inputmode="tel" required [(ngModel)]="form.contactPhone" />
+            <input type="tel" name="contactPhone" placeholder="+995 558 47 48 89" autocomplete="tel" inputmode="tel" required [(ngModel)]="form.contactPhone" />
           </div>
         </div>
         <header class="section-header" *ngIf="!isOwnerUpload"><span>06</span><div><h2>Listing contacts</h2><p>Agent details are public. Owner details are restricted to agents and managers.</p></div></header>
@@ -651,7 +651,7 @@
             <input
               type="tel"
               name="contactPhone"
-              placeholder="+995 5XX XX XX XX"
+              placeholder="+995 558 47 48 89"
               autocomplete="tel"
               inputmode="tel"
               required
@@ -663,7 +663,7 @@
           <label class="field-label"><i class="fa-solid fa-user-tie"></i> Agent information <span class="req">*</span> <small>Public — shown to everyone on the listing</small></label>
           <div class="input-row contact-fields">
             <input type="text" name="agentName" placeholder="Agent's full name" required [(ngModel)]="form.agentName" />
-            <input type="tel" name="agentPhone" placeholder="+995 5XX XX XX XX" autocomplete="tel" inputmode="tel" required [(ngModel)]="form.agentPhone" />
+            <input type="tel" name="agentPhone" placeholder="+995 558 47 48 89" autocomplete="tel" inputmode="tel" required [(ngModel)]="form.agentPhone" />
           </div>
         </div>
       </section>

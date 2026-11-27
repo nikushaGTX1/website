@@ -6028,16 +6028,6 @@
   .location-modal-footer { flex: none; flex-direction: row; align-items: center; }
 }
 
-/* Phones: a short headline above the search tells new visitors what the page is for. */
-@media (max-width: 640px) {
-  .home-page > .hero .hero-copy h1 {
-    display: block !important;
-    margin: 0 0 14px;
-    font-size: clamp(22px, 6.4vw, 26px);
-    line-height: 1.2;
-  }
-  .home-page > .hero .hero-copy h1 br { display: none; }
-}
 
 /* Phones: offers swipe sideways; the next card peeks in so it is clear there are more. */
 @media (max-width: 650px) {
@@ -6063,6 +6053,10 @@
   .main-budget-popover > .mobile-popover-close { display: grid !important; top: 8px !important; right: 10px !important; }
   .main-budget-popover > h3 { margin-right: 52px !important; }
 }
-@media (max-width: 640px) {
-  .home-page > .hero .hero-copy h1 { font-size: clamp(22px, 6.4vw, 26px) !important; margin-bottom: 14px !important; }
+
+/* Wide tablets / small laptops (3 columns): exactly one row of three featured homes (a fourth card
+   sat alone on a second row). Below 1000px the grid is 2 x 2, which stays even. */
+@media (min-width: 1001px) and (max-width: 1199px) {
+  .property-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .property-grid > article.property-card:not(.skeleton-card):nth-of-type(n + 4) { display: none; }
 }

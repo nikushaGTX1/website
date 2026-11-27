@@ -1,5 +1,8 @@
 <main class="property-explorer" [class.show-map]="mapVisible">
   <div class="explore-sticky-head">
+  <!-- Phones: an open filter sheet catches taps on the dimmed page, so a tap there only closes
+       the sheet (it used to also press the chip or card underneath). -->
+  <div class="sheet-tap-guard" *ngIf="propertyTypeOpen || budgetOpen || bedroomOpen || conditionOpen" aria-hidden="true" (click)="$event.stopPropagation(); closeBudget()"></div>
   <section class="search-row" aria-label="Property search">
     <div class="search-box">
       <div class="search-field location-field">
@@ -117,7 +120,7 @@
             <h3>Home type</h3>
             <div class="property-type-grid">
               <button type="button" [class.selected]="homeTypeTouched && !homeType" (click)="selectHeaderPropertyType('')">
-                <i class="fa-solid fa-city" aria-hidden="true"></i><span>Any home</span>
+                <i class="fa-solid fa-border-all" aria-hidden="true"></i><span>Any home</span>
               </button>
               <button type="button" [class.selected]="homeType === 'House'" (click)="selectHeaderPropertyType('House')">
                 <i class="fa-solid fa-house" aria-hidden="true"></i><span>House</span>
@@ -359,6 +362,7 @@
             [attr.aria-selected]="selectedConditions.includes(condition)"
             (click)="toggleCondition(condition)"
           >
+            <i class="condition-icon" [class]="'condition-icon fa-solid ' + conditionIcon(condition)" aria-hidden="true"></i>
             <span>{{ condition }}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
           </button>
@@ -862,21 +866,21 @@
             </label>
           </section>
         </div>
+        <section class="mf-condition" *ngIf="selectedType === 'For Sale'">
+          <button type="button" class="mf-condition-toggle" [attr.aria-expanded]="conditionSectionOpen" (click)="conditionSectionOpen = !conditionSectionOpen">
+            <svg class="mf-icon" aria-hidden="true"><use href="#mfi-olderBuilding"></use></svg>
+            <strong>Property condition &amp; construction</strong>
+            <span>For properties for sale</span>
+            <i class="fa-solid fa-chevron-down mf-chevron" [class.open]="conditionSectionOpen" aria-hidden="true"></i>
+          </button>
+          <div class="mf-pills" *ngIf="conditionSectionOpen">
+            <button type="button" *ngFor="let condition of conditionOptions" [class.selected]="moreFiltersDraft.conditions.includes(condition)" [attr.aria-pressed]="moreFiltersDraft.conditions.includes(condition)" (click)="toggleMoreCondition(condition)">
+              <i [class]="'condition-icon fa-solid ' + conditionIcon(condition)" aria-hidden="true"></i><span>{{ condition }}</span>
+            </button>
+          </div>
+        </section>
       </div>
 
-      <section class="mf-condition" *ngIf="selectedType === 'For Sale'">
-        <button type="button" class="mf-condition-toggle" [attr.aria-expanded]="conditionSectionOpen" (click)="conditionSectionOpen = !conditionSectionOpen">
-          <svg class="mf-icon" aria-hidden="true"><use href="#mfi-olderBuilding"></use></svg>
-          <strong>Property condition &amp; construction</strong>
-          <span>For properties for sale</span>
-          <i class="fa-solid fa-chevron-down mf-chevron" [class.open]="conditionSectionOpen" aria-hidden="true"></i>
-        </button>
-        <div class="mf-pills" *ngIf="conditionSectionOpen">
-          <button type="button" *ngFor="let condition of conditionOptions" [class.selected]="moreFiltersDraft.conditions.includes(condition)" [attr.aria-pressed]="moreFiltersDraft.conditions.includes(condition)" (click)="toggleMoreCondition(condition)">
-            {{ condition }}
-          </button>
-        </div>
-      </section>
 
       <footer class="mf-foot">
         <button type="button" class="mf-clear" (click)="clearMoreFilters()">Clear all</button>

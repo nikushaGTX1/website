@@ -112,8 +112,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       subtitle: 'Some apartments have special conditions regarding pets.',
     },
     {
-      title: 'Rank your Top 5 priorities',
-      subtitle: 'Choose them in order from most to least important.',
+      title: 'Rank your top priorities',
+      subtitle: 'Choose up to 5, in order from most to least important.',
     },
     { title: 'What style of apartment do you like?' },
     { title: 'What condition should the property be in?', subtitle: 'Choose one or more.' },
@@ -122,7 +122,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     { title: 'Why are you buying?' },
     { title: 'What matters most to you in your daily life?', subtitle: 'Choose one or more.' },
     { title: 'What will be important to you in the future?' },
-    { title: 'What size are you looking for?', subtitle: 'Area in m². Leave empty if it does not matter.' },
+    { title: 'What size are you looking for?', subtitle: 'Pick a range or type your own. Choose "Any size" if it does not matter.' },
     { title: 'Which additional features are important to you?', subtitle: 'Choose any that matter.' },
   ];
   /**
@@ -176,7 +176,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     { value: 'Living', label: 'To live in', hint: 'A home for you and your family', icon: 'fa-solid fa-house-chimney' },
     { value: 'Investment', label: 'For investment', hint: 'To resell at a higher price later', icon: 'fa-solid fa-arrow-trend-up' },
     { value: 'RentalIncome', label: 'To rent out', hint: 'Income from long-term rent', icon: 'fa-solid fa-key' },
+    { value: 'OwnBusiness', label: 'For my own business', hint: 'An office, shop or other space you will use', icon: 'fa-solid fa-briefcase' },
   ];
+  /** "To live in" is not offered for a commercial space. */
+  get purposeChoices() {
+    return this.commercialOnly ? this.purposeOptions.filter((option) => option.value !== 'Living') : this.purposeOptions;
+  }
   /** Buyers only (question 17): saved as priorities, so the match scoring uses them. */
   readonly dailyPriorityOptions = [
     { value: 'QuietStreet', label: 'Peace and quiet', icon: 'fa-solid fa-leaf' },
@@ -240,7 +245,50 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   listHas(key: 'topPriorities' | 'mustHaveFeatures', value: string): boolean {
     return ((this.profile[key] as string[] | undefined) ?? []).includes(value);
   }
+  /** Quick size choices; commercial spaces get larger steps. */
+  get sizePresets(): Array<{ value: string; label: string; hint?: string; min?: number; max?: number; art: number }> {
+    return this.commercialOnly
+      ? [
+          { value: 'any', label: 'Any size', hint: 'It does not matter', art: 100 },
+          { value: '0-50', label: 'Up to 50 m²', hint: 'Small office or shop', max: 50, art: 38 },
+          { value: '50-100', label: '50–100 m²', hint: 'Office or shop', min: 50, max: 100, art: 52 },
+          { value: '100-250', label: '100–250 m²', hint: 'Larger space', min: 100, max: 250, art: 66 },
+          { value: '250-500', label: '250–500 m²', hint: 'Showroom, restaurant', min: 250, max: 500, art: 82 },
+          { value: '500+', label: '500 m² or more', hint: 'Warehouse, building', min: 500, art: 96 },
+        ]
+      : [
+          { value: 'any', label: 'Any size', hint: 'It does not matter', art: 100 },
+          { value: '0-50', label: 'Up to 50 m²', hint: 'Studio, 1 bedroom', max: 50, art: 38 },
+          { value: '50-80', label: '50–80 m²', hint: '1–2 bedrooms', min: 50, max: 80, art: 52 },
+          { value: '80-120', label: '80–120 m²', hint: '2–3 bedrooms', min: 80, max: 120, art: 66 },
+          { value: '120-200', label: '120–200 m²', hint: 'Large family home', min: 120, max: 200, art: 82 },
+          { value: '200+', label: '200 m² or more', hint: 'Very spacious', min: 200, art: 96 },
+        ];
+  }
+  sizePresetSelected(preset: { min?: number; max?: number; value: string }): boolean {
+    const min = this.profile.minSize ?? undefined;
+    const max = this.profile.maxSize ?? undefined;
+    if (preset.value === 'any') return !min && !max && this.sizeAnswered;
+    return (preset.min ?? undefined) === (min || undefined) && (preset.max ?? undefined) === (max || undefined);
+  }
+  /** "Any size" was picked (an empty size is otherwise just "not answered yet"). */
+  private sizeAnswered = false;
+  chooseSizePreset(preset: { min?: number; max?: number; value: string }): void {
+    this.sizeAnswered = true;
+    this.profile.minSize = preset.min;
+    this.profile.maxSize = preset.max;
+    this.persist();
+  }
+  /** "Between 80 and 120 m²", "From 200 m²", "Up to 50 m²" or "Any size". */
+  get sizeSummary(): string {
+    const { minSize: min, maxSize: max } = this.profile;
+    if (min && max) return `${min}–${max} m²`;
+    if (min) return `From ${min} m²`;
+    if (max) return `Up to ${max} m²`;
+    return 'Any size';
+  }
   setSize(key: 'minSize' | 'maxSize', value: string): void {
+    this.sizeAnswered = true;
     const number = Math.round(Number(value));
     this.profile[key] = value === '' || !Number.isFinite(number) || number <= 0 ? undefined : Math.min(number, 10000);
     this.persist();
@@ -265,6 +313,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   }
   private styleSetAutomatically = false;
   /** Buyer accepts a ready or renovated home (or any condition), so interior style matters. */
+  /** Only "Commercial place" chosen as the property type. */
+  get commercialOnly(): boolean {
+    const types = this.profile.homeTypes?.length ? this.profile.homeTypes : this.profile.homeType ? [this.profile.homeType] : [];
+    return types.length > 0 && types.every((type) => type === 'Commercial');
+  }
   get buyerWantsFinishedHome(): boolean {
     const conditions = this.profile.propertyConditions ?? [];
     return conditions.length === 0 || conditions.some((code) => ['NewlyRenovated', 'OldRenovated', 'MoveInReady', 'Renovated', 'Any'].includes(code));
@@ -363,8 +416,8 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     ],
   );
   readonly transport = this.opts(
-    ['Car', 'Metro', 'Walking', 'Multiple methods'],
-    ['Car', 'Metro', 'Walking', 'MultipleMethods'],
+    ['Car', 'Metro', 'Walking'],
+    ['Car', 'Metro', 'Walking'],
   );
   readonly answerLabel = answerLabel;
   readonly answerList = answerList;
@@ -388,6 +441,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   // Must stay a stable reference: a fresh [] each CD cycle would look like
   // an input change and wipe an in-progress drawing.
   readonly noPreselectedMapAreas: string[] = [];
+  /** "Family with children": at least one child (else the household type should change). */
+  get familyWithChildren(): boolean {
+    return ['FamilyWithChildren', 'ParentWithChildren'].includes(this.profile.householdType);
+  }
   get fixedHousehold(): boolean {
     return ['JustMe', 'Couple'].includes(this.profile.householdType);
   }
@@ -675,8 +732,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     const order = buyer
       ? [14, 1, 16, 0, 4, 5, 9, 17, 18, 2, 3, 6, 19, 13, 12, 10, 15, 20, 7]
       : [14, 1, 12, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    // Only a commercial space: questions about who lives there and the flat itself do not apply.
+    const commercialOnly = this.commercialOnly;
     return order.filter(
       (step) =>
+        !(commercialOnly && [4, 5, 6, 9, 10, 12, 18].includes(step)) &&
         // A frame or a home to renovate: no interior style, pet or furniture questions.
         !(buyer && (step === 12 || step === 10) && !this.buyerWantsFinishedHome) &&
         !(step === 5 && this.fixedHousehold) &&
@@ -1304,13 +1364,19 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return !!this.profile.propertyGoal && (!!this.profile.homeTypes?.length || !!this.profile.homeType);
       case 2:
         return (
-          this.profile.locationFlexible ||
-          !!this.profile.districts.length ||
-          !!this.profile.selectedMapArea
+          (this.profile.locationFlexible ||
+            !!this.profile.districts.length ||
+            !!this.profile.selectedMapArea) &&
+          // "Near my workplace / a school / an address" needs that address (or a map point).
+          (!this.profile.proximityTarget ||
+            this.profile.proximityTarget === 'No' ||
+            !!this.profile.proximityAddress?.trim() ||
+            this.profile.proximityLatitude != null)
         );
       case 3:
         return (
           this.budgetForm.valid &&
+          this.budgetForm.controls.max.value > 0 &&
           this.budgetForm.controls.max.value >= this.budgetForm.controls.min.value
         );
       case 4:
@@ -1318,6 +1384,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       case 5:
         return (
           this.profile.adults >= 1 &&
+          (!this.familyWithChildren || this.profile.children >= 1) &&
           (this.profile.children === 0 || !!this.profile.childrenAgeGroups.length)
         );
       case 6:
@@ -1350,7 +1417,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         );
       }
       case 11:
-        return this.profile.topPriorities.length === 5;
+        return this.profile.topPriorities.length >= 1 && this.profile.topPriorities.length <= 5;
       case 12:
         return !!this.profile.apartmentStyle;
       case 13:
@@ -1695,7 +1762,28 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.cdr.detectChanges();
   }
   persist(): void {
+    this.dropStalePriorities();
     this.service.update({ ...this.profile });
+  }
+
+  /**
+   * A changed answer (e.g. "Family with children" -> "Just me") can remove options from the
+   * priority list. Chosen priorities that are no longer offered are dropped and the rest
+   * renumbered, so their places free up instead of blocking new choices at 5/5.
+   */
+  private dropStalePriorities(): void {
+    // "Multiple methods" is no longer offered (several ways can be chosen together).
+    if (this.profile.transportation?.includes('MultipleMethods'))
+      this.profile.transportation = this.profile.transportation.filter((way) => way !== 'MultipleMethods');
+    const chosen = this.profile.topPriorities || [];
+    if (!chosen.length) return;
+    const offered = new Set(
+      (this.profile.propertyGoal === 'Buy' ? this.dailyPriorityChoices : this.generateSuggestedPriorities()).map(
+        (option) => String(option.value),
+      ),
+    );
+    const kept = chosen.filter((value) => offered.has(value));
+    if (kept.length !== chosen.length) this.profile.topPriorities = kept;
   }
   /** Tbilisi districts without a metro station nearby. */
   private static readonly NO_METRO_DISTRICTS = new Set(['Vake', 'Vera', 'Bagebi', 'Vashlijvari', 'Krtsanisi', 'DidiDighomi', 'Mtatsminda']);
@@ -1739,14 +1827,14 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.profile.districts.length > 0 ||
       (!!this.profile.proximityTarget && this.profile.proximityTarget !== 'No') ||
       !!this.profile.proximityAddress?.trim();
-    if (hasLocation) add('Proximity to selected location', 'SelectedLocationNearby');
+    const pointGiven = !!this.profile.proximityAddress?.trim() || this.profile.proximityLatitude != null;
+    if (hasLocation) add(pointGiven ? 'Proximity to selected location' : 'In the area you chose', 'SelectedLocationNearby');
     // "Proximity to office" only makes sense once the office address was given on the location step.
     const officeAddressGiven =
       this.profile.proximityTarget === 'Workplace' && !!this.profile.proximityAddress?.trim();
 
-    const familyHousehold =
-      this.profile.children > 0 ||
-      ['ParentWithChildren', 'FamilyWithChildren'].includes(this.profile.householdType);
+    // School, kindergarten and playground only when there really are children.
+    const familyHousehold = this.profile.children > 0;
     const ages = new Set(
       familyHousehold
         ? this.profile.childrenAgeGroups.slice(0, Math.max(0, this.profile.children))

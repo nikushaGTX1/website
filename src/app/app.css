@@ -47,7 +47,9 @@
     /* The page layer must sit above the footer, or the footer covers fixed bars
        (Velven Match Back / Continue) when scrolled to the bottom. */
     position: relative;
-    z-index: 1;
+    /* 2, not 1: the footer box is z-index 1 too and comes later, so it was drawn over
+       the fixed search bar on Explore when scrolled to the bottom. */
+    z-index: 2;
   }
 }
 

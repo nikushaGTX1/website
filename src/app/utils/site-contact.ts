@@ -1,9 +1,8 @@
 /** Public contact details shown in the footer. */
 export const SITE_CONTACT = {
   email: 'info@velven.ge',
-  // TODO: fill in Velven's real public phone number in international format, e.g. '+995 5XX XXX XXX'.
-  // The footer hides the phone line while this is empty (it used to show the placeholder +995 555 123 456).
-  phone: '',
+  // Public phone number (footer, contact). The footer hides the phone line when this is empty.
+  phone: '+995 558 47 48 89',
 };
 
 /** "+995 568 444 220" -> "tel:+995568444220". */

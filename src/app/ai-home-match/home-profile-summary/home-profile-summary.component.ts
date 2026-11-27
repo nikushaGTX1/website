@@ -112,7 +112,7 @@ export class HomeProfileSummaryComponent {
               : 'Not specified',
         icon: 'fa-location-dot',
       },
-      rent ? { step: 3, label: 'Budget', value: this.budget, icon: 'fa-wallet' } : null,
+      { step: 3, label: 'Budget', value: this.budget, icon: 'fa-wallet' },
       rent && p.householdType
         ? {
             step: 4,
@@ -168,7 +168,7 @@ export class HomeProfileSummaryComponent {
         : null,
       {
         step: this.profile.propertyGoal === 'Buy' ? 17 : 11,
-        label: this.profile.propertyGoal === 'Buy' ? 'Daily priorities' : 'Top 5 priorities',
+        label: this.profile.propertyGoal === 'Buy' ? 'Daily priorities' : 'Top priorities',
         value: this.priorityList,
         icon: 'fa-list-ol',
       },
@@ -185,12 +185,17 @@ export class HomeProfileSummaryComponent {
   /** "Rent · Private house". */
   get goalValue(): string {
     const types = this.profile.homeTypes?.length ? this.profile.homeTypes : this.profile.homeType ? [this.profile.homeType] : [];
-    const type = types.map((value) => (value === 'House' ? 'Private house' : 'Apartment')).join(' · ');
+    const type = types
+      .map((value) => (value === 'House' ? 'Private house' : value === 'Commercial' ? 'Commercial place' : 'Apartment'))
+      .join(' · ');
     return [this.label(this.profile.propertyGoal), type].filter(Boolean).join(' · ');
   }
 
+  /** "USD 0–2,450" (rent) or "USD 150,000–200,000" (buy); "Not set yet" when there is no maximum. */
   get budget(): string {
-    return `${this.profile.currency} ${this.profile.budgetMin.toLocaleString()}–${this.profile.budgetMax.toLocaleString()}`;
+    const { currency, budgetMin, budgetMax } = this.profile;
+    if (!budgetMax) return 'Not set yet';
+    return `${currency} ${Number(budgetMin || 0).toLocaleString()}–${Number(budgetMax).toLocaleString()}`;
   }
 
   get profileAttributes(): ProfileAttribute[] {
@@ -215,9 +220,7 @@ export class HomeProfileSummaryComponent {
             icon: 'fa-location-dot',
           }
         : null,
-      this.profile.propertyGoal !== 'Buy'
-        ? { step: 3, label: 'Budget', value: this.budget, icon: 'fa-wallet' }
-        : null,
+      { step: 3, label: 'Budget', value: this.budget, icon: 'fa-wallet' },
       this.profile.householdType
         ? {
             step: 4,

@@ -214,7 +214,7 @@
           <div class="options condition-options purpose-options">
             <button
               type="button"
-              *ngFor="let option of purposeOptions; trackBy: trackOption"
+              *ngFor="let option of purposeChoices; trackBy: trackOption"
               [class.selected]="profile.purchasePurpose === option.value"
               [attr.aria-pressed]="profile.purchasePurpose === option.value"
               (click)="setPurchaseField('purchasePurpose', option.value)"
@@ -250,10 +250,45 @@
           </div>
         </div>
         <div *ngSwitchCase="19" class="size-step">
-          <div class="budget-fields">
-            <label>From (m²)<input type="number" min="0" inputmode="numeric" [value]="profile.minSize ?? ''" (input)="setSize('minSize', $any($event.target).value)" placeholder="No minimum" /></label
-            ><label>To (m²)<input type="number" min="0" inputmode="numeric" [value]="profile.maxSize ?? ''" (input)="setSize('maxSize', $any($event.target).value)" placeholder="No maximum" /></label>
+          <!-- Quick choices; "Any size" leaves both ends open. -->
+          <div class="size-presets" role="radiogroup" aria-label="Size">
+            <button
+              type="button"
+              *ngFor="let preset of sizePresets; trackBy: trackOption"
+              class="size-preset"
+              role="radio"
+              [class.selected]="sizePresetSelected(preset)"
+              [attr.aria-checked]="sizePresetSelected(preset)"
+              (click)="chooseSizePreset(preset)"
+            >
+              <b>{{ preset.label }}</b>
+              <small *ngIf="preset.hint">{{ preset.hint }}</small>
+              <i class="size-check fa-solid fa-check" aria-hidden="true"></i>
+            </button>
           </div>
+
+          <p class="size-or"><span>Or enter your own</span></p>
+          <div class="size-fields">
+            <label class="size-field">
+              <span>Minimum</span>
+              <span class="size-input">
+                <input type="number" min="0" inputmode="numeric" [value]="profile.minSize ?? ''" (input)="setSize('minSize', $any($event.target).value)" placeholder="No limit" aria-label="Minimum size in m²" />
+                <em aria-hidden="true">m²</em>
+              </span>
+            </label>
+            <span class="size-dash" aria-hidden="true">–</span>
+            <label class="size-field">
+              <span>Maximum</span>
+              <span class="size-input">
+                <input type="number" min="0" inputmode="numeric" [value]="profile.maxSize ?? ''" (input)="setSize('maxSize', $any($event.target).value)" placeholder="No limit" aria-label="Maximum size in m²" />
+                <em aria-hidden="true">m²</em>
+              </span>
+            </label>
+          </div>
+          <p class="size-summary" *ngIf="!(profile.minSize && profile.maxSize && profile.maxSize < profile.minSize)">
+            <i class="fa-solid fa-ruler-combined" aria-hidden="true"></i>
+            <span>{{ sizeSummary }}</span>
+          </p>
           <p class="validation" *ngIf="profile.minSize && profile.maxSize && profile.maxSize < profile.minSize">
             Maximum must be greater than or equal to minimum.
           </p>
@@ -440,6 +475,9 @@
                   >
                 </button>
               </div>
+              <p class="proximity-required" *ngIf="!profile.proximityAddress?.trim() && profile.proximityLatitude == null">
+                Enter the address, so we can measure the distance to it.
+              </p>
               <p class="proximity-no-match" *ngIf="showProximityNoResults">
                 No matching street found.
               </p></label
@@ -531,7 +569,7 @@
             ><button
               type="button"
               (click)="changeCount('children', -1)"
-              [disabled]="profile.children === 0"
+              [disabled]="profile.children === 0 || (familyWithChildren && profile.children === 1)"
             >
               −</button
             ><b>{{ profile.children }}</b
@@ -543,6 +581,10 @@
               +
             </button>
           </div>
+          <p class="household-note" *ngIf="familyWithChildren && profile.children === 1">
+            A family with children has at least one child.
+            <button type="button" class="link-button" (click)="goToStep(4)">Change who will live there</button>
+          </p>
           <fieldset *ngIf="profile.children">
             <legend>What age groups are the children in?</legend>
             <button
@@ -938,7 +980,7 @@
   <p>Your name and phone are shared only with Velven staff. Owners see only your requirements and your agent's contact.</p>
   <form (ngSubmit)="submitIntake()">
     <label for="intake-name">First name</label><input id="intake-name" name="firstName" [(ngModel)]="intakeContact.firstName" autocomplete="given-name" required maxlength="80"/>
-    <label for="intake-phone">Phone number</label><input id="intake-phone" name="phone" [(ngModel)]="intakeContact.phone" type="tel" placeholder="+995 5XX XX XX XX" autocomplete="tel" required maxlength="40"/>
+    <label for="intake-phone">Phone number</label><input id="intake-phone" name="phone" [(ngModel)]="intakeContact.phone" type="tel" placeholder="+995 558 47 48 89" autocomplete="tel" required maxlength="40"/>
     <p class="intake-note" *ngIf="profile.nationality">Nationality: <b>{{ nationalityLabel }}</b></p>
     <label class="intake-check"><input type="checkbox" name="consent" [(ngModel)]="intakeContact.consent" required/><span>I consent to Velven storing my requirements and contact details and contacting me about my search.</span></label>
     <label class="intake-check"><input type="checkbox" name="publishConsent" [(ngModel)]="intakeContact.publishConsent"/><span>Show my anonymised profile to property owners</span></label>

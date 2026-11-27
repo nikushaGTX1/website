@@ -121,10 +121,10 @@
       </p>
 
       <div class="refine" *ngIf="tab === 'all'" role="group" aria-label="Refine results">
-        <button type="button" [class.on]="refine.parking" [attr.aria-pressed]="refine.parking" (click)="refine.parking = !refine.parking">
+        <button type="button" [class.on]="refine.parking" [attr.aria-pressed]="refine.parking" (click)="toggleRefine('parking')">
           <i class="fa-solid fa-square-parking" aria-hidden="true"></i> Parking
         </button>
-        <button type="button" [class.on]="refine.petFriendly" [attr.aria-pressed]="refine.petFriendly" (click)="refine.petFriendly = !refine.petFriendly">
+        <button type="button" [class.on]="refine.petFriendly" [attr.aria-pressed]="refine.petFriendly" (click)="toggleRefine('petFriendly')">
           <i class="fa-solid fa-paw" aria-hidden="true"></i> Pet friendly
         </button>
       </div>
@@ -159,7 +159,7 @@
           </div>
           <div class="state-card soft" *ngIf="!newItems.length && !hasFailedSearch">
             <i class="fa-regular fa-bell" aria-hidden="true"></i>
-            <h2>No perfect matches just yet.</h2>
+            <h2>{{ allItems.length ? 'No new homes added yet.' : 'No perfect matches just yet.' }}</h2>
             <p>We'll let you know when something new appears.</p>
             <button type="button" class="text-btn" *ngIf="allItems.length" (click)="setTab('all')">
               See all current matches <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>

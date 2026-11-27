@@ -35,6 +35,51 @@ export class Navigation implements OnInit, OnDestroy {
     this.menuIsOpen = open;
     if (open) lockPageScroll();
     else unlockPageScroll();
+    this.setPageBehindMenuInert(open);
+    if (open) {
+      // Keyboard and screen readers start inside the menu, on its close button.
+      window.setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('.mm-close')?.focus(), 0);
+    } else if (this.host.nativeElement.querySelector('.mobile-menu')?.contains(document.activeElement)) {
+      // Closed from inside the menu: focus goes back to the burger button.
+      window.setTimeout(() => this.host.nativeElement.querySelector<HTMLElement>('.menu-toggle')?.focus(), 0);
+    }
+  }
+
+  /**
+   * While the menu is open, nothing behind it can be clicked, focused or read: the page,
+   * the footer, the phone bottom bar and the header bar itself. Otherwise the search below
+   * could open its own window on top of the menu and unlock page scrolling when closed.
+   */
+  private setPageBehindMenuInert(inert: boolean): void {
+    const host = this.host.nativeElement;
+    const behind: Element[] = [];
+    const root = host.parentElement;
+    if (root) for (const child of Array.from(root.children)) if (child !== host) behind.push(child);
+    const bar = host.querySelector('.navigation');
+    if (bar) behind.push(bar);
+    for (const element of behind) (element as HTMLElement).inert = inert;
+  }
+
+  /** Tab / Shift+Tab stay inside the open menu. */
+  @HostListener('document:keydown', ['$event'])
+  keepFocusInMenu(event: KeyboardEvent): void {
+    if (!this.menuOpen || event.key !== 'Tab') return;
+    const menu = this.host.nativeElement.querySelector<HTMLElement>('.mobile-menu');
+    if (!menu) return;
+    const focusable = Array.from(
+      menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+    ).filter((element) => element.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+    if (event.shiftKey && (active === first || !menu.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !menu.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
   }
   languageOpen = false;
   /** Phone menu: the account tiles are shown open. */

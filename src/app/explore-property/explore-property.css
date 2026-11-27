@@ -3200,3 +3200,174 @@ svg {
 .feature-pill { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 6px 12px; min-height: 0; border: 1px solid #d9cdf1; border-radius: 999px; background: #f4effc; color: #451a8f; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .feature-pill i { font-size: 12px; }
 .feature-pill:hover { background: #ebe2fa; }
+
+/* Home type choices: purple icon in a soft round badge (the plain black icons looked heavy);
+   the chosen one gets a filled badge. */
+.property-type-grid button i {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px;
+  background: #f3eefc; color: #451a8f !important; font-size: 19px !important;
+  transition: background 0.15s, color 0.15s;
+}
+.property-type-grid button { border-color: #e6e0f2 !important; color: #2b2340; font-weight: 700; }
+.property-type-grid button.selected { border-color: #451a8f !important; background: #f8f4ff !important; color: #451a8f; box-shadow: 0 0 0 1px #451a8f inset; }
+.property-type-grid button.selected i { background: #451a8f; color: #fff !important; }
+.property-type-grid .property-type-wide { flex-direction: row; gap: 12px; }
+
+/* Phones: the home type menu slides up from the bottom as a sheet. */
+@keyframes type-sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@media (max-width: 780px) {
+  .property-type-popover {
+    position: fixed !important;
+    top: auto !important; right: 0 !important; bottom: 0 !important; left: 0 !important;
+    width: 100% !important; max-height: min(82dvh, 620px) !important;
+    margin: 0 !important; overflow-y: auto; overscroll-behavior: contain;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-radius: 24px 24px 0 0 !important;
+    z-index: 1200 !important;
+    /* Dims the page behind the sheet. */
+    box-shadow: 0 0 0 100vmax rgba(20, 15, 40, 0.45), 0 -8px 30px rgba(20, 12, 50, 0.18) !important;
+    animation: type-sheet-up 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .property-type-popover .property-type-heading { padding-top: 22px; }
+  /* Grab handle */
+  .property-type-popover .property-type-heading::before {
+    content: ''; position: absolute; top: 8px; left: 50%; width: 40px; height: 4px; margin-left: -20px;
+    border-radius: 99px; background: #d9d2e6;
+  }
+}
+@media (max-width: 780px) and (prefers-reduced-motion: reduce) {
+  .property-type-popover { animation: none; }
+}
+
+/* Phones: every filter on Explore (home type, price, bedrooms, condition, size, floor) opens
+   the same way: a full-width sheet sliding up from the bottom, page dimmed behind it. */
+@media (max-width: 780px) {
+  .search-popover:not(.location-popover),
+  .chip-popover {
+    position: fixed !important;
+    top: auto !important; right: 0 !important; bottom: 0 !important; left: 0 !important;
+    width: 100% !important; max-width: none !important; max-height: min(85dvh, 680px) !important;
+    margin: 0 !important; padding: 26px 18px calc(18px + env(safe-area-inset-bottom)) !important;
+    overflow-y: auto; overscroll-behavior: contain;
+    border: 0 !important; border-radius: 24px 24px 0 0 !important;
+    z-index: 1200 !important; transform: none !important;
+    box-shadow: 0 0 0 100vmax rgba(20, 15, 40, 0.45), 0 -8px 30px rgba(20, 12, 50, 0.18) !important;
+    animation: type-sheet-up 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .search-popover.property-type-popover { padding: 0 0 env(safe-area-inset-bottom) !important; }
+  .search-popover.property-type-popover .property-type-heading { border-radius: 24px 24px 0 0; }
+  /* Grab handle on the sheets that have no heading bar of their own. */
+  .search-popover:not(.location-popover):not(.property-type-popover)::after,
+  .chip-popover::after {
+    content: ''; position: absolute; top: 9px; left: 50%; width: 40px; height: 4px; margin-left: -20px;
+    border-radius: 99px; background: #d9d2e6;
+  }
+  .search-popover::before, .chip-popover::before { display: none !important; }
+
+  /* Size and floor windows: also a bottom sheet. */
+  .size-backdrop { place-items: end stretch !important; padding: 0 !important; }
+  .size-dialog {
+    width: 100% !important; max-height: min(88dvh, 720px) !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom)) !important;
+    animation: type-sheet-up 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+@media (max-width: 780px) and (prefers-reduced-motion: reduce) {
+  .search-popover, .chip-popover, .size-dialog { animation: none !important; }
+}
+
+/* Close (×) buttons on these sheets: always a full circle. */
+.property-type-popover .property-type-heading > button,
+.size-close {
+  width: 44px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important;
+  max-height: 44px !important; padding: 0 !important; aspect-ratio: 1 / 1;
+  display: grid !important; place-items: center; border-radius: 50% !important; flex: none;
+}
+.size-close { border: 1px solid #e3dcf0 !important; background: #fff !important; color: #2a2140 !important; font-size: 17px !important; }
+
+/* Sheets fill the whole width, also under a visible page scrollbar (desktop browser in phone size). */
+@media (max-width: 780px) {
+  .search-popover:not(.location-popover),
+  .chip-popover {
+    right: auto !important;
+    width: 100vw !important;
+  }
+  .size-backdrop { right: auto !important; width: 100vw !important; }
+  .size-dialog { justify-self: stretch; width: 100% !important; max-width: none !important; margin: 0 !important; }
+}
+
+/* A filter chip that is on (Parking, Pet friendly, Near park, …): solid purple with white text,
+   on phones too (the old selected look lived inside the hover-only block). */
+.chip.selected,
+.chip.selected:hover {
+  border-color: #451a8f !important;
+  background: #451a8f !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(69, 26, 143, 0.22);
+}
+.chip.selected svg,
+.chip.selected i { color: #fff !important; stroke: currentColor; }
+
+/* Condition sheet: each option with a purple icon badge; the chosen one is clearly marked. */
+.condition-popover > button {
+  justify-content: flex-start !important; gap: 12px; min-height: 52px !important; padding: 6px 12px !important;
+  border-radius: 14px !important; font-size: 14px !important; color: #2b2340 !important;
+}
+.condition-popover > button > span { flex: 1; }
+.condition-popover > button .condition-icon {
+  display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 12px;
+  background: #f3eefc; color: #451a8f; font-size: 16px;
+}
+.condition-popover > button.selected {
+  border-color: #451a8f !important; background: #f8f4ff !important; color: #451a8f !important;
+}
+.condition-popover > button.selected .condition-icon { background: #451a8f; color: #fff; }
+.condition-popover > button svg { flex: none; width: 18px !important; height: 18px !important; stroke: #451a8f; }
+
+/* "Property condition & construction" is now part of the scrolling filter list (it was pinned
+   above the buttons). Full width, like the other sections. */
+.mf-body > .mf-condition { grid-column: 1 / -1; margin: 14px 0 10px !important; }
+.mf-condition-toggle strong { flex: 1; min-width: 0; }
+@media (max-width: 600px) {
+  .mf-condition-toggle > span { display: none; }
+}
+
+/* Segmented choices (Any / 1 / 2 / 3+, metro minutes…): each label centred and never cut;
+   "Any" takes the room it needs, the rest share the rest. */
+.mf-dialog .mf-segment { display: flex !important; }
+.mf-dialog .mf-segment button {
+  flex: 1 1 auto; display: flex; align-items: center; justify-content: center;
+  padding: 0 10px !important; text-align: center;
+}
+@media (max-width: 420px) {
+  .mf-dialog .mf-segment button { font-size: 13px; padding: 0 8px !important; }
+}
+
+/* Property condition in More filters: two columns of cards with a purple icon badge. */
+.mf-condition .mf-pills { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mf-condition .mf-pills button {
+  justify-content: flex-start; gap: 10px; min-height: 52px; padding: 6px 12px !important;
+  border-radius: 14px; text-align: left; line-height: 1.25;
+}
+.mf-condition .mf-pills button .condition-icon {
+  display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 10px;
+  background: #f3eefc; color: #451a8f !important; font-size: 15px;
+}
+.mf-condition .mf-pills button.selected { border-color: #451a8f !important; background: #f8f4ff !important; }
+.mf-condition .mf-pills button.selected .condition-icon { background: #451a8f; color: #fff !important; }
+.mf-condition-toggle { min-height: 60px; }
+@media (max-width: 480px) {
+  .mf-condition .mf-pills { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .mf-condition .mf-pills button { min-height: 48px; overflow-wrap: normal; word-break: normal; }
+}
+
+/* Tap guard under an open sheet (phones): the bars ignore taps, the guard closes the sheet. */
+.sheet-tap-guard { display: none; }
+@media (max-width: 780px) {
+  .sheet-tap-guard { display: block; position: fixed; inset: 0; z-index: 1; background: transparent; }
+  .explore-sticky-head:has(.sheet-tap-guard) > .search-row,
+  .explore-sticky-head:has(.sheet-tap-guard) > .chip-bar { pointer-events: none; }
+  .explore-sticky-head:has(.sheet-tap-guard) .search-popover,
+  .explore-sticky-head:has(.sheet-tap-guard) .chip-popover { pointer-events: auto; }
+}

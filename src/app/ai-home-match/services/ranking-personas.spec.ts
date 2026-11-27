@@ -118,3 +118,9 @@ test('a month written in the description counts as the move-in date ("ბინ�
   assert.match(String(listingAvailableFrom(home(2, { description: 'Available from March.' }))), /-03-01$|null/);
   assert.equal(listingAvailableFrom(home(3, { description: 'Pets allowed' })), null);
 });
+
+test('a listing in another named area ("ლისი") is not shown for a Vake-only search', () => {
+  const lisi = evaluateMandatoryRequirements(home(646, { district: 'ლისი' }), persona, rates);
+  assert.equal(lisi.status, 'alternative');
+  assert.notEqual(evaluateMandatoryRequirements(home(1, { district: 'ვაკე' }), persona, rates).status, 'alternative');
+});

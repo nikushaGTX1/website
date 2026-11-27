@@ -4880,3 +4880,86 @@ fieldset {
   .condition-options.purpose-options { grid-template-columns: 1fr !important; }
   .condition-options.purpose-options button { min-height: 0 !important; }
 }
+
+/* Hints under answers that still need something (address, at least one child). */
+.proximity-required,
+.household-note { margin: 8px 0 0; color: #8a5300; font-size: 13px; font-weight: 600; line-height: 1.45; }
+.household-note .link-button {
+  display: inline; margin-left: 6px; padding: 0; min-height: 0; border: 0; background: none;
+  color: #451a8f; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer;
+}
+
+
+/* Size question: quick choice cards, then a "from - to" pair with an m² unit. */
+.size-step { display: grid; gap: 18px; }
+.size-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.size-preset {
+  position: relative; display: grid; justify-items: start; align-content: start; gap: 4px;
+  min-height: 112px; padding: 14px 14px 12px; border: 1.5px solid #e6e0f2; border-radius: 16px;
+  background: #fff; color: #1f1533; font: inherit; text-align: left; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.size-preset b { font-size: 15px; font-weight: 800; line-height: 1.25; }
+.size-preset small { color: #7a7290; font-size: 12.5px; line-height: 1.35; }
+.size-preset-art {
+  display: grid; place-items: end start; width: 34px; height: 34px; margin-bottom: 6px;
+  border-radius: 8px; background: #f4f0fc;
+}
+.size-preset-art > span { display: block; border-radius: 6px 6px 6px 0; background: #c9b6f2; }
+@media (hover: hover) {
+  .size-preset:hover { border-color: #c9b6f2; background: #fcfaff; }
+}
+.size-preset.selected { border-color: #451a8f; background: #f6f1ff; box-shadow: 0 0 0 1px #451a8f inset; }
+.size-preset.selected .size-preset-art > span { background: #451a8f; }
+.size-check {
+  position: absolute; top: 12px; right: 12px; display: none; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%; background: #451a8f; color: #fff; font-size: 11px;
+}
+.size-preset.selected .size-check { display: grid; }
+.size-preset:focus-visible { outline: 3px solid #b89ae8; outline-offset: 2px; }
+
+.size-or { display: flex; align-items: center; gap: 12px; margin: 2px 0 0; color: #7a7290; font-size: 13px; font-weight: 600; }
+.size-or::before, .size-or::after { content: ''; flex: 1; height: 1px; background: #ece6f6; }
+
+.size-fields { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 12px; }
+.size-field { display: grid; gap: 6px; color: #3b3150; font-size: 13px; font-weight: 700; }
+.size-input {
+  display: flex; align-items: center; height: 52px; padding: 0 16px; border: 1.5px solid #e3dcef;
+  border-radius: 14px; background: #fbfaff; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.size-input:focus-within { border-color: #451a8f; box-shadow: 0 0 0 4px rgba(69, 26, 143, 0.12); background: #fff; }
+.size-input input {
+  flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent;
+  color: #1f1533; font: inherit; font-size: 17px; font-weight: 700; -moz-appearance: textfield;
+}
+.size-input input::-webkit-outer-spin-button, .size-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.size-input input::placeholder { color: #a79fbb; font-weight: 600; }
+.size-input em { color: #7a7290; font-size: 14px; font-style: normal; font-weight: 700; }
+.size-dash { padding-bottom: 14px; color: #a79fbb; font-weight: 700; }
+
+.size-summary {
+  display: inline-flex; align-items: center; gap: 8px; justify-self: start; margin: 0;
+  padding: 8px 14px; border-radius: 999px; background: #f4effc; color: #451a8f; font-size: 13.5px; font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .size-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .size-preset { min-height: 100px; padding: 12px; }
+  .size-preset b { font-size: 14px; }
+}
+
+/* Size cards: text only (no pictures), centred in the card. */
+.size-preset { min-height: 84px; align-content: center; padding: 14px 40px 14px 16px; }
+.size-preset b { font-size: 16px; }
+/* The field inside the m² box: no second border, ring or background of its own on focus. */
+.size-input input,
+.size-input input:focus,
+.size-input input:focus-visible,
+.size-input input:hover {
+  height: 100% !important; min-height: 0 !important; padding: 0 !important; margin: 0 !important;
+  border: 0 !important; border-radius: 0 !important; outline: 0 !important; box-shadow: none !important;
+  background: transparent !important;
+}
+@media (max-width: 640px) {
+  .size-preset { min-height: 76px; padding: 12px 36px 12px 14px; }
+}
