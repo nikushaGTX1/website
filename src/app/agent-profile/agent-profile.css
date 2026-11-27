@@ -1220,3 +1220,34 @@
   .pd-number a { font-size: 18px; }
 }
 .phone-dialog.pd .dialog-close { width: 36px; height: 36px; min-width: 36px; min-height: 36px; padding: 0; aspect-ratio: 1; border-radius: 50%; }
+
+/* Phones (<= 600px): name, neighbourhood and Search each on their own full-width row,
+   so the name field never shrinks to nothing and labels are not cut. */
+@media (max-width: 600px) {
+  .agents-search { grid-template-columns: minmax(0, 1fr) !important; gap: 8px !important; }
+  .agents-search label, .agents-search-area { width: 100%; }
+  .agents-search button[type="submit"] { width: 100%; }
+  /* Neighbourhood list: as wide as the field, ends above the bottom bar, one line per name. */
+  .agents-search .agents-area-menu {
+    left: 0 !important; right: 0 !important; width: auto !important; min-width: 0 !important;
+    max-height: min(320px, calc(100dvh - 260px)) !important; overflow-y: auto; overscroll-behavior: contain;
+  }
+  .agents-search .agents-area-menu button { white-space: nowrap; }
+}
+/* Keyboard-highlighted neighbourhood (↑ / ↓). */
+.agents-search .agents-area-menu button.active { background: #f4effd; box-shadow: inset 0 0 0 1.5px #b9a6ea; }
+
+/* Contact window: fits the visible screen and scrolls inside when it is taller (short phones);
+   Call and WhatsApp stay reachable. */
+.phone-dialog-backdrop { padding: 12px !important; overflow-y: auto; overscroll-behavior: contain; }
+.phone-dialog { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 600px) {
+  .agents-search-area { scroll-margin-top: 84px; }
+  .agents-search .agents-area-menu { max-height: max(150px, min(320px, calc(100dvh - 240px))) !important; }
+}
+
+/* Neighbourhood picker removed: name search + Search button only. */
+.agents-search { grid-template-columns: minmax(0, 1fr) auto !important; }
+@media (max-width: 600px) {
+  .agents-search { grid-template-columns: minmax(0, 1fr) !important; }
+}

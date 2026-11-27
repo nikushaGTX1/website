@@ -15,27 +15,6 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input type="search" name="agentName" [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()" placeholder="Agent name..." aria-label="Search agents by name" />
         </label>
-        <div class="agents-search-area" [class.open]="districtOpen">
-          <button type="button" class="agents-area-toggle" (click)="districtOpen = !districtOpen" aria-haspopup="listbox" [attr.aria-expanded]="districtOpen">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.1-7-11.5a7 7 0 0 1 14 0C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-            <span>{{ selectedDistrict || 'All Neighborhoods' }}</span>
-            <svg class="agents-search-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          @if (districtOpen) {
-            <div class="agents-area-menu" role="listbox" aria-label="Neighborhood">
-              <button type="button" role="option" [class.selected]="!selectedDistrict" [attr.aria-selected]="!selectedDistrict" (click)="pickDistrict('')">
-                <span>All Neighborhoods</span>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
-              </button>
-              @for (district of districts; track district) {
-                <button type="button" role="option" [class.selected]="selectedDistrict === district" [attr.aria-selected]="selectedDistrict === district" (click)="pickDistrict(district)">
-                  <span>{{ district }}</span>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
-                </button>
-              }
-            </div>
-          }
-        </div>
         <button type="submit">Search</button>
       </form>
     </div>
@@ -89,7 +68,11 @@
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
                 <circle cx="12" cy="9" r="2.5"/>
               </svg>
-              <span>{{ agent.location }}</span>
+              @if (agent.districts.length) {
+                <span class="agent-areas">@for (area of agent.districts.slice(0, 3); track area; let last = $last) {<span>{{ area }}</span>@if (!last) {<span aria-hidden="true">, </span>}}</span>
+              } @else {
+                <span>{{ agent.location }}</span>
+              }
             </div>
 
             <div class="meta-inline-row">
@@ -137,8 +120,12 @@
           <svg class="icon-star" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
           </svg>
-          <strong class="rating-score">{{ agent.rating | number:'1.1-1' }}</strong>
-          <span class="rating-reviews">({{ agent.ratingCount }} reviews)</span>
+          @if (agent.ratingCount > 0) {
+            <strong class="rating-score">{{ agent.rating | number:'1.1-1' }}</strong>
+            <span class="rating-reviews">({{ agent.ratingCount }} reviews)</span>
+          } @else {
+            <span class="rating-reviews">No reviews yet</span>
+          }
         </div>
       </div>
     </ng-container>

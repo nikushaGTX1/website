@@ -1,4 +1,4 @@
-<a class="skip-link" href="#main-content" *ngIf="showNavigation"> Skip to main content </a>
+<a class="skip-link" href="#main-content" *ngIf="showNavigation" (click)="skipToContent($event)"> Skip to main content </a>
 
 <app-navigation
   *ngIf="showNavigation || isCrmWorkspace"

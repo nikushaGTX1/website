@@ -3371,3 +3371,18 @@ svg {
   .explore-sticky-head:has(.sheet-tap-guard) .search-popover,
   .explore-sticky-head:has(.sheet-tap-guard) .chip-popover { pointer-events: auto; }
 }
+
+/* Homes-in-this-building panel: only as wide as its cards need, centred over the map
+   (2 homes = a box around 2 cards, no empty white space beside them). */
+.map-group-panel {
+  width: fit-content !important;
+  min-width: min(320px, calc(100% - 24px));
+  max-width: min(720px, calc(100% - 24px)) !important;
+  margin-inline: auto !important;
+}
+.map-group-heading small { max-width: 100%; }
+
+/* Map photo card: while the finger drags, the strip moves with it (no transition); on release
+   it glides to the chosen photo. */
+.map-preview-track { transition: transform 320ms cubic-bezier(0.22, 0.8, 0.28, 1); }
+.map-preview-track.dragging { transition: none; }

@@ -89,8 +89,11 @@
     ><a routerLink="/ExploreProperty">View All Apartments</a>
   </div>
   <div class="no-exact" *ngIf="matches.length && !rankedMatches.length" role="status">
-    <h2>No exact matches found</h2>
-    <p>
+    <h2>{{ noHomesInArea ? 'No apartments in this area yet' : 'No exact matches found' }}</h2>
+    <p *ngIf="noHomesInArea">
+      There are no homes in the area you chose that fit your search right now. We will show them here as soon as they are listed.
+    </p>
+    <p *ngIf="!noHomesInArea">
       None of the available homes meets all of your must-have requirements (location,
       bedrooms and budget).
       <ng-container *ngIf="confirmMatches.length">

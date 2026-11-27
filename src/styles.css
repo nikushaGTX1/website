@@ -649,7 +649,9 @@ body:has(.picker-sheet-backdrop, .location-dialog-open, dialog[open]) app-mobile
 }
 /* Any popup that locks page scroll also hides the phone bottom bar. */
 body[style*="position: fixed"] app-mobile-tab-bar,
-body:has([class*="backdrop"]:not([hidden])) app-mobile-tab-bar,
+/* Exact window backgrounds, not [class*="backdrop"]: that substring test ran on every element
+   after every page change and made the whole site slow (about 80% of style work on Explore). */
+body:has(.student-backdrop, .appt-backdrop, .appt-pop-backdrop, .area-backdrop, .area-sheet-backdrop, .cd-backdrop, .cropper-backdrop, .dialog-backdrop, .dp-backdrop, .draw-backdrop, .filter-menu-backdrop, .how-video-backdrop, .location-modal-backdrop, .lost-backdrop, .map-only-backdrop, .mf-backdrop, .phone-backdrop, .phone-dialog-backdrop, .picker-sheet-backdrop, .ptype-backdrop, .remove-agent-backdrop, .sheet-backdrop, .size-backdrop, .upload-success-backdrop, .user-editor-backdrop, .viewing-backdrop, .workspace-backdrop) app-mobile-tab-bar,
 body:has([role="dialog"][aria-modal="true"]) app-mobile-tab-bar {
   display: none !important;
 }
@@ -727,3 +729,11 @@ app-navigation:has(.mobile-menu) { z-index: 30000 !important; }
   /* The search bar background showed through its own (now invisible) bottom border as a light line. */
   body:has(.search-popover:not(.location-popover), .chip-popover) .explore-sticky-head > .search-row { background-clip: padding-box !important; box-shadow: none !important; }
 }
+
+/* Agent contact windows: the site header and the phone bottom bar step aside, so the header
+   never covers the window's close button (and a tap there never hits the burger menu). */
+body:has(.phone-dialog-backdrop, .phone-backdrop) app-navigation,
+body:has(.phone-dialog-backdrop, .phone-backdrop) app-mobile-tab-bar { visibility: hidden !important; }
+
+/* Velven Match "Student" window: the header steps aside so it never covers the window. */
+body:has(.student-backdrop) app-navigation { visibility: hidden; }

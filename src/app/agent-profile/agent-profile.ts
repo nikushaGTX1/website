@@ -3,7 +3,10 @@ import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/cor
 import { Agent as ApiAgent } from '../models/agent';
 import { AgentService } from '../services/agent.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ApartmentService } from '../services/apartment.service';
+import { agentDistricts, districtKey, searchKey, whatsappChatUrl } from '../utils/agent-areas';
+import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { whatsappDigits } from '../utils/phone';
 import { languageShortList } from '../utils/agent-languages';
 import { NgIf, NgFor, DecimalPipe } from '@angular/common';
@@ -22,6 +25,10 @@ export interface AgentCard {
   phoneNumber: string;
   /** Spoken languages as card labels, e.g. "Ge, En, Ru". */
   languages: string;
+  /** Districts of the agent's published listings, most listings first. */
+  districts: string[];
+  /** Account ids the agent's listings are filed under. */
+  accountIds: string[];
 }
 
 @Component({
@@ -56,7 +63,44 @@ export class AgentProfile implements OnInit {
       this.cdr.detectChanges();
     }
   }
-  readonly districts = ['Vake', 'Saburtalo', 'Vera', 'Mtatsminda', 'Sololaki', 'Old Tbilisi', 'Didube', 'Chughureti', 'Nadzaladevi', 'Isani', 'Samgori', 'Gldani', 'Krtsanisi', 'Didi Dighomi', 'Ortachala'];
+  /** Neighbourhoods where at least one agent has listings (so a choice never gives 0 agents). */
+  districts: string[] = [];
+  /** Keyboard: highlighted row in the neighbourhood menu (0 = All Neighborhoods). */
+  activeDistrictIndex = 0;
+
+  get districtOptions(): string[] {
+    return ['', ...this.districts];
+  }
+
+  toggleDistrictMenu(): void {
+    this.districtOpen = !this.districtOpen;
+    this.activeDistrictIndex = Math.max(0, this.districtOptions.indexOf(this.selectedDistrict));
+    // Phones: bring the field to the top so the whole list fits above the bottom bar.
+    if (this.districtOpen && window.innerWidth <= 600) {
+      window.setTimeout(() => document.querySelector('.agents-search-area')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+    }
+  }
+
+  onDistrictKeydown(event: KeyboardEvent): void {
+    const options = this.districtOptions;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!this.districtOpen) {
+        this.districtOpen = true;
+        this.activeDistrictIndex = Math.max(0, options.indexOf(this.selectedDistrict));
+      } else {
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        this.activeDistrictIndex = (this.activeDistrictIndex + step + options.length) % options.length;
+      }
+      window.setTimeout(() => document.querySelector<HTMLElement>('.agents-area-menu .active')?.scrollIntoView({ block: 'nearest' }));
+    } else if (event.key === 'Enter' && this.districtOpen) {
+      event.preventDefault();
+      this.pickDistrict(options[this.activeDistrictIndex] ?? '');
+    } else if (event.key === 'Escape' && this.districtOpen) {
+      event.stopPropagation();
+      this.districtOpen = false;
+    }
+  }
   selectedSort = 'name-az';
   selectedPhoneAgent: AgentCard | null = null;
 
@@ -64,12 +108,51 @@ export class AgentProfile implements OnInit {
 
   constructor(
     private agentService: AgentService,
+    private apartmentService: ApartmentService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
+    // Search, neighbourhood and sort come back from the address (Back from a profile, refresh).
+    const query = this.route.snapshot.queryParamMap;
+    this.searchQuery = query.get('q') || '';
+    // The neighbourhood picker was removed; old links with ?district= no longer filter.
+    this.selectedDistrict = '';
+    this.selectedSort = query.get('sort') || 'name-az';
     this.loadAgents();
+  }
+
+  private syncUrl(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {
+        q: this.searchQuery.trim() || null,
+        district: null,
+        sort: this.selectedSort !== 'name-az' ? this.selectedSort : null,
+      },
+    });
+  }
+
+  /** Districts from published listings, for the filter, the cards and the menu. */
+  private loadAgentAreas(): void {
+    this.apartmentService.getApartments().subscribe({
+      next: (apartments) => {
+        for (const agent of this.allAgents) {
+          agent.districts = agentDistricts(apartments, agent.accountIds);
+          if (agent.districts.length) agent.location = agent.districts.slice(0, 3).join(', ');
+        }
+        const seen = new Set<string>();
+        this.districts = this.allAgents
+          .flatMap((agent) => agent.districts)
+          .filter((district) => (seen.has(district) ? false : (seen.add(district), true)))
+          .sort((a, b) => a.localeCompare(b));
+        this.onFilterChange();
+      },
+      error: () => undefined,
+    });
   }
 
   loadAgents(): void {
@@ -90,6 +173,7 @@ export class AgentProfile implements OnInit {
           )
           .map((agent) => this.toAgentCard(agent));
         this.onFilterChange();
+        this.loadAgentAreas();
 
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -108,16 +192,13 @@ export class AgentProfile implements OnInit {
   }
 
   onFilterChange(): void {
-    const query = this.searchQuery.trim().toLowerCase();
-
-    const district = this.selectedDistrict.toLowerCase();
+    // Georgian and Latin spellings both match ("Giorgi" finds "გიორგი" and the other way round).
+    const query = searchKey(this.searchQuery);
+    const district = districtKey(this.selectedDistrict);
     const filtered = this.allAgents.filter((agent) => {
-      if (district && !(agent.location + ' ' + agent.bio).toLowerCase().includes(district)) return false;
-      return (
-        agent.name.toLowerCase().includes(query) ||
-        agent.location.toLowerCase().includes(query) ||
-        agent.bio.toLowerCase().includes(query)
-      );
+      if (district && !agent.districts.some((item) => districtKey(item) === district)) return false;
+      if (!query) return true;
+      return [agent.name, agent.location, agent.bio].some((text) => searchKey(text).includes(query));
     });
 
     this.agents = [...filtered].sort((a, b) => {
@@ -133,6 +214,7 @@ export class AgentProfile implements OnInit {
       }
     });
 
+    if (!this.isLoading) this.syncUrl();
     this.cdr.detectChanges();
   }
 
@@ -142,8 +224,28 @@ export class AgentProfile implements OnInit {
     document.getElementById('agents-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  private phoneDialogOpener: HTMLElement | null = null;
+
   onCall(agent: AgentCard): void {
+    this.phoneDialogOpener = document.activeElement as HTMLElement | null;
     this.selectedPhoneAgent = agent;
+    lockPageScroll();
+    window.setTimeout(() => document.querySelector<HTMLElement>('.phone-dialog .dialog-close')?.focus());
+  }
+
+  /** Tab / Shift+Tab stay inside the open contact window. */
+  @HostListener('document:keydown', ['$event'])
+  keepFocusInDialog(event: KeyboardEvent): void {
+    if (!this.selectedPhoneAgent || event.key !== 'Tab') return;
+    const dialog = document.querySelector<HTMLElement>('.phone-dialog');
+    if (!dialog) return;
+    const items = Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+    if (event.shiftKey && (active === first || !dialog.contains(active))) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && (active === last || !dialog.contains(active))) { event.preventDefault(); first.focus(); }
   }
 
   phoneCopied = false;
@@ -157,8 +259,12 @@ export class AgentProfile implements OnInit {
   }
 
   closePhoneDialog(): void {
+    if (!this.selectedPhoneAgent) return;
     this.phoneCopied = false;
     this.selectedPhoneAgent = null;
+    unlockPageScroll();
+    this.phoneDialogOpener?.focus?.();
+    this.phoneDialogOpener = null;
   }
 
   @HostListener('document:keydown.escape')
@@ -175,7 +281,7 @@ export class AgentProfile implements OnInit {
   onMessage(agent: AgentCard): void {
     const phone = whatsappDigits(agent.phoneNumber);
     if (phone) {
-      window.open(`https://wa.me/${phone}`, '_blank', 'noopener');
+      window.open(whatsappChatUrl(phone), '_blank', 'noopener');
       return;
     }
     void this.router.navigate(['/agent-profile', agent.id]);
@@ -190,7 +296,8 @@ export class AgentProfile implements OnInit {
       id: agent.id || agent.userId || agent.email || agent.userName || '',
       name: agent.fullName || agent.name || agent.userName || 'Agent',
       role: 'Real Estate Professional',
-      location: agent.location || agent.email || 'Verified agent',
+      // Never the e-mail address: the listings' districts replace this once loaded.
+      location: agent.location || 'Tbilisi',
       closedDeals: agent.closedDeals || 0,
       rating: agent.averageRating || agent.rating || 0,
       ratingCount: agent.ratingCount || 0,
@@ -202,6 +309,8 @@ export class AgentProfile implements OnInit {
         'Verified real estate agent ready to help with apartments and property questions.',
       phoneNumber: agent.phoneNumber?.trim() || '',
       languages: languageShortList(agent.languages),
+      districts: [],
+      accountIds: [agent.userId, agent.id].filter((id): id is string => !!id),
     };
   }
 }

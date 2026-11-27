@@ -795,6 +795,21 @@
             >{{ option.label }}
           </button>
         </div>
+        <div class="student-follow" *ngSwitchCase="9" [hidden]="!profile.lifestyles.includes('Student')">
+          <span class="student-follow-icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
+          <span class="student-follow-text">
+            @if (profile.studentUniversityMode === 'NearUniversity' && chosenUniversity) {
+              <small>Near your university</small><b data-no-translate>{{ universityLabel(chosenUniversity) }}</b>
+            } @else if (profile.studentUniversityMode === 'NoPreference') {
+              <small>University does not matter</small><b>Homes near a metro station</b>
+            } @else {
+              <small>Student</small><b>Tell us about your university</b>
+            }
+          </span>
+          <button type="button" class="student-follow-change" (click)="openStudentDialog()">
+            {{ profile.studentUniversityMode ? 'Change' : 'Choose' }}
+          </button>
+        </div>
         <div class="business-follow" *ngSwitchCase="9" [hidden]="!profile.lifestyles.includes('BusinessProfessional')">
           <p class="car-fuel-title">How does your work shape where you live?</p>
           <div class="business-options">
@@ -844,7 +859,7 @@
         </div>
         <div *ngSwitchCase="11">
           <p class="selection-count" aria-live="polite">
-            {{ profile.topPriorities.length }} of 5 ranked
+            {{ profile.topPriorities.length }} of {{ priorityLimit }} ranked
           </p>
           <div class="options compact priority-options">
             <button
@@ -852,7 +867,7 @@
               *ngFor="let option of suggestedPriorities; trackBy: trackOption"
               [class.selected]="profile.topPriorities.includes(option.value)"
               [disabled]="
-                profile.topPriorities.length === 5 && !profile.topPriorities.includes(option.value)
+                profile.topPriorities.length >= priorityLimit && !profile.topPriorities.includes(option.value)
               "
               [attr.aria-pressed]="profile.topPriorities.includes(option.value)"
               (click)="togglePriority(option.value)"
@@ -1041,3 +1056,54 @@
     </div>
   </div>
 }
+
+<!-- "Student": where should the home be? (opens when Student is chosen) -->
+<div class="student-backdrop" *ngIf="studentDialogOpen" (click)="closeStudentDialog()">
+  <section class="student-dialog" role="dialog" aria-modal="true" aria-labelledby="student-dialog-title" (click)="$event.stopPropagation()" (keydown.escape)="closeStudentDialog()">
+    <header class="student-dialog-head">
+      @if (studentDialogStep === 'university') {
+        <button type="button" class="student-back" aria-label="Back" (click)="studentDialogStep = 'choice'"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+      }
+      <h2 id="student-dialog-title">{{ studentDialogStep === 'choice' ? 'Where would you like to live?' : 'Choose which university' }}</h2>
+      <button type="button" class="student-close" aria-label="Close" (click)="closeStudentDialog()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </header>
+    @if (studentDialogStep === 'choice') {
+      <p class="student-dialog-sub">We match homes to your studies.</p>
+      <div class="student-options">
+        <button type="button" class="student-option" [class.selected]="profile.studentUniversityMode === 'NearUniversity'" (click)="chooseStudentMode('NearUniversity')">
+          <span class="student-option-icon" aria-hidden="true"><i class="fa-solid fa-building-columns"></i></span>
+          <b>Near my university</b>
+          <small>Choose your university; homes closer to it rank higher.</small>
+        </button>
+        <button type="button" class="student-option" [class.selected]="profile.studentUniversityMode === 'NoPreference'" (click)="chooseStudentMode('NoPreference')">
+          <span class="student-option-icon" aria-hidden="true"><i class="fa-solid fa-train-subway"></i></span>
+          <b>Does not matter</b>
+          <small>We look for homes near a metro station.</small>
+        </button>
+      </div>
+    } @else {
+      <label class="student-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" [value]="universitySearch" (input)="universitySearch = $any($event.target).value" placeholder="Search universities" aria-label="Search universities" autocomplete="off" />
+      </label>
+      <p class="student-error" role="alert" *ngIf="universityError">{{ universityError }}</p>
+      <ul class="student-list" role="listbox" aria-label="Universities">
+        @for (choice of universityResults; track choice.id) {
+          <li>
+            <button type="button" role="option" [class.selected]="profile.studentUniversityId === choice.id" [attr.aria-selected]="profile.studentUniversityId === choice.id" [disabled]="!!universityLocating" (click)="chooseUniversity(choice)">
+              <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+              <span data-no-translate>{{ universityLabel(choice) }}</span>
+              @if (universityLocating === choice.id) {
+                <i class="fa-solid fa-spinner fa-spin student-list-state" aria-hidden="true"></i>
+              } @else if (profile.studentUniversityId === choice.id) {
+                <i class="fa-solid fa-circle-check student-list-state" aria-hidden="true"></i>
+              }
+            </button>
+          </li>
+        } @empty {
+          <li class="student-empty">No university found</li>
+        }
+      </ul>
+    }
+  </section>
+</div>

@@ -1319,3 +1319,7 @@ span.t {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: none; }
 }
+
+/* Contact window: fits the visible screen and scrolls inside on short phones. */
+.phone-backdrop { overflow-y: auto; overscroll-behavior: contain; }
+.phone-dialog { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }

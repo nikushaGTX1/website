@@ -1783,14 +1783,15 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     overlay.onAdd = () => {
       badge = document.createElement('button');
       badge.type = 'button';
-      const size = Math.round(Math.min(64, 44 + Math.log10(Math.max(count, 1)) * 12));
+      // Same compact look as the Explore map: 30-40px discs, thin ring, soft halo.
+      const size = Math.round(Math.min(40, 30 + Math.log10(Math.max(count, 1)) * 4.5));
       badge.setAttribute(
         'aria-label',
         isBuilding ? count + ' homes in this building' : count + ' homes, zoom in to see them',
       );
       if (isBuilding) {
         badge.innerHTML =
-          '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="flex:none">' +
+          '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true" style="flex:none">' +
           '<path d="M6 2h12a1 1 0 0 1 1 1v18h-5v-4h-4v4H5V3a1 1 0 0 1 1-1Zm2.5 3.5v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Zm-5 4v2h2v-2h-2Zm5 0v2h2v-2h-2Z"/></svg><span></span>';
         (badge.querySelector('span') as HTMLElement).textContent =
           count + (count === 1 ? ' unit' : ' units');
@@ -1800,21 +1801,26 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       Object.assign(badge.style, {
         position: 'absolute',
         transform: 'translate(-50%, -50%)',
-        minWidth: isBuilding ? '44px' : size + 'px',
-        height: isBuilding ? '44px' : size + 'px',
-        padding: isBuilding ? '0 16px' : '0',
+        width: isBuilding ? 'auto' : size + 'px',
+        minWidth: isBuilding ? '32px' : size + 'px',
+        height: isBuilding ? '30px' : size + 'px',
+        minHeight: isBuilding ? '30px' : size + 'px',
+        maxHeight: isBuilding ? '30px' : size + 'px',
+        boxSizing: 'border-box',
+        padding: isBuilding ? '0 11px' : '0',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '8px',
-        border: '2px solid rgba(255,255,255,.95)',
+        gap: '6px',
+        border: '1.5px solid #fff',
         borderRadius: isBuilding ? '999px' : '50%',
-        background: '#5b21d1',
+        background: '#451a8f',
         color: '#fff',
-        boxShadow: '0 8px 22px rgba(69, 26, 143, .38)',
+        boxShadow: '0 0 0 4px rgba(69, 26, 143, .14), 0 4px 12px rgba(31, 20, 61, .22)',
         fontFamily: 'inherit',
-        fontSize: count > 99 && !isBuilding ? '14px' : '15px',
-        fontWeight: '800',
+        fontSize: isBuilding ? '12.5px' : count > 99 ? '12px' : '13px',
+        fontWeight: '700',
+        fontVariantNumeric: 'tabular-nums',
         lineHeight: '1',
         whiteSpace: 'nowrap',
         cursor: 'pointer',

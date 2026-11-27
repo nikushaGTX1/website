@@ -15,6 +15,8 @@ import { AGENT_LANGUAGES, languageNameList } from '../utils/agent-languages';
 import { AuthService } from '../services/auth.service';
 import { toMediaUrl, tryNextProfileImageUrl } from '../utils/api-media';
 import { whatsappDigits } from '../utils/phone';
+import { districtKey, districtLabel, whatsappChatUrl } from '../utils/agent-areas';
+import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { NgIf, NgTemplateOutlet, NgFor, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPrice } from '../currency-price/currency-price';
@@ -98,7 +100,33 @@ export class AgentDetailProfile implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {}
 
+  /** Listings page: deal filter and sort survive opening a listing and coming Back. */
+  setListingFilter(value: 'all' | 'sale' | 'rent'): void {
+    this.listingFilter = value;
+    this.syncListingQuery();
+  }
+  setListingSort(value: 'newest' | 'price-asc' | 'price-desc'): void {
+    this.listingSort = value;
+    this.syncListingQuery();
+  }
+  private syncListingQuery(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {
+        deal: this.listingFilter !== 'all' ? this.listingFilter : null,
+        sort: this.listingSort !== 'newest' ? this.listingSort : null,
+      },
+      queryParamsHandling: 'merge',
+    });
+  }
+
   ngOnInit(): void {
+    const savedQuery = this.route.snapshot.queryParamMap;
+    const deal = savedQuery.get('deal');
+    if (deal === 'sale' || deal === 'rent') this.listingFilter = deal;
+    const sort = savedQuery.get('sort');
+    if (sort === 'price-asc' || sort === 'price-desc') this.listingSort = sort;
     const agentId = this.route.snapshot.paramMap.get('id') || '';
     if (!agentId) {
       void this.router.navigate(['/agent-profile']);
@@ -181,6 +209,21 @@ export class AgentDetailProfile implements OnInit {
 
   get rating(): number {
     return this.agent?.averageRating || this.agent?.rating || 0;
+  }
+
+  /** Number of client ratings; with none, the profile says "No reviews yet" instead of 0.0 / 100%. */
+  get ratingCount(): number {
+    return this.agent?.ratingCount || this.reviews.length || 0;
+  }
+
+  /** Districts of this agent's listings, most listings first ("Areas of expertise"). */
+  get expertiseAreas(): string[] {
+    const counts = new Map<string, number>();
+    for (const listing of this.listings) {
+      const key = districtKey(listing.district);
+      if (key) counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([key]) => districtLabel(key));
   }
 
   showAllReviews = false;
@@ -313,12 +356,37 @@ export class AgentDetailProfile implements OnInit {
     );
   }
 
+  private phoneDialogOpener: HTMLElement | null = null;
+
   callAgent(): void {
+    this.phoneDialogOpener = document.activeElement as HTMLElement | null;
     this.phoneDialogOpen = true;
+    // The page behind stays still; the window scrolls on its own when it is taller than the screen.
+    lockPageScroll();
+    window.setTimeout(() => document.querySelector<HTMLElement>('.phone-dialog button')?.focus());
   }
 
   closePhoneDialog(): void {
+    if (!this.phoneDialogOpen) return;
     this.phoneDialogOpen = false;
+    unlockPageScroll();
+    this.phoneDialogOpener?.focus?.();
+    this.phoneDialogOpener = null;
+  }
+
+  /** Tab / Shift+Tab stay inside the open contact window. */
+  @HostListener('document:keydown', ['$event'])
+  keepFocusInDialog(event: KeyboardEvent): void {
+    if (!this.phoneDialogOpen || event.key !== 'Tab') return;
+    const dialog = document.querySelector<HTMLElement>('.phone-dialog');
+    if (!dialog) return;
+    const items = Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+    if (event.shiftKey && (active === first || !dialog.contains(active))) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && (active === last || !dialog.contains(active))) { event.preventDefault(); first.focus(); }
   }
 
   @HostListener('document:keydown.escape')
@@ -328,7 +396,7 @@ export class AgentDetailProfile implements OnInit {
 
   whatsappAgent(): void {
     const phone = whatsappDigits(this.contactPhone);
-    window.open(`https://wa.me/${phone}`, '_blank', 'noopener');
+    window.open(whatsappChatUrl(phone), '_blank', 'noopener');
   }
 
   fixImage(event: Event): void {

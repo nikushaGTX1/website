@@ -230,6 +230,13 @@ export class HomeMatchResultsComponent implements OnChanges {
   get confirmMatches(): HomeMatchResult[] {
     return this.byStatus('confirm');
   }
+  /** An area was chosen and not one home in it fits: the empty state says so plainly. */
+  get noHomesInArea(): boolean {
+    const areaChosen = !this.profile.locationFlexible && (this.profile.districts.length > 0 || !!this.profile.selectedMapArea);
+    if (!areaChosen || this.rankedMatches.length) return false;
+    return this.matches.every((result) => result.requirement?.mismatches?.some((note) => note.startsWith('Location')));
+  }
+
   get alternativeMatches(): HomeMatchResult[] {
     return this.byStatus('alternative');
   }

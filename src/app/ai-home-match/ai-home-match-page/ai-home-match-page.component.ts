@@ -1,6 +1,9 @@
 import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CurrencyService } from '../../services/currency.service';
 import { OfficeMapPickerComponent } from '../office-map-picker/office-map-picker.component';
+import { UNIVERSITY_CHOICES, UniversityChoice, searchUniversities, universityName } from '../../utils/universities';
+import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { lockPageScroll, unlockPageScroll } from '../../utils/page-scroll-lock';
 import {
   FormControl,
   FormGroup,
@@ -871,6 +874,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     return item;
   }
 
+  /** Up to 5, or fewer when fewer things are offered ("0 of 4 ranked"). */
+  get priorityLimit(): number {
+    return Math.min(5, this.generateSuggestedPriorities().length);
+  }
+
   get suggestedPriorities(): HomeMatchOption[] {
     const rank = (value: unknown): number => {
       const index = this.profile.topPriorities.indexOf(String(value));
@@ -1212,9 +1220,107 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.profile.officeLatitude = undefined;
       this.profile.officeLongitude = undefined;
     }
+    if (key === 'lifestyles' && value === 'Student') {
+      if (values.includes('Student')) this.openStudentDialog();
+      else this.clearStudentChoice();
+    }
     if (key === 'districts' && values.length) this.profile.locationFlexible = false;
     this.persist();
   }
+  // ---------- "Student" follow-up: which university ----------
+  studentDialogOpen = false;
+  studentDialogStep: 'choice' | 'university' = 'choice';
+  universitySearch = '';
+  universityLocating = '';
+  universityError = '';
+
+  get universityResults(): UniversityChoice[] {
+    return searchUniversities(this.universitySearch);
+  }
+  get chosenUniversity(): UniversityChoice | undefined {
+    return UNIVERSITY_CHOICES.find((choice) => choice.id === this.profile.studentUniversityId);
+  }
+  universityLabel(choice: UniversityChoice | undefined): string {
+    return universityName(choice, this.translation.language$.value);
+  }
+
+  openStudentDialog(): void {
+    this.studentDialogStep = this.profile.studentUniversityMode === 'NearUniversity' ? 'university' : 'choice';
+    this.universitySearch = '';
+    this.universityError = '';
+    this.studentDialogOpen = true;
+    lockPageScroll();
+    window.setTimeout(() => document.querySelector<HTMLElement>('.student-dialog .student-option, .student-dialog input')?.focus());
+  }
+
+  /** Closed without an answer: "Student" stays ticked, Continue waits until it is answered. */
+  closeStudentDialog(): void {
+    if (!this.studentDialogOpen) return;
+    this.studentDialogOpen = false;
+    unlockPageScroll();
+    this.cdr.markForCheck();
+  }
+
+  chooseStudentMode(mode: 'NearUniversity' | 'NoPreference'): void {
+    this.profile.studentUniversityMode = mode;
+    if (mode === 'NoPreference') {
+      this.profile.studentUniversityId = undefined;
+      this.profile.studentUniversityLatitude = undefined;
+      this.profile.studentUniversityLongitude = undefined;
+      this.persist();
+      this.closeStudentDialog();
+      return;
+    }
+    this.persist();
+    this.studentDialogStep = 'university';
+    window.setTimeout(() => document.querySelector<HTMLElement>('.student-dialog input')?.focus());
+  }
+
+  /** Picks a university and finds it on the map (Google geocoder), so distances can be measured. */
+  async chooseUniversity(choice: UniversityChoice): Promise<void> {
+    this.universityLocating = choice.id;
+    this.universityError = '';
+    this.cdr.markForCheck();
+    const point = await this.locateUniversity(choice);
+    this.universityLocating = '';
+    if (!point) {
+      this.universityError = 'We could not find this university on the map. Please try again.';
+      this.cdr.markForCheck();
+      return;
+    }
+    this.profile.studentUniversityMode = 'NearUniversity';
+    this.profile.studentUniversityId = choice.id;
+    this.profile.studentUniversityLatitude = point.lat;
+    this.profile.studentUniversityLongitude = point.lng;
+    this.persist();
+    this.closeStudentDialog();
+  }
+
+  private async locateUniversity(choice: UniversityChoice): Promise<{ lat: number; lng: number } | null> {
+    const apiKey = document.querySelector<HTMLMetaElement>('meta[name="google-maps-api-key"]')?.content.trim();
+    if (!apiKey) return null;
+    try {
+      setOptions({ key: apiKey, v: 'weekly' });
+      const { Geocoder } = (await importLibrary('geocoding')) as google.maps.GeocodingLibrary;
+      const { results } = await new Geocoder().geocode({
+        address: choice.en.replace(/\s*\([^)]*\)/, '') + ', Tbilisi, Georgia',
+        region: 'ge',
+        bounds: { north: 41.85, south: 41.6, east: 45.0, west: 44.65 },
+      });
+      const location = results[0]?.geometry.location;
+      return location ? { lat: location.lat(), lng: location.lng() } : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private clearStudentChoice(): void {
+    this.profile.studentUniversityMode = '';
+    this.profile.studentUniversityId = undefined;
+    this.profile.studentUniversityLatitude = undefined;
+    this.profile.studentUniversityLongitude = undefined;
+  }
+
   /** "Business professional" follow-up. */
   setBusinessMode(mode: 'NearOffice' | 'HomeBusiness'): void {
     this.profile.businessMode = mode;
@@ -1407,6 +1513,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         );
       case 9:
         return this.profile.lifestyles.length > 0 && this.profile.lifestyles.length <= 3 &&
+          (!this.profile.lifestyles.includes('Student') ||
+            this.profile.studentUniversityMode === 'NoPreference' ||
+            (this.profile.studentUniversityMode === 'NearUniversity' && this.profile.studentUniversityLatitude != null)) &&
           (!this.profile.lifestyles.includes('BusinessProfessional') ||
             this.profile.businessMode === 'HomeBusiness' ||
             (this.profile.businessMode === 'NearOffice' && this.profile.officeLatitude != null));
@@ -1831,8 +1940,10 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       this.profile.districts.length > 0 ||
       (!!this.profile.proximityTarget && this.profile.proximityTarget !== 'No') ||
       !!this.profile.proximityAddress?.trim();
+    // Only a specific place (an address or map point) is something to rank. The chosen area
+    // itself is a filter: homes outside it are never shown as matches.
     const pointGiven = !!this.profile.proximityAddress?.trim() || this.profile.proximityLatitude != null;
-    if (hasLocation) add(pointGiven ? 'Proximity to selected location' : 'In the area you chose', 'SelectedLocationNearby');
+    if (hasLocation && pointGiven) add('Proximity to selected location', 'SelectedLocationNearby');
     // "Proximity to office" only makes sense once the office address was given on the location step.
     const officeAddressGiven =
       this.profile.proximityTarget === 'Workplace' && !!this.profile.proximityAddress?.trim();
@@ -1877,7 +1988,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
 
     if (['Friends', 'Roommates'].includes(this.profile.householdType)) {
       add('Proximity to metro', 'MetroNearby');
-      add('Proximity to selected location', 'SelectedLocationNearby');
+      if (pointGiven) add('Proximity to selected location', 'SelectedLocationNearby');
     }
     if (this.profile.householdType === 'CorporateHousing') {
       if (officeAddressGiven) add('Proximity to office', 'OfficeNearby');
@@ -1914,15 +2025,13 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       add('Modern and well-maintained building', 'ModernMaintainedBuilding');
     }
     if (lifestyle.has('Student')) {
-      const specificUniversity =
-        this.profile.proximityTarget === 'University' && !!this.profile.proximityAddress?.trim();
-      add(
-        specificUniversity
-          ? `Proximity to ${this.profile.proximityAddress?.trim()}`
-          : 'Proximity to university',
-        'UniversityNearby',
-        specificUniversity,
-      );
+      // Near the student's own university when they chose one; otherwise near a metro station
+      // (we do not know which university they go to).
+      if (this.profile.studentUniversityMode === 'NearUniversity' && this.chosenUniversity) {
+        add('Proximity to your university', 'UniversityNearby', true);
+      } else {
+        add('Proximity to metro', 'MetroNearby', true);
+      }
       add('Proximity to metro', 'MetroNearby');
       add('Proximity to public transport', 'PublicTransportNearby');
       add('Proximity to cafés or study spaces', 'StudySpacesNearby');

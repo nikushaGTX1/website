@@ -9,7 +9,7 @@ import {
   type BudgetRates,
   type RequirementEvaluation,
 } from './mandatory-requirements';
-import { hasPrivateParking, scorePriority, hasWorkspace, officeDistanceKm, officeDistancePoints } from './priority-scoring';
+import { chosenUniversityMinutes, hasPrivateParking, scorePriority, hasWorkspace, officeDistanceKm, officeDistancePoints } from './priority-scoring';
 import { parseParkingCost } from '../../utils/parking-cost';
 
 /** "Included in the price", "Extra $100" or "Paid parking"; '' when the listing does not say. */
@@ -74,6 +74,13 @@ export function explainHomeMatch(
           icon: 'fa-square-parking',
         }
       : undefined;
+  /** "Your university · 12 min" when the student chose a university (within a 30 min walk). */
+  const chosenUniversity = (): LifestyleInsight | undefined => {
+    const minutes = chosenUniversityMinutes(apartment, p);
+    return minutes !== undefined && minutes <= 30
+      ? { title: 'Your university', reason: 'For your studies', icon: 'fa-graduation-cap', meta: `${Math.round(minutes)} min` }
+      : undefined;
+  };
   const quiet = (reason: string): LifestyleInsight | undefined =>
     apartment.isQuietStreet || /Quiet street:\s*yes/i.test(apartment.description || '')
       ? { title: 'Quiet street', reason, icon: 'fa-volume-xmark' }
@@ -110,7 +117,7 @@ export function explainHomeMatch(
       case 'PublicTransportNearby': push(near('metroDistanceMinutes', 'Metro', 'To get around the city without a car', 'fa-train-subway')); break;
       case 'SchoolNearby': push(near('schoolDistanceMinutes', 'School', 'For your children', 'fa-school')); break;
       case 'KindergartenNearby': push(near('kindergartenDistanceMinutes', 'Kindergarten', 'For your little ones', 'fa-children')); break;
-      case 'UniversityNearby': push(near('universityDistanceMinutes', 'University', 'For your studies', 'fa-graduation-cap')); break;
+      case 'UniversityNearby': push(chosenUniversity() ?? near('universityDistanceMinutes', 'University', 'For your studies', 'fa-graduation-cap')); break;
       case 'CafesNearby':
       case 'CafesAndRestaurantsNearby':
       case 'CafesOrCoworkingNearby':
@@ -175,7 +182,8 @@ export function explainHomeMatch(
     push(near('metroDistanceMinutes', 'Metro', 'Handy for meetings', 'fa-train-subway'));
   }
   if (lifestyles.has('Student')) {
-    push(near('universityDistanceMinutes', 'University', 'Handy for your studies', 'fa-graduation-cap'));
+    if (p.studentUniversityMode === 'NearUniversity') push(chosenUniversity());
+    else if (p.studentUniversityMode !== 'NoPreference') push(near('universityDistanceMinutes', 'University', 'Handy for your studies', 'fa-graduation-cap'));
     push(near('metroDistanceMinutes', 'Metro', 'Handy for your studies', 'fa-train-subway'));
   }
   if (lifestyles.has('QuietLifestyle')) {

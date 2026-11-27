@@ -2673,6 +2673,38 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   /** Map card photos: a swipe moves one photo, like the listing cards. */
   mapPreviewSwipe: { x: number; y: number; t: number } | null = null;
+  /** Map photo card: how far (px) the photo strip follows the finger during a swipe; null when idle. */
+  mapPreviewDragX: number | null = null;
+  private mapPreviewAxis: 'x' | 'y' | null = null;
+
+  /** The strip follows the finger (with resistance past the first and last photo). */
+  moveMapPreviewSwipe(clientX: number, clientY: number, apartment: Apartment): void {
+    const start = this.mapPreviewSwipe;
+    if (!start) return;
+    const dx = clientX - start.x;
+    const dy = clientY - start.y;
+    if (!this.mapPreviewAxis && Math.max(Math.abs(dx), Math.abs(dy)) > 6) {
+      this.mapPreviewAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if (this.mapPreviewAxis !== 'x') return;
+    const last = this.getMapPreviewImages(apartment).length - 1;
+    const pastEdge = (this.mapPreviewImageIndex === 0 && dx > 0) || (this.mapPreviewImageIndex >= last && dx < 0);
+    this.mapPreviewDragX = pastEdge ? dx * 0.3 : dx;
+    this.cdr.detectChanges();
+  }
+  mapPreviewTouchMove(event: TouchEvent, apartment: Apartment): void {
+    const touch = event.touches[0];
+    if (touch) this.moveMapPreviewSwipe(touch.clientX, touch.clientY, apartment);
+  }
+  mapPreviewPointerMove(event: PointerEvent, apartment: Apartment): void {
+    if (event.pointerType === 'touch') return; // touch is handled by the touch events
+    this.moveMapPreviewSwipe(event.clientX, event.clientY, apartment);
+  }
+
+  /** "translate3d(calc(-200% + -34px), 0, 0)": the current photo plus the finger's pull. */
+  mapPreviewTrackTransform(): string {
+    return `translate3d(calc(${-100 * this.mapPreviewImageIndex}% + ${this.mapPreviewDragX ?? 0}px), 0, 0)`;
+  }
   startMapPreviewSwipe(event: PointerEvent): void {
     if ((event.target as HTMLElement).closest('button')) return;
     // Only swipes that start on the photo (the card link lies on top of it).
@@ -2680,9 +2712,24 @@ export class ExploreProperty implements OnInit, OnDestroy {
     if (!gallery || event.clientY > gallery.bottom || event.clientY < gallery.top) return;
     this.mapPreviewSwipe = { x: event.clientX, y: event.clientY, t: performance.now() };
   }
+  mapPreviewTouchStart(event: TouchEvent): void {
+    const touch = event.touches[0];
+    if (!touch || event.touches.length !== 1 || (event.target as HTMLElement).closest('button')) return;
+    const gallery = (event.currentTarget as HTMLElement).querySelector('.map-preview-gallery')?.getBoundingClientRect();
+    if (!gallery || touch.clientY > gallery.bottom || touch.clientY < gallery.top) return;
+    this.mapPreviewSwipe = { x: touch.clientX, y: touch.clientY, t: performance.now() };
+  }
+  mapPreviewTouchEnd(event: TouchEvent, apartment: Apartment): void {
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    this.endMapPreviewSwipe({ clientX: touch.clientX, clientY: touch.clientY, stopPropagation: () => event.stopPropagation(), preventDefault: () => undefined } as unknown as PointerEvent, apartment);
+  }
+
   endMapPreviewSwipe(event: PointerEvent, apartment: Apartment): void {
     const start = this.mapPreviewSwipe;
     this.mapPreviewSwipe = null;
+    this.mapPreviewDragX = null;
+    this.mapPreviewAxis = null;
     if (!start) return;
     const dx = event.clientX - start.x;
     const dy = event.clientY - start.y;

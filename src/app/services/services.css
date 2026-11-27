@@ -588,3 +588,18 @@
   .svc-hero-copy { margin-top: -20px; padding-top: 0; }
 }
 @media (max-width: 480px) { .svc-hero { width: 100%; margin: 0; border-radius: 0; } }
+
+
+/* Each service card starts its service. */
+.service-card { display: flex; flex-direction: column; }
+.service-card .service-cta {
+  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: auto; padding-top: 14px;
+  color: #451a8f; font-size: 14px; font-weight: 700; text-decoration: none;
+}
+.service-card .service-cta span { transition: transform 0.15s ease; }
+.service-card .service-cta:hover span { transform: translateX(3px); }
+.service-card .service-cta:focus-visible { outline: 3px solid #b89ae8; outline-offset: 3px; border-radius: 6px; }
+/* Consultation phone and e-mail are links (they were plain text). */
+.contact-details .contact-link { display: block; color: inherit; font-weight: 800; text-decoration: none; }
+.contact-details .contact-link:hover { text-decoration: underline; }
+#our-services, #consultation { scroll-margin-top: 90px; }

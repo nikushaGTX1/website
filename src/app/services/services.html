@@ -33,18 +33,21 @@
         <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 29 31 7l15 14M13 25v25h15m23 5-10-10m3-9a12 12 0 1 1-24 0 12 12 0 0 1 24 0ZM25 27v-7h11v5" /></svg>
         <h3>Property Search</h3>
         <p>Access verified listings with smart filters and expert guidance to find your perfect property.</p>
+        <a class="service-cta" routerLink="/ExploreProperty">Search homes <span aria-hidden="true">→</span></a>
       </article>
 
       <article class="service-card">
         <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M27 10a8 8 0 0 0-14 6 8 8 0 0 0-4 14 8 8 0 0 0 4 14 8 8 0 0 0 14 6V10Zm0 9h-7m7 10h-9m9 10h-7m18-20h8m-8 10h13m-13 10h8M35 14v30m0-25h3m-3 10h3m-3 10h3m8-20a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm5 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /></svg>
         <h3>Velven Match</h3>
         <p>Answer a few questions about your lifestyle, preferences and needs — and Velven Match will recommend properties that truly match you.</p>
+        <a class="service-cta" routerLink="/ai-home-match">Start Velven Match <span aria-hidden="true">→</span></a>
       </article>
 
       <article class="service-card">
         <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6c8 6 16 8 25 9v16c0 14-10 23-25 29C17 54 7 45 7 31V15c9-1 17-3 25-9Zm0 12v28M16 25h32M20 25l-7 13h14l-7-13Zm24 0-7 13h14l-7-13Z" /></svg>
         <h3>Legal Support</h3>
         <p>Get expert legal assistance at every step, from agreements to documentation and compliance.</p>
+        <a class="service-cta" [href]="requestHref('Legal support')">Request legal help <span aria-hidden="true">→</span></a>
       </article>
 
 
@@ -52,12 +55,14 @@
         <svg viewBox="0 0 64 64" aria-hidden="true"><path d="m7 26 21 6L46 14c4-4 9-6 12-5 1 3-1 8-5 12L35 39l6 18-5 2-10-13-8 7-1 8-4 1-3-12 7-8L5 31l2-5Z" /></svg>
         <h3>Relocation Help</h3>
         <p>Moving to a new city or country? We help you settle in with housing, local info, and relocation support.</p>
+        <a class="service-cta" [href]="requestHref('Relocation help')">Request relocation help <span aria-hidden="true">→</span></a>
       </article>
 
       <article class="service-card">
         <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 20h10l4-6h13l4 6h9a5 5 0 0 1 5 5v27H7V25a5 5 0 0 1 5-5Zm20 27a10 10 0 1 0 0-20 10 10 0 0 0 0 20Zm16-20h2" /></svg>
         <h3>Property Photography</h3>
         <p>High-quality photos and virtual tours that make your property stand out and attract the right buyers.</p>
+        <a class="service-cta" [href]="requestHref('Property photography')">Book a photo shoot <span aria-hidden="true">→</span></a>
       </article>
     </div>
 
@@ -70,9 +75,9 @@
         <p>Our experts are here to answer your questions and guide you at every step of your real estate journey.</p>
       </div>
       <div class="contact-details">
-        <p><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 3 3 5-2 2a15 15 0 0 0 6 6l2-2 5 3v3a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3Z" /></svg><span><b>+995 555 123 456</b><small>Mon - Fri, 9:00 AM - 6:00 PM</small></span></p>
-        <p><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></svg><span><b>info&#64;velven.ge</b><small>We reply within 24 hours</small></span></p>
-        <a routerLink="/agent-profile">Contact an Expert <span>→</span></a>
+        <p><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m7 3 3 5-2 2a15 15 0 0 0 6 6l2-2 5 3v3a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3Z" /></svg><span><a class="contact-link" [href]="phoneHref" data-no-translate>{{ phone }}</a><small>Mon - Fri, 9:00 AM - 6:00 PM</small></span></p>
+        <p><svg class="contact-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></svg><span><a class="contact-link" [href]="'mailto:' + email" data-no-translate>{{ email }}</a><small>We reply within 24 hours</small></span></p>
+        <a routerLink="/agent-profile">Choose an agent <span>→</span></a>
       </div>
       <div class="skyline" aria-hidden="true">
         <span></span><i></i><b></b><i></i><span></span>

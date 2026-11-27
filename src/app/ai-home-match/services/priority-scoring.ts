@@ -135,9 +135,20 @@ function nearby(apartment: HomeMatchApartment, tags: string[], ...fields: Array<
   return tags.some((tag) => hasTag(apartment, tag)) ? walkingDistanceScore(18) : 0;
 }
 
+/** Walking minutes to the student's chosen university; undefined when none was chosen. */
+export function chosenUniversityMinutes(apartment: HomeMatchApartment, profile: HomeMatchProfile): number | undefined {
+  if (profile.studentUniversityMode !== 'NearUniversity') return undefined;
+  return walkingMinutesTo(apartment, profile.studentUniversityLatitude, profile.studentUniversityLongitude);
+}
+
 export function scorePriority(priority: string, apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
   const walk = (...fields: Array<keyof HomeMatchApartment>): number =>
     walkingDistanceScore(minutesOf(apartment, ...fields));
+  // "Near my university": measured to that university, not to whichever one is closest.
+  if (priority === 'UniversityNearby' && profile.studentUniversityMode === 'NearUniversity') {
+    const minutes = chosenUniversityMinutes(apartment, profile);
+    return minutes === undefined ? 0 : walkingDistanceScore(minutes);
+  }
   switch (priority) {
     case 'Parking':
       return parkingScore(apartment);
@@ -230,10 +241,11 @@ function businessScore(apartment: HomeMatchApartment, profile: HomeMatchProfile,
 /** Lifestyle answers that are not priorities still nudge the ranking. */
 function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchProfile): number {
   let points = 0;
-  // Apartment style: a matching Modern / Vintage listing ranks higher; "Something else" has no effect.
+  // Apartment style: a listing in the chosen style (Modern or Vintage) gets +10;
+  // "Something else" gives no points either way.
   if (profile.apartmentStyle === 'Modern' || profile.apartmentStyle === 'Vintage') {
     const style = normalizeApartmentStyle(apartment.apartmentStyle);
-    if (style) points += style === profile.apartmentStyle ? 8 : -4;
+    if (style) points += style === profile.apartmentStyle ? 10 : -4;
   }
   // Pets are a hard filter (mandatory-requirements.ts), not a ranking factor.
   if (profile.transportation.includes('Car')) points += parkingScore(apartment) >= 3 ? 6 : parkingScore(apartment) === 0 ? -6 : 0;
@@ -266,7 +278,18 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
     if ((apartment.gymDistanceMinutes ?? 99) <= 10) points += 5;
     if ((apartment.parkDistanceMinutes ?? 99) <= 10) points += 3;
   }
-  if (lifestyles.has('Student') && (listedUniversityMinutes(apartment) ?? 99) <= 15) points += 5;
+  // Student: near the university they chose (+8 within 15 min walk, +4 within 25),
+  // or, when the university does not matter, near a metro station (+5 within 10 min).
+  if (lifestyles.has('Student')) {
+    if (profile.studentUniversityMode === 'NearUniversity') {
+      const minutes = chosenUniversityMinutes(apartment, profile);
+      if (minutes !== undefined) points += minutes <= 15 ? 8 : minutes <= 25 ? 4 : 0;
+    } else if (profile.studentUniversityMode === 'NoPreference') {
+      if ((apartment.metroDistanceMinutes ?? 99) <= 10) points += 5;
+    } else if ((listedUniversityMinutes(apartment) ?? 99) <= 15) {
+      points += 5;
+    }
+  }
   // Business/professional: near the office they marked, a home office, or (no answer yet) metro / parking.
   if (lifestyles.has('BusinessProfessional')) points += businessScore(apartment, profile, lifestyles);
   // Social lifestyle: proximity to cafés and restaurants.
@@ -314,7 +337,8 @@ export function valueScore(apartment: HomeMatchApartment, profile: HomeMatchProf
  */
 export function applyPriorityScoring(result: HomeMatchResult, profile: HomeMatchProfile): HomeMatchResult {
   const rawScores = profile.topPriorities.slice(0, 5).map((priority) =>
-    priority === 'UniversityNearby' && !profile.transportation.includes('Walking')
+    priority === 'UniversityNearby' && !profile.transportation.includes('Walking') &&
+    profile.studentUniversityMode !== 'NearUniversity'
       ? 0
       : scorePriority(priority, result.apartment, profile),
   );

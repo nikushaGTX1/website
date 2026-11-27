@@ -20,6 +20,16 @@ import { SeoService } from './services/seo.service';
 export class App implements AfterViewInit {
   protected readonly title = signal('site');
 
+  /** "Skip to main content": move focus to this page's content, never to another page. */
+  skipToContent(event: Event): void {
+    event.preventDefault();
+    const content = document.getElementById('main-content');
+    if (!content) return;
+    if (!content.hasAttribute('tabindex')) content.setAttribute('tabindex', '-1');
+    content.focus({ preventScroll: true });
+    content.scrollIntoView({ block: 'start' });
+  }
+
   constructor(
     private translation: TranslationService,
     private seo: SeoService,

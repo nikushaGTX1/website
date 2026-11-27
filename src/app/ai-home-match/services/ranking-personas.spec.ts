@@ -124,3 +124,25 @@ test('a listing in another named area ("ლისი") is not shown for a Vake-o
   assert.equal(lisi.status, 'alternative');
   assert.notEqual(evaluateMandatoryRequirements(home(1, { district: 'ვაკე' }), persona, rates).status, 'alternative');
 });
+
+test('student near their own university: closer to that university ranks higher; "does not matter" uses the metro', async () => {
+  const { scorePriority } = await import('./priority-scoring');
+  const student: HomeMatchProfile = {
+    ...persona, lifestyles: ['Student'], topPriorities: ['UniversityNearby'], transportation: ['Metro'],
+    studentUniversityMode: 'NearUniversity', studentUniversityId: 'iliauni',
+    studentUniversityLatitude: 41.7245, studentUniversityLongitude: 44.7453,
+  };
+  const near = home(1, { propertyLatitude: 41.7250, propertyLongitude: 44.7460 });
+  const far = home(2, { propertyLatitude: 41.7900, propertyLongitude: 44.8100 });
+  assert.ok(scorePriority('UniversityNearby', near, student) > scorePriority('UniversityNearby', far, student));
+  const nearScore = applyPriorityScoring({ apartment: near, matchScore: 60 } as HomeMatchResult, student).rankingScore ?? 0;
+  const farScore = applyPriorityScoring({ apartment: far, matchScore: 60 } as HomeMatchResult, student).rankingScore ?? 0;
+  assert.ok(nearScore > farScore);
+  const reasons = explainHomeMatch(near, student);
+  assert.ok(reasons.some((item) => item.title === 'Your university'));
+
+  const noPreference: HomeMatchProfile = { ...student, studentUniversityMode: 'NoPreference', topPriorities: ['MetroNearby'] };
+  const byMetro = applyPriorityScoring({ apartment: home(3, { metroDistanceMinutes: 4 }), matchScore: 60 } as HomeMatchResult, noPreference).rankingScore ?? 0;
+  const noMetro = applyPriorityScoring({ apartment: home(4, { metroDistanceMinutes: 40 }), matchScore: 60 } as HomeMatchResult, noPreference).rankingScore ?? 0;
+  assert.ok(byMetro > noMetro);
+});

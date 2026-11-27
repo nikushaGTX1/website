@@ -104,14 +104,14 @@
         <div>
           <i class="fa-solid fa-users"></i>
           <p>
-            <b>{{ rating ? ((rating / 5) * 100 | number: '1.0-0') : 100 }}%</b
-            ><span>Client Satisfaction</span>
+            <b>{{ ratingCount ? ((rating / 5) * 100 | number: '1.0-0') + '%' : '—' }}</b
+            ><span>{{ ratingCount ? 'Client Satisfaction' : 'No reviews yet' }}</span>
           </p>
         </div>
         <div>
           <i class="fa-solid fa-trophy"></i>
           <p>
-            <b>{{ rating | number: '1.1-1' }} / 5</b><span>Agent Rating</span>
+            <b>{{ ratingCount ? (rating | number: '1.1-1') + ' / 5' : '—' }}</b><span>{{ ratingCount ? 'Agent Rating' : 'No reviews yet' }}</span>
           </p>
         </div>
       </section>
@@ -140,13 +140,13 @@
         <div class="portfolio-toolbar" *ngIf="listingsPage">
           <div class="portfolio-filters" role="tablist" aria-label="Filter listings">
             <button type="button" role="tab" *ngFor="let option of listingFilters" [hidden]="option.value !== 'all' && !listingCount(option.value)" [class.active]="listingFilter === option.value"
-              [attr.aria-selected]="listingFilter === option.value" (click)="listingFilter = option.value">
+              [attr.aria-selected]="listingFilter === option.value" (click)="setListingFilter(option.value)">
               <span>{{ option.label }}</span><b>{{ listingCount(option.value) }}</b>
             </button>
           </div>
           <label class="portfolio-sort">
             <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
-            <select [(ngModel)]="listingSort" aria-label="Sort listings">
+            <select [ngModel]="listingSort" (ngModelChange)="setListingSort($event)" aria-label="Sort listings">
               <option value="newest">Newest</option>
               <option value="price-asc">Price: low to high</option>
               <option value="price-desc">Price: high to low</option>
@@ -186,13 +186,13 @@
           <p><ng-container *ngTemplateOutlet="bioText"></ng-container></p>
         </div>
         <div class="expertise-card">
+          <!-- The districts of this agent's own listings (was the same four for every agent). -->
+          <ng-container *ngIf="expertiseAreas.length">
           <h3>Areas of expertise</h3>
           <div>
-            <span><i class="fa-solid fa-location-dot"></i>Vake</span
-            ><span><i class="fa-solid fa-location-dot"></i>Saburtalo</span
-            ><span><i class="fa-solid fa-location-dot"></i>Vera</span
-            ><span><i class="fa-solid fa-location-dot"></i>City Center</span>
+            <span *ngFor="let area of expertiseAreas"><i class="fa-solid fa-location-dot"></i>{{ area }}</span>
           </div>
+          </ng-container>
           <h3>Property focus</h3>
           <div>
             <span><i class="fa-regular fa-building"></i>Apartments</span

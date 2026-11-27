@@ -151,6 +151,60 @@ export class Main implements OnInit, OnDestroy, DoCheck {
     this.sheetHeight = this.sheetBounds(handle).half;
   }
 
+  /**
+   * Phones: a vertical swipe anywhere on the area sheet moves it (the handle alone was hard
+   * to hit). Up grows it to full height first, then the list scrolls; down at the top of the
+   * list shrinks it.
+   */
+  private sheetTouch: { y: number; lastY: number; height: number; moved: boolean; active: boolean } | null = null;
+
+  sheetTouchStart(event: TouchEvent): void {
+    if (window.innerWidth > 650 || event.touches.length !== 1) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('.sheet-handle')) return; // the handle has its own drag
+    const sheet = event.currentTarget as HTMLElement;
+    const y = event.touches[0].clientY;
+    this.sheetTouch = { y, lastY: y, height: sheet.getBoundingClientRect().height, moved: false, active: false };
+  }
+
+  sheetTouchMove(event: TouchEvent): void {
+    const drag = this.sheetTouch;
+    if (!drag) return;
+    const sheet = event.currentTarget as HTMLElement;
+    const handle = sheet.querySelector<HTMLElement>('.sheet-handle');
+    if (!handle) return;
+    const { min, max } = this.sheetBounds(handle);
+    const y = event.touches[0].clientY;
+    const delta = drag.y - y; // + when moving up
+    const atTop = sheet.scrollTop <= 0;
+    const grows = delta > 0 && (this.sheetHeight ?? drag.height) < max - 1;
+    const shrinks = delta < 0 && atTop && (this.sheetHeight ?? drag.height) > min + 1;
+    if (!drag.active && Math.abs(delta) > 6) drag.active = grows || shrinks;
+    if (!drag.active) return;
+    if (event.cancelable) event.preventDefault();
+    drag.moved = true;
+    this.sheetDragging = true;
+    this.sheetVelocity = drag.lastY - y;
+    drag.lastY = y;
+    this.sheetHeight = Math.min(max, Math.max(min, drag.height + delta));
+  }
+
+  sheetTouchEnd(event: TouchEvent): void {
+    const drag = this.sheetTouch;
+    this.sheetTouch = null;
+    if (!drag?.moved) return;
+    this.sheetDragging = false;
+    const handle = (event.currentTarget as HTMLElement).querySelector<HTMLElement>('.sheet-handle');
+    if (!handle) return;
+    const { min, half, max } = this.sheetBounds(handle);
+    const projected = (this.sheetHeight ?? drag.height) + this.sheetVelocity * 12;
+    this.sheetHeight = [min, half, max].reduce((best, point) =>
+      Math.abs(point - projected) < Math.abs(best - projected) ? point : best,
+    );
+    this.suppressNextSheetClick = true;
+    setTimeout(() => (this.suppressNextSheetClick = false), 350);
+  }
+
   sheetPointerDown(event: PointerEvent): void {
     const handle = event.currentTarget as HTMLElement;
     const sheet = handle.parentElement as HTMLElement;

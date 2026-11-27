@@ -4,6 +4,7 @@ import { answerLabel, answerList, bedroomsLabel } from '../services/answer-label
 import { localizedCountryName } from '../../utils/country-names';
 import { NgFor, NgIf, NgClass } from '@angular/common';
 import { VelvenLifestyleAvatarComponent } from '../lifestyle-avatar/lifestyle-avatar.component';
+import { UNIVERSITY_CHOICES, universityName } from '../../utils/universities';
 
 interface AnswerRow {
   step: number;
@@ -163,6 +164,16 @@ export class HomeProfileSummaryComponent {
           }
         : null,
       { step: 9, label: 'Lifestyle', value: this.list(p.lifestyles), icon: 'fa-heart' },
+      p.lifestyles.includes('Student') && p.studentUniversityMode
+        ? {
+            step: 9,
+            label: 'University',
+            value: p.studentUniversityMode === 'NearUniversity'
+              ? universityName(UNIVERSITY_CHOICES.find((choice) => choice.id === p.studentUniversityId), document.documentElement.lang || 'en') || 'Near my university'
+              : 'Does not matter (near metro)',
+            icon: 'fa-graduation-cap',
+          }
+        : null,
       rent && p.hasPet !== null
         ? { step: 10, label: 'Pet', value: this.petValue, icon: 'fa-paw' }
         : null,
