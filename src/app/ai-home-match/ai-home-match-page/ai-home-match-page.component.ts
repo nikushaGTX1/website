@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostBinding, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CurrencyService } from '../../services/currency.service';
 import { OfficeMapPickerComponent } from '../office-map-picker/office-map-picker.component';
 import { UNIVERSITY_CHOICES, UniversityChoice, searchUniversities, universityName } from '../../utils/universities';
@@ -636,22 +636,25 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     const restored = service.restoreFromSession();
     if (!restored) service.reset();
     this.applyProfile(restored);
-    // Signed in with nothing in this tab: continue from the newest search saved in
-    // Velven Discover (opens its summary, "Edit My Answers" changes that same search).
-    if (!restored && this.auth.isLoggedIn && !this.intakeToken && !query.get('new')) {
+    // A client who already saved a Velven Match search goes to Velven Discover when they open
+    // Velven Match from a menu link, or arrive with nothing answered in this tab. "Find My
+    // Perfect Home" (?new), "Edit preferences" (?editSearch) and agent links stay here.
+    const fromMenu = !!this.router.getCurrentNavigation()?.extras.state?.['fromMenu'];
+    if ((fromMenu || !restored) && this.auth.isPersonalAccount && !this.intakeToken && !query.get('new') && !this.editSearchId) {
+      this.checkingSaved = true;
       this.clientService.getSearches().subscribe({
         next: (searches) => {
-          const time = (item: { updatedAt?: string | null; createdAt?: string | null }) =>
-            new Date(item.updatedAt || item.createdAt || 0).getTime();
-          const newest = [...(searches || [])].filter((item) => item.profile).sort((x, y) => time(y) - time(x))[0];
-          // Only while nothing was answered here yet.
-          if (!newest || this.profile.propertyGoal || this.view !== 'questions') return;
-          if (!this.service.saveToSession(newest.profile)) return;
-          this.editSearchId = newest.id;
-          this.applyProfile(this.service.restoreFromSession());
+          if ((searches || []).some((search) => !!search.profile)) {
+            void this.router.navigate(['/discover'], { replaceUrl: true });
+            return;
+          }
+          this.checkingSaved = false;
           this.cdr.markForCheck();
         },
-        error: () => undefined,
+        error: () => {
+          this.checkingSaved = false;
+          this.cdr.markForCheck();
+        },
       });
     }
     // A fresh intake link opens on the first question actually asked. It used to open on the
@@ -739,6 +742,12 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       }
     }
   }
+  /** True while checking for a saved search (the page stays hidden instead of flashing). */
+  checkingSaved = false;
+  @HostBinding('style.visibility') get hostVisibility(): string | null {
+    return this.checkingSaved ? 'hidden' : null;
+  }
+
   ngOnDestroy(): void {
     if (this.howItWorksOpen) this.closeHowItWorks();
     this.intakeRequest?.unsubscribe();

@@ -30,7 +30,7 @@
         <h3>Explore</h3>
         <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'buy' }"><svg class="fi" aria-hidden="true"><use href="#fi-home"></use></svg><span>Buy</span></a>
         <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }"><svg class="fi" aria-hidden="true"><use href="#fi-key"></use></svg><span>Rent</span></a>
-        <a routerLink="/ai-home-match"><svg class="fi" aria-hidden="true"><use href="#fi-sparkle"></use></svg><span>Velven Match</span></a>
+        <a routerLink="/ai-home-match" [state]="{ fromMenu: true }"><svg class="fi" aria-hidden="true"><use href="#fi-sparkle"></use></svg><span>Velven Match</span></a>
         <a routerLink="/agent-profile"><svg class="fi" aria-hidden="true"><use href="#fi-building"></use></svg><span>Agents</span></a>
       </nav>
 

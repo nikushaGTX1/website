@@ -27,7 +27,7 @@
       <div class="nav-links">
         <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'buy' }" [class.active]="exploreMode() === 'buy'" (click)="closeMenu()">Buy</a>
         <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }" [class.active]="exploreMode() === 'rent'" (click)="closeMenu()" data-no-translate>{{ translation.language$.value === 'ka' ? 'ქირავდება' : translation.language$.value === 'ru' ? 'Аренда' : 'Rent' }}</a>
-        <a class="ai-link" routerLink="/ai-home-match" routerLinkActive="active" (click)="closeMenu()">
+        <a class="ai-link" routerLink="/ai-home-match" [state]="{ fromMenu: true }" routerLinkActive="active" (click)="closeMenu()">
           Velven Match <span aria-hidden="true">✦</span>
         </a>
         <a routerLink="/agent-profile" routerLinkActive="active" (click)="closeMenu()">Agents</a>
@@ -94,7 +94,7 @@
       <nav class="mm-grid" aria-label="Main navigation">
         <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'buy' }" (click)="closeMenu()"><i class="fa-solid fa-tag" aria-hidden="true"></i><span>Buy</span></a>
         <a routerLink="/ExploreProperty" [queryParams]="{ mode: 'rent' }" (click)="closeMenu()"><i class="fa-solid fa-key" aria-hidden="true"></i><span data-no-translate>{{ translation.language$.value === 'ka' ? 'ქირავდება' : translation.language$.value === 'ru' ? 'Аренда' : 'Rent' }}</span></a>
-        <a class="mm-featured" routerLink="/ai-home-match" (click)="closeMenu()"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Velven Match</span></a>
+        <a class="mm-featured" routerLink="/ai-home-match" [state]="{ fromMenu: true }" (click)="closeMenu()"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Velven Match</span></a>
         <a routerLink="/agent-profile" (click)="closeMenu()"><i class="fa-solid fa-user-tie" aria-hidden="true"></i><span>Agents</span></a>
         <a routerLink="/services" (click)="closeMenu()"><i class="fa-solid fa-handshake" aria-hidden="true"></i><span>Services</span></a>
         <!-- Blog hidden for now (page and admin kept): <a routerLink="/blog" (click)="closeMenu()"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>Blog</span></a> -->
