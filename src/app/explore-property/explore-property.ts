@@ -1029,6 +1029,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   toggleCondition(condition: string): void {
     this.toggleFilterItem(this.selectedConditions, condition);
+    this.moreFilters.conditions = [...this.selectedConditions];
     this.onSearch();
   }
 
@@ -1154,6 +1155,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
     this.selectedAmenities = this.selectedAmenities.includes(amenity)
       ? this.selectedAmenities.filter((selected) => selected !== amenity)
       : [...this.selectedAmenities, amenity];
+    // Quick "New building" replaces "Older building" from More filters (never both).
+    if (amenity === 'New building' && this.selectedAmenities.includes(amenity)) {
+      this.moreFilters.features = this.moreFilters.features.filter((key) => key !== 'olderBuilding');
+    }
     this.onSearch();
   }
 
@@ -1386,6 +1391,21 @@ export class ExploreProperty implements OnInit, OnDestroy {
       ? this.locationService.districtName(entry, language)
       : this.selectedLocationArea;
     return language === 'ka' ? `${area} — ქუჩები` : `Streets in ${area}`;
+  }
+
+  /** Heading place name in the page language ("ვაკე", "თბილისი" on the Georgian page). */
+  get headingLocation(): string {
+    const language = this.translationService.language$.value;
+    const place = (this.location || '').trim();
+    if (!place || /^(tbilisi|თბილისი|тбилиси)$/i.test(place)) {
+      return language === 'ka' ? 'თბილისი' : language === 'ru' ? 'Тбилиси' : 'Tbilisi';
+    }
+    const entry = this.locationEntries.find((item) =>
+      (['en', 'ka', 'ru'] as AppLanguage[]).some(
+        (lang) => this.locationService.districtName(item, lang).toLowerCase() === place.toLowerCase(),
+      ),
+    );
+    return entry ? this.locationService.districtName(entry, language) : place;
   }
 
   locationText(english: string, georgian: string): string {
@@ -2414,25 +2434,42 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   private matchesConditionFilter(apartment: Apartment): boolean {
     if (this.selectedType !== 'For Sale' || !this.selectedConditions.length) return true;
+    return ExploreProperty.matchesConditions(apartment, this.selectedConditions);
+  }
 
-    // The upload form saves the condition in the description ("Condition: Newly Renovated");
-    // the condition field is often empty.
+  /**
+   * Condition filter (quick chip menu and More filters use the same list and this rule).
+   * The upload form saves the condition in the description ("Condition: Newly Renovated");
+   * the condition field is usually empty. "Renovated" covers new and old renovation.
+   */
+  private static matchesConditions(apartment: Apartment, conditions: string[]): boolean {
     const fromText = /(?:^|[|\r\n])\s*Condition:\s*([^|\r\n]+)/i.exec(apartment.description || '')?.[1];
     const value = (apartment.condition || fromText || '').trim().toLowerCase();
     if (!value) return false;
-
     const aliases: Record<string, string[]> = {
       'move-in ready': ['move-in ready', 'move in ready', 'newly renovated'],
-      renovated: ['renovated', 'old renovated', 'current renovation'],
+      renovated: ['renovated', 'newly renovated', 'old renovated'],
       'white frame': ['white frame', 'white plus'],
       'green frame': ['green frame'],
       'black frame': ['black frame'],
-      'needs renovation': ['needs renovation', 'repairing', 'to be renovated'],
+      'needs renovation': ['needs renovation', 'repairing', 'to be renovated', 'current renovation'],
     };
-
-    return this.selectedConditions.some((condition) =>
+    return conditions.some((condition) =>
       (aliases[condition.toLowerCase()] || [condition.toLowerCase()]).includes(value),
     );
+  }
+
+  /**
+   * Building age from the upload form's "Status: New building / Old building" line, else
+   * from words in the text. The quick "New building" chip and More filters use this rule.
+   */
+  private static buildingStatus(apartment: Apartment): 'new' | 'old' | 'construction' | '' {
+    const status = (/(?:^|[|\r\n])\s*Status:\s*([^|\r\n]+)/i.exec(apartment.description || '')?.[1] || '').trim().toLowerCase();
+    if (status === 'new building') return 'new';
+    if (status === 'old building') return 'old';
+    if (status === 'under construction') return 'construction';
+    const text = [apartment.apartmentStyle, apartment.title, apartment.description].filter(Boolean).join(' ');
+    return /new building|new build|newly built|ახალი (აშენებული|კორპუს)|ახალაშენებ/i.test(text) ? 'new' : '';
   }
 
   isFilterActive(list: string[], item: string): boolean {
@@ -3074,10 +3111,13 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   openMoreFilters(event?: Event): void {
     event?.stopPropagation();
+    // Quick chips and this dialog edit the same choices: start from what the chips show.
+    const features = this.moreFilters.features.filter((key) => key !== 'newBuilding');
+    if (this.selectedAmenities.includes('New building')) features.push('newBuilding');
     this.moreFiltersDraft = {
       ...this.moreFilters,
-      features: [...this.moreFilters.features],
-      conditions: [...this.moreFilters.conditions],
+      features,
+      conditions: [...this.selectedConditions],
     };
     this.conditionSectionOpen = this.moreFilters.conditions.length > 0;
     this.clearAllOnApply = false;
@@ -3112,9 +3152,11 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   toggleMoreFeature(key: string): void {
     const list = this.moreFiltersDraft.features;
+    // New and older building exclude each other (both together always gave 0 homes).
+    const opposite: Record<string, string> = { newBuilding: 'olderBuilding', olderBuilding: 'newBuilding' };
     this.moreFiltersDraft.features = list.includes(key)
       ? list.filter((item) => item !== key)
-      : [...list, key];
+      : [...list.filter((item) => item !== opposite[key]), key];
   }
 
   toggleMoreCondition(condition: string): void {
@@ -3134,6 +3176,12 @@ export class ExploreProperty implements OnInit, OnDestroy {
 
   applyMoreFilters(): void {
     this.moreFilters = this.moreFiltersDraft;
+    // Write the shared choices back to the quick chips (one state for both places).
+    this.selectedConditions = [...this.moreFilters.conditions];
+    const wantsNew = this.moreFilters.features.includes('newBuilding');
+    this.selectedAmenities = this.selectedAmenities.filter((item) => item !== 'New building');
+    if (wantsNew) this.selectedAmenities = [...this.selectedAmenities, 'New building'];
+    this.moreFilters.features = this.moreFilters.features.filter((key) => key !== 'newBuilding');
     // Picking something again after "Clear all" means the visitor wants those filters.
     const clearAll = this.clearAllOnApply && this.moreFiltersCount === 0;
     this.clearAllOnApply = false;
@@ -3182,8 +3230,10 @@ export class ExploreProperty implements OnInit, OnDestroy {
             return !!apartment.hasDishwasher;
           case 'elevator':
             return !!apartment.hasElevator;
+          case 'newBuilding':
+            return ExploreProperty.buildingStatus(apartment) === 'new';
           case 'olderBuilding':
-            return !said('newBuilding');
+            return ExploreProperty.buildingStatus(apartment) === 'old';
           default:
             return said(key);
         }
@@ -3216,10 +3266,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
         if (freeFrom && freeFrom > f.moveInDate) return false;
       }
     }
-    if (f.conditions.length && this.selectedType === 'For Sale') {
-      const value = (apartment.condition || '').trim().toLowerCase();
-      if (!f.conditions.some((condition) => value.includes(condition.toLowerCase()))) return false;
-    }
+    // Conditions: f.conditions mirrors selectedConditions (matchesConditionFilter applies them).
     return true;
   }
 
@@ -3247,10 +3294,7 @@ export class ExploreProperty implements OnInit, OnDestroy {
           return withinDistance;
         return /\bparks?\b|პარკ(?!ინგ)/i.test(text);
       }
-      if (normalized === 'new building') {
-        const buildingText = `${apartment.apartmentStyle || ''} ${text}`;
-        return /new building|new build|newly built|ახალი კორპუს/i.test(buildingText);
-      }
+      if (normalized === 'new building') return ExploreProperty.buildingStatus(apartment) === 'new';
       return text.includes(normalized);
     });
   }

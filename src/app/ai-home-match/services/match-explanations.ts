@@ -19,7 +19,7 @@ function parkingCostReason(apartment: HomeMatchApartment): string {
   if (cost === 'Paid') return price == null ? 'Paid parking' : 'Extra ' + (currency === 'GEL' ? '₾' : '$') + price.toLocaleString('en-US');
   return '';
 }
-import { listedUniversityMinutes } from '../../utils/universities';
+import { listedUniversityMinutes, UNIVERSITY_CHOICES, universityName } from '../../utils/universities';
 
 export interface LifestyleInsight {
   title: string;
@@ -75,10 +75,15 @@ export function explainHomeMatch(
         }
       : undefined;
   /** "Your university · 12 min" when the student chose a university (within a 30 min walk). */
+  // Named after the university the student chose ("Ilia State University"), never another one.
+  const chosenName = universityName(
+    UNIVERSITY_CHOICES.find((choice) => choice.id === p.studentUniversityId),
+    (typeof document !== 'undefined' && document.documentElement.lang) || 'en',
+  );
   const chosenUniversity = (): LifestyleInsight | undefined => {
     const minutes = chosenUniversityMinutes(apartment, p);
     return minutes !== undefined && minutes <= 30
-      ? { title: 'Your university', reason: 'For your studies', icon: 'fa-graduation-cap', meta: `${Math.round(minutes)} min` }
+      ? { title: 'Your university', reason: chosenName || 'For your studies', icon: 'fa-graduation-cap', meta: `${Math.round(minutes)} min` }
       : undefined;
   };
   const quiet = (reason: string): LifestyleInsight | undefined =>
@@ -117,7 +122,9 @@ export function explainHomeMatch(
       case 'PublicTransportNearby': push(near('metroDistanceMinutes', 'Metro', 'To get around the city without a car', 'fa-train-subway')); break;
       case 'SchoolNearby': push(near('schoolDistanceMinutes', 'School', 'For your children', 'fa-school')); break;
       case 'KindergartenNearby': push(near('kindergartenDistanceMinutes', 'Kindergarten', 'For your little ones', 'fa-children')); break;
-      case 'UniversityNearby': push(chosenUniversity() ?? near('universityDistanceMinutes', 'University', 'For your studies', 'fa-graduation-cap')); break;
+      case 'UniversityNearby':
+        push(p.studentUniversityMode === 'NearUniversity' ? chosenUniversity() : near('universityDistanceMinutes', 'University', 'For your studies', 'fa-graduation-cap'));
+        break;
       case 'CafesNearby':
       case 'CafesAndRestaurantsNearby':
       case 'CafesOrCoworkingNearby':
@@ -270,10 +277,13 @@ function preferencePlaces(apartment: HomeMatchApartment, p: HomeMatchProfile): A
     ],
     [priorities.has('KindergartenNearby'), 'One of your top priorities'],
   ]);
-  offer('universityDistanceMinutes', 'University', 'fa-graduation-cap', [
-    [lifestyles.has('Student'), 'Handy for your studies'],
-    [priorities.has('UniversityNearby'), 'One of your top priorities'],
-  ]);
+  // The nearest university only when the student did not answer which one (or that it matters).
+  if (!p.studentUniversityMode) {
+    offer('universityDistanceMinutes', 'University', 'fa-graduation-cap', [
+      [lifestyles.has('Student'), 'Handy for your studies'],
+      [priorities.has('UniversityNearby'), 'One of your top priorities'],
+    ]);
+  }
   const everyday =
     priorities.has('EverydayServicesNearby') ||
     priorities.has('SupermarketNearby') ||

@@ -388,9 +388,9 @@
         <div>
           <h1>
             Homes {{ selectedType === 'For Sale' ? 'for sale' : 'for rent' }} in
-            {{ location || 'Tbilisi' }}
+            {{ headingLocation }}
           </h1>
-          <p>{{ filteredApartments.length | number }} homes in this map area</p>
+          <p>{{ filteredApartments.length | number }} homes match your search</p>
           <button type="button" class="feature-pill" *ngIf="featureFilterLabel" (click)="clearFeatureFilter()" [attr.aria-label]="'Remove filter: ' + featureFilterLabel">
             <span>{{ featureFilterLabel }}</span><i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>

@@ -16,6 +16,7 @@ import { toMediaUrl } from '../../utils/api-media';
 import { HomeMatchProfile } from '../models/home-match-profile';
 import {
   applyPriorityScoring,
+  chosenUniversityMinutes,
   everydayServicesMinutes,
 } from '../services/priority-scoring';
 import { answerLabel, answerList, bedroomsLabel } from '../services/answer-labels';
@@ -486,7 +487,10 @@ export class HomeMatchResultsComponent implements OnChanges {
       ['Café', apartment.cafeDistanceMinutes, 'fa-mug-hot'],
       ['School', apartment.schoolDistanceMinutes, 'fa-school'],
       ['Kindergarten', apartment.kindergartenDistanceMinutes, 'fa-children'],
-      ['University', listedUniversityMinutes(apartment), 'fa-graduation-cap'],
+      // Chosen university (Velven Match answer) or, without an answer, the nearest listed one.
+      this.profile.studentUniversityMode === 'NearUniversity'
+        ? ['Your university', chosenUniversityMinutes(apartment, this.profile), 'fa-graduation-cap']
+        : ['University', this.profile.studentUniversityMode ? undefined : listedUniversityMinutes(apartment), 'fa-graduation-cap'],
       ['EV charger', apartment.evChargerDistanceMinutes, 'fa-charging-station'],
       ['Pet shop', apartment.petStoreDistanceMinutes, 'fa-paw'],
       ['Vet clinic', apartment.veterinaryDistanceMinutes, 'fa-stethoscope'],
@@ -501,13 +505,13 @@ export class HomeMatchResultsComponent implements OnChanges {
     const hasKids = this.profile.children > 0;
     const limit = (label: string) =>
       (hasPets && (label === 'Pet shop' || label === 'Vet clinic')) ||
-      (student && label === 'University')
+      (student && (label === 'University' || label === 'Your university'))
         ? 20
         : 10;
     // Schools and kindergartens only matter to households with children.
     const relevant = (label: string) => hasKids || (label !== 'School' && label !== 'Kindergarten');
     // What this visitor asked for comes first, then everything else by distance.
-    const first = (label: string) => (student && label === 'University' ? 0 : 1);
+    const first = (label: string) => (student && (label === 'University' || label === 'Your university') ? 0 : 1);
     const value = places
       .filter(
         (place): place is [string, number, string] =>

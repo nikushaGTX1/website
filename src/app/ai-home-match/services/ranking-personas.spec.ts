@@ -140,6 +140,13 @@ test('student near their own university: closer to that university ranks higher;
   assert.ok(nearScore > farScore);
   const reasons = explainHomeMatch(near, student);
   assert.ok(reasons.some((item) => item.title === 'Your university'));
+  // Far from the chosen university but next to another one: that other university is not offered.
+  const nextToOther = home(5, {
+    propertyLatitude: 41.7900, propertyLongitude: 44.8100, universityDistanceMinutes: 3,
+    nearbyPlaceNames: JSON.stringify({ universityDistanceMinutes: 'Georgian Technical University' }),
+  });
+  const otherReasons = explainHomeMatch(nextToOther, { ...student, lifestyles: ['Student'] });
+  assert.ok(!otherReasons.some((item) => item.title === 'University' || item.title === 'Your university'));
 
   // Own weights: 0-5 min 5 points, 6-10 min 4, 11-15 min 3; x10 as 1st priority, x8 as 2nd.
   const { universityDistancePoints } = await import('./priority-scoring');
