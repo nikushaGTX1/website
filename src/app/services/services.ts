@@ -14,10 +14,6 @@ export class Services implements AfterViewInit {
   readonly phoneHref = telHref(SITE_CONTACT.phone);
   readonly email = SITE_CONTACT.email;
 
-  /** Request e-mail for a service, with the subject already filled in. */
-  requestHref(service: string): string {
-    return `mailto:${this.email}?subject=${encodeURIComponent(service + ' request')}`;
-  }
 
   /** Hero buttons: smooth scroll to a section and put it in the address (#our-services). */
   scrollTo(event: Event, id: string): void {

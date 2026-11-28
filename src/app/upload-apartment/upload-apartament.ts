@@ -56,6 +56,7 @@ import { NgIf, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PropertyPointPickerComponent } from '../maps/property-point-picker/property-point-picker.component';
 import { CurrencyService } from '../services/currency.service';
+import { loadDraftPhotos, saveDraftPhotos } from './draft-photos';
 
 type ListingCopyLanguage = 'ka' | 'en' | 'ru';
 type ListingCopy = { title: string; description: string };
@@ -367,7 +368,12 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     { value: 'Universal', label: 'Universal space', icon: 'fa-solid fa-shapes' },
   ];
 
-  readonly minimumRentalPeriodOptions = ['Minimum 6 months', 'Minimum 12 months'];
+  /** Daily rent is counted in nights; long-term rent in months. */
+  get minimumRentalPeriodOptions(): string[] {
+    return this.form.dealType === 'Daily rent'
+      ? ['Minimum 1 night', 'Minimum 2 nights', 'Minimum 3 nights', 'Minimum 7 nights']
+      : ['Minimum 6 months', 'Minimum 12 months'];
+  }
 
   private readonly chipIcons: Record<string, string> = {
     Apartment: 'fa-solid fa-building',
@@ -574,6 +580,38 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     this.listingCopy[this.copyLanguage].description = value;
     this.listingCopyTouched = true;
     if (this.copyLanguage === 'ka') this.form.description = value;
+  }
+
+  /** Generated text waiting for "Replace" / "Keep my text" (the agent had written their own). */
+  pendingListingCopy: typeof this.listingCopy | null = null;
+
+  /** Button: with hand-written text, show the new text as a suggestion instead of overwriting. */
+  requestListingCopy(): void {
+    if (!this.listingCopyTouched) {
+      this.generateListingCopy();
+      return;
+    }
+    const mine = this.listingCopy;
+    const mineTitle = this.form.title;
+    const mineDescription = this.form.description;
+    this.generateListingCopy();
+    this.pendingListingCopy = this.listingCopy;
+    this.listingCopy = mine;
+    this.form.title = mineTitle;
+    this.form.description = mineDescription;
+    this.listingCopyTouched = true;
+  }
+  acceptListingCopy(): void {
+    if (!this.pendingListingCopy) return;
+    this.listingCopy = this.pendingListingCopy;
+    this.form.title = this.listingCopy.ka.title;
+    this.form.description = this.listingCopy.ka.description;
+    this.pendingListingCopy = null;
+    this.listingCopyTouched = false;
+    this.listingCopySignature = this.copySignature();
+  }
+  keepMyListingCopy(): void {
+    this.pendingListingCopy = null;
   }
 
   generateListingCopy(force = true): void {
@@ -1267,10 +1305,18 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
   }
 
   select(field: keyof UploadForm, value: string): void {
+    const previousType = this.form.realEstateType;
     (this.form[field] as string) = value;
+    // A new property type: answers that only belong to the old type are cleared, so they never
+    // end up in the new listing (e.g. a plot's 1000 m² showing as "yard area" of an apartment).
+    if (field === 'realEstateType' && value !== previousType) this.clearFieldsForType();
     // Rentals are move-in ready, so the renovation/frame condition does not apply.
-    if (field === 'dealType')
+    if (field === 'dealType') {
       this.form.condition = this.isRentDeal ? '' : this.form.condition || 'Newly Renovated';
+      // A period chosen for another deal type (e.g. 12 months for daily rent) no longer applies.
+      if (this.form.minimumRentalPeriod && !this.minimumRentalPeriodOptions.includes(this.form.minimumRentalPeriod))
+        this.form.minimumRentalPeriod = '';
+    }
   }
 
   /** Photos of a listing with a MyHome ID come from myhome.ge (a partner whose mark we remove). */
@@ -1314,8 +1360,9 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
   draftRestored = false;
   private static readonly DRAFT_KEY = 'velvenListingDraft';
 
-  /** Saves the answers in this browser (photos cannot be kept there; they are added again). */
+  /** Saves the answers in this browser; the photos (in their order) go to IndexedDB. */
   saveDraft(): void {
+    void saveDraftPhotos(this.selectedImages.filter((file): file is File => !!file));
     try {
       const draft = {
         form: { ...this.form, imageUrl: '', imageUrls: [] },
@@ -1358,9 +1405,27 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
       if (draft.street) this.selectedStreetValue = draft.street;
       if (draft.streetId) this.selectedStreetId = draft.streetId;
       this.draftRestored = true;
+      void this.restoreDraftPhotos();
     } catch {
       // Unreadable draft: start with an empty form.
     }
+  }
+
+  /** Photos saved with the draft come back in the same order. */
+  private async restoreDraftPhotos(): Promise<void> {
+    const files = await loadDraftPhotos();
+    if (!files.length || this.selectedImages.length) return;
+    const previews = await Promise.all(files.map((file) => new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    })));
+    this.selectedImages = files.slice(0, this.maxImages);
+    this.form.imageUrls = previews.slice(0, this.maxImages);
+    this.imageIds = this.selectedImages.map(() => null);
+    this.form.imageUrl = this.form.imageUrls[0] || '';
+    this.cdr.detectChanges();
   }
 
   /** "Start fresh": forget the draft and reload the empty form. */
@@ -1370,6 +1435,7 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
   }
 
   private clearDraft(): void {
+    void saveDraftPhotos([]);
     try {
       localStorage.removeItem(UploadApartment.DRAFT_KEY);
     } catch {
@@ -1490,6 +1556,25 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
    * or pasted in) can never be saved, without capping the range so low
    * that a legitimate large/luxury property gets rejected.
    */
+  /** A land plot: no rooms, floors, living area or interior style. */
+  get isPlot(): boolean {
+    return this.form.realEstateType === 'Plot';
+  }
+
+  private clearFieldsForType(): void {
+    if (!this.hasLandArea) this.form.landArea = null;
+    if (this.isPlot) {
+      this.form.area = null;
+      this.form.rooms = null;
+      this.form.bedrooms = null;
+      this.form.bathrooms = null;
+      this.form.floor = null;
+      this.form.totalFloors = null;
+      this.form.apartmentStyle = '';
+    }
+    this.recalculateSqPrice();
+  }
+
   /** Houses and plots have a land plot / yard; apartments do not. */
   get hasLandArea(): boolean {
     return ['Private house', 'Country house', 'Plot', 'Hotel'].includes(this.form.realEstateType);
@@ -1571,7 +1656,8 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
 
   recalculateSqPrice(): void {
     const totalPrice = Number(this.form.totalPrice);
-    const area = Number(this.form.area);
+    // A plot's price per m² is counted on the land, not on a living area.
+    const area = Number(this.isPlot ? this.form.landArea : this.form.area);
     this.form.sqPrice =
       totalPrice > 0 && area > 0 ? Math.round((totalPrice / area) * 100) / 100 : null;
   }
@@ -1790,7 +1876,7 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
         );
       case 2:
         return !!(
-          (this.form.area || this.form.rooms || this.form.bedrooms) &&
+          (this.isPlot ? this.form.landArea : this.form.area || this.form.rooms || this.form.bedrooms) &&
           (!this.form.hasParking || this.form.parkingCondition)
         );
       case 3:
@@ -1825,25 +1911,25 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     const remainingSlots = this.maxImages - this.form.imageUrls.length;
     const selectedFiles = files.slice(0, Math.max(remainingSlots, 0));
 
-    if (files.length > remainingSlots) {
-      this.imageUploadMessage = `Only ${this.maxImages} photos can be uploaded. Extra files were skipped.`;
-    }
-
-    const validFiles = selectedFiles.filter((file) => file.type.startsWith('image/'));
-    if (validFiles.length !== selectedFiles.length) {
-      this.imageUploadMessage = 'Only image files are supported. Other files were skipped.';
-    }
+    // Same formats as the note under the button: JPG, PNG and WebP.
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    const validFiles = selectedFiles.filter((file) => allowed.includes(file.type));
+    const skipped = selectedFiles.filter((file) => !allowed.includes(file.type)).map((file) => file.name);
+    const messages: string[] = [];
+    if (files.length > remainingSlots) messages.push(`Only ${this.maxImages} photos can be uploaded. Extra files were skipped.`);
+    if (skipped.length) messages.push(`Not added (only JPG, PNG or WebP): ${skipped.join(', ')}`);
 
     const preparedImages = await Promise.all(
-      validFiles.map((file) => this.prepareImage(file).catch(() => null)),
+      validFiles.map((file) => this.prepareImage(file).catch((error: Error) => error)),
     );
     const successfulImages = preparedImages.filter(
-      (image): image is PreparedImage => image !== null,
+      (image): image is PreparedImage => !(image instanceof Error),
     );
-
-    if (successfulImages.length !== validFiles.length) {
-      this.imageUploadMessage = 'One or more selected images could not be processed.';
-    }
+    const tooSmall = validFiles.filter((_, i) => preparedImages[i] instanceof Error && (preparedImages[i] as Error).message === 'too-small').map((file) => file.name);
+    const broken = validFiles.filter((_, i) => preparedImages[i] instanceof Error && (preparedImages[i] as Error).message !== 'too-small').map((file) => file.name);
+    if (tooSmall.length) messages.push(`Too small (at least ${UploadApartment.MIN_PHOTO_WIDTH} × ${UploadApartment.MIN_PHOTO_HEIGHT} px): ${tooSmall.join(', ')}`);
+    if (broken.length) messages.push(`Could not be read: ${broken.join(', ')}`);
+    this.imageUploadMessage = messages.join(' ');
 
     this.form.imageUrls = [
       ...this.form.imageUrls,
@@ -2314,7 +2400,19 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
         'მონიშნეთ უძრავი ქონების მდებარეობა რუკაზე.',
         'Отметьте расположение объекта на карте.',
       );
-    if (!positive(this.form.area) || Number(this.form.area) < 0.01)
+    if (this.isPlot && !positive(this.form.landArea))
+      add('landArea', 0, 'Enter the land area.', 'მიუთითეთ მიწის ფართობი.', 'Укажите площадь участка.');
+    if (!this.isPlot && this.form.rooms != null && this.form.bedrooms != null && this.form.bedrooms > this.form.rooms)
+      add(
+        'bedrooms',
+        2,
+        'Bedrooms cannot be more than rooms.',
+        'საძინებლების რაოდენობა ოთახების რაოდენობას არ უნდა აღემატებოდეს.',
+        'Спален не может быть больше, чем комнат.',
+      );
+    if (this.isRentDeal && this.form.hasDeposit && !positive(this.form.depositAmount))
+      add('depositAmount', 3, 'Enter the deposit amount.', 'მიუთითეთ დეპოზიტის თანხა.', 'Укажите сумму депозита.');
+    if (!this.isPlot && (!positive(this.form.area) || Number(this.form.area) < 0.01))
       add(
         'area',
         2,
@@ -2322,7 +2420,7 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
         'მიუთითეთ ფართობი (მინიმუმ 0.01 მ²).',
         'Укажите площадь (не менее 0,01 м²).',
       );
-    if (!positive(this.form.rooms) || !Number.isInteger(this.form.rooms))
+    if (!this.isPlot && (!positive(this.form.rooms) || !Number.isInteger(this.form.rooms)))
       add(
         'rooms',
         2,
@@ -2330,7 +2428,7 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
         'მიუთითეთ ოთახების რაოდენობა (მინიმუმ 1).',
         'Укажите количество комнат (не менее 1).',
       );
-    if (!positive(this.form.totalFloors) || !Number.isInteger(this.form.totalFloors))
+    if (!this.isPlot && (!positive(this.form.totalFloors) || !Number.isInteger(this.form.totalFloors)))
       add(
         'totalFloors',
         2,
@@ -2338,7 +2436,7 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
         'მიუთითეთ შენობის სართულების რაოდენობა (მინიმუმ 1).',
         'Укажите количество этажей в здании (не менее 1).',
       );
-    if (this.form.floor == null || !Number.isInteger(this.form.floor) || this.form.floor < 0)
+    if (!this.isPlot && (this.form.floor == null || !Number.isInteger(this.form.floor) || this.form.floor < 0))
       add(
         'floor',
         2,
@@ -2390,7 +2488,7 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
         'მიუთითეთ მესაკუთრის სწორი ტელეფონის ნომერი, მაგ. 555 12 34 56.',
         'Укажите корректный телефон собственника, например 555 12 34 56.',
       );
-    if (!this.form.apartmentStyle)
+    if (!this.isPlot && !this.form.apartmentStyle)
       add(
         'apartmentStyle',
         2,
@@ -2732,6 +2830,10 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
     return apartment;
   }
 
+  /** Smallest photo accepted: anything smaller looks blurry on the listing. */
+  private static readonly MIN_PHOTO_WIDTH = 400;
+  private static readonly MIN_PHOTO_HEIGHT = 300;
+
   private prepareImage(file: File): Promise<PreparedImage> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -2742,6 +2844,12 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
 
         image.onerror = () => reject(new Error('Could not load image.'));
         image.onload = () => {
+          const longSide = Math.max(image.width, image.height);
+          const shortSide = Math.min(image.width, image.height);
+          if (longSide < UploadApartment.MIN_PHOTO_WIDTH || shortSide < UploadApartment.MIN_PHOTO_HEIGHT) {
+            reject(new Error('too-small'));
+            return;
+          }
           // 2560px keeps photos sharp on large and high-density screens.
           const maxSize = 2560;
           const scale = Math.min(1, maxSize / Math.max(image.width, image.height));

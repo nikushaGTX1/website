@@ -2515,3 +2515,14 @@ select:focus {
 .pet-rules-options button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1.5px solid #ddd2f2; border-radius: 999px; background: #fff; color: #3b2f52; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .pet-rules-options button.selected { border-color: #451a8f; background: #451a8f; color: #fff; }
 .pet-rules-hint { margin: 0; color: #7a7090; font-size: 12.5px; line-height: 1.4; }
+
+
+/* Generated text shown as a suggestion when the agent already wrote their own. */
+.copy-suggestion { margin-top: 12px; padding: 14px 16px; border: 1.5px solid #d9cdf1; border-radius: 14px; background: #faf7ff; }
+.copy-suggestion-title { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: #451a8f; font-size: 13px; font-weight: 700; }
+.copy-suggestion strong { display: block; margin-bottom: 6px; color: #1f1533; font-size: 15px; }
+.copy-suggestion p:not(.copy-suggestion-title) { margin: 0; max-height: 160px; overflow-y: auto; color: #4a4356; font-size: 13.5px; line-height: 1.55; white-space: pre-line; }
+.copy-suggestion-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.copy-suggestion-actions button { min-height: 40px; padding: 0 16px; border-radius: 10px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.copy-suggestion-replace { border: 0; background: #451a8f; color: #fff; }
+.copy-suggestion-keep { border: 1px solid #d9cdf1; background: #fff; color: #451a8f; }
