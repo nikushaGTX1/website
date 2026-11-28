@@ -1,4 +1,4 @@
-<main class="owner-page" [class.general-form]="general">
+<section class="upload-page owner-page" [class.general-form]="general">
   <section class="state-card" *ngIf="loading"><span class="spinner"></span><p>Loading property form…</p></section>
 
   <section class="state-card error-card" *ngIf="!loading && error && !info">
@@ -13,229 +13,294 @@
     <a *ngIf="editId" routerLink="/crm/owner-submissions">განაცხადებზე დაბრუნება</a>
   </section>
 
-  <form *ngIf="info && !submitted" (ngSubmit)="submit()" novalidate>
-    <header class="hero">
-      <div class="hero-top">
-        <span class="brand">VELVEN</span>
-        <span class="deal-pill"><i class="fa-solid" [class.fa-key]="info.dealType === 'Rent'" [class.fa-tag]="info.dealType !== 'Rent'"></i>{{ info.dealType === 'Rent' ? 'For rent' : 'For sale' }}</span>
+  <ng-container *ngIf="info && !submitted">
+    <!-- Same page frame as "List your property" (upload page): intro, progress sidebar with
+         live preview, numbered sections. Only the owner's own questions are asked. -->
+    <header class="page-intro">
+      <div>
+        <span class="page-eyebrow"><i class="fa-solid fa-shield-check"></i> {{ general ? 'OFFER YOUR PROPERTY' : 'YOUR VELVEN AGENT' }}</span>
+        <h1 *ngIf="editId">ბინის მონაცემების შესწორება</h1>
+        <h1 *ngIf="!editId && general">შესთავაზე ბინა</h1>
+        <h1 *ngIf="!editId && !general">List <em>your</em> property with Velven.</h1>
+        <p>{{ general ? 'შეავსეთ ბინის მონაცემები. Velven-ის აგენტი დაგიკავშირდებათ და გადაამოწმებს ინფორმაციას. ბინა შემოწმებამდე არ გამოქვეყნდება.' : 'Share the essentials now. Your agent verifies everything during the visit.' }}</p>
       </div>
-      <h1>{{ editId ? 'ბინის მონაცემების შესწორება' : general ? 'შესთავაზე ბინა' : 'List your property with Velven' }}</h1>
-      <p>{{ general ? 'შეავსეთ ბინის მონაცემები. Velven-ის აგენტი დაგიკავშირდებათ და გადაამოწმებს ინფორმაციას. ბინა შემოწმებამდე არ გამოქვეყნდება.' : 'Share the essentials now. Your agent verifies everything during the visit.' }}</p>
-      <div class="segmented" *ngIf="general">
-        <button type="button" [class.active]="info.dealType === 'Rent'" (click)="setDeal('Rent')">ქირა</button>
-        <button type="button" [class.active]="info.dealType === 'Sale'" (click)="setDeal('Sale')">გაყიდვა</button>
-      </div>
-      <div class="agent" *ngIf="!general">
-        <img *ngIf="info.agentPhoto; else agentInitial" [src]="(info.agentPhoto) | photoUrl:320" alt="">
-        <ng-template #agentInitial><span class="agent-initial">{{ (info.agentName || 'V').charAt(0) }}</span></ng-template>
-        <div><small>Your agent</small><b>{{ info.agentName }}</b></div>
-        <i class="fa-solid fa-circle-check verified" title="Velven agent"></i>
-      </div>
+      <div class="intro-trust"><i class="fa-solid fa-lock"></i><span><strong>Secure submission</strong><small>Checked by a Velven agent before publishing</small></span></div>
     </header>
 
-    <div class="progress-bar" aria-label="Form completion">
-      <div class="progress-label"><span>Form completion</span><b>{{ progress }}%</b></div>
-      <div class="track"><div class="fill" [style.width.%]="progress"></div></div>
+    <div class="upload-layout">
+      <aside class="upload-sidebar" aria-label="Form progress">
+        <div class="chosen-plan-card" *ngIf="general">
+          <span><i class="fa-solid" [class.fa-key]="info.dealType === 'Rent'" [class.fa-tag]="info.dealType !== 'Rent'"></i></span>
+          <div>
+            <small>Deal type</small>
+            <strong>{{ info.dealType === 'Rent' ? 'For rent' : 'For sale' }}</strong>
+          </div>
+          <button type="button" (click)="setDeal(info.dealType === 'Rent' ? 'Sale' : 'Rent')">{{ info.dealType === 'Rent' ? 'გაყიდვა' : 'ქირა' }}</button>
+        </div>
+        <div class="chosen-plan-card owner-agent-card" *ngIf="!general">
+          <span class="owner-agent-photo">
+            <img *ngIf="info.agentPhoto; else agentInitial" [src]="(info.agentPhoto) | photoUrl:320" alt="">
+            <ng-template #agentInitial>{{ (info.agentName || 'V').charAt(0) }}</ng-template>
+          </span>
+          <div>
+            <small>Your agent</small>
+            <strong data-no-translate>{{ info.agentName }}</strong>
+            <em><i class="fa-solid fa-circle-check"></i> {{ info.dealType === 'Rent' ? 'For rent' : 'For sale' }}</em>
+          </div>
+        </div>
+
+        <div class="progress-card">
+          <div class="sidebar-title"><span>Form progress</span><small>Complete all required fields</small></div>
+          <button *ngFor="let section of sections; let index = index" class="step-item" type="button"
+            [class.active]="section.id === activeSection" [class.completed]="section.done" (click)="openSection(section.id)">
+            <span class="step-dot"><i *ngIf="section.done" class="fa-solid fa-check"></i></span>
+            <span>{{ section.label }}</span>
+          </button>
+          <div class="progress-summary">
+            <span>{{ progress }}% complete</span>
+            <div><i [style.width.%]="progress"></i></div>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-heading"><span>Live preview</span><small><i class="fa-solid fa-bolt"></i> Live</small></div>
+          <div class="preview-photo">
+            <img *ngIf="previewPhoto" [src]="previewPhoto" alt="Property preview" />
+            <span *ngIf="!previewPhoto" class="camera-icon"></span>
+            <span class="photo-counter"><i class="fa-regular fa-images"></i> {{ photos.length + existingPhotos.length }} / {{ maxPhotos }}</span>
+          </div>
+          <strong>{{ previewTitle }}</strong>
+          <b>{{ previewPrice }} <small *ngIf="info.dealType === 'Rent'">/ month</small></b>
+          <div class="preview-facts">
+            <span><i class="fa-solid fa-ruler-combined"></i> {{ data['area'] || '—' }} m²</span>
+            <span><i class="fa-solid fa-bed"></i> {{ data['bedrooms'] ?? '—' }} beds</span>
+            <span><i class="fa-solid fa-stairs"></i> {{ data['floor'] ?? '—' }} <span>Floor</span></span>
+          </div>
+          <small class="preview-location"><i class="fa-solid fa-location-dot"></i> {{ data['location'] || 'Location' }}, {{ data['city'] || 'Tbilisi' }}</small>
+          <div class="preview-meta"><span><small>Deal type</small>{{ info.dealType === 'Rent' ? 'For Rent' : 'For Sale' }}</span><span><small>Property type</small>{{ data['realEstateType'] }}</span><span *ngIf="data['condition']"><small>Condition</small>{{ data['condition'] }}</span></div>
+          <p class="preview-caption">This preview updates as you fill in the form.</p>
+        </div>
+      </aside>
+
+      <form class="upload-main" (ngSubmit)="submit()" novalidate>
+        <div class="upload-validation" role="alert" *ngIf="attempted && errorList.length">
+          <strong>Please complete these fields</strong>
+          <button type="button" *ngFor="let issue of errorList" (click)="goToField(issue.key)"><i class="fa-solid fa-circle-exclamation"></i>{{ issue.value }}<i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <section class="form-section" id="owner-step-property">
+          <header class="section-header"><span>01</span><div><h2>Property details</h2><p>Type, size and layout of the property.</p></div></header>
+          <div class="field-group">
+            <label class="field-label">Real estate type <span class="req">*</span></label>
+            <div class="chip-grid">
+              <button type="button" class="chip" *ngFor="let type of (general ? propertyTypes.slice(0, 3) : propertyTypes)" [class.selected]="data['realEstateType'] === type.value" (click)="data['realEstateType'] = type.value">
+                <i [class]="type.icon" aria-hidden="true"></i><span>{{ type.value }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Size and layout <span class="req">*</span></label>
+            <div class="metric-grid">
+              <label class="metric-field"><span><i class="fa-solid fa-vector-square"></i> Living area</span><div><input type="number" name="area" min="5" max="10000" step="0.1" placeholder="0" inputmode="decimal" [(ngModel)]="data['area']" /><b>m²</b></div></label>
+              <label class="metric-field" *ngFor="let c of counters"><span><i [class]="c.icon"></i> {{ c.label }}</span><div><input type="number" [name]="c.field" [min]="c.min" max="20" step="1" placeholder="0" inputmode="numeric" [(ngModel)]="data[c.field]" /></div></label>
+              <label class="metric-field"><span><i class="fa-solid fa-stairs"></i> Property floor</span><div><input type="number" name="floor" min="0" max="200" step="1" placeholder="0" inputmode="numeric" [(ngModel)]="data['floor']" /></div></label>
+              <label class="metric-field"><span><i class="fa-regular fa-building"></i> Building floors</span><div><input type="number" name="totalFloors" min="1" max="200" step="1" placeholder="0" inputmode="numeric" [(ngModel)]="data['totalFloors']" /></div></label>
+            </div>
+            <small class="err" *ngIf="showError('area')">{{ showError('area') }}</small>
+            <small class="err" *ngIf="showError('rooms')">{{ showError('rooms') }}</small>
+            <small class="err" *ngIf="showError('floor')">{{ showError('floor') }}</small>
+          </div>
+
+          <div class="field-group" *ngIf="general">
+            <label class="field-label">Status <span class="req">*</span></label>
+            <div class="chip-grid">
+              <button type="button" class="chip" *ngFor="let type of buildingTypes" [class.selected]="data['buildingType'] === type.value" (click)="data['buildingType'] = type.value">
+                <i [class]="type.icon" aria-hidden="true"></i><span>{{ type.value }}</span>
+              </button>
+            </div>
+            <small class="err" *ngIf="showError('buildingType')">{{ showError('buildingType') }}</small>
+          </div>
+
+          <div class="field-group" *ngIf="general || info.dealType !== 'Rent'">
+            <label class="field-label">Condition <span class="req" *ngIf="general">*</span></label>
+            <div class="chip-grid chip-grid-wide">
+              <button type="button" class="chip" *ngFor="let c of conditions" [class.selected]="data['condition'] === c.value" (click)="data['condition'] = data['condition'] === c.value ? '' : c.value">
+                <i [class]="c.icon" aria-hidden="true"></i><span>{{ c.value }}</span>
+              </button>
+            </div>
+            <small class="err" *ngIf="showError('condition')">{{ showError('condition') }}</small>
+          </div>
+        </section>
+
+        <section class="form-section" id="owner-step-location">
+          <header class="section-header"><span>02</span><div><h2>Property location</h2><p>Pick the district and street from the list.</p></div></header>
+          <div class="field-group" *ngIf="general">
+            <label class="field-label">ქალაქი <span class="req">*</span></label>
+            <div class="input-row"><input type="text" name="city" [(ngModel)]="data['city']" (ngModelChange)="onAreaInput()" /></div>
+            <small class="err" *ngIf="showError('city')">{{ showError('city') }}</small>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Location <span class="req">*</span></label>
+            <div class="input-row location-row">
+              <div class="location-search form-location-picker" (click)="$event.stopPropagation()">
+                <input type="text" name="location" placeholder="Choose a Tbilisi district" autocomplete="off" [(ngModel)]="data['location']" (focus)="picker = 'area'" (input)="onAreaInput()" />
+                <div class="location-suggestions" *ngIf="picker === 'area' && (!general || data['city'] === 'Tbilisi')">
+                  <div class="location-status" *ngIf="locationLoading">Loading districts…</div>
+                  <div class="location-status error" *ngIf="locationError">Locations are temporarily unavailable.</div>
+                  <section *ngIf="!locationLoading && !locationError && areaSuggestions.length">
+                    <h3>Districts</h3>
+                    <button type="button" *ngFor="let s of areaSuggestions" (pointerdown)="selectArea(s, $event)"><i class="fa-solid fa-location-dot"></i><span><b>{{ s.label }}</b><small>Tbilisi</small></span></button>
+                  </section>
+                  <div class="location-status" *ngIf="!locationLoading && !locationError && !areaSuggestions.length">No matching district found.</div>
+                </div>
+              </div>
+              <div class="location-search form-location-picker" (click)="$event.stopPropagation()">
+                <input type="text" name="street" autocomplete="off" [disabled]="!selectedDistrict && (!general || data['city'] === 'Tbilisi')"
+                  [placeholder]="selectedDistrict || (general && data['city'] !== 'Tbilisi') ? 'Choose a street' : 'Choose a district first'"
+                  [(ngModel)]="data['street']" (focus)="picker = 'street'" (input)="onStreetInput()" />
+                <div class="location-suggestions" *ngIf="picker === 'street' && selectedDistrict && (!general || data['city'] === 'Tbilisi')">
+                  <section *ngIf="streetSuggestions.length">
+                    <h3>Streets in {{ data['location'] }}</h3>
+                    <button type="button" *ngFor="let s of streetSuggestions" (pointerdown)="selectStreet(s, $event)"><i class="fa-solid fa-road"></i><span><b>{{ s.label }}</b><small>{{ s.district }}</small></span></button>
+                  </section>
+                  <div class="location-status" *ngIf="!streetSuggestions.length">No matching street found.</div>
+                </div>
+              </div>
+              <input type="text" name="streetNumber" placeholder="Street number" autocomplete="off" [(ngModel)]="data['streetNumber']" (ngModelChange)="clearPoint()" />
+            </div>
+            <small class="err" *ngIf="showError('location')">{{ showError('location') }}</small>
+            <small class="err" *ngIf="showError('street')">{{ showError('street') }}</small>
+            <small class="err" *ngIf="showError('streetNumber')">{{ showError('streetNumber') }}</small>
+          </div>
+          <app-property-point-picker *ngIf="!general" [address]="mapAddress" [(latitude)]="data['propertyLatitude']" [(longitude)]="data['propertyLongitude']"></app-property-point-picker>
+        </section>
+
+        <section class="form-section" id="owner-step-price">
+          <header class="section-header"><span>03</span><div><h2>Pricing</h2><p>{{ info.dealType === 'Rent' ? 'Monthly rent you expect.' : 'Asking price.' }}</p></div></header>
+          <div class="field-group">
+            <label class="field-label">{{ info.dealType === 'Rent' ? 'Monthly rent' : 'Sale price' }} <span class="req">*</span></label>
+            <div class="price-table">
+              <input type="number" name="totalPrice" min="0" inputmode="decimal" placeholder="Total price" [(ngModel)]="data['totalPrice']" />
+              <input type="number" name="sqPrice" placeholder="Sq. price" [ngModel]="sqPrice" readonly aria-label="Automatically calculated price per square metre" />
+              <div class="currency-toggle" aria-label="Currency">
+                <button type="button" *ngIf="!general" [class.active]="data['currency'] === 'GEL'" (click)="data['currency'] = 'GEL'">₾</button>
+                <button type="button" [class.active]="data['currency'] !== 'GEL'" (click)="data['currency'] = '$'">$</button>
+              </div>
+            </div>
+            <small class="calculated-price-note"><i class="fa-solid fa-calculator" aria-hidden="true"></i> Calculated automatically: total price ÷ living area</small>
+            <small class="err" *ngIf="showError('totalPrice')">{{ showError('totalPrice') }}</small>
+          </div>
+        </section>
+
+        <section class="form-section" id="owner-step-features">
+          <header class="section-header"><span>04</span><div><h2>Features &amp; amenities</h2><p>Tap everything that applies.</p></div></header>
+          <div class="feature-block amenities-block">
+            <div class="feature-block-title"><div><span>Amenities</span><small>Select everything included with the property</small></div><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <div class="amenity-grid">
+              <button type="button" class="amenity-card" *ngFor="let f of features" [class.selected]="data[f.field]" [attr.aria-pressed]="data[f.field]" (click)="toggle(f.field)">
+                <i [class]="f.icon"></i><span>{{ f.label }}</span><b><i class="fa-solid fa-check"></i></b>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section" id="owner-step-rental" *ngIf="general || info.dealType === 'Rent'">
+          <header class="section-header"><span>05</span><div><h2>{{ general ? 'ხელმისაწვდომობა და პირობები' : 'Rental details' }}</h2><p>{{ general ? 'When the property is free and for how long.' : 'Optional' }}</p></div></header>
+          <div class="field-group">
+            <label class="field-label">Available from <span class="req" *ngIf="general">*</span></label>
+            <app-date-picker name="availableFrom" placeholder="Choose a date" [(ngModel)]="data['availableFrom']"></app-date-picker>
+            <small class="err" *ngIf="showError('availableFrom')">{{ showError('availableFrom') }}</small>
+          </div>
+          <div class="field-group" *ngIf="info.dealType === 'Rent'">
+            <label class="field-label">Minimum rental period</label>
+            <div class="chip-grid">
+              <button type="button" class="chip" *ngFor="let p of rentalPeriods" [class.selected]="data['minimumRentalPeriod'] === p" (click)="data['minimumRentalPeriod'] = data['minimumRentalPeriod'] === p ? '' : p">
+                <i class="fa-regular fa-calendar" aria-hidden="true"></i><span>{{ p }}</span>
+              </button>
+            </div>
+          </div>
+          <div class="occupancy-card" *ngIf="general && info.dealType === 'Rent'" role="group" aria-labelledby="occupancy-title" aria-describedby="occupancy-hint">
+            <div class="occupancy-heading">
+              <span class="occupancy-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3M16 4a3 3 0 0 1 0 6M18 13a6 6 0 0 1 4 6v2"/></svg></span>
+              <div class="occupancy-copy"><div class="occupancy-title-row"><h3 id="occupancy-title">მცხოვრებთა რაოდენობა</h3><span class="occupancy-optional">არასავალდებულო</span></div><p>რამდენი ადამიანის განთავსებაა შესაძლებელი?</p></div>
+            </div>
+            <div class="occupancy-bottom">
+              <div class="occupancy-stepper">
+                <button type="button" aria-label="მცხოვრებთა რაოდენობის შემცირება" [disabled]="!data['maxOccupants'] || data['maxOccupants'] <= 1" (click)="adjustOccupants(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                <input name="maxOccupants" type="number" inputmode="numeric" min="1" max="50" step="1" placeholder="—" aria-label="მცხოვრებთა მაქსიმალური რაოდენობა" [(ngModel)]="data['maxOccupants']">
+                <button type="button" aria-label="მცხოვრებთა რაოდენობის გაზრდა" [disabled]="data['maxOccupants'] >= 50" (click)="adjustOccupants(1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
+              </div>
+              <div class="occupancy-note"><p id="occupancy-hint">ცარიელი ველი შეზღუდვას არ ადგენს.</p><button type="button" class="occupancy-clear" *ngIf="data['maxOccupants'] != null" (click)="data['maxOccupants'] = null">გასუფთავება</button></div>
+            </div>
+            <small class="err" *ngIf="showError('maxOccupants')">{{ showError('maxOccupants') }}</small>
+          </div>
+        </section>
+
+        <section class="form-section" id="owner-step-photos">
+          <header class="section-header"><span>{{ sectionNumber('photos') }}</span><div><h2>Photos &amp; description</h2><p>Photos help your agent prepare the visit.</p></div></header>
+          <div class="field-group" *ngIf="general">
+            <label class="copy-field copy-description owner-description">
+              <span>აღწერა <i class="req">*</i></span>
+              <textarea name="description" rows="5" maxlength="5000" placeholder="Describe the property" [(ngModel)]="data['description']"></textarea>
+            </label>
+            <small class="err" *ngIf="showError('description')">{{ showError('description') }}</small>
+          </div>
+          <div class="field-group" *ngIf="!editId">
+            <div class="photo-upload-head">
+              <label class="field-label">Photos <span class="req" *ngIf="general">*</span></label>
+              <span>{{ photos.length }} / {{ maxPhotos }} uploaded</span>
+            </div>
+            <label class="photo-dropzone" [class.disabled]="photos.length >= maxPhotos"
+              (dragover)="$event.preventDefault(); dragOver = true" (dragleave)="dragOver = false" (drop)="dropPhotos($event)">
+              <input type="file" name="photos" [accept]="general ? 'image/jpeg,image/png,image/webp' : 'image/*'" multiple [disabled]="photos.length >= maxPhotos" (change)="choosePhotos($event)" />
+              <i class="fa-regular fa-images"></i>
+              <strong>{{ photos.length >= maxPhotos ? 'Photo limit reached' : 'Drop photos here or click to browse' }}</strong>
+              <span>Upload up to {{ maxPhotos }} JPG, PNG, or WebP images, 8 MB each.</span>
+            </label>
+            <small class="err" *ngIf="showError('photos')">{{ showError('photos') }}</small>
+            <div class="uploaded-image-grid" *ngIf="previews.length">
+              <article class="uploaded-image" *ngFor="let preview of previews; let i = index" [class.is-cover]="i === 0">
+                <div class="image-thumbnail">
+                  <img [src]="preview" [alt]="'Property photo ' + (i + 1)" />
+                  <div class="image-position">{{ i + 1 }}</div>
+                  <span class="cover-badge" *ngIf="i === 0"><i class="fa-solid fa-star"></i> Cover</span>
+                  <button type="button" (click)="removePhoto(i)" aria-label="Remove photo">×</button>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div class="uploaded-image-grid" *ngIf="editId && existingPhotos.length">
+            <article class="uploaded-image" *ngFor="let photo of existingPhotos; let i = index" [class.is-cover]="i === 0">
+              <div class="image-thumbnail"><img [src]="photo" alt="ბინის ფოტო" /><div class="image-position">{{ i + 1 }}</div></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="form-section" id="owner-step-contact">
+          <header class="section-header"><span>{{ sectionNumber('contact') }}</span><div><h2>Your contact details</h2><p>Only your Velven agent sees them.</p></div></header>
+          <div class="field-group">
+            <label class="field-label"><i class="fa-solid fa-lock"></i> Your name and phone <span class="req">*</span> <small>Private — shown only to your Velven agent</small></label>
+            <div class="input-row contact-fields owner-contact-fields">
+              <input type="text" name="ownerName" placeholder="Your full name" autocomplete="name" [(ngModel)]="ownerName" />
+              <input type="tel" name="ownerPhone" [attr.data-phone-country]="general ? 'GE' : null" placeholder="+995 558 47 48 89" autocomplete="tel" inputmode="tel" [(ngModel)]="ownerPhone" />
+              <input type="email" name="ownerEmail" placeholder="Email (optional)" autocomplete="email" [(ngModel)]="ownerEmail" />
+            </div>
+            <small class="err" *ngIf="showError('ownerName')">{{ showError('ownerName') }}</small>
+            <small class="err" *ngIf="showError('ownerPhone')">{{ showError('ownerPhone') }}</small>
+            <small class="err" *ngIf="showError('ownerEmail')">{{ showError('ownerEmail') }}</small>
+          </div>
+        </section>
+
+        <p class="form-error owner-form-error" *ngIf="error"><i class="fa-solid fa-triangle-exclamation"></i>{{ error }}</p>
+        <div class="form-actions">
+          <span class="autosave-note"><i class="fa-solid fa-lock"></i> Your details are shared only with your Velven agent.</span>
+          <button class="btn-publish" type="submit" [disabled]="submitting">
+            <i [class]="submitting ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-paper-plane'"></i>
+            {{ submitting ? 'Sending…' : editId ? 'ცვლილებების შენახვა' : 'Send property details' }}
+          </button>
+        </div>
+      </form>
     </div>
-
-    <section class="card">
-      <div class="card-head"><span class="num">1</span><div><h2>Property</h2><p>Type, size and layout</p></div></div>
-      <div class="type-grid">
-        <button type="button" *ngFor="let type of (general ? propertyTypes.slice(0, 3) : propertyTypes)" [class.active]="data['realEstateType'] === type.value" (click)="data['realEstateType'] = type.value">
-          <i [class]="type.icon"></i><span>{{ type.value }}</span>
-        </button>
-      </div>
-      <div class="counter-grid">
-        <div class="counter" *ngFor="let c of counters">
-          <span class="counter-label"><i [class]="c.icon"></i>{{ c.label }}</span>
-          <div class="stepper">
-            <button type="button" (click)="step(c.field, -1, c.min)" [disabled]="data[c.field] <= c.min" [attr.aria-label]="'Fewer ' + c.label"><i class="fa-solid fa-minus"></i></button>
-            <output>{{ data[c.field] }}</output>
-            <button type="button" (click)="step(c.field, 1, c.min)" [attr.aria-label]="'More ' + c.label"><i class="fa-solid fa-plus"></i></button>
-          </div>
-        </div>
-      </div>
-      <div class="grid">
-        <label class="field" [class.invalid]="showError('area')">
-          <span>Area<i class="req">*</i></span>
-          <div class="input-icon"><i class="fa-solid fa-ruler-combined"></i><input type="number" min="0" name="area" inputmode="decimal" placeholder="85" [(ngModel)]="data['area']"><em>m²</em></div>
-          <small class="err" *ngIf="showError('area')">{{ showError('area') }}</small>
-        </label>
-        <label class="field" [class.invalid]="showError('floor')">
-          <span>Floor</span>
-          <div class="input-icon"><i class="fa-solid fa-stairs"></i><input type="number" name="floor" inputmode="numeric" placeholder="4" [(ngModel)]="data['floor']"></div>
-          <small class="err" *ngIf="showError('floor')">{{ showError('floor') }}</small>
-        </label>
-        <label class="field">
-          <span>Total floors</span>
-          <div class="input-icon"><i class="fa-solid fa-building"></i><input type="number" min="1" name="totalFloors" inputmode="numeric" placeholder="12" [(ngModel)]="data['totalFloors']"></div>
-        </label>
-      </div>
-      <ng-container *ngIf="general || info.dealType !== 'Rent'">
-      <small class="err" *ngIf="showError('condition')">{{ showError('condition') }}</small>
-      <div class="sub-label"><i class="fa-solid fa-paint-roller"></i>Condition</div>
-      <div class="pill-row">
-        <button type="button" *ngFor="let c of conditions" class="pill" [class.active]="data['condition'] === c.value" (click)="data['condition'] = data['condition'] === c.value ? '' : c.value"><i [class]="c.icon"></i> <span>{{ c.value }}</span></button>
-      </div>
-      </ng-container>
-      <div class="field" *ngIf="general">
-        <span>შენობის ტიპი</span>
-        <div class="pill-row"><button type="button" class="pill" *ngFor="let type of ['Old building', 'New building', 'Under construction']" [class.active]="data['buildingType'] === type" (click)="data['buildingType'] = type">{{ type }}</button></div>
-        <small class="err" *ngIf="showError('buildingType')">{{ showError('buildingType') }}</small>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="card-head"><span class="num">2</span><div><h2>Location</h2><p>Pick district and street from the list</p></div></div>
-      <label class="field" *ngIf="general"><span>ქალაქი</span><input name="city" [(ngModel)]="data['city']" (ngModelChange)="onAreaInput()"><small class="err" *ngIf="showError('city')">{{ showError('city') }}</small></label>
-      <div class="grid location-grid">
-        <label class="field" [class.invalid]="showError('location')" [class.valid]="selectedDistrict">
-          <span>District<i class="req">*</i></span>
-          <div class="picker" (click)="$event.stopPropagation()">
-            <div class="input-icon"><i class="fa-solid fa-map-location-dot"></i>
-              <input name="location" autocomplete="off" placeholder="e.g. Vake" [(ngModel)]="data['location']" (focus)="picker = 'area'" (input)="onAreaInput()">
-              <i class="fa-solid fa-circle-check ok-mark" *ngIf="selectedDistrict"></i>
-            </div>
-            <div class="dropdown" *ngIf="picker === 'area' && (!general || data['city'] === 'Tbilisi')">
-              <div class="dd-status" *ngIf="locationLoading"><span class="spinner small"></span>Loading districts…</div>
-              <div class="dd-status err" *ngIf="locationError">Locations are temporarily unavailable.</div>
-              <button type="button" *ngFor="let s of areaSuggestions" (pointerdown)="selectArea(s, $event)"><i class="fa-solid fa-location-dot"></i><span>{{ s.label }}<small>Tbilisi</small></span></button>
-              <div class="dd-status" *ngIf="!locationLoading && !locationError && !areaSuggestions.length">No matching district found.</div>
-            </div>
-          </div>
-          <small class="err" *ngIf="showError('location')">{{ showError('location') }}</small>
-        </label>
-        <label class="field" [class.invalid]="showError('street')" [class.valid]="selectedStreetValue">
-          <span>Street<i class="req">*</i></span>
-          <div class="picker" (click)="$event.stopPropagation()">
-            <div class="input-icon"><i class="fa-solid fa-road"></i>
-              <input name="street" autocomplete="off" [disabled]="!selectedDistrict && (!general || data['city'] === 'Tbilisi')" placeholder="Street / address" [(ngModel)]="data['street']" (focus)="picker = 'street'" (input)="onStreetInput()">
-              <i class="fa-solid fa-circle-check ok-mark" *ngIf="selectedStreetValue"></i>
-            </div>
-            <div class="dropdown" *ngIf="picker === 'street' && selectedDistrict && (!general || data['city'] === 'Tbilisi')">
-              <button type="button" *ngFor="let s of streetSuggestions" (pointerdown)="selectStreet(s, $event)"><i class="fa-solid fa-road"></i><span>{{ s.label }}<small>{{ s.district }}</small></span></button>
-              <div class="dd-status" *ngIf="!streetSuggestions.length">No matching street found.</div>
-            </div>
-          </div>
-          <small class="err" *ngIf="showError('street')">{{ showError('street') }}</small>
-        </label>
-        <label class="field" [class.invalid]="showError('streetNumber')">
-          <span>Building number<i class="req">*</i></span>
-          <div class="input-icon"><i class="fa-solid fa-hashtag"></i><input name="streetNumber" autocomplete="off" placeholder="12a" [(ngModel)]="data['streetNumber']" (ngModelChange)="clearPoint()"></div>
-          <small class="err" *ngIf="showError('streetNumber')">{{ showError('streetNumber') }}</small>
-        </label>
-      </div>
-      <div class="map-wrap" *ngIf="!general">
-        <app-property-point-picker [address]="mapAddress" [(latitude)]="data['propertyLatitude']" [(longitude)]="data['propertyLongitude']"></app-property-point-picker>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="card-head"><span class="num">3</span><div><h2>Price</h2><p>{{ info.dealType === 'Rent' ? 'Monthly rent you expect' : 'Asking price' }}</p></div></div>
-      <div class="price-row">
-        <label class="field grow" [class.invalid]="showError('totalPrice')">
-          <span>{{ info.dealType === 'Rent' ? 'Monthly rent' : 'Sale price' }}<i class="req">*</i></span>
-          <div class="input-icon big"><i class="fa-solid fa-money-bill-wave"></i><input type="number" min="0" name="totalPrice" inputmode="decimal" placeholder="0" [(ngModel)]="data['totalPrice']"><em>{{ data['currency'] === 'GEL' ? '₾' : '$' }}</em></div>
-          <small class="err" *ngIf="showError('totalPrice')">{{ showError('totalPrice') }}</small>
-        </label>
-        <div class="field">
-          <span>Currency</span>
-          <div class="segmented">
-            <button type="button" [class.active]="data['currency'] === '$'" (click)="data['currency'] = '$'">$ USD</button>
-            <button type="button" *ngIf="!general" [class.active]="data['currency'] === 'GEL'" (click)="data['currency'] = 'GEL'">₾ GEL</button>
-          </div>
-        </div>
-      </div>
-      <p class="hint" *ngIf="data['totalPrice'] > 0 && data['area'] > 0"><i class="fa-solid fa-calculator"></i><span>≈ {{ data['totalPrice'] / data['area'] | number:'1.0-0' }} {{ data['currency'] === 'GEL' ? '₾' : '$' }}</span><span>per m²</span></p>
-    </section>
-
-    <section class="card">
-      <div class="card-head"><span class="num">4</span><div><h2>Features</h2><p>Tap everything that applies</p></div></div>
-      <div class="feature-grid">
-        <button type="button" *ngFor="let f of features" [class.active]="data[f.field]" (click)="toggle(f.field)" [attr.aria-pressed]="data[f.field]">
-          <i [class]="f.icon"></i><span>{{ f.label }}</span><i class="fa-solid fa-check tick"></i>
-        </button>
-      </div>
-    </section>
-
-    <section class="card" *ngIf="general || info.dealType === 'Rent'">
-      <div class="card-head"><span class="num" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18m-13 5h2m4 0h2"/></svg></span><div><h2>{{ general ? 'ხელმისაწვდომობა და პირობები' : 'Rental details' }}</h2><p *ngIf="!general">Optional</p></div></div>
-      <div class="grid two">
-        <div class="field"><span>Available from</span><app-date-picker name="availableFrom" placeholder="Choose a date" [(ngModel)]="data['availableFrom']"></app-date-picker></div>
-        <div class="field"><span>Minimum rental period</span><div class="segmented"><button type="button" *ngFor="let p of rentalPeriods" [class.active]="data['minimumRentalPeriod'] === p" (click)="data['minimumRentalPeriod'] = data['minimumRentalPeriod'] === p ? '' : p"><i class="fa-regular fa-calendar"></i> {{ p === 'Minimum 6 months' ? '6 months' : '12 months' }}</button></div></div>
-      </div>
-      <small class="err" *ngIf="showError('availableFrom')">{{ showError('availableFrom') }}</small>
-    </section>
-
-    <section class="card" *ngIf="general">
-      <label class="field"><span>აღწერა</span><textarea name="description" rows="5" maxlength="5000" [(ngModel)]="data['description']"></textarea><small class="err" *ngIf="showError('description')">{{ showError('description') }}</small></label>
-      <div class="occupancy-card" *ngIf="info.dealType === 'Rent'" role="group" aria-labelledby="occupancy-title" aria-describedby="occupancy-hint">
-        <div class="occupancy-heading">
-          <span class="occupancy-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3M16 4a3 3 0 0 1 0 6M18 13a6 6 0 0 1 4 6v2"/></svg></span>
-          <div class="occupancy-copy"><div class="occupancy-title-row"><h3 id="occupancy-title">მცხოვრებთა რაოდენობა</h3><span class="occupancy-optional">არასავალდებულო</span></div><p>რამდენი ადამიანის განთავსებაა შესაძლებელი?</p></div>
-        </div>
-        <div class="occupancy-bottom">
-          <div class="occupancy-stepper">
-            <button type="button" aria-label="მცხოვრებთა რაოდენობის შემცირება" [disabled]="!data['maxOccupants'] || data['maxOccupants'] <= 1" (click)="adjustOccupants(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
-            <input name="maxOccupants" type="number" inputmode="numeric" min="1" max="50" step="1" placeholder="—" aria-label="მცხოვრებთა მაქსიმალური რაოდენობა" [(ngModel)]="data['maxOccupants']">
-            <button type="button" aria-label="მცხოვრებთა რაოდენობის გაზრდა" [disabled]="data['maxOccupants'] >= 50" (click)="adjustOccupants(1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
-          </div>
-          <div class="occupancy-note"><p id="occupancy-hint">ცარიელი ველი შეზღუდვას არ ადგენს.</p><button type="button" class="occupancy-clear" *ngIf="data['maxOccupants'] != null" (click)="data['maxOccupants'] = null">გასუფთავება</button></div>
-        </div>
-        <small class="err" *ngIf="showError('maxOccupants')">{{ showError('maxOccupants') }}</small>
-      </div>
-    </section>
-
-    <section class="card" *ngIf="!editId">
-      <div class="card-head"><span class="num">5</span><div><h2>Photos</h2><p>Photos help your agent prepare the visit</p></div></div>
-      <small class="err" *ngIf="showError('photos')">{{ showError('photos') }}</small>
-      <label class="dropzone" [class.drag]="dragOver" [class.full]="photos.length >= maxPhotos"
-        (dragover)="$event.preventDefault(); dragOver = true" (dragleave)="dragOver = false" (drop)="dropPhotos($event)">
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-        <b>{{ photos.length >= maxPhotos ? 'Photo limit reached' : 'Drop photos or tap to upload' }}</b>
-        <small><span>{{ photos.length }}/{{ maxPhotos }}</span> · <span>Photos</span> · JPG, PNG, WebP · 8 MB</small>
-        <input type="file" [accept]="general ? 'image/jpeg,image/png,image/webp' : 'image/*'" multiple [disabled]="photos.length >= maxPhotos" (change)="choosePhotos($event)">
-      </label>
-      <div class="photos" *ngIf="previews.length">
-        <figure *ngFor="let preview of previews; let i = index">
-          <img [src]="preview" alt="Property photo {{ i + 1 }}">
-          <span class="cover" *ngIf="i === 0">Cover</span>
-          <button type="button" (click)="removePhoto(i)" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>
-        </figure>
-      </div>
-    </section>
-    <div class="photos" *ngIf="editId"><figure *ngFor="let photo of existingPhotos"><img [src]="photo" alt="ბინის ფოტო"></figure></div>
-
-    <section class="card">
-      <div class="card-head"><span class="num">6</span><div><h2>Your contact details</h2><p>Only your agent sees these</p></div></div>
-      <div class="grid">
-        <label class="field" [class.invalid]="showError('ownerName')">
-          <span>Full name<i class="req">*</i></span>
-          <div class="input-icon"><i class="fa-solid fa-user"></i><input name="ownerName" autocomplete="name" [(ngModel)]="ownerName"></div>
-          <small class="err" *ngIf="showError('ownerName')">{{ showError('ownerName') }}</small>
-        </label>
-        <label class="field" [class.invalid]="showError('ownerPhone')">
-          <span>Phone<i class="req">*</i></span>
-          <div class="input-icon"><i class="fa-solid fa-phone"></i><input type="tel" name="ownerPhone" [attr.data-phone-country]="general ? 'GE' : null" autocomplete="tel" inputmode="tel" placeholder="+995 558 47 48 89" [(ngModel)]="ownerPhone"></div>
-          <small class="err" *ngIf="showError('ownerPhone')">{{ showError('ownerPhone') }}</small>
-        </label>
-        <label class="field" [class.invalid]="showError('ownerEmail')">
-          <span>Email (optional)</span>
-          <div class="input-icon"><i class="fa-solid fa-envelope"></i><input type="email" name="ownerEmail" autocomplete="email" [(ngModel)]="ownerEmail"></div>
-          <small class="err" *ngIf="showError('ownerEmail')">{{ showError('ownerEmail') }}</small>
-        </label>
-      </div>
-    </section>
-
-    <div class="submit-bar">
-      <p class="form-error" *ngIf="error"><i class="fa-solid fa-triangle-exclamation"></i>{{ error }}</p>
-      <p class="form-error" *ngIf="attempted && !error && (errors | keyvalue).length"><i class="fa-solid fa-circle-exclamation"></i>Please fix the highlighted fields.</p>
-      <button class="submit" type="submit" [disabled]="submitting">
-        <span class="spinner small light" *ngIf="submitting"></span>
-        <i class="fa-solid fa-paper-plane" *ngIf="!submitting"></i>
-        {{ submitting ? 'Sending…' : editId ? 'ცვლილებების შენახვა' : 'Send property details' }}
-      </button>
-      <small class="privacy"><i class="fa-solid fa-lock"></i>Your details are shared only with your Velven agent.</small>
-    </div>
-  </form>
-</main>
+  </ng-container>
+</section>

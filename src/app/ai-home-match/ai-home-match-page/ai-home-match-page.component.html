@@ -800,14 +800,16 @@
           <span class="student-follow-text">
             @if (profile.studentUniversityMode === 'NearUniversity' && chosenUniversity) {
               <small>Near your university</small><b data-no-translate>{{ universityLabel(chosenUniversity) }}</b>
+            } @else if (profile.studentUniversityMode === 'NearMetro') {
+              <small>Metro flexibility</small><b>Homes near a metro station</b>
             } @else if (profile.studentUniversityMode === 'NoPreference') {
-              <small>University does not matter</small><b>Homes near a metro station</b>
+              <small>Student</small><b>University does not matter</b>
             } @else {
               <small>Student</small><b>Tell us about your university</b>
             }
           </span>
           <button type="button" class="student-follow-change" (click)="openStudentDialog()">
-            {{ profile.studentUniversityMode ? 'Change' : 'Choose' }}
+            <i class="fa-solid fa-pen" aria-hidden="true"></i><span>{{ profile.studentUniversityMode ? 'Change' : 'Choose' }}</span>
           </button>
         </div>
         <div class="business-follow" *ngSwitchCase="9" [hidden]="!profile.lifestyles.includes('BusinessProfessional')">
@@ -1075,10 +1077,15 @@
           <b>Near my university</b>
           <small>Choose your university; homes closer to it rank higher.</small>
         </button>
-        <button type="button" class="student-option" [class.selected]="profile.studentUniversityMode === 'NoPreference'" (click)="chooseStudentMode('NoPreference')">
+        <button type="button" class="student-option" [class.selected]="profile.studentUniversityMode === 'NearMetro'" (click)="chooseStudentMode('NearMetro')">
           <span class="student-option-icon" aria-hidden="true"><i class="fa-solid fa-train-subway"></i></span>
+          <b>Metro flexibility</b>
+          <small>Homes near a metro station rank higher.</small>
+        </button>
+        <button type="button" class="student-option" [class.selected]="profile.studentUniversityMode === 'NoPreference'" (click)="chooseStudentMode('NoPreference')">
+          <span class="student-option-icon" aria-hidden="true"><i class="fa-solid fa-shuffle"></i></span>
           <b>Does not matter</b>
-          <small>We look for homes near a metro station.</small>
+          <small>No extra points for university or metro.</small>
         </button>
       </div>
     } @else {

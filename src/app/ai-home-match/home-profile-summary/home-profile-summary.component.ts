@@ -170,7 +170,9 @@ export class HomeProfileSummaryComponent {
             label: 'University',
             value: p.studentUniversityMode === 'NearUniversity'
               ? universityName(UNIVERSITY_CHOICES.find((choice) => choice.id === p.studentUniversityId), document.documentElement.lang || 'en') || 'Near my university'
-              : 'Does not matter (near metro)',
+              : p.studentUniversityMode === 'NearMetro'
+                ? 'Metro flexibility (near metro)'
+                : 'Does not matter',
             icon: 'fa-graduation-cap',
           }
         : null,

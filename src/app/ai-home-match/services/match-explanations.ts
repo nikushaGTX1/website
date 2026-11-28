@@ -183,8 +183,8 @@ export function explainHomeMatch(
   }
   if (lifestyles.has('Student')) {
     if (p.studentUniversityMode === 'NearUniversity') push(chosenUniversity());
-    else if (p.studentUniversityMode !== 'NoPreference') push(near('universityDistanceMinutes', 'University', 'Handy for your studies', 'fa-graduation-cap'));
-    push(near('metroDistanceMinutes', 'Metro', 'Handy for your studies', 'fa-train-subway'));
+    else if (!p.studentUniversityMode) push(near('universityDistanceMinutes', 'University', 'Handy for your studies', 'fa-graduation-cap'));
+    if (p.studentUniversityMode !== 'NoPreference') push(near('metroDistanceMinutes', 'Metro', 'Handy for your studies', 'fa-train-subway'));
   }
   if (lifestyles.has('QuietLifestyle')) {
     push(quiet('Matches your quiet lifestyle'));

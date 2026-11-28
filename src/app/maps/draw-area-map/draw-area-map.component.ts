@@ -1866,21 +1866,21 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       pin.setAttribute('aria-label', `Open ${apartment.title}, ${price}`);
       Object.assign(pin.style, {
         position: 'absolute',
-        transform: 'translate(-50%, calc(-100% - 9px))',
-        minWidth: '64px',
-        minHeight: '40px',
-        padding: '0 14px',
+        transform: 'translate(-50%, calc(-100% - 7px))',
+        minWidth: '46px',
+        minHeight: '28px',
+        padding: '0 9px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         boxSizing: 'border-box',
-        borderRadius: '18px',
+        borderRadius: '14px',
         background: '#fff',
         color: '#111827',
         border: '1px solid rgba(31, 41, 55, .08)',
-        boxShadow: '0 7px 18px rgba(39, 31, 52, .18)',
+        boxShadow: '0 5px 14px rgba(39, 31, 52, .18)',
         fontFamily: 'inherit',
-        fontSize: '13px',
+        fontSize: '11.5px',
         lineHeight: '1',
         fontWeight: '850',
         whiteSpace: 'nowrap',
@@ -1894,9 +1894,9 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       Object.assign(tail.style, {
         position: 'absolute',
         left: '50%',
-        bottom: '-11px',
-        width: '24px',
-        height: '13px',
+        bottom: '-7px',
+        width: '14px',
+        height: '8px',
         background: '#fff',
         transform: 'translateX(-50%)',
         clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
@@ -1911,8 +1911,8 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
         pin!.style.color = selected ? '#fff' : '#171421';
         pin!.style.borderColor = selected ? '#451a8f' : 'rgba(31, 41, 55, .08)';
         pin!.style.transform = selected
-          ? 'translate(-50%, calc(-100% - 9px)) scale(1.06)'
-          : 'translate(-50%, calc(-100% - 9px))';
+          ? 'translate(-50%, calc(-100% - 7px)) scale(1.06)'
+          : 'translate(-50%, calc(-100% - 7px))';
         pin!.style.boxShadow = selected
           ? '0 8px 20px rgba(69, 26, 143, .34)'
           : '0 6px 16px rgba(25, 16, 31, .22)';
@@ -2056,7 +2056,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
     pin.style.background = '#451a8f';
     pin.style.color = '#fff';
     pin.style.borderColor = '#451a8f';
-    pin.style.transform = 'translate(-50%, calc(-100% - 9px)) scale(1.06)';
+    pin.style.transform = 'translate(-50%, calc(-100% - 7px)) scale(1.06)';
     pin.style.boxShadow = '0 8px 20px rgba(69, 26, 143, .34)';
     tail.style.background = '#451a8f';
     const listedImages = (apartment.imageUrls || []).filter(Boolean);
@@ -2362,7 +2362,7 @@ export class DrawAreaMapComponent implements AfterViewInit, OnChanges, OnDestroy
       this.activePreviewPin.style.background = '#fff';
       this.activePreviewPin.style.color = '#171421';
       this.activePreviewPin.style.borderColor = 'rgba(31, 41, 55, .08)';
-      this.activePreviewPin.style.transform = 'translate(-50%, calc(-100% - 9px))';
+      this.activePreviewPin.style.transform = 'translate(-50%, calc(-100% - 7px))';
       this.activePreviewPin.style.boxShadow = '0 6px 16px rgba(25, 16, 31, .22)';
     }
     if (this.activePreviewTail) this.activePreviewTail.style.background = '#fff';

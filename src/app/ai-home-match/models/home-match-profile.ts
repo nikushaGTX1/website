@@ -48,7 +48,8 @@ export interface HomeMatchProfile {
   /** Follow-up to "Business professional". */
   businessMode?: 'NearOffice' | 'HomeBusiness' | '';
   /** Students: live near their own university, or "does not matter" (then near a metro). */
-  studentUniversityMode?: 'NearUniversity' | 'NoPreference' | '';
+  /** NearUniversity: chosen university; NearMetro: metro flexibility; NoPreference: no student points. */
+  studentUniversityMode?: 'NearUniversity' | 'NearMetro' | 'NoPreference' | '';
   /** Chosen university (UNIVERSITY_CHOICES id) and where it is on the map. */
   studentUniversityId?: string;
   studentUniversityLatitude?: number;

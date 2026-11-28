@@ -15,11 +15,13 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- Blog hidden for now:
   <url>
     <loc>https://velven.ge/blog</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  -->
   <url>
     <loc>https://velven.ge/ai-home-match</loc>
     <changefreq>monthly</changefreq>

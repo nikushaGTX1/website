@@ -3386,3 +3386,10 @@ svg {
    it glides to the chosen photo. */
 .map-preview-track { transition: transform 320ms cubic-bezier(0.22, 0.8, 0.28, 1); }
 .map-preview-track.dragging { transition: none; }
+
+/* Map preview card: heart the same size as the close X (34px), on the same line,
+   icon centred; on every screen size. */
+.map-preview .map-preview-heart { --heart-d: 34px !important; top: 12px !important; right: 52px !important; }
+.map-preview .map-preview-heart svg { width: 18px !important; height: 18px !important; }
+.map-preview .map-preview-heart,
+.map-preview .map-preview-close { border: 0 !important; box-shadow: 0 2px 7px rgba(0, 0, 0, .2) !important; }

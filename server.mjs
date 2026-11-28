@@ -1529,7 +1529,7 @@ async function dynamicSitemap() {
     ['/main', 'daily', '1.0'],
     ['/ExploreProperty', 'daily', '0.9'],
     ['/agent-profile', 'weekly', '0.8'],
-    ['/blog', 'weekly', '0.7'],
+    // ['/blog', 'weekly', '0.7'], // Blog hidden for now
     ['/ai-home-match', 'monthly', '0.6'],
     ['/clients', 'daily', '0.7'],
     ['/about', 'monthly', '0.7'],

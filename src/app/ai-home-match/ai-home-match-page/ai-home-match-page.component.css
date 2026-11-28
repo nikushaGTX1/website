@@ -4988,7 +4988,7 @@ fieldset {
   background: rgba(20, 15, 40, 0.5); backdrop-filter: blur(3px);
 }
 .student-dialog {
-  display: flex; flex-direction: column; width: min(560px, 100%); max-height: calc(100dvh - 32px);
+  display: flex; flex-direction: column; width: min(720px, 100%); max-height: calc(100dvh - 32px);
   overflow: hidden; border-radius: 22px; background: #fff; box-shadow: 0 24px 70px rgba(23, 18, 47, 0.25);
   animation: student-pop 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -5000,7 +5000,7 @@ fieldset {
   border: 1px solid #e3dcf0; border-radius: 50%; background: #fff; color: #2a2140; font-size: 16px; cursor: pointer;
 }
 .student-dialog-sub { margin: 0; padding: 0 20px 14px; color: #6f6385; font-size: 14px; }
-.student-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 6px 20px 22px; }
+.student-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 6px 20px 22px; }
 .student-option {
   display: grid; justify-items: start; align-content: start; gap: 6px; min-height: 150px; padding: 16px;
   border: 1.5px solid #e6e0f2; border-radius: 18px; background: #fff; color: #1f1533; font: inherit;
@@ -5066,3 +5066,21 @@ fieldset {
   .student-backdrop { right: auto; width: 100vw; }
   .student-dialog { width: 100vw !important; max-width: none !important; justify-self: stretch; margin: 0; }
 }
+
+/* [hidden] must win over the display:flex above (the Student box showed without Student). */
+.student-follow[hidden],
+.business-follow[hidden] { display: none !important; }
+
+/* Student box "Change": compact purple button with a pen, same rounding as the box's icon. */
+.student-follow-change {
+  display: inline-flex !important; align-items: center; gap: 7px;
+  height: 36px !important; min-height: 36px !important; padding: 0 14px !important;
+  border: 0 !important; border-radius: 11px !important;
+  background: #451a8f !important; color: #fff !important;
+  font-size: 13px !important; font-weight: 700; line-height: 1; box-shadow: none !important;
+}
+.student-follow-change i { font-size: 11px; }
+@media (hover: hover) { .student-follow-change:hover { background: #5a24b3 !important; } }
+.student-follow-change:focus-visible { outline: 3px solid rgba(69, 26, 143, .3); outline-offset: 2px; }
+/* Keep the button off the box's right edge (a wider rule had set the right padding to 0). */
+.student-follow { padding: 12px 14px !important; }

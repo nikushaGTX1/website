@@ -638,11 +638,11 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     );
     Object.assign(button.style, {
       position: 'relative',
-      minWidth: '58px',
-      height: '34px',
-      padding: '0 11px',
+      minWidth: '46px',
+      height: '28px',
+      padding: '0 9px',
       border: '1px solid rgba(60, 48, 67, .18)',
-      borderRadius: '18px',
+      borderRadius: '14px',
       background: '#fff',
       color: '#171421',
       boxShadow: '0 5px 14px rgba(25, 16, 31, .22)',
@@ -661,10 +661,10 @@ export class ExplorePropertyMapComponent implements AfterViewInit, OnChanges, On
     const tail = document.createElement('span');
     Object.assign(tail.style, {
       position: 'absolute',
-      bottom: '-5px',
+      bottom: '-4px',
       left: '50%',
-      width: '9px',
-      height: '9px',
+      width: '8px',
+      height: '8px',
       background: '#fff',
       transform: 'translateX(-50%) rotate(45deg)',
       transition: 'background .18s ease',

@@ -2153,7 +2153,7 @@ select:focus {
 /* Interior style: three picture options instead of a dropdown. */
 .lifestyle-panel { grid-template-columns: 42px minmax(0, 1fr) minmax(300px, auto); }
 .style-select > span { font-size: 11px; margin-bottom: 8px; color: #5b5470; }
-.style-picks { display: grid; grid-template-columns: repeat(3, minmax(88px, 1fr)); gap: 8px; }
+.style-picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; } /* narrow screens: wraps to a second row instead of clipping */
 .style-pick {
   position: relative;
   display: grid;
@@ -2462,7 +2462,7 @@ select:focus {
 .upload-page > .page-intro p { max-width: 560px; color: #6b6280 !important; font-size: 15.5px !important; line-height: 1.6 !important; }
 .upload-page > .page-intro .intro-trust { padding: 14px 18px !important; border-radius: 16px !important; box-shadow: none; }
 .upload-page .popular-ribbon { background: linear-gradient(135deg, #7c3aed, #4c1d95) !important; box-shadow: none !important; }
-@media (max-width: 760px) {
+@media (max-width: 960px) {
   .upload-page > .page-intro { align-items: flex-start !important; margin-bottom: 28px !important; }
   .upload-page > .page-intro .intro-trust { display: none !important; }
 }
@@ -2490,7 +2490,7 @@ select:focus {
 .popular-ribbon { position: absolute !important; top: 14px !important; right: 14px !important; left: auto !important; display: inline-flex !important; align-items: center; gap: 6px; padding: 6px 12px !important; border-radius: 999px !important; background: #451a8f !important; color: #fff !important; font-size: 12px !important; font-weight: 700 !important; box-shadow: none !important; transform: none !important; }
 .plan-card.exclusive .plan-card-head { padding-top: 22px !important; }
 .plan-compare { display: block; margin: 18px auto 0; border: 0; background: transparent; color: #451a8f; font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
-@media (max-width: 760px) {
+@media (max-width: 960px) {
   .plan-choice { display: grid !important; grid-template-columns: 1fr !important; gap: 16px !important; overflow: visible !important; scroll-snap-type: none !important; padding: 0 !important; }
   .plan-choice .plan-card { width: auto !important; min-width: 0 !important; }
   .plan-swipe-nav { display: none !important; }
@@ -2501,7 +2501,7 @@ select:focus {
 
 /* Symmetric plan cards: same header space on both, lists start at the same line */
 .plan-card .plan-card-head { padding-top: 22px !important; }
-@media (min-width: 761px) {
+@media (min-width: 961px) {
   .plan-choice { align-items: stretch !important; }
   .plan-card .plan-card-head { min-height: 132px; }
 }

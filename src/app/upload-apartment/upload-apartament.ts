@@ -1344,9 +1344,14 @@ export class UploadApartment implements OnInit, OnDestroy, DoCheck {
   openStep(index: number): void {
     this.activeStep = index;
     if (index === 4) this.generateListingCopy(false);
-    document
-      .getElementById(`listing-step-${index}`)
-      ?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    // Land the section title just under the sticky header (its real height on this screen).
+    const section = document.getElementById(`listing-step-${index}`);
+    if (!section) return;
+    const header = document.querySelector('app-navigation');
+    const headerBottom = header && getComputedStyle(header).position !== 'static'
+      ? Math.max(0, header.getBoundingClientRect().bottom)
+      : 0;
+    window.scrollTo({ top: section.getBoundingClientRect().top + window.scrollY - headerBottom - 12, behavior: 'instant' });
   }
 
   get completionPercentage(): number {

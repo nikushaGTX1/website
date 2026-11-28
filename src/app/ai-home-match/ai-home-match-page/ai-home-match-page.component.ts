@@ -435,7 +435,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
   get moveInDateInPast(): boolean {
     return this.profile.moveInTiming === 'SpecificDate' && isPastDate(this.profile.moveInDate);
   }
-  profile: HomeMatchProfile;
+  profile!: HomeMatchProfile; // set in the constructor by applyProfile()
   quizStarted = false;
   step = 1;
   mapVisible = false;
@@ -635,26 +635,62 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.editSearchId = Number(query.get('editSearch')) || null;
     const restored = service.restoreFromSession();
     if (!restored) service.reset();
+    this.applyProfile(restored);
+    // Signed in with nothing in this tab: continue from the newest search saved in
+    // Velven Discover (opens its summary, "Edit My Answers" changes that same search).
+    if (!restored && this.auth.isLoggedIn && !this.intakeToken && !query.get('new')) {
+      this.clientService.getSearches().subscribe({
+        next: (searches) => {
+          const time = (item: { updatedAt?: string | null; createdAt?: string | null }) =>
+            new Date(item.updatedAt || item.createdAt || 0).getTime();
+          const newest = [...(searches || [])].filter((item) => item.profile).sort((x, y) => time(y) - time(x))[0];
+          // Only while nothing was answered here yet.
+          if (!newest || this.profile.propertyGoal || this.view !== 'questions') return;
+          if (!this.service.saveToSession(newest.profile)) return;
+          this.editSearchId = newest.id;
+          this.applyProfile(this.service.restoreFromSession());
+          this.cdr.markForCheck();
+        },
+        error: () => undefined,
+      });
+    }
+    // A fresh intake link opens on the first question actually asked. It used to open on the
+    // old default (property goal) and silently skip the nationality question.
+    if (this.quizStarted && !restored) {
+      this.step = this.firstIncompleteStep() ?? this.visibleSteps[0] ?? this.step;
+    }
+    this.locationService.getLocations().subscribe({
+      next: (locations) => {
+        this.locationEntries = locations;
+        this.locationsLoaded = true;
+      },
+      error: () => {
+        this.locationsLoaded = true;
+      },
+    });
+  }
+  /** Puts the loaded answers (this tab's session or a saved search) on the page. */
+  private applyProfile(restored: boolean): void {
     this.profile = {
-      ...service.profile,
-      gender: service.profile.gender || '',
-      adults: Math.min(7, Math.max(1, service.profile.adults || 1)),
+      ...this.service.profile,
+      gender: this.service.profile.gender || '',
+      adults: Math.min(7, Math.max(1, this.service.profile.adults || 1)),
       children: Math.min(
-        Math.max(0, 7 - Math.min(7, Math.max(1, service.profile.adults || 1))),
-        Math.max(0, service.profile.children || 0),
+        Math.max(0, 7 - Math.min(7, Math.max(1, this.service.profile.adults || 1))),
+        Math.max(0, this.service.profile.children || 0),
       ),
-      lifestyles: (service.profile.lifestyles || []).filter(
+      lifestyles: (this.service.profile.lifestyles || []).filter(
         (lifestyle) => lifestyle !== 'FamilyFocused',
       ),
       petType:
-        service.profile.petType ??
-        (service.profile.hasPet === true
+        this.service.profile.petType ??
+        (this.service.profile.hasPet === true
           ? 'Dog'
-          : service.profile.hasPet === false
+          : this.service.profile.hasPet === false
             ? 'None'
             : undefined),
-      petCount: Math.max(1, service.profile.petCount || 1),
-      topPriorities: service.profile.topPriorities || [],
+      petCount: Math.max(1, this.service.profile.petCount || 1),
+      topPriorities: this.service.profile.topPriorities || [],
     };
     // Multi-select pets; older profiles carried a single petType.
     this.profile.petTypes = this.profile.hasPet ? selectedPets(this.profile) : [];
@@ -688,7 +724,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       else this.step = missing;
       // Back from an apartment: show the same results again instead of the summary.
       const kept = missing === undefined && this.intakeToken === null
-        ? service.restoreResults(JSON.stringify(this.profile))
+        ? this.service.restoreResults(JSON.stringify(this.profile))
         : null;
       if (kept) {
         this.matches = kept.matches;
@@ -702,20 +738,6 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         }
       }
     }
-    // A fresh intake link opens on the first question actually asked. It used to open on the
-    // old default (property goal) and silently skip the nationality question.
-    if (this.quizStarted && !restored) {
-      this.step = this.firstIncompleteStep() ?? this.visibleSteps[0] ?? this.step;
-    }
-    this.locationService.getLocations().subscribe({
-      next: (locations) => {
-        this.locationEntries = locations;
-        this.locationsLoaded = true;
-      },
-      error: () => {
-        this.locationsLoaded = true;
-      },
-    });
   }
   ngOnDestroy(): void {
     if (this.howItWorksOpen) this.closeHowItWorks();
@@ -1261,9 +1283,9 @@ export class AiHomeMatchPageComponent implements OnDestroy {
     this.cdr.markForCheck();
   }
 
-  chooseStudentMode(mode: 'NearUniversity' | 'NoPreference'): void {
+  chooseStudentMode(mode: 'NearUniversity' | 'NearMetro' | 'NoPreference'): void {
     this.profile.studentUniversityMode = mode;
-    if (mode === 'NoPreference') {
+    if (mode !== 'NearUniversity') {
       this.profile.studentUniversityId = undefined;
       this.profile.studentUniversityLatitude = undefined;
       this.profile.studentUniversityLongitude = undefined;
@@ -1515,6 +1537,7 @@ export class AiHomeMatchPageComponent implements OnDestroy {
         return this.profile.lifestyles.length > 0 && this.profile.lifestyles.length <= 3 &&
           (!this.profile.lifestyles.includes('Student') ||
             this.profile.studentUniversityMode === 'NoPreference' ||
+            this.profile.studentUniversityMode === 'NearMetro' ||
             (this.profile.studentUniversityMode === 'NearUniversity' && this.profile.studentUniversityLatitude != null)) &&
           (!this.profile.lifestyles.includes('BusinessProfessional') ||
             this.profile.businessMode === 'HomeBusiness' ||
@@ -2025,11 +2048,11 @@ export class AiHomeMatchPageComponent implements OnDestroy {
       add('Modern and well-maintained building', 'ModernMaintainedBuilding');
     }
     if (lifestyle.has('Student')) {
-      // Near the student's own university when they chose one; otherwise near a metro station
-      // (we do not know which university they go to).
+      // Near the student's own university, or near a metro station (metro flexibility).
+      // "Does not matter": no student priority is marked as the strongest.
       if (this.profile.studentUniversityMode === 'NearUniversity' && this.chosenUniversity) {
         add('Proximity to your university', 'UniversityNearby', true);
-      } else {
+      } else if (this.profile.studentUniversityMode !== 'NoPreference') {
         add('Proximity to metro', 'MetroNearby', true);
       }
       add('Proximity to metro', 'MetroNearby');

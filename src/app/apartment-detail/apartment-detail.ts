@@ -57,7 +57,8 @@ import { CurrencyService } from '../services/currency.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { lockPageScroll, unlockPageScroll } from '../utils/page-scroll-lock';
 import { nearbyDriveMinutes } from '../utils/nearby-places';
-import { isListedUniversity } from '../utils/universities';
+import { isListedUniversity, UNIVERSITY_CHOICES, universityName } from '../utils/universities';
+import { walkingMinutesTo } from '../ai-home-match/services/priority-scoring';
 import { NgIf, NgClass, NgFor, SlicePipe, DecimalPipe } from '@angular/common';
 import { PhotoCarouselComponent } from '../shared/photo-carousel/photo-carousel.component';
 import { FormsModule } from '@angular/forms';
@@ -1555,7 +1556,11 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     }
     if (profile.children > 0) keys.add('schoolDistanceMinutes').add('kindergartenDistanceMinutes');
     if (profile.lifestyles.includes('Athlete')) keys.add('gymDistanceMinutes');
-    if (profile.lifestyles.includes('Student')) keys.add('universityDistanceMinutes');
+    if (profile.lifestyles.includes('Student')) {
+      // A chosen university comes first; the nearest one only when none was chosen.
+      if (profile.studentUniversityMode === 'NearUniversity' && profile.studentUniversityLatitude != null) keys.add('chosenUniversityMinutes');
+      else keys.add('universityDistanceMinutes');
+    }
     if (profile.transportation.includes('Metro')) keys.add('metroDistanceMinutes');
     if (profile.transportation.includes('Car') && profile.carFuelType === 'Electric')
       keys.add('evChargerDistanceMinutes');
@@ -1630,6 +1635,8 @@ export class ApartmentDetail implements OnInit, OnDestroy {
         icon: 'fa-children',
         minutes: apartment.kindergartenDistanceMinutes,
       },
+      // The student's own university (Velven Match answer): walking time to it.
+      ...(this.chosenUniversityPlace(apartment)),
       {
         key: 'universityDistanceMinutes',
         label: 'Nearest university',
@@ -1673,7 +1680,9 @@ export class ApartmentDetail implements OnInit, OnDestroy {
     const driving = nearbyDriveMinutes(apartment);
     const withMode = places.map((place) => {
       // Only universities from the approved list count; training centres are left out.
-      if (place.key === 'universityDistanceMinutes' && !isListedUniversity(names[place.key])) {
+      // A chosen university replaces the generic nearest one (it could be a different school).
+      const chosenShown = places.some((item) => item.key === 'chosenUniversityMinutes');
+      if (place.key === 'universityDistanceMinutes' && (chosenShown || !isListedUniversity(names[place.key]))) {
         return { ...place, minutes: undefined, mode: 'walk' };
       }
       const walk = Number(place.minutes);
@@ -1694,8 +1703,27 @@ export class ApartmentDetail implements OnInit, OnDestroy {
             Number(a.mode === 'drive') - Number(b.mode === 'drive') || relevant(a) - relevant(b),
         )
         .slice(0, 9) // show up to 9 places (3 full rows)
-        .map(({ key, ...place }) => ({ ...place, name: key ? names[key] : undefined }))
+        .map(({ key, ...place }) => ({
+          ...place,
+          name: key === 'chosenUniversityMinutes' ? this.chosenUniversityName : key ? names[key] : undefined,
+        }))
     );
+  }
+
+  /** The university a student chose in Velven Match, in the page language. */
+  private get chosenUniversityName(): string {
+    const profile = this.homeMatch.profile;
+    const choice = UNIVERSITY_CHOICES.find((item) => item.id === profile.studentUniversityId);
+    return universityName(choice, this.translation.language$.value);
+  }
+
+  private chosenUniversityPlace(apartment: Apartment): Array<{ key: string; label: string; icon: string; minutes: number | undefined }> {
+    if (!this.homeMatch.profile.propertyGoal) this.homeMatch.restoreFromSession();
+    const profile = this.homeMatch.profile;
+    if (!profile.lifestyles?.includes('Student') || profile.studentUniversityMode !== 'NearUniversity') return [];
+    const minutes = walkingMinutesTo(apartment as never, profile.studentUniversityLatitude, profile.studentUniversityLongitude);
+    if (minutes === undefined || minutes > 60) return [];
+    return [{ key: 'chosenUniversityMinutes', label: 'Your university', icon: 'fa-graduation-cap', minutes: Math.max(1, Math.round(minutes)) }];
   }
 
   viewSimilar(index: number): void {

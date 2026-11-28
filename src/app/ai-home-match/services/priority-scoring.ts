@@ -6,6 +6,19 @@ import { budgetRangeUsd } from './mandatory-requirements';
 import { parkingTypeLabel } from '../../utils/parking-cost';
 
 const PRIORITY_MULTIPLIERS = [5, 4, 3, 2, 1] as const;
+/** "Proximity to your university" (student chose a university) has its own weights by rank. */
+const UNIVERSITY_MULTIPLIERS = [10, 8, 5, 3, 2] as const;
+
+/** Walking minutes to the chosen university: 0-5 min 5 points, 6-10 min 4, 11-15 min 3, farther 0. */
+export function universityDistancePoints(minutes?: number): number {
+  if (minutes === undefined || minutes < 0) return 0;
+  return minutes <= 5 ? 5 : minutes <= 10 ? 4 : minutes <= 15 ? 3 : 0;
+}
+
+/** True when this ranked priority is the student's own university (special weights). */
+function isChosenUniversity(priority: string, profile: HomeMatchProfile): boolean {
+  return priority === 'UniversityNearby' && profile.studentUniversityMode === 'NearUniversity';
+}
 const PRIORITY_LABELS: Record<string, string> = {
   MetroNearby: 'Proximity to metro',
   SchoolNearby: 'Proximity to school',
@@ -146,8 +159,7 @@ export function scorePriority(priority: string, apartment: HomeMatchApartment, p
     walkingDistanceScore(minutesOf(apartment, ...fields));
   // "Near my university": measured to that university, not to whichever one is closest.
   if (priority === 'UniversityNearby' && profile.studentUniversityMode === 'NearUniversity') {
-    const minutes = chosenUniversityMinutes(apartment, profile);
-    return minutes === undefined ? 0 : walkingDistanceScore(minutes);
+    return universityDistancePoints(chosenUniversityMinutes(apartment, profile));
   }
   switch (priority) {
     case 'Parking':
@@ -278,13 +290,11 @@ function lifestyleAdjustment(apartment: HomeMatchApartment, profile: HomeMatchPr
     if ((apartment.gymDistanceMinutes ?? 99) <= 10) points += 5;
     if ((apartment.parkDistanceMinutes ?? 99) <= 10) points += 3;
   }
-  // Student: near the university they chose (+8 within 15 min walk, +4 within 25),
-  // or, when the university does not matter, near a metro station (+5 within 10 min).
-  if (lifestyles.has('Student')) {
-    if (profile.studentUniversityMode === 'NearUniversity') {
-      const minutes = chosenUniversityMinutes(apartment, profile);
-      if (minutes !== undefined) points += minutes <= 15 ? 8 : minutes <= 25 ? 4 : 0;
-    } else if (profile.studentUniversityMode === 'NoPreference') {
+  // Student: a chosen university earns points only through the ranked priority
+  // "Proximity to your university" (see applyPriorityScoring), not here.
+  // Metro flexibility: near a metro station (+5 within 10 min). "Does not matter": nothing.
+  if (lifestyles.has('Student') && profile.studentUniversityMode !== 'NearUniversity' && profile.studentUniversityMode !== 'NoPreference') {
+    if (profile.studentUniversityMode === 'NearMetro') {
       if ((apartment.metroDistanceMinutes ?? 99) <= 10) points += 5;
     } else if ((listedUniversityMinutes(apartment) ?? 99) <= 15) {
       points += 5;
@@ -329,6 +339,8 @@ export function valueScore(apartment: HomeMatchApartment, profile: HomeMatchProf
  * lease term) are applied before this in mandatory-requirements.ts; this only orders the
  * homes that pass them. Every part is measurable and shows up in "Why it fits you":
  *   priorities  top-5 answers, walking-distance score 0-5 x weight 5/4/3/2/1   (0-75)
+ *               "Proximity to your university" (student chose one): 5/4/3 points for a
+ *               0-5/6-10/11-15 min walk x weight 10/8/5/3/2 by rank      (0-50)
  *   coverage    +3/+6/+10/+15 when 2/3/4/5 priorities are met                   (0-15)
  *   lifestyle   lifestyle, car/parking, metro, style, household space, half weight (about -15..+20)
  *   value       price against the budget maximum (valueScore)                   (-10..+15)
@@ -342,10 +354,10 @@ export function applyPriorityScoring(result: HomeMatchResult, profile: HomeMatch
       ? 0
       : scorePriority(priority, result.apartment, profile),
   );
-  const weightedScore = rawScores.reduce(
-    (total, score, index) => total + score * PRIORITY_MULTIPLIERS[index],
-    0,
-  );
+  const priorities = profile.topPriorities.slice(0, 5);
+  const multiplier = (index: number): number =>
+    isChosenUniversity(priorities[index], profile) ? UNIVERSITY_MULTIPLIERS[index] : PRIORITY_MULTIPLIERS[index];
+  const weightedScore = rawScores.reduce((total, score, index) => total + score * multiplier(index), 0);
   const satisfied = rawScores.filter((score) => score > 0).length;
   const coverageBonus = satisfied === 5 ? 15 : satisfied === 4 ? 10 : satisfied === 3 ? 6 : satisfied === 2 ? 3 : 0;
   const value = valueScore(result.apartment, profile);
@@ -355,8 +367,8 @@ export function applyPriorityScoring(result: HomeMatchResult, profile: HomeMatch
     priority: PRIORITY_LABELS[priority] || priority.replace(/([a-z])([A-Z])/g, '$1 $2'),
     rank: index + 1,
     baseScore: rawScores[index],
-    multiplier: PRIORITY_MULTIPLIERS[index],
-    weightedPoints: rawScores[index] * PRIORITY_MULTIPLIERS[index],
+    multiplier: multiplier(index),
+    weightedPoints: rawScores[index] * multiplier(index),
   }));
   return {
     ...result,

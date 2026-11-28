@@ -220,11 +220,10 @@ const routes: Routes = [
     canActivate: [clientGuard],
   },
 
-  {
-    path: 'blog',
-    loadComponent: () => import('./blog/blog').then((m) => m.Blog),
-    title: 'Tbilisi Property Blog | Velven',
-  },
+  // Blog hidden for now: /blog goes to the home page. The page (./blog/blog) and the
+  // admin Blog tab are kept; to show it again restore:
+  //   { path: 'blog', loadComponent: () => import('./blog/blog').then((m) => m.Blog), title: 'Tbilisi Property Blog | Velven' },
+  { path: 'blog', redirectTo: 'main', pathMatch: 'full' },
 
   {
     path: 'upload-apartment',

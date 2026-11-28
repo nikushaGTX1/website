@@ -141,7 +141,22 @@ test('student near their own university: closer to that university ranks higher;
   const reasons = explainHomeMatch(near, student);
   assert.ok(reasons.some((item) => item.title === 'Your university'));
 
-  const noPreference: HomeMatchProfile = { ...student, studentUniversityMode: 'NoPreference', topPriorities: ['MetroNearby'] };
+  // Own weights: 0-5 min 5 points, 6-10 min 4, 11-15 min 3; x10 as 1st priority, x8 as 2nd.
+  const { universityDistancePoints } = await import('./priority-scoring');
+  assert.deepEqual([4, 8, 14, 20].map((m) => universityDistancePoints(m)), [5, 4, 3, 0]);
+  const first = applyPriorityScoring({ apartment: near, matchScore: 60 } as HomeMatchResult, student).priorityBreakdown?.[0];
+  assert.equal(first?.multiplier, 10);
+  assert.equal(first?.weightedPoints, 50);
+  const second = applyPriorityScoring({ apartment: near, matchScore: 60 } as HomeMatchResult, { ...student, topPriorities: ['QuietStreet', 'UniversityNearby'] }).priorityBreakdown?.[1];
+  assert.equal(second?.multiplier, 8);
+  // Choosing Student alone (university not ranked) adds no university points.
+  const unranked = { ...student, topPriorities: ['QuietStreet'] };
+  assert.equal(
+    applyPriorityScoring({ apartment: near, matchScore: 60 } as HomeMatchResult, unranked).rankingScore,
+    applyPriorityScoring({ apartment: far, matchScore: 60 } as HomeMatchResult, unranked).rankingScore,
+  );
+
+  const noPreference: HomeMatchProfile = { ...student, studentUniversityMode: 'NearMetro', topPriorities: ['MetroNearby'] };
   const byMetro = applyPriorityScoring({ apartment: home(3, { metroDistanceMinutes: 4 }), matchScore: 60 } as HomeMatchResult, noPreference).rankingScore ?? 0;
   const noMetro = applyPriorityScoring({ apartment: home(4, { metroDistanceMinutes: 40 }), matchScore: 60 } as HomeMatchResult, noPreference).rankingScore ?? 0;
   assert.ok(byMetro > noMetro);

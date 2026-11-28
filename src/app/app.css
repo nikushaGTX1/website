@@ -21,7 +21,9 @@
 }
 
 .route-content {
-  animation: route-reload-fade 520ms ease-out both;
+  /* backwards, not both: a finished animation that keeps opacity makes the page its own
+     layer, and the footer (z-index 1) was drawn over every popup inside it. */
+  animation: route-reload-fade 520ms ease-out backwards;
 }
 
 @keyframes route-reload-fade {

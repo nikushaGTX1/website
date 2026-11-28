@@ -14,7 +14,9 @@ import { PhotoUrlPipe } from '../shared/photo-url.pipe';
 
 type FieldKey = 'location' | 'street' | 'streetNumber' | 'totalPrice' | 'area' | 'rooms' | 'ownerName' | 'ownerPhone' | 'ownerEmail' | 'floor' | 'city' | 'condition' | 'buildingType' | 'availableFrom' | 'description' | 'photos' | 'maxOccupants';
 
-@Component({ selector: 'app-owner-listing', standalone: true, imports: [RouterLink, PhotoUrlPipe, CommonModule, FormsModule, PropertyPointPickerComponent, DatePickerComponent], templateUrl: './owner-listing.html', styleUrl: './owner-listing.css' })
+@Component({ selector: 'app-owner-listing', standalone: true, imports: [RouterLink, PhotoUrlPipe, CommonModule, FormsModule, PropertyPointPickerComponent, DatePickerComponent], templateUrl: './owner-listing.html',
+  // Same look as "List your property": the upload page's stylesheet first, owner-only parts after it.
+  styleUrls: ['../upload-apartment/upload-apartment.css', './owner-listing.css'] })
 export class OwnerListing implements OnInit, OnDestroy {
   readonly maxPhotos = 15;
   readonly propertyTypes = [
@@ -46,6 +48,11 @@ export class OwnerListing implements OnInit, OnDestroy {
     { field: 'isQuietStreet', label: 'Quiet street', icon: 'fa-solid fa-volume-xmark' },
   ];
   readonly rentalPeriods = ['Minimum 6 months', 'Minimum 12 months'];
+  readonly buildingTypes = [
+    { value: 'Old building', icon: 'fa-solid fa-building-columns' },
+    { value: 'New building', icon: 'fa-solid fa-building-circle-check' },
+    { value: 'Under construction', icon: 'fa-solid fa-helmet-safety' },
+  ];
   readonly counters: Array<{ field: string; label: string; icon: string; min: number }> = [
     // Singular labels read naturally above a count in Georgian (ოთახი / საძინებელი / სააბაზანო).
     { field: 'rooms', label: 'Room', icon: 'fa-solid fa-door-open', min: 1 },
@@ -213,6 +220,84 @@ export class OwnerListing implements OnInit, OnDestroy {
     return e;
   }
 
+  /** Sidebar steps, in page order, each ticked when its required answers are in. */
+  get sections(): Array<{ id: string; label: string; done: boolean }> {
+    const e = this.errors;
+    const d = this.data;
+    const list = [
+      { id: 'property', label: 'Property details', done: !e.area && !e.rooms && !e.floor && !e.buildingType && !e.condition },
+      { id: 'location', label: 'Location', done: !e.location && !e.street && !e.streetNumber && !e.city },
+      { id: 'price', label: 'Price', done: !e.totalPrice },
+      { id: 'features', label: 'Features', done: this.features.some((f) => !!d[f.field]) },
+    ];
+    if (this.general || this.info?.dealType === 'Rent') {
+      list.push({ id: 'rental', label: this.general ? 'Availability' : 'Rental details',
+        done: this.general ? !e.availableFrom && !e.maxOccupants : !!d['availableFrom'] || !!d['minimumRentalPeriod'] });
+    }
+    list.push({ id: 'photos', label: 'Photos', done: this.general ? !e.photos && !e.description : !!this.editId || this.photos.length > 0 });
+    list.push({ id: 'contact', label: 'Contact information', done: !e.ownerName && !e.ownerPhone && !e.ownerEmail });
+    return list;
+  }
+
+  /** The first step still missing something (highlighted in the sidebar). */
+  get activeSection(): string {
+    return this.sections.find((section) => !section.done)?.id ?? 'contact';
+  }
+
+  sectionNumber(id: string): string {
+    return String(this.sections.findIndex((section) => section.id === id) + 1).padStart(2, '0');
+  }
+
+  openSection(id: string): void {
+    this.scrollUnderHeader(document.getElementById('owner-step-' + id));
+  }
+
+  /** "Please complete these fields": jump to the field, or its section when it has no input. */
+  goToField(key: string): void {
+    const sectionOf: Record<string, string> = { condition: 'property', buildingType: 'property', availableFrom: 'rental', description: 'photos', photos: 'photos' };
+    const field = document.querySelector<HTMLElement>(`[name="${key}"]`);
+    const target = field && !(field as HTMLInputElement).disabled ? field : document.getElementById('owner-step-' + (sectionOf[key] || 'location'));
+    this.scrollUnderHeader(target);
+    if (field instanceof HTMLInputElement && !field.disabled && field.type !== 'file') field.focus({ preventScroll: true });
+  }
+
+  /** Puts an element just under the sticky header (its real height on this screen). */
+  private scrollUnderHeader(element: Element | null): void {
+    if (!element) return;
+    const header = document.querySelector('app-navigation');
+    const headerBottom = header && getComputedStyle(header).position !== 'static' ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+    window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY - headerBottom - 12, behavior: 'smooth' });
+  }
+
+  get previewPhoto(): string { return this.previews[0] || this.existingPhotos[0] || ''; }
+
+  get previewTitle(): string {
+    const type = (this.data['realEstateType'] || 'Apartment') as string;
+    const deal = this.info?.dealType === 'Rent' ? 'for rent' : 'for sale';
+    return `${type} ${deal} in ${this.data['location'] || this.data['city'] || 'Tbilisi'}`;
+  }
+
+  get previewPrice(): string {
+    const price = Number(this.data['totalPrice']);
+    if (!(price > 0)) return 'Price';
+    const symbol = this.data['currency'] === 'GEL' ? '₾' : '$';
+    return symbol + Math.round(price).toLocaleString('en-US');
+  }
+
+  /** Price per m², filled automatically like on the upload page. */
+  get sqPrice(): number | null {
+    const price = Number(this.data['totalPrice']);
+    const area = Number(this.data['area']);
+    return price > 0 && area > 0 ? Math.round(price / area) : null;
+  }
+
+  /** Missing answers in page order (top of the form first). */
+  get errorList(): Array<{ key: string; value: string }> {
+    const order = ['area', 'rooms', 'floor', 'buildingType', 'condition', 'city', 'location', 'street', 'streetNumber', 'totalPrice', 'availableFrom', 'maxOccupants', 'description', 'photos', 'ownerName', 'ownerPhone', 'ownerEmail'];
+    const errors = this.errors as Record<string, string>;
+    return Object.keys(errors).sort((a, b) => order.indexOf(a) - order.indexOf(b)).map((key) => ({ key, value: errors[key] }));
+  }
+
   showError(field: FieldKey): string { return this.attempted ? this.errors[field] || '' : ''; }
 
   get progress(): number {
@@ -226,7 +311,8 @@ export class OwnerListing implements OnInit, OnDestroy {
     this.attempted = true; this.error = '';
     const firstInvalid = Object.keys(this.errors)[0];
     if (firstInvalid) {
-      setTimeout(() => document.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      // The list of missing fields shows above the form; start there.
+      setTimeout(() => this.scrollUnderHeader(document.querySelector('.upload-validation')));
       return;
     }
     this.submitting = true;

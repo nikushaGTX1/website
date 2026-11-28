@@ -1639,6 +1639,7 @@
   color: #fff;
   font-size: 14px;
   font-weight: 700;
+  text-decoration: none; /* no white underline under "View details" */
 }
 .view-details i {
   position: absolute;
